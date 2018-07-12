@@ -189,7 +189,7 @@ class project extends control
         /* Get tasks. */
         $tasks = $this->project->getTasks($productID, $projectID, $this->projects, $browseType, $queryID, $moduleID, $sort, $pager);
 
-        if($browseType != 'unclosed' and $browseType != 'all')
+        if(strpos('unclosed,all,bymodule,byproduct', $browseType) === false)
         {
             foreach($tasks as $task)
             {
@@ -915,8 +915,7 @@ class project extends control
         $whitelist   = '';
         $acl         = 'open';
         $plan        = new stdClass();
-        $productPlan = new stdClass();
-
+        $productPlan = array();
         if($copyProjectID)
         {
             $copyProject = $this->dao->select('*')->from(TABLE_PROJECT)->where('id')->eq($copyProjectID)->fetch();
@@ -926,7 +925,7 @@ class project extends control
             $acl         = $copyProject->acl;
             $whitelist   = $copyProject->whitelist;
             $products    = $this->project->getProducts($copyProjectID);
-        }
+        }     
 
         if(!empty($planID))
         {
@@ -969,7 +968,7 @@ class project extends control
         $this->view->code          = $code;
         $this->view->team          = $team;
         $this->view->products      = $products;
-        $this->view->productPlan   = $productPlan;
+        $this->view->productPlan   = array(0 => '') + $productPlan;
         $this->view->whitelist     = $whitelist;
         $this->view->copyProjectID = $copyProjectID;
         $this->view->branchGroups  = $this->loadModel('branch')->getByProducts(array_keys($products));

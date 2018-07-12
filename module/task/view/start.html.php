@@ -14,11 +14,12 @@
 <?php include '../../common/view/kindeditor.html.php';?>
 <?php include '../../common/view/datepicker.html.php';?>
 <?php js::set('confirmFinish', $lang->task->confirmFinish);?>
-<?php if(!empty($task->team) && key($task->team) != $this->app->user->account):?>
+<!-- IF it is multi-task, the suspened can only be restarted by the current user who it is assigned to.-->
+<?php if(!empty($task->team) && $task->assignedTo != $this->app->user->account):?>
 <div class="alert with-icon">
   <i class="icon-info-sign"></i>
   <div class="content">
-    <p><?php echo $lang->task->deniedNotice;?></p>
+    <p><?php echo sprintf($lang->task->deniedNotice, '<strong>' . $task->assignedToRealName . '</strong>', $lang->task->start);?></p>
   </div>
 </div>
 <?php else:?>
@@ -37,11 +38,21 @@
     </tr>  
     <tr>
       <th><?php echo $lang->task->consumed;?></th>
-      <td><div class='input-group'><?php echo html::input('consumed', $task->consumed, "class='form-control' autocomplete='off'");?> <span class='input-group-addon'><?php echo $lang->task->hour;?></span></div></td><td></td>
+      <td>
+        <div class='input-group'>
+          <?php $consumed = (!empty($task->team) && isset($task->team[$task->assignedTo])) ? $task->team[$task->assignedTo]->consumed : $task->consumed;?>
+          <?php echo html::input('consumed', $consumed, "class='form-control' autocomplete='off'");?> <span class='input-group-addon'><?php echo $lang->task->hour;?></span>
+        </div>
+      </td><td></td>
     </tr>  
     <tr>
       <th><?php echo $lang->task->left;?></th>
-      <td><div class='input-group'><?php echo html::input('left', $task->left, "class='form-control' autocomplete='off'");?> <span class='input-group-addon'><?php echo $lang->task->hour;?></span></div></td><td></td>
+      <td>
+        <div class='input-group'>
+          <?php $left = (!empty($task->team) && isset($task->team[$task->assignedTo])) ? $task->team[$task->assignedTo]->left : $task->left;?>
+          <?php echo html::input('left', $left, "class='form-control' autocomplete='off'");?> <span class='input-group-addon'><?php echo $lang->task->hour;?></span>
+        </div>
+      </td><td></td>
     </tr>
     <tr>
       <th><?php echo $lang->comment;?></th>

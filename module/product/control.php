@@ -229,7 +229,8 @@ class product extends control
             die(js::locate($this->createLink($this->moduleName, 'browse', "productID=$productID"), 'parent'));
         }
 
-        $this->product->setMenu($this->products, key($this->products));
+        $rootID = key($this->products);
+        $this->product->setMenu($this->products, $rootID);
 
         $this->view->title      = $this->lang->product->create;
         $this->view->position[] = $this->view->title;
@@ -238,6 +239,7 @@ class product extends control
         $this->view->qdUsers    = $this->loadModel('user')->getPairs('nodeleted|qdfirst|noclosed');
         $this->view->rdUsers    = $this->loadModel('user')->getPairs('nodeleted|devfirst|noclosed');
         $this->view->lines      = array('') + $this->loadModel('tree')->getLinePairs();
+        $this->view->rootID     = $rootID;
 
         unset($this->lang->product->typeList['']);
         $this->display();
@@ -273,7 +275,7 @@ class product extends control
 
         $this->product->setMenu($this->products, $productID);
 
-        $product  = $this->product->getStatByID($productID);
+        $product = $this->product->getById($productID);
         $this->view->title      = $this->lang->product->edit . $this->lang->colon . $product->name;
         $this->view->position[] = html::a($this->createLink($this->moduleName, 'browse'), $product->name);
         $this->view->position[] = $this->lang->product->edit;
@@ -390,7 +392,7 @@ class product extends control
     {
         $this->product->setMenu($this->products, $productID);
 
-        $product  = $this->product->getStatByID($productID);
+        $product = $this->product->getStatByID($productID);
         $product->desc = $this->loadModel('file')->setImgSize($product->desc);
         if(!$product) die(js::error($this->lang->notFound) . js::locate('back'));
 

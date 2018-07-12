@@ -20,46 +20,48 @@
   <span class='prefix'><?php echo html::icon($lang->icons['plan']);?> <strong><?php echo $plan->id;?></strong></span>
     <strong><?php echo $plan->title;?></strong>
     <?php if($product->type !== 'normal') echo "<span title='{$lang->product->branchName[$product->type]}' class='label label-branch label-badge'>" . $branches[$branch] . '</span>';?>
-    <span class='label label-info label-badge'><?php echo $plan->begin . '~' . $plan->end;?></span>
+    <span class='label label-info label-badge'>
+      <?php echo ($plan->begin == '2030-01-01' || $plan->end == '2030-01-01') ? $lang->productplan->future : $plan->begin . '~' . $plan->end;?>
+    </span>
     <?php if($plan->deleted):?>
     <span class='label label-danger'><?php echo $lang->plan->deleted;?></span>
     <?php endif; ?>
   </div>
   <div class='actions'>
-  <?php
-   $browseLink = $this->session->productPlanList ? $this->session->productPlanList : inlink('browse', "planID=$plan->id");
-   if(!$plan->deleted)
-   {
-      ob_start();
-      echo "<div class='btn-group'>";
-      echo "<div class='btn-group' id='createActionMenu'>";
-      common::printIcon('story', 'create', "productID=$plan->product&branch=$plan->branch&moduleID=0&storyID=0&projectID=0&bugID=0&planID=$plan->id", $plan, 'button', 'plus');
-      $batchMisc = common::hasPriv('story', 'batchCreate') ? '' : "disabled";
-      $batchLink = common::hasPriv('story', 'batchCreate') ?  $this->createLink('story', 'batchCreate', "productID=$plan->product&branch=$plan->branch&moduleID=0&story=0&project=0&plan={$plan->id}") : '#';
-      echo "<button type='button' class='btn dropdown-toggle {$batchMisc}' data-toggle='dropdown'><span class='caret'></span></button>";
-      echo "<ul class='dropdown-menu pull-right'>";
-      echo "<li>" . html::a($batchLink, $lang->story->batchCreate, '', "class='$batchMisc'") . "</li>";
-      echo '</ul>';
-      echo '</div>';
-      if(common::hasPriv('productplan', 'linkStory'))
-      {
-        echo html::a(inlink('view', "planID=$plan->id&type=story&orderBy=id_desc&link=true"), '<i class="icon-link"></i> ' . $lang->productplan->linkStory, '', "class='btn'");
-      }
-      if(common::hasPriv('productplan', 'linkBug') and $config->global->flow != 'onlyStory')
-      {
-          echo html::a(inlink('view', "planID=$plan->id&type=bug&orderBy=id_desc&link=true"), '<i class="icon-bug"></i> ' . $lang->productplan->linkBug, '', "class='btn'");
-      }
-      echo '</div>';
-      echo "<div class='btn-group'>";
-      common::printIcon('productplan', 'edit',   "planID=$plan->id", $plan);
-      common::printIcon('productplan', 'delete', "planID=$plan->id", $plan, 'button', '', 'hiddenwin');
-      echo '</div>';
-      $actionLinks = ob_get_contents();
-      ob_end_clean();
-      echo $actionLinks;
-   }
-   common::printRPN($browseLink);
-  ?>
+    <?php
+    $browseLink = $this->session->productPlanList ? $this->session->productPlanList : inlink('browse', "planID=$plan->id");
+    if(!$plan->deleted)
+    {
+       ob_start();
+       echo "<div class='btn-group'>";
+       echo "<div class='btn-group' id='createActionMenu'>";
+       common::printIcon('story', 'create', "productID=$plan->product&branch=$plan->branch&moduleID=0&storyID=0&projectID=0&bugID=0&planID=$plan->id", $plan, 'button', 'plus');
+       $batchMisc = common::hasPriv('story', 'batchCreate') ? '' : "disabled";
+       $batchLink = common::hasPriv('story', 'batchCreate') ?  $this->createLink('story', 'batchCreate', "productID=$plan->product&branch=$plan->branch&moduleID=0&story=0&project=0&plan={$plan->id}") : '#';
+       echo "<button type='button' class='btn dropdown-toggle {$batchMisc}' data-toggle='dropdown'><span class='caret'></span></button>";
+       echo "<ul class='dropdown-menu pull-right'>";
+       echo "<li>" . html::a($batchLink, $lang->story->batchCreate, '', "class='$batchMisc'") . "</li>";
+       echo '</ul>';
+       echo '</div>';
+       if(common::hasPriv('productplan', 'linkStory'))
+       {
+         echo html::a(inlink('view', "planID=$plan->id&type=story&orderBy=id_desc&link=true"), '<i class="icon-link"></i> ' . $lang->productplan->linkStory, '', "class='btn'");
+       }
+       if(common::hasPriv('productplan', 'linkBug') and $config->global->flow != 'onlyStory')
+       {
+           echo html::a(inlink('view', "planID=$plan->id&type=bug&orderBy=id_desc&link=true"), '<i class="icon-bug"></i> ' . $lang->productplan->linkBug, '', "class='btn'");
+       }
+       echo '</div>';
+       echo "<div class='btn-group'>";
+       common::printIcon('productplan', 'edit',   "planID=$plan->id", $plan);
+       common::printIcon('productplan', 'delete', "planID=$plan->id", $plan, 'button', '', 'hiddenwin');
+       echo '</div>';
+       $actionLinks = ob_get_contents();
+       ob_end_clean();
+       echo $actionLinks;
+    }
+    common::printRPN($browseLink);
+    ?>
   </div>
 </div>
 <div class='row-table'>
@@ -403,7 +405,7 @@
                     <?php endif;?>
                     <tr>
                       <th><?php echo $lang->productplan->begin;?></th>
-                      <td><?php echo $plan->begin;?></td>
+                      <td><?php echo $plan->begin == '2030-01-01' ? $lang->productplan->future : $plan->begin;?></td>
                     </tr>
                     <tr>
                       <th><?php echo $lang->productplan->end;?></th>

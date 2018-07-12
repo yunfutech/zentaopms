@@ -32,7 +32,7 @@ class actionModel extends model
      */
     public function create($objectType, $objectID, $actionType, $comment = '', $extra = '', $actor = '', $autoDelete = true)
     {
-        if(empty($comment)) return false;
+        if(strtolower($actionType) == 'commented' and empty($comment)) return false;
         $actor      = $actor ? $actor : $this->app->user->account;
         $actionType = strtolower($actionType);
         if($actor == 'guest' and $actionType == 'logout') return false;
@@ -148,7 +148,7 @@ class actionModel extends model
         }
 
         /* Only process these object types. */
-        if(strpos('story, productplan, release, task, build. bug, case, testtask, doc', $objectType) !== false)
+        if(strpos(',story,productplan,release,task,build,bug,case,testtask,doc,', ",{$objectType},") !== false)
         {
             if(!isset($this->config->objectTables[$objectType])) return $emptyRecord;
 

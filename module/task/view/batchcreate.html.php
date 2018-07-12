@@ -15,8 +15,16 @@
 <div id='titlebar'>
   <div class='heading'>
     <span class='prefix'><?php echo html::icon($lang->icons['task']);?></span>
-    <strong><small class='text-muted'><?php echo html::icon($lang->icons['batchCreate']);?></small> <?php echo $isChildren ? $lang->task->batchCreateChildren : $lang->task->batchCreate;?></strong>
-      <?php if($project->type != 'ops'):?><span><small><a href='javascript:toggleZeroTaskStory();' id='zeroTaskStory'><?php echo $lang->story->zeroTask;?><i class='icon icon-remove'></i></a></small></span><?php endif;?>
+    <strong>
+      <small class='text-muted'><?php echo html::icon($lang->icons['batchCreate']);?></small>
+      <?php if($parent):?>
+      <span class='pull-left'><?php echo $parentTitle;?></span> 
+      <?php echo $lang->task->batchCreateChildren;?>
+      <?php else:?>
+      <?php echo $lang->task->batchCreate;?>
+      <?php endif;?>
+    </strong>
+    <?php if($project->type != 'ops'):?><span><small><a href='javascript:toggleZeroTaskStory();' id='zeroTaskStory'><?php echo $lang->story->zeroTask;?><i class='icon icon-remove'></i></a></small></span><?php endif;?>
     <div class='actions'>
       <?php echo html::commonButton($lang->pasteText, "data-toggle='myModal'", 'btn btn-primary')?>
       <button type="button" class="btn btn-default" data-toggle="customModal"><i class='icon icon-cog'></i> </button>
@@ -35,7 +43,7 @@ foreach(explode(',', $this->config->task->create->requiredFields) as $field)
     if($field)
     {
         $requiredFields[$field] = '';
-        if(strpos(",{$config->task->custom->batchCreateFields},", ",{$field},") !== false) $visibleFields[$field] = '';
+        if(strpos(",{$config->task->customBatchCreateFields},", ",{$field},") !== false) $visibleFields[$field] = '';
     }
 }
 $colspan     = count($visibleFields) + 3;
@@ -94,7 +102,7 @@ if($hiddenStory and isset($visibleFields['story'])) $colspan -= 1;
         $currentStory = $storyID;
         $type         = '';
         $member       = '';
-        $module       = $story ? $story->module : '';
+        $module       = $story ? $story->module : $moduleID;
     }
     else
     {
