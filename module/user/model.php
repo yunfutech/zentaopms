@@ -226,11 +226,11 @@ class userModel extends model
             return false;
         }
 
-        if(empty($_POST['verifyPassword']) or $this->post->verifyPassword != md5($this->app->user->password . $this->session->rand))
-        {
-            dao::$errors['verifyPassword'][] = $this->lang->user->error->verifyPassword;
-            return false;
-        }
+        // if(empty($_POST['verifyPassword']) or $this->post->verifyPassword != md5($this->app->user->password . $this->session->rand))
+        // {
+        //     dao::$errors['verifyPassword'][] = $this->lang->user->error->verifyPassword;
+        //     return false;
+        // }
 
         $this->dao->insert(TABLE_USER)->data($user)
             ->autoCheck()
@@ -266,7 +266,7 @@ class userModel extends model
      */
     public function batchCreate()
     {
-        if(empty($_POST['verifyPassword']) or $this->post->verifyPassword != md5($this->app->user->password . $this->session->rand)) die(js::alert($this->lang->user->error->verifyPassword));
+        // if(empty($_POST['verifyPassword']) or $this->post->verifyPassword != md5($this->app->user->password . $this->session->rand)) die(js::alert($this->lang->user->error->verifyPassword));
 
         $users    = fixer::input('post')->get();
         $data     = array();
@@ -383,11 +383,11 @@ class userModel extends model
             return false;
         }
 
-        if(empty($_POST['verifyPassword']) or $this->post->verifyPassword != md5($this->app->user->password . $this->session->rand))
-        {
-            dao::$errors['verifyPassword'][] = $this->lang->user->error->verifyPassword;
-            return false;
-        }
+        // if(empty($_POST['verifyPassword']) or $this->post->verifyPassword != md5($this->app->user->password . $this->session->rand))
+        // {
+        //     dao::$errors['verifyPassword'][] = $this->lang->user->error->verifyPassword;
+        //     return false;
+        // }
         $requiredFields = array();
         foreach(explode(',', $this->config->user->edit->requiredFields) as $field)
         {
@@ -466,7 +466,7 @@ class userModel extends model
     public function batchEdit()
     {
         $data = fixer::input('post')->get();
-        if(empty($_POST['verifyPassword']) or $this->post->verifyPassword != md5($this->app->user->password . $this->session->rand)) die(js::alert($this->lang->user->error->verifyPassword));
+        // if(empty($_POST['verifyPassword']) or $this->post->verifyPassword != md5($this->app->user->password . $this->session->rand)) die(js::alert($this->lang->user->error->verifyPassword));
 
         $oldUsers     = $this->dao->select('id, account, email')->from(TABLE_USER)->where('id')->in(array_keys($data->account))->fetchAll('id');
         $accountGroup = $this->dao->select('id, account')->from(TABLE_USER)->where('account')->in($data->account)->fetchGroup('account', 'id');

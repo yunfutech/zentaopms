@@ -76,13 +76,13 @@
           <th><?php echo $lang->user->gender;?></th>
           <td><?php echo html::radio('gender', (array)$lang->user->genderList, 'm');?></td>
         </tr>
-        <tr>
+        <!-- <tr>
           <th><?php echo $lang->user->verifyPassword;?></th>
           <td>
             <div class="required required-wrapper"></div>
             <?php echo html::password('verifyPassword', '', "class='form-control disabled-ie-placeholder' placeholder='{$lang->user->placeholder->verify}'");?>
           </td>
-        </tr>
+        </tr> -->
         <tr>
           <th></th>
           <td colspan='2' class='text-left form-actions'>

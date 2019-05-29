@@ -93,7 +93,7 @@
         </tr>
       </table>
       <table align='center' class='table table-form'>
-        <caption class='text-left text-muted'><?php echo $lang->user->verify;?></caption>
+        <!-- <caption class='text-left text-muted'><?php echo $lang->user->verify;?></caption>
         <?php $thClass = ($app->getClientLang() == 'en') ? 'w-enVerifyPassword' : 'w-verifyPassword';?>
         <tr>
           <th class='<?php echo $thClass?>'><?php echo $lang->user->verifyPassword;?></th>
@@ -101,7 +101,7 @@
             <div class="required required-wrapper"></div>
             <?php echo html::password('verifyPassword', '', "class='form-control disabled-ie-placeholder' placeholder='{$lang->user->placeholder->verify}'");?>
           </td>
-        </tr>
+        </tr> -->
         <tr>
           <td colspan='2' class='text-center form-actions'>
             <?php echo html::submitButton();?>
