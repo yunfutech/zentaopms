@@ -65,9 +65,15 @@
           <tr id='contentBox'>
             <th><?php echo $lang->doc->content;?></th>
             <td colspan='2'>
+              <?php if ($docType != 'markdown'):?>
               <div class='contenthtml'><?php echo html::textarea('content', '', "style='width:100%;height:200px'");?></div>
               <div class='contentmarkdown hidden'><?php echo html::textarea('contentMarkdown', '', "style='width:100%;height:200px'");?></div>
               <?php echo html::hidden('contentType', 'html');?>
+              <?php else:?>
+              <div class='contentmarkdown'><?php echo html::textarea('contentMarkdown', '', "style='width:100%;height:200px'");?></div>
+              <div class='contenthtml hidden'><?php echo html::textarea('content', '', "style='width:100%;height:200px'");?></div>
+              <?php echo html::hidden('contentType', 'markdown');?>
+              <?php endif;?>
             </td>
           </tr>
           <tr id='urlBox' class='hidden'>
