@@ -185,11 +185,27 @@ class my extends control
         /* Append id for secend sort. */
         $sort = $this->loadModel('common')->appendOrder($orderBy);
 
+        $tasks = $this->loadModel('task')->getUserTasks($this->app->user->account, $type, 0, $pager, $sort);
+        if ($type == 'assignedTo') {
+            $roots = $this->dao->select('root')->from('zt_team')->where('account')->eq($this->app->user->account)->andWhere('type')->eq('task')->fetchall();
+            $ids = [];
+            foreach ($roots as $v) {
+                array_push($ids, $v->root);
+            }
+            $team_tasks = $this->dao->select('*')->from('zt_task')->where('id')->in($ids)->fetchall();
+            foreach($team_tasks as $v) {
+                $project_name = $this->dao->select('name')->from('zt_project')->where('id')->eq($v->project)->fetch('name');
+                $v->projectId = $v->project;
+                $v->projectName = $project_name;
+                $v->team = $this->dao->select('*')->from('zt_team')->where('root')->eq($v->id)->fetchall();
+            }
+            $tasks = array_merge($tasks, $team_tasks);
+        }
         /* Assign. */
         $this->view->title      = $this->lang->my->common . $this->lang->colon . $this->lang->my->task;
         $this->view->position[] = $this->lang->my->task;
         $this->view->tabID      = 'task';
-        $this->view->tasks      = $this->loadModel('task')->getUserTasks($this->app->user->account, $type, 0, $pager, $sort);
+        $this->view->tasks      = $tasks;
         $this->view->type       = $type;
         $this->view->recTotal   = $recTotal;
         $this->view->recPerPage = $recPerPage;
