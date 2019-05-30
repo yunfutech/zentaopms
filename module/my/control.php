@@ -192,7 +192,7 @@ class my extends control
             foreach ($roots as $v) {
                 array_push($ids, $v->root);
             }
-            $team_tasks = $this->dao->select('*')->from('zt_task')->where('id')->in($ids)->fetchall();
+            $team_tasks = $this->dao->select('*')->from('zt_task')->where('id')->in($ids)->andWhere('status')->ne('closed')->fetchall();
             foreach($team_tasks as $v) {
                 $project_name = $this->dao->select('name')->from('zt_project')->where('id')->eq($v->project)->fetch('name');
                 $v->projectId = $v->project;
