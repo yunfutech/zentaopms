@@ -43,6 +43,7 @@
           </th>
           <th><?php common::printOrderLink('name', $orderBy, $vars, $lang->project->name);?></th>
           <th class='w-100px'><?php common::printOrderLink('code', $orderBy, $vars, $lang->project->code);?></th>
+          <th class='w-100px'><?php common::printOrderLink('PO', $orderBy, $vars, $lang->project->PO);?></th>
           <th class='w-100px'><?php common::printOrderLink('PM', $orderBy, $vars, $lang->project->PM);?></th>
           <th class='w-90px'><?php common::printOrderLink('end', $orderBy, $vars, $lang->project->end);?></th>
           <th class='w-90px'><?php common::printOrderLink('status', $orderBy, $vars, $lang->project->status);?></th>
@@ -76,6 +77,7 @@
             ?>
           </td>
           <td class='text-left'><?php echo $project->code;?></td>
+          <td><?php echo $users[$project->PO];?></td>
           <td><?php echo $users[$project->PM];?></td>
           <td><?php echo $project->end;?></td>
           <td class='c-status' title='<?php echo zget($lang->project->statusList, $project->status);?>'>
