@@ -63,7 +63,7 @@
               <?php common::printOrderLink('id', $orderBy, $vars, $lang->idAB);?>
             </th>
             <th><?php common::printOrderLink('name', $orderBy, $vars, $lang->product->name);?></th>
-            <th class='w-80px'><?php echo $lang->product->PO;?></th>
+            <th class='w-80px'><?php common::printOrderLink('PO', $orderBy, $vars, $lang->product->PO);?></th>
             <th class='w-80px text-left'><?php common::printOrderLink('line', $orderBy, $vars, $lang->product->line);?></th>
             <th class='w-80px'><?php echo $lang->product->activeStories;?></th>
             <th class='w-90px'><?php echo $lang->product->changedStories;?></th>

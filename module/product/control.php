@@ -674,10 +674,18 @@ class product extends control
         $this->app->loadClass('pager', $static = true);
         $pager = new pager($recTotal, $recPerPage, $pageID);
 
+        // 将PO改为realname
+        $productStats = $this->product->getStats($orderBy, $pager, $status, $line);
+        foreach ($productStats as $product) {
+            $po = $product->PO;
+            $user = $this->dao->select('*')->from(TABLE_USER)->where('account')->eq($po)->fetch();
+            $product->PO = $user->realname;
+        }
+
         $this->app->loadLang('my');
         $this->view->title        = $this->lang->product->allProduct;
         $this->view->position[]   = $this->lang->product->allProduct;
-        $this->view->productStats = $this->product->getStats($orderBy, $pager, $status, $line);
+        $this->view->productStats = $productStats;
         $this->view->lineTree     = $this->loadModel('tree')->getTreeMenu(0, $viewType = 'line', $startModuleID = 0, array('treeModel', 'createLineLink'), array('productID' => $productID, 'status' => $status));
         $this->view->lines        = array('') + $this->tree->getLinePairs();
         $this->view->productID    = $productID;
