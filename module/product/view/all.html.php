@@ -63,6 +63,7 @@
               <?php common::printOrderLink('id', $orderBy, $vars, $lang->idAB);?>
             </th>
             <th><?php common::printOrderLink('name', $orderBy, $vars, $lang->product->name);?></th>
+            <th class='w-80px'><?php echo $lang->product->PO;?></th>
             <th class='w-80px text-left'><?php common::printOrderLink('line', $orderBy, $vars, $lang->product->line);?></th>
             <th class='w-80px'><?php echo $lang->product->activeStories;?></th>
             <th class='w-90px'><?php echo $lang->product->changedStories;?></th>
@@ -89,6 +90,7 @@
             <?php endif;?>
           </td>
           <td class="c-name" title='<?php echo $product->name?>'><?php echo html::a($this->createLink('product', 'view', 'product=' . $product->id), $product->name);?></td>
+          <td class='text-center'><?php echo $product->PO;?></td>
           <td title='<?php echo zget($lines, $product->line, '')?>'><?php echo zget($lines, $product->line, '');?></td>
           <td class='text-center'><?php echo $product->stories['active'];?></td>
           <td class='text-center'><?php echo $product->stories['changed'];?></td>
