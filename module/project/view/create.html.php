@@ -69,7 +69,7 @@
               $priList = $lang->project->priList;
               if(end($priList)) unset($priList[0]);
               ?>
-              <?php echo html::select('pri', (array)$priList, $project->pri, "class='form-control'");?>
+              <?php echo html::select('pri', (array)$priList, 3, "class='form-control'");?>
           </td>
         </tr>
         <tr>
