@@ -154,6 +154,13 @@ $lang->project->importPlanStory   = '创建' . $lang->projectCommon . '成功！
 $lang->project->iteration         = '版本迭代';
 $lang->project->iterationInfo     = '迭代%s次';
 $lang->project->viewAll           = '查看所有';
+$lang->project->pri               = '优先级';
+
+$lang->project->priList[0] = '';
+$lang->project->priList[1] = '1';
+$lang->project->priList[2] = '2';
+$lang->project->priList[3] = '3';
+$lang->project->priList[4] = '4';
 
 /* 分组浏览。*/
 $lang->project->allTasks     = '所有';

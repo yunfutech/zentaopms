@@ -41,6 +41,7 @@
             </div>
             <?php common::printOrderLink('id', $orderBy, $vars, $lang->idAB);?>
           </th>
+          <th class='w-70px'><?php common::printOrderLink('pri', $orderBy, $vars, $lang->project->pri);?></th>
           <th><?php common::printOrderLink('name', $orderBy, $vars, $lang->project->name);?></th>
           <th class='w-100px'><?php common::printOrderLink('code', $orderBy, $vars, $lang->project->code);?></th>
           <th class='w-100px'><?php common::printOrderLink('PO', $orderBy, $vars, $lang->project->PO);?></th>
@@ -70,6 +71,7 @@
             <?php endif;?>
             <?php printf('%03d', $project->id);?>
           </td>
+          <td><span class='label-pri <?php echo 'label-pri-' . $project->pri;?>' title='<?php echo zget($lang->project->priList, $project->pri);?>'><?php echo zget($lang->project->priList, $project->pri)?></span></td>
           <td class='text-left' title='<?php echo $project->name?>'>
             <?php
             if(isset($project->delay)) echo "<span class='label label-danger label-badge'>{$lang->project->delayed}</span> ";
