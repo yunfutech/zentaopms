@@ -861,6 +861,30 @@ class projectModel extends model
             ->page($pager)
             ->fetchAll('id');
 
+        if ($orderBy == 'pri_asc') {
+            $arr1 = [];
+            $arr2 = [];
+            foreach($projects as $key => $value) {
+                if ($value->pri == '') {
+                    array_push($arr2, $value);
+                } else {
+                    array_push($arr1, $value);
+                }
+            }
+            $projects = array_merge($arr1, $arr2);
+        } else if ($orderBy == 'pri_desc') {
+            $arr1 = [];
+            $arr2 = [];
+            foreach($projects as $key => $value) {
+                if ($value->pri != '') {
+                    array_push($arr2, $value);
+                } else {
+                    array_push($arr1, $value);
+                }
+            }
+            $projects = array_merge($arr1, $arr2);
+        }
+
         $projectKeys = array_keys($projects);
         $stats       = array();
         $hours       = array();

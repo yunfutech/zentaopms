@@ -57,19 +57,9 @@
         <th><?php echo $lang->project->pri;?></th>
           <td colspan='1'>
           <?php
-              $hasCustomPri = false;
-              foreach($lang->project->priList as $priKey => $priValue)
-              {
-                  if(!empty($priKey) and (string)$priKey != (string)$priValue)
-                  {
-                      $hasCustomPri = true;
-                      break;
-                  }
-              }
-              $priList = $lang->project->priList;
-              if(end($priList)) unset($priList[0]);
-              ?>
-              <?php echo html::select('pri', (array)$priList, 3, "class='form-control'");?>
+            $priList = $lang->project->priList;
+          ?>
+          <?php echo html::select('pri', (array)$priList, '', "class='form-control'");?>
           </td>
         </tr>
         <tr>
