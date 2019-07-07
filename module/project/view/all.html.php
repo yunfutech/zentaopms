@@ -43,7 +43,6 @@
           </th>
           <th class='w-70px'><?php common::printOrderLink('pri', $orderBy, $vars, $lang->project->pri);?></th>
           <th><?php common::printOrderLink('name', $orderBy, $vars, $lang->project->name);?></th>
-          <th class='w-100px'><?php common::printOrderLink('code', $orderBy, $vars, $lang->project->code);?></th>
           <th class='w-100px'><?php common::printOrderLink('PO', $orderBy, $vars, $lang->project->PO);?></th>
           <th class='w-100px'><?php common::printOrderLink('PM', $orderBy, $vars, $lang->project->PM);?></th>
           <th class='w-90px'><?php common::printOrderLink('end', $orderBy, $vars, $lang->project->end);?></th>
@@ -83,7 +82,6 @@
             echo html::a($this->createLink('project', 'view', 'project=' . $project->id), $project->name);
             ?>
           </td>
-          <td class='text-left'><?php echo $project->code;?></td>
           <td><?php echo $users[$project->PO];?></td>
           <td><?php echo $users[$project->PM];?></td>
           <td><?php echo $project->end;?></td>
