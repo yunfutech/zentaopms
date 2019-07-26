@@ -45,6 +45,7 @@
           <th><?php common::printOrderLink('name', $orderBy, $vars, $lang->project->name);?></th>
           <th class='w-100px'><?php common::printOrderLink('PO', $orderBy, $vars, $lang->project->PO);?></th>
           <th class='w-100px'><?php common::printOrderLink('PM', $orderBy, $vars, $lang->project->PM);?></th>
+          <th class='w-100px'><?php common::printOrderLink('begin', $orderBy, $vars, $lang->project->begin);?></th>
           <th class='w-90px'><?php common::printOrderLink('end', $orderBy, $vars, $lang->project->end);?></th>
           <th class='w-90px'><?php common::printOrderLink('status', $orderBy, $vars, $lang->project->status);?></th>
           <th class='w-70px'><?php echo $lang->project->totalEstimate;?></th>
@@ -84,6 +85,7 @@
           </td>
           <td><?php echo $users[$project->PO];?></td>
           <td><?php echo $users[$project->PM];?></td>
+          <td><?php echo $project->begin;?></td>
           <td><?php echo $project->end;?></td>
           <td class='c-status' title='<?php echo zget($lang->project->statusList, $project->status);?>'>
             <span class="status-project status-<?php echo $project->status?>"><?php echo zget($lang->project->statusList, $project->status);?></span>
