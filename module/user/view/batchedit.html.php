@@ -84,15 +84,6 @@
           <td class='<?php echo zget($visibleFields, 'zipcode', 'hidden')?>'> <?php echo html::input("zipcode[$user->id]",  $user->zipcode, "class='form-control'");?></td>
         </tr>
         <?php endforeach;?>
-        <tr>
-          <th colspan='2'><?php echo $lang->user->verifyPassword?></th>
-          <td colspan='2'>
-            <div class="required required-wrapper"></div>
-            <input type='text'     style="display:none"> <!-- for disable autocomplete all browser -->
-            <input type='password' style="display:none"> <!-- for disable autocomplete all browser -->
-            <?php echo html::password('verifyPassword', '', "class='form-control disabled-ie-placeholder' placeholder='{$lang->user->placeholder->verify}'");?>
-          </td>
-        </tr>
         </tbody>
         <tfoot>
           <tr>
