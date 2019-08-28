@@ -111,6 +111,7 @@ $lang->statusAB     = '状态';
 $lang->openedByAB   = '创建';
 $lang->assignedToAB = '指派';
 $lang->typeAB       = '类型';
+$lang->taskboard    = '任务看板';
 
 $lang->common = new stdclass();
 $lang->common->common = '公有模块';
@@ -124,6 +125,7 @@ $lang->menu->qa      = '测试|qa|index';
 $lang->menu->doc     = '文档|doc|index';
 $lang->menu->report  = '统计|report|index';
 $lang->menu->company = '组织|company|index';
+$lang->menu->taskboard = '任务看板|taskboard|index';
 $lang->menu->admin   = '后台|admin|index';
 
 $lang->dividerMenu = ',qa,report,';
@@ -344,6 +346,7 @@ $lang->report->menu = new stdclass();
 
 $lang->report->menu->product = array('link' => $lang->productCommon . '|report|productsummary');
 $lang->report->menu->prj     = array('link' => $lang->projectCommon . '|report|projectdeviation');
+$lang->report->menu->taskboard = array('link' => $lang->taskboard . '|report|taskboard');
 $lang->report->menu->test    = array('link' => '测试|report|bugcreate', 'alias' => 'bugassign');
 $lang->report->menu->staff   = array('link' => '组织|report|workload');
 

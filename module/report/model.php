@@ -257,7 +257,7 @@ class reportModel extends model
     {
         $deptUsers = array();
         if($dept) $deptUsers = $this->loadModel('dept')->getDeptUserPairs($dept);
-
+        
         if($assign == 'noassign')
         {
             $members = $this->dao->select('t1.account,t2.name,t1.root')->from(TABLE_TEAM)->alias('t1')
@@ -487,6 +487,80 @@ class reportModel extends model
             ->andWhere('t2.deleted')->eq('0')
             ->andWhere("(t1.status='wait' OR t1.status='doing')")
             ->fetchGroup('user');
+    }
+
+
+    public function getTaskStatistics($dept = 0, $date)
+    {
+        $deptUsers = array();
+        if($dept) $deptUsers = $this->loadModel('dept')->getDeptUserPairs($dept);
+        if (!$date) {
+            $date  = date('Y-m-d');
+        }
+        $finished = $this->dao->select('t1.id, t1.left, t1.parent, t1.name, t1.project, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy, t2.name as projectName')->from(TABLE_TASK)->alias('t1')
+        ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
+        ->where('t1.deleted')->eq(0)
+        ->andWhere('t1.deadline')->eq($date)
+        ->andWhere('t1.finishedBy')->ne('')
+        ->andWhere('t2.status')->notin('cancel, closed, suspended')
+        ->andWhere('assignedTo')->ne('')
+        ->orderBy('t1.finishedDate_asc, t1.id_asc');
+
+        $finishedIds =  $finished->fetchAll('id');
+        // print(json_encode($deptUsers));
+        $finishedIdstasks  = $finished->beginIF($dept)->andWhere('t1.assignedTo')->in(array_keys($deptUsers))->fi()->fetchAll('id');
+
+        $todo = $this->dao->select('t1.id, t1.name, t1.project, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy, t2.name as projectName')->from(TABLE_TASK)->alias('t1')
+        ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
+        ->where('t1.deleted')->eq(0)
+        ->andWhere('t1.deadline')->eq($date)
+        ->andWhere('t1.finishedBy')->eq('')
+        ->andWhere('t2.status')->notin('cancel, closed, suspended')
+        ->andWhere('assignedTo')->ne('')
+        ->orderBy('t1.finishedDate_asc, t1.id_asc');
+
+        $todoIds = $todo->fetchAll('id');
+        $todoTasks  = $todo->beginIF($dept)->andWhere('t1.assignedTo')->in(array_keys($deptUsers))->fi()->fetchAll('id');
+        
+        $allTasks = array_merge($finishedIds, $todoIds);
+        foreach($allTasks as $task){
+            // print(json_encode($task));
+            if($task->parent > 0) $parents[$task->parent] = $task->parent;
+            $taskGroups[$task->assignedTo][$task->id] = $task;
+        }
+        if(empty($allTasks)) return array();
+
+        /* Fix bug for children. */
+        $allTask = array_merge($finishedIdstasks, $todoTasks);
+        $parents       = array();
+        $taskIdList    = array();
+        $taskGroups    = array();
+        foreach($allTask as $task)
+        {
+            if($task->parent > 0) $parents[$task->parent] = $task->parent;
+            $taskGroups[$task->assignedTo][$task->id] = $task;
+        }
+        $workload = array();
+        foreach($taskGroups as $user => $userTasks)
+        {
+            if($user)
+            {
+                $all = 0;
+                $complete = 0;
+                foreach($userTasks as $task)
+                {
+                    $workload[$user]['detail'][]  = $task;
+                    $all += $task->estimate;
+                    if($task->finishedBy != ''){
+                        $complete += $task->consumed;
+                    }
+                }
+                $workload[$user]['complete'] = $complete;
+                $workload[$user]['all'] = $all;
+            }
+        }
+        unset($workload['closed']);
+        return $workload;
     }
 }
 

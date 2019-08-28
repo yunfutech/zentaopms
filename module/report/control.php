@@ -31,15 +31,15 @@ class report extends control
     public function projectDeviation($begin = 0, $end = 0)
     {
         $begin = $begin ? date('Y-m-d', strtotime($begin)) : '';
-        $end   = $end   ? date('Y-m-d', strtotime($end))   : '';
+        $end = $end ? date('Y-m-d', strtotime($end)) : '';
 
-        $this->view->title      = $this->lang->report->projectDeviation;
+        $this->view->title = $this->lang->report->projectDeviation;
         $this->view->position[] = $this->lang->report->projectDeviation;
 
         $this->view->projects = $this->report->getProjects($begin, $end);
-        $this->view->begin    = $begin;
-        $this->view->end      = $end;
-        $this->view->submenu  = 'project';
+        $this->view->begin = $begin;
+        $this->view->end = $end;
+        $this->view->submenu = 'project';
         $this->display();
     }
 
@@ -54,11 +54,11 @@ class report extends control
         $this->app->loadLang('product');
         $this->app->loadLang('productplan');
         $this->app->loadLang('story');
-        $this->view->title      = $this->lang->report->productSummary;
+        $this->view->title = $this->lang->report->productSummary;
         $this->view->position[] = $this->lang->report->productSummary;
-        $this->view->products   = $this->report->getProducts($conditions);
-        $this->view->users      = $this->loadModel('user')->getPairs('noletter|noclosed');
-        $this->view->submenu    = 'product';
+        $this->view->products = $this->report->getProducts($conditions);
+        $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed');
+        $this->view->submenu = 'product';
         $this->view->conditions = $conditions;
         $this->display();
     }
@@ -74,20 +74,20 @@ class report extends control
     public function bugCreate($begin = 0, $end = 0, $product = 0, $project = 0)
     {
         $this->app->loadLang('bug');
-        $begin = $begin == 0 ? date('Y-m-d', strtotime('last month', strtotime(date('Y-m',time()) . '-01 00:00:01'))) : date('Y-m-d', strtotime($begin));
-        $end   = $end == 0   ? date('Y-m-d', strtotime('now')) : $end = date('Y-m-d', strtotime($end));
+        $begin = $begin == 0 ? date('Y-m-d', strtotime('last month', strtotime(date('Y-m', time()) . '-01 00:00:01'))) : date('Y-m-d', strtotime($begin));
+        $end = $end == 0 ? date('Y-m-d', strtotime('now')) : $end = date('Y-m-d', strtotime($end));
 
-        $this->view->title      = $this->lang->report->bugCreate;
+        $this->view->title = $this->lang->report->bugCreate;
         $this->view->position[] = $this->lang->report->bugCreate;
-        $this->view->begin      = $begin;
-        $this->view->end        = $end;
-        $this->view->bugs       = $this->report->getBugs($begin, $end, $product, $project);
-        $this->view->users      = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
-        $this->view->projects   = array('' => '') + $this->loadModel('project')->getPairs();
-        $this->view->products   = array('' => '') + $this->loadModel('product')->getPairs();
-        $this->view->project    = $project;
-        $this->view->product    = $product;
-        $this->view->submenu    = 'test';
+        $this->view->begin = $begin;
+        $this->view->end = $end;
+        $this->view->bugs = $this->report->getBugs($begin, $end, $product, $project);
+        $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
+        $this->view->projects = array('' => '') + $this->loadModel('project')->getPairs();
+        $this->view->products = array('' => '') + $this->loadModel('product')->getPairs();
+        $this->view->project = $project;
+        $this->view->product = $product;
+        $this->view->submenu = 'test';
         $this->display();
     }
 
@@ -99,11 +99,11 @@ class report extends control
      */
     public function bugAssign()
     {
-        $this->view->title      = $this->lang->report->bugAssign;
+        $this->view->title = $this->lang->report->bugAssign;
         $this->view->position[] = $this->lang->report->bugAssign;
-        $this->view->submenu    = 'test';
-        $this->view->assigns    = $this->report->getBugAssign();
-        $this->view->users      = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
+        $this->view->submenu = 'test';
+        $this->view->assigns = $this->report->getBugAssign();
+        $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
         $this->display();
     }
 
@@ -122,53 +122,59 @@ class report extends control
      */
     public function workload($begin = '', $end = '', $days = 0, $workday = 0, $dept = 0, $assign = 'assign')
     {
-        if($_POST)
-        {
-            $data    = fixer::input('post')->get();
-            $begin   = $data->begin;
-            $end     = $data->end;
-            $dept    = $data->dept;
-            $days    = $data->days;
-            $assign  = $data->assign;
+        if ($_POST) {
+            $data = fixer::input('post')->get();
+            $begin = $data->begin;
+            $end = $data->end;
+            $dept = $data->dept;
+            $days = $data->days;
+            $assign = $data->assign;
             $workday = $data->workday;
         }
 
         $this->app->loadConfig('project');
-        $begin  = $begin ? strtotime($begin) : time();
-        $end    = $end   ? strtotime($end)   : time() + (7 * 24 * 3600);
-        $end   += 24 * 3600;
+        $begin = $begin ? strtotime($begin) : time();
+        $end = $end ? strtotime($end) : time() + (7 * 24 * 3600);
+        $end += 24 * 3600;
         $beginWeekDay = date('w', $begin);
-        $begin  = date('Y-m-d', $begin);
-        $end    = date('Y-m-d', $end);
+        $begin = date('Y-m-d', $begin);
+        $end = date('Y-m-d', $end);
 
-        if(empty($workday))$workday = $this->config->project->defaultWorkhours;
+        if (empty($workday)) {
+            $workday = $this->config->project->defaultWorkhours;
+        }
+
         $diffDays = helper::diffDate($end, $begin);
-        if($days > $diffDays) $days = $diffDays;
-        if(empty($days))
-        {
+        if ($days > $diffDays) {
+            $days = $diffDays;
+        }
+
+        if (empty($days)) {
             $weekDay = $beginWeekDay;
-            $days    = $diffDays;
-            for($i = 0; $i < $diffDays; $i++,$weekDay++)
-            {
+            $days = $diffDays;
+            for ($i = 0; $i < $diffDays; $i++, $weekDay++) {
                 $weekDay = $weekDay % 7;
-                if(($this->config->project->weekend == 2 and $weekDay == 6) or $weekDay == 0) $days --;
+                if (($this->config->project->weekend == 2 and $weekDay == 6) or $weekDay == 0) {
+                    $days--;
+                }
+
             }
         }
 
-        $this->view->title      = $this->lang->report->workload;
+        $this->view->title = $this->lang->report->workload;
         $this->view->position[] = $this->lang->report->workload;
 
         $this->view->workload = $this->report->getWorkload($dept, $assign);
-        $this->view->users    = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
-        $this->view->depts    = $this->loadModel('dept')->getOptionMenu();
-        $this->view->begin    = $begin;
-        $this->view->end      = date('Y-m-d', strtotime($end) - 24 * 3600);
-        $this->view->days     = $days;
-        $this->view->workday  = $workday;
-        $this->view->dept     = $dept;
-        $this->view->assign   = $assign;
-        $this->view->allHour  = $days * $workday;
-        $this->view->submenu  = 'staff';
+        $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
+        $this->view->depts = $this->loadModel('dept')->getOptionMenu();
+        $this->view->begin = $begin;
+        $this->view->end = date('Y-m-d', strtotime($end) - 24 * 3600);
+        $this->view->days = $days;
+        $this->view->workday = $workday;
+        $this->view->dept = $dept;
+        $this->view->assign = $assign;
+        $this->view->allHour = $days * $workday;
+        $this->view->submenu = 'staff';
         $this->display();
     }
 
@@ -181,60 +187,129 @@ class report extends control
     public function remind()
     {
         $bugs = $tasks = $todos = $testTasks = array();
-        if($this->config->report->dailyreminder->bug)      $bugs  = $this->report->getUserBugs();
-        if($this->config->report->dailyreminder->task)     $tasks = $this->report->getUserTasks();
-        if($this->config->report->dailyreminder->todo)     $todos = $this->report->getUserTodos();
-        if($this->config->report->dailyreminder->testTask) $testTasks = $this->report->getUserTestTasks();
+        if ($this->config->report->dailyreminder->bug) {
+            $bugs = $this->report->getUserBugs();
+        }
+
+        if ($this->config->report->dailyreminder->task) {
+            $tasks = $this->report->getUserTasks();
+        }
+
+        if ($this->config->report->dailyreminder->todo) {
+            $todos = $this->report->getUserTodos();
+        }
+
+        if ($this->config->report->dailyreminder->testTask) {
+            $testTasks = $this->report->getUserTestTasks();
+        }
 
         $reminder = array();
 
         $users = array_unique(array_merge(array_keys($bugs), array_keys($tasks), array_keys($todos), array_keys($testTasks)));
-        if(!empty($users)) foreach($users as $user) $reminder[$user] = new stdclass();
+        if (!empty($users)) {
+            foreach ($users as $user) {
+                $reminder[$user] = new stdclass();
+            }
+        }
 
-        if(!empty($bugs))  foreach($bugs as $user => $bug)   $reminder[$user]->bugs  = $bug;
-        if(!empty($tasks)) foreach($tasks as $user => $task) $reminder[$user]->tasks = $task;
-        if(!empty($todos)) foreach($todos as $user => $todo) $reminder[$user]->todos = $todo;
-        if(!empty($testTasks)) foreach($testTasks as $user => $testTask) $reminder[$user]->testTasks = $testTask;
+        if (!empty($bugs)) {
+            foreach ($bugs as $user => $bug) {
+                $reminder[$user]->bugs = $bug;
+            }
+        }
+
+        if (!empty($tasks)) {
+            foreach ($tasks as $user => $task) {
+                $reminder[$user]->tasks = $task;
+            }
+        }
+
+        if (!empty($todos)) {
+            foreach ($todos as $user => $todo) {
+                $reminder[$user]->todos = $todo;
+            }
+        }
+
+        if (!empty($testTasks)) {
+            foreach ($testTasks as $user => $testTask) {
+                $reminder[$user]->testTasks = $testTask;
+            }
+        }
 
         $this->loadModel('mail');
 
         /* Check mail turnon.*/
-        if(!$this->config->mail->turnon)
-        {
+        if (!$this->config->mail->turnon) {
             echo "You should turn on the Email feature first.\n";
             return false;
         }
 
-        foreach($reminder as $user => $mail)
-        {
+        foreach ($reminder as $user => $mail) {
             /* Reset $this->output. */
             $this->clear();
 
-            $mailTitle  = $this->lang->report->mailTitle->begin;
-            $mailTitle .= isset($mail->bugs)  ? sprintf($this->lang->report->mailTitle->bug,  count($mail->bugs))  : '';
+            $mailTitle = $this->lang->report->mailTitle->begin;
+            $mailTitle .= isset($mail->bugs) ? sprintf($this->lang->report->mailTitle->bug, count($mail->bugs)) : '';
             $mailTitle .= isset($mail->tasks) ? sprintf($this->lang->report->mailTitle->task, count($mail->tasks)) : '';
             $mailTitle .= isset($mail->todos) ? sprintf($this->lang->report->mailTitle->todo, count($mail->todos)) : '';
             $mailTitle .= isset($mail->testTasks) ? sprintf($this->lang->report->mailTitle->testTask, count($mail->testTasks)) : '';
-            $mailTitle  = rtrim($mailTitle, ',');
+            $mailTitle = rtrim($mailTitle, ',');
 
             /* Get email content and title.*/
-            $this->view->mail      = $mail;
+            $this->view->mail = $mail;
             $this->view->mailTitle = $mailTitle;
 
             $oldViewType = $this->viewType;
-            if($oldViewType == 'json') $this->viewType = 'html';
+            if ($oldViewType == 'json') {
+                $this->viewType = 'html';
+            }
+
             $mailContent = $this->parse('report', 'dailyreminder');
             $this->viewType == $oldViewType;
 
             /* Send email.*/
             echo date('Y-m-d H:i:s') . " sending to $user, ";
             $this->mail->send($user, $mailTitle, $mailContent, '', true);
-            if($this->mail->isError())
-            {
-                echo "fail: \n" ;
+            if ($this->mail->isError()) {
+                echo "fail: \n";
                 a($this->mail->getError());
             }
             echo "ok\n";
         }
+    }
+
+    // 任务看板
+
+    public function taskboard($dept = 0, $date = null)
+    {
+        if ($_POST) {
+            $data = fixer::input('post')->get();
+            $dept = $data->dept;
+            $date = $data->date;
+        }
+        if ($date == null) {
+            $date = date('Y-m-d');
+        }
+        $this->app->loadConfig('project');
+
+        $this->view->title = $this->lang->report->taskboard;
+        $this->view->position[] = $this->lang->report->taskboard;
+
+        $this->view->workload = $this->report->getTaskStatistics($dept, $date);
+        $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
+        $this->view->depts = $this->loadModel('dept')->getOptionMenu();
+        $this->view->date = $date;
+        $year = substr($date, 0, 4);
+        $mongth = substr($date, 5, 2);
+        $day = substr($date, 8, 2);
+        $choose_day = mktime(0, 0, 0, $month, $day, $year);
+        date('Y-m-d', strtotime('-1 day'));
+        $prev = date('Y-m-d', strtotime('-1 day'));
+        $next = date('Y-m-d', strtotime('+1 day'));
+        $this->view->choose_day = $date;
+        $this->view->prev_day = $prev;
+        $this->view->next_day = $next;
+        $this->view->dept = $dept;
+        $this->display();
     }
 }

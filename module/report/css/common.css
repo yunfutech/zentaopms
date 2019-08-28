@@ -38,3 +38,34 @@ td .deviation{padding-left:20px; text-align:left;}
 .checkboxes {margin-bottom: 10px;}
 .checkboxes .checkbox-primary {margin-bottom: 5px;}
 .fixed-header-copy thead tr th{color:#fff !important;}
+.bgred{background:#f1babc!important;}
+.bgorange{background:#f5ed8e !important;}
+.bggreen{background:#acea74 !important;}
+.table>tbody>tr>td .content {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    padding-left: 10px;
+    line-height: 100%;
+    vertical-align: middle;
+}
+.table>tbody>tr>td .bg{
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    z-index: 1;
+    width: 100%;
+}
+.table>tbody>tr>td .fg{
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    z-index: 2;
+}
+.fgred{background:#f1ced0;}
+.fgorange{background:#f5efae;}
+.fggreen{background:#d4fbb1;}
