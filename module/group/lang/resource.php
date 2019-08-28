@@ -897,6 +897,7 @@ $lang->resource->report->productSummary   = 'productSummary';
 $lang->resource->report->bugCreate        = 'bugCreate';
 $lang->resource->report->bugAssign        = 'bugAssign';
 $lang->resource->report->workload         = 'workload';
+$lang->resource->report->taskboard        = 'taskboard';
 
 $lang->report->methodOrder[0]  = 'index';
 $lang->report->methodOrder[5]  = 'projectDeviation';
