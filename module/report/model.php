@@ -516,7 +516,6 @@ class reportModel extends model
         ->andWhere('t1.deadline')->eq($date)
         ->andWhere('t1.finishedBy')->ne('')
         ->andWhere('t2.status')->notin('cancel, closed, suspended')
-        ->andWhere('t1.assignedTo')->in($usernames)
         ->andWhere('assignedTo')->ne('')->orderBy('t1.id_asc')->fetchAll();
 
    
@@ -526,7 +525,6 @@ class reportModel extends model
         ->andWhere('t1.deadline')->eq($date)
         ->andWhere('t1.finishedBy')->eq('')
         ->andWhere('t2.status')->notin('cancel, closed, suspended')
-        ->andWhere('t1.assignedTo')->in($usernames)
         ->andWhere('assignedTo')->ne('')->orderBy('t1.id_asc')->fetchAll();
         
         // $todoTasks  = $todo->beginIF(0)->andWhere('t1.assignedTo')->in(array_keys($deptUsers))->fi()->fetchAll('id');
