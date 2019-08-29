@@ -41,6 +41,7 @@ td .deviation{padding-left:20px; text-align:left;}
 .bgred{background:#f1babc!important;}
 .bgorange{background:#f5ed8e !important;}
 .bggreen{background:#acea74 !important;}
+.bgblue{background:#82bde6 !important;}
 .table>tbody>tr>td .content {
     position: absolute;
     left: 0;
@@ -67,8 +68,9 @@ td .deviation{padding-left:20px; text-align:left;}
     z-index: 2;
 }
 .fgred{background:#f1ced0;}
-.fgorange{background:#f5efae;}
+.fgorange{background: #fdf7be;}
 .fggreen{background:#d4fbb1;}
+.fgblue{background:#b2d6ef}
 .overview {
     width: 34px;
     text-align: center;

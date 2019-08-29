@@ -53,8 +53,8 @@
                     <td><?php echo $users[$account]; ?></td>
                     <td style='position:relative'>
                         <div class='content'>任务：<?php echo $load['complete']; ?>/<?php echo $load['all']; ?></div>
-                        <div style='width:<?php echo intval($load['complete'] / $load['all'] * 100) ?>%' class='fg <?php if ($load['all'] > 10): echo 'fgred';elseif ($load['all'] > 8): echo 'fgorange';elseif ($load['all'] <= 8): echo 'fggreen';?><?php endif;?>'></div>
-                        <div class='bg <?php if ($load['all'] > 10): echo 'bgred';elseif ($load['all'] > 8): echo 'bgorange';elseif ($load['all'] <= 8): echo 'bggreen';?><?php endif;?>'></div>
+                        <div style='width:<?php echo intval($load['complete'] / $load['all'] * 100) ?>%' class='fg <?php if ($load['all'] > 10): echo 'fgred';elseif ($load['all'] > 8): echo 'fgorange';elseif ($load['all'] == 8): echo 'fggreen';elseif ($load['all'] < 8): echo 'fgblue';?><?php endif;?>'></div>
+                        <div class='bg <?php if ($load['all'] > 10): echo 'bgred';elseif ($load['all'] > 8): echo 'bgorange';elseif ($load['all'] == 8): echo 'bggreen';elseif ($load['all'] < 8): echo 'bgblue';?><?php endif;?>'></div>
                     </td>
                     <td>
                         <?php foreach ($load['detail'] as $list): ?>
