@@ -70,12 +70,33 @@ td .deviation{padding-left:20px; text-align:left;}
 .fgorange{background:#f5efae;}
 .fggreen{background:#d4fbb1;}
 .overview {
-    width: 64px;
+    width: 34px;
+    text-align: center;
     background: #13ce66;
     color: #fff;
     border-radius: 4px;
     padding: 5px;
     display: inline-block;
+}
+.project-name{
+    display: inline-block;
+    width: 300px;
+    color: #fff;
+    border-radius: 4px;
+    padding: 5px;
+    background: #38a267;
+}
+.task-name{
+    display: inline-block;
+    background: #488c66;
+    color: #fff;
+    border-radius: 4px;
+    padding: 5px;
+}
+.project-name a,.task-name a{
+    color: #fff;
+    width: 100%;
+    height: 100%;
 }
 .task-detail {
     margin: 2px 0;

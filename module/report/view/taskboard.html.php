@@ -17,6 +17,11 @@
               <div class='datepicker-wrapper datepicker-date'><?php echo html::input('date', $date, "class='form-control' style='padding-right:10px' onchange='changeParams(this)'"); ?></div>
             </div>
           </div>
+          <div class='col-sm-3'>
+          <?php echo html::a($this->createLink('report', 'taskboard', "date={$prev_day}&dept={$dept}"), 上一天, '', "class='btn btn-primary next'"); ?>
+          <?php echo html::a($this->createLink('report', 'taskboard', "date={$toady}&dept={$dept}"), 今天, '', "class='btn btn-primary next'"); ?>
+          <?php echo html::a($this->createLink('report', 'taskboard', "date={$next_day}&dept={$dept}"), 下一天, '', "class='btn btn-primary next'"); ?>
+          </div>
         </div>
       </form>
     </div>
@@ -54,9 +59,10 @@
                     <td>
                         <?php foreach ($load['detail'] as $list): ?>
                             <div class='task-detail'>
-                                <span class='overview'>[ <?php echo $list->consumed; ?> / <?php echo $list->estimate; ?> ]</span> ---
-                                [ <?php echo html::a($this->createLink('project', 'task', "projectID={$list->project}"), $list->projectName); ?>]
-                                [ <?php echo html::a($this->createLink('task', 'view', "taskID={$list->id}"), $list->name); ?>]
+                                <span class='overview'><?php echo $list->consumed; ?></span> /
+                                <span class='overview'><?php echo $list->estimate; ?></span>
+                                <?php echo html::a($this->createLink('project', 'task', "projectID={$list->project}"), "<span class='project-name'>{$list->projectName}</span>"); ?>
+                                <?php echo html::a($this->createLink('task', 'view', "taskID={$list->id}"), "<span class='task-name'>{$list->name}</span>"); ?>
                             </div>
                         <?php endforeach;?>
                     </td>

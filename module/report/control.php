@@ -287,7 +287,7 @@ class report extends control
             $dept = $data->dept;
             $date = $data->date;
         }
-        $date = $date ? date('Y-m-d', strtotime($date)) : '';
+        $date = $date ? date('Y-m-d', strtotime($date)) : date('Y-m-d');
         $this->app->loadConfig('project');
 
         $this->view->title = $this->lang->report->taskboard;
@@ -296,7 +296,9 @@ class report extends control
         $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
         $this->view->depts = $this->loadModel('dept')->getOptionMenu();
         $this->view->date = $date;
-
+        $this->view->toady = date('Ymd');
+        $this->view->prev_day = date("Ymd", strtotime("-1 days", strtotime($date)));
+        $this->view->next_day = date("Ymd", strtotime("+1 days", strtotime($date)));
         $this->view->dept = $dept;
         $this->display();
     }
