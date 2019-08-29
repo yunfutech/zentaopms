@@ -494,6 +494,7 @@ class reportModel extends model
         $childDeptIds = $this->loadModel('dept')->getAllChildID($dept);
         $deptUsers = $this->dept->getUsers($childDeptIds);
         $usernames = array();
+        $tasks = array();
         foreach($deptUsers as $user)
         {
             if($user)
@@ -529,7 +530,7 @@ class reportModel extends model
         ->andWhere('assignedTo')->ne('')->orderBy('t1.id_asc')->fetchAll();
         
         // $todoTasks  = $todo->beginIF(0)->andWhere('t1.assignedTo')->in(array_keys($deptUsers))->fi()->fetchAll('id');
-        $tasks = array();
+
 
         foreach($finishedIdstasks as $task)
         {
