@@ -552,6 +552,12 @@ class reportModel extends model
                 }
             }
         }
+        foreach($tasks as $user => $task)
+        {
+            $tasks[$user]['process'] = $task['complete'] / $task['all'] * 100;
+        }
+        $process = array_column($tasks, 'process');
+        array_multisort($process, SORT_DESC, $tasks);
         return $tasks;
     }
 }
