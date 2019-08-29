@@ -2,6 +2,24 @@
 <?php include '../../common/view/datepicker.html.php';?>
 <div id='mainContent' class='main-row'>
   <div class='main-col'>
+  <div class='cell'>
+      <form method='post'>
+        <div class="row" id='conditions'>
+          <div class='col-sm-2'>
+            <div class='input-group'>
+              <span class='input-group-addon'><?php echo $lang->report->dept; ?></span>
+              <?php echo html::select('dept', $depts, $dept, "class='form-control chosen' onchange='changeParams(this)'"); ?>
+            </div>
+          </div>
+          <div class='col-sm-2'>
+            <div class='input-group input-group-sm'>
+              <span class='input-group-addon'>日期选择</span>
+              <div class='datepicker-wrapper datepicker-date'><?php echo html::input('date', $date, "class='form-control' style='padding-right:10px' onchange='changeParams(this)'"); ?></div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
     <?php if (empty($workload)): ?>
     <div class="cell">
       <div class="table-empty-tip">
@@ -22,7 +40,6 @@
                 <th class="w-100px" ><?php echo $lang->report->user; ?></th>
                 <th class="w-150px">概览</th>
                 <th><?php echo $lang->report->task; ?></th>
-                <th class="w-100px">任务总计</th>
               </tr>
             </thead>
             <tbody>
@@ -36,14 +53,13 @@
                     </td>
                     <td>
                         <?php foreach ($load['detail'] as $list): ?>
-                            <div>
+                            <div class='task-detail'>
                                 <span class='overview'>[ <?php echo $list->consumed; ?> / <?php echo $list->estimate; ?> ]</span> ---
                                 [ <?php echo html::a($this->createLink('project', 'task', "projectID={$list->project}"), $list->projectName); ?>]
                                 [ <?php echo html::a($this->createLink('task', 'view', "taskID={$list->id}"), $list->name); ?>]
                             </div>
                         <?php endforeach;?>
                     </td>
-                    <td><?php echo $load['all']; ?>小时</td>
                 </tr>
             <?php endforeach;?>
             </tbody>

@@ -77,3 +77,6 @@ td .deviation{padding-left:20px; text-align:left;}
     padding: 5px;
     display: inline-block;
 }
+.task-detail {
+    margin: 2px 0;
+}

@@ -280,35 +280,23 @@ class report extends control
 
     // 任务看板
 
-    public function taskboard($dept = 0, $date = null)
+    public function taskboard($date = 0, $dept = 0)
     {
         if ($_POST) {
             $data = fixer::input('post')->get();
             $dept = $data->dept;
             $date = $data->date;
         }
-        if ($date == null) {
-            $date = date('Y-m-d');
-        }
+        $date = $date ? date('Y-m-d', strtotime($date)) : '';
         $this->app->loadConfig('project');
 
         $this->view->title = $this->lang->report->taskboard;
         $this->view->position[] = $this->lang->report->taskboard;
-
         $this->view->workload = $this->report->getTaskStatistics($dept, $date);
         $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
         $this->view->depts = $this->loadModel('dept')->getOptionMenu();
         $this->view->date = $date;
-        $year = substr($date, 0, 4);
-        $mongth = substr($date, 5, 2);
-        $day = substr($date, 8, 2);
-        $choose_day = mktime(0, 0, 0, $month, $day, $year);
-        date('Y-m-d', strtotime('-1 day'));
-        $prev = date('Y-m-d', strtotime('-1 day'));
-        $next = date('Y-m-d', strtotime('+1 day'));
-        $this->view->choose_day = $date;
-        $this->view->prev_day = $prev;
-        $this->view->next_day = $next;
+
         $this->view->dept = $dept;
         $this->display();
     }
