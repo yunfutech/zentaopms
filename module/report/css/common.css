@@ -69,3 +69,11 @@ td .deviation{padding-left:20px; text-align:left;}
 .fgred{background:#f1ced0;}
 .fgorange{background:#f5efae;}
 .fggreen{background:#d4fbb1;}
+.overview {
+    width: 64px;
+    background: #13ce66;
+    color: #fff;
+    border-radius: 4px;
+    padding: 5px;
+    display: inline-block;
+}

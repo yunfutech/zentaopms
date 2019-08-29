@@ -37,9 +37,9 @@
                     <td>
                         <?php foreach ($load['detail'] as $list): ?>
                             <div>
-                                [<?php echo $list->projectName; ?>]
-                                [<?php echo $list->name; ?>] ---
-                                <?php echo $list->consumed; ?>/<?php echo $list->estimate; ?>
+                                <span class='overview'>[ <?php echo $list->consumed; ?> / <?php echo $list->estimate; ?> ]</span> ---
+                                [ <?php echo html::a($this->createLink('project', 'task', "projectID={$list->project}"), $list->projectName); ?>]
+                                [ <?php echo html::a($this->createLink('task', 'view', "taskID={$list->id}"), $list->name); ?>]
                             </div>
                         <?php endforeach;?>
                     </td>
