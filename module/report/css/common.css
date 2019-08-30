@@ -126,3 +126,16 @@ td .deviation{padding-left:20px; text-align:left;}
 .pri_4 {
     background: #1b669a;
 }
+.taskid {
+    width: 70px;
+    margin-left: 15px;
+    display: inline-block;
+    background: #81511C;
+    color: #fff;
+    padding: 5px;
+    text-align: center;
+    border-radius: 4px;
+}
+.taskstatus {
+    margin: 0 5px;
+}
