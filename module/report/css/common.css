@@ -103,3 +103,26 @@ td .deviation{padding-left:20px; text-align:left;}
 .task-detail {
     margin: 2px 0;
 }
+.pri {
+    width: 20px;
+    height: 20px;
+    text-align: center;
+    line-height: 20px;
+    margin-right: 5px;
+    display: inline-block;
+    border-radius: 50%;
+    background: #81511C;
+    color: #fff;
+}
+.pri_1 {
+    background: #cc3c3c;
+}
+.pri_2 {
+    background: #d8a039;
+}
+.pri_3 {
+    background: #27c327;
+}
+.pri_4 {
+    background: #1b669a;
+}

@@ -305,16 +305,19 @@ class report extends control
 
     // 未完成
 
-    public function undonetask($recTotal = 0, $recPerPage = 20, $pageID = 1)
+    public function undonetask($dept = 0)
     {
+        if ($_POST) {
+            $data = fixer::input('post')->get();
+            $dept = $data->dept;
+        }
         $this->app->loadConfig('project');
-        // $this->app->loadClass('pager', $static = true);
         $this->view->title = $this->lang->report->undonetask;
         $this->view->position[] = $this->lang->report->undonetask;
-        $this->view->tasks = $this->report->getUndoneTask();
+        $this->view->tasks = $this->report->getUndoneTask($dept);
         $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
-        // $pager = pager::init($recTotal, $recPerPage, $pageID);
-        // $this->view->pager = $pager;
+        $this->view->depts = $this->loadModel('dept')->getOptionMenu();
+        $this->view->dept = $dept;
         $this->display();
     }
 }

@@ -510,7 +510,7 @@ class reportModel extends model
                 ];
             }
         }
-        $finishedIdstasks = $this->dao->select('t1.id, t1.left, t1.parent, t1.name, t1.project, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy, t2.name as projectName')->from(TABLE_TASK)->alias('t1')
+        $finishedIdstasks = $this->dao->select('t1.id, t1.left, t1.pri as taskpri, t1.parent, t1.name, t1.project, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy,t2.pri, t2.name as projectName')->from(TABLE_TASK)->alias('t1')
         ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
         ->where('t1.deleted')->eq(0)
         ->andWhere('t1.deadline')->eq($date)
@@ -519,7 +519,7 @@ class reportModel extends model
         ->andWhere('assignedTo')->ne('')->orderBy('t1.id_asc')->fetchAll();
 
    
-        $todoTasks = $this->dao->select('t1.id, t1.name, t1.project, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy, t2.name as projectName')->from(TABLE_TASK)->alias('t1')
+        $todoTasks = $this->dao->select('t1.id, t1.name, t1.project, t1.pri as taskpri, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy, t2.pri, t2.name as projectName')->from(TABLE_TASK)->alias('t1')
         ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
         ->where('t1.deleted')->eq(0)
         ->andWhere('t1.deadline')->eq($date)
@@ -560,17 +560,40 @@ class reportModel extends model
         return $tasks;
     }
 
-    public function getUndoneTask()
+    public function getUndoneTask($dept = 0)
     {
-        $undoneTasks = $this->dao->select('t1.id, t1.name, t1.project, t1.estimate, t1.deadline, t1.consumed, t1.assignedTo, t1.finishedBy, t2.name as projectName')->from(TABLE_TASK)->alias('t1')
+        $childDeptIds = $this->loadModel('dept')->getAllChildID($dept);
+        $deptUsers = $this->dept->getUsers($childDeptIds);
+        $usernames = array();
+        $tasks = array();
+        foreach($deptUsers as $user)
+        {
+            if($user)
+            {
+                $username = $user->account;
+                $usernames[] = $username;
+                $tasks[$username] = [
+                    "detail"=> [],
+                    "num"=> 0
+                ];
+            }
+        }
+        $undoneTasks = $this->dao->select('t1.id, t1.name, t1.status, t1.project, t1.pri as taskpri, t1.estimate, t1.consumed, t1.assignedTo, t1.deadline, t1.finishedBy, t2.pri, t2.name as projectName')->from(TABLE_TASK)->alias('t1')
         ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
         ->where('t1.deleted')->eq(0)
+        ->andWhere('t1.status')->in('doing, wait, pause')
         ->andWhere('t1.finishedBy')->eq('')
-        ->andWhere('t1.status')->notin('cancel, closed, doing, done')
         ->andWhere('t2.status')->notin('cancel, closed, suspended')
         ->andWhere('assignedTo')->ne('')->orderBy('t1.deadline')->fetchAll();
 
-        return $undoneTasks;
+        foreach($undoneTasks as $task)
+        {
+            if (in_array($task->assignedTo, $usernames)) {
+                $tasks[$task->assignedTo]['detail'][]  = $task;
+            }
+        }
+        
+        return $tasks;
     }
 }
 
