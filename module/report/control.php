@@ -302,4 +302,19 @@ class report extends control
         $this->view->dept = $dept;
         $this->display();
     }
+
+    // 未完成
+
+    public function undonetask($recTotal = 0, $recPerPage = 20, $pageID = 1)
+    {
+        $this->app->loadConfig('project');
+        // $this->app->loadClass('pager', $static = true);
+        $this->view->title = $this->lang->report->undonetask;
+        $this->view->position[] = $this->lang->report->undonetask;
+        $this->view->tasks = $this->report->getUndoneTask();
+        $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
+        // $pager = pager::init($recTotal, $recPerPage, $pageID);
+        // $this->view->pager = $pager;
+        $this->display();
+    }
 }

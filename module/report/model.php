@@ -523,6 +523,7 @@ class reportModel extends model
         ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
         ->where('t1.deleted')->eq(0)
         ->andWhere('t1.deadline')->eq($date)
+        ->andWhere('t1.status')->notin('cancel, closed')
         ->andWhere('t1.finishedBy')->eq('')
         ->andWhere('t2.status')->notin('cancel, closed, suspended')
         ->andWhere('assignedTo')->ne('')->orderBy('t1.id_asc')->fetchAll();
@@ -545,7 +546,7 @@ class reportModel extends model
             if (in_array($task->assignedTo, $usernames)) {
                 $tasks[$task->assignedTo]['detail'][]  = $task;
                 $tasks[$task->assignedTo]['all'] += $task->estimate;
-                if($task->finishedBy != ''){
+                if($task->finishedBy == ''){
                     $tasks[$task->assignedTo]['complete'] += $task->consumed;
                 }
             }
@@ -557,6 +558,19 @@ class reportModel extends model
         $process = array_column($tasks, 'process');
         array_multisort($process, SORT_DESC, $tasks);
         return $tasks;
+    }
+
+    public function getUndoneTask()
+    {
+        $undoneTasks = $this->dao->select('t1.id, t1.name, t1.project, t1.estimate, t1.deadline, t1.consumed, t1.assignedTo, t1.finishedBy, t2.name as projectName')->from(TABLE_TASK)->alias('t1')
+        ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
+        ->where('t1.deleted')->eq(0)
+        ->andWhere('t1.finishedBy')->eq('')
+        ->andWhere('t1.status')->notin('cancel, closed, doing, done')
+        ->andWhere('t2.status')->notin('cancel, closed, suspended')
+        ->andWhere('assignedTo')->ne('')->orderBy('t1.deadline')->fetchAll();
+
+        return $undoneTasks;
     }
 }
 
