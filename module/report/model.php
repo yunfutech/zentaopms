@@ -555,8 +555,10 @@ class reportModel extends model
         {
             $tasks[$user]['process'] = $task['complete'] / $task['all'] * 100;
         }
-        $process = array_column($tasks, 'process');
-        array_multisort($process, SORT_DESC, $tasks);
+        // $process = array_column($tasks, 'process');
+        $complete = array_column($tasks, 'complete');
+        $all = array_column($tasks, 'all');
+        array_multisort($complete, SORT_DESC, $all, SORT_DESC,  $tasks);
         return $tasks;
     }
 

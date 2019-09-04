@@ -38,10 +38,6 @@ td .deviation{padding-left:20px; text-align:left;}
 .checkboxes {margin-bottom: 10px;}
 .checkboxes .checkbox-primary {margin-bottom: 5px;}
 .fixed-header-copy thead tr th{color:#fff !important;}
-.bgred{background:#f1babc!important;}
-.bgorange{background:#f5ed8e !important;}
-.bggreen{background:#acea74 !important;}
-.bgblue{background:#82bde6 !important;}
 .table>tbody>tr>td .content {
     position: absolute;
     left: 0;
@@ -67,12 +63,17 @@ td .deviation{padding-left:20px; text-align:left;}
     height: 100%;
     z-index: 2;
 }
-.fgred{background:#f1ced0;}
-.fgorange{background: #fdf7be;}
-.fggreen{background:#d4fbb1;}
-.fgblue{background:#b2d6ef}
+
+.fgred{background:#f1babc!important;}
+.fgorange{background:#f5ed8e !important;}
+.fggreen{background:#acea74 !important;}
+.fgblue{background:#82bde6 !important;}
+.bgred{background:#f1ced0;}
+.bgorange{background: #fdf7be;}
+.bggreen{background:#d4fbb1;}
+.bgblue{background:#b2d6ef}
 .overview {
-    width: 34px;
+    width: 90px;
     text-align: center;
     background: #13ce66;
     color: #fff;
@@ -86,11 +87,11 @@ td .deviation{padding-left:20px; text-align:left;}
     color: #fff;
     border-radius: 4px;
     padding: 5px;
-    background: #38a267;
+    background: #81c19e;
 }
 .task-name{
     display: inline-block;
-    background: #488c66;
+    background: #67967c;
     color: #fff;
     border-radius: 4px;
     padding: 5px;
@@ -115,16 +116,16 @@ td .deviation{padding-left:20px; text-align:left;}
     color: #fff;
 }
 .pri_1 {
-    background: #cc3c3c;
+    background: #d50000;
 }
 .pri_2 {
-    background: #d8a039;
+    background: #ff9800;
 }
 .pri_3 {
-    background: #27c327;
+    background: #2098ee;
 }
 .pri_4 {
-    background: #1b669a;
+    background: #009688;
 }
 .taskid {
     width: 70px;
