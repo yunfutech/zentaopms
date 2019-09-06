@@ -516,7 +516,7 @@ class reportModel extends model
         ->andWhere('t1.deadline')->eq($date)
         ->andWhere('t1.finishedBy')->ne('')
         ->andWhere('t2.status')->notin('cancel, closed, suspended')
-        ->andWhere('assignedTo')->ne('')->orderBy('t1.id_asc')->fetchAll();
+        ->andWhere('assignedTo')->ne('')->orderBy('t1.id')->fetchAll();
 
    
         $todoTasks = $this->dao->select('t1.id, t1.name, t1.project, t1.status, t1.pri as taskpri, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy, t2.pri, t2.name as projectName')->from(TABLE_TASK)->alias('t1')
@@ -526,7 +526,7 @@ class reportModel extends model
         ->andWhere('t1.status')->notin('cancel, closed')
         ->andWhere('t1.finishedBy')->eq('')
         ->andWhere('t2.status')->notin('cancel, closed, suspended')
-        ->andWhere('assignedTo')->ne('')->orderBy('t1.id_asc')->fetchAll();
+        ->andWhere('assignedTo')->ne('')->orderBy('t1.id')->fetchAll();
         
         // $todoTasks  = $todo->beginIF(0)->andWhere('t1.assignedTo')->in(array_keys($deptUsers))->fi()->fetchAll('id');
 
@@ -554,6 +554,10 @@ class reportModel extends model
         foreach($tasks as $user => $task)
         {
             $tasks[$user]['process'] = $task['complete'] / $task['all'] * 100;
+            $taskpri = array_column($task['detail'], 'taskpri');
+            $pri = array_column($task['detail'], 'pri');
+            array_multisort($taskpri, SORT_ASC, $pri, SORT_ASC, $task['detail']);
+            $tasks[$user]['detail'] = $task['detail'];
         }
         // $process = array_column($tasks, 'process');
         $complete = array_column($tasks, 'complete');
@@ -586,7 +590,7 @@ class reportModel extends model
         ->andWhere('t1.status')->in('doing, wait, pause')
         ->andWhere('t1.finishedBy')->eq('')
         ->andWhere('t2.status')->notin('cancel, closed, suspended')
-        ->andWhere('assignedTo')->ne('')->orderBy('t1.deadline')->fetchAll();
+        ->andWhere('assignedTo')->ne('')->orderBy('t1.pri,t1.deadline')->fetchAll();
 
         foreach($undoneTasks as $task)
         {
