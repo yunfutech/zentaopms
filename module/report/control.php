@@ -280,7 +280,7 @@ class report extends control
 
     // 任务看板
 
-    public function taskboard($date = 0, $dept = 0)
+    public function taskboard($date = 0, $dept = 3)
     {
         if ($_POST) {
             $data = fixer::input('post')->get();
@@ -305,7 +305,7 @@ class report extends control
 
     // 未完成
 
-    public function undonetask($dept = 0)
+    public function undonetask($dept = 3)
     {
         if ($_POST) {
             $data = fixer::input('post')->get();
