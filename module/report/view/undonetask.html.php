@@ -33,6 +33,7 @@
               <tr class='colhead text-center'>
                 <th class="w-100px" ><?php echo $lang->report->user; ?></th>
                 <th>项目名</th>
+                <th class="w-100px">任务id</th>
                 <th>任务名</th>
                 <th class="w-100px">任务状态</th>
                 <th class="w-100px">预计时间</th>
@@ -53,6 +54,7 @@
 
                                 </div>
                         </td>
+                        <td class='text-center'><?php echo $list->id ?></td>
                         <td><?php echo html::a($this->createLink('task', 'view', "taskID={$list->id}"), "<span class=''><span class='pri pri_{$list->taskpri}'>{$list->taskpri}</span>{$list->name}</span>"); ?></td>
                         <td class='text-center status-<?php echo $list->status; ?>'><?php echo zget($lang->task->statusList, $list->status) ?></td>
                         <td class='text-center'><?php echo $list->estimate; ?></td>
@@ -62,6 +64,7 @@
                 <?php if (count($load['detail']) == 0): ?>
                 <tr class="text-left">
                         <td><?php echo $users[$account]; ?></td>
+                        <td>无</td>
                         <td>无</td>
                         <td>无</td>
                         <td class='text-center'>无</td>
