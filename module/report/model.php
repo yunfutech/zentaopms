@@ -570,6 +570,7 @@ class reportModel extends model
             $tasks[$user]['detail'] = $task['detail'];
         }
         // $process = array_column($tasks, 'process');
+        asort($short);
         $complete = array_column($tasks, 'complete');
         $all = array_column($tasks, 'all');
         array_multisort($complete, SORT_DESC, $all, SORT_DESC,  $tasks);

@@ -43,7 +43,7 @@
         <div class='red workload2'>
         <span>任务不饱和：</span>
         <?php foreach ($short as $user => $all): ?>
-        <?php echo $users[$user]; ?>（<?php echo $all; ?>）
+        <span class='user'><?php echo $users[$user]; ?>(<?php echo $all; ?>)</span>
         <?php endforeach?>
         </div>
         <?php endif?>

@@ -81,6 +81,9 @@ td .deviation{padding-left:20px; text-align:left;}
     padding: 5px;
     display: inline-block;
 }
+.user {
+    margin-right: 4px;
+}
 .workload2 {
     margin-bottom: 10px !important; 
 }
