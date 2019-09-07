@@ -112,7 +112,7 @@ $lang->openedByAB   = '创建';
 $lang->assignedToAB = '指派';
 $lang->typeAB       = '类型';
 $lang->taskboard    = '任务看板';
-$lang->undonetask    = '计划任务';
+$lang->undonetask    = '任务池';
 
 $lang->common = new stdclass();
 $lang->common->common = '公有模块';

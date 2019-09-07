@@ -589,7 +589,7 @@ class reportModel extends model
         ->where('t1.deleted')->eq(0)
         ->andWhere('t1.status')->in('doing, wait, pause')
         ->andWhere('t1.finishedBy')->eq('')
-        ->andWhere('t2.status')->notin('cancel, closed, suspended')
+        ->andWhere('t2.status')->notin('cancel, closed')
         ->andWhere('assignedTo')->ne('')->orderBy('t1.pri,t1.deadline')->fetchAll();
 
         foreach($undoneTasks as $task)
