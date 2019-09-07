@@ -39,6 +39,25 @@
           <nav class="panel-actions btn-toolbar"></nav>
         </div>
         <div data-ride='table'>
+        <?php if (count($short) > 0): ?>
+        <div>任务量不足：</div>
+        <table class='table table-condensed table-striped table-bordered table-fixed no-margin' id="workload2">
+            <thead>
+              <tr class='colhead text-center'>
+                <th class="w-100px" ><?php echo $lang->report->user; ?></th>
+                <th class="text-left">任务量</th>
+              </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($short as $user => $all): ?>
+                <tr>
+                <td><?php echo $users[$user]; ?></td>
+                <td><?php echo $all; ?></td>
+                </tr>
+            <?php endforeach ?>
+            </tbody>
+        </table>
+        <?php endif ?>
           <table class='table table-condensed table-striped table-bordered table-fixed no-margin' id="workload">
             <thead>
               <tr class='colhead text-center'>

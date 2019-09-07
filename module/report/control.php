@@ -292,7 +292,9 @@ class report extends control
 
         $this->view->title = $this->lang->report->taskboard;
         $this->view->position[] = $this->lang->report->taskboard;
-        $this->view->workload = $this->report->getTaskStatistics($dept, $date);
+        $tasks = $this->report->getTaskStatistics($dept, $date);
+        $this->view->workload = $tasks['tasks'];
+        $this->view->short = $tasks['short'];
         $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
         $this->view->depts = $this->loadModel('dept')->getOptionMenu();
         $this->view->date = $date;

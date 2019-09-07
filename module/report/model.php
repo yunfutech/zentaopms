@@ -551,8 +551,18 @@ class reportModel extends model
                 }
             }
         }
+        $short = array();
         foreach($tasks as $user => $task)
         {
+            if($dept == 3) {
+                if($task['all'] < 8) {
+                    $short[$user] = $task['all']; 
+                }
+            }elseif($dept == 1) {
+                if($task['all'] < 6) {
+                    $short[$user] = $task['all'];
+                }
+            }
             $tasks[$user]['process'] = $task['complete'] / $task['all'] * 100;
             $taskpri = array_column($task['detail'], 'taskpri');
             $pri = array_column($task['detail'], 'pri');
@@ -563,7 +573,10 @@ class reportModel extends model
         $complete = array_column($tasks, 'complete');
         $all = array_column($tasks, 'all');
         array_multisort($complete, SORT_DESC, $all, SORT_DESC,  $tasks);
-        return $tasks;
+        return  [
+            "tasks"=> $tasks,
+            "short"=> $short
+        ];
     }
 
     public function getUndoneTask($dept = 0)
