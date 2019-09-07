@@ -81,8 +81,8 @@ td .deviation{padding-left:20px; text-align:left;}
     padding: 5px;
     display: inline-block;
 }
-#workload2 {
-    margin-bottom: 20px !important; 
+.workload2 {
+    margin-bottom: 10px !important; 
 }
 .project-name{
     display: inline-block;
