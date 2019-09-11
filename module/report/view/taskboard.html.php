@@ -21,6 +21,7 @@
           <?php echo html::a($this->createLink('report', 'taskboard', "date={$prev_day}&dept={$dept}"), 上一天, '', "class='btn btn-primary next'"); ?>
           <?php echo html::a($this->createLink('report', 'taskboard', "date={$toady}&dept={$dept}"), 今天, '', "class='btn btn-primary next'"); ?>
           <?php echo html::a($this->createLink('report', 'taskboard', "date={$next_day}&dept={$dept}"), 下一天, '', "class='btn btn-primary next'"); ?>
+          <?php echo html::a($this->createLink('report', 'export', "&dept={$dept}"), "<i class='icon icon-export muted'> </i>导出", '', "class='btn btn-primary download-btn'"); ?>
           </div>
         </div>
       </form>

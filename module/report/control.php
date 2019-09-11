@@ -322,4 +322,33 @@ class report extends control
         $this->view->dept = $dept;
         $this->display();
     }
+
+    // 导出
+
+    public function export($dept = 3)
+    {
+        $this->loadModel('file');
+        $this->loadModel('branch');
+        /* Create field lists. */
+        $today = date('Y-m-d');
+        $date = date('Y_m_d');
+        $users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
+        $tasks = $this->report->getTaskStatistics($dept, $today)['tasks'];
+        $rows = [];
+        foreach ($tasks as $user => $task) {
+            $rows[] = json_decode(json_encode([
+                "姓名" => $users[$user],
+                "任务" => '(' . $task['complete'] . "/" . $task['all'] . ')',
+            ]));
+        }
+        $fields = [
+            "姓名" => '姓名',
+            "任务" => '任务',
+        ];
+        $this->post->set('fields', $fields);
+        $this->post->set('fileName', '' . $date);
+        $this->post->set('rows', $rows);
+        $this->post->set('encode', 'gbk');
+        $this->fetch('file', 'export2' . 'csv', $_POST);
+    }
 }

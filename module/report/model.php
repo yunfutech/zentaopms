@@ -555,7 +555,7 @@ class reportModel extends model
         foreach($tasks as $user => $task)
         {
             if($dept == 3) {
-                if($task['all'] < 8) {
+                if($task['all'] - 8 < 0) {
                     $short[$user] = $task['all']; 
                 }
             }elseif($dept == 1) {
