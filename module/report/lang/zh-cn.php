@@ -46,6 +46,7 @@ $lang->report->productSummary = $lang->productCommon . '汇总表';
 $lang->report->bugCreate = 'Bug创建表';
 $lang->report->bugAssign = 'Bug指派表';
 $lang->report->workload = '员工负载表';
+$lang->report->export = '导出';
 $lang->report->taskboard = '任务看板';
 $lang->report->undonetask = '任务池';
 $lang->report->workloadAB = '工作负载';
