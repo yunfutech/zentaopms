@@ -109,7 +109,17 @@ td .deviation{padding-left:20px; text-align:left;}
     height: 100%;
 }
 .task-detail {
-    margin: 2px 0;
+    vertical-align: middle;
+}
+.checkbox {
+    display: inline-block;
+}
+.table-footer {
+    border:1px solid #cbd0db;
+    border-top: none;
+}
+.bigbox {
+    position: relative;
 }
 .pri {
     width: 20px;

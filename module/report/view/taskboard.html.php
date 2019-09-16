@@ -4,6 +4,9 @@
   <div class='main-col'>
   <div class='cell'>
       <form method='post'>
+      <?php
+$canBatchEdit = common::hasPriv('story', 'batchEdit');
+?>
         <div class="row" id='conditions'>
           <div class='col-sm-2'>
             <div class='input-group'>
@@ -33,13 +36,14 @@
       </div>
     </div>
     <?php else: ?>
+    <form id='myTaskForm' class="table-task" data-ride="table" method="post">
     <div class='cell'>
       <div class='panel'>
         <div class="panel-heading">
           <div class="panel-title"><?php echo $title; ?></div>
           <nav class="panel-actions btn-toolbar"></nav>
         </div>
-        <div data-ride='table'>
+        <div data-ride='table' class='bigbox'>
         <?php if (count($short) > 0): ?>
         <div class='red workload2'>
         <span>任务不饱和：</span>
@@ -66,31 +70,48 @@
             </thead>
             <tbody>
             <?php foreach ($workload as $account => $load): ?>
+                <?php foreach ($load['detail'] as $index => $list): ?>
                 <tr class="text-left">
-                    <td><?php echo $users[$account]; ?></td>
-                    <td style='position:relative'>
+                    <?php if ($index == 0): ?>
+                    <td rowspan="<?php echo count($load['detail']); ?>"><?php echo $users[$account]; ?></td>
+                    <td style='position:relative' rowspan="<?php echo count($load['detail']); ?>">
                         <div class='content'><?php echo intval($load['complete'] / $load['all'] * 100); ?>% （<?php echo $load['complete']; ?>/<?php echo $load['all']; ?>）</div>
                         <div style='width:<?php echo intval($load['complete'] / $load['all'] * 100) ?>%' class='fg <?php if ($load['all'] > 10): echo 'fgred';elseif ($load['all'] > 8): echo 'fgorange';elseif ($load['all'] == 8): echo 'fggreen';elseif ($load['all'] < 8): echo 'fgblue';?><?php endif;?>'></div>
                         <div class='bg <?php if ($load['all'] > 10): echo 'bgred';elseif ($load['all'] > 8): echo 'bgorange';elseif ($load['all'] == 8): echo 'bggreen';elseif ($load['all'] < 8): echo 'bgblue';?><?php endif;?>'></div>
                     </td>
+                    <?php endif;?>
                     <td>
-                        <?php foreach ($load['detail'] as $list): ?>
-                            <div class='task-detail'>
-                                <span class='overview'>( <?php echo $list->consumed; ?> / <?php echo $list->estimate; ?> )</span>
-                                <?php echo html::a($this->createLink('project', 'task', "projectID={$list->project}"), "<span class='project-name'><span  class='pri pri_{$list->pri}'>{$list->pri}</span>{$list->projectName}</span>"); ?>
-                                <span class='taskid'><?php echo $list->id; ?></span>
-                                <span class='taskstatus status-<?php echo $list->status; ?>'><?php echo zget($lang->task->statusList, $list->status) ?></span>
-                                <?php echo html::a($this->createLink('task', 'view', "taskID={$list->id}"), "<span class='task-name'><span class='pri pri_{$list->taskpri}'>{$list->taskpri}</span>{$list->name}</span>"); ?>
+                        <div class='task-detail'>
+                            <span class='overview'>( <?php echo $list->consumed; ?> / <?php echo $list->estimate; ?> )</span>
+                            <?php echo html::a($this->createLink('project', 'task', "projectID={$list->project}"), "<span class='project-name'><span  class='pri pri_{$list->pri}'>{$list->pri}</span>{$list->projectName}</span>"); ?>
+                            <span class='taskid'><?php echo $list->id; ?></span>
+                            <span class='taskstatus status-<?php echo $list->status; ?>'><?php echo zget($lang->task->statusList, $list->status) ?></span>
+                            <div class="checkbox-primary checkbox" >
+                                <input type='checkbox' name='taskIDList[]' id='taskIDList-<?php echo $list->id; ?>' value='<?php echo $list->id; ?>' />
+                                <label for='taskIDList-<?php echo $list->id; ?>'></label>
                             </div>
-                        <?php endforeach;?>
+                            <?php echo html::a($this->createLink('task', 'view', "taskID={$list->id}"), "<span class='task-name'><span class='pri pri_{$list->taskpri}'>{$list->taskpri}</span>{$list->name}</span>"); ?>
+                        </div>
                     </td>
                 </tr>
+                <?php endforeach;?>
             <?php endforeach;?>
             </tbody>
           </table>
+          <div class="table-footer  fixed-footer">
+            <div class="table-actions btn-toolbar">
+            <?php
+if ($canBatchEdit) {
+    $actionLink = $this->createLink('task', 'batchEdit', "projectID=0");
+    echo html::commonButton($lang->edit, "onclick=\"setFormAction('$actionLink')\"");
+}
+?>
+                </div>
+            </div>
         </div>
       </div>
     </div>
+    </form>
     <?php endif;?>
   </div>
 </div>
