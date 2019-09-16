@@ -48,6 +48,14 @@
         <?php endforeach?>
         </div>
         <?php endif?>
+        <?php if (count($exceed) > 0): ?>
+        <div class='red workload2'>
+        <span>任务超负荷：</span>
+        <?php foreach ($exceed as $user => $all): ?>
+        <span class='user'><?php echo $users[$user]; ?>(<?php echo $all; ?>)</span>
+        <?php endforeach?>
+        </div>
+        <?php endif?>
           <table class='table table-condensed table-striped table-bordered table-fixed no-margin' id="workload">
             <thead>
               <tr class='colhead text-center'>

@@ -552,11 +552,14 @@ class reportModel extends model
             }
         }
         $short = array();
+        $exceed = array();
         foreach($tasks as $user => $task)
         {
             if($dept == 3) {
                 if($task['all'] - 8 < 0) {
                     $short[$user] = $task['all']; 
+                }elseif($task['all'] - 8 >= 2) {
+                    $exceed[$user] = $task['all'];
                 }
             }elseif($dept == 1) {
                 if($task['all'] < 6) {
@@ -571,12 +574,14 @@ class reportModel extends model
         }
         // $process = array_column($tasks, 'process');
         asort($short);
+        arsort($exceed);
         $complete = array_column($tasks, 'complete');
         $all = array_column($tasks, 'all');
         array_multisort($complete, SORT_DESC, $all, SORT_DESC,  $tasks);
         return  [
             "tasks"=> $tasks,
-            "short"=> $short
+            "short"=> $short,
+            "exceed"=> $exceed
         ];
     }
 

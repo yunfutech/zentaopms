@@ -295,6 +295,7 @@ class report extends control
         $tasks = $this->report->getTaskStatistics($dept, $date);
         $this->view->workload = $tasks['tasks'];
         $this->view->short = $tasks['short'];
+        $this->view->exceed = $tasks['exceed'];
         $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
         $this->view->depts = $this->loadModel('dept')->getOptionMenu();
         $this->view->date = $date;
