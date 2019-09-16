@@ -4,9 +4,7 @@
   <div class='main-col'>
   <div class='cell'>
       <form method='post'>
-      <?php
-$canBatchEdit = common::hasPriv('story', 'batchEdit');
-?>
+      <?php $canBatchEdit  = common::hasPriv('task', 'batchEdit');?>
         <div class="row" id='conditions'>
           <div class='col-sm-2'>
             <div class='input-group'>
