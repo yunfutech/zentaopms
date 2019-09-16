@@ -86,10 +86,12 @@ $canBatchEdit = common::hasPriv('story', 'batchEdit');
                             <?php echo html::a($this->createLink('project', 'task', "projectID={$list->project}"), "<span class='project-name'><span  class='pri pri_{$list->pri}'>{$list->pri}</span>{$list->projectName}</span>"); ?>
                             <span class='taskid'><?php echo $list->id; ?></span>
                             <span class='taskstatus status-<?php echo $list->status; ?>'><?php echo zget($lang->task->statusList, $list->status) ?></span>
+                            <?php if ($canBatchEdit): ?>
                             <div class="checkbox-primary checkbox" >
                                 <input type='checkbox' name='taskIDList[]' id='taskIDList-<?php echo $list->id; ?>' value='<?php echo $list->id; ?>' />
                                 <label for='taskIDList-<?php echo $list->id; ?>'></label>
                             </div>
+                            <?php endif;?>
                             <?php echo html::a($this->createLink('task', 'view', "taskID={$list->id}"), "<span class='task-name'><span class='pri pri_{$list->taskpri}'>{$list->taskpri}</span>{$list->name}</span>"); ?>
                         </div>
                     </td>
