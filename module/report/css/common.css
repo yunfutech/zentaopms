@@ -74,13 +74,20 @@ td .deviation{padding-left:20px; text-align:left;}
 .bgblue{background:#b2d6ef}
 .download-btn {margin-left: 20px;}
 .overview {
-    width: 90px;
+    width: 80px;
     text-align: center;
     background: #13ce66;
     color: #fff;
     border-radius: 4px;
     padding: 5px;
     display: inline-block;
+}
+.bigbox table td{
+    padding: 2px 5px;
+}
+.bigbox table a{
+    vertical-align: initial;
+    padding: 0;
 }
 .user {
     margin-right: 4px;

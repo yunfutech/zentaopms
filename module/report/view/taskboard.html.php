@@ -4,7 +4,7 @@
   <div class='main-col'>
   <div class='cell'>
       <form method='post'>
-      <?php $canBatchEdit  = common::hasPriv('task', 'batchEdit');?>
+      <?php $canBatchEdit = common::hasPriv('task', 'batchEdit');?>
         <div class="row" id='conditions'>
           <div class='col-sm-2'>
             <div class='input-group'>
@@ -58,7 +58,7 @@
         <?php endforeach?>
         </div>
         <?php endif?>
-          <table class='table table-condensed table-striped table-bordered table-fixed no-margin' id="workload">
+          <table class='table table-bordered table-fixed no-margin' id="workload">
             <thead>
               <tr class='colhead text-center'>
                 <th class="w-100px" ><?php echo $lang->report->user; ?></th>
@@ -80,7 +80,7 @@
                     <?php endif;?>
                     <td>
                         <div class='task-detail'>
-                            <span class='overview'>( <?php echo $list->consumed; ?> / <?php echo $list->estimate; ?> )</span>
+                            <span class='overview'><?php echo $list->consumed; ?> / <?php echo $list->estimate; ?></span>
                             <?php echo html::a($this->createLink('project', 'task', "projectID={$list->project}"), "<span class='project-name'><span  class='pri pri_{$list->pri}'>{$list->pri}</span>{$list->projectName}</span>"); ?>
                             <span class='taskid'><?php echo $list->id; ?></span>
                             <span class='taskstatus status-<?php echo $list->status; ?>'><?php echo zget($lang->task->statusList, $list->status) ?></span>
@@ -98,7 +98,8 @@
             <?php endforeach;?>
             </tbody>
           </table>
-          <div class="table-footer  fixed-footer">
+          <?php if ($canBatchEdit): ?>
+          <div class="table-footer fixed-footer">
             <div class="table-actions btn-toolbar">
             <?php
 if ($canBatchEdit) {
@@ -108,6 +109,7 @@ if ($canBatchEdit) {
 ?>
                 </div>
             </div>
+            <?php endif;?>
         </div>
       </div>
     </div>
