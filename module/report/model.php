@@ -564,6 +564,8 @@ class reportModel extends model
             }elseif($dept == 1) {
                 if($task['all'] < 6) {
                     $short[$user] = $task['all'];
+                }elseif($task['all'] - 8 >= 2) {
+                    $exceed[$user] = $task['all'];
                 }
             }
             $tasks[$user]['process'] = $task['complete'] / $task['all'] * 100;
