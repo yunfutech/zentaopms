@@ -78,7 +78,7 @@
                         <div class='bg <?php if ($load['all'] > 10): echo 'bgred';elseif ($load['all'] > 8): echo 'bgorange';elseif ($load['all'] == 8): echo 'bggreen';elseif ($load['all'] < 8): echo 'bgblue';?><?php endif;?>'></div>
                     </td>
                     <?php endif;?>
-                    <td class=' <?php if ($index == count($list)): echo 'td-line';?><?php endif;?>'>
+                    <td class=' <?php if ($index == count($load['detail']) - 1): echo 'td-line';?><?php endif;?>'>
                         <div class='task-detail'>
                             <span class='overview'><?php echo $list->consumed; ?> / <?php echo $list->estimate; ?></span>
                             <?php echo html::a($this->createLink('project', 'task', "projectID={$list->project}"), "<span class='project-name'><span  class='pri pri_{$list->pri}'>{$list->pri}</span>{$list->projectName}</span>"); ?>
