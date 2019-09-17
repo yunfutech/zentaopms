@@ -71,14 +71,14 @@
                 <?php foreach ($load['detail'] as $index => $list): ?>
                 <tr class="text-left">
                     <?php if ($index == 0): ?>
-                    <td rowspan="<?php echo count($load['detail']); ?>"><?php echo $users[$account]; ?></td>
-                    <td style='position:relative' rowspan="<?php echo count($load['detail']); ?>">
+                    <td class='td-line' rowspan="<?php echo count($load['detail']); ?>"><?php echo $users[$account]; ?></td>
+                    <td class='td-line' style='position:relative' rowspan="<?php echo count($load['detail']); ?>">
                         <div class='content'><?php echo intval($load['complete'] / $load['all'] * 100); ?>% （<?php echo $load['complete']; ?>/<?php echo $load['all']; ?>）</div>
                         <div style='width:<?php echo intval($load['complete'] / $load['all'] * 100) ?>%' class='fg <?php if ($load['all'] > 10): echo 'fgred';elseif ($load['all'] > 8): echo 'fgorange';elseif ($load['all'] == 8): echo 'fggreen';elseif ($load['all'] < 8): echo 'fgblue';?><?php endif;?>'></div>
                         <div class='bg <?php if ($load['all'] > 10): echo 'bgred';elseif ($load['all'] > 8): echo 'bgorange';elseif ($load['all'] == 8): echo 'bggreen';elseif ($load['all'] < 8): echo 'bgblue';?><?php endif;?>'></div>
                     </td>
                     <?php endif;?>
-                    <td>
+                    <td class=' <?php if ($index == count($list)): echo 'td-line';?><?php endif;?>'>
                         <div class='task-detail'>
                             <span class='overview'><?php echo $list->consumed; ?> / <?php echo $list->estimate; ?></span>
                             <?php echo html::a($this->createLink('project', 'task', "projectID={$list->project}"), "<span class='project-name'><span  class='pri pri_{$list->pri}'>{$list->pri}</span>{$list->projectName}</span>"); ?>

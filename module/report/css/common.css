@@ -84,10 +84,19 @@ td .deviation{padding-left:20px; text-align:left;}
 }
 .bigbox table td{
     padding: 2px 5px;
+    border-bottom: 0;
+    border-top: 0;
+}
+.bigbox table td.td-line {
+    border-bottom: 1px solid #cbd0db;
 }
 .bigbox table a{
     vertical-align: initial;
     padding: 0;
+}
+.bigbox table .checkbox {
+    margin: 0;
+    margin-top: -3px;
 }
 .user {
     margin-right: 4px;
