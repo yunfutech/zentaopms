@@ -287,6 +287,7 @@ class report extends control
             $dept = $data->dept;
             $date = $data->date;
         }
+        $this->app->session->set('taskList',  $this->app->getURI(true));
         $date = $date ? date('Y-m-d', strtotime($date)) : date('Y-m-d');
         $this->app->loadConfig('project');
 
