@@ -287,7 +287,8 @@ class report extends control
             $dept = $data->dept;
             $date = $data->date;
         }
-        if($date == '' || $date == 0 || $date < 20 || !$date) {
+
+        if($date == '' || $date == 0 || $date == 'today' || !$date) {
             $date = date('Y-m-d');
         } else {
             $date = date('Y-m-d', strtotime($date));
