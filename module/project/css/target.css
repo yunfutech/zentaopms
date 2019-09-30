@@ -1,0 +1,37 @@
+.left-title {
+    position: relative;
+    width: 180px;
+    height: 34px;
+    padding-right: 20px;
+    margin-right: 20px;
+    background: #fff;
+    border-left: 4px solid #0c64eb;
+    border-radius: 4px 2px 2px 4px;
+    margin-top: 10px;
+}
+
+.left-col {
+    position: relative;
+    left: 0;
+    width: 180px;
+}
+
+.left-text {
+    padding: 0 5px;
+    overflow: hidden;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 32px;
+    color: #0c64eb;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.left-cell-text {
+    padding: 4px 2px 4px 20px;
+}
+
+.cell {
+    margin-top: 10px;
+}

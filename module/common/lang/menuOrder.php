@@ -49,6 +49,7 @@ $lang->branch->menuOrder      = $lang->product->menuOrder;
 $lang->project->menuOrder[5]  = 'task';
 $lang->project->menuOrder[10] = 'kanban';
 $lang->project->menuOrder[15] = 'burn';
+$lang->project->menuOrder[18] = 'target';
 $lang->project->menuOrder[20] = 'list';
 $lang->project->menuOrder[25] = 'story';
 $lang->project->menuOrder[30] = 'qa';

@@ -155,6 +155,7 @@ $lang->project->iteration         = '版本迭代';
 $lang->project->iterationInfo     = '迭代%s次';
 $lang->project->viewAll           = '查看所有';
 $lang->project->pri               = '优先级';
+$lang->project->target            = '指标';
 
 $lang->project->priList[0] = '';
 $lang->project->priList[1] = '1';

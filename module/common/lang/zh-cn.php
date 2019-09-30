@@ -239,6 +239,7 @@ $lang->project->menu = new stdclass();
 $lang->project->menu->task    = array('link' => '任务|project|task|projectID=%s', 'subModule' => 'task,tree', 'alias' => 'importtask,importbug');
 $lang->project->menu->kanban  = array('link' => '看板|project|kanban|projectID=%s');
 $lang->project->menu->burn    = array('link' => '燃尽图|project|burn|projectID=%s');
+$lang->project->menu->target  = array('link' => '指标|project|target|projectID=%s', 'subModule' => 'target');
 $lang->project->menu->list    = array('link' => '更多|project|grouptask|projectID=%s', 'alias' => 'grouptask,tree', 'class' => 'dropdown dropdown-hover');
 $lang->project->menu->story   = array('link' => '需求|project|story|projectID=%s', 'subModule' => 'story', 'alias' => 'linkstory,storykanban');
 $lang->project->menu->qa      = array('link' => '测试|project|bug|projectID=%s', 'subModule' => 'bug,build,testtask', 'alias' => 'build,testtask', 'class' => 'dropdown dropdown-hover');
@@ -259,6 +260,9 @@ $lang->project->subMenu->qa->build    = array('link' => '版本|project|build|pr
 $lang->project->subMenu->qa->testtask = array('link' => '测试单|project|testtask|projectID=%s', 'subModule' => 'testreport,testtask');
 
 $lang->project->dividerMenu = ',story,team,product,';
+
+$lang->target = new stdClass();
+$lang->target->menu  = $lang->project->menu;
 
 $lang->task  = new stdclass();
 $lang->build = new stdclass();

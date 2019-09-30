@@ -107,6 +107,14 @@ define('TABLE_WEBHOOK',       '`' . $config->db->prefix . 'webhook`');
 define('TABLE_LOG',           '`' . $config->db->prefix . 'log`');
 define('TABLE_SCORE',         '`' . $config->db->prefix . 'score`');
 define('TABLE_NOTIFY',        '`' . $config->db->prefix . 'notify`');
+
+define('TABLE_TARGET_CATEGORY', '`' . $config->db->prefix . 'target_category`');
+define('TABLE_TARGET_DATASET', '`' . $config->db->prefix . 'target_dataset`');
+define('TABLE_TARGET_MODULE', '`' . $config->db->prefix . 'target_module`');
+define('TABLE_TARGET_PERFORMANCE', '`' . $config->db->prefix . 'target_performance`');
+define('TABLE_TARGET_TARGET', '`' . $config->db->prefix . 'target_target`');
+define('TABLE_TARGET_RECORD', '`' . $config->db->prefix . 'target_record`');
+define('TABLE_TARGET_EXPERIMENT', '`' . $config->db->prefix . 'target_experiment`');
 if(!defined('TABLE_LANG')) define('TABLE_LANG', '`' . $config->db->prefix . 'lang`');
 
 $config->objectTables['product']     = TABLE_PRODUCT;

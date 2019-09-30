@@ -2480,4 +2480,44 @@ class project extends control
         $this->view->users   = $this->loadModel('user')->getPairs('noletter');
         $this->display();
     }
+
+
+    // 指标页面
+    public function target($projectID='')
+    {
+        $this->loadModel('target');
+        $project   = $this->commonAction($projectID);
+        $projectID = $project->id;
+
+        /* Header and position. */
+        $title      = $project->name . $this->lang->colon . $this->lang->project->target;
+        $position[] = html::a($this->createLink('project', 'browse', "projectID=$projectID"), $project->name);
+        $position[] = $this->lang->project->target;
+
+        $categories = $this->target->getCategories();
+        $datasets = $this->target->getDatasets();
+        $experiments = $this->target->getExperiment($projectID);
+        foreach ($experiments as $experiment) {
+            $experiment->recordLen = count($experiment->record) == 0 ? 1 : count($experiment->record);
+            $surplusRecord = [];
+            foreach ($experiment->record as $key => $record) {
+                if ($key == 0) {
+                    continue;
+                } else {
+                    array_push($surplusRecord, $record);
+                }
+            }
+            $experiment->surplusRecord = $surplusRecord;
+        }
+
+        $this->view->title       = $title;
+        $this->view->position    = $position;
+        $this->view->projectID   = $projectID;
+        $this->view->projectName = $project->name;
+        $this->view->categories  = $categories;
+        $this->view->datasets    = $datasets;
+        $this->view->experiments = $experiments;
+
+        $this->display();
+    }
 }
