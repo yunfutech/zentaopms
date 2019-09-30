@@ -287,10 +287,13 @@ class report extends control
             $dept = $data->dept;
             $date = $data->date;
         }
+        if($date == '' || $date == 0 || $date < 20 || !$date) {
+            $date = date('Y-m-d');
+        } else {
+            $date = date('Y-m-d', strtotime($date));
+        }
         $this->app->session->set('taskList',  $this->app->getURI(true));
-        $date = $date ? date('Y-m-d', strtotime($date)) : date('Y-m-d');
         $this->app->loadConfig('project');
-
         $this->view->title = $this->lang->report->taskboard;
         $this->view->position[] = $this->lang->report->taskboard;
         $tasks = $this->report->getTaskStatistics($dept, $date);
