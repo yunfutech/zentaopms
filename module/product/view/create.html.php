@@ -67,7 +67,7 @@
           </tr>  
           <tr>
             <th><?php echo $lang->product->acl;?></th>
-            <td colspan='2'><?php echo nl2br(html::radio('acl', $lang->product->aclList, 'open', "onclick='setWhite(this.value);'", 'block'));?></td>
+            <td colspan='2'><?php echo nl2br(html::radio('acl', $lang->product->aclList, 'private', "onclick='setWhite(this.value);'", 'block'));?></td>
           </tr>  
           <tr id='whitelistBox' class='hidden'>
             <th><?php echo $lang->product->whitelist;?></th>
