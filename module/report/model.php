@@ -513,6 +513,7 @@ class reportModel extends model
         $finishedIdstasks = $this->dao->select('t1.id, t1.left, t1.status, t1.pri as taskpri, t1.parent, t1.name, t1.project, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy,t2.pri, t2.name as projectName')->from(TABLE_TASK)->alias('t1')
         ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
         ->where('t1.deleted')->eq(0)
+        ->andWhere('t1.finishedBy')->in($usernames)
         ->andWhere('t1.deadline')->eq($date)
         ->andWhere('t1.finishedBy')->ne('')
         ->andWhere('t2.status')->notin('cancel, closed, suspended')
@@ -522,6 +523,7 @@ class reportModel extends model
         $todoTasks = $this->dao->select('t1.id, t1.name, t1.project, t1.status, t1.pri as taskpri, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy, t2.pri, t2.name as projectName')->from(TABLE_TASK)->alias('t1')
         ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
         ->where('t1.deleted')->eq(0)
+        ->andWhere('t1.assignedTo')->in($usernames)
         ->andWhere('t1.deadline')->eq($date)
         ->andWhere('t1.status')->notin('cancel, closed')
         ->andWhere('t1.finishedBy')->eq('')
@@ -605,9 +607,11 @@ class reportModel extends model
                 ];
             }
         }
+        $date = date('Y-m-d');
         $undoneTasks = $this->dao->select('t1.id, t1.name, t1.status, t1.project, t1.pri as taskpri, t1.estimate, t1.consumed, t1.assignedTo, t1.deadline, t1.finishedBy, t2.pri, t2.name as projectName')->from(TABLE_TASK)->alias('t1')
         ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
         ->where('t1.deleted')->eq(0)
+        ->andWhere('t1.assignedTo')->in($usernames)
         ->andWhere('t1.status')->in('doing, wait, pause')
         ->andWhere('t1.finishedBy')->eq('')
         ->andWhere('t2.status')->notin('cancel, closed')
@@ -616,6 +620,9 @@ class reportModel extends model
         foreach($undoneTasks as $task)
         {
             if (in_array($task->assignedTo, $usernames)) {
+                if ($date > $task->deadline) {
+                    $task->expired = 1;
+                }
                 $tasks[$task->assignedTo]['detail'][]  = $task;
             }
         }

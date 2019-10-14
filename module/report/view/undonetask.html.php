@@ -43,16 +43,14 @@
             <tbody>
             <?php foreach ($tasks as $account => $load): ?>
                 <?php foreach ($load['detail'] as $index => $list): ?>
-                    <tr class="text-left">
+                    <tr class="text-left expired-<?php echo $list->expired; ?>">
                         <?php if ($index == 0): ?>
-
-                        <td rowspan="<?php echo count($load['detail']); ?>"><?php echo $users[$account]; ?></td>
+                        <td class='td-1' rowspan="<?php echo count($load['detail']); ?>"><?php echo $users[$account]; ?></td>
                         <?php endif;?>
                         <td>
-                                <div class='task-detail'>
-                                    <?php echo html::a($this->createLink('project', 'task', "projectID={$list->project}"), "<span class=''><span  class='pri pri_{$list->pri}'>{$list->pri}</span>{$list->projectName}</span>"); ?>
-
-                                </div>
+                            <div class='task-detail'>
+                                <?php echo html::a($this->createLink('project', 'task', "projectID={$list->project}"), "<span class=''><span  class='pri pri_{$list->pri}'>{$list->pri}</span>{$list->projectName}</span>"); ?>
+                            </div>
                         </td>
                         <td class='text-center'><?php echo $list->id ?></td>
                         <td><?php echo html::a($this->createLink('task', 'view', "taskID={$list->id}"), "<span class=''><span class='pri pri_{$list->taskpri}'>{$list->taskpri}</span>{$list->name}</span>"); ?></td>

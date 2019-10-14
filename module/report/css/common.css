@@ -82,6 +82,12 @@ td .deviation{padding-left:20px; text-align:left;}
     padding: 5px;
     display: inline-block;
 }
+.table>tbody>tr.expired-1 td {
+    background:#f1ced0
+}
+.table>tbody>tr.expired-1 .td-1{
+    background:#f9f9f9
+}
 .bigbox table td{
     padding: 2px 5px;
     border-bottom: 0;
