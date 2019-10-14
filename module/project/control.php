@@ -1015,8 +1015,8 @@ class project extends control
         $code         = '';
         $team         = '';
         $products     = array();
-        $whitelist    = '';
-        $acl          = 'private';
+        $whitelist    = '1';
+        $acl          = 'custom';
         $plan         = new stdClass();
         $productPlan  = array();
         $productPlans = array();
