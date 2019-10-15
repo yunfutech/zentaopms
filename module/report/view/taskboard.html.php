@@ -62,7 +62,7 @@
             <thead>
               <tr class='colhead text-center'>
                 <th class="w-100px" ><?php echo $lang->report->user; ?></th>
-                <th class="w-150px">任务完成度</th>
+                <th class="w-150px">任务完成度<a href="javascript:;" class="iframe" title="实际消耗/预计消耗/全部任务"><i class="icon-question-sign"></i></a></th>
                 <th><?php echo $lang->report->task; ?></th>
               </tr>
             </thead>
@@ -73,7 +73,7 @@
                     <?php if ($index == 0): ?>
                     <td class='td-line' rowspan="<?php echo count($load['detail']); ?>"><?php echo $users[$account]; ?></td>
                     <td class='td-line' style='position:relative' rowspan="<?php echo count($load['detail']); ?>">
-                        <div class='content'><?php echo intval($load['complete'] / $load['all'] * 100); ?>% （<?php echo $load['complete']; ?>/<?php echo $load['all']; ?>）</div>
+                        <div class='content'><?php echo intval($load['complete'] / $load['all'] * 100); ?>% （<?php echo $load['consumed']; ?>/<?php echo $load['complete']; ?>/<?php echo $load['all']; ?>）</div>
                         <div style='width:<?php echo intval($load['complete'] / $load['all'] * 100) ?>%' class='fg <?php if ($load['all'] > 10): echo 'fgred';elseif ($load['all'] > 8): echo 'fgorange';elseif ($load['all'] == 8): echo 'fggreen';elseif ($load['all'] < 8): echo 'fgblue';?><?php endif;?>'></div>
                         <div class='bg <?php if ($load['all'] > 10): echo 'bgred';elseif ($load['all'] > 8): echo 'bgorange';elseif ($load['all'] == 8): echo 'bggreen';elseif ($load['all'] < 8): echo 'bgblue';?><?php endif;?>'></div>
                     </td>

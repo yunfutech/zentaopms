@@ -507,6 +507,7 @@ class reportModel extends model
                     "detail"=> [],
                     "all"=> 0,
                     "complete"=> 0,
+                    "consumed"=> 0
                 ];
             }
         }
@@ -531,25 +532,34 @@ class reportModel extends model
         ->andWhere('assignedTo')->ne('')->orderBy('t1.id')->fetchAll();
         
         // $todoTasks  = $todo->beginIF(0)->andWhere('t1.assignedTo')->in(array_keys($deptUsers))->fi()->fetchAll('id');
-
+        
+        $status_dict = array(
+            'doing'=>1,
+            'done'=>2,
+            'wait'=>3
+        );
 
         foreach($finishedIdstasks as $task)
         {
             if (in_array($task->finishedBy, $usernames)) {
+                $task->status_sort = $status_dict[$task->status];
                 $tasks[$task->finishedBy]['detail'][]  = $task;
                 $tasks[$task->finishedBy]['all'] += $task->estimate;
                 if($task->finishedBy != ''){
                     $tasks[$task->finishedBy]['complete'] += $task->estimate;
+                    $tasks[$task->finishedBy]['consumed'] += $task->consumed;
                 }
             }
         }
         foreach($todoTasks as $task)
         {
             if (in_array($task->assignedTo, $usernames)) {
+                $task->status_sort = $status_dict[$task->status];
                 $tasks[$task->assignedTo]['detail'][]  = $task;
                 $tasks[$task->assignedTo]['all'] += $task->estimate;
                 if($task->finishedBy == ''){
                     $tasks[$task->assignedTo]['complete'] += $task->consumed;
+                    $tasks[$task->finishedBy]['consumed'] += $task->consumed;
                 }
             }
         }
@@ -557,24 +567,27 @@ class reportModel extends model
         $exceed = array();
         foreach($tasks as $user => $task)
         {
-            if($dept == 3) {
-                if($task['all'] - 8 < 0) {
-                    $short[$user] = $task['all']; 
-                }elseif($task['all'] - 8 >= 2) {
-                    $exceed[$user] = $task['all'];
+            if (in_array($user, $usernames)) {
+                if($dept == 3) {
+                    if($task['all'] - 8 < 0) {
+                        $short[$user] = $task['all']; 
+                    }elseif($task['all'] - 8 >= 2) {
+                        $exceed[$user] = $task['all'];
+                    }
+                }elseif($dept == 1) {
+                    if($task['all'] < 6) {
+                        $short[$user] = $task['all'];
+                    }elseif($task['all'] - 8 >= 2) {
+                        $exceed[$user] = $task['all'];
+                    }
                 }
-            }elseif($dept == 1) {
-                if($task['all'] < 6) {
-                    $short[$user] = $task['all'];
-                }elseif($task['all'] - 8 >= 2) {
-                    $exceed[$user] = $task['all'];
-                }
+                $tasks[$user]['process'] = $task['complete'] / $task['all'] * 100;
+                $taskpri = array_column($task['detail'], 'taskpri');
+                $pri = array_column($task['detail'], 'pri');
+                $status_pri = array_column($task['detail'], 'status_sort');
+                array_multisort($status_pri, SORT_ASC, $taskpri, SORT_ASC, $pri, SORT_ASC, $task['detail']);
+                $tasks[$user]['detail'] = $task['detail'];
             }
-            $tasks[$user]['process'] = $task['complete'] / $task['all'] * 100;
-            $taskpri = array_column($task['detail'], 'taskpri');
-            $pri = array_column($task['detail'], 'pri');
-            array_multisort($taskpri, SORT_ASC, $pri, SORT_ASC, $task['detail']);
-            $tasks[$user]['detail'] = $task['detail'];
         }
         // $process = array_column($tasks, 'process');
         asort($short);
