@@ -62,7 +62,7 @@
             <thead>
               <tr class='colhead text-center'>
                 <th class="w-100px" ><?php echo $lang->report->user; ?></th>
-                <th class="w-150px">任务完成度<a href="javascript:;" class="iframe" title="实际消耗/预计消耗/全部任务"><i class="icon-question-sign"></i></a></th>
+                <th class="w-150px">任务完成度<a href="javascript:;"  title="实际消耗/预计消耗/全部任务"><i class="icon-question-sign"></i></a></th>
                 <th><?php echo $lang->report->task; ?></th>
               </tr>
             </thead>

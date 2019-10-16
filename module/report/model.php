@@ -559,7 +559,7 @@ class reportModel extends model
                 $tasks[$task->assignedTo]['all'] += $task->estimate;
                 if($task->finishedBy == ''){
                     $tasks[$task->assignedTo]['complete'] += $task->consumed;
-                    $tasks[$task->finishedBy]['consumed'] += $task->consumed;
+                    $tasks[$task->assignedTo]['consumed'] += $task->consumed;
                 }
             }
         }
