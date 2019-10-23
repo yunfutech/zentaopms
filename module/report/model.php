@@ -626,7 +626,7 @@ class reportModel extends model
         ->where('t1.deleted')->eq(0)
         ->andWhere('t1.assignedTo')->in($usernames)
         ->andWhere('t1.status')->in('doing, wait, pause')
-        ->andWhere('t1.finishedBy')->eq('')
+        ->andWhere('t1.finishedBy')->ne('')
         ->andWhere('t2.status')->notin('cancel, closed')
         ->andWhere('assignedTo')->ne('')->orderBy('t1.pri,t1.deadline')->fetchAll();
 
@@ -641,6 +641,56 @@ class reportModel extends model
         }
         
         return $tasks;
+    }
+
+    public function getProjectStatistics($date)
+    {
+        $w = date('w', $date);
+        $week_start=date('Y-m-d',strtotime("$date -".($w ? $w - 2 : 6).' days'));
+        $week_end=date('Y-m-d',strtotime("$week_start +6 days"));
+        $projects = $this->dao->select('p.id, p.name, p.pri')->from(TABLE_PROJECT)->alias('p')
+        ->where('p.status')->notin('cancel, closed')
+        ->orderBy('p.pri')->fetchAll();
+        $projects_json = [];
+        $projects_ids = [];
+        foreach($projects as $project)
+        {
+            $projects_ids[] = $project->id;
+            $projects_json[$project->id] = [
+                'id' => $project->id,
+                'name' => $project->name,
+                'pri' => $project->pri,
+                'consumed' => 0,
+                'tasks' => []
+            ];
+        }
+        $tasks = $this->dao->select('t1.id, t1.project as pid, t1.name, t1.status, t1.project, t1.estimate, t1.consumed, t1.finishedBy, t1.finishedDate')->from(TABLE_TASK)->alias('t1')
+        ->where('t1.deleted')->eq(0)
+        ->andWhere('t1.project')->in($projects_ids)
+        ->andWhere('t1.finishedDate')->ge($week_start)
+        ->andWhere('t1.finishedDate')->le($week_end)
+        ->andWhere('t1.finishedBy')->ne('')
+        ->fetchAll();
+        foreach($tasks as $task)
+        {
+            if($task->consumed > 0) {
+                $projects_json[$task->pid]['consumed'] += $task->consumed;
+                if(!array_key_exists($task->finishedBy, $projects_json[$task->pid]['tasks'])) {
+                    $projects_json[$task->pid]['tasks'][$task->finishedBy] = 0;
+                }
+                $projects_json[$task->pid]['tasks'][$task->finishedBy] += $task->consumed;
+            }
+        }
+        foreach($projects_json as $index=>$project)
+        {
+            $tmp = $project['tasks'];
+            arsort($tmp);
+            $projects_json[$index]['tasks'] = $tmp;
+        }
+        $date = date('Y-m-d');
+        $consumed = array_column($projects_json, 'consumed');
+        array_multisort($consumed, SORT_DESC, $projects_json);
+        return $projects_json;
     }
 }
 

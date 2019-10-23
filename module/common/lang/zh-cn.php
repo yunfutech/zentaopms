@@ -113,6 +113,7 @@ $lang->assignedToAB = '指派';
 $lang->typeAB       = '类型';
 $lang->taskboard    = '任务看板';
 $lang->undonetask    = '任务池';
+$lang->projectboard    = '迭代看板';
 
 $lang->common = new stdclass();
 $lang->common->common = '公有模块';
@@ -352,6 +353,7 @@ $lang->report->menu->product = array('link' => $lang->productCommon . '|report|p
 $lang->report->menu->prj     = array('link' => $lang->projectCommon . '|report|projectdeviation');
 $lang->report->menu->taskboard = array('link' => $lang->taskboard . '|report|taskboard');
 $lang->report->menu->undonetask = array('link' => $lang->undonetask . '|report|undonetask');
+$lang->report->menu->projectboard = array('link' => $lang->projectboard . '|report|projectboard');
 $lang->report->menu->test    = array('link' => '测试|report|bugcreate', 'alias' => 'bugassign');
 $lang->report->menu->staff   = array('link' => '组织|report|workload');
 

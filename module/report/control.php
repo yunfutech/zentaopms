@@ -329,6 +329,28 @@ class report extends control
         $this->display();
     }
 
+    // 迭代看板
+
+    public function projectboard($date = 0)
+    {
+        if ($_POST) {
+            $data = fixer::input('post')->get();
+            $date = $data->date;
+        }
+        if($date == '' || $date == 0 || $date == 'today' || !$date) {
+            $date = date('Y-m-d');
+        } else {
+            $date = date('Y-m-d', strtotime($date));
+        }
+        $this->app->loadConfig('project');
+        $this->view->date = $date;
+        $this->view->title = $this->lang->report->projectboard;
+        $this->view->position[] = $this->lang->report->projectboard;
+        $this->view->projects = $this->report->getProjectStatistics($date);
+        $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
+        $this->display();
+    }
+
     // 导出
 
     public function export($dept = 3)
