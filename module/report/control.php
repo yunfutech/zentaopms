@@ -351,6 +351,31 @@ class report extends control
         $this->display();
     }
 
+    // 用户看板
+
+    public function usertaskdoneboard($date = 0, $dept = 3)
+    {
+        if ($_POST) {
+            $data = fixer::input('post')->get();
+            $date = $data->date;
+            $dept = $data->dept;
+        }
+        if($date == '' || $date == 0 || $date == 'today' || !$date) {
+            $date = date('Y-m-d');
+        } else {
+            $date = date('Y-m-d', strtotime($date));
+        }
+        $this->app->loadConfig('project');
+        $this->view->date = $date;
+        $this->view->title = $this->lang->report->projectboard;
+        $this->view->position[] = $this->lang->report->projectboard;
+        $this->view->depts = $this->loadModel('dept')->getOptionMenu();
+        $this->view->tasks = $this->report->getUserWorkHour($date, $dept);
+        $this->view->dept = $dept;
+        $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
+        $this->display();
+    }
+    
     // 导出
 
     public function export($dept = 3)

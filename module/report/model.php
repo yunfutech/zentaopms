@@ -692,6 +692,56 @@ class reportModel extends model
         array_multisort($consumed, SORT_DESC, $projects_json);
         return $projects_json;
     }
+
+    public function getUserWorkHour($date, $dept)
+    {
+        $childDeptIds = $this->loadModel('dept')->getAllChildID($dept);
+        $deptUsers = $this->dept->getUsers($childDeptIds);
+        $usernames = array();
+        $usertasks = array();
+        foreach($deptUsers as $user)
+        {
+            if($user)
+            {
+                $username = $user->account;
+                $usernames[] = $username;
+                $tasks[$username] = [
+                    "tasks"=> [],
+                    "consumed"=> 0
+                ];
+            }
+        }
+        $w = date('w', $date);
+        $week_start=date('Y-m-d',strtotime("$date -".($w ? $w - 2 : 6).' days'));
+        $week_end=date('Y-m-d',strtotime("$week_start +6 days"));
+        $tasks = $this->dao->select('t1.id, t1.project as pid, t1.name, t1.status, t1.project, t1.estimate, t1.consumed, t1.finishedBy, t1.finishedDate, t2.pri, t2.name as projectName')->from(TABLE_TASK)->alias('t1')
+        ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
+        ->where('t1.deleted')->eq(0)
+        ->andWhere('t1.finishedBy')->in($usernames)
+        ->andWhere('t1.finishedDate')->ge($week_start)
+        ->andWhere('t1.finishedDate')->le($week_end)
+        ->fetchAll();
+        foreach($tasks as $task)
+        {
+            if($task->consumed > 0) {
+                $usertasks[$task->finishedBy]['consumed'] += $task->consumed;
+                if(!array_key_exists($task->projectName, $usertasks[$task->finishedBy]['tasks'])) {
+                    $usertasks[$task->finishedBy]['tasks'][$task->projectName] = 0;
+                }
+                $usertasks[$task->finishedBy]['tasks'][$task->projectName] += $task->consumed;
+            }
+        }
+        foreach($usertasks as $index=>$project)
+        {
+            $tmp = $project['tasks'];
+            arsort($tmp);
+            $usertasks[$index]['tasks'] = $tmp;
+        }
+        $date = date('Y-m-d');
+        $consumed = array_column($usertasks, 'consumed');
+        array_multisort($consumed, SORT_DESC, $usertasks);
+        return $usertasks;
+    }
 }
 
 /**
