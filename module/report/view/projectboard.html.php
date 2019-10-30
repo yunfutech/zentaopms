@@ -50,8 +50,8 @@
                             <?php echo html::a($this->createLink('project', 'task', "projectID={$project['id']}"), "<span class=''>{$project['name']}</span>"); ?>
                         </div>
                     </td>
-                    <td  class='text-center'>
-                    <span class='pri pri_{$project["pri"]}'><?php echo $project['pri']; ?></span>
+                    <td class='text-center' rowspan="<?php echo count($project['tasks']); ?>">
+                      <span class='pri pri_<?php echo $project["pri"]; ?>'><?php echo $project['pri']; ?></span>
                     </td>
                     <td class='text-center' rowspan="<?php echo count($project['tasks']); ?>"><?php echo $project['consumed']; ?></td>
                     <?php endif;?>
