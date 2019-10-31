@@ -1,13 +1,19 @@
 function changeParams (obj) {
-    var date = $('#conditions').find('#date').val();
-    if (date.indexOf('-') != -1) {
-        var beginarray = date.split("-");
-        var date = '';
-        for (i = 0; i < beginarray.length; i++) {
-            date = date + beginarray[i];
-        }
+    var begin   = $('#conditions').find('#begin').val();
+    var end     = $('#conditions').find('#end').val();
+    if(begin.indexOf('-') != -1)
+    {
+        var beginarray = begin.split("-");
+        var begin = '';
+        for(i = 0; i < beginarray.length; i++) begin = begin + beginarray[i];
     }
-    var link = createLink('report', 'projectboard', 'date=' + date);
+    if(end.indexOf('-') != -1)
+    {
+        var endarray = end.split("-");
+        var end = '';
+        for(i = 0 ; i < endarray.length ; i++) end = end + endarray[i];
+    }
+    var link = createLink('report', 'projectboard', 'begin=' + begin + '&end=' + end);
     location.href = link;
 }
 
@@ -26,5 +32,5 @@ $(function () {
         minView: 2,
         format: 'yyyy-mm-dd'
     };
-    $('input#date').datetimepicker(options);
+    $('input#begin,input#end').datetimepicker(options);
 });

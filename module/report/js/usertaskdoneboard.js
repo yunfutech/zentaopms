@@ -1,17 +1,22 @@
 function changeParams (obj) {
-    var date = $('#conditions').find('#date').val();
+    var begin   = $('#conditions').find('#begin').val();
+    var end     = $('#conditions').find('#end').val();
     var dept = $('#conditions').find('#dept').val();
-    if (date.indexOf('-') != -1) {
-        var beginarray = date.split("-");
-        var date = '';
-        for (i = 0; i < beginarray.length; i++) {
-            date = date + beginarray[i];
-        }
+    if(begin.indexOf('-') != -1)
+    {
+        var beginarray = begin.split("-");
+        var begin = '';
+        for(i = 0; i < beginarray.length; i++) begin = begin + beginarray[i];
     }
-    var link = createLink('report', 'usertaskdoneboard', 'date=' + date + '&dept=' + dept);
+    if(end.indexOf('-') != -1)
+    {
+        var endarray = end.split("-");
+        var end = '';
+        for(i = 0 ; i < endarray.length ; i++) end = end + endarray[i];
+    }
+    var link = createLink('report', 'usertaskdoneboard', 'begin=' + begin + '&end=' + end + '&dept=' + dept);
     location.href = link;
 }
-
 /**
  * Convert a date string to date object in js.
  *
@@ -31,8 +36,9 @@ $(function () {
         startView: 2,
         forceParse: true,
         showMeridian: 1,
+        weeks: true,
         minView: 2,
         format: 'yyyy-mm-dd'
     };
-    $('input#date').datetimepicker(options);
+    $('input#begin,input#end').datetimepicker(options);
 });

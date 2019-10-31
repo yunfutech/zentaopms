@@ -12,11 +12,18 @@
               <?php echo html::select('dept', $depts, $dept, "class='form-control chosen' onchange='changeParams(this)'"); ?>
             </div>
           </div>
-          <div class='col-sm-2'>
+          <div class='col-sm-3'>
             <div class='input-group input-group-sm'>
-              <span class='input-group-addon'>日期选择</span>
-              <div class='datepicker-wrapper datepicker-date'><?php echo html::input('date', $date, "class='form-control' style='padding-right:10px' onchange='changeParams(this)'"); ?></div>
+              <span class='input-group-addon'><?php echo $lang->report->beginAndEnd;?></span>
+              <div class='datepicker-wrapper datepicker-date'><?php echo html::input('begin', $begin, "class='form-control' style='padding-right:10px' onchange='changeParams(this)'");?></div>
+              <span class='input-group-addon fix-border'><?php echo $lang->report->to;?></span>
+              <div class='datepicker-wrapper datepicker-date'><?php echo html::input('end', $end, "class='form-control' style='padding-right:10px' onchange='changeParams(this)'");?></div>
             </div>
+          </div>
+          <div class='col-sm-3'>
+          <?php echo html::a($this->createLink('report', 'usertaskdoneboard', "begin={$pre['start']}&end={$pre['end']}&dept={$dept}"), 上一周, '', "class='btn btn-primary next'"); ?>
+          <?php echo html::a($this->createLink('report', 'usertaskdoneboard', "begin={$cur['start']}&end={$cur['end']}&dept={$dept}"), 本周, '', "class='btn btn-primary next'"); ?>
+          <?php echo html::a($this->createLink('report', 'usertaskdoneboard', "begin={$next['start']}&end={$next['end']}&dept={$dept}"), 下一周, '', "class='btn btn-primary next'"); ?>
           </div>
         </div>
       </form>

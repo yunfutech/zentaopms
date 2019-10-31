@@ -643,13 +643,11 @@ class reportModel extends model
         return $tasks;
     }
 
-    public function getProjectStatistics($date)
+    public function getProjectStatistics($begin, $end)
     {
-        $w = date('w', $date);
-        $week_start=date('Y-m-d',strtotime("$date -".($w ? $w - 2 : 6).' days'));
-        $week_end=date('Y-m-d',strtotime("$week_start +6 days"));
-        $projects = $this->dao->select('p.id, p.name, p.pri')->from(TABLE_PROJECT)->alias('p')
-        ->where('p.status')->notin('cancel, closed')
+        $projects = $this->dao->select('p.id, p.name, p.pri, p.end, p.begin')->from(TABLE_PROJECT)->alias('p')
+        ->where('p.end')->ge($begin)
+        ->andWhere('p.begin')->le($end)
         ->orderBy('p.pri')->fetchAll();
         $projects_json = [];
         $projects_ids = [];
@@ -667,8 +665,8 @@ class reportModel extends model
         $tasks = $this->dao->select('t1.id, t1.project as pid, t1.name, t1.status, t1.project, t1.estimate, t1.consumed, t1.finishedBy, t1.finishedDate')->from(TABLE_TASK)->alias('t1')
         ->where('t1.deleted')->eq(0)
         ->andWhere('t1.project')->in($projects_ids)
-        ->andWhere('t1.finishedDate')->ge($week_start)
-        ->andWhere('t1.finishedDate')->le($week_end)
+        ->andWhere('t1.finishedDate')->ge($begin)
+        ->andWhere('t1.finishedDate')->le($end)
         ->andWhere('t1.finishedBy')->ne('')
         ->fetchAll();
         foreach($tasks as $task)
@@ -693,7 +691,7 @@ class reportModel extends model
         return $projects_json;
     }
 
-    public function getUserWorkHour($date, $dept)
+    public function getUserWorkHour($begin, $end, $dept)
     {
         $childDeptIds = $this->loadModel('dept')->getAllChildID($dept);
         $deptUsers = $this->dept->getUsers($childDeptIds);
@@ -711,15 +709,12 @@ class reportModel extends model
                 ];
             }
         }
-        $w = date('w', $date);
-        $week_start=date('Y-m-d',strtotime("$date -".($w ? $w - 2 : 6).' days'));
-        $week_end=date('Y-m-d',strtotime("$week_start +6 days"));
         $tasks = $this->dao->select('t1.id, t1.project as pid, t1.name, t1.status, t1.project, t1.estimate, t1.consumed, t1.finishedBy, t1.finishedDate, t2.pri, t2.name as projectName')->from(TABLE_TASK)->alias('t1')
         ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
         ->where('t1.deleted')->eq(0)
         ->andWhere('t1.finishedBy')->in($usernames)
-        ->andWhere('t1.finishedDate')->ge($week_start)
-        ->andWhere('t1.finishedDate')->le($week_end)
+        ->andWhere('t1.finishedDate')->ge($begin)
+        ->andWhere('t1.finishedDate')->le($end)
         ->fetchAll();
         foreach($tasks as $task)
         {

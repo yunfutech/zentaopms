@@ -5,12 +5,19 @@
   <div class='cell'>
       <form method='post'>
       <?php $canBatchEdit = common::hasPriv('task', 'batchEdit');?>
-        <div class="row" id='conditions' class="<?php echo $date; ?>">
-          <div class='col-sm-2'>
+        <div class="row" id='conditions'>
+          <div class='col-sm-3'>
             <div class='input-group input-group-sm'>
-              <span class='input-group-addon'>日期选择</span>
-              <div class='datepicker-wrapper datepicker-date'><?php echo html::input('date', $date, "class='form-control' style='padding-right:10px' onchange='changeParams(this)'"); ?></div>
+              <span class='input-group-addon'><?php echo $lang->report->beginAndEnd;?></span>
+              <div class='datepicker-wrapper datepicker-date'><?php echo html::input('begin', $begin, "class='form-control' style='padding-right:10px' onchange='changeParams(this)'");?></div>
+              <span class='input-group-addon fix-border'><?php echo $lang->report->to;?></span>
+              <div class='datepicker-wrapper datepicker-date'><?php echo html::input('end', $end, "class='form-control' style='padding-right:10px' onchange='changeParams(this)'");?></div>
             </div>
+          </div>
+          <div class='col-sm-3'>
+          <?php echo html::a($this->createLink('report', 'projectboard', "begin={$pre['start']}&end={$pre['end']}"), 上一周, '', "class='btn btn-primary next'"); ?>
+          <?php echo html::a($this->createLink('report', 'projectboard', "begin={$cur['start']}&end={$cur['end']}"), 本周, '', "class='btn btn-primary next'"); ?>
+          <?php echo html::a($this->createLink('report', 'projectboard', "begin={$next['start']}&end={$next['end']}"), 下一周, '', "class='btn btn-primary next'"); ?>
           </div>
         </div>
       </form>
@@ -32,11 +39,11 @@
           <table class='table table-condensed table-striped table-bordered table-fixed no-margin' id="workload">
             <thead>
               <tr class='colhead text-center'>
-                <th class="w-300px">迭代</th>
-                <th class="w-50px">优先级</th>
+                <th class="w-400px">迭代</th>
+                <th class="w-100px">优先级</th>
                 <th class="">消耗总工时</th>
-                <th class="w-100px">人员</th>
-                <th class="w-100px">消耗工时</th>
+                <th class="w-300px">人员</th>
+                <th class="w-200px">消耗工时</th>
               </tr>
             </thead>
             <tbody>
