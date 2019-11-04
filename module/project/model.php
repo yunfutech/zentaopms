@@ -851,12 +851,13 @@ class projectModel extends model
      * @access public
      * @return void
      */
-    public function getProjectStats($status = 'undone', $productID = 0, $branch = 0, $itemCounts = 30, $orderBy = 'order_desc', $pager = null)
+    public function getProjectStats($status = 'undone', $productID = 0, $branch = 0, $itemCounts = 30, $orderBy = 'order_desc', $pager = null, $project_type = 0)
     {
         /* Init vars. */
         $projects = $this->getList($status, 0, $productID, $branch);
         $projects = $this->dao->select('*')->from(TABLE_PROJECT)
             ->where('id')->in(array_keys($projects))
+            ->andWhere('project_type')->eq($project_type)
             ->orderBy($orderBy)
             ->page($pager)
             ->fetchAll('id');

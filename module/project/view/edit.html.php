@@ -74,6 +74,10 @@
           <td><?php echo html::select('type', $lang->project->typeList, $project->type, "class='form-control'");?></td>
         </tr>
         <tr>
+          <th><?php echo $lang->project->project_type;?></th>
+          <td colspan='2'><?php echo nl2br(html::radio('project_type', $lang->project->project_typeList, $project->project_type, "class='block'"));?></td>
+        </tr>
+        <tr>
           <th><?php echo $lang->project->teamname;?></th>
           <td><?php echo html::input('team', $project->team, "class='form-control'");?></td>
         </tr>

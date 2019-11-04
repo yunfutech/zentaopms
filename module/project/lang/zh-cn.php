@@ -13,6 +13,7 @@
 $lang->project->common        = $lang->projectCommon . '视图';
 $lang->project->allProjects   = '所有' . $lang->projectCommon;
 $lang->project->type          = $lang->projectCommon . '类型';
+$lang->project->project_type  = $lang->projectCommon . '类别';
 $lang->project->name          = $lang->projectCommon . '名称';
 $lang->project->code          = $lang->projectCommon . '代号';
 $lang->project->begin         = '开始日期';
@@ -70,6 +71,9 @@ $lang->project->export   = "导出";
 $lang->project->typeList['sprint']    = "短期$lang->projectCommon";
 $lang->project->typeList['waterfall'] = "长期$lang->projectCommon";
 $lang->project->typeList['ops']       = "运维$lang->projectCommon";
+
+$lang->project->project_typeList['0']    = "研发";
+$lang->project->project_typeList['1'] = "商务";
 
 $lang->project->endList[7]   = '一星期';
 $lang->project->endList[14]  = '两星期';
