@@ -59,7 +59,7 @@
           <?php
             $priList = $lang->project->priList;
           ?>
-          <?php echo html::select('pri', (array)$priList, '', "class='form-control'");?>
+          <?php echo html::select('pri', (array)$priList, '3', "class='form-control'");?>
           </td>
         </tr>
         <tr>
@@ -111,6 +111,10 @@
           <th><?php echo $lang->project->type;?></th>
           <td><?php echo html::select('type', $lang->project->typeList, '', "class='form-control' onchange='showTypeTips()'");?></td>
           <td class='muted' colspan='2'><div class='type-tips'><?php echo $lang->project->typeDesc;?></div></td>
+        </tr>
+        <tr>
+          <th><?php echo $lang->project->project_type;?></th>
+          <td colspan='2'><?php echo nl2br(html::radio('project_type', $lang->project->project_typeList, $project->project_type, "class='block'"));?></td>
         </tr>
         <tr <?php if($config->global->flow == 'onlyTask') echo "class='hidden'";?>>
           <th><?php echo $lang->project->manageProducts;?></th>
