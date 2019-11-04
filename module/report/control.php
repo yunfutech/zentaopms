@@ -330,47 +330,112 @@ class report extends control
     }
 
     // 迭代看板
-
-    public function projectboard($date = 0)
+    public function projectboard($begin = '', $end = '')
     {
         if ($_POST) {
             $data = fixer::input('post')->get();
-            $date = $data->date;
+            $begin = $data->begin;
+            $end = $data->end;
         }
-        if($date == '' || $date == 0 || $date == 'today' || !$date) {
-            $date = date('Y-m-d');
+        $date = date('Y-m-d');
+        $w = date('w', strtotime($date));
+        $week_start=date('Y-m-d',strtotime("$date -".($w ? $w - 1 : 6).' days'));
+        $week_end = date('Y-m-d',strtotime("$week_start +6 days"));
+        if($begin == '' || $begin == 0 ) {
+            $begin = $week_start;
         } else {
-            $date = date('Y-m-d', strtotime($date));
+            $begin = date('Y-m-d', strtotime($begin));
         }
+        if($end == '' || $end == 0 ) {
+            $end = $week_end;
+        } else {
+            $end = date('Y-m-d', strtotime($end));
+        }
+        $begin_w = date('w', strtotime($begin));
+        $next_date = date("Ymd", strtotime("+7 days", strtotime($begin)));
+        $next_start = date('Ymd',strtotime("$next_date -".($begin_w ? $begin_w - 1 : 6).' days'));
+        $next_end = date('Ymd',strtotime("$next_start +6 days"));
+        $cur = [
+            "start"=> date("Ymd", strtotime($week_start)),
+            "end"=> date("Ymd", strtotime($week_end))
+        ];
+        $next = [
+            "start"=> $next_start,
+            "end"=> $next_end
+        ];
+        $pre_date = date("Ymd", strtotime("-7 days", strtotime($begin)));
+        $pre_start = date('Ymd',strtotime("$pre_date -".($begin_w ? $begin_w - 1 : 6).' days'));
+        $pre_end = date('Ymd',strtotime("$pre_start +6 days"));
+        $pre = [
+            "start"=> $pre_start,
+            "end"=> $pre_end
+        ];
         $this->app->loadConfig('project');
-        $this->view->date = $date;
+        $this->view->begin = $begin;
+        $this->view->end = $end;
+        $this->view->next = $next;
+        $this->view->pre = $pre;
+        $this->view->cur = $cur;
         $this->view->title = $this->lang->report->projectboard;
         $this->view->position[] = $this->lang->report->projectboard;
-        $this->view->projects = $this->report->getProjectStatistics($date);
+        $this->view->projects = $this->report->getProjectStatistics($begin, $end);
         $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
         $this->display();
     }
 
     // 用户看板
 
-    public function usertaskdoneboard($date = 0, $dept = 3)
+    public function usertaskdoneboard($begin = '', $end = '', $dept = 3)
     {
         if ($_POST) {
             $data = fixer::input('post')->get();
-            $date = $data->date;
+            $begin = $data->begin;
+            $end = $data->end;
             $dept = $data->dept;
         }
-        if($date == '' || $date == 0 || $date == 'today' || !$date) {
-            $date = date('Y-m-d');
+        $date = date('Y-m-d');
+        $w = date('w', strtotime($date));
+        $week_start=date('Y-m-d',strtotime("$date -".($w ? $w - 1 : 6).' days'));
+        $week_end = date('Y-m-d',strtotime("$week_start +6 days"));
+        if($begin == '' || $begin == 0 ) {
+            $begin = $week_start;
         } else {
-            $date = date('Y-m-d', strtotime($date));
+            $begin = date('Y-m-d', strtotime($begin));
         }
+        if($end == '' || $end == 0 ) {
+            $end = $week_end;
+        } else {
+            $end = date('Y-m-d', strtotime($end));
+        }
+        $begin_w = date('w', strtotime($begin));
+        $next_date = date("Ymd", strtotime("+7 days", strtotime($begin)));
+        $next_start = date('Ymd',strtotime("$next_date -".($begin_w ? $begin_w - 1 : 6).' days'));
+        $next_end = date('Ymd',strtotime("$next_start +6 days"));
+        $cur = [
+            "start"=> date("Ymd", strtotime($week_start)),
+            "end"=> date("Ymd", strtotime($week_end))
+        ];
+        $next = [
+            "start"=> $next_start,
+            "end"=> $next_end
+        ];
+        $pre_date = date("Ymd", strtotime("-7 days", strtotime($begin)));
+        $pre_start = date('Ymd',strtotime("$pre_date -".($begin_w ? $begin_w - 1 : 6).' days'));
+        $pre_end = date('Ymd',strtotime("$pre_start +6 days"));
+        $pre = [
+            "start"=> $pre_start,
+            "end"=> $pre_end
+        ];
         $this->app->loadConfig('project');
-        $this->view->date = $date;
+        $this->view->begin = $begin;
+        $this->view->end = $end;
+        $this->view->next = $next;
+        $this->view->pre = $pre;
+        $this->view->cur = $cur;
         $this->view->title = $this->lang->report->projectboard;
         $this->view->position[] = $this->lang->report->projectboard;
         $this->view->depts = $this->loadModel('dept')->getOptionMenu();
-        $this->view->tasks = $this->report->getUserWorkHour($date, $dept);
+        $this->view->tasks = $this->report->getUserWorkHour($begin, $end, $dept);
         $this->view->dept = $dept;
         $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
         $this->display();
