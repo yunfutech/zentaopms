@@ -1067,6 +1067,7 @@ class project extends control
         }
 
         $projectID = key($this->projects);
+        $project  = $this->project->getById($projectID);
         if($this->session->project) $projectID = $this->session->project;
         $this->project->setMenu($this->projects, $projectID);
 
@@ -1080,6 +1081,8 @@ class project extends control
         $this->view->name          = $name;
         $this->view->code          = $code;
         $this->view->team          = $team;
+        $this->view->poUsers       = $this->loadModel('user')->getPairs('noclosed|nodeleted|pofirst', $project->PO);
+        $this->view->pmUsers       = $this->user->getPairs('noclosed|nodeleted|pmfirst',  $project->PM);
         $this->view->projectID     = $projectID;
         $this->view->products      = $products;
         $this->view->productPlan   = array(0 => '') + $productPlan;
