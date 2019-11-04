@@ -91,6 +91,23 @@
           <td><?php echo html::input('team', $team, "class='form-control'");?></td><td></td><td></td>
         </tr>
         <tr>
+          <th rowspan='2'><?php echo $lang->project->owner;?></th>
+          <td>
+            <div class='input-group'>
+              <span class='input-group-addon'><?php echo $lang->project->PO;?></span>
+              <?php echo html::select('PO', $poUsers, $project->PO, "class='form-control chosen'");?>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class='input-group'>
+              <span class='input-group-addon'><?php echo $lang->project->PM;?></span>
+              <?php echo html::select('PM', $pmUsers, $project->PM, "class='form-control chosen'");?>
+            </div>
+          </td>
+        </tr>
+        <tr>
           <th><?php echo $lang->project->type;?></th>
           <td><?php echo html::select('type', $lang->project->typeList, '', "class='form-control' onchange='showTypeTips()'");?></td>
           <td class='muted' colspan='2'><div class='type-tips'><?php echo $lang->project->typeDesc;?></div></td>

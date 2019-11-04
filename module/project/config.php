@@ -12,8 +12,8 @@ global $lang, $app;
 $app->loadLang('task');
 $config->project->create = new stdclass();
 $config->project->edit   = new stdclass();
-$config->project->create->requiredFields = 'name,code,begin,end';
-$config->project->edit->requiredFields   = 'name,code,begin,end';
+$config->project->create->requiredFields = 'name,code,begin,end,PO,PM';
+$config->project->edit->requiredFields   = 'name,code,begin,end,PO,PM';
 
 $config->project->customBatchEditFields = 'days,type,teamname,status,desc,PO,QD,PM,RD';
 
