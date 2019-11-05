@@ -70,11 +70,11 @@
           <td><?php echo $lang->target->time;?></td>
           <td><?php echo $lang->target->precision;?></td>
           <td><?php echo $lang->target->recall;?></td>
-          <td><?php echo $lang->target->f1;?></td>
+          <td><?php echo $lang->target->F1;?></td>
           <td><?php echo $lang->target->time;?></td>
           <td><?php echo $lang->target->precision;?></td>
           <td><?php echo $lang->target->recall;?></td>
-          <td><?php echo $lang->target->f1;?></td>
+          <td><?php echo $lang->target->F1;?></td>
           <td><?php echo $lang->target->handle;?></td>
         </tr>
       </thead>
@@ -88,12 +88,12 @@
             <td class="time-td" rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->target->deadline;?></td>
             <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->target->performance->precision_;?></td>
             <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->target->performance->recall;?></td>
-            <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->target->performance->f1;?></td>
+            <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->target->performance->F1;?></td>
             <?php if (!empty($experiment->record)):?>
               <td class="time-td"><?php echo $experiment->record[0]->time;?></td>
               <td><?php echo $experiment->record[0]->performance->precision_;?></td>
               <td><?php echo $experiment->record[0]->performance->recall;?></td>
-              <td><?php echo $experiment->record[0]->performance->f1;?></td>
+              <td><?php echo $experiment->record[0]->performance->F1;?></td>
               <td>
                 <?php
                   $link = $this->createLink('target', 'editRecord', "projectID=$projectID&experiment=$experiment->id");
@@ -130,7 +130,7 @@
               <td class='time-td'><?php echo $record->time;?></td>
               <td><?php echo $record->performance->precision_;?></td>
               <td><?php echo $record->performance->recall;?></td>
-              <td><?php echo $record->performance->f1;?></td>
+              <td><?php echo $record->performance->F1;?></td>
               <td>
                 <?php
                   $link = $this->createLink('target', 'editRecord', "projectID=$projectID&experiment=$experiment->id");
