@@ -3,25 +3,19 @@
 <div id="mainContent" class="main-content">
   <?php $backLink = $this->session->{$viewType . 'List'} ? $this->session->{$viewType . 'List'} : 'javascript:history.go(-1)';?>
   <a href="<?php echo $backLink;?>" class="btn btn-secondary">
-    <i class="icon icon-back icon-sm"></i> <?php echo $lang->goback;?>
+    <i class="icon icon-back icon-sm"></i><?php echo $lang->goback;?>
   </a>
   <div class="center-block">
     <div class="main-header">
-      <h2><?php echo $lang->target->createModule;?></h2>
+      <h2><?php echo $lang->target->createCategory;?></h2>
     </div>
     <form class="load-indicator main-form form-ajax" method='post' enctype='multipart/form-data' id='dataform'>
       <table class="table table-form">
         <tbody>
           <tr>
-            <th>模块名称</th>
+            <th>名称</th>
             <td>
-              <?php echo html::input('name', '', "class='form-control'");?>
-            </td>
-          </tr>
-          <tr>
-            <th>类别</th>
-            <td>
-              <?php echo html::select("category", $categories, 1, "class='form-control chosen'");?>
+              <?php echo html::input("name", $name, "class='form-control'");?>
             </td>
           </tr>
         </tbody>

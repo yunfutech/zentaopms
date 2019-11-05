@@ -19,9 +19,9 @@ class targetModel extends model
         return $this->dao->insert(TABLE_TARGET_CATEGORY)->data($category)->exec();
     }
 
-    public function editCategory($id, $data)
+    public function editCategory($id, $name)
     {
-        return $this->dao->update(TABLE_TARGET_CATEGORY)->data($data)->where('id')->eq($id)->exec();
+        return $this->dao->update(TABLE_TARGET_CATEGORY)->set('name')->eq($name)->where('id')->eq($id)->exec();
     }
 
     public function deleteCategory($id)
@@ -59,9 +59,9 @@ class targetModel extends model
     }
 
 
-    public function getModules()
+    public function getModules($project_id)
     {
-        return $this->dao->select('*')->from(TABLE_TARGET_MODULE)->fetchAll();
+        return $this->dao->select('*')->from(TABLE_TARGET_MODULE)->where('pid')->eq($project_id)->fetchAll();
     }
 
     public function getModuleById($id)
@@ -72,11 +72,12 @@ class targetModel extends model
         return $module;
     }
 
-    public function addModule($data)
+    public function addModule($data, $project_id)
     {
         $module = new stdClass();
         $module->cid = $data['category'];
         $module->name = $data['name'];
+        $module->pid = $project_id;
         $this->dao->insert(TABLE_TARGET_MODULE)->data($module)->exec();
         return $this->dao->lastInsertID();
     }
@@ -141,7 +142,7 @@ class targetModel extends model
         $this->dao->update(TABLE_TARGET_TARGET)->set('time')->eq($data['time'])->where('id')->eq($id)->exec();
     }
 
-    public function addRecord($data)
+    public function addRecord($data, $eid)
     {
         $record = new stdClass();
         $record->time = $data['time'];
@@ -150,7 +151,7 @@ class targetModel extends model
         $record->pid = $pid;
         $this->dao->insert(TABLE_TARGET_RECORD)->data($record)->exec();
         $rid = $this->dao->lastInsertID();
-        $experiment = $this->getExperimentByModule($data['module']);
+        $experiment = $this->getExperimentByID($eid);
         $rids = explode(',', $experiment->rid);
         array_push($rids, $rid);
         $res = $this->addRid($rids, $experiment->id);
@@ -186,7 +187,12 @@ class targetModel extends model
 
     public function getExperiment($project_id)
     {
-        $experiments = $this->dao->select('*')->from(TABLE_TARGET_EXPERIMENT)->where('pid')->eq($project_id)->fetchAll();
+        $modules = $this->getModules($project_id);
+        $ids = [];
+        foreach ($modules as $module) {
+            array_push($ids, $module->id);
+        }
+        $experiments = $this->dao->select('*')->from(TABLE_TARGET_EXPERIMENT)->where('mid')->in($ids)->fetchAll();
         foreach ($experiments as $experiment) {
             $experiment->module = $this->getModuleById($experiment->mid);
             $experiment->dataset = $this->getDatasetById($experiment->did);
@@ -197,9 +203,9 @@ class targetModel extends model
         return $experiments;
     }
 
-    public function getExperimentByModule($moduleID)
+    public function getExperimentById($id)
     {
-        $experiments = $this->dao->select('*')->from(TABLE_TARGET_EXPERIMENT)->where('mid')->eq($moduleID)->fetch();
+        $experiments = $this->dao->select('*')->from(TABLE_TARGET_EXPERIMENT)->where('id')->eq($id)->fetch();
         return $experiments;
     }
 
@@ -215,9 +221,9 @@ class targetModel extends model
         return $res;
     }
 
-    public function addExperiment($data, $project_id)
+    public function addExperiment($data)
     {
-        $mid = $this->addModule($data);
+        $mid = $data['module'];
         $did = $data['dataset'];
         $pid = $this->addPerformance($data);
         $data['pid'] = $pid;
@@ -226,7 +232,6 @@ class targetModel extends model
         $experiment->mid = $mid;
         $experiment->did = $did;
         $experiment->tid = $tid;
-        $experiment->pid = $project_id;
         $this->dao->insert(TABLE_TARGET_EXPERIMENT)->data($experiment)->exec();
         return $this->dao->lastInsertID();
     }

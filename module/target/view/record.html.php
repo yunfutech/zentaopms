@@ -7,17 +7,11 @@
   </a>
   <div class="center-block">
     <div class="main-header">
-      <h2><?php echo '创建记录';?></h2>
+      <h2><?php echo $lang->target->createRecord;?></h2>
     </div>
     <form class="load-indicator main-form form-ajax" method='post' enctype='multipart/form-data' id='dataform'>
       <table class="table table-form">
         <tbody>
-          <tr>
-            <th>模块</th>
-            <td>
-              <?php echo html::select("module", $module_names, $module_ids, "class='form-control chosen'");?>
-            </td>
-          </tr>
           <tr>
             <th>日期</th>
             <td>
@@ -27,21 +21,21 @@
           <tr>
             <th>准确率</th>
             <td>
-              <?php echo html::input('precision', '', "class='form-control'");?>
+              <?php echo html::input('precision', '', "class='form-control' required");?>
             </td>
             <th>召回率</th>
             <td>
-              <?php echo html::input('recall', '', "class='form-control'");?>
+              <?php echo html::input('recall', '', "class='form-control' required");?>
             </td>
-            <th>f1</th>
+            <th>F1</th>
             <td>
-              <?php echo html::input('f1', '', "class='form-control'");?>
+              <?php echo html::input('f1', '', "class='form-control' required");?>
             </td>
           </tr>
           <tr>
             <th>方案</th>
             <td>
-              <?php echo html::textarea('solution', $solution, "style='height: 100px' rows='4' class='form-control kindeditor disabled-ie-placeholder' hidefocus='true'");?>
+              <?php echo html::textarea('solution', $solution, "style='height: 100px;' class='form-control kindeditor disabled-ie-placeholder' hidefocus='true' required");?>
             </td>
           </tr>
         </tbody>

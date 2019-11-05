@@ -7,8 +7,8 @@
       echo html::a($link, "<i class='icon icon-plus'></i> {$lang->target->createModule}", '', "class='btn btn-primary'");
     ?>
     <?php
-      $link = $this->createLink('target', 'record', "project=$projectID");
-      echo html::a($link, "<i class='icon icon-plus'></i> {$lang->target->createRecord}", '', "class='btn btn-primary'");
+      $link = $this->createLink('target', 'experiment', "project=$projectID");
+      echo html::a($link, "<i class='icon icon-plus'></i> {$lang->target->createExperiment}", '', "class='btn btn-primary'");
     ?>
   </div>
 </div>
@@ -62,6 +62,7 @@
           <th class='w-150px' colspan="2"><?php echo $lang->target->dataset->name;?></th>
           <th class="w-300px" colspan="4"><?php echo $lang->target->target;?></th>
           <th class="w-500px" colspan="5"><?php echo $lang->target->record;?></th>
+          <th class="w-100px" rowspan="2"><?php echo $lang->target->handle;?></th>
         </tr>
         <tr class="text-center">
           <td><?php echo $lang->target->name;?></td>
@@ -97,6 +98,12 @@
             <?php else:?>
               <td colspan="5" rowspan="1"></td>
             <?php endif;?>
+            <td rowspan="<?php echo $experiment->recordLen;?>">
+              <?php
+                $link = $this->createLink('target', 'record', "project=$projectID&experiment=$experiment->id");
+                echo html::a($link, "<i class='icon icon-plus'></i> {$lang->target->createRecord}", '', "class='btn btn-primary'");
+              ?>
+            </td>
           </tr>
           <?php foreach ($experiment->surplusRecord as $record):?>
             <tr class="text-center">
