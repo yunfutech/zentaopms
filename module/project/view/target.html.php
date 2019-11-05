@@ -60,9 +60,9 @@
           <th class='w-70px' rowspan="2"><?php echo $lang->target->category->name;?></th>
           <th class='w-70px' rowspan="2"><?php echo $lang->target->module;?></th>
           <th class='w-150px' colspan="2"><?php echo $lang->target->dataset->name;?></th>
-          <th class="w-200px" colspan="4"><?php echo $lang->target->target;?></th>
-          <th class="w-450px" colspan="6"><?php echo $lang->target->record;?></th>
-          <th class="w-300px" rowspan="2"><?php echo $lang->target->handle;?></th>
+          <th class="w-300px" colspan="4"><?php echo $lang->target->target;?></th>
+          <th class="w-400px" colspan="5"><?php echo $lang->target->record;?></th>
+          <th class="w-100px" rowspan="2"><?php echo $lang->target->handle;?></th>
         </tr>
         <tr class="text-center">
           <td><?php echo $lang->target->name;?></td>
@@ -72,7 +72,6 @@
           <td><?php echo $lang->target->recall;?></td>
           <td><?php echo $lang->target->f1;?></td>
           <td><?php echo $lang->target->time;?></td>
-          <td><?php echo $lang->target->solution;?></td>
           <td><?php echo $lang->target->precision;?></td>
           <td><?php echo $lang->target->recall;?></td>
           <td><?php echo $lang->target->f1;?></td>
@@ -86,48 +85,49 @@
             <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->module->name;?></td>
             <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->dataset->name;?></td>
             <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->dataset->size;?></td>
-            <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->target->deadline;?></td>
+            <td class="time-td" rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->target->deadline;?></td>
             <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->target->performance->precision_;?></td>
             <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->target->performance->recall;?></td>
             <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->target->performance->f1;?></td>
             <?php if (!empty($experiment->record)):?>
-              <td><?php echo $experiment->record[0]->time;?></td>
-              <td><?php echo $experiment->record[0]->solution;?></td>
+              <td class="time-td"><?php echo $experiment->record[0]->time;?></td>
               <td><?php echo $experiment->record[0]->performance->precision_;?></td>
               <td><?php echo $experiment->record[0]->performance->recall;?></td>
               <td><?php echo $experiment->record[0]->performance->f1;?></td>
               <td>
                 <?php
                   $link = $this->createLink('target', 'editRecord', "projectID=$projectID&experiment=$experiment->id");
-                  echo html::a($link, "{$lang->target->editRecord}", '', "class='btn btn-primary'");
+                  echo html::a($link, "{$lang->target->editRecord}", '', "class='edit-btn btn btn-xs btn-primary'");
                 ?>
+                <br>
                 <?php
                   $link = $this->createLink('target', 'deleteRecord', "projectID=$projectID&experiment=$experiment->id");
-                  echo html::a($link, "{$lang->target->deleteRecord}", '', "class='btn btn-primary'");
+                  echo html::a($link, "{$lang->target->deleteRecord}", '', "class='btn btn-xs btn-primary'");
                 ?>
               </td>
             <?php else:?>
-              <td colspan="6" rowspan="1"></td>
+              <td colspan="5" rowspan="1"></td>
             <?php endif;?>
             <td rowspan="<?php echo $experiment->recordLen;?>">
               <?php
                 $link = $this->createLink('target', 'record', "projectID=$projectID&experiment=$experiment->id");
-                echo html::a($link, "{$lang->target->createRecord}", '', "class='btn btn-primary'");
+                echo html::a($link, "{$lang->target->createRecord}", '', "class='edit-btn btn btn-xs btn-primary'");
               ?>
+              <br>
               <?php
                 $link = $this->createLink('target', 'editExperiment', "projectID=$projectID&experiment=$experiment->id");
-                echo html::a($link, "{$lang->target->editExperiment}", '', "class='btn btn-primary'");
+                echo html::a($link, "{$lang->target->editExperiment}", '', "class='edit-btn btn btn-xs btn-primary'");
               ?>
+              <br>
               <?php
                 $link = $this->createLink('target', 'deleteExperiment', "projectID=$projectID&experiment=$experiment->id");
-                echo html::a($link, "{$lang->target->deleteExperiment}", '', "class='btn btn-primary'");
+                echo html::a($link, "{$lang->target->deleteExperiment}", '', "class='btn btn-xs btn-primary'");
               ?>
             </td>
           </tr>
           <?php foreach ($experiment->surplusRecord as $record):?>
             <tr class="text-center">
               <td><?php echo $record->time;?></td>
-              <td><?php echo $record->solution;?></td>
               <td><?php echo $record->performance->precision_;?></td>
               <td><?php echo $record->performance->recall;?></td>
               <td><?php echo $record->performance->f1;?></td>

@@ -9,13 +9,19 @@
     border-radius: 4px 2px 2px 4px;
     margin-top: 10px;
 }
-
+.time-td {
+    overflow: hidden;
+    white-space: normal !important;
+    word-break: break-all;
+}
 .left-col {
     position: relative;
     left: 0;
     width: 180px;
 }
-
+.edit-btn {
+    margin-bottom: 5px;
+}
 .left-text {
     padding: 0 5px;
     overflow: hidden;
