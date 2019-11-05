@@ -345,6 +345,7 @@ $lang->resource->project->kanbanColsColor   = 'kanbanColsColor';
 $lang->resource->project->export            = 'export';
 $lang->resource->project->storyKanban       = 'storyKanban';
 $lang->resource->project->storySort         = 'storySort';
+$lang->resource->project->target            = 'target';
 
 $lang->project->methodOrder[0]   = 'index';
 $lang->project->methodOrder[5]   = 'view';
@@ -392,6 +393,7 @@ $lang->project->methodOrder[210] = 'kanbanColsColor';
 $lang->project->methodOrder[215] = 'export';
 $lang->project->methodOrder[220] = 'storyKanban';
 $lang->project->methodOrder[225] = 'storySort';
+$lang->project->methodOrder[230] = 'target';
 
 /* Task. */
 $lang->resource->task = new stdclass();
