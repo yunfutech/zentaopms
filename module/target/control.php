@@ -41,7 +41,7 @@ class target extends control
             if ($res) {
                 $response['result']  = 'success';
                 $response['message'] = $this->lang->saveSuccess;
-                $response['locate'] = $this->createLink('target', 'category', "project=$projectID");
+                $response['locate'] = $this->createLink('target', 'category', "projectID=$projectID");
                 $this->send($response);
             } else {
                 $response['result']  = 'fail';
@@ -59,7 +59,7 @@ class target extends control
             if ($res) {
                 $response['result']  = 'success';
                 $response['message'] = '更新成功';
-                $response['locate'] = $this->createLink('target', 'category', "project=$projectID");
+                $response['locate'] = $this->createLink('target', 'category', "projectID=$projectID");
                 $this->send($response);
             } else {
                 $response['result']  = 'fail';
@@ -78,7 +78,7 @@ class target extends control
         if ($res) {
             $response['result']  = 'success';
             $response['message'] = '删除成功';
-            $response['locate'] = $this->createLink('target', 'category', "project=$projectID");
+            $response['locate'] = $this->createLink('target', 'category', "projectID=$projectID");
             $this->send($response);
         } else {
             $response['result']  = 'fail';
@@ -102,7 +102,7 @@ class target extends control
             if ($res) {
                 $response['result']  = 'success';
                 $response['message'] = $this->lang->saveSuccess;
-                $response['locate'] = $this->createLink('target', 'dataset', "project=$projectID");
+                $response['locate'] = $this->createLink('target', 'dataset', "projectID=$projectID");
                 $this->send($response);
             } else {
                 $response['result']  = 'fail';
@@ -120,7 +120,7 @@ class target extends control
             if ($res) {
                 $response['result']  = 'success';
                 $response['message'] = '更新成功';
-                $response['locate'] = $this->createLink('target', 'dataset', "project=$projectID");
+                $response['locate'] = $this->createLink('target', 'dataset', "projectID=$projectID");
                 $this->send($response);
             } else {
                 $response['result']  = 'fail';
@@ -139,7 +139,7 @@ class target extends control
         if ($res) {
             $response['result']  = 'success';
             $response['message'] = '删除成功';
-            $response['locate'] = $this->createLink('target', 'dataset', "project=$projectID");
+            $response['locate'] = $this->createLink('target', 'dataset', "projectID=$projectID");
             $this->send($response);
         } else {
             $response['result']  = 'fail';
@@ -173,6 +173,43 @@ class target extends control
     }
 
     public function experiment($projectID)
+    {
+        if(!empty($_POST))
+        {
+            $res = $this->target->addExperiment($_POST);
+            if ($res) {
+                $response['result']  = 'success';
+                $response['message'] = $this->lang->saveSuccess;
+                $response['locate'] = $this->createLink('project', 'target', "projectID=$projectID");
+                $this->send($response);
+            } else {
+                $response['result']  = 'fail';
+                $response['message'] = dao::getError();
+                $this->send($response);
+            }
+        }
+        $view_categories = [];
+        $view_datasets = [];
+        $view_modules = [];
+        $categories = $this->target->getCategories();
+        $datasets = $this->target->getDatasets();
+        $modules = $this->target->getModules($projectID);
+        foreach ($categories as $category) {
+            $view_categories[$category->id] = $category->name;
+        }
+        foreach ($datasets as $dataset) {
+            $view_datasets[$dataset->id] = $dataset->name;
+        }
+        foreach ($modules as $module) {
+            $view_modules[$module->id] = $module->name;
+        }
+        $this->view->categories = $view_categories;
+        $this->view->datasets = $view_datasets;
+        $this->view->modules = $view_modules;
+        $this->display();
+    }
+
+    public function editExperiment($projectID, $experimentID)
     {
         if(!empty($_POST))
         {

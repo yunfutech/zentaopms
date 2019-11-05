@@ -7,7 +7,7 @@
       <i class="icon icon-back icon-sm"></i> <?php echo $lang->goback;?>
     </a>
     <?php
-      $link = $this->createLink('target', 'createDataset', "project=$projectID");
+      $link = $this->createLink('target', 'createDataset', "projectID=$projectID");
       echo html::a($link, "<i class='icon icon-plus'></i> {$lang->target->createDataset}", '', "class='btn btn-primary'");
     ?>
   </div>
@@ -34,11 +34,11 @@
             <td><?php echo $dataset->size;?></td>
             <td>
               <?php
-                $link = $this->createLink('target', 'editDataset', "project=$projectID&category=$dataset->id");
+                $link = $this->createLink('target', 'editDataset', "projectID=$projectID&category=$dataset->id");
                 echo html::a($link, "<i class='icon icon-plus'></i> {$lang->target->editDataset}", '', "class='btn btn-primary'");
               ?>
               <?php
-                $link = $this->createLink('target', 'deleteDataset', "project=$projectID&category=$dataset->id");
+                $link = $this->createLink('target', 'deleteDataset', "projectID=$projectID&category=$dataset->id");
                 echo html::a($link, "<i class='icon icon-plus'></i> {$lang->target->deleteDataset}", '', "class='btn btn-primary'");
               ?>
             </td>

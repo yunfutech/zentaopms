@@ -3,11 +3,11 @@
 <div id="mainMenu" class="clearfix">
   <div class="btn-toolbar pull-left">
     <?php
-      $link = $this->createLink('target', 'module', "project=$projectID");
+      $link = $this->createLink('target', 'module', "projectID=$projectID");
       echo html::a($link, "<i class='icon icon-plus'></i> {$lang->target->createModule}", '', "class='btn btn-primary'");
     ?>
     <?php
-      $link = $this->createLink('target', 'experiment', "project=$projectID");
+      $link = $this->createLink('target', 'experiment', "projectID=$projectID");
       echo html::a($link, "<i class='icon icon-plus'></i> {$lang->target->createExperiment}", '', "class='btn btn-primary'");
     ?>
   </div>
@@ -28,7 +28,7 @@
           </div>
         <?php endforeach;?>
         <div class="text-center">
-          <?php common::printLink('target', 'category', "project=$projectID", $lang->target->category->manage, '', "class='btn btn-info btn-wide'");?>
+          <?php common::printLink('target', 'category', "projectID=$projectID", $lang->target->category->manage, '', "class='btn btn-info btn-wide'");?>
           <hr class="space-sm" />
         </div>
       </div>
@@ -46,7 +46,7 @@
           </div>
         <?php endforeach;?>
         <div class="text-center">
-          <?php common::printLink('target', 'dataset', "project=$projectID", $lang->target->dataset->manage, '', "class='btn btn-info btn-wide'");?>
+          <?php common::printLink('target', 'dataset', "projectID=$projectID", $lang->target->dataset->manage, '', "class='btn btn-info btn-wide'");?>
           <hr class="space-sm" />
         </div>
       </div>
@@ -57,12 +57,12 @@
     <table class='table table-condensed table-striped table-bordered table-fixed no-margin'>
       <thead>
         <tr class="text-center">
-          <th class='w-120px' rowspan="2"><?php echo $lang->target->category->name;?></th>
-          <th class='w-120px' rowspan="2"><?php echo $lang->target->module;?></th>
+          <th class='w-70px' rowspan="2"><?php echo $lang->target->category->name;?></th>
+          <th class='w-70px' rowspan="2"><?php echo $lang->target->module;?></th>
           <th class='w-150px' colspan="2"><?php echo $lang->target->dataset->name;?></th>
-          <th class="w-300px" colspan="4"><?php echo $lang->target->target;?></th>
-          <th class="w-500px" colspan="5"><?php echo $lang->target->record;?></th>
-          <th class="w-100px" rowspan="2"><?php echo $lang->target->handle;?></th>
+          <th class="w-200px" colspan="4"><?php echo $lang->target->target;?></th>
+          <th class="w-450px" colspan="6"><?php echo $lang->target->record;?></th>
+          <th class="w-300px" rowspan="2"><?php echo $lang->target->handle;?></th>
         </tr>
         <tr class="text-center">
           <td><?php echo $lang->target->name;?></td>
@@ -76,6 +76,7 @@
           <td><?php echo $lang->target->precision;?></td>
           <td><?php echo $lang->target->recall;?></td>
           <td><?php echo $lang->target->f1;?></td>
+          <td><?php echo $lang->target->handle;?></td>
         </tr>
       </thead>
       <tbody>
@@ -95,13 +96,31 @@
               <td><?php echo $experiment->record[0]->performance->precision_;?></td>
               <td><?php echo $experiment->record[0]->performance->recall;?></td>
               <td><?php echo $experiment->record[0]->performance->f1;?></td>
+              <td>
+                <?php
+                  $link = $this->createLink('target', 'editRecord', "projectID=$projectID&experiment=$experiment->id");
+                  echo html::a($link, "{$lang->target->editRecord}", '', "class='btn btn-primary'");
+                ?>
+                <?php
+                  $link = $this->createLink('target', 'deleteRecord', "projectID=$projectID&experiment=$experiment->id");
+                  echo html::a($link, "{$lang->target->deleteRecord}", '', "class='btn btn-primary'");
+                ?>
+              </td>
             <?php else:?>
-              <td colspan="5" rowspan="1"></td>
+              <td colspan="6" rowspan="1"></td>
             <?php endif;?>
             <td rowspan="<?php echo $experiment->recordLen;?>">
               <?php
-                $link = $this->createLink('target', 'record', "project=$projectID&experiment=$experiment->id");
-                echo html::a($link, "<i class='icon icon-plus'></i> {$lang->target->createRecord}", '', "class='btn btn-primary'");
+                $link = $this->createLink('target', 'record', "projectID=$projectID&experiment=$experiment->id");
+                echo html::a($link, "{$lang->target->createRecord}", '', "class='btn btn-primary'");
+              ?>
+              <?php
+                $link = $this->createLink('target', 'editExperiment', "projectID=$projectID&experiment=$experiment->id");
+                echo html::a($link, "{$lang->target->editExperiment}", '', "class='btn btn-primary'");
+              ?>
+              <?php
+                $link = $this->createLink('target', 'deleteExperiment', "projectID=$projectID&experiment=$experiment->id");
+                echo html::a($link, "{$lang->target->deleteExperiment}", '', "class='btn btn-primary'");
               ?>
             </td>
           </tr>
@@ -112,6 +131,16 @@
               <td><?php echo $record->performance->precision_;?></td>
               <td><?php echo $record->performance->recall;?></td>
               <td><?php echo $record->performance->f1;?></td>
+              <td rowspan="<?php echo $experiment->recordLen;?>">
+                <?php
+                  $link = $this->createLink('target', 'editRecord', "projectID=$projectID&experiment=$experiment->id");
+                  echo html::a($link, "{$lang->target->editRecord}", '', "class='btn btn-primary'");
+                ?>
+                <?php
+                  $link = $this->createLink('target', 'deleteRecord', "projectID=$projectID&experiment=$experiment->id");
+                  echo html::a($link, "{$lang->target->deleteRecord}", '', "class='btn btn-primary'");
+                ?>
+            </td>
             </tr>
           <?php endforeach;?>
         <?php endforeach;?>

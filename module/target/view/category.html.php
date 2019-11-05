@@ -7,7 +7,7 @@
       <i class="icon icon-back icon-sm"></i> <?php echo $lang->goback;?>
     </a>
     <?php
-      $link = $this->createLink('target', 'createCategory', "project=$projectID");
+      $link = $this->createLink('target', 'createCategory', "projectID=$projectID");
       echo html::a($link, "<i class='icon icon-plus'></i> {$lang->target->createCategory}", '', "class='btn btn-primary'");
     ?>
   </div>
@@ -30,11 +30,11 @@
             <td><?php echo $category->name;?></td>
             <td>
               <?php
-                $link = $this->createLink('target', 'editCategory', "project=$projectID&category=$category->id");
+                $link = $this->createLink('target', 'editCategory', "projectID=$projectID&category=$category->id");
                 echo html::a($link, "<i class='icon icon-plus'></i> {$lang->target->editCategory}", '', "class='btn btn-primary'");
               ?>
               <?php
-                $link = $this->createLink('target', 'deleteCategory', "project=$projectID&category=$category->id");
+                $link = $this->createLink('target', 'deleteCategory', "projectID=$projectID&category=$category->id");
                 echo html::a($link, "<i class='icon icon-plus'></i> {$lang->target->deleteCategory}", '', "class='btn btn-primary'");
               ?>
             </td>
