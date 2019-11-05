@@ -432,8 +432,8 @@ class report extends control
         $this->view->next = $next;
         $this->view->pre = $pre;
         $this->view->cur = $cur;
-        $this->view->title = $this->lang->report->projectboard;
-        $this->view->position[] = $this->lang->report->projectboard;
+        $this->view->title = $this->lang->report->usertaskdoneboard;
+        $this->view->position[] = $this->lang->report->usertaskdoneboard;
         $this->view->depts = $this->loadModel('dept')->getOptionMenu();
         $this->view->tasks = $this->report->getUserWorkHour($begin, $end, $dept);
         $this->view->dept = $dept;
