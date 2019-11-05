@@ -3,7 +3,6 @@
 $lang->target->handle           = '操作';
 
 $lang->target->module           = '模块';
-$lang->target->category         = '类别';
 $lang->target->dataset->name    = '数据集';
 $lang->target->target           = '指标';
 $lang->target->record           = '记录';
