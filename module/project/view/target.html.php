@@ -127,18 +127,19 @@
           </tr>
           <?php foreach ($experiment->surplusRecord as $record):?>
             <tr class="text-center">
-              <td><?php echo $record->time;?></td>
+              <td class='time-td'><?php echo $record->time;?></td>
               <td><?php echo $record->performance->precision_;?></td>
               <td><?php echo $record->performance->recall;?></td>
               <td><?php echo $record->performance->f1;?></td>
-              <td rowspan="<?php echo $experiment->recordLen;?>">
+              <td>
                 <?php
                   $link = $this->createLink('target', 'editRecord', "projectID=$projectID&experiment=$experiment->id");
-                  echo html::a($link, "{$lang->target->editRecord}", '', "class='btn btn-primary'");
+                  echo html::a($link, "{$lang->target->editRecord}", '', "class='edit-btn btn btn-xs btn-primary'");
                 ?>
+                <br>
                 <?php
                   $link = $this->createLink('target', 'deleteRecord', "projectID=$projectID&experiment=$experiment->id");
-                  echo html::a($link, "{$lang->target->deleteRecord}", '', "class='btn btn-primary'");
+                  echo html::a($link, "{$lang->target->deleteRecord}", '', "class='btn btn-xs btn-primary'");
                 ?>
             </td>
             </tr>
