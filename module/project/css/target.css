@@ -12,6 +12,9 @@
 .target_table td {
     white-space: normal !important;
 }
+.target_table{
+    background: #fff ;
+}
 .time-td {
     overflow: hidden;
     white-space: normal !important;
