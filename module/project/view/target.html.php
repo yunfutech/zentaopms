@@ -54,7 +54,7 @@
   </div>
 
   <div data-ride='table'>
-    <table class='table table-condensed table-striped table-bordered table-fixed no-margin'>
+    <table class='table table-condensed target_table table-striped table-bordered table-fixed no-margin'>
       <thead>
         <tr class="text-center">
           <th class='w-70px' rowspan="2"><?php echo $lang->target->category;?></th>

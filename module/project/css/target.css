@@ -9,6 +9,9 @@
     border-radius: 4px 2px 2px 4px;
     margin-top: 10px;
 }
+.target_table td {
+    white-space: normal !important;
+}
 .time-td {
     overflow: hidden;
     white-space: normal !important;
