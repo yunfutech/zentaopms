@@ -15,27 +15,27 @@
           <tr>
             <th>日期</th>
             <td>
-              <?php echo html::input("time", '', "class='form-control form-datetime' required");?>
+              <?php echo html::input("time", $record->time, "class='form-control form-datetime' required");?>
             </td>
           </tr>
           <tr>
             <th>准确率</th>
             <td>
-              <?php echo html::input('precision', '', "class='form-control' required");?>
+              <?php echo html::input('precision', $record->performance->precision_, "class='form-control' required");?>
             </td>
             <th>召回率</th>
             <td>
-              <?php echo html::input('recall', '', "class='form-control' required");?>
+              <?php echo html::input('recall', $record->performance->recall, "class='form-control' required");?>
             </td>
             <th>F1</th>
             <td>
-              <?php echo html::input('f1', '', "class='form-control' required");?>
+              <?php echo html::input('f1', $record->performance->f1, "class='form-control' required");?>
             </td>
           </tr>
           <tr>
             <th>方案</th>
             <td>
-              <?php echo html::textarea('solution', '', "style='height: 100px;' class='form-control kindeditor disabled-ie-placeholder' hidefocus='true' required");?>
+              <?php echo html::textarea('solution', $record->solution, "style='height: 100px;' class='form-control kindeditor disabled-ie-placeholder' hidefocus='true' required");?>
             </td>
           </tr>
         </tbody>

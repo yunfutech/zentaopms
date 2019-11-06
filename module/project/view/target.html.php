@@ -96,12 +96,12 @@
               <td><?php echo $experiment->record[0]->performance->f1;?></td>
               <td>
                 <?php
-                  $link = $this->createLink('target', 'editRecord', "projectID=$projectID&experiment=$experiment->id");
-                  echo html::a($link, "{$lang->target->editRecord}", '', "class='edit-btn btn btn-xs btn-primary' disabled");
+                  $link = $this->createLink('target', 'editRecord', "projectID=$projectID&record=".$experiment->record[0]->id);
+                  echo html::a($link, "{$lang->target->editRecord}", '', "class='edit-btn btn btn-xs btn-primary'");
                 ?>
                 <br>
                 <?php
-                  $link = $this->createLink('target', 'deleteRecord', "projectID=$projectID&experiment=$experiment->id");
+                  $link = $this->createLink('target', 'deleteRecord', "projectID=$projectID&record=".$experiment->record[0]->id);
                   echo html::a($link, "{$lang->target->deleteRecord}", '', "class='btn btn-xs btn-primary' disabled");
                 ?>
               </td>
@@ -133,12 +133,12 @@
               <td><?php echo $record->performance->f1;?></td>
               <td>
                 <?php
-                  $link = $this->createLink('target', 'editRecord', "projectID=$projectID&experiment=$experiment->id");
-                  echo html::a($link, "{$lang->target->editRecord}", '', "class='edit-btn btn btn-xs btn-primary' disabled");
+                  $link = $this->createLink('target', 'editRecord', "projectID=$projectID&record=$record->id");
+                  echo html::a($link, "{$lang->target->editRecord}", '', "class='edit-btn btn btn-xs btn-primary'");
                 ?>
                 <br>
                 <?php
-                  $link = $this->createLink('target', 'deleteRecord', "projectID=$projectID&experiment=$experiment->id");
+                  $link = $this->createLink('target', 'deleteRecord', "projectID=$projectID&record=$record->id");
                   echo html::a($link, "{$lang->target->deleteRecord}", '', "class='btn btn-xs btn-primary' disabled");
                 ?>
             </td>

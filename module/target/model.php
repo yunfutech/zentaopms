@@ -168,7 +168,15 @@ class targetModel extends model
         return $records;
     }
 
-    public function editRecord($id, $data)
+    public function getRecordById($id)
+    {
+        $record = $this->dao->select('*')->from(TABLE_TARGET_RECORD)->where('id')->eq($id)->fetch();
+        $performance = $this->getPerformanceById($record->pid);
+        $record->performance = $performance;
+        return $record;
+    }
+
+    public function editRecord($data, $id)
     {
         $record = $this->dao->select('*')->from(TABLE_TARGET_RECORD)->where('id')->eq($id)->fetchAll();
         $pid = $record->pid;

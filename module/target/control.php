@@ -246,4 +246,25 @@ class target extends control
 
         $this->display();
     }
+
+    public function editRecord($projectID, $recordID)
+    {
+        if(!empty($_POST))
+        {
+            $res = $this->target->editRecord($_POST, $recordID);
+            if ($res) {
+                $response['result']  = 'success';
+                $response['message'] = $this->lang->saveSuccess;
+                $response['locate'] = $this->createLink('project', 'target', "projectID=$projectID");
+                $this->send($response);
+            } else {
+                $response['result']  = 'fail';
+                $response['message'] = dao::getError();
+                $this->send($response);
+            }
+        }
+
+        $this->view->record = $this->target->getRecordById($recordID);
+        $this->display();
+    }
 }
