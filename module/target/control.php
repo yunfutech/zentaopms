@@ -7,25 +7,6 @@ class target extends control
         parent::__construct($moduleName, $methodName);
     }
 
-    public function create($projectID='')
-    {
-        $this->loadModel('project');
-        $project   = $this->project->getById($projectID);
-        $projectID = $project->id;
-
-        /* Header and position. */
-        $title      = $project->name . $this->lang->colon . $this->lang->project->target;
-        $position[] = html::a($this->createLink('project', 'browse', "projectID=$projectID"), $project->name);
-        $position[] = $this->lang->project->target;
-
-        $this->view->title       = $title;
-        $this->view->position    = $position;
-        $this->view->projectID   = $projectID;
-        $this->view->projectName = $project->name;
-
-        $this->display();
-    }
-
     public function category($projectID)
     {
         $categories = $this->target->getCategories();

@@ -18,7 +18,7 @@
     <div class="left-col">
       <div class="left-title">
         <div class="left-text">
-          <?php echo $lang->target->category->all?>
+          <?php echo $lang->target->allCategory?>
         </div>
       </div>
       <div class="cell">
@@ -28,7 +28,7 @@
           </div>
         <?php endforeach;?>
         <div class="text-center">
-          <?php common::printLink('target', 'category', "projectID=$projectID", $lang->target->category->manage, '', "class='btn btn-info btn-wide'");?>
+          <?php common::printLink('target', 'category', "projectID=$projectID", $lang->target->manageCategory, '', "class='btn btn-info btn-wide'");?>
           <hr class="space-sm" />
         </div>
       </div>
@@ -36,7 +36,7 @@
     <div class="left-col">
       <div class="left-title">
         <div class="left-text">
-          <?php echo $lang->target->dataset->all?>
+          <?php echo $lang->target->allDataset?>
         </div>
       </div>
       <div class="cell">
@@ -46,7 +46,7 @@
           </div>
         <?php endforeach;?>
         <div class="text-center">
-          <?php common::printLink('target', 'dataset', "projectID=$projectID", $lang->target->dataset->manage, '', "class='btn btn-info btn-wide'");?>
+          <?php common::printLink('target', 'dataset', "projectID=$projectID", $lang->target->manageDataset, '', "class='btn btn-info btn-wide'");?>
           <hr class="space-sm" />
         </div>
       </div>
@@ -57,9 +57,9 @@
     <table class='table table-condensed table-striped table-bordered table-fixed no-margin'>
       <thead>
         <tr class="text-center">
-          <th class='w-70px' rowspan="2"><?php echo $lang->target->category->name;?></th>
+          <th class='w-70px' rowspan="2"><?php echo $lang->target->category;?></th>
           <th class='w-70px' rowspan="2"><?php echo $lang->target->module;?></th>
-          <th class='w-150px' colspan="2"><?php echo $lang->target->dataset->name;?></th>
+          <th class='w-150px' colspan="2"><?php echo $lang->target->dataset;?></th>
           <th class="w-300px" colspan="4"><?php echo $lang->target->target;?></th>
           <th class="w-400px" colspan="5"><?php echo $lang->target->record;?></th>
           <th class="w-100px" rowspan="2"><?php echo $lang->target->handle;?></th>
@@ -70,11 +70,11 @@
           <td><?php echo $lang->target->time;?></td>
           <td><?php echo $lang->target->precision;?></td>
           <td><?php echo $lang->target->recall;?></td>
-          <td><?php echo $lang->target->F1;?></td>
+          <td><?php echo $lang->target->f1;?></td>
           <td><?php echo $lang->target->time;?></td>
           <td><?php echo $lang->target->precision;?></td>
           <td><?php echo $lang->target->recall;?></td>
-          <td><?php echo $lang->target->F1;?></td>
+          <td><?php echo $lang->target->f1;?></td>
           <td><?php echo $lang->target->handle;?></td>
         </tr>
       </thead>
@@ -88,21 +88,21 @@
             <td class="time-td" rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->target->deadline;?></td>
             <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->target->performance->precision_;?></td>
             <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->target->performance->recall;?></td>
-            <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->target->performance->F1;?></td>
+            <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->target->performance->f1;?></td>
             <?php if (!empty($experiment->record)):?>
               <td class="time-td"><?php echo $experiment->record[0]->time;?></td>
               <td><?php echo $experiment->record[0]->performance->precision_;?></td>
               <td><?php echo $experiment->record[0]->performance->recall;?></td>
-              <td><?php echo $experiment->record[0]->performance->F1;?></td>
+              <td><?php echo $experiment->record[0]->performance->f1;?></td>
               <td>
                 <?php
                   $link = $this->createLink('target', 'editRecord', "projectID=$projectID&experiment=$experiment->id");
-                  echo html::a($link, "{$lang->target->editRecord}", '', "class='edit-btn btn btn-xs btn-primary'");
+                  echo html::a($link, "{$lang->target->editRecord}", '', "class='edit-btn btn btn-xs btn-primary' disabled");
                 ?>
                 <br>
                 <?php
                   $link = $this->createLink('target', 'deleteRecord', "projectID=$projectID&experiment=$experiment->id");
-                  echo html::a($link, "{$lang->target->deleteRecord}", '', "class='btn btn-xs btn-primary'");
+                  echo html::a($link, "{$lang->target->deleteRecord}", '', "class='btn btn-xs btn-primary' disabled");
                 ?>
               </td>
             <?php else:?>
@@ -116,12 +116,12 @@
               <br>
               <?php
                 $link = $this->createLink('target', 'editExperiment', "projectID=$projectID&experiment=$experiment->id");
-                echo html::a($link, "{$lang->target->editExperiment}", '', "class='edit-btn btn btn-xs btn-primary'");
+                echo html::a($link, "{$lang->target->editExperiment}", '', "class='edit-btn btn btn-xs btn-primary' disabled");
               ?>
               <br>
               <?php
                 $link = $this->createLink('target', 'deleteExperiment', "projectID=$projectID&experiment=$experiment->id");
-                echo html::a($link, "{$lang->target->deleteExperiment}", '', "class='btn btn-xs btn-primary'");
+                echo html::a($link, "{$lang->target->deleteExperiment}", '', "class='btn btn-xs btn-primary' disabled");
               ?>
             </td>
           </tr>
@@ -130,16 +130,16 @@
               <td class='time-td'><?php echo $record->time;?></td>
               <td><?php echo $record->performance->precision_;?></td>
               <td><?php echo $record->performance->recall;?></td>
-              <td><?php echo $record->performance->F1;?></td>
+              <td><?php echo $record->performance->f1;?></td>
               <td>
                 <?php
                   $link = $this->createLink('target', 'editRecord', "projectID=$projectID&experiment=$experiment->id");
-                  echo html::a($link, "{$lang->target->editRecord}", '', "class='edit-btn btn btn-xs btn-primary'");
+                  echo html::a($link, "{$lang->target->editRecord}", '', "class='edit-btn btn btn-xs btn-primary' disabled");
                 ?>
                 <br>
                 <?php
                   $link = $this->createLink('target', 'deleteRecord', "projectID=$projectID&experiment=$experiment->id");
-                  echo html::a($link, "{$lang->target->deleteRecord}", '', "class='btn btn-xs btn-primary'");
+                  echo html::a($link, "{$lang->target->deleteRecord}", '', "class='btn btn-xs btn-primary' disabled");
                 ?>
             </td>
             </tr>

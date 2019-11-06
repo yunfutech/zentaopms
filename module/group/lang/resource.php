@@ -21,6 +21,7 @@ $lang->moduleOrder[25]  = 'productplan';
 $lang->moduleOrder[30]  = 'release';
 
 $lang->moduleOrder[35]  = 'project';
+$lang->moduleOrder[38]  = 'target';
 $lang->moduleOrder[40]  = 'task';
 $lang->moduleOrder[45]  = 'build';
 
@@ -394,6 +395,51 @@ $lang->project->methodOrder[215] = 'export';
 $lang->project->methodOrder[220] = 'storyKanban';
 $lang->project->methodOrder[225] = 'storySort';
 $lang->project->methodOrder[230] = 'target';
+
+$lang->resource->target = new stdClass();
+$lang->resource->target->category           = 'category';
+$lang->resource->target->manageCategory     = 'manageCategory';
+$lang->resource->target->createCategory     = 'createCategory';
+$lang->resource->target->editCategory       = 'editCategory';
+$lang->resource->target->deleteCategory     = 'deleteCategory';
+$lang->resource->target->dataset            = 'dataset';
+$lang->resource->target->manageDataset      = 'manageDataset';
+$lang->resource->target->createDataset      = 'createDataset';
+$lang->resource->target->editDataset        = 'editDataset';
+$lang->resource->target->deleteDataset      = 'deleteDataset';
+$lang->resource->target->createExperiment   = 'createExperiment';
+$lang->resource->target->editExperiment     = 'editExperiment';
+$lang->resource->target->deleteExperiment   = 'deleteExperiment';
+$lang->resource->target->record             = 'record';
+$lang->resource->target->createRecord       = 'createRecord';
+$lang->resource->target->editRecord         = 'editRecord';
+$lang->resource->target->deleteRecord       = 'deleteRecord';
+$lang->resource->target->module             = 'module';
+$lang->resource->target->createModule       = 'createModule';
+$lang->resource->target->editModule         = 'editModule';
+$lang->resource->target->deleteModule       = 'deleteModule';
+
+$lang->target->methodOrder[0]       = 'category';
+$lang->target->methodOrder[2]       = 'manageCategory';
+$lang->target->methodOrder[3]       = 'createCategory';
+$lang->target->methodOrder[5]       = 'editCategory';
+$lang->target->methodOrder[6]       = 'deleteCategory';
+$lang->target->methodOrder[8]       = 'dataset';
+$lang->target->methodOrder[9]       = 'manageDataset';
+$lang->target->methodOrder[10]      = 'createDataset';
+$lang->target->methodOrder[15]      = 'editDataset';
+$lang->target->methodOrder[18]      = 'deleteDataset';
+$lang->target->methodOrder[20]      = 'createExperiment';
+$lang->target->methodOrder[25]      = 'editExperiment';
+$lang->target->methodOrder[30]      = 'deleteExperiment';
+$lang->target->methodOrder[35]      = 'record';
+$lang->target->methodOrder[40]      = 'createRecord';
+$lang->target->methodOrder[45]      = 'editRecord';
+$lang->target->methodOrder[50]      = 'deleteRecord';
+$lang->target->methodOrder[55]      = 'module';
+$lang->target->methodOrder[60]      = 'createModule';
+$lang->target->methodOrder[65]      = 'editModule';
+$lang->target->methodOrder[70]      = 'deleteModule';
 
 /* Task. */
 $lang->resource->task = new stdclass();
