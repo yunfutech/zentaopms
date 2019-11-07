@@ -54,7 +54,7 @@
   </div>
 
   <div data-ride='table'>
-    <table class='table table-condensed table-striped table-bordered table-fixed no-margin'>
+    <table class='target_table table table-condensed table-striped table-bordered table-fixed no-margin with-footer-fixed'>
       <thead>
         <tr class="text-center">
           <th class='w-70px' rowspan="2"><?php echo $lang->target->category;?></th>
@@ -65,17 +65,17 @@
           <th class="w-100px" rowspan="2"><?php echo $lang->target->handle;?></th>
         </tr>
         <tr class="text-center">
-          <td><?php echo $lang->target->name;?></td>
-          <td><?php echo $lang->target->size;?></td>
-          <td><?php echo $lang->target->time;?></td>
-          <td><?php echo $lang->target->precision;?></td>
-          <td><?php echo $lang->target->recall;?></td>
-          <td><?php echo $lang->target->f1;?></td>
-          <td><?php echo $lang->target->time;?></td>
-          <td><?php echo $lang->target->precision;?></td>
-          <td><?php echo $lang->target->recall;?></td>
-          <td><?php echo $lang->target->f1;?></td>
-          <td><?php echo $lang->target->handle;?></td>
+          <th><?php echo $lang->target->name;?></th>
+          <th><?php echo $lang->target->size;?></th>
+          <th><?php echo $lang->target->time;?></th>
+          <th><?php echo $lang->target->precision;?></th>
+          <th><?php echo $lang->target->recall;?></th>
+          <th><?php echo $lang->target->f1;?></th>
+          <th><?php echo $lang->target->time;?></th>
+          <th><?php echo $lang->target->precision;?></th>
+          <th><?php echo $lang->target->recall;?></th>
+          <th><?php echo $lang->target->f1;?></th>
+          <th><?php echo $lang->target->handle;?></th>
         </tr>
       </thead>
       <tbody>
