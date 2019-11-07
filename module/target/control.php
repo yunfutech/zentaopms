@@ -194,7 +194,7 @@ class target extends control
     {
         if(!empty($_POST))
         {
-            $res = $this->target->addExperiment($_POST);
+            $res = $this->target->editExperiment($_POST, $experimentID);
             if ($res) {
                 $response['result']  = 'success';
                 $response['message'] = $this->lang->saveSuccess;
@@ -209,22 +209,39 @@ class target extends control
         $view_categories = [];
         $view_datasets = [];
         $view_modules = [];
-        $categories = $this->target->getCategories();
         $datasets = $this->target->getDatasets();
         $modules = $this->target->getModules($projectID);
-        foreach ($categories as $category) {
-            $view_categories[$category->id] = $category->name;
-        }
         foreach ($datasets as $dataset) {
             $view_datasets[$dataset->id] = $dataset->name;
         }
         foreach ($modules as $module) {
             $view_modules[$module->id] = $module->name;
         }
+
+        $experiment = $this->target->getExperimentById($experimentID);
+        $target = $this->target->getTargetById($experiment->tid);
+
         $this->view->categories = $view_categories;
         $this->view->datasets = $view_datasets;
         $this->view->modules = $view_modules;
+        $this->view->experiment = $experiment;
+        $this->view->target = $target;
         $this->display();
+    }
+
+    public function deleteExperiment($projectID, $experimentID)
+    {
+        $res = $this->target->deleteExperiment($experimentID);
+        if ($res) {
+            $response['result']  = 'success';
+            $response['message'] = '删除成功';
+            $response['locate'] = $this->createLink('project', 'target', "projectID=$projectID");
+            $this->send($response);
+        } else {
+            $response['result']  = 'fail';
+            $response['message'] = dao::getError();
+            $this->send($response);
+        }
     }
 
     public function record($projectID, $experimentID)
@@ -266,5 +283,20 @@ class target extends control
 
         $this->view->record = $this->target->getRecordById($recordID);
         $this->display();
+    }
+
+    public function deleteRecord($projectID, $recordID)
+    {
+        $res = $this->target->deleteRecord($recordID);
+        if ($res) {
+            $response['result']  = 'success';
+            $response['message'] = '删除成功';
+            $response['locate'] = $this->createLink('project', 'target', "projectID=$projectID");
+            $this->send($response);
+        } else {
+            $response['result']  = 'fail';
+            $response['message'] = dao::getError();
+            $this->send($response);
+        }
     }
 }

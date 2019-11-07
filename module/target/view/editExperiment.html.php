@@ -19,35 +19,29 @@
             </td>
           </tr>
           <tr>
-            <th>类别</th>
-            <td>
-              <?php echo html::select("category", $categories, $experiment->cid, "class='form-control chosen'");?>
-            </td>
-          </tr>
-          <tr>
             <th>数据集</th>
             <td>
               <?php echo html::select("dataset", $datasets, $experiment->did, "class='form-control chosen'");?>
             </td>
           </tr>
           <tr>
-            <th>日期</th>
+            <th>截止日期</th>
             <td>
-              <?php echo html::input("deadline", $experiment->deadline, "class='form-control form-datetime' required");?>
+              <?php echo html::input("deadline", $target->deadline, "class='form-control form-datetime'");?>
             </td>
           </tr>
           <tr>
             <th>目标准确率</th>
             <td>
-              <?php echo html::input('precision', $experiment->precision, "class='form-control'");?>
+              <?php echo html::input('precision', $target->performance->precision_, "class='form-control'");?>
             </td>
             <th>目标召回率</th>
             <td>
-              <?php echo html::input('recall', $experiment->recall, "class='form-control'");?>
+              <?php echo html::input('recall', $target->performance->recall, "class='form-control'");?>
             </td>
             <th>目标F1</th>
             <td>
-              <?php echo html::input('f1', $experiment->fi, "class='form-control'");?>
+              <?php echo html::input('f1', $target->performance->f1, "class='form-control'");?>
             </td>
           </tr>
         </tbody>

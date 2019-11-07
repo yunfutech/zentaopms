@@ -102,7 +102,7 @@
                 <br>
                 <?php
                   $link = $this->createLink('target', 'deleteRecord', "projectID=$projectID&record=".$experiment->record[0]->id);
-                  echo html::a($link, "{$lang->target->deleteRecord}", '', "class='btn btn-xs btn-primary' disabled");
+                  echo html::a($link, "{$lang->target->deleteRecord}", '', "class='btn btn-xs btn-primary'");
                 ?>
               </td>
             <?php else:?>
@@ -116,12 +116,12 @@
               <br>
               <?php
                 $link = $this->createLink('target', 'editExperiment', "projectID=$projectID&experiment=$experiment->id");
-                echo html::a($link, "{$lang->target->editExperiment}", '', "class='edit-btn btn btn-xs btn-primary' disabled");
+                echo html::a($link, "{$lang->target->editExperiment}", '', "class='edit-btn btn btn-xs btn-primary'");
               ?>
               <br>
               <?php
                 $link = $this->createLink('target', 'deleteExperiment', "projectID=$projectID&experiment=$experiment->id");
-                echo html::a($link, "{$lang->target->deleteExperiment}", '', "class='btn btn-xs btn-primary' disabled");
+                echo html::a($link, "{$lang->target->deleteExperiment}", '', "class='btn btn-xs btn-primary'");
               ?>
             </td>
           </tr>
@@ -139,7 +139,7 @@
                 <br>
                 <?php
                   $link = $this->createLink('target', 'deleteRecord', "projectID=$projectID&record=$record->id");
-                  echo html::a($link, "{$lang->target->deleteRecord}", '', "class='btn btn-xs btn-primary' disabled");
+                  echo html::a($link, "{$lang->target->deleteRecord}", '', "class='btn btn-xs btn-primary'");
                 ?>
             </td>
             </tr>

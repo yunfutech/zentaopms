@@ -2,16 +2,19 @@
 
 class targetModel extends model
 {
+    // 获取全部类别
     public function getCategories()
     {
         return $this->dao->select('*')->from(TABLE_TARGET_CATEGORY)->fetchAll();
     }
 
+    // 通过id获取类别
     public function getCategoryById($id)
     {
         return $this->dao->select('*')->from(TABLE_TARGET_CATEGORY)->where('id')->eq($id)->fetch();
     }
 
+    // 添加类别
     public function addCategory($name)
     {
         $category = new stdClass();
@@ -19,26 +22,31 @@ class targetModel extends model
         return $this->dao->insert(TABLE_TARGET_CATEGORY)->data($category)->exec();
     }
 
+    // 编辑类别
     public function editCategory($id, $name)
     {
         return $this->dao->update(TABLE_TARGET_CATEGORY)->set('name')->eq($name)->where('id')->eq($id)->exec();
     }
 
+    // 删除类别
     public function deleteCategory($id)
     {
         return $this->dao->delete()->from(TABLE_TARGET_CATEGORY)->where('id')->eq($id)->exec();
     }
 
+    // 获取全部数据集
     public function getDatasets()
     {
         return $this->dao->select('*')->from(TABLE_TARGET_DATASET)->fetchAll();
     }
 
+    // 通过id获取数据集
     public function getDatasetById($id)
     {
         return $this->dao->select('*')->from(TABLE_TARGET_DATASET)->where('id')->eq($id)->fetch();
     }
 
+    // 添加数据集
     public function addDataset($params)
     {
         $dataset = new stdClass();
@@ -48,22 +56,25 @@ class targetModel extends model
         return $this->dao->insert(TABLE_TARGET_DATASET)->data($dataset)->exec();
     }
 
+    // 编辑数据集
     public function editDataset($id, $data)
     {
         return $this->dao->update(TABLE_TARGET_DATASET)->data($data)->where('id')->eq($id)->exec();
     }
 
+    // 删除数据集
     public function deleteDataset($id)
     {
         return $this->dao->delete()->from(TABLE_TARGET_DATASET)->where('id')->eq($id)->exec();
     }
 
-
+    // 获取全部模块
     public function getModules($project_id)
     {
         return $this->dao->select('*')->from(TABLE_TARGET_MODULE)->where('pid')->eq($project_id)->fetchAll();
     }
 
+    // 通过id获取模块
     public function getModuleById($id)
     {
         $module = $this->dao->select('*')->from(TABLE_TARGET_MODULE)->where('id')->eq($id)->fetch();
@@ -72,6 +83,7 @@ class targetModel extends model
         return $module;
     }
 
+    // 添加模块
     public function addModule($data, $project_id)
     {
         $module = new stdClass();
@@ -82,21 +94,26 @@ class targetModel extends model
         return $this->dao->lastInsertID();
     }
 
+    // 编辑模块
     public function editModule($id, $data)
     {
         return $this->dao->update(TABLE_TARGET_MODULE)->data($data)->where('id')->eq($id)->exec();
     }
 
+    // 删除模块
     public function deleteModule($id)
     {
         return $this->dao->delete()->from(TABLE_TARGET_MODULE)->where('id')->eq($id)->exec();
     }
 
+    // 通过id获取Performance
     public function getPerformanceById($id)
     {
         return $this->dao->select('*')->from(TABLE_TARGET_PERFORMANCE)->where('id')->eq($id)->fetch();
     }
 
+
+    // 添加Performance
     public function addPerformance($data)
     {
         $performance = new stdClass();
@@ -107,6 +124,7 @@ class targetModel extends model
         return $this->dao->lastInsertID();
     }
 
+    // 编辑Performance
     public function editPerformance($id, $data)
     {
         $performance = new stdClass();
@@ -116,6 +134,13 @@ class targetModel extends model
         return $this->dao->update(TABLE_TARGET_PERFORMANCE)->data($performance)->where('id')->eq($id)->exec();
     }
 
+    // 删除Performance
+    public function deletePerformance($id)
+    {
+        return $this->dao->delete()->from(TABLE_TARGET_PERFORMANCE)->where('id')->eq($id)->exec();
+    }
+
+    // 添加目标
     public function addTarget($data)
     {
         $target = new stdClass();
@@ -125,6 +150,7 @@ class targetModel extends model
         return $this->dao->lastInsertID();
     }
 
+    // 通过id获取目标
     public function getTargetById($id)
     {
         $target = $this->dao->select('*')->from(TABLE_TARGET_TARGET)->where('id')->eq($id)->fetch();
@@ -134,6 +160,7 @@ class targetModel extends model
         return $target;
     }
 
+    // 编辑目标
     public function editTarget($id, $data)
     {
         $target = $this->dao->select('*')->from(TABLE_TARGET_TARGET)->where('id')->eq($id)->fetchAll();
@@ -142,6 +169,16 @@ class targetModel extends model
         $this->dao->update(TABLE_TARGET_TARGET)->set('time')->eq($data['time'])->where('id')->eq($id)->exec();
     }
 
+    // 删除目标
+    public function deleteTarget($id)
+    {
+        $pid = $this->getTargetById($id)->pid;
+        $this->dao->delete()->from(TABLE_TARGET_TARGET)->where('id')->eq($id)->exec();
+        $this->deletePerformance($pid);
+        return true;
+    }
+
+    // 添加记录
     public function addRecord($data, $eid)
     {
         $record = new stdClass();
@@ -158,6 +195,7 @@ class targetModel extends model
         return $res;
     }
 
+    // 获取实验全部记录
     public function getRecord($ids)
     {
         $records = $this->dao->select('*')->from(TABLE_TARGET_RECORD)->where('id')->in($ids)->fetchAll();
@@ -168,6 +206,7 @@ class targetModel extends model
         return $records;
     }
 
+    // 通过id获取记录
     public function getRecordById($id)
     {
         $record = $this->dao->select('*')->from(TABLE_TARGET_RECORD)->where('id')->eq($id)->fetch();
@@ -176,6 +215,7 @@ class targetModel extends model
         return $record;
     }
 
+    // 编辑记录
     public function editRecord($data, $id)
     {
         $record = $this->dao->select('*')->from(TABLE_TARGET_RECORD)->where('id')->eq($id)->fetchAll();
@@ -188,11 +228,16 @@ class targetModel extends model
         $this->dao->update(TABLE_TARGET_RECORD)->set('time')->eq($data['time'])->set('solution')->eq($data['solution'])->where('id')->eq($id)->exec();
     }
 
+    // 删除记录
     public function deleteRecord($id)
     {
-        return $this->dao->delete()->from(TABLE_TARGET_RECORD)->where('id')->eq($id)->exec();
+        $pid = $this->getRecordById($id)->pid;
+        $this->dao->delete()->from(TABLE_TARGET_RECORD)->where('id')->eq($id)->exec();
+        $this->deletePerformance($pid);
+        return true;
     }
 
+    // 获取实验
     public function getExperiment($project_id)
     {
         $modules = $this->getModules($project_id);
@@ -211,17 +256,42 @@ class targetModel extends model
         return $experiments;
     }
 
+    // 通过id获取实验
     public function getExperimentById($id)
     {
         $experiments = $this->dao->select('*')->from(TABLE_TARGET_EXPERIMENT)->where('id')->eq($id)->fetch();
         return $experiments;
     }
 
-    public function deleteExperiment($id)
+    // 编辑实验
+    public function editExperiment($data, $id)
     {
-        return $this->dao->delete()->from(TABLE_TARGET_EXPERIMENT)->where('id')->eq($id)->exec();
+        $old_tid = $this->getExperimentById($id)->tid;
+        $pid = $this->addPerformance($data);
+        $data['pid'] = $pid;
+        $tid = $this->addTarget($data);
+        $set = ['mid' => $data['module'], 'did' => $data['dataset'], 'tid' => $tid];
+        $this->dao->update(TABLE_TARGET_EXPERIMENT)->data($set)->where('id')->eq($id)->exec();
+        return $this->deleteTarget($old_tid);
     }
 
+    // 删除实验
+    public function deleteExperiment($id)
+    {
+        $experiment = $this->getExperimentById($id);
+        $tid = $experiment->tid;
+        $rids = explode($experiment->rid, ',');
+        $this->dao->delete()->from(TABLE_TARGET_EXPERIMENT)->where('id')->eq($id)->exec();
+        $this->deleteTarget($tid);
+        foreach ($rids as $rid) {
+            if ($rid) {
+                $this->deleteRecord($rid);
+            }
+        }
+        return true;
+    }
+
+    // 添加记录id
     public function addRid($ids, $id)
     {
         $rid = join(',', $ids);
@@ -229,6 +299,7 @@ class targetModel extends model
         return $res;
     }
 
+    // 添加实验
     public function addExperiment($data)
     {
         $mid = $data['module'];
