@@ -7,7 +7,7 @@
   </a>
   <div class="center-block">
     <div class="main-header">
-      <h2><?php echo $lang->target->createRecord;?></h2>
+      <h2><?php echo $lang->target->editRecord;?></h2>
     </div>
     <form class="load-indicator main-form form-ajax" method='post' enctype='multipart/form-data' id='dataform'>
       <table class="table table-form">
