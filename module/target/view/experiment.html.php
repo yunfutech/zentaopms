@@ -19,12 +19,6 @@
             </td>
           </tr>
           <tr>
-            <th>类别</th>
-            <td>
-              <?php echo html::select("category", $categories, 1, "class='form-control chosen'");?>
-            </td>
-          </tr>
-          <tr>
             <th>数据集</th>
             <td>
               <?php echo html::select("dataset", $datasets, 1, "class='form-control chosen'");?>
