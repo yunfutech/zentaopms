@@ -127,11 +127,7 @@ class targetModel extends model
     // 编辑Performance
     public function editPerformance($id, $data)
     {
-        $performance = new stdClass();
-        $performance->precision_ = $data['precision'];
-        $performance->recall = $data['recall'];
-        $performance->f1 = $data['f1'];
-        return $this->dao->update(TABLE_TARGET_PERFORMANCE)->data($performance)->where('id')->eq($id)->exec();
+        return $this->dao->update(TABLE_TARGET_PERFORMANCE)->data($data)->where('id')->eq($id)->exec();
     }
 
     // 删除Performance
@@ -218,14 +214,15 @@ class targetModel extends model
     // 编辑记录
     public function editRecord($data, $id)
     {
-        $record = $this->dao->select('*')->from(TABLE_TARGET_RECORD)->where('id')->eq($id)->fetchAll();
+        $record = $this->dao->select('*')->from(TABLE_TARGET_RECORD)->where('id')->eq($id)->fetch();
         $pid = $record->pid;
-        $performance = new stdClass();
-        $performance->precision = $data['precision'];
-        $performance->recall = $data['recall'];
-        $performance->f1 = $data['f1'];
+        $performance = [];
+        $performance['precision_'] = $data['precision_'];
+        $performance['recall'] = $data['recall'];
+        $performance['f1'] = $data['f1'];
         $this->editPerformance($pid, $performance);
         $this->dao->update(TABLE_TARGET_RECORD)->set('time')->eq($data['time'])->set('solution')->eq($data['solution'])->where('id')->eq($id)->exec();
+        return true;
     }
 
     // 删除记录

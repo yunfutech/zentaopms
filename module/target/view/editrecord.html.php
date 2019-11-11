@@ -21,7 +21,7 @@
           <tr>
             <th>准确率</th>
             <td>
-              <?php echo html::input('precision', $record->performance->precision_, "class='form-control' required");?>
+              <?php echo html::input('precision_', $record->performance->precision_, "class='form-control' required");?>
             </td>
             <th>召回率</th>
             <td>
