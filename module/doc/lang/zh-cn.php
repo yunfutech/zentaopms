@@ -210,6 +210,12 @@ $lang->doclib->create['custom']  = '创建自定义文档库';
 $lang->doclib->main['product'] = $lang->productCommon . '主库';
 $lang->doclib->main['project'] = $lang->projectCommon . '主库';
 
+$lang->doclib->weekly                   = '周报';
+$lang->doclib->minutesOfMeeting         = '会议纪要';
+$lang->doclib->test                     = '测试';
+$lang->doclib->badcase                  = 'badcase分析';
+$lang->doclib->technicalCommunication   = '技术沟通';
+
 $lang->doclib->tabList['product'] = $lang->productCommon;
 $lang->doclib->tabList['project'] = $lang->projectCommon;
 $lang->doclib->tabList['custom']  = '自定义';

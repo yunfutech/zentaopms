@@ -350,13 +350,12 @@ class projectModel extends model
 
             /* Create doc lib. */
             $this->app->loadLang('doc');
-            $lib = new stdclass();
-            $lib->project = $projectID;
-            $lib->name    = $this->lang->doclib->main['project'];
-            $lib->type    = 'project';
-            $lib->main    = '1';
-            $lib->acl     = 'default';
-            $this->dao->insert(TABLE_DOCLIB)->data($lib)->exec();
+            $this->insertLib($this->lang->doclib->main['project'], $projectID);
+            $this->insertLib($this->lang->doclib->weekly, $projectID);
+            $this->insertLib($this->lang->doclib->minutesOfMeeting, $projectID);
+            $this->insertLib($this->lang->doclib->test, $projectID);
+            $this->insertLib($this->lang->doclib->badcase, $projectID);
+            $this->insertLib($this->lang->doclib->technicalCommunication, $projectID);
 
             $this->loadModel('user')->updateUserView($projectID, 'project');
             if(isset($_POST['products']))
@@ -371,6 +370,21 @@ class projectModel extends model
             if(!dao::isError()) $this->loadModel('score')->create('project', 'create', $projectID);
             return $projectID;
         }
+    }
+
+    private function insertLib($name, $projectID) {
+        $lib = $this->buildDoclib($name, $projectID);
+        $this->dao->insert(TABLE_DOCLIB)->data($lib)->exec();
+    }
+
+    private function buildDoclib($name, $projectID) {
+        $lib = new stdclass();
+        $lib->project = $projectID;
+        $lib->name    = $name;
+        $lib->type    = 'project';
+        $lib->main    = '1';
+        $lib->acl     = 'default';
+        return $lib;
     }
 
     /**
