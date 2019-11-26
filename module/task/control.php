@@ -1527,4 +1527,70 @@ class task extends control
         }
         die(json_encode($task));
     }
+
+    /**
+     * 发送邮件提醒，每日工时不足八小时员工
+     */
+    public function remind()
+    {
+        $depts = $this->dao->select('id,name')->from(TABLE_DEPT)->fetchall();
+        $today = date('Y-m-d');
+        $lessUsers = array();
+        $moreUsers = array();
+        foreach($depts as $dept) {
+            $deptId = $dept->id;
+            $users = $this->dao->select('id, account, realname')->from(TABLE_USER)->where('deleted')->eq(0)->andWhere('dept')->eq($deptId)->fetchall();
+            foreach($users as $user) {
+                $estimate = $this->dao->select('sum(estimate) as sum')->from(TABLE_TASK)->where('status')->ne('closed')->andWhere('status')->ne('cancel')->andWhere('deadline')->eq($today)->andWhere('assignedTo')->eq($user->account)->fetch();
+                ;
+                if (intval($estimate->sum) < 8) {
+                    array_push($lessUsers, ['name' => $user->realname, 'estimate' => $estimate->sum]);
+                } else if (intval($estimate->sum) >= 10) {
+                    array_push($moreUsers, ['name' => $user->realname, 'estimate' => $estimate->sum]);
+                }
+            }
+        }
+        if (empty($lessUsers) && empty($moreUsers)) {
+            exit();
+        }
+        $summary = '';
+        if (!empty($lessUsers)) {
+            $summary .= '任务不饱和：';
+            foreach($lessUsers as $lessUser) {
+                if ($lessUser == $lessUsers[count($lessUsers) - 1]) {
+                    $summary .= $lessUsers['name'] . '(' . strval($lessUser['estimate']) . ')';
+                } else {
+                    $summary .= $lessUser['name'] . '(' . strval($lessUser['estimate']) . ')、';
+                }
+            }
+        }
+        if (!empty($moreUsers)) {
+            $summary .= '<br />任务超负荷：';
+            foreach($moreUsers as $moreUser) {
+                if ($moreUser == $moreUsers[count($moreUsers) - 1]) {
+                    $summary .= $moreUser['name'] . '(' . strval($moreUser['estimate']) . ')';
+                } else {
+                    $summary .= $moreUser['name'] . '(' . strval($moreUser['estimate']) . ')、';
+                }
+            }
+        }
+        $this->view->task = $summary;
+        $this->loadModel('mail');
+
+        $subject = '禅道任务安排不合理员工名单';
+        $modulePath = $this->app->getModulePath($appName = '', 'task');
+        $viewFile   = $modulePath . 'view/remind.html.php';
+        ob_start();
+        include $viewFile;
+        $mailContent = ob_get_contents();
+        ob_end_clean();
+
+        $this->mail->sendToEmail('all@yunfutech.com', $subject, $mailContent);
+
+        if ($this->mail->isError()) {
+            echo "fail: \n";
+            a($this->mail->getError());
+        }
+        echo "ok\n";
+    }
 }

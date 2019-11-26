@@ -258,6 +258,55 @@ class mailModel extends model
         $this->mta->Password   = $this->config->mail->gmail->password;
     }
 
+    public function sendToEmail($email, $subject, $body)
+    {
+        ob_start();
+        $this->clear();
+        /* Replace full webPath image for mail. */
+        $sysURL      = zget($this->config->mail, 'domain', common::getSysURL());
+        $readLinkReg = str_replace(array('%fileID%', '/', '.', '?'), array('[0-9]+', '\/', '\.', '\?'), helper::createLink('file', 'read', 'fileID=(%fileID%)', '\w+'));
+
+        $body = preg_replace('/ src="(' . $readLinkReg . ')" /', ' src="' . $sysURL . '$1" ', $body);
+        $body = preg_replace('/ src="{([0-9]+)(\.(\w+))?}" /', ' src="' . $sysURL . helper::createLink('file', 'read', "fileID=$1", "$3") . '" ', $body);
+        $body = preg_replace('/<img (.*)src="\/?data\/upload/', '<img $1 src="' . $sysURL . $this->config->webRoot . 'data/upload', $body);
+
+        try
+        {
+            /* Add for task #5301. */
+            if(function_exists('putenv')) putenv('RES_OPTIONS=retrans:1 retry:1 timeout:1 attempts:1');
+
+            $this->mta->setFrom($this->config->mail->fromAddress, $this->convertCharset($this->config->mail->fromName));
+            $this->setSubject($this->convertCharset($subject));
+            $this->mta->addAddress($email, 'yunfu');
+            $this->setBody($this->convertCharset($body));
+            $this->setErrorLang();
+            $this->mta->send();
+        }
+        catch (phpmailerException $e)
+        {
+            $mailError = ob_get_contents();
+            if(extension_loaded('mbstring'))
+            {
+                $encoding = mb_detect_encoding($mailError, array('ASCII','UTF-8','GB2312','GBK','BIG5'));
+                if($encoding != 'UTF-8') $mailError = mb_convert_encoding($mailError, 'utf8', $encoding);
+            }
+            $this->errors[] = nl2br(trim(strip_tags($e->errorMessage()))) . '<br />' . $mailError;
+        }
+        catch (Exception $e)
+        {
+            $this->errors[] = trim(strip_tags($e->getMessage()));
+        }
+        if($this->config->mail->mta == 'smtp') $this->mta->smtpClose();
+
+        /* save errors. */
+        if($this->isError()) $this->app->saveError('E_MAIL', join(' ', $this->errors), __FILE__, __LINE__, true);
+
+        $message = ob_get_contents();
+        ob_end_clean();
+
+        return $message;
+    }
+
     /**
      * Send email
      * 
@@ -300,7 +349,7 @@ class mailModel extends model
         /* Get realname and email of users. */
         $this->loadModel('user');
         $emails = $this->user->getRealNameAndEmails(str_replace(' ', '', $toList . ',' . $ccList));
-        
+
         $this->clear();
 
         /* Replace full webPath image for mail. */
@@ -311,7 +360,7 @@ class mailModel extends model
         $body = preg_replace('/ src="{([0-9]+)(\.(\w+))?}" /', ' src="' . $sysURL . helper::createLink('file', 'read', "fileID=$1", "$3") . '" ', $body);
         $body = preg_replace('/<img (.*)src="\/?data\/upload/', '<img $1 src="' . $sysURL . $this->config->webRoot . 'data/upload', $body);
 
-        try 
+        try
         {
             /* Add for task #5301. */
             if(function_exists('putenv')) putenv('RES_OPTIONS=retrans:1 retry:1 timeout:1 attempts:1');
@@ -324,7 +373,7 @@ class mailModel extends model
             $this->setErrorLang();
             $this->mta->send();
         }
-        catch (phpmailerException $e) 
+        catch (phpmailerException $e)
         {
             $mailError = ob_get_contents();
             if(extension_loaded('mbstring'))
