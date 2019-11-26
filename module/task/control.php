@@ -1535,21 +1535,31 @@ class task extends control
     {
         $depts = $this->dao->select('id,name')->from(TABLE_DEPT)->fetchall();
         $today = date('Y-m-d');
+        $tomorrow = date('Y-m-d', strtotime('+1 days'));
         $lessUsers = array();
         $moreUsers = array();
+        $users_count = 0;
+        $less_count = 0;
         foreach($depts as $dept) {
             $deptId = $dept->id;
             $users = $this->dao->select('id, account, realname')->from(TABLE_USER)->where('deleted')->eq(0)->andWhere('dept')->eq($deptId)->fetchall();
+            $users_count += count($users);
             foreach($users as $user) {
                 $estimate = $this->dao->select('sum(estimate) as sum')->from(TABLE_TASK)->where('status')->ne('closed')->andWhere('status')->ne('cancel')->andWhere('deadline')->eq($today)->andWhere('assignedTo')->eq($user->account)->fetch();
                 ;
                 if (intval($estimate->sum) < 8) {
+                    $less_count += 1;
                     array_push($lessUsers, ['name' => $user->realname, 'estimate' => $estimate->sum]);
                 } else if (intval($estimate->sum) >= 10) {
                     array_push($moreUsers, ['name' => $user->realname, 'estimate' => $estimate->sum]);
                 }
             }
         }
+        // 节假日
+        if ($less_count / $users_count >= 0.8) {
+            exit();
+        }
+        // 没有不足和超量
         if (empty($lessUsers) && empty($moreUsers)) {
             exit();
         }
@@ -1557,20 +1567,18 @@ class task extends control
         if (!empty($lessUsers)) {
             $summary .= '任务不饱和：';
             foreach($lessUsers as $lessUser) {
-                if ($lessUser == $lessUsers[count($lessUsers) - 1]) {
-                    $summary .= $lessUsers['name'] . '(' . strval($lessUser['estimate']) . ')';
-                } else {
-                    $summary .= $lessUser['name'] . '(' . strval($lessUser['estimate']) . ')、';
+                $summary .= $lessUsers['name'] . '(' . strval($lessUser['estimate']) . ')';
+                if ($lessUser != $lessUsers[count($lessUsers) - 1]) {
+                    $summary .= '、';
                 }
             }
         }
         if (!empty($moreUsers)) {
             $summary .= '<br />任务超负荷：';
             foreach($moreUsers as $moreUser) {
-                if ($moreUser == $moreUsers[count($moreUsers) - 1]) {
-                    $summary .= $moreUser['name'] . '(' . strval($moreUser['estimate']) . ')';
-                } else {
-                    $summary .= $moreUser['name'] . '(' . strval($moreUser['estimate']) . ')、';
+                $summary .= $moreUser['name'] . '(' . strval($moreUser['estimate']) . ')';
+                if ($moreUser != $moreUsers[count($moreUsers) - 1]) {
+                    $summary .= '、';
                 }
             }
         }
@@ -1588,9 +1596,7 @@ class task extends control
         $this->mail->sendToEmail('all@yunfutech.com', $subject, $mailContent);
 
         if ($this->mail->isError()) {
-            echo "fail: \n";
             a($this->mail->getError());
         }
-        echo "ok\n";
     }
 }
