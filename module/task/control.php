@@ -1542,6 +1542,9 @@ class task extends control
         $less_count = 0;
         foreach($depts as $dept) {
             $deptId = $dept->id;
+            if ($deptId == 4 || $deptId == 9) {
+                continue;
+            }
             $users = $this->dao->select('id, account, realname')->from(TABLE_USER)->where('deleted')->eq(0)->andWhere('dept')->eq($deptId)->fetchall();
             $users_count += count($users);
             foreach($users as $user) {
@@ -1599,7 +1602,7 @@ class task extends control
         $mailContent = ob_get_contents();
         ob_end_clean();
 
-        $this->mail->sendToEmail('zhouhao@yunfutech.com', $subject, $mailContent);
+        $this->mail->sendToEmail('all@yunfutech.com', $subject, $mailContent);
 
         if ($this->mail->isError()) {
             echo "发送失败: \n";
