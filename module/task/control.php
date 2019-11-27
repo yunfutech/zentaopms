@@ -1547,11 +1547,15 @@ class task extends control
             foreach($users as $user) {
                 $estimate = $this->dao->select('sum(estimate) as sum')->from(TABLE_TASK)->where('status')->ne('closed')->andWhere('status')->ne('cancel')->andWhere('deadline')->eq($today)->andWhere('assignedTo')->eq($user->account)->fetch();
                 ;
-                if (intval($estimate->sum) < 8) {
+                if (!$estimate) {
+                    continue;
+                }
+                $sum = round($estimate->sum, 1);
+                if (intval($sum) < 8) {
                     $less_count += 1;
-                    array_push($lessUsers, ['name' => $user->realname, 'estimate' => $estimate->sum]);
-                } else if (intval($estimate->sum) >= 10) {
-                    array_push($moreUsers, ['name' => $user->realname, 'estimate' => $estimate->sum]);
+                    array_push($lessUsers, ['name' => $user->realname, 'estimate' => $sum]);
+                } else if (intval($sum) > 10) {
+                    array_push($moreUsers, ['name' => $user->realname, 'estimate' => $sum]);
                 }
             }
         }
@@ -1569,7 +1573,7 @@ class task extends control
         if (!empty($lessUsers)) {
             $summary .= '任务不饱和：';
             foreach($lessUsers as $lessUser) {
-                $summary .= $lessUsers['name'] . '(' . strval($lessUser['estimate']) . ')';
+                $summary .= $lessUser['name'] . '(' . strval($lessUser['estimate']) . ')';
                 if ($lessUser != $lessUsers[count($lessUsers) - 1]) {
                     $summary .= '、';
                 }
@@ -1595,7 +1599,7 @@ class task extends control
         $mailContent = ob_get_contents();
         ob_end_clean();
 
-        $this->mail->sendToEmail('all@yunfutech.com', $subject, $mailContent);
+        $this->mail->sendToEmail('zhouhao@yunfutech.com', $subject, $mailContent);
 
         if ($this->mail->isError()) {
             echo "发送失败: \n";
