@@ -571,13 +571,13 @@ class reportModel extends model
                 if($dept == 3) {
                     if($task['all'] - 8 < 0) {
                         $short[$user] = $task['all']; 
-                    }elseif($task['all'] - 8 >= 2) {
+                    }elseif($task['all'] - 8 > 2) {
                         $exceed[$user] = $task['all'];
                     }
                 }elseif($dept == 1) {
                     if($task['all'] < 6) {
                         $short[$user] = $task['all'];
-                    }elseif($task['all'] - 8 >= 2) {
+                    }elseif($task['all'] - 8 > 2) {
                         $exceed[$user] = $task['all'];
                     }
                 }
