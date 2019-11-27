@@ -1557,10 +1557,12 @@ class task extends control
         }
         // 节假日
         if ($less_count / $users_count >= 0.8) {
+            echo '节假日\n';
             exit();
         }
         // 没有不足和超量
         if (empty($lessUsers) && empty($moreUsers)) {
+            echo '全部录入合理\n';
             exit();
         }
         $summary = '';
@@ -1582,7 +1584,7 @@ class task extends control
                 }
             }
         }
-        $this->view->task = $summary;
+        $this->view->summary = $summary;
         $this->loadModel('mail');
 
         $subject = '禅道任务安排不合理员工名单';
@@ -1596,7 +1598,9 @@ class task extends control
         $this->mail->sendToEmail('all@yunfutech.com', $subject, $mailContent);
 
         if ($this->mail->isError()) {
+            echo "发送失败: \n";
             a($this->mail->getError());
         }
+        echo "发送成功\n";
     }
 }
