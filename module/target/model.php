@@ -242,7 +242,7 @@ class targetModel extends model
         foreach ($modules as $module) {
             array_push($ids, $module->id);
         }
-        $experiments = $this->dao->select('*')->from(TABLE_TARGET_EXPERIMENT)->where('mid')->in($ids)->fetchAll();
+        $experiments = $this->dao->select('*')->from(TABLE_TARGET_EXPERIMENT)->where('mid')->in($ids)->orderBy('tid')->fetchAll();
         foreach ($experiments as $experiment) {
             $experiment->module = $this->getModuleById($experiment->mid);
             $experiment->dataset = $this->getDatasetById($experiment->did);
