@@ -646,8 +646,8 @@ class reportModel extends model
     public function getProjectStatistics($begin, $end)
     {
         $projects = $this->dao->select('p.id, p.name, p.pri, p.end, p.begin')->from(TABLE_PROJECT)->alias('p')
-        ->where('p.end')->ge($begin)
-        ->andWhere('p.begin')->le($end)
+        ->where('p.begin')->le($end)
+        ->andWhere('p.status')->notin('cancel, closed')
         ->orderBy('p.pri')->fetchAll();
         $projects_json = [];
         $projects_ids = [];

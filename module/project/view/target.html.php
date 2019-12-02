@@ -91,9 +91,21 @@
             <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->target->performance->f1;?></td>
             <?php if (!empty($experiment->record)):?>
               <td class="time-td"><?php echo $experiment->record[0]->time;?></td>
-              <td><?php echo $experiment->record[0]->performance->precision_;?></td>
-              <td><?php echo $experiment->record[0]->performance->recall;?></td>
-              <td><?php echo $experiment->record[0]->performance->f1;?></td>
+              <td class='<?php if ($experiment->record[0]->performance->precision_ >= $experiment->target->performance->precision_): 
+                                  echo 'bggreen';
+                               else: 
+                                echo 'bgred';?>
+                          <?php endif;?>'><?php echo $experiment->record[0]->performance->precision_;?></td>
+              <td class='<?php if ($experiment->record[0]->performance->recall >= $experiment->target->performance->recall): 
+                                  echo 'bggreen';
+                               else: 
+                                echo 'bgred';?>
+                          <?php endif;?>'><?php echo $experiment->record[0]->performance->recall;?></td>
+              <td class='<?php if ($experiment->record[0]->performance->f1 >= $experiment->target->performance->f1): 
+                                  echo 'bggreen';
+                               else: 
+                                echo 'bgred';?>
+                          <?php endif;?>'><?php echo $experiment->record[0]->performance->f1;?></td>
               <td>
                 <?php
                   $link = $this->createLink('target', 'editRecord', "projectID=$projectID&record=".$experiment->record[0]->id);
@@ -128,9 +140,21 @@
           <?php foreach ($experiment->surplusRecord as $record):?>
             <tr class="text-center">
               <td class='time-td'><?php echo $record->time;?></td>
-              <td><?php echo $record->performance->precision_;?></td>
-              <td><?php echo $record->performance->recall;?></td>
-              <td><?php echo $record->performance->f1;?></td>
+              <td class='<?php if ($record->performance->precision_ >= $experiment->target->performance->precision_): 
+                                  echo 'bggreen';
+                               else: 
+                                echo 'bgred';?>
+                          <?php endif;?>'><?php echo $record->performance->precision_;?></td>
+              <td class='<?php if ($record->performance->recall >= $experiment->target->performance->recall): 
+                                  echo 'bggreen';
+                               else: 
+                                echo 'bgred';?>
+                          <?php endif;?>'><?php echo $record->performance->recall;?></td>
+              <td class='<?php if ($record->performance->f1 >= $experiment->target->performance->f1): 
+                                  echo 'bggreen';
+                               else: 
+                                echo 'bgred';?>
+                          <?php endif;?>'><?php echo $record->performance->f1;?></td>
               <td>
                 <?php
                   $link = $this->createLink('target', 'editRecord', "projectID=$projectID&record=$record->id");
