@@ -1535,7 +1535,6 @@ class task extends control
     {
         $depts = $this->dao->select('id,name')->from(TABLE_DEPT)->fetchall();
         $today = date('Y-m-d');
-        $tomorrow = date('Y-m-d', strtotime('+1 days'));
         $lessUsers = array();
         $moreUsers = array();
         $users_count = 0;
@@ -1563,7 +1562,7 @@ class task extends control
             }
         }
         // 节假日
-        if ($less_count / $users_count >= 0.8) {
+        if ($less_count / $users_count >= 0.5) {
             echo '节假日\n';
             exit();
         }
