@@ -10,6 +10,7 @@
     margin-top: 10px;
 }
 .target_table td {
+    word-break: break-all;
     white-space: normal !important;
 }
 .target_table{
