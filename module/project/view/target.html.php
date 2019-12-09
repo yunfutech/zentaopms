@@ -58,7 +58,6 @@
       <thead>
         <tr class="text-center">
           <th class='w-70px' rowspan="2"><?php echo $lang->target->category;?></th>
-          <th class='w-70px' rowspan="2"><?php echo $lang->target->module;?></th>
           <th class='w-150px' colspan="2"><?php echo $lang->target->dataset;?></th>
           <th class="w-300px" colspan="4"><?php echo $lang->target->target;?></th>
           <th class="w-400px" colspan="5"><?php echo $lang->target->record;?></th>
@@ -82,7 +81,6 @@
         <?php foreach ($experiments as $experiment):?>
           <tr class="text-center">
             <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->module->category->name;?></td>
-            <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->module->name;?></td>
             <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->dataset->name;?></td>
             <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->dataset->size;?></td>
             <td class="time-td" rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->target->deadline;?></td>
