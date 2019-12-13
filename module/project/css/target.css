@@ -14,7 +14,10 @@
     white-space: normal !important;
 }
 .target_table{
-    background: #fff ;
+    background: #fff;
+    width: auto;
+    min-width: 100%;
+    max-width: 100%;
 }
 .bggreen {
     color: #24a21b;

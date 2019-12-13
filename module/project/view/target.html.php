@@ -57,24 +57,25 @@
     <table class='target_table table table-condensed table-striped table-bordered table-fixed no-margin with-footer-fixed'>
       <thead>
         <tr class="text-center">
-          <th class='w-70px' rowspan="2"><?php echo $lang->target->category;?></th>
-          <th class='w-150px' colspan="2"><?php echo $lang->target->dataset;?></th>
-          <th class="w-300px" colspan="4"><?php echo $lang->target->target;?></th>
-          <th class="w-400px" colspan="5"><?php echo $lang->target->record;?></th>
-          <th class="w-100px" rowspan="2"><?php echo $lang->target->handle;?></th>
+          <th rowspan="2"><?php echo $lang->target->category;?></th>
+          <th colspan="2"><?php echo $lang->target->dataset;?></th>
+          <th colspan="4"><?php echo $lang->target->target;?></th>
+          <th colspan="6"><?php echo $lang->target->record;?></th>
+          <th class="w-80px" rowspan="2"><?php echo $lang->target->handle;?></th>
         </tr>
         <tr class="text-center">
-          <th><?php echo $lang->target->name;?></th>
-          <th><?php echo $lang->target->size;?></th>
-          <th><?php echo $lang->target->time;?></th>
-          <th><?php echo $lang->target->precision;?></th>
-          <th><?php echo $lang->target->recall;?></th>
-          <th><?php echo $lang->target->f1;?></th>
-          <th><?php echo $lang->target->time;?></th>
-          <th><?php echo $lang->target->precision;?></th>
-          <th><?php echo $lang->target->recall;?></th>
-          <th><?php echo $lang->target->f1;?></th>
-          <th><?php echo $lang->target->handle;?></th>
+          <th class='w-100px'><?php echo $lang->target->name;?></th>
+          <th class='w-60px'><?php echo $lang->target->size;?></th>
+          <th class='w-80px'><?php echo $lang->target->time;?></th>
+          <th class='w-60px'><?php echo $lang->target->precision;?></th>
+          <th class='w-60px'><?php echo $lang->target->recall;?></th>
+          <th class='w-60px'><?php echo $lang->target->f1;?></th>
+          <th class='w-80px'><?php echo $lang->target->time;?></th>
+          <th class="w-60px"><?php echo $lang->target->precision;?></th>
+          <th class="w-60px"><?php echo $lang->target->recall;?></th>
+          <th class="w-60px"><?php echo $lang->target->f1;?></th>
+          <th ><?php echo $lang->target->solution;?></th>
+          <th class="w-80px"><?php echo $lang->target->handle;?></th>
         </tr>
       </thead>
       <tbody>
@@ -104,6 +105,7 @@
                                else: 
                                 echo 'bgred';?>
                           <?php endif;?>'><?php echo $experiment->record[0]->performance->f1;?></td>
+              <td><?php echo $experiment->record[0]->solution;?></td>
               <td>
                 <?php
                   $link = $this->createLink('target', 'editRecord', "projectID=$projectID&record=".$experiment->record[0]->id);
@@ -153,6 +155,7 @@
                                else: 
                                 echo 'bgred';?>
                           <?php endif;?>'><?php echo $record->performance->f1;?></td>
+              <td><?php echo $record->solution;?></td>
               <td>
                 <?php
                   $link = $this->createLink('target', 'editRecord', "projectID=$projectID&record=$record->id");
