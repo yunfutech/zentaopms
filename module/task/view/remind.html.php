@@ -11,4 +11,5 @@
     </table>
   </td>
 </tr>
+注意：不饱和运动+20
 <?php include $this->app->getModuleRoot() . 'common/view/mail.footer.html.php';?>
