@@ -1561,7 +1561,10 @@ class task extends control
                     array_push($moreUsers, ['name' => $user->realname, 'estimate' => $sum]);
                 }
 
-                $delayTasks = $this->dao->select('count(id) as cnt')->from(TABLE_TASK)->where('status')->ne('closed')->andWhere('status')->ne('cancel')->andWhere('status')->ne('done')->andWhere('deadline')->lt($today)->andWhere('assignedTo')->eq($user->account)->fetch();
+                $delayTasks = $this->dao->select('count(id) as cnt')->from(TABLE_TASK)->where('status')->ne('closed')->andWhere('status')->ne('cancel')->andWhere('status')->ne('done')->andWhere('deadline')->lt($today)->andWhere('assignedTo')->eq($user->account)->andWhere('deleted')->ne(1)->fetch();
+                if ($delayTasks->cnt == 0) {
+                    continue;
+                }
                 array_push($deleyTasksRank, ['name' => $user->realname, 'delay_count' => $delayTasks->cnt, 'train_count' => '+' . strval(10 * $delayTasks->cnt)]);
             }
         }
@@ -1571,7 +1574,7 @@ class task extends control
         }
         array_multisort($cntArray, SORT_DESC, $deleyTasksRank);
 
-        $delayProjects = $this->dao->select('t2.realname, group_concat(t1.name) as projects, count(t1.name) as cnt')->from(TABLE_PROJECT)->alias('t1')->leftJoin(TABLE_USER)->alias('t2')->on('t1.PO = t2.account')->where('t1.end')->lt($today)->andWhere('t1.status')->ne('closed')->andWhere('t1.status')->ne('cancel')->andWhere('t1.status')->ne('done')->groupBy('t1.PO')->orderBy('cnt desc')->fetchAll();
+        $delayProjects = $this->dao->select('t2.realname, group_concat(t1.name) as projects, count(t1.name) as cnt')->from(TABLE_PROJECT)->alias('t1')->leftJoin(TABLE_USER)->alias('t2')->on('t1.PO = t2.account')->where('t1.end')->lt($today)->andWhere('t1.status')->ne('closed')->andWhere('t1.status')->ne('cancel')->andWhere('t1.status')->ne('done')->andWhere('t1.status')->ne('wait')->groupBy('t1.PO')->orderBy('cnt desc')->fetchAll();
         // 节假日
         if ($less_count / $users_count >= 0.5) {
             echo '节假日\n';
@@ -1579,7 +1582,7 @@ class task extends control
         }
         $summary = '';
         if (!empty($lessUsers)) {
-            $summary .= '任务不饱和：';
+            $summary .= '任务不饱和(运动+20)：';
             foreach($lessUsers as $lessUser) {
                 $summary .= $lessUser['name'] . '(' . strval($lessUser['estimate']) . ')';
                 if ($lessUser != $lessUsers[count($lessUsers) - 1]) {
