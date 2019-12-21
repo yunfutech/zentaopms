@@ -16,7 +16,7 @@
         <table>
           <tr>
             <th width="100">姓名</th>
-            <th>延期任务数量</th>
+            <th>数量</th>
             <th width="50">运动</th>
           </tr>
           <?php foreach($deleyTasksRank as $value):?>
@@ -39,9 +39,9 @@
         <table>
           <tr>
             <th width="100">项目经理</th>
-            <th>延期迭代数量</th>
+            <th>数量</th>
             <th width="50">运动</th>
-            <th>延期迭代详情</th>
+            <th>详情</th>
           </tr>
           <?php foreach($delayProjects as $value):?>
           <tr>
