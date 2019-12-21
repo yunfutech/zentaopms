@@ -1549,7 +1549,6 @@ class task extends control
             $users_count += count($users);
             foreach($users as $user) {
                 $estimate = $this->dao->select('sum(estimate) as sum')->from(TABLE_TASK)->where('status')->ne('closed')->andWhere('status')->ne('cancel')->andWhere('deadline')->eq($today)->andWhere('assignedTo')->eq($user->account)->fetch();
-                ;
                 if (!$estimate) {
                     continue;
                 }
