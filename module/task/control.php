@@ -1613,7 +1613,7 @@ class task extends control
         $mailContent = ob_get_contents();
         ob_end_clean();
 
-        $this->mail->sendToEmail('zhouhao@yunfutech.com', $subject, $mailContent);
+        $this->mail->sendToEmail('all@yunfutech.com', $subject, $mailContent);
 
         if ($this->mail->isError()) {
             echo "发送失败: \n";
