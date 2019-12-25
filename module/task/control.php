@@ -1539,6 +1539,7 @@ class task extends control
         $moreUsers = array();
         $users_count = 0;
         $less_count = 0;
+        $deleyTasksRank = array();
         foreach($depts as $dept) {
             $deptId = $dept->id;
             if ($deptId == 4 || $deptId == 9) {
@@ -1548,7 +1549,6 @@ class task extends control
             $users_count += count($users);
             foreach($users as $user) {
                 $estimate = $this->dao->select('sum(estimate) as sum')->from(TABLE_TASK)->where('status')->ne('closed')->andWhere('status')->ne('cancel')->andWhere('deadline')->eq($today)->andWhere('assignedTo')->eq($user->account)->fetch();
-                ;
                 if (!$estimate) {
                     continue;
                 }
@@ -1559,21 +1559,29 @@ class task extends control
                 } else if (intval($sum) > 10) {
                     array_push($moreUsers, ['name' => $user->realname, 'estimate' => $sum]);
                 }
+
+                $delayTasks = $this->dao->select('count(id) as cnt')->from(TABLE_TASK)->where('status')->ne('closed')->andWhere('status')->ne('cancel')->andWhere('status')->ne('done')->andWhere('deadline')->lt($today)->andWhere('assignedTo')->eq($user->account)->andWhere('deleted')->ne(1)->fetch();
+                if ($delayTasks->cnt == 0) {
+                    continue;
+                }
+                array_push($deleyTasksRank, ['name' => $user->realname, 'delay_count' => $delayTasks->cnt, 'train_count' => '+' . strval(10 * $delayTasks->cnt)]);
             }
         }
+        $cntArray = array();
+        foreach ($deleyTasksRank as $key => $value) {
+            $cntArray[$key] = $value['delay_count'];
+        }
+        array_multisort($cntArray, SORT_DESC, $deleyTasksRank);
+
+        $delayProjects = $this->dao->select('t2.realname, group_concat(t1.name) as projects, count(t1.name) as cnt')->from(TABLE_PROJECT)->alias('t1')->leftJoin(TABLE_USER)->alias('t2')->on('t1.PO = t2.account')->where('t1.end')->lt($today)->andWhere('t1.status')->ne('closed')->andWhere('t1.status')->ne('cancel')->andWhere('t1.status')->ne('done')->andWhere('t1.status')->ne('suspended')->andWhere('t1.deleted')->ne(1)->groupBy('t1.PO')->orderBy('cnt desc')->fetchAll();
         // 节假日
         if ($less_count / $users_count >= 0.5) {
             echo '节假日\n';
             exit();
         }
-        // 没有不足和超量
-        if (empty($lessUsers) && empty($moreUsers)) {
-            echo '全部录入合理\n';
-            exit();
-        }
         $summary = '';
         if (!empty($lessUsers)) {
-            $summary .= '任务不饱和：';
+            $summary .= '任务不饱和(运动+20)：';
             foreach($lessUsers as $lessUser) {
                 $summary .= $lessUser['name'] . '(' . strval($lessUser['estimate']) . ')';
                 if ($lessUser != $lessUsers[count($lessUsers) - 1]) {
@@ -1591,7 +1599,10 @@ class task extends control
             }
         }
         $this->view->summary = $summary;
+        $this->view->deleyTasksRank = $deleyTasksRank;
+        $this->view->delayProjects = $delayProjects;
         $this->loadModel('mail');
+        // $this->display();
 
         $subject = '禅道任务安排不合理员工名单';
         $modulePath = $this->app->getModulePath($appName = '', 'task');
