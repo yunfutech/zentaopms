@@ -62,7 +62,13 @@
                     </td>
                     <td class='text-center' rowspan="<?php echo count($project['tasks']); ?>"><?php echo $project['consumed']; ?></td>
                     <?php endif;?>
-                    <td class='text-center'><?php echo $users[$index]; ?></td>
+                    <td class='text-center'>
+                        <?php if (array_key_exists($index, $users)): ?>
+                        <?php echo $users[$index]; ?>
+                        <?php else: ?>
+                        <?php echo $index; ?>
+                        <?php endif;?>
+                    </td>
                     <td class='text-center'><?php echo $list; ?></td>
                 </tr>
                 <?php $i++; ?>
