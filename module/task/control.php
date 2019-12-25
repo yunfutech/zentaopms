@@ -1573,7 +1573,9 @@ class task extends control
         }
         array_multisort($cntArray, SORT_DESC, $deleyTasksRank);
 
-        $delayProjects = $this->dao->select('t2.realname, group_concat(t1.name) as projects, count(t1.name) as cnt')->from(TABLE_PROJECT)->alias('t1')->leftJoin(TABLE_USER)->alias('t2')->on('t1.PO = t2.account')->where('t1.end')->lt($today)->andWhere('t1.status')->ne('closed')->andWhere('t1.status')->ne('cancel')->andWhere('t1.status')->ne('done')->andWhere('t1.status')->ne('suspended')->andWhere('t1.deleted')->ne(1)->groupBy('t1.PO')->orderBy('cnt desc')->fetchAll();
+        $delayProjects = $this->dao->select('t2.realname, group_concat(DISTINCT t1.name ORDER BY t1.end SEPARATOR \'<br/>\') as projects, count(t1.name) as cnt')->from(TABLE_PROJECT)->alias('t1')->leftJoin(TABLE_USER)->alias('t2')->on('t1.PO = t2.account')->where('t1.end')->lt($today)->andWhere('t1.status')->eq('doing')->andWhere('t1.deleted')->ne(1)->groupBy('t1.PO')->orderBy('cnt desc')->fetchAll();
+        // var_dump($this->dao->sqlobj);
+
         // 节假日
         if ($less_count / $users_count >= 0.5) {
             echo '节假日\n';
@@ -1604,7 +1606,7 @@ class task extends control
         $this->loadModel('mail');
         // $this->display();
 
-        $subject = '禅道任务安排不合理员工名单';
+        $subject = '禅道日报';
         $modulePath = $this->app->getModulePath($appName = '', 'task');
         $viewFile   = $modulePath . 'view/remind.html.php';
         ob_start();
