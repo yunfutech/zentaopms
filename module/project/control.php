@@ -2487,7 +2487,7 @@ class project extends control
 
 
     // 指标页面
-    public function target($projectID='')
+    public function target($projectID='', $categoryID=0)
     {
         $this->loadModel('target');
         $project   = $this->commonAction($projectID);
@@ -2498,9 +2498,7 @@ class project extends control
         $position[] = html::a($this->createLink('project', 'browse', "projectID=$projectID"), $project->name);
         $position[] = $this->lang->project->target;
 
-        $categories = $this->target->getCategories();
-        $datasets = $this->target->getDatasets();
-        $experiments = $this->target->getExperiment($projectID);
+        $experiments = $this->target->getExperiment($projectID, $categoryID);
         foreach ($experiments as $experiment) {
             $experiment->recordLen = count($experiment->record) == 0 ? 1 : count($experiment->record);
             $surplusRecord = [];
@@ -2514,6 +2512,8 @@ class project extends control
             $experiment->surplusRecord = $surplusRecord;
         }
 
+        $categories = $this->target->getCategories();
+        $datasets = $this->target->getDatasets();
         $this->view->title       = $title;
         $this->view->position    = $position;
         $this->view->projectID   = $projectID;
@@ -2521,7 +2521,13 @@ class project extends control
         $this->view->categories  = $categories;
         $this->view->datasets    = $datasets;
         $this->view->experiments = $experiments;
+        $this->view->currentCategory = $categoryID;
 
+        $this->display();
+    }
+
+    public function targetVue()
+    {
         $this->display();
     }
 }

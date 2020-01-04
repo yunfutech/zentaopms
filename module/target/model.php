@@ -52,6 +52,7 @@ class targetModel extends model
         $dataset = new stdClass();
         $dataset->name = $params['name'];
         $dataset->source = $params['source'];
+        $dataset->type = $params['type'] == 1? '测试集' : '开发集';
         $dataset->size = $params['size'];
         return $this->dao->insert(TABLE_TARGET_DATASET)->data($dataset)->exec();
     }
@@ -59,6 +60,7 @@ class targetModel extends model
     // 编辑数据集
     public function editDataset($id, $data)
     {
+        $data['type'] = $data['type'] == 1? '测试集' : '开发集';
         return $this->dao->update(TABLE_TARGET_DATASET)->data($data)->where('id')->eq($id)->exec();
     }
 
@@ -66,44 +68,6 @@ class targetModel extends model
     public function deleteDataset($id)
     {
         return $this->dao->delete()->from(TABLE_TARGET_DATASET)->where('id')->eq($id)->exec();
-    }
-
-    // 获取全部模块
-    public function getModules($project_id)
-    {
-        return $this->dao->select('*')->from(TABLE_TARGET_MODULE)->where('pid')->eq($project_id)->fetchAll();
-    }
-
-    // 通过id获取模块
-    public function getModuleById($id)
-    {
-        $module = $this->dao->select('*')->from(TABLE_TARGET_MODULE)->where('id')->eq($id)->fetch();
-        $category = $this->getCategoryById($module->cid);
-        $module->category = $category;
-        return $module;
-    }
-
-    // 添加模块
-    public function addModule($data, $project_id)
-    {
-        $module = new stdClass();
-        $module->cid = $data['category'];
-        $module->name = $data['name'];
-        $module->pid = $project_id;
-        $this->dao->insert(TABLE_TARGET_MODULE)->data($module)->exec();
-        return $this->dao->lastInsertID();
-    }
-
-    // 编辑模块
-    public function editModule($id, $data)
-    {
-        return $this->dao->update(TABLE_TARGET_MODULE)->data($data)->where('id')->eq($id)->exec();
-    }
-
-    // 删除模块
-    public function deleteModule($id)
-    {
-        return $this->dao->delete()->from(TABLE_TARGET_MODULE)->where('id')->eq($id)->exec();
     }
 
     // 通过id获取Performance
@@ -194,7 +158,7 @@ class targetModel extends model
     // 获取实验全部记录
     public function getRecord($ids)
     {
-        $records = $this->dao->select('*')->from(TABLE_TARGET_RECORD)->where('id')->in($ids)->fetchAll();
+        $records = $this->dao->select('*')->from(TABLE_TARGET_RECORD)->where('id')->in($ids)->orderBy('time desc')->fetchAll();
         foreach($records as $record) {
             $performance = $this->getPerformanceById($record->pid);
             $record->performance = $performance;
@@ -235,16 +199,16 @@ class targetModel extends model
     }
 
     // 获取实验
-    public function getExperiment($project_id)
+    public function getExperiment($project_id, $category_id)
     {
-        $modules = $this->getModules($project_id);
-        $ids = [];
-        foreach ($modules as $module) {
-            array_push($ids, $module->id);
-        }
-        $experiments = $this->dao->select('*')->from(TABLE_TARGET_EXPERIMENT)->where('mid')->in($ids)->orderBy('tid')->fetchAll();
+        $experiments = $this->dao->select('*')
+            ->from(TABLE_TARGET_EXPERIMENT)
+            ->where('pid')->eq($project_id)
+            ->beginIF(intval($category_id) !== 0)->andWhere('cid')->eq($category_id)->fi()
+            ->orderBy('id desc')
+            ->fetchAll();
         foreach ($experiments as $experiment) {
-            $experiment->module = $this->getModuleById($experiment->mid);
+            $experiment->category = $this->getCategoryById($experiment->cid);
             $experiment->dataset = $this->getDatasetById($experiment->did);
             $experiment->target = $this->getTargetById($experiment->tid);
             $rids = explode(',', $experiment->rid);
@@ -267,7 +231,7 @@ class targetModel extends model
         $pid = $this->addPerformance($data);
         $data['pid'] = $pid;
         $tid = $this->addTarget($data);
-        $set = ['mid' => $data['module'], 'did' => $data['dataset'], 'tid' => $tid];
+        $set = ['cid' => $data['category'], 'did' => $data['dataset'], 'tid' => $tid];
         $this->dao->update(TABLE_TARGET_EXPERIMENT)->data($set)->where('id')->eq($id)->exec();
         return $this->deleteTarget($old_tid);
     }
@@ -297,17 +261,18 @@ class targetModel extends model
     }
 
     // 添加实验
-    public function addExperiment($data)
+    public function addExperiment($post, $project_id)
     {
-        $mid = $data['module'];
-        $did = $data['dataset'];
-        $pid = $this->addPerformance($data);
-        $data['pid'] = $pid;
-        $tid = $this->addTarget($data);
+        $cid = $post['category'];
+        $did = $post['dataset'];
+        $pid = $this->addPerformance($post);
+        $post['pid'] = $pid;
+        $tid = $this->addTarget($post);
         $experiment = new stdClass();
-        $experiment->mid = $mid;
+        $experiment->cid = $cid;
         $experiment->did = $did;
         $experiment->tid = $tid;
+        $experiment->pid = $project_id;
         $this->dao->insert(TABLE_TARGET_EXPERIMENT)->data($experiment)->exec();
         return $this->dao->lastInsertID();
     }

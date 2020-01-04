@@ -129,35 +129,11 @@ class target extends control
         }
     }
 
-    public function module($projectID)
-    {
-        if (!empty($_POST))
-        {
-            $res = $this->target->addModule($_POST, $projectID);
-            if ($res) {
-                $response['result']  = 'success';
-                $response['message'] = $this->lang->saveSuccess;
-                $response['locate'] = $this->createLink('project', 'target', "projectID=$projectID");
-                $this->send($response);
-            } else {
-                $response['result']  = 'fail';
-                $response['message'] = dao::getError();
-                $this->send($response);
-            }
-        }
-        $categories = $this->target->getCategories();
-        foreach ($categories as $category) {
-            $view_categories[$category->id] = $category->name;
-        }
-        $this->view->categories = $view_categories;
-        $this->display();
-    }
-
     public function experiment($projectID)
     {
         if(!empty($_POST))
         {
-            $res = $this->target->addExperiment($_POST);
+            $res = $this->target->addExperiment($_POST, $projectID);
             if ($res) {
                 $response['result']  = 'success';
                 $response['message'] = $this->lang->saveSuccess;
@@ -171,22 +147,16 @@ class target extends control
         }
         $view_categories = [];
         $view_datasets = [];
-        $view_modules = [];
         $categories = $this->target->getCategories();
         $datasets = $this->target->getDatasets();
-        $modules = $this->target->getModules($projectID);
         foreach ($categories as $category) {
             $view_categories[$category->id] = $category->name;
         }
         foreach ($datasets as $dataset) {
             $view_datasets[$dataset->id] = $dataset->name;
         }
-        foreach ($modules as $module) {
-            $view_modules[$module->id] = $module->name;
-        }
         $this->view->categories = $view_categories;
         $this->view->datasets = $view_datasets;
-        $this->view->modules = $view_modules;
         $this->display();
     }
 
@@ -208,14 +178,13 @@ class target extends control
         }
         $view_categories = [];
         $view_datasets = [];
-        $view_modules = [];
         $datasets = $this->target->getDatasets();
-        $modules = $this->target->getModules($projectID);
         foreach ($datasets as $dataset) {
             $view_datasets[$dataset->id] = $dataset->name;
         }
-        foreach ($modules as $module) {
-            $view_modules[$module->id] = $module->name;
+        $categories = $this->target->getCategories();
+        foreach ($categories as $category) {
+            $view_categories[$category->id] = $category->name;
         }
 
         $experiment = $this->target->getExperimentById($experimentID);
@@ -223,7 +192,6 @@ class target extends control
 
         $this->view->categories = $view_categories;
         $this->view->datasets = $view_datasets;
-        $this->view->modules = $view_modules;
         $this->view->experiment = $experiment;
         $this->view->target = $target;
         $this->display();
@@ -300,3 +268,6 @@ class target extends control
         }
     }
 }
+
+// 更新experiment表cid替换mid，增加pid
+// update zt_target_experiment as t1 set t1.cid = (select t2.cid from zt_target_module as t2 where t2.id = t1.mid), t1.pid = (select t2.pid from zt_target_module as t2 where t2.id = t1.mid)

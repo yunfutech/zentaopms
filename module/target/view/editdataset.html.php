@@ -7,7 +7,7 @@
   </a>
   <div class="center-block">
     <div class="main-header">
-      <h2><?php echo $lang->target->createDataset;?></h2>
+      <h2><?php echo $lang->target->editDataset;?></h2>
     </div>
     <form class="load-indicator main-form form-ajax" method='post' enctype='multipart/form-data' id='dataform'>
       <table class="table table-form">
@@ -16,6 +16,12 @@
             <th><?php echo $lang->target->name;?></th>
             <td>
               <?php echo html::input("name", $dataset->name, "class='form-control'");?>
+            </td>
+          </tr>
+          <tr>
+            <th><?php echo $lang->target->type;?></th>
+            <td>
+              <?php echo html::select("type", [1=> '测试集', 2=>'开发集'], $dataset->type, "class='form-control chosen'");?>
             </td>
           </tr>
           <tr>

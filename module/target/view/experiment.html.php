@@ -13,9 +13,9 @@
       <table class="table table-form">
         <tbody>
           <tr>
-            <th>模块</th>
+            <th>类别</th>
             <td>
-              <?php echo html::select("module", $modules, 1, "class='form-control chosen'");?>
+              <?php echo html::select("category", $categories, 1, "class='form-control chosen'");?>
             </td>
           </tr>
           <tr>

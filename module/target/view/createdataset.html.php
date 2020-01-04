@@ -19,6 +19,12 @@
             </td>
           </tr>
           <tr>
+            <th><?php echo $lang->target->type;?></th>
+            <td>
+              <?php echo html::select("type", [1=> '测试集', 2=>'开发集'], 1, "class='form-control chosen'");?>
+            </td>
+          </tr>
+          <tr>
             <th><?php echo $lang->target->source;?></th>
             <td>
               <?php echo html::input("source", '', "class='form-control'");?>

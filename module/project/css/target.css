@@ -57,3 +57,13 @@
 .cell {
     margin-top: 10px;
 }
+
+.cate-ul {
+    list-style-type: none;
+    padding: 0px;
+    margin: 0px;
+}
+
+.cate-active {
+    color: #0c64eb;
+}

@@ -20,7 +20,8 @@
         <tr class="text-center">
           <th class='w-120px'>id</th>
           <th class='w-120px'><?php echo $lang->target->name;?></th>
-          <th class='w-120px'><?php echo $lang->target->category;?></th>
+          <th class='w-120px'><?php echo $lang->target->type;?></th>
+          <th class='w-120px'><?php echo $lang->target->source;?></th>
           <th class='w-120px'><?php echo $lang->target->size;?></th>
           <th class='w-120px'><?php echo $lang->target->handle;?></th>
         </tr>
@@ -30,6 +31,7 @@
           <tr class="text-center">
             <td><?php echo $dataset->id;?></td>
             <td><?php echo $dataset->name;?></td>
+            <td><?php echo $dataset->type;?></td>
             <td><?php echo $dataset->source;?></td>
             <td><?php echo $dataset->size;?></td>
             <td>

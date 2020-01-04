@@ -3,10 +3,6 @@
 <div id="mainMenu" class="clearfix">
   <div class="btn-toolbar pull-left">
     <?php
-      $link = $this->createLink('target', 'module', "projectID=$projectID");
-      echo html::a($link, "<i class='icon icon-plus'></i> {$lang->target->createModule}", '', "class='btn btn-primary'");
-    ?>
-    <?php
       $link = $this->createLink('target', 'experiment', "projectID=$projectID");
       echo html::a($link, "<i class='icon icon-plus'></i> {$lang->target->createExperiment}", '', "class='btn btn-primary'");
     ?>
@@ -22,11 +18,19 @@
         </div>
       </div>
       <div class="cell">
-        <?php foreach ($categories as $category):?>
-          <div class="left-cell-text">
-            <?php echo $category->name;?>
-          </div>
-        <?php endforeach;?>
+        <div class="left-cell-text">
+          <?php
+            $categoryHtml = "<ul class='cate-ul'>";
+            foreach ($categories as $category) {
+              if ($category->id == $currentCategory) {
+                $categoryHtml .= "<li class='cate-active' id='cate-". strval($category->id) ."' onclick='changeCate($category->id, $projectID)'>" . $category->name. '</li>';
+              } else {
+                $categoryHtml .= "<li onclick='changeCate($category->id, $projectID)'>" . $category->name. '</li>';
+              }
+            }
+            echo $categoryHtml . '</ul>';
+          ?>
+        </div>
         <div class="text-center">
           <?php common::printLink('target', 'category', "projectID=$projectID", $lang->target->manageCategory, '', "class='btn btn-info btn-wide'");?>
           <hr class="space-sm" />
@@ -57,32 +61,38 @@
     <table class='target_table table table-condensed table-striped table-bordered table-fixed no-margin with-footer-fixed'>
       <thead>
         <tr class="text-center">
-          <th rowspan="2"><?php echo $lang->target->category;?></th>
-          <th colspan="2"><?php echo $lang->target->dataset;?></th>
-          <th colspan="4"><?php echo $lang->target->target;?></th>
-          <th colspan="6"><?php echo $lang->target->record;?></th>
+          <th class="w-100px" rowspan="2"><?php echo $lang->target->category;?></th>
+          <th class="w-80px" colspan="2"><?php echo $lang->target->dataset;?></th>
+          <th class="w-80px" colspan="4"><?php echo $lang->target->target;?></th>
+          <th class="w-80px" colspan="6"><?php echo $lang->target->record;?></th>
           <th class="w-80px" rowspan="2"><?php echo $lang->target->handle;?></th>
         </tr>
         <tr class="text-center">
-          <th class='w-100px'><?php echo $lang->target->name;?></th>
+          <th class='w-120px'><?php echo $lang->target->name;?></th>
           <th class='w-60px'><?php echo $lang->target->size;?></th>
-          <th class='w-80px'><?php echo $lang->target->time;?></th>
+          <th class='w-60px'><?php echo $lang->target->deadline;?></th>
           <th class='w-60px'><?php echo $lang->target->precision;?></th>
           <th class='w-60px'><?php echo $lang->target->recall;?></th>
           <th class='w-60px'><?php echo $lang->target->f1;?></th>
-          <th class='w-80px'><?php echo $lang->target->time;?></th>
+          <th class='w-60px'><?php echo $lang->target->time;?></th>
           <th class="w-60px"><?php echo $lang->target->precision;?></th>
           <th class="w-60px"><?php echo $lang->target->recall;?></th>
           <th class="w-60px"><?php echo $lang->target->f1;?></th>
-          <th ><?php echo $lang->target->solution;?></th>
-          <th class="w-80px"><?php echo $lang->target->handle;?></th>
+          <th class="w-400px"><?php echo $lang->target->solution;?></th>
+          <th class="w-60px"><?php echo $lang->target->handle;?></th>
         </tr>
       </thead>
       <tbody>
         <?php foreach ($experiments as $experiment):?>
           <tr class="text-center">
-            <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->module->category->name;?></td>
-            <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->dataset->name;?></td>
+            <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->category->name;?></td>
+            <?php if ($experiment->dataset->type == '测试集'):?> 
+              <td rowspan="<?php echo $experiment->recordLen;?>"><span class="label-pri label-pri-1" style=" margin-top: -3px;margin-right: 10px">测</span><?php echo $experiment->dataset->name;?></td>
+            <?php elseif ($experiment->dataset->type == '开发集'):?>
+              <td rowspan="<?php echo $experiment->recordLen;?>"><span class="label-pri label-pri-2" style=" margin-top: -3px;margin-right: 10px">开</span><?php echo $experiment->dataset->name;?></td>
+            <?php else:?>
+              <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->dataset->name;?></td>
+            <?php endif;?>
             <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->dataset->size;?></td>
             <td class="time-td" rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->target->deadline;?></td>
             <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->target->performance->precision_;?></td>
@@ -92,21 +102,28 @@
               <td class="time-td"><?php echo $experiment->record[0]->time;?></td>
               <td class='<?php if ($experiment->record[0]->performance->precision_ >= $experiment->target->performance->precision_): 
                                   echo 'bggreen';
-                               else: 
+                               else:
                                 echo 'bgred';?>
                           <?php endif;?>'><?php echo $experiment->record[0]->performance->precision_;?></td>
               <td class='<?php if ($experiment->record[0]->performance->recall >= $experiment->target->performance->recall): 
                                   echo 'bggreen';
-                               else: 
+                               else:
                                 echo 'bgred';?>
                           <?php endif;?>'><?php echo $experiment->record[0]->performance->recall;?></td>
               <td class='<?php if ($experiment->record[0]->performance->f1 >= $experiment->target->performance->f1): 
                                   echo 'bggreen';
-                               else: 
+                               else:
                                 echo 'bgred';?>
                           <?php endif;?>'><?php echo $experiment->record[0]->performance->f1;?></td>
               <td><?php echo $experiment->record[0]->solution;?></td>
               <td>
+                <?php
+                  if (count($experiment->record) == 1) {
+                    echo "<button disabled class='edit-btn btn btn-xs btn-primary record-more' id='more-". strval($experiment->id) . "'>展开</button>";
+                  } else {
+                    echo "<button class='edit-btn btn btn-xs btn-primary record-more' id='more-". strval($experiment->id) . "'>展开</button>";
+                  }
+                ?>
                 <?php
                   $link = $this->createLink('target', 'editRecord', "projectID=$projectID&record=".$experiment->record[0]->id);
                   echo html::a($link, "{$lang->target->editRecord}", '', "class='edit-btn btn btn-xs btn-primary'");
@@ -118,7 +135,7 @@
                 ?>
               </td>
             <?php else:?>
-              <td colspan="5" rowspan="1"></td>
+              <td colspan="6" rowspan="1"></td>
             <?php endif;?>
             <td rowspan="<?php echo $experiment->recordLen;?>">
               <?php
@@ -138,21 +155,21 @@
             </td>
           </tr>
           <?php foreach ($experiment->surplusRecord as $record):?>
-            <tr class="text-center">
+            <?php echo "<tr style='display:none' class='text-center sur-record-" . strval($experiment->id) . "'>"?>
               <td class='time-td'><?php echo $record->time;?></td>
               <td class='<?php if ($record->performance->precision_ >= $experiment->target->performance->precision_): 
                                   echo 'bggreen';
-                               else: 
+                               else:
                                 echo 'bgred';?>
                           <?php endif;?>'><?php echo $record->performance->precision_;?></td>
               <td class='<?php if ($record->performance->recall >= $experiment->target->performance->recall): 
                                   echo 'bggreen';
-                               else: 
+                               else:
                                 echo 'bgred';?>
                           <?php endif;?>'><?php echo $record->performance->recall;?></td>
               <td class='<?php if ($record->performance->f1 >= $experiment->target->performance->f1): 
                                   echo 'bggreen';
-                               else: 
+                               else:
                                 echo 'bgred';?>
                           <?php endif;?>'><?php echo $record->performance->f1;?></td>
               <td><?php echo $record->solution;?></td>
