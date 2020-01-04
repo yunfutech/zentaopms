@@ -807,6 +807,7 @@ class taskModel extends model
             $task->name           = $data->names[$taskID];
             $task->module         = isset($data->modules[$taskID]) ? $data->modules[$taskID] : 0;
             $task->story          = isset($data->stories[$taskID]) ? intval($data->stories[$taskID]) : 0;
+            $task->project        = $data->projects[$taskID];
             $task->type           = $data->types[$taskID];
             $task->status         = $data->statuses[$taskID];
             $task->assignedTo     = $task->status == 'closed' ? 'closed' : $data->assignedTos[$taskID];

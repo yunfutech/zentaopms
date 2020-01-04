@@ -408,6 +408,7 @@ class task extends control
             $modules = $this->tree->getTaskOptionMenu($projectID);
             $modules = array('ditto' => $this->lang->task->ditto) + $modules;
             $stories = $this->story->getProjectStoryPairs($projectID);
+            $projects = $this->project->getPairs();
             $members = $this->project->getTeamMemberPairs($projectID, 'nodeleted');
             $members = array('' => '', 'ditto' => $this->lang->task->ditto) + $members;
             $members['closed'] = 'Closed';
@@ -415,6 +416,7 @@ class task extends control
             $this->view->title      = $project->name . $this->lang->colon . $this->lang->task->batchEdit;
             $this->view->position[] = html::a($this->createLink('project', 'browse', "project=$project->id"), $project->name);
             $this->view->project    = $project;
+            $this->view->projects   = $projects;
             $this->view->stories    = $stories;
             $this->view->modules    = $modules;
             $this->view->members    = $members;
