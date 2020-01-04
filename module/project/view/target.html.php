@@ -85,19 +85,19 @@
       <tbody>
         <?php foreach ($experiments as $experiment):?>
           <tr class="text-center">
-            <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->category->name;?></td>
+            <?php echo "<td class='target-td-$experiment->id' rowspan='1'>"?><?php echo $experiment->category->name;?></td>
             <?php if ($experiment->dataset->type == '测试集'):?> 
-              <td rowspan="<?php echo $experiment->recordLen;?>"><span class="label-pri label-pri-1" style=" margin-top: -3px;margin-right: 10px">测</span><?php echo $experiment->dataset->name;?></td>
+              <?php echo "<td class='target-td-$experiment->id' rowspan='1'>"?><span class="label-pri label-pri-1" style=" margin-top: -3px;margin-right: 10px">测</span><?php echo $experiment->dataset->name;?></td>
             <?php elseif ($experiment->dataset->type == '开发集'):?>
-              <td rowspan="<?php echo $experiment->recordLen;?>"><span class="label-pri label-pri-2" style=" margin-top: -3px;margin-right: 10px">开</span><?php echo $experiment->dataset->name;?></td>
+              <?php echo "<td class='target-td-$experiment->id' rowspan='1'>"?><span class="label-pri label-pri-2" style=" margin-top: -3px;margin-right: 10px">开</span><?php echo $experiment->dataset->name;?></td>
             <?php else:?>
-              <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->dataset->name;?></td>
+              <?php echo "<td class='target-td-$experiment->id' rowspan='1'>"?><?php echo $experiment->dataset->name;?></td>
             <?php endif;?>
-            <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->dataset->size;?></td>
-            <td class="time-td" rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->target->deadline;?></td>
-            <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->target->performance->precision_;?></td>
-            <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->target->performance->recall;?></td>
-            <td rowspan="<?php echo $experiment->recordLen;?>"><?php echo $experiment->target->performance->f1;?></td>
+            <?php echo "<td class='target-td-$experiment->id' rowspan='1'>"?><?php echo $experiment->dataset->size;?></td>
+            <?php echo "<td class='target-td-$experiment->id' rowspan='1'>"?><?php echo $experiment->target->deadline;?></td>
+            <?php echo "<td class='target-td-$experiment->id' rowspan='1'>"?><?php echo $experiment->target->performance->precision_;?></td>
+            <?php echo "<td class='target-td-$experiment->id' rowspan='1'>"?><?php echo $experiment->target->performance->recall;?></td>
+            <?php echo "<td class='target-td-$experiment->id' rowspan='1'>"?><?php echo $experiment->target->performance->f1;?></td>
             <?php if (!empty($experiment->record)):?>
               <td class="time-td"><?php echo $experiment->record[0]->time;?></td>
               <td class='<?php if ($experiment->record[0]->performance->precision_ >= $experiment->target->performance->precision_): 
@@ -119,9 +119,9 @@
               <td>
                 <?php
                   if (count($experiment->record) == 1) {
-                    echo "<button disabled class='edit-btn btn btn-xs btn-primary record-more' id='more-". strval($experiment->id) . "'>展开</button>";
+                    echo "<button data-rowspan=$experiment->recordLen disabled class='edit-btn btn btn-xs btn-primary record-more' id='more-". strval($experiment->id) . "'>展开</button>";
                   } else {
-                    echo "<button class='edit-btn btn btn-xs btn-primary record-more' id='more-". strval($experiment->id) . "'>展开</button>";
+                    echo "<button data-rowspan=$experiment->recordLen class='edit-btn btn btn-xs btn-primary record-more' id='more-". strval($experiment->id) . "'>展开</button>";
                   }
                 ?>
                 <?php
@@ -135,9 +135,9 @@
                 ?>
               </td>
             <?php else:?>
-              <td colspan="6" rowspan="1"></td>
+              <?php echo "<td class='target-td-$experiment->id' colspan='6' rowspan='1'>"?></td>
             <?php endif;?>
-            <td rowspan="<?php echo $experiment->recordLen;?>">
+            <?php echo "<td class='target-td-$experiment->id' rowspan='1'>"?>
               <?php
                 $link = $this->createLink('target', 'record', "projectID=$projectID&experiment=$experiment->id");
                 echo html::a($link, "{$lang->target->createRecord}", '', "class='edit-btn btn btn-xs btn-primary'");
