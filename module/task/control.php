@@ -430,6 +430,8 @@ class task extends control
             $this->loadModel('my')->setMenu();
             $this->view->position[] = html::a($this->createLink('my', 'task'), $this->lang->my->task);
             $this->view->title      = $this->lang->task->batchEdit;
+            $projects = $this->project->getPairs('noclosed,nocode');
+            $this->view->projects   = $projects;
             $this->view->users      = $this->loadModel('user')->getPairs('noletter');
         }
 

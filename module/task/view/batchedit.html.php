@@ -54,7 +54,13 @@
             <th class='required <?php if(count($visibleFields) > 10) echo 'w-150px';?>'><?php echo $lang->task->name?></th>
             <th class='w-200px<?php echo zget($visibleFields, 'project', ' hidden') . zget($requiredFields, 'project', '', ' required');?>'><?php echo $lang->task->project?></th>
             <th class='w-150px<?php echo zget($visibleFields, 'module', ' hidden') . zget($requiredFields, 'module', '', ' required');?>'><?php echo $lang->task->module?></th>
-            <th class='w-250px<?php echo zget($visibleFields, 'story', ' hidden') . zget($requiredFields, 'story', '', ' required');?>'><?php echo $lang->task->story?></th>
+            <?php if ($projectID != 0):?>
+            <?php if (empty($stories)):?>
+              <th class='w-100px<?php echo zget($visibleFields, 'story', ' hidden') . zget($requiredFields, 'story', '', ' required');?>'><?php echo $lang->task->story?></th>
+            <?php else:?>
+              <th class='w-250px<?php echo zget($visibleFields, 'story', ' hidden') . zget($requiredFields, 'story', '', ' required');?>'><?php echo $lang->task->story?></th>
+            <?php endif;?>
+            <?php endif;?>
             <th class='w-150px<?php echo zget($visibleFields, 'assignedTo', ' hidden') . zget($requiredFields, 'assignedTo', '', ' required');?>'><?php echo $lang->task->assignedTo;?></th>
             <th class='w-80px required'><?php echo $lang->typeAB;?></th>
             <th class='w-100px<?php echo zget($visibleFields, 'status',       ' hidden') . zget($requiredFields, 'status',       '', ' required');?>'><?php echo $lang->task->status;?></th>
@@ -101,10 +107,12 @@
             </td>
             <td class='text-left<?php echo zget($visibleFields, 'project', ' hidden')?>' style='overflow:visible'><?php echo html::select("projects[$taskID]",     $projects, $tasks[$taskID]->project, "class='form-control chosen'")?></td>
             <td class='text-left<?php echo zget($visibleFields, 'module', ' hidden')?>' style='overflow:visible'><?php echo html::select("modules[$taskID]",     $modules, $tasks[$taskID]->module, "class='form-control chosen'")?></td>
+            <?php if ($projectID != 0):?>
             <?php if (empty($stories)):?>
               <td class='text-left<?php echo zget($visibleFields, 'story', ' hidden')?>' style='overflow:visible'>暂无需求</td>
             <?php else:?>
               <td class='text-left<?php echo zget($visibleFields, 'story', ' hidden')?>' style='overflow:visible'><?php echo html::select("stories[$taskID]",     $stories, $tasks[$taskID]->story, "class='form-control chosen'")?></td>
+            <?php endif;?>
             <?php endif;?>
             <td class='text-left<?php echo zget($visibleFields, 'assignedTo', ' hidden')?>' style='overflow:visible'><?php echo html::select("assignedTos[$taskID]", $members, $tasks[$taskID]->assignedTo, "class='form-control chosen'");?></td>
             <td><?php echo html::select("types[$taskID]",    $typeList, $tasks[$taskID]->type, "class='form-control'");?></td>
