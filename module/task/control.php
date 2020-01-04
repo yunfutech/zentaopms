@@ -408,7 +408,7 @@ class task extends control
             $modules = $this->tree->getTaskOptionMenu($projectID);
             $modules = array('ditto' => $this->lang->task->ditto) + $modules;
             $stories = $this->story->getProjectStoryPairs($projectID);
-            $projects = $this->project->getPairs();
+            $projects = $this->project->getPairs('noclosed,nocode');
             $members = $this->project->getTeamMemberPairs($projectID, 'nodeleted');
             $members = array('' => '', 'ditto' => $this->lang->task->ditto) + $members;
             $members['closed'] = 'Closed';
