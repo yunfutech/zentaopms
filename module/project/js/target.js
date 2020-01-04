@@ -13,11 +13,11 @@ $(function() {
         if ($('.sur-record-' + expID).css('display') == 'none') {
             $('.sur-record-' + expID).css({'display': 'table-row'});
             $('#' + this.id).text('隐藏');
-        } else {
+            $('.target-td-' + expID).attr('rowspan', $(this).data('rowspan'));
+    } else {
             $('.sur-record-' + expID).css({'display': 'none'});
             $('#' + this.id).text('展开')
+            $('.target-td-' + expID).attr('rowspan', 1);
         }
-        $('.target-td-' + expID).attr('rowspan', $(this).data('rowspan'));
-        $('.record-td-' + expID).attr('rowspan', $(this).data('rowspan') - 1);
     })
 })
