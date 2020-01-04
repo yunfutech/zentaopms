@@ -8,6 +8,11 @@ class targetModel extends model
         return $this->dao->select('*')->from(TABLE_TARGET_CATEGORY)->fetchAll();
     }
 
+    public function getCategoriesByProjectID($project_id)
+    {
+        return $this->dao->select('t2.id, t2.name')->from(TABLE_TARGET_EXPERIMENT)->alias('t1')->leftJoin(TABLE_TARGET_CATEGORY)->alias('t2')->on('t1.cid = t2.id')->where('t1.pid')->eq($project_id)->fetchAll();
+    }
+
     // 通过id获取类别
     public function getCategoryById($id)
     {
@@ -38,6 +43,11 @@ class targetModel extends model
     public function getDatasets()
     {
         return $this->dao->select('*')->from(TABLE_TARGET_DATASET)->fetchAll();
+    }
+
+    public function getDatasetsByProjectID($project_id)
+    {
+        return $this->dao->select('t2.id, t2.name')->from(TABLE_TARGET_EXPERIMENT)->alias('t1')->leftJoin(TABLE_TARGET_DATASET)->alias('t2')->on('t1.did = t2.id')->where('t1.pid')->eq($project_id)->fetchAll();
     }
 
     // 通过id获取数据集

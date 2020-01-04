@@ -2512,8 +2512,8 @@ class project extends control
             $experiment->surplusRecord = $surplusRecord;
         }
 
-        $categories = $this->target->getCategories();
-        $datasets = $this->target->getDatasets();
+        $categories = $this->target->getCategoriesByProjectID($projectID);
+        $datasets = $this->target->getDatasetsByProjectID($projectID);
         $this->view->title       = $title;
         $this->view->position    = $position;
         $this->view->projectID   = $projectID;
