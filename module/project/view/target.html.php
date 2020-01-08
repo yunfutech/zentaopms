@@ -61,24 +61,24 @@
     <table class='target_table table table-condensed table-striped table-bordered table-fixed no-margin with-footer-fixed'>
       <thead>
         <tr class="text-center">
-          <th class="w-100px" rowspan="2"><?php echo $lang->target->category;?></th>
-          <th class="w-80px" colspan="2"><?php echo $lang->target->dataset;?></th>
-          <th class="w-80px" colspan="4"><?php echo $lang->target->target;?></th>
-          <th class="w-80px" colspan="6"><?php echo $lang->target->record;?></th>
+          <th class='w-100px' rowspan="2"><?php echo $lang->target->category;?></th>
+          <th colspan="2"><?php echo $lang->target->dataset;?></th>
+          <th colspan="4"><?php echo $lang->target->target;?></th>
+          <th colspan="6"><?php echo $lang->target->record;?></th>
           <th class="w-80px" rowspan="2"><?php echo $lang->target->handle;?></th>
         </tr>
         <tr class="text-center">
           <th class='w-120px'><?php echo $lang->target->name;?></th>
           <th class='w-60px'><?php echo $lang->target->size;?></th>
-          <th class='w-60px'><?php echo $lang->target->deadline;?></th>
+          <th class='w-80px'><?php echo $lang->target->deadline;?></th>
           <th class='w-60px'><?php echo $lang->target->precision;?></th>
           <th class='w-60px'><?php echo $lang->target->recall;?></th>
           <th class='w-60px'><?php echo $lang->target->f1;?></th>
-          <th class='w-60px'><?php echo $lang->target->time;?></th>
+          <th class='w-80px'><?php echo $lang->target->time;?></th>
           <th class="w-60px"><?php echo $lang->target->precision;?></th>
           <th class="w-60px"><?php echo $lang->target->recall;?></th>
           <th class="w-60px"><?php echo $lang->target->f1;?></th>
-          <th class="w-400px"><?php echo $lang->target->solution;?></th>
+          <th><?php echo $lang->target->solution;?></th>
           <th class="w-60px"><?php echo $lang->target->handle;?></th>
         </tr>
       </thead>
