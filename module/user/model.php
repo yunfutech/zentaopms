@@ -1269,8 +1269,10 @@ class userModel extends model
             $groups  = ',' . join(',', $groups) . ',';
 
             static $allProducts, $allProjects, $projectProducts, $teams;
-            if($allProducts === null) $allProducts = $this->dao->select('id,PO,QD,RD,createdBy,acl,whitelist')->from(TABLE_PRODUCT)->fetchAll('id');
-            if($allProjects === null) $allProjects = $this->dao->select('id,PO,PM,QD,RD,acl,whitelist')->from(TABLE_PROJECT)->fetchAll('id');
+            // if($allProducts === null) $allProducts = $this->dao->select('id,PO,QD,RD,createdBy,acl,whitelist')->from(TABLE_PRODUCT)->fetchAll('id');
+            if($allProducts === null) $allProducts = $this->dao->select('id,PO,QD,RD,createdBy,acl,whitelist')->from(TABLE_PRODUCT)->where('deleted')->eq(0)->fetchAll('id');
+            // if($allProjects === null) $allProjects = $this->dao->select('id,PO,PM,QD,RD,acl,whitelist')->from(TABLE_PROJECT)->fetchAll('id');
+            if($allProjects === null) $allProjects = $this->dao->select('id,PO,PM,QD,RD,acl,whitelist')->from(TABLE_PROJECT)->where('deleted')->eq(0)->fetchAll('id');
             if($projectProducts === null)
             {
                 $stmt = $this->dao->select('project,product')->from(TABLE_PROJECTPRODUCT)->query();
