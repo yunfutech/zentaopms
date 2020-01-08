@@ -176,7 +176,7 @@ class blockModel extends model
             ->fetch('count');
         $data['stories']  = (int)$this->dao->select('count(*) AS count')->from(TABLE_STORY)->where('assignedTo')->eq($this->app->user->account)->andWhere('deleted')->eq(0)->fetch('count');
         $data['projects'] = (int)$this->dao->select('count(*) AS count')->from(TABLE_PROJECT)
-            ->where("(status='wait' or status='doing')")
+            ->where("(status='doing')")
             ->beginIF(!$this->app->user->admin)->andWhere('id')->in($this->app->user->view->projects)->fi()
             ->andWhere('deleted')->eq(0)
             ->fetch('count');
@@ -202,7 +202,7 @@ class blockModel extends model
             ->andWhere('deleted')->eq(0)
             ->fetch('count');
         $data['delayProject'] = (int)$this->dao->select('count(*) AS count')->from(TABLE_PROJECT)
-            ->where('status')->in('wait,doing')
+            ->where('status')->in('doing')
             ->beginIF(!$this->app->user->admin)->andWhere('id')->in($this->app->user->view->projects)->fi()
             ->andWhere('end')->lt($today)
             ->andWhere('deleted')->eq(0)
