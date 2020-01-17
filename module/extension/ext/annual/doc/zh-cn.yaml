@@ -1,0 +1,23 @@
+---
+name: 年度总结
+code: annual
+type: extension
+copyright: >
+  青岛易软天创网络科技有限公司
+  2012
+site: http://www.zentao.net
+author: 'wangyidong<yidong@cnezsoft.com>'
+abstract: 年度总结插件。
+desc: 禅道年度总结插件。
+install:
+releases:
+  1.0:
+    charge: free
+    license: LGPL
+    changelog: 首次发布。
+    date: 2020-01-06
+    zentao:
+      compatible: all
+      incompatible:
+    depends: null
+    conflicts: null

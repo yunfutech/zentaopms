@@ -18,7 +18,6 @@ function showAnnualData(data)
     var $block2List = $('#block2List').empty();
     var $block2Chart = $('#block2Chart');
     var pieChart = $block2Chart.data('pieChart');
-    console.log(pieChart);
     var pieChartColors = ['#0068B7', '#1aa1e6', '#81cef2', '#aee3fc', '#b1e6ff', '#ddeaf0'];
     while(pieChart.segments.length) pieChart.removeData();
     pieChart.options.tooltipTemplate = "<%=label%>: <%=value%>";
