@@ -19,8 +19,8 @@ function showAnnualData(data)
     var $block2Chart = $('#block2Chart');
     var pieChart = $block2Chart.data('pieChart');
     var pieChartColors = ['#0068B7', '#1aa1e6', '#81cef2', '#aee3fc', '#b1e6ff', '#ddeaf0'];
-    while(pieChart.segments.length) pieChart.removeData();
-    pieChart.options.tooltipTemplate = "<%=label%>: <%=value%>";
+    // while(pieChart.segments.length) pieChart.removeData();
+    // pieChart.options.tooltipTemplate = "<%=label%>: <%=value%>";
     data.block2.data && $.each(data.block2.data, function(index)
     {
         var item = data.block2.data[index];
@@ -63,7 +63,7 @@ function showAnnualData(data)
         var chart = $chart.data('pieChart');
         var chartData = data.block4[chartName];
         chartData.total = 0;
-        while(chart.segments.length) chart.removeData();
+        // while(chart.segments.length) chart.removeData();
         var dataLength = chartData.data && chartData.data.length;
         if(!dataLength) return;
         for(var i = 0; i < dataLength; ++i)
