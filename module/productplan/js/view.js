@@ -16,6 +16,7 @@ function showLink(planID, type, orderBy, param)
 $(function()
 {
     if(link == 'true') showLink(planID, type, orderBy, param);
+    var infoShowed = false;
     $('.nav.nav-tabs a[data-toggle="tab"]').on('shown.zui.tab', function(e)
     {
         var href = $(e.target).attr('href');
@@ -23,22 +24,18 @@ $(function()
         if(tabPane.size() == 0) return;
         var formID = tabPane.find('.linkBox').find('form:last');
         if(formID.size() == 0) formID = tabPane.find('form:last');
-    });
-
-    $('.dropdown-menu.with-search .menu-search').click(function(e)
-    {
-        e.stopPropagation();
-        return false;
-    }).on('keyup change paste', 'input', function()
-    {
-        var val = $(this).val().toLowerCase();
-        var $options = $(this).closest('.dropdown-menu.with-search').find('.option');
-        if(val == '') return $options.removeClass('hide');
-        $options.each(function()
+        if(href == '#planInfo' && !infoShowed)
         {
-            var $option = $(this);
-            $option.toggleClass('hide', $option.text().toString().toLowerCase().indexOf(val) < 0 && $option.data('key').toString().toLowerCase().indexOf(val) < 0);
-        });
+            $('#planInfo img').each(function()
+            {
+                var $tr = $('#planInfo .detail-content .table-data tbody tr:first');
+                width   = $tr.width() - $tr.find('th').width();
+                if($(this).parent().prop('tagName').toLowerCase() == 'a') $(this).unwrap();
+                setImageSize($(this), width, 0);
+            });
+
+            infoShowed = true;
+        }
     });
 
     $('#storyList').on('sort.sortable', function(e, data)

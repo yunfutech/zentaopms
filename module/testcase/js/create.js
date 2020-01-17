@@ -33,7 +33,7 @@ $(function()
     };
     $(document).on('change', '#story', function()
     {
-       if($(this).val() === 'showmore') showSearchModal();
+        if($(this).val() === 'showmore') showSearchModal();
     });
 
     $(document).on('click', '#story_chosen .chosen-results > li.no-results', showSearchModal);
@@ -143,5 +143,10 @@ $(function()
         var $selector = $select.closest('.pri-selector');
         var value = $select.val();
         $selector.find('.pri-text').html('<span class="label-pri label-pri-' + value + '" title="' + value + '">' + value + '</span>');
+    });
+
+    $.get(createLink('testcase', 'ajaxGetStatus', 'methodName=create'), function(status)
+    {
+        $('#status').val(status).change();
     });
 });

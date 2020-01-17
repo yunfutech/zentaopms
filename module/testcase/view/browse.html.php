@@ -41,14 +41,13 @@ js::set('suiteID',        $suiteID);
     </div>
   </div>
   <div class='main-col'>
-    <div id='queryBox' class='cell<?php if($browseType == 'bysearch') echo ' show';?>'></div>
+    <div id='queryBox' data-module='testcase' class='cell<?php if($browseType == 'bysearch') echo ' show';?>'></div>
     <?php if(empty($cases)):?>
     <?php $useDatatable = '';?>
     <div class="table-empty-tip">
       <p>
         <span class="text-muted"><?php echo $lang->testcase->noCase;?></span>
         <?php if(common::hasPriv('testcase', 'create')):?>
-        <span class="text-muted"><?php echo $lang->youCould;?></span>
         <?php $initModule = isset($moduleID) ? (int)$moduleID : 0;?>
         <?php echo html::a($this->createLink('testcase', 'create', "productID=$productID&branch=$branch&moduleID=$initModule"), "<i class='icon icon-plus'></i> " . $lang->testcase->create, '', "class='btn btn-info'");?>
         <?php endif;?>
@@ -69,7 +68,7 @@ js::set('suiteID',        $suiteID);
       if($useDatatable)  include '../../common/view/datatable.html.php';
       else               include '../../common/view/tablesorter.html.php';
 
-      if($config->testcase->needReview or !empty($config->testcase->forceReview)) $config->testcase->datatable->fieldList['actions']['width'] = '170';
+      if($config->testcase->needReview or !empty($config->testcase->forceReview)) $config->testcase->datatable->fieldList['actions']['width'] = '180';
       $setting = $this->datatable->getSetting('testcase');
       $widths  = $this->datatable->setFixedFieldWidth($setting);
       $columns = 0;
@@ -106,6 +105,10 @@ js::set('suiteID',        $suiteID);
             <?php
             $class = "class='disabled'";
 
+            $actionLink = $this->createLink('testtask', 'batchRun', "productID=$productID&orderBy=$orderBy");
+            $misc = common::hasPriv('testtask', 'batchRun') ? "onclick=\"setFormAction('$actionLink')\"" : $class;
+            echo html::commonButton($lang->testtask->runCase, $misc);
+
             $actionLink = $this->createLink('testcase', 'batchEdit', "productID=$productID&branch=$branch");
             $misc       = common::hasPriv('testcase', 'batchEdit') ? "onclick=\"setFormAction('$actionLink')\"" : "disabled='disabled'";
             echo html::commonButton($lang->edit, $misc);
@@ -113,10 +116,6 @@ js::set('suiteID',        $suiteID);
             <button type='button' class='btn dropdown-toggle' data-toggle='dropdown'><span class='caret'></span></button>
             <ul class='dropdown-menu' id='moreActionMenu'>
               <?php
-              $actionLink = $this->createLink('testcase', 'batchDelete', "productID=$productID");
-              $misc = common::hasPriv('testcase', 'batchDelete') ? "onclick=\"confirmBatchDelete('$actionLink')\"" : $class;
-              echo "<li>" . html::a('#', $lang->delete, '', $misc) . "</li>";
-
               if(common::hasPriv('testcase', 'batchReview') and ($config->testcase->needReview or !empty($config->testcase->forceReview)))
               {
                   echo "<li class='dropdown-submenu'>";
@@ -126,22 +125,14 @@ js::set('suiteID',        $suiteID);
                   foreach($lang->testcase->reviewResultList as $key => $result)
                   {
                       $actionLink = $this->createLink('testcase', 'batchReview', "result=$key");
-                      echo '<li>' . html::a('#', $result, '', "onclick=\"setFormAction('$actionLink','hiddenwin')\"") . '</li>';
+                      echo '<li>' . html::a('#', $result, '', "onclick=\"setFormAction('$actionLink', 'hiddenwin')\"") . '</li>';
                   }
                   echo '</ul></li>';
               }
 
-              if(common::hasPriv('testcase', 'batchConfirmStoryChange'))
-              {
-                  $actionLink = $this->createLink('testcase', 'batchConfirmStoryChange', "productID=$productID");
-                  $misc = common::hasPriv('testcase', 'batchConfirmStoryChange') ? "onclick=\"setFormAction('$actionLink')\"" : $class;
-                  echo "<li>" . html::a('#', $lang->testcase->confirmStoryChange, '', $misc) . "</li>";
-              }
-
-
-              $actionLink = $this->createLink('testtask', 'batchRun', "productID=$productID&orderBy=$orderBy");
-              $misc = common::hasPriv('testtask', 'batchRun') ? "onclick=\"setFormAction('$actionLink')\"" : $class;
-              echo "<li>" . html::a('#', $lang->testtask->runCase, '', $misc) . "</li>";
+              $actionLink = $this->createLink('testcase', 'batchDelete', "productID=$productID");
+              $misc = common::hasPriv('testcase', 'batchDelete') ? "onclick=\"confirmBatchDelete('$actionLink')\"" : $class;
+              if(common::hasPriv('testcase', 'batchDelete')) echo "<li>" . html::a('#', $lang->delete, '', $misc) . "</li>";
 
               if(common::hasPriv('testcase', 'batchCaseTypeChange'))
               {
@@ -152,9 +143,16 @@ js::set('suiteID',        $suiteID);
                   foreach($lang->testcase->typeList as $key => $result)
                   {
                       $actionLink = $this->createLink('testcase', 'batchCaseTypeChange', "result=$key");
-                      echo '<li>' . html::a('#', $result, '', "onclick=\"setFormAction('$actionLink','hiddenwin')\"") . '</li>';
+                      echo '<li>' . html::a('#', $result, '', "onclick=\"setFormAction('$actionLink', 'hiddenwin')\"") . '</li>';
                   }
                   echo '</ul></li>';
+              }
+
+              if(common::hasPriv('testcase', 'batchConfirmStoryChange'))
+              {
+                  $actionLink = $this->createLink('testcase', 'batchConfirmStoryChange', "productID=$productID");
+                  $misc = common::hasPriv('testcase', 'batchConfirmStoryChange') ? "onclick=\"setFormAction('$actionLink')\"" : $class;
+                  echo "<li>" . html::a('#', $lang->testcase->confirmStoryChange, '', $misc) . "</li>";
               }
               ?>
             </ul>
@@ -208,7 +206,7 @@ js::set('suiteID',        $suiteID);
                 {
                     $searchKey = $withSearch ? ('data-key="' . zget($modulesPinYin, $module, '') . '"') : '';
                     $actionLink = $this->createLink('testcase', 'batchChangeModule', "moduleID=$moduleId");
-                    echo html::a('#', $module, '', "$searchKey onclick=\"setFormAction('$actionLink','hiddenwin')\"");
+                    echo html::a('#', $module, '', "$searchKey onclick=\"setFormAction('$actionLink', 'hiddenwin')\"");
                 }
                 ?>
               </div>

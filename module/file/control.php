@@ -103,47 +103,6 @@ class file extends control
     }
 
     /**
-     * AJAX: get upload request from the web editor.
-     *
-     * @access public
-     * @return void
-     */
-    public function ajaxUeditorUpload($uid = '')
-    {
-        if($this->get->action == 'config')
-        {
-            die(json_encode($this->config->file->ueditor));
-        }
-
-        $file = $this->file->getUpload('upfile');
-        $file = $file[0];
-        if($file)
-        {
-            if($file['size'] == 0) die(json_encode(array('state' => $this->lang->file->errorFileUpload)));
-            if(@move_uploaded_file($file['tmpname'], $this->file->savePath . $this->file->getSaveName($file['pathname'])))
-            {
-                /* Compress image for jpg and bmp. */
-                $file = $this->file->compressImage($file);
-
-                $file['addedBy']    = $this->app->user->account;
-                $file['addedDate']  = helper::today();
-                unset($file['tmpname']);
-                $this->dao->insert(TABLE_FILE)->data($file)->exec();
-
-                $fileID = $this->dao->lastInsertID();
-                $url    = $this->createLink('file', 'read', "fileID=$fileID", $file['extension']);
-                if($uid) $_SESSION['album'][$uid][] = $fileID;
-                die(json_encode(array('state' => 'SUCCESS', 'url' => $url)));
-            }
-            else
-            {
-                $error = strip_tags(sprintf($this->lang->file->errorCanNotWrite, $this->file->savePath, $this->file->savePath));
-                die(json_encode(array('state' => $error)));
-            }
-        }
-    }
-
-    /**
      * Down a file.
      *
      * @param  int    $fileID
@@ -287,29 +246,7 @@ class file extends control
      */
     public function sendDownHeader($fileName, $fileType, $content)
     {
-        /* Clean the ob content to make sure no space or utf-8 bom output. */
-        $obLevel = ob_get_level();
-        for($i = 0; $i < $obLevel; $i++) ob_end_clean();
-
-        /* Set the downloading cookie, thus the export form page can use it to judge whether to close the window or not. */
-        setcookie('downloading', 1);
-
-        /* Append the extension name auto. */
-        $extension = '.' . $fileType;
-        if(strpos($fileName, $extension) === false) $fileName .= $extension;
-
-        /* urlencode the filename for ie. */
-        if(strpos($this->server->http_user_agent, 'MSIE') !== false or strpos($this->server->http_user_agent, 'Trident') !== false or strpos($this->server->http_user_agent, 'Edge') !== false) $fileName = urlencode($fileName);
-
-        /* Judge the content type. */
-        $mimes = $this->config->file->mimes;
-        $contentType = isset($mimes[$fileType]) ? $mimes[$fileType] : $mimes['default'];
-
-        header("Content-type: $contentType");
-        header("Content-Disposition: attachment; filename=\"$fileName\"");
-        header("Pragma: no-cache");
-        header("Expires: 0");
-        die($content);
+        $this->file->sendDownHeader($fileName, $fileType, $content);
     }
 
     /**
@@ -417,7 +354,7 @@ class file extends control
             $imageFiles  = $this->session->$sessionName;
             $this->session->set($module . 'ImagesFile', $imageFiles);
             unset($_SESSION[$sessionName]);
-            die(js::locate($this->createLink($module, 'batchCreate', helper::safe64Decode($params)), 'parent.parent'));
+            die(js::locate($this->createLink($module, 'batchCreate', helper::safe64Decode($params)), 'parent'));
         }
 
         if($_FILES)
@@ -523,6 +460,12 @@ class file extends control
 
         $mime = in_array($file->extension, $this->config->file->imageExtensions) ? "image/{$file->extension}" : $this->config->file->mimes['default'];
         header("Content-type: $mime");
+
+        $cacheMaxAge = 10 * 365 * 24 * 3600;
+        header("Cache-Control: private");
+        header("Pragma: cache");
+        header("Expires:" . gmdate("D, d M Y H:i:s", time() + $cacheMaxAge) . " GMT");
+        header("Cache-Control: max-age=$cacheMaxAge");
 
         $handle = fopen($file->realPath, "r");
         if($handle)

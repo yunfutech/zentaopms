@@ -46,7 +46,6 @@
     <p>
       <span class="text-muted"><?php echo $lang->my->noTodo;?></span>
       <?php if(common::hasPriv('todo', 'create')):?>
-      <span class="text-muted"><?php echo $lang->youCould;?></span>
       <?php echo html::a($this->createLink('todo', 'create'), "<i class='icon icon-plus'></i> " . $lang->todo->create, '', "class='btn btn-info'");?>
       <?php endif;?>
     </p>
@@ -57,7 +56,7 @@
       <?php $vars = "type=$type&account=$account&status=$status&orderBy=%s&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID"; ?>
       <thead>
         <tr>
-          <th class="c-id">
+          <th class="w-100px">
             <?php if($type != 'cycle' and (common::hasPriv('todo', 'batchEdit') or (common::hasPriv('todo', 'import2Today') and $importFuture))):?>
             <div class="checkbox-primary check-all" title="<?php echo $lang->selectAll?>">
               <label></label>
@@ -119,7 +118,7 @@
             if(common::hasPriv('todo', 'delete'))
             {
                 $deleteURL = $this->createLink('todo', 'delete', "todoID=$todo->id&confirm=yes");
-                echo html::a("javascript:ajaxDelete(\"$deleteURL\",\"todoList\",confirmDelete)", '<i class="icon-trash"></i>', '', "class='btn' title='{$lang->todo->delete}'");
+                echo html::a("javascript:ajaxDelete(\"$deleteURL\", \"todoList\", confirmDelete)", '<i class="icon-trash"></i>', '', "class='btn' title='{$lang->todo->delete}'");
             }
             ?>
           </td>
@@ -142,12 +141,12 @@
       if(common::hasPriv('todo', 'batchFinish'))
       {
           $actionLink = $this->createLink('todo', 'batchFinish');
-          echo html::commonButton($lang->todo->finish, "onclick=\"setFormAction('$actionLink','hiddenwin')\"");
+          echo html::commonButton($lang->todo->finish, "onclick=\"setFormAction('$actionLink', 'hiddenwin')\"");
       }
       if(common::hasPriv('todo', 'batchClose'))
       {
           $actionLink = $this->createLink('todo', 'batchClose');
-          echo html::commonButton($lang->todo->close, "onclick=\"setFormAction('$actionLink','hiddenwin')\"");
+          echo html::commonButton($lang->todo->close, "onclick=\"setFormAction('$actionLink', 'hiddenwin')\"");
       }
       if(common::hasPriv('todo', 'import2Today') and $importFuture)
       {

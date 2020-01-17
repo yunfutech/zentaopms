@@ -30,13 +30,7 @@ class productModel extends model
     public function setMenu($products, $productID, $branch = 0, $module = 0, $moduleType = '', $extra = '')
     {
         /* Has access privilege?. */
-        if($products and !isset($products[$productID]) and !$this->checkPriv($productID))
-        {
-            echo(js::alert($this->lang->product->accessDenied));
-            $loginLink = $this->config->requestType == 'GET' ? "?{$this->config->moduleVar}=user&{$this->config->methodVar}=login" : "user{$this->config->requestFix}login";
-            if(strpos($this->server->http_referer, $loginLink) !== false) die(js::locate(inlink('index')));
-            die(js::locate('back'));
-        }
+        if($products and !isset($products[$productID]) and !$this->checkPriv($productID)) $this->accessDenied();
 
         $currentModule = $this->app->getModuleName();
         $currentMethod = $this->app->getMethodName();
@@ -45,7 +39,7 @@ class productModel extends model
         if($currentModule == 'story')
         {
             if($currentMethod != 'create' and $currentMethod != 'batchcreate') $currentModule = 'product';
-            if($currentMethod == 'view') $currentMethod = 'browse';
+            if($currentMethod == 'view' || $currentMethod == 'change' || $currentMethod == 'review') $currentMethod = 'browse';
         }
         if($currentMethod == 'report') $currentMethod = 'browse';
 
@@ -123,7 +117,7 @@ class productModel extends model
         }
         $isMobile = $this->app->viewType == 'mhtml';
 
-        setCookie("lastProduct", $productID, $this->config->cookieLife, $this->config->webRoot);
+        setCookie("lastProduct", $productID, $this->config->cookieLife, $this->config->webRoot, '', false, true);
         $currentProduct = $this->getById($productID);
         $this->session->set('currentProductType', $currentProduct->type);
 
@@ -190,18 +184,12 @@ class productModel extends model
         if(!isset($products[$this->session->product]))
         {
             $this->session->set('product', key($products));
-            if($productID > 0)
-            {
-                echo(js::alert($this->lang->product->accessDenied));
-                $loginLink = $this->config->requestType == 'GET' ? "?{$this->config->moduleVar}=user&{$this->config->methodVar}=login" : "user{$this->config->requestFix}login";
-                if(strpos($this->server->http_referer, $loginLink) !== false) die(js::locate(inlink('index')));
-                die(js::locate('back'));
-            }
+            if($productID) $this->accessDenied();
         }
         if($this->cookie->preProductID != $productID)
         {
             $this->cookie->set('preBranch', 0);
-            setcookie('preBranch', 0, $this->config->cookieLife, $this->config->webRoot);
+            setcookie('preBranch', 0, $this->config->cookieLife, $this->config->webRoot, '', false, true);
         }
 
         return $this->session->product;
@@ -221,6 +209,24 @@ class productModel extends model
         /* Is admin? */
         if($this->app->user->admin) return true;
         return (strpos(",{$this->app->user->view->products},", ",{$productID},") !== false);
+    }
+
+    /**
+     * Show accessDenied response.
+     *
+     * @access private
+     * @return void
+     */
+    public function accessDenied()
+    {
+        echo(js::alert($this->lang->product->accessDenied));
+
+        if(!$this->server->http_referer) die(js::locate(helper::createLink('product', 'index')));
+
+        $loginLink = $this->config->requestType == 'GET' ? "?{$this->config->moduleVar}=user&{$this->config->methodVar}=login" : "user{$this->config->requestFix}login";
+        if(strpos($this->server->http_referer, $loginLink) !== false) die(js::locate(helper::createLink('product', 'index')));
+
+        die(js::locate('back'));
     }
 
     /**
@@ -334,6 +340,58 @@ class productModel extends model
     }
 
     /**
+     * Get ordered products 
+     * 
+     * @param  string $status 
+     * @param  int    $num 
+     * @access public
+     * @return array
+     */
+    public function getOrderedProducts($status, $num = 0)
+    {
+        $products = $this->getList($status);
+        if(empty($products)) return $products;
+
+        $lines = $this->loadModel('tree')->getLinePairs($useShort = true);
+        $productList = array();
+        foreach($lines as $id => $name)
+        {
+            foreach($products as $key => $product)
+            {
+                if($product->line == $id)
+                {
+                    $product->name = $name . '/' . $product->name;
+                    $productList[] = $product;
+                    unset($products[$key]);
+                }
+            }
+        }
+        $productList = array_merge($productList, $products);
+
+        $products = $mineProducts = $otherProducts = $closedProducts = array();
+        foreach($productList as $product)
+        {
+            if(!$this->app->user->admin and !$this->checkPriv($product->id)) continue;
+            if($product->status == 'normal' and $product->PO == $this->app->user->account) 
+            {
+                $mineProducts[$product->id] = $product;
+            }
+            elseif($product->status == 'normal' and $product->PO != $this->app->user->account) 
+            {
+                $otherProducts[$product->id] = $product;
+            }
+            elseif($product->status == 'closed')
+            {
+                $closedProducts[$product->id] = $product;
+            }
+        }
+        $products = $mineProducts + $otherProducts + $closedProducts;
+
+        if(empty($num)) return $products;
+        return array_slice($products, 0, $num, true);
+    }
+
+    /**
      * Create a product.
      *
      * @access public
@@ -351,6 +409,7 @@ class productModel extends model
             ->stripTags($this->config->product->editor->create['id'], $this->config->allowedTags)
             ->remove('uid')
             ->get();
+
         $product = $this->loadModel('file')->processImgURL($product, $this->config->product->editor->create['id'], $this->post->uid);
         $this->dao->insert(TABLE_PRODUCT)->data($product)->autoCheck()
             ->batchCheck($this->config->product->create->requiredFields, 'notempty')
@@ -372,7 +431,7 @@ class productModel extends model
         $lib->main    = '1';
         $lib->acl     = 'default';
         $this->dao->insert(TABLE_DOCLIB)->data($lib)->exec();
-        $this->loadModel('user')->updateUserView($productID, 'product');
+        if($product->acl != 'open') $this->loadModel('user')->updateUserView($productID, 'product');
 
         return $productID;
     }
@@ -405,7 +464,7 @@ class productModel extends model
         if(!dao::isError())
         {
             $this->file->updateObjectID($this->post->uid, $productID, 'product');
-            if($product->acl != 'open' or $product->acl != $oldProduct->acl or $product->whitelist != $oldProduct->whitelist) $this->loadModel('user')->updateUserView($productID, 'product');
+            if($product->acl != 'open' and ($product->acl != $oldProduct->acl or $product->whitelist != $oldProduct->whitelist)) $this->loadModel('user')->updateUserView($productID, 'product');
             return common::createChanges($oldProduct, $product);
         }
     }
@@ -636,7 +695,7 @@ class productModel extends model
         {
             if(($plan->end != '0000-00-00' and strtotime($plan->end) - time() <= 0) or $plan->end == '2030-01-01') continue;
             $year = substr($plan->end, 0, 4);
-            $roadmap[$year][$plan->branch][] = $plan;
+            $roadmap[$year][$plan->branch][$plan->end] = $plan;
 
             $total++;
         }
@@ -650,7 +709,7 @@ class productModel extends model
         foreach($releases as $release)
         {
             $year = substr($release->date, 0, 4);
-            $roadmap[$year][$release->branch][] = $release;
+            $roadmap[$year][$release->branch][$release->date] = $release;
 
             $total++;
             if($count > 0 and $total >= $count) break;
@@ -664,6 +723,7 @@ class productModel extends model
         {
             foreach($branchRoadmaps as $branch => $roadmaps)
             {
+                krsort($roadmaps);
                 $totalData = count($roadmaps);
                 $rows      = ceil($totalData / 8);
                 $maxPerRow = ceil($totalData / $rows);
@@ -717,6 +777,7 @@ class productModel extends model
                     $i++;
                     if($i >= $count) break;
                 }
+                krsort($newRoadmap[$year][$branch]);
             }
         }
         return $newRoadmap;

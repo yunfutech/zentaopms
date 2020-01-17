@@ -25,6 +25,9 @@ class build extends control
             $buildID = $this->build->create($projectID);
             if(dao::isError()) $this->send(array('result' => 'fail', 'message' => dao::getError()));
             $this->loadModel('action')->create('build', $buildID, 'opened');
+
+            $this->executeHooks($buildID);
+
             if(isonlybody()) $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'closeModal' => true, 'callback' => "parent.loadProjectBuilds($projectID)"));//Code for task #5126.
             $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => $this->createLink('build', 'view', "buildID=$buildID")));
         }
@@ -104,6 +107,9 @@ class build extends control
                 $actionID = $this->loadModel('action')->create('build', $buildID, 'Edited', $fileAction);
                 if(!empty($changes)) $this->action->logHistory($actionID, $changes);
             }
+
+            $this->executeHooks($buildID);
+
             $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => inlink('view', "buildID=$buildID")));
         }
 
@@ -143,21 +149,28 @@ class build extends control
                 $project->name = '';
             }
 
+            $projects = $this->loadModel('product')->getProjectPairs($build->product, $build->branch, 'nodeleted');
+            if(!isset($projects[$build->project])) $projects[$build->project] = $project->name;
+
             $productGroups = $this->project->getProducts($build->project);
 
-            $products      = array();
-            foreach($productGroups as $product) $products[$product->id] = $product->name;
-            if(empty($productGroups) and $build->product)
+            $this->loadModel('product');
+            if(!isset($productGroups[$build->product]))
             {
-                $product = $this->loadModel('product')->getById($build->product);
-                $products[$product->id] = $product->name;
+                $product = $this->product->getById($build->product);
+                $product->branch = $build->branch;
+                $productGroups[$build->product] = $product;
             }
+
+            $products = array();
+            foreach($productGroups as $product) $products[$product->id] = $product->name;
 
             $this->view->title      = $project->name . $this->lang->colon . $this->lang->build->edit;
             $this->view->position[] = html::a($this->createLink('project', 'task', "projectID=$build->project"), $project->name);
             $this->view->position[] = $this->lang->build->edit;
             $this->view->product    = isset($productGroups[$build->product]) ? $productGroups[$build->product] : '';
             $this->view->branches   = (isset($productGroups[$build->product]) and $productGroups[$build->product]->type == 'normal') ? array() : $this->loadModel('branch')->getPairs($build->product);
+            $this->view->projects   = $projects;
             $this->view->orderBy    = $orderBy;
         }
 
@@ -167,7 +180,7 @@ class build extends control
         $this->view->build         = $build;
         $this->display();
     }
-                                                          
+
     /**
      * View a build.
      * 
@@ -224,9 +237,12 @@ class build extends control
             $this->view->type          = $type;
         }
 
+        $this->executeHooks($buildID);
+
         /* Assign. */
         $this->view->users         = $this->loadModel('user')->getPairs('noletter');
         $this->view->build         = $build;
+        $this->view->buildPairs    = $this->build->getProjectBuildPairs($build->project, 0, 0, 'noempty,notrunk');
         $this->view->actions       = $this->loadModel('action')->getList('build', $buildID);
         $this->view->link          = $link;
         $this->view->param         = $param;
@@ -253,6 +269,8 @@ class build extends control
         {
             $build = $this->build->getById($buildID);
             $this->build->delete(TABLE_BUILD, $buildID);
+
+            $this->executeHooks($buildID);
 
             /* if ajax request, send result. */
             if($this->server->ajax)
@@ -335,7 +353,7 @@ class build extends control
             $params = ($type == 'all') ? 'noempty' : 'noempty, noterminate, nodone';
             $builds = $this->build->getProjectBuildPairs($projectID, $productID, $branch, $params, $build);
             if($isJsonView) die(json_encode($builds));
-            else die(html::select($varName . '[]', $builds , $build, 'size=4 class=form-control multiple'));
+            else die(html::select($varName . '[]', $builds , '', 'size=4 class=form-control multiple'));
         }
         if($varName == 'openedBuilds')
         {

@@ -29,6 +29,7 @@ class testtaskModel extends model
         if($testtask and $this->app->viewType != 'mhtml')
         {
             $testtasks = $this->getProductTasks($productID, 0, 'id_desc', null, array('local', 'totalStatus'));
+            if(!isset($testtasks[$testtask])) $testtasks[$testtask] = $this->getById($testtask);
 
             $selectHtml .= "<div class='btn-group angle-btn'>";
             $selectHtml .= "<div class='btn-group'>";
@@ -285,6 +286,7 @@ class testtaskModel extends model
             ->leftJoin(TABLE_BUILD)->alias('t3')->on('t1.build = t3.id')
             ->where('t1.deleted')->eq(0)
             ->andWhere('t1.owner')->eq($account)
+            ->andWhere('t2.id')->in($this->app->user->view->projects)
             ->beginIF($type == 'wait')->andWhere('t1.status')->ne('done')->fi()
             ->beginIF($type == 'done')->andWhere('t1.status')->eq('done')->fi()
             ->orderBy($orderBy)
@@ -499,9 +501,18 @@ class testtaskModel extends model
      */
     public function getDataOfTestTaskPerRunResult($taskID)
     {
-        $datas = $this->dao->select('lastRunResult AS name, COUNT(*) AS value')->from(TABLE_TESTRUN)->where('task')->eq($taskID)->groupBy('name')->orderBy('value DESC')->fetchAll('name');
+        $datas = $this->dao->select("t1.lastRunResult AS name, COUNT('t1.*') AS value")->from(TABLE_TESTRUN)->alias('t1')
+            ->leftJoin(TABLE_CASE)->alias('t2')
+            ->on('t1.case = t2.id')
+            ->where('t1.task')->eq($taskID)
+            ->andWhere('t2.deleted')->eq(0)
+            ->groupBy('name')
+            ->orderBy('value DESC')
+            ->fetchAll('name');
+
         if(!$datas) return array();
 
+        $this->app->loadLang('testcase');
         foreach($datas as $result => $data) $data->name = isset($this->lang->testcase->resultList[$result])? $this->lang->testcase->resultList[$result] : $this->lang->testtask->unexecuted;
 
         return $datas;
@@ -565,10 +576,100 @@ class testtaskModel extends model
     {
         $datas = $this->dao->select('lastRunner AS name, COUNT(*) AS value')->from(TABLE_TESTRUN)->where('task')->eq($taskID)->groupBy('name')->orderBy('value DESC')->fetchAll('name');
         if(!$datas) return array();
-
-        foreach($datas as $result => $data) $data->name = $result ? $result : $this->lang->testtask->unexecuted;
+        $users = $this->loadModel('user')->getPairs('noclosed|noletter');
+        foreach($datas as $result => $data) $data->name = $result ? zget($users, $result, $result) : $this->lang->testtask->unexecuted;
 
         return $datas;
+    }
+
+    /**
+     * Get bug info.
+     * 
+     * @param  int    $taskID 
+     * @param  int    $productID 
+     * @access public
+     * @return array
+     */
+    public function getBugInfo($taskID, $productID)
+    {
+        $foundBugs = $this->dao->select('*')->from(TABLE_BUG)->where('product')->in($productID)->andWhere('testtask')->eq($taskID)->andWhere('deleted')->eq(0)->fetchAll();
+
+        $severityGroups = $statusGroups = $openedByGroups = $resolvedByGroups = $resolutionGroups = $moduleGroups = array();
+        $resolvedBugs   = 0;
+        foreach($foundBugs as $bug)
+        {
+            $severityGroups[$bug->severity] = isset($severityGroups[$bug->severity]) ? $severityGroups[$bug->severity] + 1 : 1;
+            $statusGroups[$bug->status]     = isset($statusGroups[$bug->status])     ? $statusGroups[$bug->status]     + 1 : 1;
+            $openedByGroups[$bug->openedBy] = isset($openedByGroups[$bug->openedBy]) ? $openedByGroups[$bug->openedBy] + 1 : 1;
+            $moduleGroups[$bug->module]     = isset($moduleGroups[$bug->module])     ? $moduleGroups[$bug->module]     + 1 : 1;
+
+            if($bug->resolvedBy) $resolvedByGroups[$bug->resolvedBy] = isset($resolvedByGroups[$bug->resolvedBy]) ? $resolvedByGroups[$bug->resolvedBy] + 1 : 1;
+            if($bug->resolution) $resolutionGroups[$bug->resolution] = isset($resolutionGroups[$bug->resolution]) ? $resolutionGroups[$bug->resolution] + 1 : 1;
+            if($bug->status == 'resolved' or $bug->status == 'closed') $resolvedBugs ++;
+        }
+
+        $bugInfo['bugConfirmedRate']    = empty($resolvedBugs) ? 0 : round((zget($resolutionGroups, 'fixed', 0) + zget($resolutionGroups, 'postponed', 0)) / $resolvedBugs * 100, 2);
+        $bugInfo['bugCreateByCaseRate'] = empty($byCaseNum) ? 0 : round($byCaseNum / count($foundBugs) * 100, 2);
+
+        $this->app->loadLang('bug');
+        $users = $this->loadModel('user')->getPairs('noclosed|noletter|nodeleted');
+        $data  = array();
+        foreach($severityGroups as $severity => $count)
+        {
+            $data[$severity] = new stdclass();
+            $data[$severity]->name  = zget($this->lang->bug->severityList, $severity);
+            $data[$severity]->value = $count;
+        }
+        $bugInfo['bugSeverityGroups'] = $data;
+
+        $data = array();
+        foreach($statusGroups as $status => $count)
+        {
+            $data[$status] = new stdclass();
+            $data[$status]->name  = zget($this->lang->bug->statusList, $status);
+            $data[$status]->value = $count;
+        }
+        $bugInfo['bugStatusGroups'] = $data;
+
+        $data = array();
+        foreach($resolutionGroups as $resolution => $count)
+        {
+            $data[$resolution] = new stdclass();
+            $data[$resolution]->name  = zget($this->lang->bug->resolutionList, $resolution);
+            $data[$resolution]->value = $count;
+        }
+        $bugInfo['bugResolutionGroups'] = $data;
+
+        $data = array();
+        foreach($openedByGroups as $openedBy => $count)
+        {
+            $data[$openedBy] = new stdclass();
+            $data[$openedBy]->name  = zget($users, $openedBy);
+            $data[$openedBy]->value = $count;
+        }
+        $bugInfo['bugOpenedByGroups'] = $data;
+
+        $this->loadModel('tree');
+        $modules = $this->tree->getOptionMenu($productID, $viewType = 'bug');
+        $data    = array();
+        foreach($moduleGroups as $moduleID => $count)
+        {
+            $data[$moduleID] = new stdclass();
+            $data[$moduleID]->name  = zget($modules, $moduleID);
+            $data[$moduleID]->value = $count;
+        }
+        $bugInfo['bugModuleGroups'] = $data;
+
+        $data = array();
+        foreach($resolvedByGroups as $resolvedBy => $count)
+        {
+            $data[$resolvedBy] = new stdclass();
+            $data[$resolvedBy]->name  = zget($users, $resolvedBy);
+            $data[$resolvedBy]->value = $count;
+        }
+        $bugInfo['bugResolvedByGroups'] = $data;
+
+        return $bugInfo;
     }
 
      /**
@@ -755,7 +856,7 @@ class testtaskModel extends model
     {
         $orderBy = (strpos($orderBy, 'assignedTo') !== false or strpos($orderBy, 'lastRunResult') !== false) ? ('t1.' . $orderBy) : ('t2.' . $orderBy);
 
-        return $this->dao->select('t2.*,t1.*,t2.version as caseVersion,t3.title as storyTitle')->from(TABLE_TESTRUN)->alias('t1')
+        return $this->dao->select('t2.*,t1.*,t2.version as caseVersion,t3.title as storyTitle,t2.status as caseStatus')->from(TABLE_TESTRUN)->alias('t1')
             ->leftJoin(TABLE_CASE)->alias('t2')->on('t1.case = t2.id')
             ->leftJoin(TABLE_STORY)->alias('t3')->on('t2.story = t3.id')
             ->where('t1.task')->eq((int)$taskID)
@@ -779,8 +880,9 @@ class testtaskModel extends model
     {
         $orderBy = strpos($orderBy, 'assignedTo') !== false ? ('t1.' . $orderBy) : ('t2.' . $orderBy);
 
-        return $this->dao->select('t2.*,t1.*,t2.version as caseVersion')->from(TABLE_TESTRUN)->alias('t1')
+        return $this->dao->select('t2.*,t1.*,t2.version as caseVersion,t3.title as storyTitle,t2.status as caseStatus')->from(TABLE_TESTRUN)->alias('t1')
             ->leftJoin(TABLE_CASE)->alias('t2')->on('t1.case = t2.id')
+            ->leftJoin(TABLE_STORY)->alias('t3')->on('t2.story = t3.id')
             ->where('t1.task')->eq((int)$taskID)
             ->andWhere('t1.assignedTo')->eq($user)
             ->andWhere('t2.deleted')->eq(0)
@@ -842,9 +944,10 @@ class testtaskModel extends model
             }
 
             $caseQuery = preg_replace('/`(\w+)`/', 't2.`$1`', $caseQuery);
-            $caseQuery = str_replace(array('t2.`assignedTo`', 't2.`lastRunner`', 't2.`lastRunDate`', 't2.`lastRunResult`'), array('t1.`assignedTo`', 't1.`lastRunner`', 't1.`lastRunDate`', 't1.`lastRunResult`'), $caseQuery);
-            $runs = $this->dao->select('t2.*,t1.*, t2.version as caseVersion')->from(TABLE_TESTRUN)->alias('t1')
+            $caseQuery = str_replace(array('t2.`assignedTo`', 't2.`lastRunner`', 't2.`lastRunDate`', 't2.`lastRunResult`', 't2.`status`'), array('t1.`assignedTo`', 't1.`lastRunner`', 't1.`lastRunDate`', 't1.`lastRunResult`', 't1.`status`'), $caseQuery);
+            $runs = $this->dao->select('t2.*,t1.*, t2.version as caseVersion,t3.title as storyTitle,t2.status as caseStatus')->from(TABLE_TESTRUN)->alias('t1')
                 ->leftJoin(TABLE_CASE)->alias('t2')->on('t1.case = t2.id')
+                ->leftJoin(TABLE_STORY)->alias('t3')->on('t2.story = t3.id')
                 ->where($caseQuery)
                 ->andWhere('t1.task')->eq($task->id)
                 ->andWhere('t2.deleted')->eq(0)
@@ -983,6 +1086,7 @@ class testtaskModel extends model
             ->leftJoin(TABLE_CASE)->alias('t2')->on('t1.case = t2.id')
             ->where('t1.case')->in($caseIdList)
             ->andWhere('t1.version=t2.version')
+            ->andWhere('t2.status')->ne('wait')
             ->fetchGroup('case', 'id');
 
         $now = helper::now();
@@ -1148,7 +1252,7 @@ class testtaskModel extends model
         if($action == 'block')    return ($testtask->status == 'doing'   || $testtask->status == 'wait');
         if($action == 'activate') return ($testtask->status == 'blocked' || $testtask->status == 'done');
         if($action == 'close')    return $testtask->status != 'done';
-
+        if($action == 'runcase')  return isset($testtask->caseStatus) ? $testtask->caseStatus != 'wait' : $testtask->status != 'wait';
         return true;
     }
 
@@ -1165,10 +1269,11 @@ class testtaskModel extends model
      */
     public function printCell($col, $run, $users, $task, $branches, $mode = 'datatable')
     {
-        $canView  = common::hasPriv('testcase', 'view');
-        $caseLink = helper::createLink('testcase', 'view', "caseID=$run->case&version=$run->version&from=testtask&taskID=$run->task");
-        $account  = $this->app->user->account;
-        $id = $col->id;
+        $canView     = common::hasPriv('testcase', 'view');
+        $caseLink    = helper::createLink('testcase', 'view', "caseID=$run->case&version=$run->version&from=testtask&taskID=$run->task");
+        $account     = $this->app->user->account;
+        $id          = $col->id;
+        $caseChanged = $run->version < $run->caseVersion;
         if($col->show)
         {
             $class = "c-$id ";
@@ -1204,7 +1309,7 @@ class testtaskModel extends model
                 foreach(explode(',', trim($run->stage, ',')) as $stage) echo $this->lang->testcase->stageList[$stage] . '<br />';
                 break;
             case 'status':
-                echo ($run->version < $run->caseVersion) ? "<span class='warning'>{$this->lang->testcase->changed}</span>" : $this->lang->testtask->statusList[$run->status];
+                echo $caseChanged ? "<span class='warning'>{$this->lang->testcase->changed}</span>" : $this->processStatus('testtask', $run);
                 break;
             case 'precondition':
                 echo $run->precondition;
@@ -1263,6 +1368,12 @@ class testtaskModel extends model
                 echo $run->stepNumber;
                 break;
             case 'actions':
+                if($caseChanged)
+                {
+                    common::printIcon('testcase', 'confirmChange', "id=$run->case&taskID=$run->task&from=list", $run, 'list', 'search', 'hiddenwin');
+                    break;
+                }
+
                 common::printIcon('testcase', 'createBug', "product=$run->product&branch=$run->branch&extra=projectID=$task->project,buildID=$task->build,caseID=$run->case,version=$run->version,runID=$run->id,testtask=$task->id", $run, 'list', 'bug', '', 'iframe', '', "data-width='90%'");
 
                 common::printIcon('testtask', 'results', "id=$run->id", $run, 'list', '', '', 'iframe', '', "data-width='90%'");
@@ -1271,7 +1382,7 @@ class testtaskModel extends model
                 if(common::hasPriv('testtask', 'unlinkCase', $run))
                 {
                     $unlinkURL = helper::createLink('testtask', 'unlinkCase', "caseID=$run->id&confirm=yes");
-                    echo html::a("javascript:ajaxDelete(\"$unlinkURL\",\"casesForm\",confirmUnlink)", '<i class="icon-unlink"></i>', '', "title='{$this->lang->testtask->unlinkCase}' class='btn'");
+                    echo html::a("javascript:ajaxDelete(\"$unlinkURL\", \"casesForm\", confirmUnlink)", '<i class="icon-unlink"></i>', '', "title='{$this->lang->testtask->unlinkCase}' class='btn'");
                 }
 
                 break;

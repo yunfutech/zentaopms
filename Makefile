@@ -1,6 +1,7 @@
 VERSION     = $(shell head -n 1 VERSION)
 XUANPATH    = $(shell head -n 1 XUANPATH)
 XUANVERSION = $(shell head -n 1 XUANVERSION)
+XVERSION    = $(shell head -n 1 XVERSION)
 
 all: pms
 clean:
@@ -31,6 +32,9 @@ common:
 	mv zentaopms/www/install.php.tmp zentaopms/www/install.php
 	mv zentaopms/www/upgrade.php.tmp zentaopms/www/upgrade.php
 	cp VERSION zentaopms/
+	# create index.html of each folder.
+	for path in `find zentaopms/ -type d`; do touch "$$path/index.html"; done
+	rm zentaopms/www/index.html
 	# combine js and css files.
 	cp -fr tools zentaopms/tools && cd zentaopms/tools/ && php ./minifyfront.php
 	rm -fr zentaopms/tools
@@ -53,33 +57,75 @@ zentaoxx:
 	cd $(XUANPATH); git archive --format=zip --prefix=xuan/ $(XUANVERSION) > xuan.zip
 	mv $(XUANPATH)/xuan.zip .
 	unzip xuan.zip
-	cp xuan/ranzhi/config/ext/xuanxuan.php zentaoxx/config/ext/
-	cp -r xuan/ranzhi/lib/phpaes zentaoxx/lib/
-	cp -r xuan/ranzhi/framework/xuanxuan.class.php zentaoxx/framework/
-	cp -r xuan/ranzhi/db/*.sql zentaoxx/db/
-	cp -r xuan/ranzhi/app/sys/chat zentaoxx/module/
-	cp -r xuan/ranzhi/app/sys/common/ext/model/hook zentaoxx/module/common/ext/model/
-	cp -r xuan/ranzhi/app/sys/action zentaoxx/module/
+	cp xuan/xxb/config/ext/xuanxuan.php zentaoxx/config/ext/
+	cp -r xuan/xxb/lib/phpaes zentaoxx/lib/
+	cp -r xuan/xxb/framework/xuanxuan.class.php zentaoxx/framework/
+	cp -r xuan/xxb/db/*.sql zentaoxx/db/
+	cp -r xuan/xxb/module/im zentaoxx/module/
+	cp -r xuan/xxb/module/client zentaoxx/module/
+	cp -r xuan/xxb/module/common/ext/model/hook zentaoxx/module/common/ext/model/
+	mkdir -p zentaoxx/module/common/view
+	cp -r xuan/xxb/module/common/view/header.modal.html.php zentaoxx/module/common/view
+	cp -r xuan/xxb/module/common/view/marked.html.php zentaoxx/module/common/view
+	cp -r xuan/xxb/module/common/view/footer.modal.html.php zentaoxx/module/common/view
+	cp -r xuan/xxb/module/common/view/version.html.php zentaoxx/module/common/view
+	mkdir -p zentaoxx/www/js/
+	cp -r xuan/xxb/www/js/markedjs zentaoxx/www/js/
+	cp -r xuan/xxb/www/js/version.js zentaoxx/www/js/
+	cp -r xuan/xxb/www/x.php zentaoxx/www/
+	mkdir zentaoxx/module/action
+	cp -r xuan/xxb/module/action/ext zentaoxx/module/action
+	cp -r xuan/xxb/config/ext/xxb.php zentaoxx/config/ext/
+	cp -r xuan/xxb/config/ext/maps.php zentaoxx/config/ext/
+	cp -r xuan/xxb/apischeme.json zentaoxx/
+	cp $(XUANPATH)/xxb/config/ext/maps.php zentaoxx/config/ext/
+	cp $(XUANPATH)/xxb/module/im/model.php zentaoxx/module/im/model.php
+	cp $(XUANPATH)/xxb/apischeme.json zentaoxx/
 	cp -r xuanxuan/config/* zentaoxx/config/
 	cp -r xuanxuan/module/* zentaoxx/module/
 	cp -r xuanxuan/www/* zentaoxx/www/
-	sed -i 's/site,//' zentaoxx/module/chat/model.php
-	sed -i 's/admin, g/g/' zentaoxx/module/chat/model.php
-	sed -i '/password = md5/d' zentaoxx/module/chat/control.php
-	sed -i '/getSignedTime/d' zentaoxx/module/chat/control.php
-	sed -i 's/tree/dept/' zentaoxx/module/chat/control.php
-	sed -i 's/tree/dept/' zentaoxx/module/chat/model.php
-	sed -i "s/, 'sys'//" zentaoxx/module/chat/control.php
-	sed -i 's/system.sys/system/' zentaoxx/module/chat/control.php
-	sed -i 's/&app=sys//' zentaoxx/module/chat/control.php
-	sed -i 's/file->createdBy/file->addedBy/' zentaoxx/module/chat/control.php
-	sed -i 's/file->createdDate/file->addedDate/' zentaoxx/module/chat/control.php
-	sed -i 's/im_/zt_im_/' zentaoxx/db/*.sql
-	sed -i 's/sys_user/zt_user/' zentaoxx/db/*.sql
-	sed -i 's/sys_file/zt_file/' zentaoxx/db/*.sql
-	sed -i '/sys_entry/d' zentaoxx/db/*.sql
+	mv zentaoxx/db/ zentaoxx/db_bak
+	mkdir zentaoxx/db/
+	cp zentaoxx/db_bak/upgradexuanxuan*.sql zentaoxx/db_bak/xuanxuan.sql zentaoxx/db/
+	rm -rf zentaoxx/db_bak/
+	sed -i 's/XXBVERSION/$(XVERSION)/g' zentaoxx/config/ext/xuanxuan.php
+	sed -i "/\$$config->xuanxuan->backend /c\\\$$config->xuanxuan->backend     = 'zentao';" zentaoxx/config/ext/xuanxuan.php
+	sed -i 's/site,//' zentaoxx/module/im/model/user.php
+	sed -i 's/admin, g/g/' zentaoxx/module/im/model/user.php
+	sed -i '/password = md5/d' zentaoxx/module/im/model/user.php
+	sed -i 's/md5(\$$user->password.*$$/\$$user->password;/g' zentaoxx/module/im/model/user.php
+	sed -i '/getSignedTime/d' zentaoxx/module/im/control.php
+	sed -i "/loadModel('push')/d" zentaoxx/module/im/control.php
+	sed -i "/this->push/d" zentaoxx/module/im/control.php
+	sed -i "s/'yahoo', //g" zentaoxx/module/im/config.php
+	sed -i "s/'gtalk', //g" zentaoxx/module/im/config.php
+	sed -i "s/'wangwang', //g" zentaoxx/module/im/config.php
+	sed -i "s/'site', //g" zentaoxx/module/im/config.php
+	sed -i "s/'reload'/inlink('browse')/g" zentaoxx/module/client/control.php
+	sed -i 's/tree/dept/' zentaoxx/module/im/model.php
+	sed -i 's/tree/dept/' zentaoxx/module/im/control.php
+	sed -i 's/im_/zt_im_/g' zentaoxx/db/*.sql
+	sed -i 's/xxb_user/zt_user/g' zentaoxx/db/*.sql
+	sed -i 's/xxb_file/zt_file/g' zentaoxx/db/*.sql
+	sed -i '/xxb_entry/d' zentaoxx/db/*.sql
+	sed -i '/deviceToken/d' zentaoxx/db/*.sql
+	sed -i '/deviceType/d' zentaoxx/db/*.sql
+	sed -i "s/marked\.html\.php';?>/marked\.html\.php';?>\n<div id='mainMenu' class='clearfix'><div class='btn-toolbar pull-left'><?php common::printAdminSubMenu('xuanxuan');?><\/div><\/div>/g" zentaoxx/module/client/view/checkupgrade.html.php
+	sed -i '/var serverVersions/d' zentaoxx/module/client/js/checkupgrade.js
+	sed -i '/var currentVersion/d' zentaoxx/module/client/js/checkupgrade.js
+	sed -i '/setRequiredFields(/d' zentaoxx/module/common/view/header.modal.html.php
+	sed -i 's/header.html.php/header.lite.html.php/g' zentaoxx/module/common/view/header.modal.html.php
+	sed -i 's/getAppRoot/getModuleRoot/g' zentaoxx/module/common/view/header.modal.html.php
+	sed -i 's/footer.html.php/footer.lite.html.php/g' zentaoxx/module/common/view/footer.modal.html.php
+	sed -i 's/getAppRoot/getModuleRoot/g' zentaoxx/module/common/view/footer.modal.html.php
+	sed -i 's/v\.//g' zentaoxx/module/im/js/debug.js
+	sed -i 's/helper::jsonEncode(/json_encode(/g' zentaoxx/framework/xuanxuan.class.php
+	sed -i "s/lang->goback,/lang->goback, '',/g" zentaoxx/module/im/view/debug.html.php
+	sed -i 's/v\.//g' zentaoxx/module/client/js/checkupgrade.js
+	sed -i 's/xxb_/zt_/g' zentaoxx/db/*.sql
 	mkdir zentaoxx/tools; cp tools/cn2tw.php zentaoxx/tools; cd zentaoxx/tools; php cn2tw.php
-	rm -rf zentaopms/tools
+	cp tools/en2de.php zentaoxx/tools; cd zentaoxx/tools; php en2de.php ../
+	rm -rf zentaoxx/tools
 	zip -rqm -9 zentaoxx.$(VERSION).zip zentaoxx/*
 	rm -rf xuan.zip xuan zentaoxx
 package:
@@ -104,18 +150,6 @@ pms:
 	make package
 	zip -rq -9 ZenTaoPMS.$(VERSION).zip zentaopms
 	rm -fr zentaopms zentaoxx zentaoxx.*.zip
-en:
-	make common
-	cd zentaopms/; grep -rl 'zentao.net'|xargs sed -i 's/zentao.net/zentao.pm/g';
-	cd zentaopms/; grep -rl 'http://www.zentao.pm'|xargs sed -i 's/http:\/\/www.zentao.pm/https:\/\/www.zentao.pm/g';
-	cd zentaopms/config/; echo >> config.php; echo '$$config->isINT = true;' >> config.php
-	make package
-	zip -r -9 ZenTaoPMS.$(VERSION).int.zip zentaopms
-	rm -fr zentaopms
-	echo $(VERSION).int > VERSION
-	make deb
-	make rpm
-	echo $(VERSION) > VERSION
 deb:
 	mkdir buildroot
 	cp -r build/debian/DEBIAN buildroot
@@ -142,6 +176,47 @@ rpm:
 	cd ~/rpmbuild/SOURCES; tar -czvf zentaopms-${VERSION}.tar.gz etc opt; rm -rf ZenTaoPMS.${VERSION}.zip etc opt;
 	rpmbuild -ba ~/rpmbuild/SPECS/zentaopms.spec
 	cp ~/rpmbuild/RPMS/noarch/zentaopms-${VERSION}-1.noarch.rpm ./
+	rm -rf ~/rpmbuild
+en:
+	make common
+	cd zentaopms/; grep -rl 'zentao.net'|xargs sed -i 's/zentao.net/zentao.pm/g';
+	cd zentaopms/; grep -rl 'http://www.zentao.pm'|xargs sed -i 's/http:\/\/www.zentao.pm/https:\/\/www.zentao.pm/g';
+	cd zentaopms/config/; echo >> config.php; echo '$$config->isINT = true;' >> config.php
+	make package
+	mv zentaopms zentaoalm
+	zip -r -9 ZenTaoALM.$(VERSION).int.zip zentaoalm
+	rm -fr zentaoalm
+	echo $(VERSION).int > VERSION
+	make endeb
+	make enrpm
+	echo $(VERSION) > VERSION
+endeb:
+	mkdir buildroot
+	cp -r build/debian/DEBIAN buildroot
+	sed -i '/^Version/cVersion: ${VERSION}' buildroot/DEBIAN/control
+	mkdir buildroot/opt
+	mkdir buildroot/etc/apache2/sites-enabled/ -p
+	cp build/debian/zentaopms.conf buildroot/etc/apache2/sites-enabled/
+	cp ZenTaoALM.${VERSION}.zip buildroot/opt
+	cd buildroot/opt; unzip ZenTaoALM.${VERSION}.zip; mv zentaoalm zentao; rm ZenTaoALM.${VERSION}.zip
+	sed -i 's/index.php/\/zentao\/index.php/' buildroot/opt/zentao/www/.htaccess
+	sudo dpkg -b buildroot/ ZenTaoALM_${VERSION}_1_all.deb
+	rm -rf buildroot
+enrpm:
+	mkdir ~/rpmbuild/SPECS -p
+	cp build/rpm/zentaopms.spec ~/rpmbuild/SPECS
+	sed -i '/^Version/cVersion:${VERSION}' ~/rpmbuild/SPECS/zentaopms.spec
+	sed -i '/^Name:/cName:zentaoalm' ~/rpmbuild/SPECS/zentaopms.spec
+	mkdir ~/rpmbuild/SOURCES
+	cp ZenTaoALM.${VERSION}.zip ~/rpmbuild/SOURCES
+	mkdir ~/rpmbuild/SOURCES/etc/httpd/conf.d/ -p
+	cp build/debian/zentaopms.conf ~/rpmbuild/SOURCES/etc/httpd/conf.d/zentaoalm.conf
+	mkdir ~/rpmbuild/SOURCES/opt/ -p
+	cd ~/rpmbuild/SOURCES; unzip ZenTaoALM.${VERSION}.zip; mv zentaoalm opt/zentao;
+	sed -i 's/index.php/\/zentao\/index.php/' ~/rpmbuild/SOURCES/opt/zentao/www/.htaccess
+	cd ~/rpmbuild/SOURCES; tar -czvf zentaoalm-${VERSION}.tar.gz etc opt; rm -rf ZenTaoALM.${VERSION}.zip etc opt;
+	rpmbuild -ba ~/rpmbuild/SPECS/zentaopms.spec
+	cp ~/rpmbuild/RPMS/noarch/zentaoalm-${VERSION}-1.noarch.rpm ./
 	rm -rf ~/rpmbuild
 patchphpdoc:
 	sudo cp misc/doc/phpdoc/*.tpl /usr/share/php/data/PhpDocumentor/phpDocumentor/Converters/HTML/frames/templates/phphtmllib/templates/

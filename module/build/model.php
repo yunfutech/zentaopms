@@ -236,11 +236,13 @@ class buildModel extends model
         $buildID  = (int)$buildID;
         $oldBuild = $this->dao->select('*')->from(TABLE_BUILD)->where('id')->eq($buildID)->fetch();
         $build    = fixer::input('post')->stripTags($this->config->build->editor->edit['id'], $this->config->allowedTags)
+            ->setDefault('product', $oldBuild->product)
+            ->setDefault('branch', $oldBuild->branch)
             ->cleanInt('product,branch')
             ->remove('allchecker,resolvedBy,files,labels,uid')
             ->get();
-        if(!isset($build->branch)) $build->branch = $oldBuild->branch;
 
+        if($this->config->global->flow == 'onlyTest') $this->config->build->edit->requiredFields = str_replace('project,', '', $this->config->build->edit->requiredFields);
         $build = $this->loadModel('file')->processImgURL($build, $this->config->build->editor->edit['id'], $this->post->uid);
         $this->dao->update(TABLE_BUILD)->data($build)
             ->autoCheck()
@@ -293,7 +295,7 @@ class buildModel extends model
             $bug->lastEditedBy   = $this->app->user->account;
             $bug->lastEditedDate = $now;
             $bug->resolution     = 'fixed';
-            $bug->resolvedBuild  = $build->name;
+            $bug->resolvedBuild  = $build->id;
             $this->dao->update(TABLE_BUG)->data($bug)->where('id')->eq($bug->id)->exec();
             $this->action->create('bug', $bug->id, 'Resolved', '', 'fixed', $bug->resolvedBy);
         }

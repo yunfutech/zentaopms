@@ -45,6 +45,7 @@ $filter->mail       = new stdclass();
 $filter->user       = new stdclass();
 $filter->block      = new stdclass();
 $filter->file       = new stdclass();
+$filter->repo       = new stdclass();
 
 $filter->block->default          = new stdclass();
 $filter->block->main             = new stdclass();
@@ -61,7 +62,6 @@ $filter->mail->ztcloud           = new stdclass();
 $filter->mail->batchdelete       = new stdclass();
 $filter->misc->checkupdate       = new stdclass();
 $filter->file->download          = new stdclass();
-$filter->file->ajaxueditorupload = new stdclass();
 $filter->product->browse         = new stdclass();
 $filter->product->default        = new stdclass();
 $filter->product->index          = new stdclass();
@@ -120,6 +120,10 @@ $filter->product->export->cookie['checkedItem']       = 'reg::checked';
 
 $filter->project->default->cookie['lastProject']     = 'int';
 $filter->project->default->cookie['projectMode']     = 'code';
+$filter->project->story->cookie['storyModuleParam']  = 'int';
+$filter->project->story->cookie['storyPreProjectID'] = 'int';
+$filter->project->story->cookie['storyProductParam'] = 'int';
+$filter->project->story->cookie['storyBranchParam']  = 'reg::checked';
 $filter->project->story->cookie['projectStoryOrder'] = 'reg::orderBy';
 $filter->project->task->cookie['moduleBrowseParam']  = 'int';
 $filter->project->task->cookie['preProjectID']       = 'int';
@@ -179,7 +183,6 @@ $filter->doc->showfiles->get['recPerPage'] = 'int';
 $filter->doc->showfiles->get['recTotal']   = 'int';
 $filter->doc->showfiles->get['title']      = 'reg::any';
 
-$filter->file->ajaxueditorupload->get['action'] = 'equal::config';
 $filter->file->download->get['charset']         = 'reg::lang';
 
 $filter->mail->batchdelete->get['idList'] = 'reg::idList';
@@ -210,3 +213,16 @@ $filter->git->cat->get['repoUrl']  = 'reg::base64';
 $filter->git->diff->get['repoUrl'] = 'reg::base64';
 $filter->svn->cat->get['repoUrl']  = 'reg::base64';
 $filter->svn->diff->get['repoUrl'] = 'reg::base64';
+
+$filter->repo->default = new stdclass();
+$filter->repo->diff    = new stdclass();
+$filter->repo->view    = new stdclass();
+
+$filter->repo->default->get['path']  = 'reg::base64';
+$filter->repo->default->get['entry'] = 'reg::base64';
+
+$filter->repo->default->cookie['repoBranch'] = 'reg::any';
+$filter->repo->diff->cookie['arrange']       = 'reg::word';
+$filter->repo->diff->cookie['repoPairs']     = 'array';
+$filter->repo->view->cookie['repoPairs']     = 'array';
+$filter->repo->ajaxsynccomment->cookie['syncBranch'] = 'reg::any';

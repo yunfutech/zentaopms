@@ -594,6 +594,14 @@ class baseRouter
         unset($GLOBALS);
         unset($_REQUEST);
 
+        /* Change for CSRF. */
+        if($this->config->framework->filterCSRF)
+        {
+            $httpType = (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == 'on') ? 'https' : 'http';
+            $httpHost = $_SERVER['HTTP_HOST'];
+            if((!defined('RUN_MODE') or RUN_MODE != 'api') and strpos($this->server->http_referer, "$httpType://$httpHost") !== 0) $_FILES = $_POST = array();
+        }
+
         $_FILES  = validater::filterFiles();
         $_POST   = validater::filterSuper($_POST);
         $_GET    = validater::filterSuper($_GET);
@@ -859,7 +867,7 @@ class baseRouter
             $this->clientLang = $this->config->default->lang;
         }
 
-        setcookie('lang', $this->clientLang, $this->config->cookieLife, $this->config->webRoot);
+        setcookie('lang', $this->clientLang, $this->config->cookieLife, $this->config->webRoot, '', false, false);
         if(!isset($_COOKIE['lang'])) $_COOKIE['lang'] = $this->clientLang;
 
         return true;
@@ -913,7 +921,7 @@ class baseRouter
             $this->clientTheme = $this->config->default->theme;
         }
 
-        setcookie('theme', $this->clientTheme, $this->config->cookieLife, $this->config->webRoot);
+        setcookie('theme', $this->clientTheme, $this->config->cookieLife, $this->config->webRoot, '', false, false);
         if(!isset($_COOKIE['theme'])) $_COOKIE['theme'] = $this->clientTheme;
 
         return true;
@@ -939,7 +947,7 @@ class baseRouter
             $this->clientDevice = ($mobile->isMobile() and !$mobile->isTablet()) ? 'mobile' : 'desktop';
         }
 
-        setcookie('device', $this->clientDevice, $this->config->cookieLife, $this->config->webRoot);
+        setcookie('device', $this->clientDevice, $this->config->cookieLife, $this->config->webRoot, '', false, true);
         if(!isset($_COOKIE['device'])) $_COOKIE['device'] = $this->clientDevice;
 
         return $this->clientDevice;
@@ -1199,7 +1207,8 @@ class baseRouter
      * Set the control file of the module to be called.
      * 
      * @param   bool    $exitIfNone     没有找到该控制器文件的情况：如果该参数为true，则终止程序；如果为false，则打印错误日志
-     *                                  If control file not foundde, how to do. True, die the whole app. false, log error.
+     *                                  The control file was not found: if the parameter is true, the program is terminated;
+     *                                  if false, the error log is printed. 
      * @access  public
      * @return  bool
      */
@@ -1599,8 +1608,8 @@ class baseRouter
         $moduleName = isset($_GET[$this->config->moduleVar]) ? strtolower($_GET[$this->config->moduleVar]) : $this->config->default->module;
         $methodName = isset($_GET[$this->config->methodVar]) ? strtolower($_GET[$this->config->methodVar]) : $this->config->default->method;
         $this->setModuleName($moduleName);
-        $this->setControlFile();
         $this->setMethodName($methodName);
+        $this->setControlFile();
     }
 
     /**
@@ -2264,7 +2273,7 @@ class baseRouter
          * 为了安全起见，对公网环境隐藏脚本路径。
          * If the ip is pulic, hidden the full path of scripts.
          */
-        $remoteIP = helper::getRemoteIp();
+        $remoteIP = zget($_SERVER, "REMOTE_ADDR", '');
         if(!defined('IN_SHELL') and !($remoteIP == '127.0.0.1' or filter_var($remoteIP, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE) === false))
         {
             $errorLog  = str_replace($this->getBasePath(), '', $errorLog);

@@ -37,6 +37,9 @@ class doc extends control
      */
     public function index()
     {
+        $this->from = 'doc';
+        setcookie('from', 'doc', $this->config->cookieLife, $this->config->webRoot, '', false, true);
+
         $this->doc->setMenu();
 
         $this->session->set('docList', $this->app->getURI(true));
@@ -44,7 +47,8 @@ class doc extends control
         $pager = new pager(0, 5, 1);
 
         $this->lang->modulePageActions  = $this->doc->setFastMenu($this->lang->doc->fast);
-        $this->lang->modulePageActions .= common::hasPriv('doc', 'createLib') ? html::a(helper::createLink('doc', 'createLib'), "<i class='icon icon-folder-plus'></i> " . $this->lang->doc->createLib, '', "class='btn btn-secondary iframe' data-width='70%'") : '';
+        $this->lang->modulePageActions .= common::hasPriv('doc', 'createLib') ? html::a(helper::createLink('doc', 'createLib'), "<i class='icon icon-plus'></i> " . $this->lang->doc->createLib, '', "class='btn btn-secondary iframe' data-width='70%'") : '';
+        $this->lang->modulePageActions .= common::hasPriv('doc', 'create') ? $this->doc->buildCreateButton4Doc() : '';
 
         $actionURL = $this->createLink('doc', 'browse', "lib=0&browseType=bySearch&queryID=myQueryID");
         $this->doc->buildSearchForm(0, array(), 0, $actionURL, 'index');
@@ -77,7 +81,7 @@ class doc extends control
     public function browse($libID = 0, $browseType = 'all', $param = 0, $orderBy = 'id_desc', $from = 'doc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
         $this->from = $from;
-        setcookie('from',  $from, $this->config->cookieLife, $this->config->webRoot);
+        setcookie('from', $from, $this->config->cookieLife, $this->config->webRoot, '', false, true);
 
         $this->loadModel('search');
 
@@ -95,6 +99,8 @@ class doc extends control
             $type      = $lib->type;
             $productID = $lib->product;
             $projectID = $lib->project;
+
+            if($type != 'product' and $type != 'project') $from = 'doc';
         }
 
         $this->libs = $this->doc->getLibs($type, '', $libID);
@@ -114,9 +120,11 @@ class doc extends control
             $this->project->setMenu($this->project->getPairs('nocode'), $lib->project);
             $this->lang->set('menugroup.doc', 'project');
         }
-
-        $menuType = (!$type && (in_array($browseType, array_keys($this->lang->doc->fastMenuList)) || $browseType == 'bysearch')) ? $browseType : $type;
-        $this->doc->setMenu($menuType, $libID, $moduleID, $productID, $projectID);
+        else
+        {
+            $menuType = (!$type && (in_array($browseType, array_keys($this->lang->doc->fastMenuList)) || $browseType == 'bysearch')) ? $browseType : $type;
+            $this->doc->setMenu($menuType, $libID, $moduleID, $productID, $projectID);
+        }
         $this->session->set('docList', $this->app->getURI(true));
 
         /* Set header and position. */
@@ -304,14 +312,18 @@ class doc extends control
             if(!$docResult or dao::isError()) $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
             $docID = $docResult['id'];
+            $files = $docResult['files'];
             $lib   = $this->doc->getLibByID($this->post->lib);
             if($docResult['status'] == 'exists')
             {
                 $this->send(array('result' => 'fail', 'message' => sprintf($this->lang->duplicate, $this->lang->doc->common), 'locate' => $this->createLink('doc', 'view', "docID=$docID")));
             }
-            $this->action->create('doc', $docID, 'Created');
 
-            $vars = "libID=$libID&browseType=byModule&moduleID={$this->post->module}&orderBy=id_desc&from=$this->from";
+            $fileAction = '';
+            if(!empty($files)) $fileAction = $this->lang->addFiles . join(',', $files) . "\n" ;
+            $this->action->create('doc', $docID, 'Created', $fileAction);
+
+            $vars = "libID={$this->post->lib}&browseType=byModule&moduleID={$this->post->module}&orderBy=id_desc&from=$this->from";
             $link = $this->createLink('doc', 'browse', $vars);
             if($this->app->getViewType() == 'xhtml') $link = $this->createLink('doc', 'view', "docID=$docID");
             $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => $link));
@@ -328,7 +340,7 @@ class doc extends control
             $this->product->setMenu($this->product->getPairs(), $lib->product);
             $this->lang->set('menugroup.doc', 'product');
 
-            $this->lang->modulePageActions = common::hasPriv('doc', 'createLib') ? html::a(helper::createLink('doc', 'createLib'), "<i class='icon icon-folder-plus'></i> " . $this->lang->doc->createLib, '', "class='btn btn-secondary iframe' data-width='70%'") : '';
+            $this->lang->modulePageActions = common::hasPriv('doc', 'createLib') ? html::a(helper::createLink('doc', 'createLib'), "<i class='icon icon-plus'></i> " . $this->lang->doc->createLib, '', "class='btn btn-secondary iframe' data-width='70%'") : '';
         }
         elseif($this->from == 'project')
         {
@@ -337,7 +349,7 @@ class doc extends control
             $this->project->setMenu($this->project->getPairs('nocode'), $lib->project);
             $this->lang->set('menugroup.doc', 'project');
 
-            $this->lang->modulePageActions = common::hasPriv('doc', 'createLib') ? html::a(helper::createLink('doc', 'createLib'), "<i class='icon icon-folder-plus'></i> " . $this->lang->doc->createLib, '', "class='btn btn-secondary iframe' data-width='70%'") : '';
+            $this->lang->modulePageActions = common::hasPriv('doc', 'createLib') ? html::a(helper::createLink('doc', 'createLib'), "<i class='icon icon-plus'></i> " . $this->lang->doc->createLib, '', "class='btn btn-secondary iframe' data-width='70%'") : '';
         }
         else
         {
@@ -348,8 +360,10 @@ class doc extends control
         $this->view->position[] = html::a($this->createLink('doc', 'browse', "libID=$libID"), $lib->name);
         $this->view->position[] = $this->lang->doc->create;
 
+        $unclosed = strpos($this->config->doc->custom->showLibs, 'unclosed') !== false ? 'unclosedProject' : '';
+
         $this->view->libID            = $libID;
-        $this->view->libs             = $this->doc->getLibs($type = 'all', $extra = 'withObject');
+        $this->view->libs             = $this->doc->getLibs($type = 'all', $extra = "withObject,$unclosed", $libID);
         $this->view->libName          = $this->dao->findByID($libID)->from(TABLE_DOCLIB)->fetch('name');
         $this->view->moduleOptionMenu = $this->tree->getOptionMenu($libID, 'doc', $startModuleID = 0);
         $this->view->moduleID         = $moduleID;
@@ -490,6 +504,40 @@ class doc extends control
                 $this->send($response);
             }
             die(js::locate($this->session->docList, 'parent'));
+        }
+    }
+
+    /**
+     * Delete file for doc.
+     * 
+     * @param  int    $docID 
+     * @param  int    $fileID 
+     * @param  string $confirm 
+     * @access public
+     * @return void
+     */
+    public function deleteFile($docID, $fileID, $confirm = 'no')
+    {
+        $this->loadModel('file');
+        if($confirm == 'no')
+        {
+            die(js::confirm($this->lang->file->confirmDelete, inlink('deleteFile', "docID=$docID&fileID=$fileID&confirm=yes")));
+        }
+        else
+        {
+            $docContent = $this->dao->select('t1.*')->from(TABLE_DOCCONTENT)->alias('t1')
+                ->leftJoin(TABLE_DOC)->alias('t2')->on('t1.doc=t2.id and t1.version=t2.version')
+                ->where('t2.id')->eq($docID)
+                ->fetch();
+            unset($docContent->id);
+            $docContent->files    = trim(str_replace(",{$fileID},", ',', ",{$docContent->files},"), ',');
+            $docContent->version += 1;
+            $this->dao->insert(TABLE_DOCCONTENT)->data($docContent)->exec();
+            $this->dao->update(TABLE_DOC)->set('version')->eq($docContent->version)->where('id')->eq($docID)->exec();
+
+            $file = $this->file->getById($fileID);
+            $this->loadModel('action')->create($file->objectType, $file->objectID, 'deletedFile', '', $extra=$file->title);
+            die(js::locate($this->createLink('doc', 'view', "docID=$docID"), 'parent'));
         }
     }
 
@@ -647,7 +695,7 @@ class doc extends control
      */
     public function allLibs($type, $product = 0, $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
-        setcookie('product', $product, $this->config->cookieLife, $this->config->webRoot);
+        setcookie('product', $product, $this->config->cookieLife, $this->config->webRoot, '', false, true);
 
         $libName = $this->lang->doc->libTypeList[$type];
         $crumb   = html::a(inlink('allLibs', "type=$type&product=$product"), $libName);
@@ -698,7 +746,7 @@ class doc extends control
         $this->app->session->set('docList',   $uri);
 
         if(empty($viewType)) $viewType = !empty($_COOKIE['docFilesViewType']) ? $this->cookie->docFilesViewType : 'card';
-        setcookie('docFilesViewType', $viewType, $this->config->cookieLife, $this->config->webRoot);
+        setcookie('docFilesViewType', $viewType, $this->config->cookieLife, $this->config->webRoot, '', false, true);
 
         $table  = $type == 'product' ? TABLE_PRODUCT : TABLE_PROJECT;
         $object = $this->dao->select('id,name')->from($table)->where('id')->eq($objectID)->fetch();
@@ -762,7 +810,7 @@ class doc extends control
     }
 
     /**
-     * Show libs for product or project
+     * Show accessDenied response.
      *
      * @access private
      * @return void
@@ -771,10 +819,12 @@ class doc extends control
     {
         echo(js::alert($this->lang->doc->accessDenied));
 
-        $loginLink = $this->config->requestType == 'GET' ? "?{$this->config->moduleVar}=user&{$this->config->methodVar}=login" : "user{$this->config->requestFix}login";
+        if(!$this->server->http_referer) die(js::locate(inlink('index')));
 
-       if(strpos($this->server->http_referer, $loginLink) !== false) die(js::locate(inlink('index')));
-       die(js::locate('back'));
+        $loginLink = $this->config->requestType == 'GET' ? "?{$this->config->moduleVar}=user&{$this->config->methodVar}=login" : "user{$this->config->requestFix}login";
+        if(strpos($this->server->http_referer, $loginLink) !== false) die(js::locate(inlink('index')));
+
+        die(js::locate('back'));
     }
 
     /**
@@ -789,7 +839,7 @@ class doc extends control
     public function objectLibs($type, $objectID, $from = 'doc')
     {
         $this->from = $from;
-        setcookie('from', $from, $this->config->cookieLife, $this->config->webRoot);
+        setcookie('from', $from, $this->config->cookieLife, $this->config->webRoot, '', false, true);
 
         $table  = $type == 'product' ? TABLE_PRODUCT : TABLE_PROJECT;
         $object = $this->dao->select('id,name')->from($table)->where('id')->eq($objectID)->fetch();
@@ -803,7 +853,6 @@ class doc extends control
         }
         elseif($from == 'project')
         {
-            $this->lang->modulePageActions = common::hasPriv('doc', 'createLib') ? html::a(helper::createLink('doc', 'createLib'), "<i class='icon icon-folder-plus'></i> " . $this->lang->doc->createLib, '', "class='btn btn-secondary iframe' data-width='70%'") : '';
             $this->lang->doc->menu      = $this->lang->project->menu;
             $this->lang->doc->menuOrder = $this->lang->project->menuOrder;
             $this->project->setMenu($this->project->getPairs('nocode'), $objectID);

@@ -83,6 +83,7 @@ class product extends control
         $this->view->position[] = $this->products[$productID];
         $this->view->position[] = $this->lang->product->project;
         $this->view->productID  = $productID;
+        $this->view->status     = $status;
         $this->display();
     }
 
@@ -114,15 +115,15 @@ class product extends control
         /* Set product, module and query. */
         $productID = $this->product->saveState($productID, $this->products);
         $branch    = ($branch === '') ? (int)$this->cookie->preBranch : (int)$branch;
-        setcookie('preProductID', $productID, $this->config->cookieLife, $this->config->webRoot);
-        setcookie('preBranch', (int)$branch, $this->config->cookieLife, $this->config->webRoot);
+        setcookie('preProductID', $productID, $this->config->cookieLife, $this->config->webRoot, '', false, true);
+        setcookie('preBranch', (int)$branch, $this->config->cookieLife, $this->config->webRoot, '', false, true);
 
         if($this->cookie->preProductID != $productID or $this->cookie->preBranch != $branch)
         {
             $_COOKIE['storyModule'] = 0;
-            setcookie('storyModule', 0, 0, $this->config->webRoot);
+            setcookie('storyModule', 0, 0, $this->config->webRoot, '', false, false);
         }
-        if($browseType == 'bymodule') setcookie('storyModule', (int)$param, 0, $this->config->webRoot);
+        if($browseType == 'bymodule') setcookie('storyModule', (int)$param, 0, $this->config->webRoot, '', false, false);
         if($browseType != 'bymodule') $this->session->set('storyBrowseType', $browseType);
 
         $moduleID = ($browseType == 'bymodule') ? (int)$param : ($browseType == 'bysearch' ? 0 : ($this->cookie->storyModule ? $this->cookie->storyModule : 0));
@@ -133,7 +134,7 @@ class product extends control
 
         /* Process the order by field. */
         if(!$orderBy) $orderBy = $this->cookie->productStoryOrder ? $this->cookie->productStoryOrder : 'id_desc';
-        setcookie('productStoryOrder', $orderBy, 0, $this->config->webRoot);
+        setcookie('productStoryOrder', $orderBy, 0, $this->config->webRoot, '', false, true);
 
         /* Append id for secend sort. */
         $sort = $this->loadModel('common')->appendOrder($orderBy);
@@ -187,7 +188,7 @@ class product extends control
         $this->view->branch        = $branch;
         $this->view->branches      = $this->loadModel('branch')->getPairs($productID);
         $this->view->storyStages   = $this->product->batchGetStoryStage($stories);
-        $this->view->setShowModule = true;
+        $this->view->setModule     = true;
         $this->view->storyTasks    = $storyTasks;
         $this->view->storyBugs     = $storyBugs;
         $this->view->storyCases    = $storyCases;
@@ -209,6 +210,8 @@ class product extends control
             $productID = $this->product->create();
             if(dao::isError()) $this->send(array('result' => 'fail', 'message' => dao::getError()));
             $this->loadModel('action')->create('product', $productID, 'opened');
+
+            $this->executeHooks($productID);
 
             $locate = $this->createLink($this->moduleName, 'browse', "productID=$productID");
             if(isset($this->config->global->flow) and $this->config->global->flow == 'onlyTest') $locate = $this->createLink($this->moduleName, 'build', "productID=$productID");
@@ -258,6 +261,7 @@ class product extends control
                 $this->action->logHistory($actionID, $changes);
             }
 
+            $this->executeHooks($productID);
             $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => inlink('view', "product=$productID")));
         }
 
@@ -356,6 +360,9 @@ class product extends control
                 $actionID = $this->action->create('product', $productID, 'Closed', $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
             }
+
+            $this->executeHooks($productID);
+
             die(js::reload('parent.parent'));
         }
 
@@ -387,6 +394,8 @@ class product extends control
         /* Load pager. */
         $this->app->loadClass('pager', $static = true);
         $pager = new pager(0, 30, 1);
+
+        $this->executeHooks($productID);
 
         $this->view->title      = $product->name . $this->lang->colon . $this->lang->product->view;
         $this->view->position[] = html::a($this->createLink($this->moduleName, 'browse'), $product->name);
@@ -422,6 +431,7 @@ class product extends control
             $this->product->delete(TABLE_PRODUCT, $productID);
             $this->dao->update(TABLE_DOCLIB)->set('deleted')->eq(1)->where('product')->eq($productID)->exec();
             $this->session->set('product', '');     // 清除session。
+            $this->executeHooks($productID);
             die(js::locate($this->createLink('product', 'browse'), 'parent'));
         }
     }
@@ -441,6 +451,8 @@ class product extends control
         $this->session->set('productPlanList', $this->app->getURI(true));
 
         $product = $this->dao->findById($productID)->from(TABLE_PRODUCT)->fetch();
+        if(empty($product)) $this->locate($this->createLink('product', 'showErrorNone', 'fromModule=product'));
+
         $this->view->title      = $product->name . $this->lang->colon . $this->lang->product->roadmap;
         $this->view->position[] = html::a($this->createLink($this->moduleName, 'browse'), $product->name);
         $this->view->position[] = $this->lang->product->roadmap;
@@ -501,7 +513,7 @@ class product extends control
         /* Assign. */
         $this->view->productID  = $productID;
         $this->view->type       = $type;
-        $this->view->users      = $this->loadModel('user')->getPairs('noletter|nodeleted');
+        $this->view->users      = $this->loadModel('user')->getPairs('noletter|nodeleted|noclosed');
         $this->view->account    = $account;
         $this->view->orderBy    = $orderBy;
         $this->view->param      = $param;
@@ -738,6 +750,7 @@ class product extends control
                     if(strpos(",$checkedItem,", ",{$product->id},") === false) unset($productStats[$i]);
                 }
             }
+            if(isset($this->config->bizVersion)) list($fields, $productStats) = $this->loadModel('workflowfield')->appendDataFromFlow($fields, $productStats);
 
             $this->post->set('fields', $fields);
             $this->post->set('rows', $productStats);

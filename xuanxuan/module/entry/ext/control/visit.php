@@ -14,7 +14,7 @@ class entry extends control
         if(RUN_MODE != 'xuanxuan') die();
 
         $referer = !empty($_GET['referer']) ? $this->get->referer : $referer;
-        $server  = $this->loadModel('chat')->getServer('zentao');
+        $server  = $this->loadModel('im')->getServer('zentao');
         if(empty($referer)) $referer = $server . str_replace('/x.php', '/index.php', $this->createLink('my', 'index', '', 'html'));
 
         $output = new stdclass();
@@ -47,7 +47,17 @@ class entry extends control
 
             $this->user->cleanLocked($user->account);
 
-            $user->admin    = strpos($this->app->company->admins, ",{$user->account},") !== false;
+            $user->lastTime       = $user->last;
+            $user->last           = date(DT_DATETIME1, $user->last);
+            $user->admin          = strpos($this->app->company->admins, ",{$user->account},") !== false;
+            $user->modifyPassword = ($user->visits == 0 and !empty($this->config->safe->modifyPasswordFirstLogin));
+            if($user->modifyPassword) $user->modifyPasswordReason = 'modifyPasswordFirstLogin';
+            if(!$user->modifyPassword and !empty($this->config->safe->changeWeak))
+            {
+                $user->modifyPassword = $this->loadModel('admin')->checkWeak($user);
+                if($user->modifyPassword) $user->modifyPasswordReason = 'weak';
+            }
+
             $user->rights   = $this->user->authorize($user->account);
             $user->groups   = $this->user->getGroups($user->account);
             $user->view     = $this->user->grantUserView($user->account, $user->rights['acls']);
@@ -55,7 +65,7 @@ class entry extends control
             $last = time();
             $user->last     = date(DT_DATETIME1, $last);
             $user->lastTime = $last;
-            $user->ip       = $this->session->clientIP->IP;
+            $user->ip       = helper::getRemoteIp();
 
             $xxInstalled = $user->account . 'installed';
             $this->loadModel('setting');
@@ -67,6 +77,6 @@ class entry extends control
             $this->app->user = $this->session->user;
         }
 
-        die($this->app->encrypt($output));
+        $this->loadModel('im')->sendOutput($output, 'entry/visitResponse');
     }
 }

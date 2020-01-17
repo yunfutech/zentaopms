@@ -354,10 +354,10 @@ class installModel extends model
         $this->config->db->host     = $this->post->dbHost;
         $this->config->db->name     = $this->post->dbName;
         $this->config->db->user     = $this->post->dbUser;
+        $this->config->db->encoding = $this->post->dbEncoding;
         $this->config->db->password = $this->post->dbPassword;
         $this->config->db->port     = $this->post->dbPort;
         $this->config->db->prefix   = $this->post->dbPrefix;
-
     }
 
     /**
@@ -496,7 +496,7 @@ class installModel extends model
             $admin->realname = $this->post->account;
             $admin->password = md5($this->post->password);
             $admin->gender   = 'f';
-            $this->dao->insert(TABLE_USER)->data($admin)->check('account', 'notempty')->exec();
+            $this->dao->replace(TABLE_USER)->data($admin)->check('account', 'notempty')->exec();
 
             /* Update group name and desc on dafault lang. */
             $groups = $this->dao->select('*')->from(TABLE_GROUP)->orderBy('id')->fetchAll();

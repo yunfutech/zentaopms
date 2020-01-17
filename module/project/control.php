@@ -44,7 +44,6 @@ class project extends control
 
         if($this->app->viewType != 'mhtml') unset($this->lang->project->menu->index);
         $this->commonAction($projectID);
-        //$this->project->setMenu($this->projects, key($this->projects));
         
         if(common::hasPriv('project', 'create')) $this->lang->modulePageActions = html::a($this->createLink('project', 'create'), "<i class='icon icon-sm icon-plus'></i> " . $this->lang->project->create, '', "class='btn btn-primary'");
 
@@ -127,23 +126,23 @@ class project extends control
         $project   = $this->commonAction($projectID, $status);
         $projectID = $project->id;
         $products  = $this->config->global->flow == 'onlyTask' ? array() : $this->loadModel('product')->getProductsByProject($projectID);
-        setcookie('preProjectID', $projectID, $this->config->cookieLife, $this->config->webRoot);
+        setcookie('preProjectID', $projectID, $this->config->cookieLife, $this->config->webRoot, '', false, true);
 
         if($this->cookie->preProjectID != $projectID)
         {
             $_COOKIE['moduleBrowseParam'] = $_COOKIE['productBrowseParam'] = 0;
-            setcookie('moduleBrowseParam',  0, 0, $this->config->webRoot);
-            setcookie('productBrowseParam', 0, 0, $this->config->webRoot);
+            setcookie('moduleBrowseParam',  0, 0, $this->config->webRoot, '', false, false);
+            setcookie('productBrowseParam', 0, 0, $this->config->webRoot, '', false, true);
         }
         if($browseType == 'bymodule')
         {
-            setcookie('moduleBrowseParam',  (int)$param, 0, $this->config->webRoot);
-            setcookie('productBrowseParam', 0, 0, $this->config->webRoot);
+            setcookie('moduleBrowseParam',  (int)$param, 0, $this->config->webRoot, '', false, false);
+            setcookie('productBrowseParam', 0, 0, $this->config->webRoot, '', false, true);
         }
         elseif($browseType == 'byproduct')
         {
-            setcookie('moduleBrowseParam',  0, 0, $this->config->webRoot);
-            setcookie('productBrowseParam', (int)$param, 0, $this->config->webRoot);
+            setcookie('moduleBrowseParam',  0, 0, $this->config->webRoot, '', false, false);
+            setcookie('productBrowseParam', (int)$param, 0, $this->config->webRoot, '', false, true);
         }
         else
         {
@@ -163,7 +162,7 @@ class project extends control
 
         /* Process the order by field. */
         if(!$orderBy) $orderBy = $this->cookie->projectTaskOrder ? $this->cookie->projectTaskOrder : 'status,id_desc';
-        setcookie('projectTaskOrder', $orderBy, 0, $this->config->webRoot);
+        setcookie('projectTaskOrder', $orderBy, 0, $this->config->webRoot, '', false, true);
 
         /* Append id for secend sort. */
         $sort = $this->loadModel('common')->appendOrder($orderBy);
@@ -190,7 +189,9 @@ class project extends control
         $memberPairs = array();
         foreach($this->view->teamMembers as $key => $member) $memberPairs[$key] = $member->realname;
 
-        $showModule = !empty($this->config->datatable->projectTask->showModule) ? $this->config->datatable->projectTask->showModule : '';
+        $showAllModule = isset($this->config->project->task->allModule) ? $this->config->project->task->allModule : '';
+        $extra         = (isset($this->config->project->task->allModule) && $this->config->project->task->allModule == 1) ? 'allModule' : '';
+        $showModule    = !empty($this->config->datatable->projectTask->showModule) ? $this->config->datatable->projectTask->showModule : '';
         $this->view->modulePairs = $showModule ? $this->tree->getModulePairs($projectID, 'task', $showModule) : array();
 
         /* Assign. */
@@ -208,12 +209,12 @@ class project extends control
         $this->view->projectID     = $projectID;
         $this->view->project       = $project;
         $this->view->productID     = $productID;
-        $this->view->modules       = $this->tree->getTaskOptionMenu($projectID);
+        $this->view->modules       = $this->tree->getTaskOptionMenu($projectID, 0, 0, $showAllModule ? 'allModule' : '');
         $this->view->moduleID      = $moduleID;
-        $this->view->moduleTree    = $this->tree->getTaskTreeMenu($projectID, $productID, $startModuleID = 0, array('treeModel', 'createTaskLink'));
+        $this->view->moduleTree    = $this->tree->getTaskTreeMenu($projectID, $productID, $startModuleID = 0, array('treeModel', 'createTaskLink'), $extra);
         $this->view->memberPairs   = $memberPairs;
         $this->view->branchGroups  = $this->loadModel('branch')->getByProducts(array_keys($products), 'noempty');
-        $this->view->setShowModule = true;
+        $this->view->setModule     = true;
 
         $this->display();
     }
@@ -626,7 +627,7 @@ class project extends control
      * @access public
      * @return void
      */
-    public function story($projectID = 0, $orderBy = 'order_desc', $type = 'byModule', $param = 0, $recTotal = 0, $recPerPage = 50, $pageID = 1)
+    public function story($projectID = 0, $orderBy = 'order_desc', $type = 'all', $param = 0, $recTotal = 0, $recPerPage = 50, $pageID = 1)
     {
         /* Load these models. */
         $this->loadModel('story');
@@ -635,17 +636,58 @@ class project extends control
 
         $this->project->getLimitedProject();
 
+        $type = strtolower($type);
+        setcookie('storyPreProjectID', $projectID, $this->config->cookieLife, $this->config->webRoot, '', false, true);
+        if($this->cookie->storyPreProjectID != $projectID)
+        {
+            $_COOKIE['storyModuleParam'] = $_COOKIE['storyProductParam'] = $_COOKIE['storyBranchParam'] = 0;
+            setcookie('storyModuleParam',  0, 0, $this->config->webRoot, '', false, true);
+            setcookie('storyProductParam', 0, 0, $this->config->webRoot, '', false, true);
+            setcookie('storyBranchParam',  0, 0, $this->config->webRoot, '', false, true);
+        }
+        if($type == 'bymodule')
+        {
+            $_COOKIE['storyModuleParam']  = (int)$param;
+            $_COOKIE['storyProductParam'] = 0;
+            $_COOKIE['storyBranchParam']  = 0;
+            setcookie('storyModuleParam', (int)$param, 0, $this->config->webRoot, '', false, true);
+            setcookie('storyProductParam', 0, 0, $this->config->webRoot, '', false, true);
+            setcookie('storyBranchParam',  0, 0, $this->config->webRoot, '', false, true);
+        }
+        elseif($type == 'byproduct')
+        {
+            $_COOKIE['storyModuleParam']  = 0;
+            $_COOKIE['storyProductParam'] = (int)$param;
+            $_COOKIE['storyBranchParam']  = 0;
+            setcookie('storyModuleParam',  0, 0, $this->config->webRoot, '', false, true);
+            setcookie('storyProductParam', (int)$param, 0, $this->config->webRoot, '', false, true);
+            setcookie('storyBranchParam',  0, 0, $this->config->webRoot, '', false, true);
+        }
+        elseif($type == 'bybranch')
+        {
+            $_COOKIE['storyModuleParam']  = 0;
+            $_COOKIE['storyProductParam'] = 0;
+            $_COOKIE['storyBranchParam']  = $param;
+            setcookie('storyModuleParam',  0, 0, $this->config->webRoot, '', false, true);
+            setcookie('storyProductParam', 0, 0, $this->config->webRoot, '', false, true);
+            setcookie('storyBranchParam',  $param, 0, $this->config->webRoot, '', false, true);
+        }
+        else
+        {
+            $this->session->set('projectStoryBrowseType', $type);
+        }
+
         /* Save session. */
         $this->app->session->set('storyList', $this->app->getURI(true));
 
         /* Process the order by field. */
         if(!$orderBy) $orderBy = $this->cookie->projectStoryOrder ? $this->cookie->projectStoryOrder : 'pri';
-        setcookie('projectStoryOrder', $orderBy, 0, $this->config->webRoot);
+        setcookie('projectStoryOrder', $orderBy, 0, $this->config->webRoot, '', false, true);
 
         /* Append id for secend sort. */
         $sort = $this->loadModel('common')->appendOrder($orderBy);
 
-        $queryID   = ($type == 'bySearch') ? (int)$param : 0;
+        $queryID   = ($type == 'bysearch') ? (int)$param : 0;
         $project   = $this->commonAction($projectID);
         $projectID = $project->id;
 
@@ -656,11 +698,6 @@ class project extends control
         $stories = $this->story->getProjectStories($projectID, $sort, $type, $param, $pager);
         $this->loadModel('common')->saveQueryCondition($this->dao->get(), 'story', false);
         $users   = $this->user->getPairs('noletter');
-
-        /* Get project's product. */
-        $productID    = 0;
-        $productPairs = $this->loadModel('product')->getProductsByProject($projectID);
-        if($productPairs) $productID = key($productPairs);
 
         /* Build the search form. */
         $modules  = array();
@@ -697,10 +734,20 @@ class project extends control
             foreach($plans as $productID => $plan) $allPlans += $plan;
         }
 
-        if($type == 'byModule')
+        if($this->cookie->storyModuleParam)  $this->view->module  = $this->loadModel('tree')->getById($this->cookie->storyModuleParam);
+        if($this->cookie->storyProductParam) $this->view->product = $this->loadModel('product')->getById($this->cookie->storyProductParam);
+        if($this->cookie->storyBranchParam)
         {
-            $this->view->module = $this->loadModel('tree')->getById($param);
+            $productID = 0;
+            $branchID  = $this->cookie->storyBranchParam;
+            if(strpos($branchID, ',') !== false) list($productID, $branchID) = explode(',', $branchID);
+            $this->view->branch  = $this->loadModel('branch')->getById($branchID, $productID);
         }
+
+        /* Get project's product. */
+        $productID    = 0;
+        $productPairs = $this->loadModel('product')->getProductsByProject($projectID);
+        if($productPairs) $productID = key($productPairs);
 
         /* Assign. */
         $this->view->title        = $title;
@@ -711,7 +758,7 @@ class project extends control
         $this->view->allPlans     = $allPlans;
         $this->view->summary      = $this->product->summary($stories);
         $this->view->orderBy      = $orderBy;
-        $this->view->type         = $type;
+        $this->view->type         = $this->session->projectStoryBrowseType;
         $this->view->param        = $param;
         $this->view->moduleTree   = $this->loadModel('tree')->getProjectStoryTreeMenu($projectID, $startModuleID = 0, array('treeModel', 'createProjectStoryLink'));
         $this->view->tabID        = 'story';
@@ -739,7 +786,7 @@ class project extends control
      * @access public
      * @return void
      */
-    public function bug($projectID = 0, $orderBy = 'status,id_desc', $build = 0, $type = '', $param = 0, $recTotal = 0, $recPerPage = 20, $pageID = 1)
+    public function bug($projectID = 0, $orderBy = 'status,id_desc', $build = 0, $type = 'all', $param = 0, $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
         /* Load these two models. */
         $this->loadModel('bug');
@@ -748,7 +795,8 @@ class project extends control
         /* Save session. */
         $this->session->set('bugList', $this->app->getURI(true));
 
-        $queryID   = ($type == 'bySearch') ? (int)$param : 0;
+        $type      = strtolower($type);
+        $queryID   = ($type == 'bysearch') ? (int)$param : 0;
         $project   = $this->commonAction($projectID);
         $projectID = $project->id;
         $products  = $this->project->getProducts($project->id);
@@ -776,7 +824,7 @@ class project extends control
         }
 
         /* Build the search form. */
-        $actionURL = $this->createLink('project', 'bug', "projectID=$projectID&orderBy=$orderBy&build=$build&type=bySearch&queryID=myQueryID");
+        $actionURL = $this->createLink('project', 'bug', "projectID=$projectID&orderBy=$orderBy&build=$build&type=bysearch&queryID=myQueryID");
         $this->project->buildBugSearchForm($products, $queryID, $actionURL);
 
         /* Assign. */
@@ -901,10 +949,8 @@ class project extends control
         list($dateList, $interval) = $this->project->getDateList($projectInfo->begin, $projectInfo->end, $type, $interval, 'Y-m-d');
         $chartData = $this->project->buildBurnData($projectID, $dateList, $type);
 
-        /* Set a space when assemble the string for english. */
-        $space   = $this->app->getClientLang() == 'en' ? ' ' : '';
         $dayList = array_fill(1, floor($project->days / $this->config->project->maxBurnDay) + 5, '');
-        foreach($dayList as $key => $val) $dayList[$key] = $this->lang->project->interval . $space . ($key + 1) . $space . $this->lang->day;
+        foreach($dayList as $key => $val) $dayList[$key] = $this->lang->project->interval . ($key + 1) . $this->lang->day;
 
         /* Assign. */
         $this->view->title       = $title;
@@ -915,7 +961,7 @@ class project extends control
         $this->view->type        = $type;
         $this->view->interval    = $interval;
         $this->view->chartData   = $chartData;
-        $this->view->dayList     = array('full' => $this->lang->project->interval . $space . 1 . $space . $this->lang->day) + $dayList;
+        $this->view->dayList     = array('full' => $this->lang->project->interval . '1' . $this->lang->day) + $dayList;
 
         unset($this->lang->modulePageActions);
         $this->display();
@@ -1055,7 +1101,16 @@ class project extends control
 
             $this->loadModel('action')->create('project', $projectID, 'opened', '', join(',', $_POST['products']));
 
-            $planID = reset($_POST['plans']);
+            $this->executeHooks($projectID);
+
+            $planID = '';
+            if(isset($_POST['plans']))
+            {
+                foreach($_POST['plans'] as $planID)
+                {
+                    if(!empty($planID)) break;
+                }
+            }
             if(!empty($planID))
             {
                 $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => inlink('create', "projectID=$projectID&copyProjectID=&planID=$planID&confirm=no")));
@@ -1064,6 +1119,19 @@ class project extends control
             {
                 $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => inlink('create', "projectID=$projectID")));
             }
+        }
+
+        $this->view->isSprint = false;
+        if(strpos($this->config->custom->productProject, '_2')) 
+        {
+            $this->view->isSprint = true;
+            unset($this->lang->project->typeList['waterfall']);
+            unset($this->lang->project->typeList['ops']);
+
+            unset($this->lang->project->endList[62]);
+            unset($this->lang->project->endList[93]);
+            unset($this->lang->project->endList[186]);
+            unset($this->lang->project->endList[365]);
         }
 
         $projectID = key($this->projects);
@@ -1125,6 +1193,7 @@ class project extends control
                 $actionID = $this->loadModel('action')->create('project', $projectID, 'edited');
                 $this->action->logHistory($actionID, $changes);
             }
+            $this->executeHooks($projectID);
             $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => inlink('view', "projectID=$projectID")));
         }
 
@@ -1155,6 +1224,20 @@ class project extends control
         foreach($linkedProducts as $product)
         {
             $productPlans[$product->id] = $this->productplan->getPairs($product->id);
+        }
+
+        $this->view->isSprint = false;
+        if(strpos($this->config->custom->productProject, '_2')) 
+        {
+            $this->view->isSprint = true;
+
+            unset($this->lang->project->typeList['waterfall']);
+            unset($this->lang->project->typeList['ops']);
+
+            unset($this->lang->project->endList[62]);
+            unset($this->lang->project->endList[93]);
+            unset($this->lang->project->endList[186]);
+            unset($this->lang->project->endList[365]);
         }
 
         $this->view->title          = $title;
@@ -1252,6 +1335,7 @@ class project extends control
                 $actionID = $this->action->create('project', $projectID, 'Started', $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
             }
+            $this->executeHooks($projectID);
             die(js::reload('parent.parent'));
         }
 
@@ -1286,6 +1370,7 @@ class project extends control
                 $actionID = $this->action->create('project', $projectID, 'Delayed', $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
             }
+            $this->executeHooks($projectID);
             die(js::reload('parent.parent'));
         }
 
@@ -1320,6 +1405,7 @@ class project extends control
                 $actionID = $this->action->create('project', $projectID, 'Suspended', $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
             }
+            $this->executeHooks($projectID);
             die(js::reload('parent.parent'));
         }
 
@@ -1354,6 +1440,7 @@ class project extends control
                 $actionID = $this->action->create('project', $projectID, 'Activated', $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
             }
+            $this->executeHooks($projectID);
             die(js::reload('parent.parent'));
         }
 
@@ -1395,6 +1482,7 @@ class project extends control
                 $actionID = $this->action->create('project', $projectID, 'Closed', $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
             }
+            $this->executeHooks($projectID);
             die(js::reload('parent.parent'));
         }
 
@@ -1435,6 +1523,8 @@ class project extends control
         /* Load pager. */
         $this->app->loadClass('pager', $static = true);
         $pager = new pager(0, 30, 1);
+
+        $this->executeHooks($projectID);
 
         $this->view->title      = $this->lang->project->view;
         $this->view->position[] = html::a($this->createLink('project', 'browse', "projectID=$projectID"), $project->name);
@@ -1483,22 +1573,24 @@ class project extends control
         $stories = $this->loadModel('story')->getProjectStories($projectID, $orderBy);
 
         $kanbanGroup   = $this->project->getKanbanGroupData($stories, $tasks, $bugs, $type);
-        $kanbanSetting = $this->project->getKanbanSetting($projectID);
+        $kanbanSetting = $this->project->getKanbanSetting();
 
-        $this->view->title       = $this->lang->project->kanban;
-        $this->view->position[]  = html::a($this->createLink('project', 'browse', "projectID=$projectID"), $project->name);
-        $this->view->position[]  = $this->lang->project->kanban;
-        $this->view->stories     = $stories;
-        $this->view->realnames   = $this->loadModel('user')->getPairs('noletter');
-        $this->view->storyOrder  = $orderBy;
-        $this->view->orderBy     = 'id_asc';
-        $this->view->projectID   = $projectID;
-        $this->view->browseType  = '';
-        $this->view->project     = $project;
-        $this->view->type        = $type;
-        $this->view->kanbanGroup = $kanbanGroup;
-        $this->view->allCols     = $kanbanSetting->allCols;
-        $this->view->colorList   = $kanbanSetting->colorList;
+        $this->view->title         = $this->lang->project->kanban;
+        $this->view->position[]    = html::a($this->createLink('project', 'browse', "projectID=$projectID"), $project->name);
+        $this->view->position[]    = $this->lang->project->kanban;
+        $this->view->stories       = $stories;
+        $this->view->realnames     = $this->loadModel('user')->getPairs('noletter');
+        $this->view->storyOrder    = $orderBy;
+        $this->view->orderBy       = 'id_asc';
+        $this->view->projectID     = $projectID;
+        $this->view->browseType    = '';
+        $this->view->project       = $project;
+        $this->view->type          = $type;
+        $this->view->kanbanGroup   = $kanbanGroup;
+        $this->view->kanbanColumns = $this->project->getKanbanColumns($kanbanSetting);
+        $this->view->statusMap     = $this->project->getKanbanStatusMap($kanbanSetting);
+        $this->view->statusList    = $this->project->getKanbanStatusList($kanbanSetting);
+        $this->view->colorList     = $this->project->getKanbanColorList($kanbanSetting);
 
         $this->display();
     }
@@ -1512,7 +1604,7 @@ class project extends control
      * @access public
      * @return void
      */
-    public function tree($projectID, $type = '')
+    public function tree($projectID, $type = 'task')
     {
         $this->project->setMenu($this->projects, $projectID);
         $project = $this->loadModel('project')->getById($projectID);
@@ -1671,9 +1763,9 @@ class project extends control
         $productPairs = $this->loadModel('product')->getProductsByProject($projectID);
         if($productPairs) $productID = key($productPairs);
 
-        $this->view->title      = $this->lang->project->kanban;
+        $this->view->title      = $this->lang->project->storyKanban;
         $this->view->position[] = html::a($this->createLink('project', 'story', "projectID=$projectID"), $project->name);
-        $this->view->position[] = $this->lang->project->kanban;
+        $this->view->position[] = $this->lang->project->storyKanban;
         $this->view->stories    = $this->story->getKanbanGroupData($stories);
         $this->view->realnames  = $this->loadModel('user')->getPairs('noletter');
         $this->view->projectID  = $projectID;
@@ -1702,7 +1794,9 @@ class project extends control
         {
             $this->project->delete(TABLE_PROJECT, $projectID);
             $this->dao->update(TABLE_DOCLIB)->set('deleted')->eq(1)->where('project')->eq($projectID)->exec();
+            $this->project->updateUserView($projectID);
             $this->session->set('project', '');
+            $this->executeHooks($projectID);
             die(js::locate(inlink('index'), 'parent'));
         }
     }
@@ -1727,7 +1821,7 @@ class project extends control
             $this->project->updateProducts($projectID);
             if(dao::isError()) die(js::error(dao::getError()));
 
-            $this->loadModel('action')->create('project', $projectID, 'Managed', '', join(',', $_POST['products']));
+            $this->loadModel('action')->create('project', $projectID, 'Managed', '', $_POST['products'] ? join(',', $_POST['products']) : '');
             die(js::locate($browseProjectLink));
         }
 
@@ -1783,7 +1877,7 @@ class project extends control
         $this->loadModel('dept');
 
         $project        = $this->project->getById($projectID);
-        $users          = $this->user->getPairs('noclosed|nodeleted|devfirst');
+        $users          = $this->user->getPairs('noclosed|nodeleted|devfirst|nofeedback');
         $roles          = $this->user->getUserRoles(array_keys($users));
         $deptUsers      = $dept === '' ? array() : $this->dept->getDeptUserPairs($dept);
         $currentMembers = $this->project->getTeamMembers($projectID);
@@ -2001,11 +2095,11 @@ class project extends control
      */
     public function batchUnlinkStory($projectID)
     {
-        if(isset($_POST['storyIDList']))
+        if(isset($_POST['storyIdList']))
         {
-            $storyIDList = $this->post->storyIDList;
+            $storyIdList = $this->post->storyIdList;
             $_POST       = array();
-            foreach($storyIDList as $storyID)
+            foreach($storyIdList as $storyID)
             {
                 $this->project->unlinkStory($projectID, $storyID);
             }
@@ -2272,8 +2366,8 @@ class project extends control
             $users        = $this->loadModel('user')->getPairs('noletter');
             foreach($projectStats as $i => $project)
             {
-                $project->PM    = zget($users, $project->PM);
-                $project->status = isset($project->delay) ? $projectLang->delayed : $projectLang->statusList[$project->status];
+                $project->PM            = zget($users, $project->PM);
+                $project->status        = isset($project->delay) ? $projectLang->delayed : $this->processStatus('project', $project);
                 $project->totalEstimate = $project->hours->totalEstimate;
                 $project->totalConsumed = $project->hours->totalConsumed;
                 $project->totalLeft     = $project->hours->totalLeft;
@@ -2285,6 +2379,7 @@ class project extends control
                     if(strpos(",$checkedItem,", ",{$project->id},") === false) unset($projectStats[$i]);
                 }
             }
+            if(isset($this->config->bizVersion)) list($fields, $projectStats) = $this->loadModel('workflowfield')->appendDataFromFlow($fields, $projectStats);
 
             $this->post->set('fields', $fields);
             $this->post->set('rows', $projectStats);
@@ -2331,11 +2426,9 @@ class project extends control
         }
 
         $this->app->loadLang('task');
-        $kanbanSetting = $this->project->getKanbanSetting($projectID);
 
-        $this->view->allCols    = $kanbanSetting->allCols;
-        $this->view->colorList  = $kanbanSetting->colorList;
-        $this->view->projectID  = $projectID;
+        $this->view->setting   = $this->project->getKanbanSetting();
+        $this->view->projectID = $projectID;
         $this->display();
     }
 
@@ -2349,7 +2442,7 @@ class project extends control
      */
     public function ajaxResetKanban($projectID, $confirm = 'no')
     {
-        if($confirm != 'yes')die(js::confirm($this->lang->kanbanSetting->noticeReset, inlink('ajaxResetKanban', "projectID=$projectID&confirm=yes")));
+        if($confirm != 'yes') die(js::confirm($this->lang->kanbanSetting->noticeReset, inlink('ajaxResetKanban', "projectID=$projectID&confirm=yes")));
 
         $this->loadModel('setting');
 
@@ -2379,8 +2472,8 @@ class project extends control
      */
     public function importPlanStories($projectID, $planID)
     {
-        $planStories  = $planProducts = array();
-        $planStory    = $this->loadModel('story')->getPlanStories($planID);
+        $planStories = $planProducts = array();
+        $planStory   = $this->loadModel('story')->getPlanStories($planID);
         $count = 0;
         if(!empty($planStory))
         {

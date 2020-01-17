@@ -18,11 +18,11 @@
     <div class='main-header'>
       <h2><?php echo $lang->webhook->create;?></h2>
     </div>
-    <form id='webhookForm' method='post' class='ajaxForm'>
+    <form id='webhookForm' method='post' class='form-ajax'>
       <table class='table table-form'>
         <tr>
-          <th><?php echo $lang->webhook->type;?></th>
-          <td><?php echo html::select('type', $lang->webhook->typeList, '', "class='form-control'");?></td>
+          <th class='thWidth'><?php echo $lang->webhook->type;?></th>
+          <td style="width:550px" ><?php echo html::select('type', $lang->webhook->typeList, '', "class='form-control'");?></td>
           <td></td>
         </tr>
         <tr>
@@ -30,10 +30,27 @@
           <td><?php echo html::input('name', '', "class='form-control'");?></td>
           <td></td>
         </tr>
-        <tr>
+        <tr id='urlTR'>
           <th><?php echo $lang->webhook->url;?></th>
           <td><?php echo html::input('url', '', "class='form-control'");?></td>
           <td id='urlNote'><?php echo $lang->webhook->note->typeList['default'];?></td>
+        </tr>
+        <tr id='secretTR'>
+          <th><?php echo $lang->webhook->secret;?></th>
+          <td><?php echo html::input('secret', '', "class='form-control'");?></td>
+        </tr>
+        <tr class='dingapiTR'>
+          <th><?php echo $lang->webhook->dingAgentId;?></th>
+          <td class='required'><?php echo html::input('agentId', '', "class='form-control'");?></td>
+          <td><?php echo $lang->webhook->note->dingKey;?></td>
+        </tr>
+        <tr class='dingapiTR'>
+          <th><?php echo $lang->webhook->dingAppKey;?></th>
+          <td class='required'><?php echo html::input('appKey', '', "class='form-control'");?></td>
+        </tr>
+        <tr class='dingapiTR'>
+          <th><?php echo $lang->webhook->dingAppSecret;?></th>
+          <td class='required'><?php echo html::input('appSecret', '', "class='form-control'");?></td>
         </tr>
         <tr>
           <th><?php echo $lang->webhook->domain;?></th>

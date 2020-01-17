@@ -10,7 +10,7 @@
  * @link        http://www.zentao.net
  */
 ?>
-<div id='queryBox' class='show no-margin'></div>
+<div id='queryBox' data-module='bug' class='show no-margin'></div>
 <div id='unlinkBugList'>
   <form class='main-table table-bug' data-ride='table' method='post' id='unlinkedBugsForm' target='hiddenwin' action='<?php echo $this->createLink('productplan', 'linkBug', "planID=$plan->id&browseType=$browseType&param=$param&orderBy=$orderBy")?>'>
     <div class='table-header hl-primary text-primary strong'>
@@ -44,11 +44,11 @@
           </td>
           <td><span class='label-pri label-pri-<?php echo $bug->pri;?>' title='<?php echo zget($lang->bug->priList, $bug->pri, $bug->pri)?>'><?php echo zget($lang->bug->priList, $bug->pri, $bug->pri)?></span></td>
           <td class='text-left nobr' title='<?php echo $bug->title?>'><?php echo html::a($this->createLink('bug', 'view', "bugID=$bug->id", '', true), $bug->title, '', "data-toggle='modal' data-type='iframe' data-width='90%'");?></td>
-          <td><?php echo $users[$bug->openedBy];?></td>
-          <td><?php echo $users[$bug->assignedTo];?></td>
+          <td><?php echo zget($users, $bug->openedBy);?></td>
+          <td><?php echo zget($users, $bug->assignedTo);?></td>
           <td>
             <span class='status-bug status-<?php echo $bug->status?>'>
-              <?php echo $lang->bug->statusList[$bug->status];?>
+              <?php echo $this->processStatus('bug', $bug);?>
             </span>
           </td>
         </tr>

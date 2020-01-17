@@ -24,7 +24,7 @@
     <table class='table table-bordered' style='word-break:break-all' id='steps'>
       <thead>
         <tr>
-          <td colspan='5' style='word-break: break-all;'><strong><?php echo $lang->testcase->precondition;?></strong> <?php echo $run->case->precondition;?></td>
+          <td colspan='5' style='word-break: break-all;'><strong><?php echo $lang->testcase->precondition;?></strong><br/><?php echo nl2br($run->case->precondition);?></td>
         </tr>
         <tr>
           <th class='w-50px'><?php echo $lang->testcase->stepID;?></th>
@@ -84,7 +84,7 @@
         <td colspan='5' class='form-actions'>
           <?php
           if($preCase)  echo html::a(inlink('runCase', "runID={$preCase['runID']}&caseID={$preCase['caseID']}&version={$preCase['version']}"), $lang->testtask->pre, '', "id='pre' class='btn btn-wide'");
-          echo html::submitButton();
+          if($run->case->status != 'wait') echo html::submitButton();
           if($nextCase)  echo '&nbsp;' . html::a(inlink('runCase', "runID={$nextCase['runID']}&caseID={$nextCase['caseID']}&version={$nextCase['version']}"), $lang->testtask->next, '', "id='next' class='btn btn-wide'");
           echo html::hidden('case',    $run->case->id);
           echo html::hidden('version', $run->case->currentVersion);

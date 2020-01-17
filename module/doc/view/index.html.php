@@ -14,7 +14,7 @@
 <div class='main-row split-row fade' id='mainRow'>
   <?php include './side.html.php';?>
   <div class="main-col" data-min-width="400">
-  <div class="cell" id="queryBox"></div>
+  <div class="cell" id="queryBox" data-module='doc'></div>
     <div class="row">
       <div class="col-sm-7">
         <div class="panel block-files block-sm" style="height: 290px;">
@@ -62,7 +62,7 @@
                   <strong class="progress-value"><?php echo $statisticInfo->lastEditedDocs;?></strong>
                 </div>
               </div>
-              <div class="table-row text-center small text-muted with-padding">
+              <div class="table-row text-center small text-muted">
                 <div class="col-4">
                   <span class="label label-dot label-primary"></span>
                   <span><?php echo $lang->doc->todayEdited;?></span>
@@ -125,7 +125,7 @@
       <div class="col-sm-7">
         <div class="panel block-files block-sm" style="height: 290px;">
           <div class="panel-heading">
-            <div class="panel-title"><?php echo $lang->project->undone . $lang->projectCommon;?></div>
+            <div class="panel-title"><?php echo $lang->project->undone . (common::checkNotCN() ? "{$lang->projectCommon}s" : "$lang->projectCommon");?></div>
             <nav class="panel-actions nav nav-default">
               <li><?php echo html::a($this->createLink('doc', 'allLibs', 'type=project'), '<i class="icon icon-more icon-sm"></i>', '', "title='{$lang->more}'");?></li>
             </nav>

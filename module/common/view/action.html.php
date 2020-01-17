@@ -4,7 +4,7 @@
 <?php else:?>
 <div class="detail histories" id='actionbox' data-textDiff="<?php echo $lang->action->textDiff;?>" data-original="<?php echo $lang->action->original;?>">
 <?php endif;?>
-<style>.histories-list > li{word-break: break-all; word-wrap: break-word;}</style>
+<style>.histories-list > li{word-break: break-word; word-wrap: break-word;}</style>
   <script>
   $(function()
   {
@@ -19,8 +19,8 @@
               oldBoxID = newBoxID;
               if($(this).html() != $(this).next().html()) $(this).closest('.history-changes').before(diffButton);
           }
-      })
-  })
+      });
+  });
   </script>
   <?php if(!empty($blockHistory)):?>
   <div class="panel-heading"><div class="panel-title">
@@ -50,8 +50,8 @@
       <?php $canEditComment = ($action->comment and $this->methodName == 'view' and $action->actor == $this->app->user->account and common::hasPriv('action', 'editComment'));?>
       <li value='<?php echo $i ++;?>'>
         <?php
-        if(isset($users[$action->actor])) $action->actor = $users[$action->actor];
-        if($action->action == 'assigned' and isset($users[$action->extra]) ) $action->extra = $users[$action->extra];
+        $action->actor = zget($users, $action->actor);
+        if($action->action == 'assigned') $action->extra = zget($users, $action->extra);
         if(strpos($action->actor, ':') !== false) $action->actor = substr($action->actor, strpos($action->actor, ':') + 1);
         ?>
         <?php $this->action->printAction($action);?>
@@ -61,12 +61,13 @@
           <?php echo $this->action->printChanges($action->objectType, $action->history);?>
         </div>
         <?php endif;?>
-        <?php if(!empty($action->comment)):?>
+        <?php if(strlen(trim(($action->comment))) != 0):?>
         <?php if($canEditComment):?>
         <?php echo html::commonButton('<i class="icon icon-pencil"></i>', "title='{$lang->action->editComment}'", 'btn btn-link btn-icon btn-sm btn-edit-comment');?>
+        <style>.comment .comment-content{width: 98%}</style>
         <?php endif;?>
         <div class='article-content comment'>
-          <?php echo strip_tags($action->comment) == $action->comment ? nl2br($action->comment) : $action->comment;?>
+          <div class='comment-content'><?php echo strip_tags($action->comment) == $action->comment ? nl2br($action->comment) : $action->comment;?></div>
         </div>
         <?php if($canEditComment):?>
         <form method='post' class='comment-edit-form' action='<?php echo $this->createLink('action', 'editComment', "actionID=$action->id")?>'>

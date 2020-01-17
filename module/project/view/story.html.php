@@ -12,27 +12,34 @@
 ?>
 <?php $canOrder = common::hasPriv('project', 'storySort');?>
 <?php include '../../common/view/header.html.php';?>
-<?php include '../../common/view/tablesorter.html.php';?>
 <?php if($canOrder) include '../../common/view/sortable.html.php';?>
-<?php js::set('moduleID', ($type == 'byModule' ? $param : 0));?>
-<?php js::set('productID', ($type == 'byProduct' ? $param : 0));?>
-<?php js::set('branchID', ($type == 'byBranch' ? (int)$param : ''));?>
+<?php js::set('moduleID', $this->cookie->storyModuleParam);?>
+<?php js::set('productID', $this->cookie->storyProductParam);?>
+<?php js::set('branchID', str_replace(',', '_', $this->cookie->storyBranchParam));?>
 <?php js::set('confirmUnlinkStory', $lang->project->confirmUnlinkStory)?>
 <div id="mainMenu" class="clearfix">
+  <?php if(!empty($module->name) or !empty($product->name) or !empty($branch)):?>
   <div id="sidebarHeader">
-    <?php if(!empty($module->name)):?>
-    <div class="title" title='<?php echo $module->name?>'>
-      <?php $removeLink = inlink('story', "projectID=$project->id&orderBy=$orderBy&type=$type&param=0&recTotal=0&recPerPage={$pager->recPerPage}");?>
-      <?php echo $module->name;?>
+    <?php
+    $sidebarName = isset($product) ? $product->name : (isset($branch) ? $branch : $module->name);
+    $removeType  = isset($product) ? 'byproduct' : (isset($branch) ? 'bybranch' : 'bymodule');
+    $removeLink  = inlink('story', "projectID=$project->id&orderBy=$orderBy&type=$removeType&param=0&recTotal=0&recPerPage={$pager->recPerPage}");
+    ?>
+    <div class="title" title='<?php echo $sidebarName;?>'>
+      <?php echo $sidebarName;?>
       <?php echo html::a($removeLink, "<i class='icon icon-sm icon-close'></i>", '', "class='text-muted'");?>
     </div>
-    <?php else:?>
-    <div class="title" title='<?php echo $project->name?>'><?php echo $project->name;?></div>
-    <?php endif;?>
   </div>
+  <?php endif;?>
   <div class="btn-toolbar pull-left">
-    <?php if(common::hasPriv('project', 'story')) echo html::a($this->createLink('project', 'story', "projectID=$project->id"), "<span class='text'>{$lang->story->allStories}</span> <span class='label label-light label-badge'>{$pager->recTotal}</span>", '', "class='btn btn-link btn-active-text'");?>
-    <?php if(common::hasPriv('project', 'storykanban')) echo html::a($this->createLink('project', 'storykanban', "projectID=$project->id"), "<span class='text'>{$lang->project->kanban}</span>", '', "class='btn btn-link'");?>
+    <?php
+    if(common::hasPriv('project', 'story'))
+    {
+        echo html::a($this->createLink('project', 'story', "projectID=$project->id&orderBy=order_desc&type=all"), "<span class='text'>{$lang->story->allStories}</span>" . ($type == 'all' ? " <span class='label label-light label-badge'>{$pager->recTotal}</span>" : ''), '', "class='btn btn-link" . ($type == 'all' ? " btn-active-text" : '') . "'");
+        echo html::a($this->createLink('project', 'story', "projectID=$project->id&orderBy=order_desc&type=unclosed"), "<span class='text'>{$lang->story->unclosed}</span>" . ($type == 'unclosed' ? " <span class='label label-light label-badge'>{$pager->recTotal}</span>" : ''), '', "class='btn btn-link" . ($type == 'unclosed' ? " btn-active-text" : '') . "'");
+    }
+    if(common::hasPriv('project', 'storykanban')) echo html::a($this->createLink('project', 'storykanban', "projectID=$project->id"), "<span class='text'>{$lang->project->kanban}</span>", '', "class='btn btn-link'");
+    ?>
     <a class="btn btn-link querybox-toggle" id='bysearchTab'><i class="icon icon-search muted"></i> <?php echo $lang->product->searchStory;?></a>
   </div>
   <div class="btn-toolbar pull-right">
@@ -47,8 +54,9 @@
         echo "<i class='icon-plus'></i> {$lang->story->create} <span class='caret'></span>";
         echo '</button>';
         echo "<ul class='dropdown-menu pull-right' id='createActionMenu'>";
-        if(common::hasPriv('story', 'create')) echo '<li>' . html::a($this->createLink('story', 'create',  "productID=$productID&branch=0&moduleID=0&story=0&project=$project->id"), $lang->story->create) . '</li>';
-        if(common::hasPriv('story', 'batchCreate')) echo '<li>' . html::a($this->createLink('story', 'batchCreate', "productID=$productID&branch=0&moduleID=0&story=0&project=$project->id"), $lang->story->batchCreate) . '</li>';
+        $storyModuleID = (int)$this->cookie->storyModuleParam;
+        if(common::hasPriv('story', 'create')) echo '<li>' . html::a($this->createLink('story', 'create',  "productID=$productID&branch=0&moduleID={$storyModuleID}&story=0&project=$project->id"), $lang->story->create) . '</li>';
+        if(common::hasPriv('story', 'batchCreate')) echo '<li>' . html::a($this->createLink('story', 'batchCreate', "productID=$productID&branch=0&moduleID={$storyModuleID}&story=0&project=$project->id"), $lang->story->batchCreate) . '</li>';
         echo '</ul>';
         echo '</div>';
     }
@@ -82,13 +90,12 @@
     </div>
   </div>
   <div class="main-col">
-    <div id='queryBox' class='cell <?php if($type =='bySearch') echo 'show';?>'></div>
+    <div id='queryBox' data-module='projectStory' class='cell <?php if($type =='bysearch') echo 'show';?>'></div>
     <?php if(empty($stories)):?>
     <div class="table-empty-tip">
       <p>
         <span class="text-muted"><?php echo $lang->story->noStory;?></span>
         <?php if(common::hasPriv('project', 'linkStory')):?>
-        <span class="text-muted"><?php echo $lang->youCould;?></span>
         <?php echo html::a($this->createLink('project', 'linkStory', "project=$project->id"), "<i class='icon icon-link'></i> " . $lang->project->linkStory, '', "class='btn btn-info'");?>
         <?php endif;?>
       </p>
@@ -116,7 +123,7 @@
               <?php common::printOrderLink('id', $orderBy, $vars, $lang->idAB);?>
             </th>
             <?php if($canOrder):?>
-            <th class='w-80px c-sort {sorter:false}'> <?php common::printOrderLink('order',      $orderBy, $vars, $lang->project->updateOrder);?></th>
+            <th class='w-60px c-sort {sorter:false}'> <?php common::printOrderLink('order',      $orderBy, $vars, $lang->project->orderAB);?></th>
             <?php endif;?>
             <th class='c-pri {sorter:false}'>  <?php common::printOrderLink('pri',        $orderBy, $vars, $lang->priAB);?></th>
             <th class='c-name {sorter:false}'> <?php common::printOrderLink('title',      $orderBy, $vars, $lang->story->title);?></th>
@@ -140,7 +147,7 @@
           <tr id="story<?php echo $story->id;?>" data-id='<?php echo $story->id;?>' data-order='<?php echo $story->order ?>' data-estimate='<?php echo $story->estimate?>' data-cases='<?php echo zget($storyCases, $story->id, 0)?>'>
             <td class='cell-id'>
               <?php if($canBatchEdit or $canBatchClose):?>
-              <?php echo html::checkbox('storyIDList', array($story->id => '')) . html::a(helper::createLink('story', 'view', "storyID=$story->id"), sprintf('%03d', $story->id));?>
+              <?php echo html::checkbox('storyIdList', array($story->id => '')) . html::a(helper::createLink('story', 'view', "storyID=$story->id"), sprintf('%03d', $story->id));?>
               <?php else:?>
               <?php printf('%03d', $story->id);?>
               <?php endif;?>
@@ -153,13 +160,12 @@
               <?php if(isset($branchGroups[$story->product][$story->branch])) echo "<span class='label label-outline label-badge'>" . $branchGroups[$story->product][$story->branch] . '</span>';?>
               <?php echo html::a($storyLink,$story->title, null, "style='color: $story->color'");?>
             </td>
-            <td class='c-user' title='<?php echo $users[$story->openedBy];?>'><?php echo $users[$story->openedBy];?></td>
-            <td class='c-user' title='<?php echo $users[$story->assignedTo];?>'><?php echo $users[$story->assignedTo];?></td>
+            <td class='c-user' title='<?php echo zget($users, $story->openedBy);?>'><?php echo zget($users, $story->openedBy);?></td>
+            <td class='c-user' title='<?php echo zget($users, $story->assignedTo);?>'><?php echo zget($users, $story->assignedTo);?></td>
             <td class='c-estimate'><?php echo $story->estimate;?></td>
-            <td class='c-status' title='<?php echo zget($lang->story->statusList, $story->status);?>'>
-              <span class='status-story status-<?php echo $story->status;?>'>
-                <?php echo zget($lang->story->statusList, $story->status);?>
-              </span>
+            <?php $status = $this->processStatus('story', $story);?>
+            <td class='c-status' title='<?php echo $status;?>'>
+              <span class='status-story status-<?php echo $story->status;?>'><?php echo $status;?></span>
             </td>
             <td class='c-stage'><?php echo $lang->story->stageList[$story->stage];?></td>
             <td class='linkbox'>
@@ -204,7 +210,7 @@
               if(common::hasPriv('project', 'unlinkStory', $project))
               {
                   $unlinkURL = $this->createLink('project', 'unlinkStory', "projectID=$project->id&storyID=$story->id&confirm=yes");
-                  echo html::a("javascript:ajaxDelete(\"$unlinkURL\",\"storyList\",confirmUnlinkStory)", '<i class="icon-unlink"></i>', '', "class='btn' title='{$lang->project->unlinkStory}'");
+                  echo html::a("javascript:ajaxDelete(\"$unlinkURL\", \"storyList\", confirmUnlinkStory)", '<i class="icon-unlink"></i>', '', "class='btn' title='{$lang->project->unlinkStory}'");
               }
               ?>
             </td>
@@ -237,8 +243,10 @@
             $lang->story->stageList[''] = $lang->null;
             foreach($lang->story->stageList as $key => $stage)
             {
+                if(empty($key)) continue;
+                if(strpos('tested|verified|released|closed', $key) === false) continue;
                 $actionLink = $this->createLink('story', 'batchChangeStage', "stage=$key");
-                echo "<li>" . html::a('#', $stage, '', "onclick=\"setFormAction('$actionLink','hiddenwin')\"") . "</li>";
+                echo "<li>" . html::a('#', $stage, '', "onclick=\"setFormAction('$actionLink', 'hiddenwin')\"") . "</li>";
             }
             echo '</ul>';
             ?>
@@ -248,7 +256,7 @@
           if(common::hasPriv('project', 'batchUnlinkStory'))
           {
               $actionLink = $this->createLink('project', 'batchUnlinkStory', "projectID=$project->id");
-              echo html::commonButton($lang->project->unlinkStory, "data-form-action='$actionLink'");
+              echo html::commonButton($lang->project->unlinkStoryAB, "data-form-action='$actionLink'");
           }
           ?>
         </div>
@@ -288,7 +296,8 @@ $(function()
     {
         statisticCreator: function(table)
         {
-            var $checkedRows = table.$.find('tbody>tr.checked');
+            var $checkedRows = table.getTable().find(table.isDataTable ? '.datatable-row-left.checked' : 'tbody>tr.checked');
+            var $originTable = table.isDataTable ? table.$.find('.datatable-origin') : null;
             var checkedTotal = $checkedRows.length;
             if(!checkedTotal) return;
 
@@ -297,13 +306,17 @@ $(function()
             $checkedRows.each(function()
             {
                 var $row = $(this);
+                if ($originTable)
+                {
+                    $row = $originTable.find('tbody>tr[data-id="' + $row.data('id') + '"]');
+                }
                 var data = $row.data();
                 checkedEstimate += data.estimate;
-                checkedCase += data.cases;
+                if(data.cases > 0) checkedCase += 1;
             });
-            var rate = Math.round(checkedCase / checkedTotal * 10000) / 100 + '' + '%';
+            var rate = Math.round(checkedCase / checkedTotal * 10000 / 100) + '' + '%';
             return checkedSummary.replace('%total%', checkedTotal)
-                  .replace('%estimate%', checkedEstimate)
+                  .replace('%estimate%', checkedEstimate.toFixed(1))
                   .replace('%rate%', rate);
         }
     });

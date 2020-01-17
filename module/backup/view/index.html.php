@@ -26,7 +26,7 @@
       <?php echo $lang->backup->history?>
     </h2>
     <div class='pull-right'>
-      <?php common::printLink('backup', 'setting', '', "<i class='icon icon-cog'></i>" . $lang->backup->setting, '', "data-width='400' class='iframe btn btn-primary'");?>
+      <?php common::printLink('backup', 'setting', '', "<i class='icon icon-cog'></i>" . $lang->backup->setting, '', "data-width='500' class='iframe btn btn-primary'");?>
       <?php common::printLink('backup', 'backup', 'reload=yes', "<i class='icon icon-copy'></i> " . $lang->backup->backup, 'hiddenwin', "class='btn btn-primary backup'");?>
     </div>
   </div>
@@ -36,7 +36,7 @@
         <th class='w-150px'><?php echo $lang->backup->time?></th>
         <th><?php echo $lang->backup->files?></th>
         <th class='w-150px'><?php echo $lang->backup->size?></th>
-        <th class='w-110px'><?php echo $lang->actions?></th>
+        <th class='actionWidth'><?php echo $lang->actions?></th>
       </tr>
     </thead>
     <tbody class='text-center'>
@@ -51,7 +51,7 @@
         <td <?php if($rowspan > 1) echo "rowspan='$rowspan'"?>><?php echo date(DT_DATETIME1, $backupFile->time);?></td>
         <?php endif;?>
         <td class='text-left' style='padding-left:5px;'><?php echo $file;?></td>
-        <td><?php echo $size / 1024 >= 1024 ? round($size / 1024 / 1024, 2) . 'MB' : round($size / 1024, 2) . 'KB';?></td>
+        <td><?php echo $size / 1024 / 1024 >= 1024 ? round($size / 1024 / 1024 / 1024, 2) . 'GB' : ($size / 1024 >= 1024 ? round($size / 1024 / 1024, 2) . 'MB' : round($size / 1024, 2) . 'KB');?></td>
         <?php if($i == 0):?>
         <td <?php if($rowspan > 1) echo "rowspan='$rowspan'"?>>
           <?php

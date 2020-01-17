@@ -38,9 +38,9 @@ $lang->block->lblTesttask  = '查看测试详情';
 
 $lang->block->leftToday = '今天剩余工作总计';
 $lang->block->myTask    = '我的任务';
-$lang->block->myStory   = '我的需求';
+$lang->block->myStory   = "我的{$lang->storyCommon}";
 $lang->block->myBug     = '我的BUG';
-$lang->block->myProject = '进行中的' . $lang->projectCommon;
+$lang->block->myProject = '未关闭的' . $lang->projectCommon;
 $lang->block->myProduct = '未关闭的' . $lang->productCommon;
 $lang->block->delayed   = '已延期';
 $lang->block->noData    = '当前统计类型下暂无数据';
@@ -53,13 +53,14 @@ $lang->block->params->value = '参数值';
 $lang->block->createBlock        = '添加区块';
 $lang->block->editBlock          = '编辑区块';
 $lang->block->ordersSaved        = '排序已保存';
-$lang->block->confirmRemoveBlock = '确定移除区块吗？';
+$lang->block->confirmRemoveBlock = '确定隐藏区块吗？';
 $lang->block->noticeNewBlock     = '10.0版本以后各个视图主页提供了全新的视图，您要启用新的视图布局吗？';
-$lang->block->confirmReset       = '是否恢复默认布局';
+$lang->block->confirmReset       = '是否恢复默认布局？';
 $lang->block->closeForever       = '永久关闭';
 $lang->block->confirmClose       = '确定永久关闭该区块吗？关闭后所有人都将无法使用该区块，可以在后台自定义中打开。';
 $lang->block->remove             = '移除';
 $lang->block->refresh            = '刷新';
+$lang->block->nbsp               = '';  
 $lang->block->hidden             = '隐藏';
 $lang->block->dynamicInfo        = "<span class='timeline-tag'>%s</span> <span class='timeline-text'>%s <em>%s</em> %s <a href='%s' title='%s'>%s</a></span>";
 
@@ -81,7 +82,7 @@ $lang->block->default['product']['3']['grid']  = 8;
 $lang->block->default['product']['3']['params']['num']  = 15;
 $lang->block->default['product']['3']['params']['type'] = 'noclosed';
 
-$lang->block->default['product']['4']['title'] = '指派给我的需求';
+$lang->block->default['product']['4']['title'] = "指派给我的{$lang->storyCommon}";
 $lang->block->default['product']['4']['block'] = 'story';
 $lang->block->default['product']['4']['grid']  = 4;
 
@@ -100,7 +101,7 @@ $lang->block->default['project']['2']['title'] = $lang->projectCommon . '总览'
 $lang->block->default['project']['2']['block'] = 'overview';
 $lang->block->default['project']['2']['grid']  = 4;
 
-$lang->block->default['project']['3']['title'] = '进行中的' . $lang->projectCommon;
+$lang->block->default['project']['3']['title'] = '未关闭的' . $lang->projectCommon;
 $lang->block->default['project']['3']['block'] = 'list';
 $lang->block->default['project']['3']['grid']  = 8;
 
@@ -237,7 +238,7 @@ $lang->block->availableBlocks->todo     = '我的待办';
 $lang->block->availableBlocks->task     = '我的任务';
 $lang->block->availableBlocks->bug      = '我的Bug';
 $lang->block->availableBlocks->case     = '我的用例';
-$lang->block->availableBlocks->story    = '我的需求';
+$lang->block->availableBlocks->story    = "我的{$lang->storyCommon}";
 $lang->block->availableBlocks->product  = $lang->productCommon . '列表';
 $lang->block->availableBlocks->project  = $lang->projectCommon . '列表';
 $lang->block->availableBlocks->plan     = '计划列表';
@@ -255,7 +256,7 @@ $lang->block->modules['product']->availableBlocks = new stdclass();
 $lang->block->modules['product']->availableBlocks->statistic = $lang->productCommon . '统计';
 $lang->block->modules['product']->availableBlocks->overview  = $lang->productCommon . '总览';
 $lang->block->modules['product']->availableBlocks->list      = $lang->productCommon . '列表';
-$lang->block->modules['product']->availableBlocks->story     = '需求列表';
+$lang->block->modules['product']->availableBlocks->story     = "{$lang->storyCommon}列表";
 $lang->block->modules['product']->availableBlocks->plan      = '计划列表';
 $lang->block->modules['product']->availableBlocks->release   = '发布列表';
 $lang->block->modules['project'] = new stdclass();
@@ -396,8 +397,8 @@ $lang->block->gridOptions[8] = '左侧';
 $lang->block->gridOptions[4] = '右侧';
 
 $lang->block->flowchart   = array();
-$lang->block->flowchart[] = array('管理员', '维护公司', '添加用户', '维护权限');
-$lang->block->flowchart[] = array($lang->productCommon . '经理', '创建' . $lang->productCommon, '维护模块', '维护计划', '维护需求', '创建发布');
-$lang->block->flowchart[] = array($lang->projectCommon . '经理', '创建' . $lang->projectCommon, '维护团队', '关联' . $lang->productCommon, '关联需求', '分解任务');
-$lang->block->flowchart[] = array('研发人员', '领取任务和Bug', '更新状态', '完成任务和Bug');
-$lang->block->flowchart[] = array('测试人员', '撰写用例', '执行用例', '提交Bug', '验证Bug', '关闭Bug');
+$lang->block->flowchart['admin']   = array('管理员', '维护公司', '添加用户', '维护权限');
+$lang->block->flowchart['product'] = array($lang->productCommon . '经理', '创建' . $lang->productCommon, '维护模块', '维护计划', "维护{$lang->storyCommon}", '创建发布');
+$lang->block->flowchart['project'] = array($lang->projectCommon . '经理', '创建' . $lang->projectCommon, '维护团队', '关联' . $lang->productCommon, "关联{$lang->storyCommon}", '分解任务');
+$lang->block->flowchart['dev']     = array('研发人员', '领取任务和Bug', '更新状态', '完成任务和Bug');
+$lang->block->flowchart['tester']  = array('测试人员', '撰写用例', '执行用例', '提交Bug', '验证Bug', '关闭Bug');

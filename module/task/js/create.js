@@ -1,21 +1,21 @@
 /**
- * Load module, stories and members. 
- * 
- * @param  int    $projectID 
+ * Load module, stories and members.
+ *
+ * @param  int    $projectID
  * @access public
  * @return void
  */
 function loadAll(projectID)
 {
-    loadModuleMenu(projectID); 
+    loadModuleMenu(projectID);
     loadProjectStories(projectID);
     loadProjectMembers(projectID);
 }
 
 /**
- * Load team members of the project. 
- * 
- * @param  int    $projectID 
+ * Load team members of the project.
+ *
+ * @param  int    $projectID
  * @access public
  * @return void
  */
@@ -37,9 +37,9 @@ function loadProjectMembers(projectID)
 }
 
 /**
- * Load stories of the project. 
- * 
- * @param  int    $projectID 
+ * Load stories of the project.
+ *
+ * @param  int    $projectID
  * @access public
  * @return void
  */
@@ -54,9 +54,9 @@ function loadProjectStories(projectID)
 }
 
 /**
- * Load module of the project. 
- * 
- * @param  int    $projectID 
+ * Load module of the project.
+ *
+ * @param  int    $projectID
  * @access public
  * @return void
  */
@@ -83,7 +83,7 @@ function copyStoryTitle()
     $('.pri-text span:first').removeClass().addClass('pri' + $('#storyPri').val()).text($('#storyPri').val());
     $('select#pri').val($('#storyPri').val());
 
-    $(window.editor.desc.edit.doc).find('span.kindeditor-ph').remove();
+    $('#desc').closest('td').find('.ke-container .ke-edit .kindeditor-ph').toggle($('#storyDesc').val() == '');
     window.editor.desc.html($('#storyDesc').val());
 }
 
@@ -164,16 +164,16 @@ function setPreview()
 }
 
 /**
- * Set after locate. 
- * 
+ * Set after locate.
+ *
  * @access public
  * @return void
  */
 function setAfter()
 {
-    if($("#story").length == 0 || $("#story").select().val() == '') 
+    if($("#story").length == 0 || $("#story").select().val() == '')
     {
-        if($('input[value="continueAdding"]').attr('checked') == 'checked') 
+        if($('input[value="continueAdding"]').attr('checked') == 'checked')
         {
             $('input[value="toTaskList"]').attr('checked', 'checked');
         }
@@ -190,8 +190,8 @@ function setAfter()
 
 /**
  * Load stories.
- * 
- * @param  int    $projectID 
+ *
+ * @param  int    $projectID
  * @access public
  * @return void
  */
@@ -203,7 +203,7 @@ function loadStories(projectID)
 
 /**
  * load stories of module.
- * 
+ *
  * @access public
  * @return void
  */
@@ -317,7 +317,7 @@ function markTestStory()
 $(document).ready(function()
 {
     $('#pri').on('change', function()
-    {   
+    {
         var $select = $(this);
         var $selector = $select.closest('.pri-selector');
         var value = $select.val();
@@ -328,14 +328,14 @@ $(document).ready(function()
         $('#selectTestStoryBox').toggleClass('hidden', $(this).val() != 'test');
         toggleSelectTestStory();
     });
-    
+
     setStoryRelated();
     markTestStory();
 
     $('#selectAllUser').on('click', function()
     {
         var $assignedTo = $('#assignedTo');
-        if($assignedTo.attr('multiple')) 
+        if($assignedTo.attr('multiple'))
         {
             $assignedTo.children('option').attr('selected', 'selected');
             $assignedTo.trigger('chosen:updated');
@@ -372,6 +372,7 @@ $(document).ready(function()
             $('.team-group').addClass('hidden');
             $('#estimate').attr('readonly', false);
         }
+        $('#dataPlanGroup').fixInputGroup();
     });
 
     /* Init task team manage dialog */
@@ -411,6 +412,16 @@ $(document).ready(function()
     });
 
     adjustButtons();
+
+    $('#showAllModule').change(function()
+    {
+        var moduleID = $('#moduleIdBox #module').val();
+        var extra    = $(this).prop('checked') ? 'allModule' : '';
+        $('#moduleIdBox').load(createLink('tree', 'ajaxGetOptionMenu', "rootID=" + projectID + '&viewType=task&branch=0&rootModuleID=0&returnType=html&fieldID=&needManage=0&extra=' + extra), function()
+        {
+            $('#moduleIdBox #module').val(moduleID).attr('onchange', "setStories(this.value, " + projectID + ")").chosen();
+        });
+    });
 });
 
 $('#modalTeam .btn').click(function()

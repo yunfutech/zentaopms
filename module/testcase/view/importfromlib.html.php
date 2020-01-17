@@ -20,7 +20,7 @@
     </div>
   </div>
 </div>
-<div id='queryBox' class='show cell'></div>
+<div id='queryBox' data-module='testsuite' class='show cell'></div>
 <div id='mainContent'>
   <form class='main-table' method='post' target='hiddenwin' id='importFromLib' data-ride='table'>
     <table class='table has-sort-head table-fixed'>
@@ -34,7 +34,7 @@
             <?php common::printOrderLink('id', $orderBy, $vars, $lang->idAB);?>
           </th>
           <?php if($branches):?>
-          <th class='w-100px'><?php echo $lang->testcase->branch ?></th>
+          <th class='w-110px'><?php echo $lang->testcase->branch ?></th>
           <?php endif;?>
           <th class='w-pri'>  <?php common::printOrderLink('pri',   $orderBy, $vars, $lang->priAB);?></th>
           <th>                <?php common::printOrderLink('title', $orderBy, $vars, $lang->testcase->title);?></th>

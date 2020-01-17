@@ -16,6 +16,7 @@ foreach(glob('../xuanxuan/module/group/ext/lang/zh-cn/*.php') as $resourceFile) 
 
 $lang->productCommon = '';
 $lang->projectCommon = '';
+$lang->storyCommon   = '';
 
 $whiteList[] = 'api-getsessionid';
 $whiteList[] = 'admin-setflow';
@@ -108,9 +109,13 @@ $whiteList[] = 'testsuite-showimport';
 $whiteList[] = 'webhook-browse';
 $whiteList[] = 'webhook-create';
 $whiteList[] = 'webhook-edit';
+$whiteList[] = 'webhook-bind';
 $whiteList[] = 'webhook-delete';
 $whiteList[] = 'webhook-log';
 $whiteList[] = 'webhook-asyncsend';
+$whiteList[] = 'testreport-setchartdatas';
+$whiteList[] = 'chat-login';
+$whiteList[] = 'entry-visit';
 
 /* checking actions of every module. */
 echo '-------------action checking-----------------' . "\n";
@@ -209,8 +214,9 @@ foreach(array($moduleRoot, '../xuanxuan/module/') as $subModuleRoot)
                     {
                         $key = trim($key);
                         $lineNO = $lineNO + 1;
+                        $referLang = $langKey != 'en' ? 'en' : 'zh-cn';
                         echo "module $moduleName need checking, command is:";
-                        echo " vim -O +$lineNO ../module/$moduleName/lang/zh-cn.php +$lineNO ../module/$moduleName/lang/en.php \n";
+                        echo " vim -O +$lineNO ../module/$moduleName/lang/$referLang.php +$lineNO ../module/$moduleName/lang/$langKey.php \n";
                         break;
                     }
                 }

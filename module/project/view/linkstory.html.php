@@ -25,7 +25,7 @@
 </div>
 <div id="mainContent">
   <div class="cell space-sm">
-    <div id='queryBox' class='show no-margin'></div>
+    <div id='queryBox' data-module='story' class='show no-margin'></div>
   </div>
   <form class='main-table table-story' method='post' data-ride='table' id='linkStoryForm'>
     <table class='table table-fixed tablesorter' id='linkStoryList'> 
@@ -48,7 +48,7 @@
           <?php if($productType != 'normal'):?>
           <th class='w-80px'><?php echo $lang->product->branchName[$productType];?></th>
           <?php endif;?>
-          <th class='w-user'><?php echo $lang->openedByAB;?></th>
+          <th class='c-user'><?php echo $lang->openedByAB;?></th>
           <th class='w-80px text-center'><?php echo $lang->story->estimateAB;?></th>
         </tr>
       </thead>

@@ -62,6 +62,7 @@ js::set('oldResolvedBuild'       , $bug->resolvedBuild);
               <?php echo html::textarea('comment', '', "rows='5' class='form-control kindeditor' hidefocus='true'");?>
             </div>
           </div>
+          <?php $this->printExtendFields($bug, 'div', 'position=left');?>
           <div class="detail">
             <div class="detail-title"><?php echo $lang->files;?></div>
             <div class='detail-content'><?php echo $this->fetch('file', 'buildform');?></div>
@@ -71,8 +72,7 @@ js::set('oldResolvedBuild'       , $bug->resolvedBuild);
             <?php
             echo html::hidden('lastEditedDate', $bug->lastEditedDate);
             echo html::submitButton();
-            $browseLink = $app->session->bugList != false ? $app->session->bugList : inlink('browse', "productID=$bug->product");
-            echo html::linkButton($lang->goback, $browseLink, 'self', '', "btn btn-wide");
+            echo html::backButton();
             ?>
           </div>
           <hr class='small' />
@@ -122,18 +122,7 @@ js::set('oldResolvedBuild'       , $bug->resolvedBuild);
                 <?php endif;?>
                 <tr>
                   <th><?php echo $lang->bug->type;?></th>
-                  <td>
-                    <?php
-                    /**
-                     * Remove designchange, newfeature, trackings from the typeList, because should be tracked in story or task.
-                     * These thress types if upgrade from bugfree2.x.
-                     */
-                    if($bug->type != 'designchange') unset($lang->bug->typeList['designchange']);
-                    if($bug->type != 'newfeature')   unset($lang->bug->typeList['newfeature']);
-                    if($bug->type != 'trackthings')  unset($lang->bug->typeList['trackthings']);
-                    echo html::select('type', $lang->bug->typeList, $bug->type, "class='form-control chosen'");
-                    ?>
-                  </td>
+                  <td><?php echo html::select('type', $lang->bug->typeList, $bug->type, "class='form-control chosen'"); ?></td>
                 </tr>
                 <tr>
                   <th><?php echo $lang->bug->severity;?></th>
@@ -176,7 +165,7 @@ js::set('oldResolvedBuild'       , $bug->resolvedBuild);
                   <td>
                     <div class='input-group'>
                       <?php echo html::select('mailto[]', $users, str_replace(' ', '', $bug->mailto), 'class="form-control chosen" multiple');?>
-                      <div class='input-group-btn'><?php echo $this->fetch('my', 'buildContactLists');?></div>
+                      <?php echo $this->fetch('my', 'buildContactLists');?>
                     </div>
                   </td>
                 </tr>
@@ -210,8 +199,8 @@ js::set('oldResolvedBuild'       , $bug->resolvedBuild);
             <table class='table table-form'>
               <tbody>
                 <tr>
-                  <th class='w-80px'><?php echo $lang->bug->openedBy;?></th>
-                  <td><?php echo $users[$bug->openedBy];?></td>
+                  <th class='thWidth'><?php echo $lang->bug->openedBy;?></th>
+                  <td><?php echo zget($users, $bug->openedBy);?></td>
                 </tr>
                 <tr>
                   <th><?php echo $lang->bug->openedBuild;?></th>
@@ -263,7 +252,7 @@ js::set('oldResolvedBuild'       , $bug->resolvedBuild);
             <table class='table table-form'>
               <tbody>
                 <tr class='text-top'>
-                  <th class='w-80px'><?php echo $lang->bug->linkBug;?></th>
+                  <th class='thWidth'><?php echo $lang->bug->linkBug;?></th>
                   <td><?php echo html::a($this->createLink('bug', 'linkBugs', "bugID=$bug->id", '', true), $lang->bug->linkBugs, '', "class='text-primary' data-toggle='modal' data-type='iframe' data-width='95%'");?></td>
                 </tr>
                 <tr>
@@ -295,6 +284,7 @@ js::set('oldResolvedBuild'       , $bug->resolvedBuild);
               </tbody>
             </table>
           </div>
+          <?php $this->printExtendFields($bug, 'div', 'position=right');?>
         </div>
       </div>
     </div>

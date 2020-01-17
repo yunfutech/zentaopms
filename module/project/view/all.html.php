@@ -13,12 +13,9 @@
 <?php include '../../common/view/sortable.html.php';?>
 <div id='mainMenu' class='clearfix'>
   <div class='btn-toolbar pull-left'>
-    <?php echo html::a(inlink("all", "status=all&projectID=$project->id&orderBy=$orderBy&productID=$productID"),       "<span class='text'>{$lang->project->all}</span>", '', "class='btn btn-link' id='allTab'");?>
-    <?php echo html::a(inlink("all", "status=undone&projectID=$project->id&orderBy=$orderBy&productID=$productID"),    "<span class='text'>{$lang->project->undone}</span>", '', "class='btn btn-link' id='undoneTab'");?>
-    <?php echo html::a(inlink("all", "status=wait&projectID=$project->id&orderBy=$orderBy&productID=$productID"),      "<span class='text'>{$lang->project->statusList['wait']}</span>", '', "class='btn btn-link' id='waitTab'");?>
-    <?php echo html::a(inlink("all", "status=doing&projectID=$project->id&orderBy=$orderBy&productID=$productID"),     "<span class='text'>{$lang->project->statusList['doing']}</span>", '', "class='btn btn-link' id='doingTab'");?>
-    <?php echo html::a(inlink("all", "status=suspended&projectID=$project->id&orderBy=$orderBy&productID=$productID"), "<span class='text'>{$lang->project->statusList['suspended']}</span>", '', "class='btn btn-link' id='suspendedTab'");?>
-    <?php echo html::a(inlink("all", "status=closed&projectID=$project->id&orderBy=$orderBy&productID=$productID"),    "<span class='text'>{$lang->project->statusList['closed']}</span>", '', "class='btn btn-link' id='closedTab'");?>
+    <?php foreach($lang->project->featureBar['all'] as $key => $label):?>
+    <?php echo html::a(inlink("all", "status=$key&projectID=$project->id&orderBy=$orderBy&productID=$productID"), "<span class='text'>{$label}</span>", '', "class='btn btn-link' id='{$key}Tab'");?>
+    <?php endforeach;?>
     <div class='input-control space w-180px'>
       <?php echo html::select('product', $products, $productID, "class='chosen form-control' onchange='byProduct(this.value, $projectID, \"$status\")'");?>
     </div>
@@ -57,7 +54,7 @@
           <th class='w-60px'><?php echo $lang->project->totalLeft;?></th>
           <th class='w-150px'><?php echo $lang->project->progress;?></th>
           <?php if($canOrder):?>
-          <th class='w-60px sort-default'><?php common::printOrderLink('order', $orderBy, $vars, $lang->project->updateOrder);?></th>
+          <th class='w-60px sort-default'><?php common::printOrderLink('order', $orderBy, $vars, $lang->project->orderAB);?></th>
           <?php endif;?>
         </tr>
       </thead>
@@ -92,8 +89,9 @@
           <td><?php echo $users[$project->PM];?></td>
           <td><?php echo $project->begin;?></td>
           <td><?php echo $project->end;?></td>
-          <td class='c-status' title='<?php echo zget($lang->project->statusList, $project->status);?>'>
-            <span class="status-project status-<?php echo $project->status?>"><?php echo zget($lang->project->statusList, $project->status);?></span>
+          <?php $projectStatus = $this->processStatus('project', $project);?>
+          <td class='c-status' title='<?php echo $projectStatus;?>'>
+            <span class="status-project status-<?php echo $project->status?>"><?php echo $projectStatus;?></span>
           </td>
           <td><?php echo $project->hours->totalEstimate;?></td>
           <td><?php echo $project->hours->totalConsumed;?></td>

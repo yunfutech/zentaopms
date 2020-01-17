@@ -127,6 +127,7 @@ class user extends control
         $this->view->users      = $this->user->getPairs('noletter');
         $this->view->type       = $type;
         $this->view->account    = $account;
+        $this->view->user       = $this->user->getById($account);
         $this->view->pager      = $pager;
 
         $this->display();
@@ -244,13 +245,13 @@ class user extends control
         $this->view->tasks      = $this->loadModel('testtask')->getByUser($account, $pager, $sort);
         $this->view->users      = $this->user->getPairs('noletter');
         $this->view->account    = $account;
+        $this->view->user       = $this->user->getById($account);
         $this->view->recTotal   = $recTotal;
         $this->view->recPerPage = $recPerPage;
         $this->view->pageID     = $pageID;
         $this->view->orderBy    = $orderBy;
         $this->view->pager      = $pager;
         $this->display();
-
     }
 
     /**
@@ -296,6 +297,7 @@ class user extends control
         $this->view->title      = $this->lang->user->common . $this->lang->colon . $this->lang->user->testCase;
         $this->view->position[] = $this->lang->user->testCase;
         $this->view->account    = $account;
+        $this->view->user       = $this->user->getById($account);
         $this->view->cases      = $cases;
         $this->view->users      = $this->user->getPairs('noletter');
         $this->view->tabID      = 'test';
@@ -349,13 +351,14 @@ class user extends control
 
         $user = $this->user->getById($account);
 
-        $this->view->title      = "USER #$user->id $user->account/" . $this->lang->user->profile;
-        $this->view->position[] = $this->lang->user->common;
-        $this->view->position[] = $this->lang->user->profile;
-        $this->view->account    = $account;
-        $this->view->user       = $user;
-        $this->view->groups     = $this->loadModel('group')->getByAccount($account);
-        $this->view->deptPath   = $this->dept->getParents($user->dept);
+        $this->view->title        = "USER #$user->id $user->account/" . $this->lang->user->profile;
+        $this->view->position[]   = $this->lang->user->common;
+        $this->view->position[]   = $this->lang->user->profile;
+        $this->view->account      = $account;
+        $this->view->user         = $user;
+        $this->view->groups       = $this->loadModel('group')->getByAccount($account);
+        $this->view->deptPath     = $this->dept->getParents($user->dept);
+        $this->view->personalData = $this->user->getPersonalData($user->account);
 
         $this->display();
     }
@@ -369,14 +372,17 @@ class user extends control
      */
     public function setReferer($referer = '')
     {
-        if(!empty($referer))
-        {
-            $this->referer = helper::safe64Decode($referer);
-        }
-        else
-        {
-            $this->referer = $this->server->http_referer ? $this->server->http_referer: '';
-        }
+        $this->referer = $this->server->http_referer ? $this->server->http_referer: '';
+        if(!empty($referer)) $this->referer = helper::safe64Decode($referer);
+
+        /* Build zentao link regular. */
+        $webRoot = $this->config->webRoot;
+        $linkReg = $webRoot . 'index.php?' . $this->config->moduleVar . '=\w+&' . $this->config->methodVar . '=\w+';
+        if($this->config->requestType == 'PATH_INFO') $linkReg = $webRoot . '\w+' . $this->config->requestFix . '\w+';
+        $linkReg = str_replace(array('/', '.', '?', '-'), array('\/', '\.', '\?', '\-'), $linkReg);
+
+        /* Check zentao link by regular. */
+        $this->referer = preg_match('/^' . $linkReg . '/', $this->referer) ? $this->referer : $webRoot;
     }
 
     /**
@@ -686,16 +692,19 @@ class user extends control
                 die(helper::removeUTF8Bom(json_encode(array('status' => 'success') + $data)));
             }
 
+            $response['result']  = 'success';
             if(strpos($this->referer, $loginLink) === false and
                strpos($this->referer, $denyLink)  === false and
                strpos($this->referer, 'block')  === false and $this->referer
             )
             {
-                die(js::locate($this->referer, 'parent'));
+                $response['locate']  = $this->referer;
+                $this->send($response);
             }
             else
             {
-                die(js::locate($this->createLink($this->config->default->module), 'parent'));
+                $response['locate']  = $this->config->default->module;
+                $this->send($response);
             }
         }
 
@@ -712,9 +721,10 @@ class user extends control
             $account = trim($account);
             if($this->user->checkLocked($account))
             {
-                $failReason = sprintf($this->lang->user->loginLocked, $this->config->user->lockMinutes);
+                $response['result']  = 'fail';
+                $response['message'] = sprintf($this->lang->user->loginLocked, $this->config->user->lockMinutes);
                 if($this->app->getViewType() == 'json') die(helper::removeUTF8Bom(json_encode(array('status' => 'failed', 'reason' => $failReason))));
-                die(js::error($failReason));
+                $this->send($response);
             }
 
             $user = $this->user->identify($account, $password);
@@ -762,13 +772,16 @@ class user extends control
                         $method = str_replace('f=', '', $method);
                     }
 
+                    $response['result']  = 'success';
                     if(common::hasPriv($module, $method))
                     {
-                        die(js::locate($this->post->referer, 'parent'));
+                        $response['locate']  = $this->post->referer;
+                        $this->send($response);
                     }
                     else
                     {
-                        die(js::locate($this->createLink($this->config->default->module), 'parent'));
+                        $response['locate']  = $this->config->default->module;
+                        $this->send($response);
                     }
                 }
                 else
@@ -778,26 +791,31 @@ class user extends control
                         $data = $this->user->getDataInJSON($user);
                         die(helper::removeUTF8Bom(json_encode(array('status' => 'success') + $data)));
                     }
-                    die(js::locate($this->createLink($this->config->default->module), 'parent'));
+
+                    $response['locate']  = $this->config->default->module;
+                    $response['result']  = 'success';
+                    $this->send($response);
                 }
             }
             else
             {
+                $response['result']  = 'fail';
                 $fails = $this->user->failPlus($account);
                 if($this->app->getViewType() == 'json') die(helper::removeUTF8Bom(json_encode(array('status' => 'failed', 'reason' => $this->lang->user->loginFailed))));
                 $remainTimes = $this->config->user->failTimes - $fails;
                 if($remainTimes <= 0)
                 {
-                    die(js::error(sprintf($this->lang->user->loginLocked, $this->config->user->lockMinutes)));
+                    $response['message'] = sprintf($this->lang->user->loginLocked, $this->config->user->lockMinutes);
+                    $this->send($response);
                 }
                 else if($remainTimes <= 3)
                 {
-                    die(js::error(sprintf($this->lang->user->lockWarning, $remainTimes)));
+                    $response['message'] = sprintf($this->lang->user->lockWarning, $remainTimes);
+                    $this->send($response);
                 }
 
-                $errorScript = js::error($this->lang->user->loginFailed);
-                if($this->post->verifyRand and !isset($_SESSION['rand'])) $errorScript .= js::reload('parent'); // Finish task #4851.
-                die($errorScript);
+                $response['message'] = $this->lang->user->loginFailed;
+                $this->send($response);
             }
         }
         else
@@ -811,7 +829,7 @@ class user extends control
             }
 
             $this->app->loadLang('misc');
-            $this->view->noGDLib   = sprintf($this->lang->misc->noGDLib, common::getSysURL() . $this->config->webRoot);
+            $this->view->noGDLib   = sprintf($this->lang->misc->noGDLib, common::getSysURL() . $this->config->webRoot, '', false, true);
             $this->view->title     = $this->lang->user->login;
             $this->view->referer   = $this->referer;
             $this->view->s         = zget($this->config->global, 'sn', '');
@@ -840,8 +858,25 @@ class user extends control
         $this->view->refererBeforeDeny = $refererBeforeDeny;    // The referer of the denied page.
         $this->app->loadLang($module);
         $this->app->loadLang('my');
-        $this->display();
-        exit;
+
+        /* Check deny type. */
+        $rights  = $this->app->user->rights['rights'];
+        $acls    = $this->app->user->rights['acls'];
+        $module  = strtolower($module);
+        $method  = strtolower($method);
+
+        $denyType = 'nopriv';
+        if(isset($rights[$module][$method]))
+        {
+            $menu = isset($this->lang->menugroup->$module) ? $this->lang->menugroup->$module : $module;
+            $menu = strtolower($menu);
+
+            if(!isset($acls['views'][$menu])) $denyType = 'noview';
+            $this->view->menu = $menu;
+        }
+        $this->view->denyType = $denyType;
+
+        die($this->display());
     }
 
     /**
@@ -1006,5 +1041,49 @@ class user extends control
         $contactList = $this->user->getContactLists($this->app->user->account, 'withnote');
         if(empty($contactList)) return false;
         return print(html::select('', $contactList, '', "class='form-control' onchange=\"setMailto('mailto', this.value)\""));
+    }
+
+    /**
+     * Ajax print templates.
+     * 
+     * @param  int    $type 
+     * @param  string $link 
+     * @access public
+     * @return void
+     */
+    public function ajaxPrintTemplates($type, $link = '')
+    {
+        $this->view->link      = $link;
+        $this->view->type      = $type;
+        $this->view->templates = $this->user->getUserTemplates($type);
+        $this->display();
+    }
+
+    /**
+     * Save current template.
+     *
+     * @access public
+     * @return string
+     */
+    public function ajaxSaveTemplate($type)
+    {
+        $this->user->saveUserTemplate($type);
+        if(dao::isError()) echo js::error(dao::getError(), $full = false);
+        die($this->fetch('user', 'ajaxPrintTemplates', "type=$type"));
+    }
+
+    /**
+     * Delete a user template.
+     *
+     * @param  int    $templateID
+     * @access public
+     * @return void
+     */
+    public function ajaxDeleteTemplate($templateID)
+    {
+        $this->dao->delete()->from(TABLE_USERTPL)->where('id')->eq($templateID)
+            ->beginIF(!$this->app->user->admin)->andWhere('account')->eq($this->app->user->account)->fi()
+            ->exec();
+        die();
     }
 }

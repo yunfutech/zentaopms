@@ -11,6 +11,7 @@
  */
 ?>
 <?php include '../../common/view/header.html.php';?>
+<?php js::import($jsRoot . 'md5.js');?>
 <?php if(!isonlybody()):?>
 <style>
 .main-content{width: 500px; margin: 0 auto;}
@@ -22,9 +23,8 @@
   </div>
   <form method='post' target='hiddenwin'>
     <table align='center' class='table table-form w-320px'>
-      <?php $thWidth = ($app->getClientLang() == 'en') ? 'w-130px' : 'w-90px';?>
       <tr>
-        <th class='rowhead <?php echo $thWidth?>'><?php echo $lang->user->account;?></th>
+        <th class='rowhead thWidth'><?php echo $lang->user->account;?></th>
         <td><?php echo $user->account . html::hidden('account',$user->account);?></td>
       </tr>  
       <tr>
@@ -32,7 +32,7 @@
         <td><?php echo html::password('originalPassword', '', "class='form-control'");?></td>
       </tr>  
       <tr>
-        <th><?php echo $lang->user->password;?></th>
+        <th><?php echo $lang->user->newPassword;?></th>
         <td>
           <span class='input-group'>
             <?php echo html::password('password1', '', "class='form-control' onmouseup='checkPassword(this.value)' onkeyup='checkPassword(this.value)' placeholder='" . (!empty($config->safe->mode) ? $lang->user->placeholder->passwordStrength[$config->safe->mode] : '') . "'");?>
@@ -56,6 +56,7 @@
     </div>
     <?php endif;?>
   </form>
+  <?php echo html::hidden('verifyRand', $rand);?>
 </div>
 <?php js::set('passwordStrengthList', $lang->user->passwordStrengthList)?>
 <script>

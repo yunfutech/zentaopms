@@ -178,10 +178,14 @@ class upgrade extends control
      * @access public
      * @return void
      */
-    public function consistency()
+    public function consistency($netConnect = true)
     {
         $alterSQL = $this->upgrade->checkConsistency();
-        if(empty($alterSQL)) $this->locate(inlink('checkExtension'));
+        if(empty($alterSQL))
+        {
+            if(!$netConnect) $this->locate(inlink('selectVersion'));
+            $this->locate(inlink('checkExtension'));
+        }
 
         $this->view->title    = $this->lang->upgrade->consistency;
         $this->view->alterSQL = $alterSQL;
@@ -199,10 +203,6 @@ class upgrade extends control
         $this->loadModel('extension');
         $extensions = $this->extension->getLocalExtensions('installed');
         if(empty($extensions)) $this->locate(inlink('selectVersion'));
-
-        /* Check network. */
-        $check = @fopen(dirname($this->config->extension->apiRoot), "r");
-        if(!$check) $this->locate(inlink('selectVersion'));
 
         $versions = array();
         foreach($extensions as $code => $extension) $versions[$code] = $extension->version;

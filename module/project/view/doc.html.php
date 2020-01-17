@@ -43,7 +43,7 @@
         <td><?php if($canView) echo html::a($viewLink, sprintf('%03d', $doc->id)); else printf('%03d', $doc->id);?></td>
         <td><?php if(isset($modules[$doc->module]))print($modules[$doc->module]);?></td>
         <td class='text-left nobr'><nobr><?php echo html::a($viewLink, $doc->title);?></nobr></td>
-        <td><?php echo $users[$doc->addedBy];?></td>
+        <td><?php echo zget($users, $doc->addedBy);?></td>
         <td><?php echo $doc->addedDate;?></td>
         <td>
           <?php 
@@ -51,7 +51,7 @@
           if(common::hasPriv('doc', 'delete'))
           {
               $deleteURL = $this->createLink('doc', 'delete', "docID=$doc->id&confirm=yes");
-              echo html::a("javascript:ajaxDelete(\"$deleteURL\",\"docList\",confirmDelete)", '<i class="icon-remove"></i>', '', "class='btn-icon' title='{$lang->doc->delete}'");
+              echo html::a("javascript:ajaxDelete(\"$deleteURL\", \"docList\", confirmDelete)", '<i class="icon-remove"></i>', '', "class='btn-icon' title='{$lang->doc->delete}'");
           }
           ?>
         </td>

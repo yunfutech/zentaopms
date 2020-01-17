@@ -68,28 +68,9 @@ $currentBrowseType = isset($lang->bug->mySelects[$browseType]) && in_array($brow
         }
         elseif($menuItem->name == 'QUERY')
         {
-            if(isset($lang->custom->queryList))
-            {
-                echo '<div class="btn-group" id="query">';
-                $active  = '';
-                $current = $menuItem->text;
-                $dropdownHtml = "<ul class='dropdown-menu'>";
-                foreach($lang->custom->queryList as $queryID => $queryTitle)
-                {
-                    if($browseType == 'bysearch' and $queryID == $param)
-                    {
-                        $active  = 'btn-active-text';
-                        $current = "<span class='text'>{$queryTitle}</span> <span class='label label-light label-badge'>{$pager->recTotal}</span>";
-                    }
-                    $dropdownHtml .= '<li' . ($param == $queryID ? " class='active'" : '') . '>';
-                    $dropdownHtml .= html::a($this->inlink('browse', "productID=$productID&branch=$branch&browseType=bySearch&param=$queryID"), $queryTitle);
-                }
-                $dropdownHtml .= '</ul>';
-
-                echo html::a('javascript:;', $current . " <span class='caret'></span>", '', "data-toggle='dropdown' class='btn btn-link $active'");
-                echo $dropdownHtml;
-                echo '</div>';
-            }
+            $searchBrowseLink = inlink('browse', "productID=$productID&branch=$branch&browseType=bySearch&param=%s");
+            $isBySearch       = $browseType == 'bysearch';
+            include '../../common/view/querymenu.html.php';
         }
         elseif($menuItem->name == 'more')
         {
@@ -135,6 +116,7 @@ $currentBrowseType = isset($lang->bug->mySelects[$browseType]) && in_array($brow
         ?>
       </ul>
     </div>
+    <?php if(!common::checkNotCN()):?>
     <?php
     common::printLink('bug', 'batchCreate', "productID=$productID&branch=$branch&projectID=0&moduleID=$moduleID", "<i class='icon icon-plus'></i>" . $lang->bug->batchCreate, '', "class='btn btn-secondary'");
     if(commonModel::isTutorialMode())
@@ -147,6 +129,38 @@ $currentBrowseType = isset($lang->bug->mySelects[$browseType]) && in_array($brow
         common::printLink('bug', 'create', "productID=$productID&branch=$branch&extra=moduleID=$moduleID", "<i class='icon icon-plus'></i>" . $lang->bug->create, '', "class='btn btn-primary'");
     }
     ?>
+    <?php else:?>
+    <div class='btn-group dropdown-hover'>
+      <?php
+      if(commonModel::isTutorialMode())
+      {
+          $wizardParams = helper::safe64Encode("productID=$productID&branch=$branch&extra=moduleID=$moduleID");
+          $link = $this->createLink('tutorial', 'wizard', "module=bug&method=create&params=$wizardParams");
+          echo html::a($link, "<i class='icon icon-plus'></i> {$lang->bug->create} </span><span class='caret'>", '', "class='btn btn-primary btn-bug-create'");
+      }
+      else
+      {
+          $link     = $this->createLink('bug', 'create', "productID=$productID&branch=$branch&extra=moduleID=$moduleID");
+          $disabled = '';
+          if(!common::hasPriv('bug', 'create'))
+          {
+              $link     = '###';
+              $disabled = "disabled";
+          }
+          echo html::a($link, "<i class='icon icon-plus'></i> {$lang->bug->create} </span><span class='caret'>", '', "class='btn btn-primary $disabled'");
+      }
+      ?>
+      <ul class='dropdown-menu'>
+        <?php $disabled = common::hasPriv('bug', 'batchCreate') ? '' : "class='disabled'";?>
+        <li <?php echo $disabled?>>
+        <?php
+          $batchLink = $this->createLink('bug', 'batchCreate', "productID=$productID&branch=$branch&projectID=0&moduleID=$moduleID");
+          echo "<li>" . html::a($batchLink, "<i class='icon icon-plus'></i>" . $lang->bug->batchCreate) . "</li>";
+        ?>
+        </li>
+      </ul>
+    </div>
+    <?php endif;?>
   </div>
 </div>
 <?php endif;?>
@@ -167,13 +181,12 @@ $currentBrowseType = isset($lang->bug->mySelects[$browseType]) && in_array($brow
     </div>
   </div>
   <div class="main-col">
-    <div class="cell<?php if($browseType == 'bysearch') echo ' show';?>" id="queryBox"></div>
+    <div class="cell<?php if($browseType == 'bysearch') echo ' show';?>" id="queryBox" data-module='bug'></div>
     <?php if(empty($bugs)):?>
     <div class="table-empty-tip">
       <p>
         <span class="text-muted"><?php echo $lang->bug->noBug;?></span>
         <?php if(common::hasPriv('bug', 'create')):?>
-        <span class="text-muted"><?php echo $lang->youCould;?></span>
         <?php echo html::a($this->createLink('bug', 'create', "productID=$productID&branch=$branch&extra=moduleID=$moduleID"), "<i class='icon icon-plus'></i> " . $lang->bug->create, '', "class='btn btn-info'");?>
         <?php endif;?>
       </p>
@@ -200,10 +213,13 @@ $currentBrowseType = isset($lang->bug->mySelects[$browseType]) && in_array($brow
         <thead>
           <tr>
           <?php
-          foreach($setting as $key => $value)
+          foreach($setting as $value)
           {
               if($value->show)
               {
+                  if(common::checkNotCN() and $value->id == 'severity')  $value->name = $lang->bug->severity;
+                  if(common::checkNotCN() and $value->id == 'pri')       $value->name = $lang->bug->pri;
+                  if(common::checkNotCN() and $value->id == 'confirmed') $value->name = $lang->bug->confirmed;
                   $this->datatable->printHead($value, $orderBy, $vars);
                   $columns ++;
               }
@@ -214,7 +230,7 @@ $currentBrowseType = isset($lang->bug->mySelects[$browseType]) && in_array($brow
         <tbody>
           <?php foreach($bugs as $bug):?>
           <tr data-id='<?php echo $bug->id?>'>
-            <?php foreach($setting as $key => $value) $this->bug->printCell($value, $bug, $users, $builds, $branches, $modulePairs, $projects, $plans, $stories, $tasks, $useDatatable ? 'datatable' : 'table');?>
+            <?php foreach($setting as $value) $this->bug->printCell($value, $bug, $users, $builds, $branches, $modulePairs, $projects, $plans, $stories, $tasks, $useDatatable ? 'datatable' : 'table');?>
           </tr>
           <?php endforeach;?>
         </tbody>
@@ -268,7 +284,7 @@ $currentBrowseType = isset($lang->bug->mySelects[$browseType]) && in_array($brow
                           {
                               $actionLink = $this->createLink('bug', 'batchResolve', "resolution=fixed&resolvedBuild=$key");
                               echo "<li class='option' data-key='$key'>";
-                              echo html::a('javascript:;', $build, '', "onclick=\"setFormAction('$actionLink','hiddenwin')\"");
+                              echo html::a('javascript:;', $build, '', "onclick=\"setFormAction('$actionLink', 'hiddenwin')\"");
                               echo "</li>";
                           }
                           echo "</ul>";
@@ -277,7 +293,7 @@ $currentBrowseType = isset($lang->bug->mySelects[$browseType]) && in_array($brow
                       }
                       else
                       {
-                          echo '<li>' . html::a('javascript:;', $resolution, '', "onclick=\"setFormAction('$actionLink','hiddenwin')\"") . '</li>';
+                          echo '<li>' . html::a('javascript:;', $resolution, '', "onclick=\"setFormAction('$actionLink', 'hiddenwin')\"") . '</li>';
                       }
                   }
                   echo '</ul></li>';
@@ -334,7 +350,7 @@ $currentBrowseType = isset($lang->bug->mySelects[$browseType]) && in_array($brow
                 {
                     $searchKey = $withSearch ? ('data-key="' . zget($modulesPinYin, $module, '') . '"') : '';
                     $actionLink = $this->createLink('bug', 'batchChangeModule', "moduleID=$moduleId");
-                    echo html::a('#', $module, '', "$searchKey onclick=\"setFormAction('$actionLink','hiddenwin')\" data-key='$moduleID'");
+                    echo html::a('#', $module, '', "$searchKey onclick=\"setFormAction('$actionLink', 'hiddenwin')\" data-key='$moduleID'");
                 }
                 ?>
               </div>
@@ -364,7 +380,7 @@ $currentBrowseType = isset($lang->bug->mySelects[$browseType]) && in_array($brow
                 {
                     if(empty($key)) continue;
                     $searchKey = $withSearch ? ('data-key="' . zget($membersPinYin, $value, '') . " @$key\"") : "data-key='@$key'";
-                    echo html::a("javascript:$(\"#assignedTo\").val(\"$key\");setFormAction(\"$actionLink\",\"hiddenwin\")", $value, '', $searchKey);
+                    echo html::a("javascript:$(\"#assignedTo\").val(\"$key\");setFormAction(\"$actionLink\", \"hiddenwin\")", $value, '', $searchKey);
                 }
                 ?>
               </div>

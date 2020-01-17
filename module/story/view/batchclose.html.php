@@ -31,9 +31,9 @@
     </thead>
       <?php foreach($stories as $storyID => $story):?>
       <tr class='text-center'>
-        <td><?php echo $storyID . html::hidden("storyIDList[$storyID]", $storyID);?></td>
+        <td><?php echo $storyID . html::hidden("storyIdList[$storyID]", $storyID);?></td>
         <td class='text-left'><?php echo $story->title;?></td>
-        <td class='story-<?php echo $story->status;?>'><?php echo $lang->story->statusList[$story->status];?></td>
+        <td class='story-<?php echo $story->status;?>'><?php echo $this->processStatus('story', $story);?></td>
         <td>
           <?php if($story->status == 'draft') unset($this->lang->story->reasonList['cancel']);?>
           <table class='w-p100'>

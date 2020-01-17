@@ -9,47 +9,57 @@
  * @version     $Id: zh-cn.php 5091 2013-07-10 06:06:46Z chencongzhi520@gmail.com $
  * @link        http://www.zentao.net
  */
-$lang->product->common      = $lang->productCommon . '视图';
-$lang->product->index       = $lang->productCommon . '主页';
-$lang->product->browse      = '需求列表';
-$lang->product->dynamic     = '动态';
-$lang->product->view        = "{$lang->productCommon}概况";
-$lang->product->edit        = "编辑{$lang->productCommon}";
-$lang->product->batchEdit   = '批量编辑';
-$lang->product->create      = "添加{$lang->productCommon}";
-$lang->product->delete      = "删除{$lang->productCommon}";
-$lang->product->deleted     = '已删除';
-$lang->product->close       = '关闭';
-$lang->product->select      = "请选择{$lang->productCommon}";
-$lang->product->mine        = '我负责：';
-$lang->product->other       = '其他：';
-$lang->product->closed      = '已关闭';
-$lang->product->updateOrder = '排序';
-$lang->product->all         = "所有{$lang->productCommon}";
-$lang->product->export      = '导出数据';
+$lang->product->common       = $lang->productCommon . '视图';
+$lang->product->index        = $lang->productCommon . '主页';
+$lang->product->browse       = "{$lang->storyCommon}列表";
+$lang->product->dynamic      = '产品动态';
+$lang->product->view         = "{$lang->productCommon}概况";
+$lang->product->edit         = "编辑{$lang->productCommon}";
+$lang->product->batchEdit    = '批量编辑';
+$lang->product->create       = "添加{$lang->productCommon}";
+$lang->product->delete       = "删除{$lang->productCommon}";
+$lang->product->deleted      = '已删除';
+$lang->product->close        = '关闭';
+$lang->product->closeAction  = "关闭{$lang->productCommon}";
+$lang->product->select       = "请选择{$lang->productCommon}";
+$lang->product->mine         = '我负责：';
+$lang->product->other        = '其他：';
+$lang->product->closed       = '已关闭';
+$lang->product->updateOrder  = '排序';
+$lang->product->orderAction  = "{$lang->productCommon}排序";
+$lang->product->all          = "所有{$lang->productCommon}";
+$lang->product->export       = '导出数据';
+$lang->product->exportAction = "导出{$lang->productCommon}";
 
 $lang->product->basicInfo = '基本信息';
 $lang->product->otherInfo = '其他信息';
 
-$lang->product->plans    = '计划数';
-$lang->product->releases = '发布数';
-$lang->product->docs     = '文档数';
-$lang->product->bugs     = '相关Bug';
-$lang->product->projects = "关联{$lang->projectCommon}数";
-$lang->product->cases    = '用例数';
-$lang->product->builds   = 'BUILD数';
-$lang->product->roadmap  = '路线图';
-$lang->product->doc      = '文档列表';
-$lang->product->project  = $lang->projectCommon . '列表';
-$lang->product->build    = '版本列表';
+$lang->product->plans       = '计划数';
+$lang->product->releases    = '发布数';
+$lang->product->docs        = '文档数';
+$lang->product->bugs        = '相关Bug';
+$lang->product->projects    = "关联{$lang->projectCommon}数";
+$lang->product->cases       = '用例数';
+$lang->product->builds      = 'BUILD数';
+$lang->product->roadmap     = "{$lang->productCommon}路线图";
+$lang->product->doc         = '文档列表';
+$lang->product->project     = $lang->projectCommon . '列表';
+$lang->product->build       = '版本列表';
+$lang->product->projectInfo = "所有与此产品关联的{$lang->projectCommon}";
 
-$lang->product->currentProject   = '当前' . $lang->projectCommon;
-$lang->product->activeStories    = '激活需求';
-$lang->product->changedStories   = '已变更需求';
-$lang->product->draftStories     = '草稿需求';
-$lang->product->closedStories    = '已关闭需求';
-$lang->product->unResolvedBugs   = '未解决Bug';
-$lang->product->assignToNullBugs = '未指派Bug';
+$lang->product->currentProject        = '当前' . $lang->projectCommon;
+$lang->product->activeStories         = "激活{$lang->storyCommon}";
+$lang->product->activeStoriesTitle    = "激活{$lang->storyCommon}";
+$lang->product->changedStories        = "已变更{$lang->storyCommon}";
+$lang->product->changedStoriesTitle   = "已变更{$lang->storyCommon}";
+$lang->product->draftStories          = "草稿{$lang->storyCommon}";
+$lang->product->draftStoriesTitle     = "草稿{$lang->storyCommon}";
+$lang->product->closedStories         = "已关闭{$lang->storyCommon}";
+$lang->product->closedStoriesTitle    = "已关闭{$lang->storyCommon}";
+$lang->product->unResolvedBugs        = '未解决Bug';
+$lang->product->unResolvedBugsTitle   = '未解决Bug';
+$lang->product->assignToNullBugs      = '未指派Bug';
+$lang->product->assignToNullBugsTitle = '未指派Bug';
 
 $lang->product->confirmDelete  = " 您确定删除该{$lang->productCommon}吗？";
 $lang->product->errorNoProduct = "还没有创建{$lang->productCommon}！";
@@ -79,6 +89,11 @@ $lang->product->plan          = '计划';
 $lang->product->iteration     = '版本迭代';
 $lang->product->iterationInfo = '迭代 %s 次';
 $lang->product->iterationView = '查看详情';
+$lang->product->typeAB         = "类型";
+$lang->product->subStatus      = '子状态';
+$lang->product->PO             = "{$lang->productCommon}负责人";
+$lang->product->createdBy      = '由谁创建';
+$lang->product->createdDate    = '创建日期';
 
 $lang->product->searchStory  = '搜索';
 $lang->product->assignedToMe = '指给我';
@@ -92,6 +107,7 @@ $lang->product->willClose    = '待关闭';
 $lang->product->closedStory  = '已关闭';
 $lang->product->unclosed     = '未关闭';
 $lang->product->unplan       = '未计划';
+$lang->product->viewByUser   = '按用户查看';
 
 $lang->product->allStory             = '所有';
 $lang->product->allProduct           = '全部' . $lang->productCommon;
@@ -104,7 +120,7 @@ $lang->product->typeList['platform'] = '多平台';
 
 $lang->product->typeTips = array();
 $lang->product->typeTips['branch']   = '(适用于客户定制场景)';
-$lang->product->typeTips['platform'] = '(适用于跨平台应用开发，比如ios、安卓、pc端等)';
+$lang->product->typeTips['platform'] = '(适用于跨平台应用开发，比如IOS、安卓、PC端等)';
 
 $lang->product->branchName['normal']   = '';
 $lang->product->branchName['branch']   = '分支';
@@ -118,8 +134,8 @@ $lang->product->aclList['open']    = "默认设置(有{$lang->productCommon}视�
 $lang->product->aclList['private'] = "私有{$lang->productCommon}(只有{$lang->productCommon}相关负责人和{$lang->projectCommon}团队成员才能访问)";
 $lang->product->aclList['custom']  = '自定义白名单(团队成员和白名单的成员可以访问)';
 
-$lang->product->storySummary   = "本页共 <strong>%s</strong> 个需求，预计 <strong>%s</strong> 个工时，用例覆盖率 <strong>%s</strong>。";
-$lang->product->checkedSummary = "选中 <strong>%total%</strong> 个需求，预计 <strong>%estimate%</strong> 个工时，用例覆盖率 <strong>%rate%</strong>。";
+$lang->product->storySummary   = "本页共 <strong>%s</strong> 个{$lang->storyCommon}，预计 <strong>%s</strong> 个{$lang->hourCommon}，用例覆盖率 <strong>%s</strong>。";
+$lang->product->checkedSummary = "选中 <strong>%total%</strong> 个{$lang->storyCommon}，预计 <strong>%estimate%</strong> 个{$lang->hourCommon}，用例覆盖率 <strong>%rate%</strong>。";
 $lang->product->noModule       = "<div>您现在还没有模块信息</div><div>请维护{$lang->productCommon}模块</div>";
 $lang->product->noProduct      = "暂时没有{$lang->productCommon}。";
 $lang->product->noMatched      = '找不到包含"%s"的' . $lang->productCommon;

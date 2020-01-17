@@ -113,6 +113,8 @@ class story extends control
                 $this->action->create('todo', $todoID, 'finished', '', "STORY:$storyID");
             }
 
+            $this->executeHooks($storyID);
+
             if($this->post->newStory)
             {
                 $response['message'] = $this->lang->story->successSaved . $this->lang->story->newStory;
@@ -121,13 +123,17 @@ class story extends control
             }
 
             $moduleID = $this->post->module ? $this->post->module : 0;
-            $response['locate'] = $this->createLink('project', 'story', "projectID=$projectID&orderBy=&browseType=byModule&moduleID=$moduleID");
             if($projectID == 0)
             {
-                setcookie('storyModule', (int)$moduleID, 0, $this->config->webRoot);
+                setcookie('storyModule', 0, 0, $this->config->webRoot, '', false, false);
                 $productID = $this->post->product ? $this->post->product : $productID;
                 $branchID  = $this->post->branch ? $this->post->branch : $branch;
                 $response['locate'] = $this->createLink('product', 'browse', "productID=$productID&branch=$branchID&browseType=unclosed&param=0&orderBy=id_desc");
+            }
+            else
+            {
+                setcookie('storyModuleParam', 0, 0, $this->config->webRoot, '', false, true);
+                $response['locate'] = $this->createLink('project', 'story', "projectID=$projectID&orderBy=id_desc&browseType=unclosed");
             }
             if($this->app->getViewType() == 'xhtml') $response['locate'] = $this->createLink('story', 'view', "storyID=$storyID");
             $this->send($response);
@@ -142,7 +148,7 @@ class story extends control
         else
         {
             $products = array();
-            $productList = $this->loadModel('block')->getProducts('noclosed', '');
+            $productList = $this->product->getOrderedProducts('noclosed');
             foreach($productList as $product) $products[$product->id] = $product->name;
             $product  = $this->product->getById($productID ? $productID : key($products));
             if(!isset($products[$product->id])) $products[$product->id] = $product->name;
@@ -305,7 +311,16 @@ class story extends control
                 die(js::locate(inlink('view', "storyID=$storyID"), 'parent'));
             }
 
-            die(js::locate($this->createLink('product', 'browse', "productID=$productID&branch=$branch"), 'parent'));
+            if($project)
+            {
+                setcookie('storyModuleParam', 0, 0, $this->config->webRoot, '', false, false);
+                die(js::locate($this->createLink('project', 'story', "projectID=$project&orderBy=id_desc&browseType=unclosed"), 'parent'));
+            }
+            else
+            {
+                setcookie('storyModule', 0, 0, $this->config->webRoot, '', false, false);
+                die(js::locate($this->createLink('product', 'browse', "productID=$productID&branch=$branch"), 'parent'));
+            }
         }
 
         /* Set products and module. */
@@ -433,6 +448,9 @@ class story extends control
                 $actionID = $this->action->create('story', $storyID, $action, $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
             }
+
+            $this->executeHooks($storyID);
+
             if(defined('RUN_MODE') && RUN_MODE == 'api')
             {
                 die(array('status' => 'success', 'data' => $storyID));
@@ -487,11 +505,11 @@ class story extends control
             die(js::locate($this->session->storyList, 'parent'));
         }
 
-        $storyIDList = $this->post->storyIDList ? $this->post->storyIDList : die(js::locate($this->session->storyList, 'parent'));
-        $storyIDList = array_unique($storyIDList);
+        $storyIdList = $this->post->storyIdList ? $this->post->storyIdList : die(js::locate($this->session->storyList, 'parent'));
+        $storyIdList = array_unique($storyIdList);
 
         /* Get edited stories. */
-        $stories = $this->story->getByList($storyIDList);
+        $stories = $this->story->getByList($storyIdList);
 
         /* The stories of a product. */
         if($productID)
@@ -586,7 +604,7 @@ class story extends control
         $this->view->stageList         = array('' => '',  'ditto' => $this->lang->story->ditto) + $this->lang->story->stageList;
         $this->view->productID         = $productID;
         $this->view->branchProduct     = $branchProduct;
-        $this->view->storyIDList       = $storyIDList;
+        $this->view->storyIdList       = $storyIdList;
         $this->view->branch            = $branch;
         $this->view->stories           = $stories;
         $this->view->productName       = isset($product) ? $product->name : '';
@@ -616,6 +634,9 @@ class story extends control
                 $actionID = $this->action->create('story', $storyID, $action, $fileAction . $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
             }
+
+            $this->executeHooks($storyID);
+
             die(js::locate($this->createLink('story', 'view', "storyID=$storyID"), 'parent'));
         }
 
@@ -645,9 +666,16 @@ class story extends control
     {
         if(!empty($_POST))
         {
-            $this->story->activate($storyID);
+            $changes = $this->story->activate($storyID);
             if(dao::isError()) die(js::error(dao::getError()));
-            $actionID = $this->action->create('story', $storyID, 'Activated', $this->post->comment);
+
+            if($changes)
+            {
+                $actionID = $this->action->create('story', $storyID, 'Activated', $this->post->comment);
+                $this->action->logHistory($actionID, $changes);
+            }
+
+            $this->executeHooks($storyID);
 
             if(isonlybody()) die(js::closeModal('parent.parent', 'this'));
             die(js::locate($this->createLink('story', 'view', "storyID=$storyID"), 'parent'));
@@ -695,6 +723,8 @@ class story extends control
             if($project->status == 'done') $from = '';
         }
 
+        $this->executeHooks($storyID);
+
         $title      = "STORY #$story->id $story->title - $product->name";
         $position[] = html::a($this->createLink('product', 'browse', "product=$product->id&branch=$story->branch"), $product->name);
         $position[] = $this->lang->story->common;
@@ -739,6 +769,9 @@ class story extends control
         else
         {
             $this->story->delete(TABLE_STORY, $storyID);
+
+            $this->executeHooks($storyID);
+
             die(js::locate($this->session->storyList, 'parent'));
         }
     }
@@ -754,14 +787,19 @@ class story extends control
     {
         if(!empty($_POST))
         {
-            $this->story->review($storyID);
+            $changes = $this->story->review($storyID);
             if(dao::isError()) die(js::error(dao::getError()));
-            $result = $this->post->result;
-            $actionID = $this->action->create('story', $storyID, 'Reviewed', $this->post->comment, ucfirst($result));
-            if($this->post->result == 'reject')
+
+            if($changes)
             {
-                $this->action->create('story', $storyID, 'Closed', '', ucfirst($this->post->closedReason));
+                $result   = $this->post->result;
+                $actionID = $this->action->create('story', $storyID, 'Reviewed', $this->post->comment, ucfirst($result));
+                if($result == 'reject') $actionID = $this->action->create('story', $storyID, 'Closed', '', ucfirst($this->post->closedReason));
+                $this->action->logHistory($actionID, $changes);
             }
+
+            $this->executeHooks($storyID);
+
             die(js::locate(inlink('view', "storyID=$storyID"), 'parent'));
         }
 
@@ -806,9 +844,9 @@ class story extends control
      */
     public function batchReview($result, $reason = '')
     {
-        $storyIDList = $this->post->storyIDList ? $this->post->storyIDList : die(js::locate($this->session->storyList, 'parent'));
-        $storyIDList = array_unique($storyIDList);
-        $actions     = $this->story->batchReview($storyIDList, $result, $reason);
+        $storyIdList = $this->post->storyIdList ? $this->post->storyIdList : die(js::locate($this->session->storyList, 'parent'));
+        $storyIdList = array_unique($storyIdList);
+        $actions     = $this->story->batchReview($storyIdList, $result, $reason);
 
         if(dao::isError()) die(js::error(dao::getError()));
         if(!dao::isError()) $this->loadModel('score')->create('ajax', 'batchOther');
@@ -828,8 +866,15 @@ class story extends control
         {
             $changes = $this->story->close($storyID);
             if(dao::isError()) die(js::error(dao::getError()));
-            $actionID = $this->action->create('story', $storyID, 'Closed', $this->post->comment, ucfirst($this->post->closedReason) . ($this->post->duplicateStory ? ':' . (int)$this->post->duplicateStory : ''));
-            $this->action->logHistory($actionID, $changes);
+
+            if($changes)
+            {
+                $actionID = $this->action->create('story', $storyID, 'Closed', $this->post->comment, ucfirst($this->post->closedReason) . ($this->post->duplicateStory ? ':' . (int)$this->post->duplicateStory : ''));
+                $this->action->logHistory($actionID, $changes);
+            }
+
+            $this->executeHooks($storyID);
+
             if(isonlybody()) die(js::closeModal('parent.parent', 'this'));
             if(defined('RUN_MODE') && RUN_MODE == 'api')
             {
@@ -889,11 +934,11 @@ class story extends control
             die(js::locate($this->session->storyList, 'parent'));
         }
 
-        $storyIDList = $this->post->storyIDList ? $this->post->storyIDList : die(js::locate($this->session->storyList, 'parent'));
-        $storyIDList = array_unique($storyIDList);
+        $storyIdList = $this->post->storyIdList ? $this->post->storyIdList : die(js::locate($this->session->storyList, 'parent'));
+        $storyIdList = array_unique($storyIdList);
 
         /* Get edited stories. */
-        $stories = $this->dao->select('*')->from(TABLE_STORY)->where('id')->in($storyIDList)->fetchAll('id');
+        $stories = $this->dao->select('*')->from(TABLE_STORY)->where('id')->in($storyIdList)->fetchAll('id');
         foreach($stories as $story)
         {
             if($story->status == 'closed') unset($stories[$story->id]);
@@ -941,7 +986,7 @@ class story extends control
         $this->view->plans            = $this->loadModel('productplan')->getPairs($productID);
         $this->view->productID        = $productID;
         $this->view->stories          = $stories;
-        $this->view->storyIDList      = $storyIDList;
+        $this->view->storyIdList      = $storyIdList;
 
         $this->display();
     }
@@ -955,9 +1000,9 @@ class story extends control
      */
     public function batchChangeModule($moduleID)
     {
-        $storyIDList = !empty($_POST['storyIDList']) ? $this->post->storyIDList : die(js::locate($this->session->storyList, 'parent'));
-        $storyIDList = array_unique($storyIDList);
-        $allChanges  = $this->story->batchChangeModule($storyIDList, $moduleID);
+        $storyIdList = !empty($_POST['storyIdList']) ? $this->post->storyIdList : die(js::locate($this->session->storyList, 'parent'));
+        $storyIdList = array_unique($storyIdList);
+        $allChanges  = $this->story->batchChangeModule($storyIdList, $moduleID);
         if(dao::isError()) die(js::error(dao::getError()));
         foreach($allChanges as $storyID => $changes)
         {
@@ -977,9 +1022,9 @@ class story extends control
      */
     public function batchChangePlan($planID, $oldPlanID = 0)
     {
-        $storyIDList = !empty($_POST['storyIDList']) ? $this->post->storyIDList : die(js::locate($this->session->storyList, 'parent'));
-        $storyIDList = array_unique($storyIDList);
-        $allChanges  = $this->story->batchChangePlan($storyIDList, $planID, $oldPlanID);
+        $storyIdList = !empty($_POST['storyIdList']) ? $this->post->storyIdList : die(js::locate($this->session->storyList, 'parent'));
+        $storyIdList = array_unique($storyIdList);
+        $allChanges  = $this->story->batchChangePlan($storyIdList, $planID, $oldPlanID);
         if(dao::isError()) die(js::error(dao::getError()));
         foreach($allChanges as $storyID => $changes)
         {
@@ -999,9 +1044,9 @@ class story extends control
      */
     public function batchChangeBranch($branchID)
     {
-        $storyIDList = !empty($_POST['storyIDList']) ? $this->post->storyIDList : die(js::locate($this->session->storyList, 'parent'));
-        $storyIDList = array_unique($storyIDList);
-        $allChanges  = $this->story->batchChangeBranch($storyIDList, $branchID);
+        $storyIdList = !empty($_POST['storyIdList']) ? $this->post->storyIdList : die(js::locate($this->session->storyList, 'parent'));
+        $storyIdList = array_unique($storyIdList);
+        $allChanges  = $this->story->batchChangeBranch($storyIdList, $branchID);
         if(dao::isError()) die(js::error(dao::getError()));
         foreach($allChanges as $storyID => $changes)
         {
@@ -1021,11 +1066,11 @@ class story extends control
      */
     public function batchChangeStage($stage)
     {
-        $storyIDList = $this->post->storyIDList;
-        if(empty($storyIDList)) die(js::locate($this->session->storyList, 'parent'));
+        $storyIdList = $this->post->storyIdList;
+        if(empty($storyIdList)) die(js::locate($this->session->storyList, 'parent'));
 
-        $storyIDList = array_unique($storyIDList);
-        $allChanges  = $this->story->batchChangeStage($storyIDList, $stage);
+        $storyIdList = array_unique($storyIdList);
+        $allChanges  = $this->story->batchChangeStage($storyIdList, $stage);
         if(dao::isError()) die(js::error(dao::getError()));
 
         $action = $stage == 'verified' ? 'Verified' : 'Edited';
@@ -1057,6 +1102,8 @@ class story extends control
                 $this->action->logHistory($actionID, $changes);
             }
 
+            $this->executeHooks($storyID);
+
             if(isonlybody()) die(js::closeModal('parent.parent', 'this'));
             die(js::locate($this->createLink('story', 'view', "storyID=$storyID"), 'parent'));
         }
@@ -1084,7 +1131,7 @@ class story extends control
      */
     public function batchAssignTo()
     {
-        if(!empty($_POST) && isset($_POST['storyIDList']))
+        if(!empty($_POST) && isset($_POST['storyIdList']))
         {
             $allChanges  = $this->story->batchAssignTo();
             if(dao::isError()) die(js::error(dao::getError()));
@@ -1264,7 +1311,7 @@ class story extends control
      * @access public
      * @return void
      */
-    public function ajaxGetProductStories($productID, $branch = 0, $moduleID = 0, $storyID = 0, $onlyOption = 'false', $status = '', $limit = 0)
+    public function ajaxGetProductStories($productID, $branch = 0, $moduleID = 0, $storyID = 0, $onlyOption = 'false', $status = '', $limit = 0, $type = 'full')
     {
         if($moduleID)
         {
@@ -1280,7 +1327,7 @@ class story extends control
             $storyStatus = array_keys($storyStatus);
         }
 
-        $stories = $this->story->getProductStoryPairs($productID, $branch ? "0,$branch" : $branch, $moduleID, $storyStatus, 'id_desc', $limit);
+        $stories = $this->story->getProductStoryPairs($productID, $branch ? "0,$branch" : $branch, $moduleID, $storyStatus, 'id_desc', $limit, $type);
         $select  = html::select('story', empty($stories) ? array('' => '') : $stories, $storyID, "class='form-control'");
 
         /* If only need options, remove select wrap. */
@@ -1453,7 +1500,8 @@ class story extends control
             }
             else
             {
-                $stmt = $this->dbh->query($this->session->storyQueryCondition . ($this->post->exportType == 'selected' ? " AND t1.id IN({$this->cookie->checkedItem})" : '') . " ORDER BY " . strtr($orderBy, '_', ' '));
+                $field = $projectID ? 't2.id' : 't1.id';
+                $stmt  = $this->dbh->query($this->session->storyQueryCondition . ($this->post->exportType == 'selected' ? " AND $field IN({$this->cookie->checkedItem})" : '') . " ORDER BY " . strtr($orderBy, '_', ' '));
                 while($row = $stmt->fetch()) $stories[$row->id] = $row;
             }
 
@@ -1463,7 +1511,6 @@ class story extends control
 
             /* Get related objects id lists. */
             $relatedProductIdList = array();
-            $relatedModuleIdList  = array();
             $relatedStoryIdList   = array();
             $relatedPlanIdList    = array();
             $relatedBranchIdList  = array();
@@ -1472,7 +1519,6 @@ class story extends control
             foreach($stories as $story)
             {
                 $relatedProductIdList[$story->product] = $story->product;
-                $relatedModuleIdList[$story->module]   = $story->module;
                 $relatedPlanIdList[$story->plan]       = $story->plan;
                 $relatedBranchIdList[$story->branch]   = $story->branch;
                 $relatedStoryIDs[$story->id]           = $story->id;
@@ -1492,12 +1538,12 @@ class story extends control
 
             /* Get related objects title or names. */
             $productsType   = $this->dao->select('id, type')->from(TABLE_PRODUCT)->where('id')->in($relatedProductIdList)->fetchPairs();
-            $relatedModules = $this->loadModel('tree')->getOptionMenu($productID);
             $relatedPlans   = $this->dao->select('id, title')->from(TABLE_PRODUCTPLAN)->where('id')->in(join(',', $relatedPlanIdList))->fetchPairs();
             $relatedStories = $this->dao->select('id,title')->from(TABLE_STORY) ->where('id')->in($relatedStoryIdList)->fetchPairs();
             $relatedFiles   = $this->dao->select('id, objectID, pathname, title')->from(TABLE_FILE)->where('objectType')->eq('story')->andWhere('objectID')->in(@array_keys($stories))->andWhere('extra')->ne('editor')->fetchGroup('objectID');
             $relatedSpecs   = $this->dao->select('*')->from(TABLE_STORYSPEC)->where('`story`')->in(@array_keys($stories))->orderBy('version desc')->fetchGroup('story');
             $relatedBranch  = array('0' => $this->lang->branch->all) + $this->dao->select('id, name')->from(TABLE_BRANCH)->where('id')->in($relatedBranchIdList)->fetchPairs();
+            $relatedModules = $this->loadModel('tree')->getAllModulePairs();
 
             foreach($stories as $story)
             {
@@ -1540,7 +1586,7 @@ class story extends control
                 if(isset($relatedStories[$story->duplicateStory])) $story->duplicateStory = $relatedStories[$story->duplicateStory];
 
                 if(isset($storyLang->priList[$story->pri]))             $story->pri          = $storyLang->priList[$story->pri];
-                if(isset($storyLang->statusList[$story->status]))       $story->status       = $storyLang->statusList[$story->status];
+                if(isset($storyLang->statusList[$story->status]))       $story->status       = $this->processStatus('story', $story);
                 if(isset($storyLang->stageList[$story->stage]))         $story->stage        = $storyLang->stageList[$story->stage];
                 if(isset($storyLang->reasonList[$story->closedReason])) $story->closedReason = $storyLang->reasonList[$story->closedReason];
                 if(isset($storyLang->sourceList[$story->source]))       $story->source       = $storyLang->sourceList[$story->source];
@@ -1627,6 +1673,8 @@ class story extends control
             }
             if(!(in_array('platform', $productsType) or in_array('branch', $productsType))) unset($fields['branch']);// If products's type are normal, unset branch field.
 
+            if(isset($this->config->bizVersion)) list($fields, $stories) = $this->loadModel('workflowfield')->appendDataFromFlow($fields, $stories);
+
             $this->post->set('fields', $fields);
             $this->post->set('rows', $stories);
             $this->post->set('kind', 'story');
@@ -1675,5 +1723,44 @@ class story extends control
 
         if($id) die(html::select("storys[$id]", $storys, '', 'class="form-control"'));
         die(html::select('story', $storys, '', 'class=form-control'));
+    }
+
+    /**
+     * Ajax get story status.
+     * 
+     * @param  string $method 
+     * @param  string $params 
+     * @access public
+     * @return void
+     */
+    public function ajaxGetStatus($method, $params = '')
+    {
+        parse_str(str_replace(',', '&', $params), $params);
+        $status = '';
+        if($method == 'create')
+        {
+            $status = 'draft';
+            if(!empty($params['needNotReview'])) $status = 'active';
+            if(!empty($params['project']))       $status = 'active';
+            if($this->story->checkForceReview()) $status = 'draft';
+        }
+        elseif($method == 'change')
+        {
+            $oldStory = $this->dao->findById((int)$params['storyID'])->from(TABLE_STORY)->fetch();
+            $status   = $oldStory->status;
+            if($params['changed'] and $oldStory->status == 'active' and empty($params['needNotReview']))  $status = 'changed';
+            if($params['changed'] and $oldStory->status == 'active' and $this->story->checkForceReview()) $status = 'changed';
+            if($params['changed'] and $oldStory->status == 'draft' and $params['needNotReview']) $status = 'active';
+        }
+        elseif($method == 'review')
+        {
+            $oldStory = $this->dao->findById((int)$params['storyID'])->from(TABLE_STORY)->fetch();
+            $status   = $oldStory->status;
+            if($params['result'] == 'pass' and $oldStory->status == 'draft')   $status = 'active';
+            if($params['result'] == 'pass' and $oldStory->status == 'changed') $status = 'active';
+            if($params['result'] == 'revert') $status = 'active';
+            if($params['result'] == 'reject') $status = 'closed';
+        }
+        die($status);
     }
 }

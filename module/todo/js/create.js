@@ -15,17 +15,13 @@ $(function()
         {
             $('.cycleConfig').removeClass('hidden');
             $('#switchDate').closest('.input-group-addon').addClass('hidden');
-            $('#type').find('option').each(function()
-            {
-                var type = $(this).val();
-                if(type == 'bug' || type == 'task' || type == 'story') $(this).addClass('hidden');
-            })
+            $('#type').closest('tr').addClass('hidden');
         }
         else
         {
             $('.cycleConfig').addClass('hidden');
             $('#switchDate').closest('.input-group-addon').removeClass('hidden');
-            $('#type').find('option').removeClass('hidden');
+            $('#type').closest('tr').removeClass('hidden');
         }
     });
     $('ul.nav-tabs a').click(function()

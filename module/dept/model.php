@@ -98,7 +98,8 @@ class deptModel extends model
             }
         }
 
-        $topMenu = @array_pop($deptMenu);
+        krsort($deptMenu);
+        $topMenu = array_pop($deptMenu);
         $topMenu = explode("\n", trim($topMenu));
         $lastMenu[] = '/';
         foreach($topMenu as $menu)
@@ -147,7 +148,9 @@ class deptModel extends model
             $deptMenu[$dept->parent] .= "</li>\n"; 
         }
 
-        $lastMenu = "<ul class='tree' data-ride='tree' data-name='tree-dept'>" . @array_pop($deptMenu) . "</ul>\n";
+        krsort($deptMenu);
+        $deptMenu = array_pop($deptMenu);
+        $lastMenu = "<ul class='tree' data-ride='tree' data-name='tree-dept'>{$deptMenu}</ul>\n";
         return $lastMenu; 
     }
 
@@ -200,6 +203,19 @@ class deptModel extends model
     public function createMemberLink($dept)
     {
         $linkHtml = html::a(helper::createLink('company', 'browse', "dept={$dept->id}"), $dept->name, '_self', "id='dept{$dept->id}'");
+        return $linkHtml;
+    }
+
+    /**
+     * Create the traingoal member link.
+     * 
+     * @param  int    $dept 
+     * @access public
+     * @return string
+     */
+    public function traingoalMemberLink($dept, $planID)
+    {
+        $linkHtml = html::a(helper::createLink('traingoal', 'browse', "goalID={$planID}&type=company&dept={$dept->id}&"), $dept->name, '_self', "id='dept{$dept->id}'");
         return $linkHtml;
     }
 
@@ -416,27 +432,30 @@ class deptModel extends model
 
     /**
      * Get data structure
-     * @param  integer $rootDeptID
      * @access public
-     * @return object
+     * @return array
      */
-    public function getDataStructure($rootDeptID = 0) 
+    public function getDataStructure()
     {
-        $tree = array_values($this->getSons($rootDeptID));
-        $users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted|all');
-        if(count($tree))
+        $users      = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted|all');
+        $treeGroups = $this->dao->select('*')->from(TABLE_DEPT)->orderBy('grade_desc,`order`')->fetchGroup('parent', 'id');
+        $tree       = array();
+        foreach($treeGroups as $parent => $groups)
         {
-            foreach ($tree as $node)
+            foreach($groups as $deptID => $node)
             {
-                $node->managerName = $users[$node->manager];
-                $children = $this->getDataStructure($node->id);
-                if(count($children))
+                $node->managerName = zget($users, $node->manager);
+                if(isset($tree[$deptID]))
                 {
-                    $node->children = $children;
+                    $node->children = $tree[$deptID];
                     $node->actions = array('delete' => false);
+                    unset($tree[$deptID]);
                 }
+                $tree[$node->parent][] = $node;
             }
         }
-        return $tree; 
+
+        krsort($tree);
+        return array_pop($tree);
     }
 }

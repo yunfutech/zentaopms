@@ -409,12 +409,13 @@ class my extends control
         {
             $this->user->updatePassword($this->app->user->id);
             if(dao::isError()) die(js::error(dao::getError()));
-            die(js::locate($this->createLink('my', 'profile'), 'parent'));
+            die(js::locate($this->createLink('my', 'profile'), 'parent.parent'));
         }
 
         $this->view->title      = $this->lang->my->common . $this->lang->colon . $this->lang->my->changePassword;
         $this->view->position[] = $this->lang->my->changePassword;
         $this->view->user       = $this->user->getById($this->app->user->account);
+        $this->view->rand       = $this->user->updateSessionRandom();
 
         $this->display();
     }
@@ -535,11 +536,12 @@ class my extends control
         $this->app->loadLang('user');
         $user = $this->user->getById($this->app->user->account);
 
-        $this->view->title      = $this->lang->my->common . $this->lang->colon . $this->lang->my->profile;
-        $this->view->position[] = $this->lang->my->profile;
-        $this->view->user       = $user;
-        $this->view->groups     = $this->loadModel('group')->getByAccount($this->app->user->account);
-        $this->view->deptPath   = $this->dept->getParents($user->dept);
+        $this->view->title        = $this->lang->my->common . $this->lang->colon . $this->lang->my->profile;
+        $this->view->position[]   = $this->lang->my->profile;
+        $this->view->user         = $user;
+        $this->view->groups       = $this->loadModel('group')->getByAccount($this->app->user->account);
+        $this->view->deptPath     = $this->dept->getParents($user->dept);
+        $this->view->personalData = $this->user->getPersonalData();
         $this->display();
     }
 

@@ -14,23 +14,29 @@
 <?php include '../../common/view/chosen.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
 <?php include '../../common/view/datepicker.html.php';?>
+<?php js::set('caseID', $case->id);?>
 <div id='mainContent' class='main-content'>
   <div class='main-header'>
     <h2>
       <span class='label label-id'><?php echo $case->id;?></span>
-      <?php echo html::a($this->createLink('case', 'view', "caseID=$case->id"), $case->title);?>
+      <?php echo html::a($this->createLink('testcase', 'view', "caseID=$case->id"), $case->title);?>
     </h2>
   </div>
   <form method='post' target='hiddenwin'>
     <table class='table table-form'>
       <tr>
-        <th class='w-80px'><?php echo $lang->testcase->reviewedDateAB;?></th>
+        <th class='w-100px'><?php echo $lang->testcase->reviewedDateAB;?></th>
         <td class='w-p25-f'><?php echo html::input('reviewedDate', helper::today(), "class='form-control form-date'");?></td><td></td>
       </tr>
       <tr>
         <th><?php echo $lang->testcase->reviewResultAB;?></th>
         <td><?php echo html::select('result', $lang->testcase->reviewResultList, '', 'class=form-control');?></td><td></td>
       </tr>
+      <tr class='hide'>
+        <th><?php echo $lang->testcase->status;?></th>
+        <td><?php echo html::hidden('status', $case->status);?></td>
+      </tr>
+      <?php $this->printExtendFields($case, 'table');?>
       <tr>
         <th><?php echo $lang->testcase->reviewedByAB;?></th>
         <td colspan='2'><?php echo html::select('reviewedBy[]', $users, $app->user->account, "class='form-control chosen' multiple");?></td>

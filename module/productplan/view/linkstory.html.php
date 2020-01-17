@@ -10,7 +10,7 @@
  * @link        http://www.zentao.net
  */
 ?>
-<div id='queryBox' class='show no-margin'></div>
+<div id='queryBox' data-module='story' class='show no-margin'></div>
 <div id='unlinkStoryList'>
   <form class="main-table table-story" data-ride="table" method="post" target='hiddenwin' id='unlinkedStoriesForm' action="<?php echo $this->createLink('productplan', 'linkStory', "planID=$plan->id&browseType=$browseType&param=$param&orderBy=$orderBy")?>">
     <div class='table-header hl-primary text-primary strong'>
@@ -55,7 +55,7 @@
           <td><?php echo $story->estimate;?></td>
           <td>
             <span class='status-story status-<?php echo $story->status?>'>
-              <?php echo $lang->story->statusList[$story->status];?>
+              <?php echo $this->processStatus('story', $story);?>
             </span>
           </td>
           <td class='text-center'><?php echo $lang->story->stageList[$story->stage];?></td>

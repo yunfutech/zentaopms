@@ -15,8 +15,6 @@ $jsRoot = $this->app->getWebRoot() . "js/";
 include '../../common/view/datepicker.html.php';
 include '../../common/view/chosen.html.php';
 $formId = 'searchForm-' . uniqid('');
-$fieldWidth    = $app->getClientLang() == 'en' ? 'w-130px' : 'w-110px';
-$operatorWidth = $app->getClientLang() == 'en' ? 'w-100px' : 'w-90px';
 ?>
 <style>
 #selectPeriod {padding: 4px 0; height: 197px; min-width: 120px}
@@ -25,13 +23,11 @@ $operatorWidth = $app->getClientLang() == 'en' ? 'w-100px' : 'w-90px';
 #<?php echo $formId;?> > table {margin: 0 auto;}
 #<?php echo $formId;?> > table > tbody > tr > td {padding: 8px;}
 #<?php echo $formId;?> .form-actions {padding-bottom: 20px; padding-top: 0;}
-#<?php echo $formId;?> .chosen-container[id^="field"] .chosen-drop {min-width: 180px;}
-<?php if($app->getClientLang() == 'en'):?>
+<?php if(common::checkNotCN()):?>
 #<?php echo $formId;?> [id^="valueBox"] .chosen-container .chosen-single {min-width: 70px;}
 <?php else:?>
 #<?php echo $formId;?> [id^="valueBox"] .chosen-container .chosen-single {min-width: 100px;}
 <?php endif;?>
-#<?php echo $formId;?> [id^="valueBox"] .chosen-container .chosen-drop {min-width: 300px;}
 #<?php echo $formId;?> .chosen-container .chosen-drop ul.chosen-results li {white-space:normal}
 #<?php echo $formId;?> input.date::-webkit-input-placeholder {color: #838A9D; opacity: 1;}
 #<?php echo $formId;?> input.date::-moz-placeholder {color: #838A9D; opacity: 1;}
@@ -44,6 +40,7 @@ $operatorWidth = $app->getClientLang() == 'en' ? 'w-100px' : 'w-90px';
 #queryBox select#groupAndOr {padding-right:2px; padding-left:5px;}
 #queryBox .chosen-container-single .chosen-single>span {margin-right:5px;}
 
+#queryBox .form-actions .btn {margin-right: 5px;}
 #userQueries {border-left: 1px solid #eee; vertical-align: top;}
 #userQueries > h4 {margin: 0 0 6px;}
 #userQueries ul {list-style: none; padding-left: 0; margin: 0; max-height:75px; overflow:auto;}
@@ -55,10 +52,22 @@ $operatorWidth = $app->getClientLang() == 'en' ? 'w-100px' : 'w-90px';
 #userQueries .label > .icon-close:hover {background-color: #ff5d5d; color: #fff;}
 @media (max-width: 1150px) {#userQueries {display: none}}
 <?php if($style == 'simple'):?>
-#<?php echo $formId;?> .form-actions {text-align: left; padding: 0!important; max-width: 200px; vertical-align: middle; width: 200px;}
+#<?php echo $formId;?> .form-actions {text-align: left; padding: 0!important; max-width: 200px; vertical-align: middle; width: 100px;}
 #queryBox.show {min-height: 66px;}
 <?php endif;?>
+#toggle-queries{position: absolute; right: 0px; top: 40px; width: 13px; background: #79cdfb; border-radius: 6px; height: 30px;cursor: pointer}
+#toggle-queries .icon{ position: absolute; top: 6px; right: -2px; color: #fff;}
+
+.fieldWidth{width:130px !important;}
+.operatorWidth{width:110px !important;}
+html[lang^='zh-'] .fieldWidth{width:110px !important;}
+html[lang^='zh-'] .operatorWidth{width:90px !important;}
 </style>
+<?php if($style != 'simple'):?>
+  <div id='toggle-queries'>
+    <i class='icon icon-angle-left'></i>
+  </div>
+<?php endif;?>
 <form method='post' action='<?php echo $this->createLink('search', 'buildQuery');?>' target='hiddenwin' id='<?php echo $formId;?>' class='search-form<?php if($style == 'simple') echo ' search-form-simple';?>'>
 <div class='hidden'>
 <?php
@@ -80,7 +89,7 @@ foreach($fieldParams as $fieldName => $param)
           <tbody>
             <?php
             $formSessionName = $module . 'Form';
-            $formSession     = $this->session->$formSessionName;
+            $formSession     = $_SESSION[$formSessionName];
 
             $fieldNO = 1;
             for($i = 1; $i <= $groupItems; $i ++)
@@ -101,16 +110,16 @@ foreach($fieldParams as $fieldName => $param)
                 $param = $fieldParams[$currentField];
 
                 /* Print and or. */
-                echo "<td class='text-right w-70px'>";
+                echo "<td class='text-right w-80px'>";
                 if($i == 1) echo "<span id='searchgroup1'><strong>{$lang->search->group1}</strong></span>" . html::hidden("andOr$fieldNO", 'AND');
                 if($i > 1)  echo html::select("andOr$fieldNO", $lang->search->andor, $formSession["andOr$fieldNO"], "class='form-control'");
                 echo '</td>';
 
                 /* Print field. */
-                echo "<td class='{$fieldWidth}' style='overflow: visible'>" . html::select("field$fieldNO", $searchFields, $formSession["field$fieldNO"], "onchange='setField(this, $fieldNO, {$module}params)' class='form-control chosen'") . '</td>';
+                echo "<td class='fieldWidth' style='overflow: visible'>" . html::select("field$fieldNO", $searchFields, $formSession["field$fieldNO"], "onchange='setField(this, $fieldNO, {$module}params)' class='form-control chosen'") . '</td>';
 
                 /* Print operator. */
-                echo "<td class='{$operatorWidth}'>" . html::select("operator$fieldNO", $lang->search->operators, $formSession["operator$fieldNO"], "class='form-control'") . '</td>';
+                echo "<td class='operatorWidth'>" . html::select("operator$fieldNO", $lang->search->operators, $formSession["operator$fieldNO"], "class='form-control'") . '</td>';
 
                 /* Print value. */
                 echo "<td id='valueBox$fieldNO' style='overflow:visible'>";
@@ -161,16 +170,16 @@ foreach($fieldParams as $fieldName => $param)
                 $param = $fieldParams[$currentField];
 
                 /* Print and or. */
-                echo "<td class='text-right w-70px'>";
+                echo "<td class='text-right w-80px'>";
                 if($i == 1) echo "<span id='searchgroup2'><strong>{$lang->search->group2}</strong></span>" . html::hidden("andOr$fieldNO", 'AND');
                 if($i > 1)  echo html::select("andOr$fieldNO", $lang->search->andor, $formSession["andOr$fieldNO"], "class='form-control'");
                 echo '</td>';
 
                 /* Print field. */
-                echo "<td class='{$fieldWidth}' style='overflow: visible'>" . html::select("field$fieldNO", $searchFields, $formSession["field$fieldNO"], "onchange='setField(this, $fieldNO, {$module}params)' class='form-control chosen'") . '</td>';
+                echo "<td class='fieldWidth' style='overflow: visible'>" . html::select("field$fieldNO", $searchFields, $formSession["field$fieldNO"], "onchange='setField(this, $fieldNO, {$module}params)' class='form-control chosen'") . '</td>';
 
                 /* Print operator. */
-                echo "<td class='{$operatorWidth}'>" .  html::select("operator$fieldNO", $lang->search->operators, $formSession["operator$fieldNO"], "class='form-control'") . '</td>';
+                echo "<td class='operatorWidth'>" . html::select("operator$fieldNO", $lang->search->operators, $formSession["operator$fieldNO"], "class='form-control'") . '</td>';
 
                 /* Print value. */
                 echo "<td id='valueBox$fieldNO'>";
@@ -201,7 +210,7 @@ foreach($fieldParams as $fieldName => $param)
         </table>
       </td>
       <?php if($style != 'simple'):?>
-      <td class='w-160px' rowspan='2' id='userQueries'>
+      <td class='w-160px hidden' rowspan='2' id='userQueries'>
         <h4><?php echo $lang->search->savedQuery;?></h4>
         <ul>
           <?php foreach($queries as $queryID => $queryName):?>
@@ -261,7 +270,31 @@ function executeQuery(queryID)
 $(function()
 {
     var $searchForm = $('#<?php echo $formId;?>');
-    $searchForm.find('select.chosen').chosen();
+    $searchForm.find('select.chosen').chosen().on('chosen:showing_dropdown', function()
+    {
+        var $this = $(this);
+        var $chosen = $this.next('.chosen-container').removeClass('chosen-up');
+        var $drop = $chosen.find('.chosen-drop');
+        $chosen.toggleClass('chosen-up', $drop.height() + $drop.offset().top - $(document).scrollTop() > $(window).height());
+    });
+
+    /* Toggle user queries action. */
+    $('#toggle-queries').click(function()
+    {
+        $('#userQueries').toggleClass('hidden');
+        if(!$('#userQueries').hasClass('hidden')) 
+        {
+            $('#toggle-queries .icon').removeClass('icon-angle-left');
+            $('#toggle-queries .icon').addClass('icon-angle-right');
+            $('#toggle-queries').css('right', $('#userQueries').outerWidth());
+        }
+        else
+        {
+            $('#toggle-queries .icon').removeClass('icon-angle-right');
+            $('#toggle-queries .icon').addClass('icon-angle-left');
+            $('#toggle-queries').css('right', '0px');
+        }
+    });
 
     /*
      * Load queries form
@@ -274,9 +307,13 @@ $(function()
             if($('#mainMenu .btn-toolbar.pull-left #query').size() == 0)
             {
                 var html = '<div class="btn-group" id="query"><a href="javascript:;" data-toggle="dropdown" class="btn btn-link " style="border-radius: 2px;">' + searchCustom + ' <span class="caret"></span></a><ul class="dropdown-menu"></ul></div>';
+                html += '<style>#mainMenu #query.btn-group li {position: relative;} #mainMenu #query.btn-group li a{margin-right:20px;} #mainMenu #query.btn-group li .btn-delete{ padding:0 7px; position: absolute; right: -10px; top: -5px; display: block; width: 20px; text-align: center; } </style>';
+                html += "<script> function removeQueryFromMenu(obj) { var $obj = $(obj); var link = createLink('search', 'ajaxRemoveMenu', 'queryID=' + $obj.data('id')); $.get(link, function() { $obj.closest('li').remove(); if($('#mainMenu #query.btn-group').find('li').length == 0) $('#mainMenu #query.btn-group').remove(); })}<\/script>";
                 $('#mainMenu .btn-toolbar.pull-left #bysearchTab').before(html);
             }
-            $('#mainMenu .btn-toolbar.pull-left #query ul.dropdown-menu').append("<li><a href='" + actionURL.replace('myQueryID', queryID) + "'>" + name + "</a></li>")
+            html  = "<li><a href='" + actionURL.replace('myQueryID', queryID) + "'>" + name + "</a>";
+            html += "<a href='###' class='btn-delete' data-id='" + queryID + "' onclick='removeQueryFromMenu(this)'><i class='icon icon-close'></i></a></li>";
+            $('#mainMenu .btn-toolbar.pull-left #query ul.dropdown-menu').append(html);
         }
     };
 
@@ -309,31 +346,41 @@ $(function()
     var setDateField = function(query, fieldNO)
     {
         var $period = $('#selectPeriod');
-        if(!$period.length)
-        {
-            $period = $("<ul id='selectPeriod' class='dropdown-menu'><li class='dropdown-header'><?php echo $lang->datepicker->dpText->TEXT_OR . ' ' . $lang->datepicker->dpText->TEXT_DATE;?></li><li><a href='#lastWeek'><?php echo $lang->datepicker->dpText->TEXT_PREV_WEEK;?></a></li><li><a href='#thisWeek'><?php echo $lang->datepicker->dpText->TEXT_THIS_WEEK;?></a></li><li><a href='#yesterday'><?php echo $lang->datepicker->dpText->TEXT_YESTERDAY;?></a></li><li><a href='#today'><?php echo $lang->datepicker->dpText->TEXT_TODAY;?></a></li><li><a href='#lastMonth'><?php echo $lang->datepicker->dpText->TEXT_PREV_MONTH;?></a></li><li><a href='#thisMonth'><?php echo $lang->datepicker->dpText->TEXT_THIS_MONTH;?></a></li></ul>").appendTo('body');
-            $period.find('li > a').click(function(event)
-            {
-                var target = $(query).closest('form').find('#' + $period.data('target'));
-                if(target.length)
-                {
-                    if(target.next('input[type=hidden]').length)
-                    {
-                        target.next('input[type=hidden]').val($(this).attr('href').replace('#', '$'));
-                        target.attr('placeholder', $(this).attr('href').replace('#', '$'));
-                    }
-                    else
-                    {
-                        target.val($(this).attr('href').replace('#', '$'));
-                    }
+        if($period.length) $period.remove();
 
-                    $(query).closest('form').find('#operator' + $period.data('fieldNO')).val('between');
-                    $period.hide();
+        <?php
+        $selectPeriod  = "<ul id='selectPeriod' class='dropdown-menu'>";
+        $selectPeriod .= "<li class='dropdown-header'>{$lang->datepicker->dpText->TEXT_OR} {$lang->datepicker->dpText->TEXT_DATE}</li>";
+        $selectPeriod .= "<li><a href='#lastWeek'>{$lang->datepicker->dpText->TEXT_PREV_WEEK}</a></li>";
+        $selectPeriod .= "<li><a href='#thisWeek'>{$lang->datepicker->dpText->TEXT_THIS_WEEK}</a></li>";
+        $selectPeriod .= "<li><a href='#yesterday'>{$lang->datepicker->dpText->TEXT_YESTERDAY}</a></li>";
+        $selectPeriod .= "<li><a href='#today'>{$lang->datepicker->dpText->TEXT_TODAY}</a></li>";
+        $selectPeriod .= "<li><a href='#lastMonth'>{$lang->datepicker->dpText->TEXT_PREV_MONTH}</a></li>";
+        $selectPeriod .= "<li><a href='#thisMonth'>{$lang->datepicker->dpText->TEXT_THIS_MONTH}</a></li></ul>";
+        ?>
+        $period = $(<?php echo json_encode($selectPeriod);?>).appendTo('body');
+        $period.find('li > a').click(function(event)
+        {
+            var target = $(query).closest('form').find('#' + $period.data('target'));
+            if(target.length)
+            {
+                if(target.next('input[type=hidden]').length)
+                {
+                    target.next('input[type=hidden]').val($(this).attr('href').replace('#', '$'));
+                    target.attr('placeholder', $(this).attr('href').replace('#', '$'));
                 }
-                event.stopPropagation();
-                return false;
-            });
-        }
+                else
+                {
+                    target.val($(this).attr('href').replace('#', '$'));
+                }
+
+                $(query).closest('form').find('#operator' + $period.data('fieldNO')).val('between');
+                $period.hide();
+            }
+            event.stopPropagation();
+            return false;
+        });
+
         $(query).datetimepicker('remove').datepicker(dtOptions).on('show', function(e)
         {
             var $e = $(e.target);

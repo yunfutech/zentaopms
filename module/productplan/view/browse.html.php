@@ -33,7 +33,6 @@
     <p>
       <span class="text-muted"><?php echo $lang->productplan->noPlan;?></span>
       <?php if(common::hasPriv('productplan', 'create')):?>
-      <span class="text-muted"><?php echo $lang->youCould;?></span>
       <?php echo html::a($this->createLink('productplan', 'create', "productID=$product->id&branch=$branch"), "<i class='icon icon-plus'></i> " . $lang->productplan->create, '', "class='btn btn-info'");?>
       <?php endif;?>
     </p>
@@ -74,7 +73,7 @@
       if($plan->parent == '-1')
       {
           $parent   = $plan->id;
-          $children = $plan->children;
+          $children = isset($plan->children) ? $plan->children : 0;
       }
       if($plan->parent == 0) $parent = 0;
       if(!empty($parent) and $plan->parent > 0 and $plan->parent != $parent) $parent = 0;
@@ -104,7 +103,7 @@
           ?>
         </td>
         <?php if($this->session->currentProductType != 'normal'):?>
-        <td><?php echo $branches[$plan->branch];?></td>
+        <td class='c-branch' title='<?php echo $branches[$plan->branch];?>'><?php echo $branches[$plan->branch];?></td>
         <?php endif;?>
         <td><?php echo $plan->begin == '2030-01-01' ? $lang->productplan->future : $plan->begin;?></td>
         <td><?php echo $plan->end == '2030-01-01' ? $lang->productplan->future : $plan->end;?></td>
@@ -112,7 +111,10 @@
         <td class='text-center'><?php echo $plan->bugs;?></td>
         <td class='text-center'><?php echo $plan->hour;?></td>
         <td class='text-center'><?php if(!empty($plan->projectID)) echo html::a(helper::createLink('project', 'task', 'projectID=' . $plan->projectID), '<i class="icon-search"></i>');?></td>
-        <td title='<?php echo strip_tags(str_replace("</p>", "\n", str_replace("\n", '', $plan->desc)));?>' class='text-left content'><?php echo nl2br(strip_tags(str_replace("</p>", "\n", str_replace("\n", '', $plan->desc))));?></td>
+        <td class='text-left content'>
+          <?php $desc = strip_tags(str_replace(array('</p>', '<br />', '<br>', '<br/>'), "\n", str_replace(array("\n", "\r"), '', $plan->desc)), '<img>');?>
+          <div title='<?php echo $desc;?>'><?php echo nl2br($desc);?></div>
+        </td>
         <td class='c-actions'>
           <?php
           if(common::hasPriv('project', 'create')) echo html::a(helper::createLink('project', 'create', "projectID=&copyProjectID=&planID=$plan->id"), '<i class="icon-plus"></i>', '', "class='btn' title='{$lang->project->create}'");
@@ -127,8 +129,14 @@
 
           if(common::hasPriv('productplan', 'delete', $plan))
           {
-              $deleteURL = $this->createLink('productplan', 'delete', "planID=$plan->id&confirm=yes");
-              echo html::a("javascript:ajaxDelete(\"$deleteURL\",\"productplanList\",confirmDelete)", '<i class="icon-trash"></i>', '', "class='btn' title='{$lang->productplan->delete}'");
+              $deleteURL = '###';
+              $disabled  = 'disabled';
+              if($plan->parent >= 0)
+              {
+                  $deleteURL = $this->createLink('productplan', 'delete', "planID=$plan->id&confirm=no");
+                  $disabled  = '';
+              }
+              echo html::a($deleteURL, '<i class="icon-trash"></i>', 'hiddenwin', "class='btn {$disabled}' title='{$lang->productplan->delete}'");
           }
           ?>
         </td>

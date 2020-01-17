@@ -76,9 +76,25 @@ class webhookModel extends model
             }
 
             $action = $actions[$log->action];
+            $data   = json_decode($log->data);
             $object = $this->dao->select('*')->from($this->config->objectTables[$action->objectType])->where('id')->eq($action->objectID)->fetch();
-            $field  = $this->config->action->objectNameFields[$action->objectType];
-            $text   = $this->app->user->realname . $this->lang->action->label->{$action->action} . $this->lang->action->objectTypes[$action->objectType] . "[#{$action->objectID}::{$object->$field}]";
+            $field  = zget($this->config->action->objectNameFields, $action->objectType, $action->objectType);
+
+            if(!is_object($object)) 
+            {
+                $object = new stdclass;
+                $object->$field = '';
+            }
+
+            $text = '';
+            if(isset($data->markdown) and is_object($data->markdown)) 
+            {
+                $text = substr($data->markdown->text, 0, strpos($data->markdown->text, '(http'));
+            }
+            else
+            {
+                $text = substr($data->text, 0, strpos($data->text, '(http')) ? substr($data->text, 0, strpos($data->text, '(http')) : zget($users, $data->user, $this->app->user->realname) . $this->lang->action->label->{$action->action} . $this->lang->action->objectTypes[$action->objectType] . "[#{$action->objectID}::{$object->$field}]";
+            }
 
             $log->action    = $text;
             $log->actionURL = $this->getViewLink($action->objectType, $action->objectID);
@@ -98,6 +114,22 @@ class webhookModel extends model
     }
 
     /**
+     * Get bind users.
+     * 
+     * @param  int    $webhookID
+     * @param  array  $users
+     * @access public
+     * @return array
+     */
+    public function getBoundUsers($webhookID, $users = array())
+    {
+        return $this->dao->select('*')->from(TABLE_OAUTH)->where('providerType')->eq('webhook')
+            ->andWhere('providerID')->eq($webhookID)
+            ->beginIF($users)->andWhere('account')->in($users)->fi()
+            ->fetchPairs('account', 'openID');
+    }
+
+    /**
      * Create a webhook. 
      * 
      * @access public
@@ -113,9 +145,25 @@ class webhookModel extends model
             ->skipSpecial('url')
             ->remove('allParams, allActions')
             ->get();
-        $webhook->params  = $this->post->params ? implode(',', $this->post->params) . ',text' : 'text';
+        $webhook->params = $this->post->params ? implode(',', $this->post->params) . ',text' : 'text';
+
+        if($webhook->type == 'dingapi')
+        {
+            $webhook->secret = array();
+            $webhook->secret['agentId']   = $webhook->agentId;
+            $webhook->secret['appKey']    = $webhook->appKey;
+            $webhook->secret['appSecret'] = $webhook->appSecret;
+
+            if(empty($webhook->agentId))   dao::$errors['agentId']   = sprintf($this->lang->error->notempty, $this->lang->webhook->dingAgentId);
+            if(empty($webhook->appKey))    dao::$errors['appKey']    = sprintf($this->lang->error->notempty, $this->lang->webhook->dingAppKey);
+            if(empty($webhook->appSecret)) dao::$errors['appSecret'] = sprintf($this->lang->error->notempty, $this->lang->webhook->dingAppSecret);
+            if(dao::isError()) return false;
+
+            $webhook->secret = json_encode($webhook->secret);
+            $webhook->url    = $this->config->webhook->dingapiUrl;
+        }
         
-        $this->dao->insert(TABLE_WEBHOOK)->data($webhook)
+        $this->dao->insert(TABLE_WEBHOOK)->data($webhook, 'agentId,appKey,appSecret')
             ->batchCheck($this->config->webhook->create->requiredFields, 'notempty')
             ->autoCheck()
             ->exec();
@@ -142,12 +190,56 @@ class webhookModel extends model
             ->remove('allParams, allActions')
             ->get();
         $webhook->params  = $this->post->params ? implode(',', $this->post->params) . ',text' : 'text';
+        if($webhook->type == 'dingapi')
+        {
+            $webhook->secret = array();
+            $webhook->secret['agentId']   = $webhook->agentId;
+            $webhook->secret['appKey']    = $webhook->appKey;
+            $webhook->secret['appSecret'] = $webhook->appSecret;
 
-        $this->dao->update(TABLE_WEBHOOK)->data($webhook)
+            if(empty($webhook->agentId))   dao::$errors['agentId']   = sprintf($this->lang->error->notempty, $this->lang->webhook->dingAgentId);
+            if(empty($webhook->appKey))    dao::$errors['appKey']    = sprintf($this->lang->error->notempty, $this->lang->webhook->dingAppKey);
+            if(empty($webhook->appSecret)) dao::$errors['appSecret'] = sprintf($this->lang->error->notempty, $this->lang->webhook->dingAppSecret);
+            if(dao::isError()) return false;
+
+            $webhook->secret = json_encode($webhook->secret);
+        }
+
+        $this->dao->update(TABLE_WEBHOOK)->data($webhook, 'agentId,appKey,appSecret')
             ->batchCheck($this->config->webhook->edit->requiredFields, 'notempty')
             ->autoCheck()
             ->where('id')->eq($id)
             ->exec();
+        return !dao::isError();
+    }
+
+    /**
+     * Bind ding openID.
+     * 
+     * @param  int    $webhookID 
+     * @access public
+     * @return bool
+     */
+    public function bind($webhookID)
+    {
+        $data = fixer::input('post')->get();
+
+        $this->dao->delete()->from(TABLE_OAUTH)
+            ->where('providerType')->eq('webhook')
+            ->andWhere('providerID')->eq($webhookID)
+            ->andWhere('account')->in(array_keys($data->userid))
+            ->exec();
+        foreach($data->userid as $account => $userid)
+        {
+            if(empty($userid)) continue;
+
+            $oauth = new stdclass();
+            $oauth->account      = $account;
+            $oauth->openID       = $userid;
+            $oauth->providerType = 'webhook';
+            $oauth->providerID   = $webhookID;
+            $this->dao->insert(TABLE_OAUTH)->data($oauth)->exec();
+        }
         return !dao::isError();
     }
 
@@ -161,7 +253,7 @@ class webhookModel extends model
      * @access public
      * @return bool 
      */
-    public function send($objectType, $objectID, $actionType, $actionID)
+    public function send($objectType, $objectID, $actionType, $actionID, $actor = '')
     {
         static $webhooks = array();
         if(!$webhooks) $webhooks = $this->getList();
@@ -174,11 +266,17 @@ class webhookModel extends model
 
             if($webhook->sendType == 'async')
             {
-                $this->saveData($id, $actionID, $postData);
+                if($webhook->type == 'dingapi')
+                {
+                    $openIdList = $this->getOpenIdList($webhook->id, $actionID);
+                    if(empty($openIdList)) continue;
+                }
+
+                $this->saveData($id, $actionID, $postData, $actor);
                 continue;
             }
             
-            $result = $this->fetchHook($webhook, $postData);
+            $result = $this->fetchHook($webhook, $postData, $actionID);
             $this->saveLog($webhook, $actionID, $postData, $result);
         }
         return !dao::isError();
@@ -241,13 +339,17 @@ class webhookModel extends model
         }
         $action->text = $text;
 
-        if($webhook->type == 'dingding')
+        if($webhook->type == 'dingding' or $webhook->type == 'dingapi')
         {
-            $data = $this->getDingdingData($title, $text, $mobile);
+            $data = $this->getDingdingData($title, $text, $webhook->type == 'dingapi' ? '' : $mobile);
         }
         elseif($webhook->type == 'bearychat')
         {
             $data = $this->getBearychatData($text, $mobile, $email, $objectType, $objectID);
+        }
+        elseif($webhook->type == 'weixin')
+        {
+            $data = $this->getWeixinData($title, $text, $mobile);
         }
         else
         {
@@ -255,7 +357,7 @@ class webhookModel extends model
             foreach(explode(',', $webhook->params) as $param) $data->$param = $action->$param;
         }
 
-        return helper::jsonEncode($data);
+        return json_encode($data);
     }
 
     /**
@@ -352,21 +454,95 @@ class webhookModel extends model
     }
 
     /**
+     * Get weixin data.
+     * 
+     * @param  string $title 
+     * @param  string $text 
+     * @param  string $mobile 
+     * @access public
+     * @return object
+     */
+    public function getWeixinData($title, $text, $mobile)
+    {
+        $data = new stdclass();
+        $data->msgtype = 'markdown';
+
+        $markdown = new stdclass();
+        $markdown->content = $text;
+
+        if($mobile) $markdown->mentioned_mobile_list = array($mobile);
+
+        $data->markdown = $markdown;
+
+        return $data;
+    }
+
+    /**
+     * Get openID list.
+     * 
+     * @param  int    $actionID 
+     * @access public
+     * @return string
+     */
+    public function getOpenIdList($webhookID, $actionID)
+    {
+        if(empty($actionID)) return false;
+
+        $action = $this->dao->select('*')->from(TABLE_ACTION)->where('id')->eq($actionID)->fetch();
+        $table  = zget($this->config->objectTables, $action->objectType, '');
+        if(empty($table)) return false;
+
+        $object = $this->dao->select('*')->from($table)->where('id')->eq($action->objectID)->fetch();
+        $toList = $this->loadModel('message')->getToList($object, $action->objectType);
+        if(!empty($object->mailto)) $toList .= ',' . $object->mailto;
+        if(empty($toList)) return false;
+
+        $openIdList = $this->getBoundUsers($webhookID, $toList);
+        $openIdList = join(',', $openIdList);
+        return $openIdList;
+    }
+
+    /**
      * Post hook data. 
      * 
      * @param  object $webhook 
      * @param  string $sendData 
+     * @param  int    $actionID 
      * @access public
      * @return int 
      */
-    public function fetchHook($webhook, $sendData)
+    public function fetchHook($webhook, $sendData, $actionID = 0)
     {
         if(!extension_loaded('curl')) die(helper::jsonEncode($this->lang->webhook->error->curl));
 
-        $header[] = "Content-Type: {$webhook->contentType};charset=utf-8";
+        if($webhook->type == 'dingapi')
+        {
+            if(is_string($webhook->secret)) $webhook->secret = json_decode($webhook->secret);
+
+            $openIdList = $this->getOpenIdList($webhook->id, $actionID);
+            if(empty($openIdList)) return false;
+
+            $this->app->loadClass('dingapi', true);
+            $dingapi = new dingapi($webhook->secret->appKey, $webhook->secret->appSecret, $webhook->secret->agentId);
+            $result  = $dingapi->send($openIdList, $sendData);
+            return json_encode($result);
+        }
+
+        $contentType = "Content-Type: {$webhook->contentType};charset=utf-8";
+        if($webhook->type == 'dingding' or $webhook->type == 'weixin') $contentType = "Content-Type: application/json";
+        $header[] = $contentType;
+
+        $url = $webhook->url;
+        if($webhook->type == 'dingding' and $webhook->secret)
+        {
+            $timestamp = time() * 1000;
+            $sign = $timestamp . "\n" . $webhook->secret;
+            $sign = urlencode(base64_encode(hash_hmac('sha256', $sign, $webhook->secret, true)));
+            $url .= "&timestamp={$timestamp}&sign={$sign}";
+        }
 
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $webhook->url);
+        curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
@@ -395,14 +571,16 @@ class webhookModel extends model
      * @access public
      * @return bool
      */
-    public function saveData($webhookID, $actionID, $data)
+    public function saveData($webhookID, $actionID, $data, $actor = '')
     {
+        if(empty($actor)) $actor = $this->app->user->account;
+
         $webhookData = new stdclass();
         $webhookData->objectType  = 'webhook';
         $webhookData->objectID    = $webhookID;
         $webhookData->action      = $actionID;
         $webhookData->data        = $data;
-        $webhookData->createdBy   = $this->app->user->account;
+        $webhookData->createdBy   = $actor;
         $webhookData->createdDate = helper::now();
 
         $this->dao->insert(TABLE_NOTIFY)->data($webhookData)->exec();

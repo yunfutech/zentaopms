@@ -4,10 +4,11 @@ $lang->menuOrder[5]  = 'my';
 $lang->menuOrder[10] = 'product';
 $lang->menuOrder[15] = 'project';
 $lang->menuOrder[20] = 'qa';
-$lang->menuOrder[25] = 'doc';
-$lang->menuOrder[30] = 'report';
-$lang->menuOrder[35] = 'company';
-$lang->menuOrder[40] = 'admin';
+$lang->menuOrder[25] = 'repo';
+$lang->menuOrder[30] = 'doc';
+$lang->menuOrder[35] = 'report';
+$lang->menuOrder[40] = 'company';
+$lang->menuOrder[45] = 'admin';
 
 /* index menu order. */
 $lang->index->menuOrder[5]  = 'product';
@@ -67,13 +68,19 @@ $lang->qa->menuOrder[10]     = 'index';
 $lang->qa->menuOrder[15]     = 'bug';
 $lang->qa->menuOrder[20]     = 'testcase';
 $lang->qa->menuOrder[25]     = 'testtask';
-$lang->qa->menuOrder[30]     = 'testsuite';
-$lang->qa->menuOrder[35]     = 'testreport';
+$lang->qa->menuOrder[30]     = 'report';
+$lang->qa->menuOrder[35]     = 'testsuite';
+$lang->qa->menuOrder[40]     = 'caselib';
 $lang->bug->menuOrder        = $lang->qa->menuOrder;
 $lang->testcase->menuOrder   = $lang->bug->menuOrder;
 $lang->testtask->menuOrder   = $lang->testcase->menuOrder;
 $lang->testsuite->menuOrder  = $lang->testcase->menuOrder;
+$lang->caselib->menuOrder    = $lang->testcase->menuOrder;
 $lang->testreport->menuOrder = $lang->testcase->menuOrder;
+
+$lang->repo->menuOrder[5]  = 'browse';
+$lang->repo->menuOrder[15] = 'settings';
+$lang->repo->menuOrder[20] = 'delete';
 
 /* doc menu order. */
 $lang->doc->menuOrder[5]  = 'list';
@@ -84,10 +91,11 @@ $lang->doc->menuOrder[25] = 'index';
 $lang->doc->menuOrder[30] = 'create';
 
 /* report menu order. */
-$lang->report->menuOrder[5]  = 'product';
-$lang->report->menuOrder[10] = 'prj';
-$lang->report->menuOrder[15] = 'test';
-$lang->report->menuOrder[20] = 'staff';
+$lang->report->menuOrder[5]  = 'annual';
+$lang->report->menuOrder[10] = 'product';
+$lang->report->menuOrder[15] = 'prj';
+$lang->report->menuOrder[20] = 'test';
+$lang->report->menuOrder[25] = 'staff';
 
 /* company menu order. */
 $lang->company->menuOrder[5]  = 'browseUser';
@@ -109,14 +117,16 @@ $lang->admin->menuOrder[15] = 'custom';
 $lang->admin->menuOrder[20] = 'sso';
 $lang->admin->menuOrder[25] = 'extension';
 $lang->admin->menuOrder[30] = 'dev';
-$lang->admin->menuOrder[35] = 'data';
-$lang->admin->menuOrder[40] = 'safe';
-$lang->admin->menuOrder[45] = 'system';
+$lang->admin->menuOrder[35] = 'translate';
+$lang->admin->menuOrder[40] = 'data';
+$lang->admin->menuOrder[45] = 'safe';
+$lang->admin->menuOrder[50] = 'system';
 
 $lang->admin->subMenuOrder = new stdclass();
 $lang->admin->subMenuOrder->message[5]  = 'mail';
 $lang->admin->subMenuOrder->message[10] = 'webhook';
-$lang->admin->subMenuOrder->message[15] = 'setting';
+$lang->admin->subMenuOrder->message[15] = 'browser';
+$lang->admin->subMenuOrder->message[20] = 'setting';
 $lang->admin->subMenuOrder->sso[5]      = 'ranzhi';
 $lang->admin->subMenuOrder->dev[5]      = 'api';
 $lang->admin->subMenuOrder->dev[10]     = 'db';
@@ -134,7 +144,6 @@ $lang->backup->menuOrder    = $lang->admin->menuOrder;
 $lang->cron->menuOrder      = $lang->admin->menuOrder;
 $lang->extension->menuOrder = $lang->admin->menuOrder;
 $lang->custom->menuOrder    = $lang->admin->menuOrder;
-$lang->editor->menuOrder    = $lang->admin->menuOrder;
 $lang->mail->menuOrder      = $lang->admin->menuOrder;
 $lang->dev->menuOrder       = $lang->admin->menuOrder;
 $lang->entry->menuOrder     = $lang->admin->menuOrder;

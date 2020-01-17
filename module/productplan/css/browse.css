@@ -1,4 +1,6 @@
-.table td.content { overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.table td.content div{height:25px;overflow:hidden; text-overflow:ellipsis; white-space:nowrap; float:left; max-width: calc(100% - 20px)}
+.table td.content .more{height:25px; float:left;}
+td.c-branch{ overflow:hidden; text-align:left!important; text-overflow:ellipsis; white-space:nowrap;}
 
 .table-children {border-left: 2px solid #cbd0db; border-right: 2px solid #cbd0db;}
 .table tbody > tr.table-children.table-child-top {border-top: 2px solid #cbd0db;}

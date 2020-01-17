@@ -19,9 +19,21 @@ class customModel extends model
      */
     public function getAllLang()
     {
-        $allCustomLang = $this->dao->select('*')->from(TABLE_LANG)->orderBy('lang,id')->fetchAll('id');
-
         $currentLang = $this->app->getClientLang();
+
+        try
+        {
+            $sql  = $this->dao->select('*')->from(TABLE_LANG)->where('`lang`')->in("$currentLang,all")->orderBy('lang,id')->get();
+            $stmt = $this->dbh->query($sql);
+
+            $allCustomLang = array();
+            while($row = $stmt->fetch()) $allCustomLang[$row->id] = $row;
+        }
+        catch(PDOException $e)
+        {
+            return false;
+        }
+
         $sectionLang = array();
         foreach($allCustomLang as $customLang)
         {
@@ -31,7 +43,6 @@ class customModel extends model
         $processedLang = array();
         foreach($allCustomLang as $id => $customLang)
         {
-            if($customLang->lang != $currentLang and $customLang->lang != 'all') continue;
             if(isset($sectionLang[$customLang->module][$customLang->section]['all']) && isset($sectionLang[$customLang->module][$customLang->section][$currentLang]) && $customLang->lang == 'all') continue;
             $processedLang[$customLang->module][$customLang->section][$customLang->key] = $customLang->value;
         }
@@ -489,5 +500,53 @@ class customModel extends model
         $this->loadModel('setting');
         $this->setting->deleteItems("owner=system&module={$moduleName}");
         $this->setting->setItems("system.{$moduleName}", $requiredFields);
+    }
+
+    /**
+     * Set flow function.
+     * 
+     * @access public
+     * @return void
+     */
+    public function setFlow()
+    {
+        $this->loadModel('setting')->setItem('system.custom.productProject', $this->post->productProject);
+
+        /* Change block title. */
+        $oldConfig = isset($this->config->custom->productProject) ? $this->config->custom->productProject : '0_0';
+        $newConfig = $this->post->productProject;
+
+        list($oldProductIndex, $oldProjectIndex) = explode('_', $oldConfig);
+        list($newProductIndex, $newProjectIndex) = explode('_', $newConfig);
+
+        foreach($this->config->productCommonList as $clientLang => $productCommonList)
+        {
+            $this->dao->update(TABLE_BLOCK)->set("`title` = REPLACE(`title`, '{$productCommonList[$oldProductIndex]}', '{$productCommonList[$newProductIndex]}')")->where('source')->eq('product')->exec();
+        }
+
+        foreach($this->config->projectCommonList as $clientLang => $projectCommonList)
+        {
+            $this->dao->update(TABLE_BLOCK)->set("`title` = REPLACE(`title`, '{$projectCommonList[$oldProjectIndex]}', '{$projectCommonList[$newProjectIndex]}')")->where('source')->eq('project')->exec();
+        }
+    }
+
+    /**
+     * Set story or requirement.
+     * 
+     * @access public
+     * @return void
+     */
+    public function setStoryRequirement()
+    {
+        if(!isset($_POST['storyRequirement'])) return true;
+        $this->loadModel('setting')->setItem('system.custom.storyRequirement', $this->post->storyRequirement);
+
+        $oldIndex = isset($this->config->custom->storyRequirement) ? $this->config->custom->storyRequirement : '0';
+        $newIndex = $this->post->storyRequirement;
+
+        foreach($this->config->storyCommonList as $clientLang => $commonList)
+        {
+            $this->dao->update(TABLE_BLOCK)->set("`title` = REPLACE(`title`, '{$commonList[$oldIndex]}', '{$commonList[$newIndex]}')")->where('source')->eq('product')->exec();
+        }
     }
 }

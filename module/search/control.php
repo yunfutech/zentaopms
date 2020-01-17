@@ -24,13 +24,16 @@ class search extends control
      */
     public function buildForm($module = '', $searchFields = '', $fieldParams = '', $actionURL = '', $queryID = 0)
     {
-        $queryID      = (empty($module) and empty($queryID)) ? $this->session->searchParams['queryID'] : $queryID;
-        $module       = empty($module) ?       $this->session->searchParams['module'] : $module;
-        $searchFields = empty($searchFields) ? json_decode($this->session->searchParams['searchFields'], true) : $searchFields;
-        $fieldParams  = empty($fieldParams) ?  json_decode($this->session->searchParams['fieldParams'], true)  : $fieldParams;
-        $actionURL    = empty($actionURL) ?    $this->session->searchParams['actionURL'] : $actionURL;
-        $style        = isset($_SESSION['searchParams']['style']) ? $this->session->searchParams['style'] : '';
-        $onMenuBar    = isset($_SESSION['searchParams']['onMenuBar']) ? $this->session->searchParams['onMenuBar'] : '';
+        $module       = empty($module) ? $this->session->searchParams['module'] : $module;
+        $searchParams = $module . 'searchParams';
+        $queryID      = (empty($module) and empty($queryID)) ? $_SESSION[$searchParams]['queryID'] : $queryID;
+        $searchFields = empty($searchFields) ? json_decode($_SESSION[$searchParams]['searchFields'], true) : $searchFields;
+        $fieldParams  = empty($fieldParams) ?  json_decode($_SESSION[$searchParams]['fieldParams'], true)  : $fieldParams;
+        $actionURL    = empty($actionURL) ?    $_SESSION[$searchParams]['actionURL'] : $actionURL;
+        $style        = isset($_SESSION[$searchParams]['style']) ? $_SESSION[$searchParams]['style'] : '';
+        $onMenuBar    = isset($_SESSION[$searchParams]['onMenuBar']) ? $_SESSION[$searchParams]['onMenuBar'] : '';
+
+        $_SESSION['searchParams']['module'] = $module;
         $this->search->initSession($module, $searchFields, $fieldParams);
 
         $this->view->module       = $module;
@@ -114,5 +117,17 @@ class search extends control
             $html .= '<li>' . html::a("javascript:executeQuery({$queryID})", $queryName . (common::hasPriv('search', 'deleteQuery') ? '<i class="icon icon-close"></i>' : ''), '', "class='label user-query' data-query-id='$queryID'") . '</li>';
         }
         die($html);
+    }
+
+    /**
+     * Ajax remove from menu.
+     * 
+     * @param  int    $queryID 
+     * @access public
+     * @return void
+     */
+    public function ajaxRemoveMenu($queryID)
+    {
+        $this->dao->update(TABLE_USERQUERY)->set('shortcut')->eq(0)->where('id')->eq($queryID)->exec();
     }
 }

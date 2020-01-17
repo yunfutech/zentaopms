@@ -90,7 +90,7 @@ class extensionModel extends model
     public function getModulesByAPI()
     {
         $requestType = $this->config->requestType;
-        $webRoot     = helper::safe64Encode($this->config->webRoot);
+        $webRoot     = helper::safe64Encode($this->config->webRoot, '', false, true);
         $apiURL      = $this->apiRoot . 'apiGetmodules-' . $requestType . '-' . $webRoot . '.json';
         $data = $this->fetchAPI($apiURL);
         if(isset($data->modules)) return $data->modules;
@@ -626,7 +626,7 @@ class extensionModel extends model
             rsort($dirs);    // remove from the lower level directory.
             foreach($dirs as $dir)
             {
-                if(!@rmdir($appRoot . $dir)) $removeCommands[] = "rmdir $appRoot$dir";
+                if(!is_writable($appRoot . $dir) or !rmdir($appRoot . $dir)) $removeCommands[] = "rmdir $appRoot$dir";
             }
         }
 
@@ -893,8 +893,8 @@ class extensionModel extends model
         $today       = date('Y-m-d');
         $expireDate  = '';
 
-        $licenceOrderFile = $licencePath . 'order' . $extension->code . $extension->version . '.txt';
-        if(file_exists($licenceOrderFile))
+        $licenceOrderFiles = glob($licencePath . 'order*' . $extension->code . $extension->version . '.txt');
+        foreach($licenceOrderFiles as $licenceOrderFile)
         {
             $order = file_get_contents($licenceOrderFile);
             $order = unserialize($order);

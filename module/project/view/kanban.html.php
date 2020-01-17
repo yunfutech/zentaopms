@@ -9,17 +9,18 @@
  */
 ?>
 <?php include '../../common/view/header.html.php';?>
+<?php js::set('statusMap', $statusMap);?>
 <div id='mainMenu' class='clearfix'>
   <div class='btn-toolbar pull-right'>
     <?php echo html::a($this->createLink('project', 'ajaxKanbanSetting', "projectID=$projectID"), "<i class='icon-cog muted'></i> " . $lang->project->kanbanSetting, '', "class='iframe btn btn-link'");?>
     <?php if(common::hasPriv('project', 'printKanban')) echo html::a($this->createLink('project', 'printKanban', "projectID=$projectID"), "<i class='icon-printer muted'></i> " . $lang->project->printKanban, '', "class='iframe btn btn-link' id='printKanban' title='{$lang->project->printKanban}' data-width='500'");?>
     <?php
     $link = $this->createLink('task', 'export', "project=$projectID&orderBy=$orderBy&type=kanban");
-    if(common::hasPriv('task', 'export')) echo html::a($link, "<i class='icon-import muted'></i> " . $lang->task->export, '', "class='btn btn-link iframe export' data-width='700'");
+    if(common::hasPriv('task', 'export')) echo html::a($link, "<i class='icon-export muted'></i> " . $lang->task->export, '', "class='btn btn-link iframe export' data-width='700'");
     ?>
     <div class='btn-group'>
       <button type='button' class='btn btn-link dropdown-toggle' data-toggle='dropdown' id='importAction'>
-        <i class='icon-export muted'></i> <?php echo $lang->import ?>
+        <i class='icon-import muted'></i> <?php echo $lang->import ?>
         <span class='caret'></span>
       </button>
       <ul class='dropdown-menu' id='importActionMenu'>
@@ -48,11 +49,6 @@
 <?php echo "#kanban .c-board.s-$status{border-color: " . ($color ? $color : '#000') . ";}\n"?>
 <?php endforeach?>
 </style>
-<?php
-$taskCols = array('wait', 'doing', 'pause', 'done');
-if($allCols) $taskCols = array('wait', 'doing', 'pause', 'done', 'cancel', 'closed');
-$account = $this->app->user->account;
-?>
 <div id="kanban" class="main-table fade auto-fade-in" data-ride="table" data-checkable="false" data-group="true">
   <?php
   $hasTask = false;
@@ -70,7 +66,6 @@ $account = $this->app->user->account;
     <p>
       <span class="text-muted"><?php echo $lang->task->noTask;?></span>
       <?php if(common::hasPriv('task', 'create', $checkObject)):?>
-      <span class="text-muted"><?php echo $lang->youCould;?></span>
       <?php echo html::a($this->createLink('task', 'create', "project=$projectID" . (isset($moduleID) ? "&storyID=&moduleID=$moduleID" : '')), "<i class='icon icon-plus'></i> " . $lang->task->create, '', "class='btn btn-info'");?>
       <?php endif;?>
     </p>
@@ -97,8 +92,8 @@ $account = $this->app->user->account;
           </div>
         </th>
         <?php endif;?>
-        <?php foreach($taskCols as $col):?>
-        <th class='c-board s-<?php echo $col?>'><?php echo $lang->task->statusList[$col];?></th>
+        <?php foreach($kanbanColumns as $col):?>
+        <th class='c-board s-<?php echo $col?>'><?php echo zget($statusList, $col);?></th>
         <?php endforeach;?>
       </tr>
     </thead>
@@ -114,7 +109,16 @@ $account = $this->app->user->account;
           <?php $story = $group;?>
           <div class='board-story' data-id='<?php echo $story->id;?>'>
             <div class='board-title'>
-              <?php echo html::a($this->createLink('story', 'view', "storyID=$story->id", '', true), $story->title, '', 'class="kanbaniframe group-title" title="' . $story->title . '"');?>
+              <?php
+              if(common::hasPriv('story', 'view'))
+              {
+                  echo html::a($this->createLink('story', 'view', "storyID=$story->id", '', true), $story->title, '', 'class="kanbaniframe group-title" title="' . $story->title . '"');
+              }
+              else
+              {
+                  echo "<span class='group-title' title='{$story->title}'>{$story->title}</span>";
+              }
+              ?>
               <nav class='board-actions nav nav-default'>
                 <li class='dropdown'>
                   <a href='javascript:;' data-toggle='dropdown' class='panel-action'><i class='icon icon-ellipsis-v'></i></a>
@@ -144,23 +148,39 @@ $account = $this->app->user->account;
           <?php endif;?>
         </td>
         <?php endif;?>
-        <td class="c-boards no-padding text-left" colspan="<?php echo count($taskCols);?>">
+        <td class="c-boards no-padding text-left" colspan="<?php echo count($kanbanColumns);?>">
           <div class="boards-wrapper">
             <div class="boards">
-              <?php foreach($taskCols as $col):?>
+              <?php foreach($kanbanColumns as $col):?>
               <div class="board" data-type="<?php echo $col;?>">
                 <?php if(!empty($group->tasks[$col])):?>
                 <?php foreach($group->tasks[$col] as $task):?>
-                <div class='board-item' data-id='<?php echo $task->id?>' id='task-<?php echo $task->id?>' data-type='task'>
+                <?php $disabled = common::hasDBPriv($task, 'task') ? '' : 'disabled';?>
+                <div class='board-item <?php echo $disabled;?>' data-id='<?php echo $task->id?>' id='task-<?php echo $task->id?>' data-type='task'>
                   <?php
                   $childrenAB = $task->parent > 0 ? "<span class='label label-light label-badge'>" . $lang->task->childrenAB . '</span> ' : '';
-                  echo html::a($this->createLink('task', 'view', "taskID=$task->id", '', true), "{$childrenAB}{$task->name}", '', 'class="title kanbaniframe" title="' . $task->name . '"');
+                  if(common::hasPriv('task', 'view'))
+                  {
+                      echo html::a($this->createLink('task', 'view', "taskID=$task->id", '', true), "{$childrenAB}{$task->name}", '', 'class="title kanbaniframe" title="' . $task->name . '"');
+                  }
+                  else
+                  {
+                      echo "<span class='title' title='{$task->name}'>{$childrenAB}{$task->name}</span>";
+                  }
                   ?>
                   <div class='info'>
                     <?php
                     $assignedToRealName = "<span>" . zget($realnames, $task->assignedTo) . "</span>";
                     if(empty($task->assignedTo)) $assignedToRealName = "<span class='text-primary'>{$lang->task->noAssigned}</span>";
-                    echo html::a($this->createLink('task', 'assignTo', "projectID={$task->project}&taskID={$task->id}", '', true), '<i class="icon icon-hand-right"></i> ' . $assignedToRealName, '', 'class="btn btn-icon-left kanbaniframe task-assignedTo"');?>
+                    if(common::hasPriv('task', 'assignTo', $task))
+                    {
+                        echo html::a($this->createLink('task', 'assignTo', "projectID={$task->project}&taskID={$task->id}", '', true), '<i class="icon icon-hand-right"></i> ' . $assignedToRealName, '', 'class="btn btn-icon-left kanbaniframe task-assignedTo"');
+                    }
+                    else
+                    {
+                        echo "<span class='btn btn-icon-left task-assignedTo disabled'><i class='icon icon-hand-right'></i> {$assignedToRealName}</span>";
+                    }
+                    ?>
                     <?php if(isset($task->delay)):?>
                     <span class="status-task status-delayed"> <?php echo $lang->task->delayed;?></span>
                     <?php endif;?>
@@ -172,12 +192,29 @@ $account = $this->app->user->account;
                 <?php if(!empty($group->bugs[$col])):?>
                 <?php foreach($group->bugs[$col] as $bug):?>
                 <div class='board-item' data-id='<?php echo $bug->id?>' id='bug-<?php echo $bug->id?>' data-type='bug'>
-                  <?php echo html::a($this->createLink('bug', 'view', "bugID=$bug->id", '', true), "<i class='icon icon-sm icon-bug text-red'></i> #{$bug->id}{$bug->title}", '', 'class="title kanbaniframe" title="' . $bug->title . '"');?>
+                  <?php
+                    if(common::hasPriv('bug', 'view'))
+                    {
+                        echo html::a($this->createLink('bug', 'view', "bugID=$bug->id", '', true), "<i class='icon icon-sm icon-bug text-red'></i> #{$bug->id}{$bug->title}", '', 'class="title kanbaniframe" title="' . $bug->title . '"');
+                    }
+                    else
+                    {
+                        echo "<span class='title' title='{$bug->title}'><i class='icon icon-sm icon-bug text-red'></i> #{$bug->id}{$bug->title}</span>";
+                    }
+                    ?>
                   <div class='info'>
                     <?php
                     $assignedToRealName = "<span>" . zget($realnames, $bug->assignedTo) . "</span>";
-                    if(empty($bug->assignedTo)) $assignedToRealName = "<span class='text-primary text'>{$lang->task->noAssigned}</span>";
-                    echo html::a($this->createLink('bug', 'assignTo', "bugID={$bug->id}", '', true), '<i class="icon icon-hand-right"></i> ' . $assignedToRealName, '', 'class="btn btn-icon-left kanbaniframe bug-assignedTo"');?>
+                    if(empty($bug->assignedTo)) $assignedToRealName = "<span class='text-primary'>{$lang->task->noAssigned}</span>";
+                    if(common::hasPriv('bug', 'assignTo', $bug))
+                    {
+                        echo html::a($this->createLink('bug', 'assignTo', "bugID={$bug->id}", '', true), '<i class="icon icon-hand-right"></i> ' . $assignedToRealName, '', 'class="btn btn-icon-left kanbaniframe bug-assignedTo"');
+                    }
+                    else
+                    {
+                        echo "<span class='btn btn-icon-left bug-assignedTo disabled'><i class='icon icon-hand-right'></i> {$assignedToRealName}</span>";
+                    }
+                    ?>
                     <span class='status-bug status-<?php echo $bug->status;?>' title='<?php echo $lang->bug->status?>'><span class="label label-dot"></span> <?php echo zget($lang->bug->statusList, $bug->status);?></span>
                   </div>
                 </div>

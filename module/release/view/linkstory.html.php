@@ -10,7 +10,7 @@
  * @link        http://www.zentao.net
  */
 ?>
-<div id='queryBox' class='show'></div>
+<div id='queryBox' data-module='story' class='show'></div>
 <div id='unlinkStoryList'>
   <form class='main-table' method='post' target='hiddenwin' id='unlinkedStoriesForm' action='<?php echo $this->createLink('release', 'linkStory', "releaseID=$release->id&browseType=$browseType&param=$param")?>' data-ride='table'>
     <div class='table-header hl-primary text-primary strong'>
@@ -54,7 +54,7 @@
           <td><?php echo zget($users, $story->openedBy);?></td>
           <td><?php echo zget($users, $story->assignedTo);?></td>
           <td><?php echo $story->estimate;?></td>
-          <td><span class='status-story status-<?php echo $story->status?>'><?php echo zget($lang->story->statusList, $story->status);?></span></td>
+          <td><span class='status-story status-<?php echo $story->status?>'><?php echo $this->processStatus('story', $story);?></span></td>
           <td><?php echo zget($lang->story->stageList, $story->stage);?></td>
         </tr>
         <?php $unlinkedCount++;?>

@@ -66,9 +66,9 @@
     <?php if($type == 'all') echo "<a class='btn btn-link querybox-toggle' id='bysearchTab'><i class='icon icon-search muted'></i>{$lang->testcase->bySearch}</a>";?>
   </div>
 </div>
-<div class="cell show" id="queryBox"></div>
+<div class="cell show" id="queryBox" data-module='testcase'></div>
 <div id='mainContent'>
-  <form class='main-table table-case' data-ride='table' method='post'>
+  <form class='main-table table-case' data-ride='table' method='post' id='linkCaseForm'>
     <table class='table tablesorter'>
       <div class="table-header">
         <i class="icon-unlink"></i> &nbsp;<strong><?php echo $lang->testtask->unlinkedCases;?></strong> (<?php echo $pager->recTotal;?>)
@@ -117,7 +117,7 @@
         <td><?php echo zget($users, $case->lastRunner);?></td>
         <td><?php if(!helper::isZeroDate($case->lastRunDate)) echo date(DT_MONTHTIME1, strtotime($case->lastRunDate));?></td>
         <td class='<?php echo $case->lastRunResult;?>'><?php if($case->lastRunResult) echo $lang->testcase->resultList[$case->lastRunResult];?></td>
-        <td class='case-<?php echo $case->status?>'><?php echo $lang->testcase->statusList[$case->status];?></td>
+        <td class='case-<?php echo $case->status?>'><?php echo $this->processStatus('testcase', $case);?></td>
       </tr>
       <?php endforeach;?>
       </tbody>

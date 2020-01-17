@@ -1,9 +1,25 @@
 $(function()
 {
+    var blockTitle = '';
+    var preValue   = '';
+    var $titleInput;
+    $(document).on('change', '#blockParams #paramstype', function()
+    {
+        $titleInput = $('#blockParams').find('#title');
+        var title = $titleInput.val();
+        var value = $(this).find('option:selected').text();
+
+        var preIndex = blockTitle.indexOf(' - ' + preValue);
+        if(preIndex >= 0) blockTitle = blockTitle.substring(0, preIndex);
+        $titleInput.val(blockTitle + ' - ' + value);
+
+        preValue = value;
+    });
+
     var $form = $('#blockAdminForm');
     $form.find('.chosen').chosen();
 
-    // 用于动态加载区块列表及设置参数
+    // Used to dynamically load block list and set parameters.
     var $blocksList = $('#blocksList');
     var $blockParams = $('#blockParams');
 
@@ -16,9 +32,19 @@ $(function()
         $form.addClass('form-inited');
         $blockParams.find('input:first').focus();
         if($blockParams.find('#actionLink').size() > 0) $form.attr('action', $blockParams.find('#actionLink').val());
+
+        $titleInput = $blockParams.find('#title');
+        if($titleInput.length && $('#blockParams #paramstype').length)
+        {
+            blockTitle = $titleInput.val();
+            preValue = $('#blockParams #paramstype').find('option:selected').text();
+            var preIndex = blockTitle.indexOf(' - ' + preValue);
+            if(preIndex >= 0) blockTitle = blockTitle.substring(0, preIndex);
+            $titleInput.val(blockTitle + ' - ' + preValue);
+        }
     };
 
-    // 获取 html 和 rss 区块参数
+    // Get parameters for html and rss.
     var getNotSourceParams = function(type, blockID)
     {
         if (blockID === undefined) blockID = 0;
@@ -29,14 +55,11 @@ $(function()
         $.get(createLink('block', 'set', 'id=' + blockID + '&type=' + type), function(data)
         {
             updateParams(data);
-            if (type === 'welcome')
-            {
-                $blockParams.find('#title').closest('.form-group').hide();
-            }
+            if(type === 'welcome') $blockParams.find('#title').closest('.form-group').hide();
         });
     };
 
-    // 用于获取指定区块的设置参数
+    // Set parameters to get the specified block.
     var getBlockParams = function(type, moduleID)
     {
         $blockParams.empty();
@@ -47,7 +70,7 @@ $(function()
         $.get(createLink('block', 'set', 'id=' + blockID + '&type=' + type + '&source=' + moduleID), updateParams);
     };
 
-    // 获取指定模块下所有可用的区块
+    // Get all available blocks under the specified module.
     var getBlocks = function(moduleID)
     {
         $blocksList.data('module', moduleID).empty();
@@ -84,7 +107,7 @@ $(function()
         });
     };
 
-    // 当模块选择变更时，刷新参数列表
+    // Refresh parameter list when module selection changes.
     $('#modules').on('change', function()
     {
         getBlocks($(this).val());

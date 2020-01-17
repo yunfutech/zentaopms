@@ -43,6 +43,7 @@ class todo extends control
             $todoID = $this->todo->create($date, $account);
             if(dao::isError()) die(js::error(dao::getError()));
             $this->loadModel('action')->create('todo', $todoID, 'opened');
+
             $date = str_replace('-', '', $this->post->date);
             if($date == '')
             {
@@ -64,7 +65,7 @@ class todo extends control
 
             if($this->app->getViewType() == 'xhtml') die(js::locate($this->createLink('todo', 'view', "todoID=$todoID"), 'parent'));
             if(isonlybody()) die(js::locate($this->createLink('my', 'todo', "type=$date"), 'parent.parent'));
-            die(js::locate($this->createLink('my', 'todo', "type=$date"), 'parent'));
+            die(js::locate($this->createLink('my', 'todo', "type=all&account=&status=all&orderBy=id_desc"), 'parent'));
         }
 
         unset($this->lang->todo->typeList['cycle']);
@@ -141,7 +142,7 @@ class todo extends control
                 $actionID = $this->loadModel('action')->create('todo', $todoID, 'edited');
                 $this->action->logHistory($actionID, $changes);
             }
-            die(js::locate(inlink('view', "todoID=$todoID"), 'parent'));
+            die(js::locate($this->session->todoList, 'parent'));
         }
 
         /* Judge a private todo or not, If private, die. */
@@ -527,6 +528,7 @@ class todo extends control
                 unset($todo->idvalue);
                 unset($todo->private);
             }
+            if(isset($this->config->bizVersion)) list($fields, $todos) = $this->loadModel('workflowfield')->appendDataFromFlow($fields, $todos);
 
             $this->post->set('fields', $fields);
             $this->post->set('rows', $todos);

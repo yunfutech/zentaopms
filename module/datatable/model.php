@@ -35,6 +35,20 @@ class datatableModel extends model
             $title = zget($this->lang->$module, $items['title'], zget($this->lang, $items['title'], $items['title']));
             $this->config->$module->datatable->fieldList[$field]['title'] = $title;
         }
+
+        if(isset($this->config->bizVersion))
+        {
+            $fields = $this->loadModel('workflowfield')->getList($module);
+            foreach($fields as $field)
+            {
+                if($field->buildin) continue;    
+                $this->config->$module->datatable->fieldList[$field->field]['title']    = $field->name;
+                $this->config->$module->datatable->fieldList[$field->field]['width']    = '120';
+                $this->config->$module->datatable->fieldList[$field->field]['fixed']    = 'no';
+                $this->config->$module->datatable->fieldList[$field->field]['required'] = 'no';
+            }
+        }
+
         return $this->config->$module->datatable->fieldList;
     }
 
@@ -81,11 +95,17 @@ class datatableModel extends model
         {
             foreach($setting as $key => $set)
             {
+                if(!isset($fieldList[$set->id]))
+                {
+                    unset($setting[$key]);
+                    continue;
+                }
                 if($this->session->currentProductType === 'normal' and $set->id === 'branch')
                 {
                     unset($setting[$key]);
                     continue;
                 }
+
                 if($set->id == 'actions') $set->width = $fieldList[$set->id]['width'];
                 $set->title = $fieldList[$set->id]['title'];
                 $set->sort  = isset($fieldList[$set->id]['sort']) ? $fieldList[$set->id]['sort'] : 'yes';
@@ -132,7 +152,7 @@ class datatableModel extends model
             $title = (isset($col->name) and $col->name) ? "title='$col->name'" : $title;
             if($id == 'id' and (int)$width < 90) $width = '90px';
             $width = "data-width='$width' style='width:$width'";
-            $align = $id == 'actions' ? 'text-center' : '';
+            $align = ($id == 'actions' || $id == 'progress') ? 'text-center' : '';
 
             echo "<th data-flex='$fixed' $width class='c-$id $align' $title>";
             if($id == 'actions')

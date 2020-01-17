@@ -41,8 +41,8 @@
             </form>
           </div>
           <div class="btn-group">
-            <?php echo html::a(inlink('showFiles', "type=$type&objectID=$objectID&viewType=list"), "<i class='icon icon-bars'></i>" , '',  "title={$lang->doc->browseTypeList['list']} class='btn btn-icon" . ($viewType == 'list' ? ' text-primary' : '') . "'");?>
             <?php echo html::a(inlink('showFiles', "type=$type&objectID=$objectID&viewType=card"), "<i class='icon icon-cards-view'></i>", '', "title={$lang->doc->browseTypeList['grid']} class='btn btn-icon" . ($viewType != 'list' ? ' text-primary' : '') . "'");?>
+            <?php echo html::a(inlink('showFiles', "type=$type&objectID=$objectID&viewType=list"), "<i class='icon icon-bars'></i>" , '',  "title={$lang->doc->browseTypeList['list']} class='btn btn-icon" . ($viewType == 'list' ? ' text-primary' : '') . "'");?>
           </div>
         </nav>
       </div>
@@ -55,7 +55,7 @@
               <th class="w-80px"><?php echo $lang->doc->id;?></th>
               <th class='text-left'><?php echo $lang->doc->fileTitle;?></th>
               <th class='text-left'><?php echo $lang->doc->filePath;?></th>
-              <th class="w-60px"><?php echo $lang->doc->extension;?></th>
+              <th class="w-80px"><?php echo $lang->doc->extension;?></th>
               <th class="w-60px"><?php echo $lang->doc->size;?></th>
               <th class="w-100px"><?php echo $lang->doc->addedBy;?></th>
               <th class="w-160px"><?php echo $lang->doc->addedDate;?></th>
@@ -77,8 +77,8 @@
                 <td class="text-center"><?php echo isset($file->addedDate) ? substr($file->addedDate, 0, 10) : '';?></td>
                 <td class="c-actions">
                   <?php
-                  common::printLink('file', 'download', "fileID=$file->id", $lang->doc->download, "data-toggle='modal'", '', true, false, $file);
-                  common::printLink('file', 'delete',   "fileID=$file->id", $lang->delete, 'hiddenwin', '', true, false, $file);
+                  common::printLink('file', 'download', "fileID=$file->id", '<i class="icon-import"></i>', "data-toggle='modal'", "class='btn' title={$lang->doc->download}", true, false, $file);
+                  common::printLink('file', 'delete',   "fileID=$file->id", '<i class="icon-trash"></i>', 'hiddenwin', "class='btn' title={$lang->delete}", true, false, $file);
                   ?>
                 </td>
               </tr>
@@ -121,7 +121,7 @@
                     if(strpos('zip,tar,gz,bz2,rar', $file->extension) !== false) $iconClass = 'icon-file-archive';
                     else if(strpos('csv,xls,xlsx', $file->extension) !== false) $iconClass = 'icon-file-excel';
                     else if(strpos('doc,docx', $file->extension) !== false) $iconClass = 'icon-file-word';
-                    else if(strpos('ppt,pptx', $file->extension) !== false) $iconClass = 'icon-file-powerpoint-o';
+                    else if(strpos('ppt,pptx', $file->extension) !== false) $iconClass = 'icon-file-powerpoint';
                     else if(strpos('pdf', $file->extension) !== false) $iconClass = 'icon-file-pdf';
                     else if(strpos('mp3,ogg,wav', $file->extension) !== false) $iconClass = 'icon-file-audio';
                     else if(strpos('avi,mp4,mov', $file->extension) !== false) $iconClass = 'icon-file-video';

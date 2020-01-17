@@ -110,7 +110,7 @@ class baseHTML
     {
         global $config;
 
-        if(empty($title)) $title = $href;
+        if(strlen(trim($title)) == 0) $title = $href;
         $newline = $newline ? "\n" : '';
 
         return "<a href='$href' $misc>$title</a>$newline";
@@ -358,7 +358,9 @@ class baseHTML
      */
     static public function textarea($name, $value = "", $attrib = "")
     {
-        return "<textarea name='$name' id='$name' $attrib>$value</textarea>\n";
+        $id = "id='$name'";
+        if(strpos($attrib, 'id=') !== false) $id = '';
+        return "<textarea name='$name' $id $attrib>$value</textarea>\n";
     }
 
     /**
@@ -1075,6 +1077,7 @@ EOT;
         $jsLang = new stdclass();
         $jsLang->submitting = isset($lang->loading) ? $lang->loading : '';
         $jsLang->save       = $jsConfig->save;
+        $jsLang->expand     = isset($lang->expand)  ? $lang->expand  : '';
         $jsLang->timeout    = isset($lang->timeout) ? $lang->timeout : '';
 
         $js  = self::start(false);

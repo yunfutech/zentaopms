@@ -23,6 +23,41 @@ class searchModel extends model
      */
     public function setSearchParams($searchConfig)
     {
+        $module = $searchConfig['module'];
+        if(isset($this->config->bizVersion))
+        {
+            $flowModule = $module;
+            if($module == 'projectStory') $flowModule = 'story';
+            if($module == 'projectBug')   $flowModule = 'bug';
+
+            $fields = $this->loadModel('workflowfield')->getList($flowModule);
+
+            foreach($fields as $field)
+            {
+                /* The built-in modules and user defined modules all have the subStatus field, so set its configuration first. */
+                if($field->field == 'subStatus')
+                {
+                    $field = $this->workflowfield->getByField($flowModule, 'subStatus');
+
+                    $searchConfig['fields'][$field->field] = $field->name;
+                    $searchConfig['params'][$field->field] = array('operator' => '=', 'control' => 'select', 'values' => $field->options);
+
+                    continue;
+                }
+
+                /* The other built-in fields do not need to set their configuration. */
+                if($field->buildin) continue;
+
+                /* Set configuration for user defined fields. */
+                $operator = ($field->control == 'input' or $field->control == 'textarea') ? 'include' : '=';
+                $control  = ($field->control == 'select' or $field->control == 'radio' or $field->control == 'checkbox') ? 'select' : 'input';
+                $options  = $this->workflowfield->getFieldOptions($field);
+
+                $searchConfig['fields'][$field->field] = $field->name;
+                $searchConfig['params'][$field->field] = array('operator' => $operator, 'control' => $control,  'values' => $options);
+            }
+        }
+
         $searchParams['module']       = $searchConfig['module'];
         $searchParams['searchFields'] = json_encode($searchConfig['fields']);
         $searchParams['fieldParams']  = json_encode($searchConfig['params']);
@@ -31,7 +66,7 @@ class searchModel extends model
         $searchParams['onMenuBar']    = zget($searchConfig, 'onMenuBar', 'no');
         $searchParams['queryID']      = isset($searchConfig['queryID']) ? $searchConfig['queryID'] : 0;
 
-        $this->session->set('searchParams', $searchParams);
+        $this->session->set($module . 'searchParams', $searchParams);
     }
 
     /**
@@ -43,11 +78,16 @@ class searchModel extends model
     public function buildQuery()
     {
         /* Init vars. */
-        $where      = '';
-        $groupItems = $this->config->search->groupItems;
-        $groupAndOr = strtoupper($this->post->groupAndOr);
+        $where        = '';
+        $groupItems   = $this->config->search->groupItems;
+        $groupAndOr   = strtoupper($this->post->groupAndOr);
+        $module       = $this->session->searchParams['module'];
+        $searchParams = $module . 'searchParams';
+        $fieldParams  = json_decode($_SESSION[$searchParams]['fieldParams']);
+        $scoreNum     = 0;
+
         if($groupAndOr != 'AND' and $groupAndOr != 'OR') $groupAndOr = 'AND';
-        $scoreNum = 0;
+
         for($i = 1; $i <= $groupItems * 2; $i ++)
         {
             /* The and or between two groups. */
@@ -60,8 +100,11 @@ class searchModel extends model
             $operatorName = "operator$i";
             $valueName    = "value$i";
 
+            /* Fix bug #2704. */
+            $field = $this->post->$fieldName;
+            if(isset($fieldParams->$field) and $fieldParams->$field->control == 'input' and $this->post->$valueName === '0') $this->post->$valueName = 'ZERO';
+
             /* Skip empty values. */
-            if($this->post->$fieldName == 'activatedCount' and $this->post->$valueName == '0') $this->post->$valueName = 'ZERO';
             if($this->post->$valueName == false) continue;
             if($this->post->$valueName == 'null') $this->post->$valueName = '';  // Null is special, stands to empty.
             if($this->post->$valueName == 'ZERO') $this->post->$valueName = 0;   // ZERO is special, stands to 0.
@@ -144,7 +187,7 @@ class searchModel extends model
     public function initSession($module, $fields, $fieldParams)
     {
         $formSessionName  = $module . 'Form';
-        if($this->session->$formSessionName != false) return;
+        if(isset($_SESSION[$formSessionName]) and $_SESSION[$formSessionName] != false) return;
 
         for($i = 1; $i <= $this->config->search->groupItems * 2; $i ++)
         {
@@ -182,7 +225,7 @@ class searchModel extends model
         $hasProject = false;
         $hasUser    = false;
 
-        $fields     = array_keys($fields);
+        $fields = array_keys($fields);
         foreach($fields as $fieldName)
         {
             if(empty($params[$fieldName])) continue;
@@ -193,7 +236,7 @@ class searchModel extends model
 
         if($hasUser)
         {
-            $users        = $this->loadModel('user')->getPairs('realname|noclosed');
+            $users = $this->loadModel('user')->getPairs('realname|noclosed');
             $users['$@me'] = $this->lang->search->me;
         }
         if($hasProduct) $products = array('' => '') + $this->loadModel('product')->getPairs();
@@ -212,6 +255,10 @@ class searchModel extends model
                 {
                     $params[$fieldName]['values'] = array('ZERO' => $params[$fieldName]['values'][0]) + $params[$fieldName]['values'];
                     unset($params[$fieldName]['values'][0]);
+                }
+                elseif(empty($params[$fieldName]['values']))
+                {
+                    $params[$fieldName]['values'] = array('' => '', 'null' => $this->lang->search->null);
                 }
                 else
                 {
@@ -245,7 +292,7 @@ class searchModel extends model
             $_POST = $query->form;
             $this->buildQuery();
             $querySessionName = $query->form['module'] . 'Query';
-            $query->sql = $this->session->$querySessionName;
+            $query->sql = $_SESSION[$querySessionName];
         }
         return $query;
     }
@@ -260,12 +307,12 @@ class searchModel extends model
     {
         $sqlVar  = $this->post->module  . 'Query';
         $formVar = $this->post->module  . 'Form';
-        $sql     = $this->session->$sqlVar;
+        $sql     = $_SESSION[$sqlVar];
         if(!$sql) $sql = ' 1 = 1 ';
 
         $query = fixer::input('post')
             ->add('account', $this->app->user->account)
-            ->add('form', serialize($this->session->$formVar))
+            ->add('form', serialize($_SESSION[$formVar]))
             ->add('sql',  $sql)
             ->skipSpecial('sql,form')
             ->remove('onMenuBar')

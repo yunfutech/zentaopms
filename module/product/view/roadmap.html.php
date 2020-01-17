@@ -42,7 +42,6 @@
         <p>
           <span class="text-muted"><?php echo $lang->release->noRelease;?></span>
           <?php if(common::hasPriv('release', 'create')):?>
-          <span class="text-muted"><?php echo $lang->youCould;?></span>
           <?php echo html::a($this->createLink('release', 'create', "productID=$product->id&branch=$branchKey"), "<i class='icon icon-plus'></i> " . $lang->release->create, '', "class='btn btn-info'");?>
           <?php endif;?>
         </p>
@@ -53,7 +52,7 @@
       <?php $groupRoadmaps = zget($yearRoadmaps, $branchKey, array());?>
       <div class="release-path">
         <div class="release-head">
-          <div class="title text-primary"><?php echo $year . (is_numeric($year) ? $lang->year : '');?></div>
+          <div class="title text-primary"><?php echo $year . (is_numeric($year) ? (common::checkNotCN() ? '' : $lang->year) : '');?></div>
           <div class="subtitle"><?php echo sprintf($lang->product->iterationInfo, count($groupRoadmaps, 1) - count($groupRoadmaps));?></div>
         </div>
         <?php $i = 0;?>
@@ -67,7 +66,8 @@
               <i class="icon icon-flag text-primary"></i>
               <?php endif;?>
               <div class="block">
-                <span class="title"><?php echo isset($roadmap->build) ? $roadmap->name : $roadmap->title;?></span>
+                <?php $roadmapTitle = isset($roadmap->build) ? $roadmap->name : $roadmap->title;?>
+                <span class="title" title='<?php echo $roadmapTitle;?>'><?php echo $roadmapTitle;?></span>
                 <span class="date"><?php echo isset($roadmap->build) ? $roadmap->date : ($roadmap->end == '2030-01-01' ? $lang->productplan->future : $roadmap->begin . '~' . $roadmap->end);?></span>
               </div>
             </a>

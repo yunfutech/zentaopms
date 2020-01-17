@@ -3,8 +3,11 @@ $(function()
     $('#type').change(function()
     {
         var type = $(this).val();
-        $('#sendTypeTR').toggle(type != 'dingding');
-        $('#paramsTR').toggle(type != 'bearychat' && type != 'dingding');
+        $('#sendTypeTR').toggle(type != 'dingding' && type != 'dingapi');
+        $('#secretTR').toggle(type == 'dingding');
+        $('#urlTR').toggle(type != 'dingapi');
+        $('.dingapiTR').toggle(type == 'dingapi');
+        $('#paramsTR').toggle(type != 'bearychat' && type != 'dingding' && type != 'dingapi' && type != 'weixin');
         $('#urlNote').html(urlNote[type]);
     });
 
@@ -33,5 +36,6 @@ $(function()
     });
 
     $('#name').focus();
+    $('#type').change();
     $('#paramstext').attr('disabled', 'disabled');
 });

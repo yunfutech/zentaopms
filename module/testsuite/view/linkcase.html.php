@@ -24,7 +24,7 @@
     </div>
   </div>
 </div>
-<div class="cell show" id="queryBox"></div>
+<div class="cell show" id="queryBox" data-module='testsuite'></div>
 <div id='mainContent'>
   <form class='main-table table-testcase' data-ride='table' method='post'>
     <div class="table-header">
@@ -33,18 +33,18 @@
     <table class='table tablesorter' id='testcaseList'>
       <thead>
         <tr>
-          <th class='w-id'>
+          <th class='c-id'>
             <div class="checkbox-primary check-all" title="<?php echo $lang->selectAll?>">
               <label></label>
             </div>
             <?php echo $lang->idAB;?>
           </th>
           <th class='w-70px text-center'><nobr><?php echo $lang->testsuite->linkVersion;?></nobr></th>
-          <th class='w-pri text-center'><?php echo $lang->priAB;?></th>
+          <th class='w-70px text-center'><?php echo $lang->priAB;?></th>
           <th><?php echo $lang->testcase->title;?></th>
           <th class='w-type'><?php echo $lang->testcase->type;?></th>
-          <th class='w-user text-center'><?php echo $lang->openedByAB;?></th>
-          <th class='w-status text-center'><?php echo $lang->statusAB;?></th>
+          <th class='c-user text-center'><?php echo $lang->openedByAB;?></th>
+          <th class='c-status text-center'><?php echo $lang->statusAB;?></th>
         </tr>
       </thead>
       <tbody>
@@ -67,7 +67,7 @@
         </td>
         <td><?php echo $lang->testcase->typeList[$case->type];?></td>
         <td><?php echo zget($users, $case->openedBy);?></td>
-        <td class='case-<?php echo $case->status?>'><?php echo $lang->testcase->statusList[$case->status];?></td>
+        <td class='case-<?php echo $case->status?>'><?php echo $this->processStatus('testcase', $case);?></td>
       </tr>
       <?php endforeach;?>
       </tbody>

@@ -45,7 +45,7 @@
     <form class='form-indicator main-form form-ajax' method='post' target='hiddenwin' id='dataform'>
       <table class='table table-form'>
         <tr>
-          <th><?php echo $lang->project->name;?></th>
+          <th class='w-120px'><?php echo $lang->project->name;?></th>
           <td class="col-main"><?php echo html::input('name', $name, "class='form-control' required");?></td>
           <td></td><td></td>
         </tr>
@@ -64,10 +64,6 @@
         </tr>
         <tr>
           <th><?php echo $lang->project->dateRange;?></th>
-          <td colspan='3'><?php echo html::radio('delta', $lang->project->endList , '', "onclick='computeEndDate(this.value)'");?></td>
-        </tr>
-        <tr>
-          <th></th>
           <td>
             <div class='input-group'>
               <?php echo html::input('begin', (isset($plan) && !empty($plan->begin) ? $plan->begin : date('Y-m-d')), "class='form-control form-date' onchange='computeWorkDays()' placeholder='" . $lang->project->begin . "' required");?>
@@ -75,7 +71,7 @@
               <?php echo html::input('end', (isset($plan) && !empty($plan->end) ? $plan->end : ''), "class='form-control form-date' onchange='computeWorkDays()' placeholder='" . $lang->project->end . "' required");?>
             </div>
           </td>
-          <td></td><td></td>
+          <td colspan='2'><?php echo html::radio('delta', $lang->project->endList , '', "onclick='computeEndDate(this.value)'");?></td>
         </tr>
         <tr>
           <th><?php echo $lang->project->days;?></th>
@@ -90,6 +86,7 @@
           <th><?php echo $lang->project->teamname;?></th>
           <td><?php echo html::input('team', $team, "class='form-control'");?></td><td></td><td></td>
         </tr>
+        <?php if(!$isSprint):?>
         <tr>
           <th rowspan='2'><?php echo $lang->project->owner;?></th>
           <td>
@@ -164,7 +161,10 @@
         </tr>
         <tr>
           <th><?php echo $lang->project->desc;?></th>
-          <td colspan='3'><?php echo html::textarea('desc', '', "rows='6' class='form-control kindeditor' hidefocus='true'");?></td>
+          <td colspan='3'>
+            <?php echo $this->fetch('user', 'ajaxPrintTemplates', 'type=project&link=desc');?>
+            <?php echo html::textarea('desc', '', "rows='6' class='form-control kindeditor' hidefocus='true'");?>
+          </td>
         </tr>
         <tr>
           <th><?php echo $lang->project->acl;?></th>
@@ -178,6 +178,7 @@
           <td colspan='4' class='text-center form-actions'>
             <?php echo html::submitButton();?>
             <?php echo html::backButton();?>
+            <?php if($isSprint) echo html::hidden('type', 'sprint');?>
           </td>
         </tr>
       </table>

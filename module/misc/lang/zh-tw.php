@@ -21,6 +21,7 @@ $lang->misc->zentao->labels['about']   = '關於禪道';
 $lang->misc->zentao->labels['support'] = '技術支持';
 $lang->misc->zentao->labels['cowin']   = '幫助我們';
 $lang->misc->zentao->labels['service'] = '服務列表';
+$lang->misc->zentao->labels['others']  = '其他產品';
 
 $lang->misc->zentao->icons['about']   = 'group';
 $lang->misc->zentao->icons['support'] = 'question-sign';
@@ -41,16 +42,22 @@ $lang->misc->zentao->support['ask']        = "官方問答";
 $lang->misc->zentao->support['video']      = "使用視頻";
 $lang->misc->zentao->support['qqgroup']    = "官方QQ群";
 
-$lang->misc->zentao->cowin['donate']       = "捐助我們";
 $lang->misc->zentao->cowin['reportbug']    = "彙報Bug";
 $lang->misc->zentao->cowin['feedback']     = "反饋需求";
+$lang->misc->zentao->cowin['translate']    = "參與翻譯";
 $lang->misc->zentao->cowin['recommend']    = "推薦給朋友";
-
 
 $lang->misc->zentao->service['zentaotrain']= '禪道使用培訓';
 $lang->misc->zentao->service['idc']        = '禪道在綫託管';
 $lang->misc->zentao->service['custom']     = '禪道定製開發';
 $lang->misc->zentao->service['servicemore']= '更多服務...';
+
+global $config;
+$lang->misc->zentao->others['chanzhi']  = "<img src='{$config->webRoot}theme/default/images/main/chanzhi.ico' /> 蟬知門戶";
+$lang->misc->zentao->others['ranzhi']   = "<img src='{$config->webRoot}theme/default/images/main/ranzhi.ico' /> 然之協同";
+$lang->misc->zentao->others['xuanxuan'] = "<img src='{$config->webRoot}theme/default/images/main/xuanxuan.ico' /> 喧喧聊天";
+$lang->misc->zentao->others['ydisk']    = "<img src='{$config->webRoot}theme/default/images/main/ydisk.ico' /> 悅庫網盤";
+$lang->misc->zentao->others['meshiot' ] = "<img src='{$config->webRoot}theme/default/images/main/meshiot.ico' /> 易天物聯";
 
 $lang->misc->mobile      = "手機訪問";
 $lang->misc->noGDLib     = "請用手機瀏覽器訪問：<strong>%s</strong>";
@@ -63,6 +70,8 @@ $lang->misc->connectFail = "連接資料庫失敗，錯誤：%s，<br/> 請檢�
 $lang->misc->tableName   = "表名";
 $lang->misc->tableStatus = "狀態";
 $lang->misc->novice      = "您可能初次使用禪道，是否進入新手模式？";
+$lang->misc->showAnnual  = '新增年度總結功能';
+$lang->misc->annualDesc  = '12.0版本後，新增年度總結功能，可以到『統計->年度總結』頁面查看。 是否現在<a href="%s" target="_blank" id="showAnnual" class="btn btn-mini btn-primary">查看</a>';
 
 $lang->misc->noticeRepair = "<h5>普通用戶請聯繫管理員進行修復</h5>
     <h5>管理員請登錄禪道所在的伺服器，創建<span>%s</span>檔案。</h5>
@@ -76,6 +85,17 @@ $lang->misc->feature = new stdclass();
 $lang->misc->feature->lastest  = '最新版本';
 $lang->misc->feature->detailed = '詳情';
 
+$lang->misc->releaseDate['12.0']        = '2020-01-03';
+$lang->misc->releaseDate['11.7']        = '2019-11-28';
+$lang->misc->releaseDate['11.6.5']      = '2019-11-08';
+$lang->misc->releaseDate['11.6.4']      = '2019-10-17';
+$lang->misc->releaseDate['11.6.3']      = '2019-09-24';
+$lang->misc->releaseDate['11.6.2']      = '2019-09-06';
+$lang->misc->releaseDate['11.6.1']      = '2019-08-23';
+$lang->misc->releaseDate['11.6.stable'] = '2019-07-12';
+$lang->misc->releaseDate['11.5.2']      = '2019-06-26';
+$lang->misc->releaseDate['11.5.1']      = '2019-06-24';
+$lang->misc->releaseDate['11.5.stable'] = '2019-05-08';
 $lang->misc->releaseDate['11.4.1']      = '2019-04-08';
 $lang->misc->releaseDate['11.4.stable'] = '2019-03-25';
 $lang->misc->releaseDate['11.3.stable'] = '2019-02-27';
@@ -102,9 +122,30 @@ $lang->misc->releaseDate['7.2.stable']  = '2015-05-22';
 $lang->misc->releaseDate['7.1.stable']  = '2015-03-07';
 $lang->misc->releaseDate['6.3.stable']  = '2014-11-07';
 
+$lang->misc->feature->all['12.0'][]   = array('title'=>'將代碼功能版本瀏覽功能轉移到開源版', 'desc' => '');
+$lang->misc->feature->all['12.0'][]   = array('title'=>'增加年度總結', 'desc' => '根據角色顯示年度總結。');
+$lang->misc->feature->all['12.0'][]   = array('title'=>'完善細節，修復Bug', 'desc' => '');
+
+$lang->misc->feature->all['11.7'][]   = array('title'=>'完善細節，修復Bug', 'desc' => '<p>增加用戶是否使用敏捷概念的選擇</p><p>webhook類型中增加企業微信</p><p>實現到釘釘個人消息的通知</p>');
+$lang->misc->feature->all['11.6.5'][] = array('title'=>'修復Bug', 'desc' => '');
+$lang->misc->feature->all['11.6.4'][] = array('title'=>'完善細節，修復Bug', 'desc' => '');
+$lang->misc->feature->all['11.6.3'][] = array('title'=>'修復Bug', 'desc' => '');
+$lang->misc->feature->all['11.6.2'][] = array('title'=>'完善細節，修復Bug', 'desc' => '');
+$lang->misc->feature->all['11.6.1'][] = array('title'=>'完善細節，修復Bug', 'desc' => '');
+
+$lang->misc->feature->all['11.6.stable'][] = array('title'=>'改善國際版界面', 'desc' => '');
+$lang->misc->feature->all['11.6.stable'][] = array('title'=>'添加翻譯功能', 'desc' => '');
+
+$lang->misc->feature->all['11.5.2'][] = array('title'=>'增加禪道安全性，增加登錄禪道弱口令檢查', 'desc' => '');
+$lang->misc->feature->all['11.5.1'][] = array('title'=>'新增第三方應用免密登錄禪道，修復Bug', 'desc' => '');
+
+$lang->misc->feature->all['11.5.stable'][] = array('title'=>'完善細節，修復Bug', 'desc' => '');
+$lang->misc->feature->all['11.5.stable'][] = array('title'=>'新增動態過濾機制', 'desc' => '');
+$lang->misc->feature->all['11.5.stable'][] = array('title'=>'整合新版本客戶端', 'desc' => '');
+
 $lang->misc->feature->all['11.4.1'][]      = array('title'=>'完善細節，修復Bug', 'desc' => '');
 
-$lang->misc->feature->all['11.4.stable'][] = array('title'=>'完善細節，修復Bug', 'desc' => '<p>增強測試任務管理</p><p>優化計劃、發佈、版本關聯需求和bug的交互</p><p>文檔庫可以自定義是否顯示子分類裡的文檔</p><p>修復bug，完善細節</p>');
+$lang->misc->feature->all["11.4.stable"][] = array("title"=>"完善細節，修復Bug", "desc" => "<p>增強測試任務管理</p><p>優化計劃、發佈、版本關聯{$lang->storyCommon}和bug的交互</p><p>文檔庫可以自定義是否顯示子分類裡的文檔</p><p>修復bug，完善細節</p>");
 
 $lang->misc->feature->all['11.3.stable'][] = array('title'=>'完善細節，修復Bug', 'desc' => '<p>計劃添加子計劃功能</p><p>優化chosen交互</p><p>添加時區設置</p><p>優化文檔庫和文檔</p>');
 
@@ -156,14 +197,14 @@ $lang->misc->feature->all['8.3.stable'][] = array('title'=>'調整文檔功能',
 $lang->misc->feature->all['8.2.stable'][] = array('title'=>'首頁自定義', 'desc' => '<p>我的地盤由我做主。現在開始，你可以向首頁添加多種多樣的內容區塊，而且還可以決定如何排列和顯示他們。</p><p>我的地盤、產品、項目、測試模組下均支持首頁自定義功能。</p>');
 $lang->misc->feature->all['8.2.stable'][] = array('title'=>'導航定製', 'desc' => '<p>導航上顯示的項目現在完全由你來決定，不僅僅可以決定在導航上展示哪些內容，還可以決定展示的順序。</p><p>將滑鼠懸浮在導航上稍後會在右側顯示定製按鈕，點擊打開定製對話框，通過點擊切換是否顯示，拖放操作來更改顯示順序。</p>');
 $lang->misc->feature->all['8.2.stable'][] = array('title'=>'批量添加、編輯自定義', 'desc' => '<p>可以在批量添加和批量編輯頁面自定義操作的欄位。</p>');
-$lang->misc->feature->all['8.2.stable'][] = array('title'=>'添加需求、任務、Bug、用例自定義', 'desc' => '<p>可以在添加需求、任務、Bug、用例頁面，自定義部分欄位是否顯示。</p>');
-$lang->misc->feature->all['8.2.stable'][] = array('title'=>'導出自定義', 'desc' => '<p>在導出需求、任務、Bug、用例的時候，用戶可以自定義導出的欄位，也可以保存模板方便每次導出。</p>');
-$lang->misc->feature->all['8.2.stable'][] = array('title'=>'需求、任務、Bug、用例組合檢索功能', 'desc' => '<p>在需求、任務、Bug、用例列表頁面，可以實現模組和標籤的組合檢索。</p>');
+$lang->misc->feature->all['8.2.stable'][] = array('title'=>"添加{$lang->storyCommon}、任務、Bug、用例自定義", 'desc' => "<p>可以在添加{$lang->storyCommon}、任務、Bug、用例頁面，自定義部分欄位是否顯示。</p>");
+$lang->misc->feature->all['8.2.stable'][] = array('title'=>'導出自定義', 'desc' => "<p>在導出{$lang->storyCommon}、任務、Bug、用例的時候，用戶可以自定義導出的欄位，也可以保存模板方便每次導出。</p>");
+$lang->misc->feature->all['8.2.stable'][] = array('title'=>"{$lang->storyCommon}、任務、Bug、用例組合檢索功能", 'desc' => "<p>在{$lang->storyCommon}、任務、Bug、用例列表頁面，可以實現模組和標籤的組合檢索。</p>");
 $lang->misc->feature->all['8.2.stable'][] = array('title'=>'增加新手教程', 'desc' => '<p>增加新手教程，方便新用戶瞭解禪道使用。</p>');
 
-$lang->misc->feature->all['7.4.beta'][] = array('title'=>'產品實現分支功能', 'desc' => '<p>產品增加分支/平台類型，相應的需求、計劃、Bug、用例、模組等都增加分支。</p>');
+$lang->misc->feature->all['7.4.beta'][] = array('title'=>'產品實現分支功能', 'desc' => "<p>產品增加分支/平台類型，相應的{$lang->storyCommon}、計劃、Bug、用例、模組等都增加分支。</p>");
 $lang->misc->feature->all['7.4.beta'][] = array('title'=>'調整發佈模組', 'desc' => '<p>發佈增加停止維護操作，當發佈停止維護時，創建Bug將不顯示這個發佈。</p><p>發佈中遺留的bug改為手工關聯。</p>');
-$lang->misc->feature->all['7.4.beta'][] = array('title'=>'調整需求和Bug的創建頁面', 'desc' => '');
+$lang->misc->feature->all['7.4.beta'][] = array('title'=>"調整{$lang->storyCommon}和Bug的創建頁面", 'desc' => '');
 
 $lang->misc->feature->all['7.2.stable'][] = array('title'=>'增強安全', 'desc' => '<p>加強對管理員弱口令的檢查。</p><p>寫插件，上傳插件的時候需要創建ok檔案。</p><p>敏感操作增加管理員口令的檢查</p><p>對輸入內容做striptags, specialchars處理。</p>');
 $lang->misc->feature->all['7.2.stable'][] = array('title'=>'完善細節', 'desc' => '');

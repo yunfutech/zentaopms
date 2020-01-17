@@ -1,18 +1,21 @@
 /**
- * Switch account 
- * 
- * @param  string $account 
- * @param  string $method 
+ * Switch account
+ *
+ * @param  string $account
+ * @param  string $method
  * @access public
  * @return void
  */
 $(document).ready(function()
 {
+    var verifyEncrypted = false;
+    $('#verifyPassword').change(function(){verifyEncrypted = false})
     $('#verifyPassword').closest('form').find('#submit').click(function()
     {
         var password = $('input#verifyPassword').val().trim();
         var rand = $('input#verifyRand').val();
-        $('input#verifyPassword').val(md5(md5(password) + rand));
+        if(!verifyEncrypted && password) $('input#verifyPassword').val(md5(md5(password) + rand));
+        verifyEncrypted = true;
     });
 });
 
@@ -34,7 +37,7 @@ function switchAccount(account, method)
 }
 
 var mailsuffix = '';
-var account    = new Array();
+var account    = [];
 function setDefaultEmail(num)
 {
     var mailValue = $('.email_' + num).val();

@@ -120,7 +120,7 @@ class testreport extends control
      * @access public
      * @return void
      */
-    public function create($objectID, $objectType = 'testtask', $extra = '')
+    public function create($objectID = 0, $objectType = 'testtask', $extra = '')
     {
         if($_POST)
         {
@@ -132,8 +132,36 @@ class testreport extends control
 
         if($objectType == 'testtask')
         {
-            $task      = $this->testtask->getById($objectID);
-            $productID = $this->commonAction($task->product, 'product');
+            if(empty($objectID) and $extra) $productID = $extra;
+            if($objectID)
+            {
+                $task      = $this->testtask->getById($objectID);
+                $productID = $this->commonAction($task->product, 'product');
+            }
+
+            $taskPairs         = array();
+            $scopeAndStatus[0] = 'local';
+            $scopeAndStatus[1] = 'totalStatus';
+            $tasks = $this->testtask->getProductTasks($productID, 0, 'id_desc', null, $scopeAndStatus);
+            foreach($tasks as $testTask)
+            {
+                if($testTask->build == 'trunk') continue;
+                $taskPairs[$testTask->id] = $testTask->name;
+            }
+            if(empty($taskPairs)) die(js::alert($this->lang->testreport->noTestTask) . js::locate('back'));
+
+            if(empty($objectID))
+            {
+                $objectID  = key($taskPairs);
+                $task      = $this->testtask->getById($objectID);
+                $productID = $this->commonAction($task->product, 'product');
+            }
+            $this->view->taskPairs = $taskPairs;
+        }
+
+        if(empty($objectID)) die(js::alert($this->lang->testreport->noObjectID) . js::locate('back'));
+        if($objectType == 'testtask')
+        {
             if($productID != $task->product) die(js::error($this->lang->error->accessDenied) . js::locate('back'));
             $productIdList[$productID] = $productID;
 
@@ -210,7 +238,6 @@ class testreport extends control
         }
         $cases   = $this->testreport->getTaskCases($tasks, $begin, $end);
         $bugInfo = $this->testreport->getBugInfo($tasks, $productIdList, $begin, $end, $builds);
-
         $this->view->begin   = $begin;
         $this->view->end     = $end;
         $this->view->members = $this->dao->select('DISTINCT lastRunner')->from(TABLE_TESTRUN)->where('task')->in(array_keys($tasks))->fetchPairs('lastRunner', 'lastRunner');
@@ -228,6 +255,11 @@ class testreport extends control
 
         $this->view->cases       = $cases;
         $this->view->caseSummary = $this->testreport->getResultSummary($tasks, $cases, $begin, $end);
+
+        $perCaseResult = $this->testreport->getPerCaseResult4Report($tasks, $cases, $begin, $end);
+        $perCaseRunner = $this->testreport->getPerCaseRunner4Report($tasks, $cases, $begin, $end);
+        $this->view->datas['testTaskPerRunResult'] = $this->loadModel('report')->computePercent($perCaseResult);
+        $this->view->datas['testTaskPerRunner']    = $this->report->computePercent($perCaseRunner);
 
         $this->view->legacyBugs = $bugInfo['legacyBugs'];
         unset($bugInfo['legacyBugs']);
@@ -335,6 +367,11 @@ class testreport extends control
 
         $this->view->cases       = $cases;
         $this->view->caseSummary = $this->testreport->getResultSummary($tasks, $cases, $report->begin, $report->end);
+        
+        $perCaseResult = $this->testreport->getPerCaseResult4Report($tasks, $cases, $report->begin, $report->end);
+        $perCaseRunner = $this->testreport->getPerCaseRunner4Report($tasks, $cases, $report->begin, $report->end);
+        $this->view->datas['testTaskPerRunResult'] = $this->loadModel('report')->computePercent($perCaseResult);
+        $this->view->datas['testTaskPerRunner']    = $this->report->computePercent($perCaseRunner);
 
         $this->view->legacyBugs = $bugInfo['legacyBugs'];
         unset($bugInfo['legacyBugs']);
@@ -413,6 +450,11 @@ class testreport extends control
 
         $this->view->storySummary = $this->product->summary($stories);
         $this->view->caseSummary  = $this->testreport->getResultSummary($tasks, $cases, $report->begin, $report->end);
+
+        $perCaseResult = $this->testreport->getPerCaseResult4Report($tasks, $cases, $report->begin, $report->end);
+        $perCaseRunner = $this->testreport->getPerCaseRunner4Report($tasks, $cases, $report->begin, $report->end);
+        $this->view->datas['testTaskPerRunResult'] = $this->loadModel('report')->computePercent($perCaseResult);
+        $this->view->datas['testTaskPerRunner']    = $this->report->computePercent($perCaseRunner);
 
         $this->view->legacyBugs = $bugInfo['legacyBugs'];
         unset($bugInfo['legacyBugs']);
@@ -500,11 +542,10 @@ class testreport extends control
                     if(isset($existDatas[$key]))
                     {
                         $data->value += $existDatas[$key]->value;
-                        $sum += $data->value;
-                        unset($existDatas[$chart][$key]);
+                        unset($existDatas[$key]);
                     }
+                    $sum += $data->value;
                 }
-
                 foreach($existDatas as $key => $data)
                 {
                     $sum += $data->value;

@@ -13,6 +13,10 @@
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/datepicker.html.php';?>
 
+<div id='formSettingBtn'>
+  <?php $customLink = $this->createLink('custom', 'ajaxSaveCustomFields', 'module=todo&section=custom&key=batchCreateFields')?>
+  <?php include '../../common/view/customfield.html.php';?>
+</div>
 <form id='todoBatchAddForm' method='post' target='hiddenwin' action='<?php echo $this->createLink('todo', 'batchCreate');?>'>
   <div id="mainContent">
     <div class="main-header">
@@ -27,10 +31,6 @@
           </div>
         </span>
       </div>
-      <div class="pull-right btn-toolbar">
-        <?php $customLink = $this->createLink('custom', 'ajaxSaveCustomFields', 'module=todo&section=custom&key=batchCreateFields')?>
-        <?php include '../../common/view/customfield.html.php';?>
-      </div>
     </div>
     <?php
     $visibleFields = array();
@@ -43,7 +43,7 @@
     <table class='table table-form table-fixed with-border'>
       <thead>
         <tr>
-          <th class='col-id'><?php echo $lang->idAB;?></th> 
+          <th class='col-id'><?php echo $lang->idAB;?></th>
           <th class='col-type<?php echo zget($visibleFields, 'type', ' hidden')?>'><?php echo $lang->todo->type;?></th>
           <th class='col-pri<?php echo zget($visibleFields, 'pri', ' hidden')?>'><?php echo $lang->todo->pri;?></th>
           <th class='col-name required'><?php echo $lang->todo->name;?></th>
@@ -59,7 +59,7 @@
         <tr class='text-left'>
           <td class='col-id'><?php echo $i+1;?></td>
           <td <?php echo zget($visibleFields, 'type', "class='hidden'")?> style='overflow:visible'><?php echo html::select("types[$i]", $lang->todo->typeList, '', "onchange='loadList(this.value, " . ($i + 1) . ")' class='form-control chosen'");?></td>
-          <td <?php echo zget($visibleFields, 'pri', "class='hidden'")?> style='overflow:visible'><?php echo html::select("pris[$i]", $lang->todo->priList, $pri, "class='form-control chosen'");?></td>
+          <td <?php echo zget($visibleFields, 'pri', "class='hidden'")?> style='overflow:visible'><?php echo html::select("pris[$i]", $lang->todo->priList, $pri, "class='form-control'");?></td>
           <td style='overflow:visible'>
             <div id='<?php echo "nameBox" . ($i+1);?>' class='hidden'><?php echo html::input("names[$i]", '', 'class="text-left form-control"');?></div>
             <div class='<?php echo "nameBox" . ($i+1);?>'><?php echo html::input("names[$i]", '', 'class="text-left form-control"');?></div>

@@ -54,6 +54,7 @@ class testtask extends control
     {
         /* Save session. */
         $this->session->set('testtaskList', $this->app->getURI(true));
+        $this->session->set('buildList', $this->app->getURI(true));
 
         $scopeAndStatus = explode(',',$type);
         $this->session->set('testTaskVersionScope', $scopeAndStatus[0]);
@@ -104,6 +105,9 @@ class testtask extends control
             $taskID = $this->testtask->create();
             if(dao::isError()) die(js::error(dao::getError()));
             $this->loadModel('action')->create('testtask', $taskID, 'opened');
+
+            $this->executeHooks($taskID);
+
             die(js::locate($this->createLink('testtask', 'browse', "productID=$productID"), 'parent'));
         }
 
@@ -212,6 +216,8 @@ class testtask extends control
 
         $this->testtask->setMenu($this->products, $productID, $task->branch, $taskID);
 
+        $this->executeHooks($taskID);
+
         $this->view->title      = "TASK #$task->id $task->name/" . $this->products[$productID];
         $this->view->position[] = html::a($this->createLink('testtask', 'browse', "productID=$productID"), $this->products[$productID]);
         $this->view->position[] = $this->lang->testtask->common;
@@ -224,7 +230,6 @@ class testtask extends control
         $this->view->build     = $build;
         $this->view->stories   = $stories;
         $this->view->bugs      = $bugs;
-
         $this->display();
     }
 
@@ -259,14 +264,14 @@ class testtask extends control
         if(!$task) die(js::error($this->lang->testtask->checkLinked) . js::locate('back'));
         $productID = $task->product;
         $this->testtask->setMenu($this->products, $productID, $task->branch, $taskID);
-        setcookie('preTaskID', $taskID, $this->config->cookieLife, $this->config->webRoot);
+        setcookie('preTaskID', $taskID, $this->config->cookieLife, $this->config->webRoot, '', false, true);
 
         if($this->cookie->preTaskID != $taskID)
         {
             $_COOKIE['taskCaseModule'] = 0;
-            setcookie('taskCaseModule', 0, 0, $this->config->webRoot);
+            setcookie('taskCaseModule', 0, 0, $this->config->webRoot, '', false, true);
         }
-        if($browseType == 'bymodule') setcookie('taskCaseModule', (int)$param, 0, $this->config->webRoot);
+        if($browseType == 'bymodule') setcookie('taskCaseModule', (int)$param, 0, $this->config->webRoot, '', false, true);
         if($browseType != 'bymodule') $this->session->set('taskCaseBrowseType', $browseType);
 
         $moduleID = ($browseType == 'bymodule') ? (int)$param : ($browseType == 'bysearch' ? 0 : ($this->cookie->taskCaseModule ? $this->cookie->taskCaseModule : 0));
@@ -284,6 +289,7 @@ class testtask extends control
         $this->config->testcase->search['module']                      = 'testtask';
         $this->config->testcase->search['params']['product']['values'] = array($productID => $this->products[$productID], 'all' => $this->lang->testcase->allProduct);
         $this->config->testcase->search['params']['module']['values']  = $this->loadModel('tree')->getOptionMenu($productID, $viewType = 'case');
+        $this->config->testcase->search['params']['status']['values']  = array('' => '') + $this->lang->testtask->statusList;
 
         $this->config->testcase->search['queryID']              = $queryID;
         $this->config->testcase->search['fields']['assignedTo'] = $this->lang->testtask->assignedTo;
@@ -307,7 +313,7 @@ class testtask extends control
         $this->view->task          = $task;
         $this->view->runs          = $runs;
         $this->view->users         = $this->loadModel('user')->getPairs('noclosed|qafirst');
-        $this->view->assignedTos   = $this->loadModel('user')->getPairs('noclosed|nodeleted|qafirst');
+        $this->view->assignedTos   = $this->loadModel('user')->getPairs('noclosed|noletter|nodeleted|qafirst');
         $this->view->moduleTree    = $this->loadModel('tree')->getTreeMenu($productID, $viewType = 'case', $startModuleID = 0, array('treeModel', 'createTestTaskLink'), $extra = $taskID);
         $this->view->browseType    = $browseType;
         $this->view->param         = $param;
@@ -318,7 +324,7 @@ class testtask extends control
         $this->view->treeClass     = $browseType == 'bymodule' ? '' : 'hidden';
         $this->view->pager         = $pager;
         $this->view->branches      = $this->loadModel('branch')->getPairs($productID);
-        $this->view->setShowModule = false;
+        $this->view->setModule     = false;
 
         $this->display();
     }
@@ -333,7 +339,7 @@ class testtask extends control
      * @access public
      * @return void
      */
-    public function report($productID, $taskID, $browseType, $branchID, $moduleID = 0, $chartType = '')
+    public function report($productID, $taskID, $browseType, $branchID, $moduleID = 0, $chartType = 'pie')
     {
         $this->loadModel('report');
         $this->view->charts = array();
@@ -342,7 +348,7 @@ class testtask extends control
         {
             $this->app->loadLang('testcase');
             $task    = $this->testtask->getById($taskID);
-            $bugInfo = $this->loadModel('testreport')->getBugInfo(array($taskID => $taskID), array($productID => $productID), $task->begin, $task->end, array($task->build => $task->build));
+            $bugInfo = $this->testtask->getBugInfo($taskID, $productID);
             foreach($this->post->charts as $chart)
             {
                 $chartFunc   = 'getDataOf' . $chart;
@@ -457,6 +463,9 @@ class testtask extends control
                 $actionID = $this->loadModel('action')->create('testtask', $taskID, 'edited', $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
             }
+
+            $this->executeHooks($taskID);
+
             die(js::locate(inlink('view', "taskID=$taskID"), 'parent'));
         }
 
@@ -490,8 +499,6 @@ class testtask extends control
      */
     public function start($taskID)
     {
-        $actions  = $this->loadModel('action')->getList('testtask', $taskID);
-
         if(!empty($_POST))
         {
             $changes = $this->testtask->start($taskID);
@@ -499,9 +506,11 @@ class testtask extends control
 
             if($this->post->comment != '' or !empty($changes))
             {
-                $actionID = $this->action->create('testtask', $taskID, 'Started', $this->post->comment);
+                $actionID = $this->loadModel('action')->create('testtask', $taskID, 'Started', $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
             }
+
+            $this->executeHooks($taskID);
 
             if(isonlybody()) $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'parent'));
             $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => $this->createLink('testtask', 'view', "taskID=$taskID")));
@@ -518,7 +527,8 @@ class testtask extends control
         $this->view->title      = $testtask->name . $this->lang->colon . $this->lang->testtask->start;
         $this->view->position[] = $this->lang->testtask->common;
         $this->view->position[] = $this->lang->testtask->start;
-        $this->view->actions    = $actions;
+        $this->view->users      = $this->loadModel('user')->getPairs('nodeleted', $testtask->owner);
+        $this->view->actions    = $this->loadModel('action')->getList('testtask', $taskID);
         $this->display();
     }
 
@@ -531,8 +541,6 @@ class testtask extends control
      */
     public function activate($taskID)
     {
-        $actions  = $this->loadModel('action')->getList('testtask', $taskID);
-
         if(!empty($_POST))
         {
             $changes = $this->testtask->activate($taskID);
@@ -540,9 +548,11 @@ class testtask extends control
 
             if($this->post->comment != '' or !empty($changes))
             {
-                $actionID = $this->action->create('testtask', $taskID, 'Activated', $this->post->comment);
+                $actionID = $this->loadModel('action')->create('testtask', $taskID, 'Activated', $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
             }
+
+            $this->executeHooks($taskID);
 
             if(isonlybody()) $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'parent')); 
             $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => $this->createLink('testtask', 'view', "taskID=$taskID")));
@@ -559,7 +569,8 @@ class testtask extends control
         $this->view->title      = $testtask->name . $this->lang->colon . $this->lang->testtask->start;
         $this->view->position[] = $this->lang->testtask->common;
         $this->view->position[] = $this->lang->testtask->activate;
-        $this->view->actions    = $actions;
+        $this->view->users      = $this->loadModel('user')->getPairs('nodeleted', $testtask->owner);
+        $this->view->actions    = $this->loadModel('action')->getList('testtask', $taskID);
         $this->display();
     }
 
@@ -572,8 +583,6 @@ class testtask extends control
      */
     public function close($taskID)
     {
-        $actions  = $this->loadModel('action')->getList('testtask', $taskID);
-
         if(!empty($_POST))
         {
             $changes = $this->testtask->close($taskID);
@@ -581,9 +590,11 @@ class testtask extends control
 
             if($this->post->comment != '' or !empty($changes))
             {
-                $actionID = $this->action->create('testtask', $taskID, 'Closed', $this->post->comment);
+                $actionID = $this->loadModel('action')->create('testtask', $taskID, 'Closed', $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
             }
+
+            $this->executeHooks($taskID);
 
             if(isonlybody()) $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'parent'));
             $this->send(array('result' => 'success', 'message' => $this->lang->success, 'locate' => $this->createLink('testtask', 'view', "taskID=$taskID")));
@@ -600,7 +611,7 @@ class testtask extends control
         $this->view->title        = $testtask->name . $this->lang->colon . $this->lang->close;
         $this->view->position[]   = $this->lang->testtask->common;
         $this->view->position[]   = $this->lang->close;
-        $this->view->actions      = $actions;
+        $this->view->actions      = $this->loadModel('action')->getList('testtask', $taskID);
         $this->view->users        = $this->loadModel('user')->getPairs('noclosed|nodeleted|qdfirst');
         $this->view->contactLists = $this->user->getContactLists($this->app->user->account, 'withnote');
         $this->display();
@@ -615,8 +626,6 @@ class testtask extends control
      */
     public function block($taskID)
     {
-        $actions  = $this->loadModel('action')->getList('testtask', $taskID);
-
         if(!empty($_POST))
         {
             $changes = $this->testtask->block($taskID);
@@ -624,9 +633,11 @@ class testtask extends control
 
             if($this->post->comment != '' or !empty($changes))
             {
-                $actionID = $this->action->create('testtask', $taskID, 'Blocked', $this->post->comment);
+                $actionID = $this->loadModel('action')->create('testtask', $taskID, 'Blocked', $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
             }
+
+            $this->executeHooks($taskID);
 
             if(isonlybody()) $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'parent'));
             $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => $this->createLink('testtask', 'view', "taskID=$taskID")));
@@ -643,7 +654,8 @@ class testtask extends control
         $this->view->title      = $testtask->name . $this->lang->colon . $this->lang->testtask->start;
         $this->view->position[] = $this->lang->testtask->common;
         $this->view->position[] = $this->lang->testtask->block;
-        $this->view->actions    = $actions;
+        $this->view->users      = $this->loadModel('user')->getPairs('nodeleted', $testtask->owner);
+        $this->view->actions    = $this->loadModel('action')->getList('testtask', $taskID);
         $this->display();
     }
 
@@ -665,6 +677,8 @@ class testtask extends control
         {
             $task = $this->testtask->getByID($taskID);
             $this->testtask->delete(TABLE_TESTTASK, $taskID);
+
+            $this->executeHooks($taskID);
 
             /* if ajax request, send result. */
             if($this->server->ajax)
@@ -842,7 +856,7 @@ class testtask extends control
             else
             {
                 /* set cookie for ajax load caselist when close colorbox. */
-                setcookie('selfClose', 1);
+                setcookie('selfClose', 1, 0, $this->config->webRoot, '', false, false);
 
                 if($preAndNext->next)
                 {
@@ -911,7 +925,6 @@ class testtask extends control
 
         $caseIDList = $this->post->caseIDList ? $this->post->caseIDList : die(js::locate($url, 'parent'));
         $caseIDList = array_unique($caseIDList);
-
         /* The case of tasks of qa. */
         if($productID)
         {
@@ -928,14 +941,30 @@ class testtask extends control
             $this->view->title = $this->lang->testtask->batchRun;
         }
 
-        $this->view->cases = $this->dao->select('*')->from(TABLE_CASE)->where('id')->in($caseIDList)->fetchAll('id');
+        $cases = $this->dao->select('*')->from(TABLE_CASE)->where('id')->in($caseIDList)->fetchAll('id');
+
+        /* If case has changed and not confirmed, remove it. */
+        if($from == 'testtask')
+        {    
+            $runs = $this->dao->select('`case`, version')->from(TABLE_TESTRUN)
+                ->where('`case`')->in($caseIDList)
+                ->andWhere('task')->eq($taskID)
+                ->fetchPairs();
+            foreach($cases as $caseID => $case)
+            {
+                if(isset($runs[$caseID]) && $runs[$caseID] < $case->version) unset($cases[$caseID]);
+            }
+        }
+
+        $this->view->cases = $cases;
         $this->view->steps = $this->dao->select('t1.*')->from(TABLE_CASESTEP)->alias('t1')
             ->leftJoin(TABLE_CASE)->alias('t2')->on('t1.case=t2.id')
-            ->where('t2.id')->in($caseIDList)
+            ->where('t2.id')->in(array_keys($cases))
             ->andWhere('t1.version=t2.version')
+            ->andWhere('t2.status')->ne('wait')
             ->fetchGroup('case', 'id');
 
-        $this->view->caseIDList = $caseIDList;
+        $this->view->caseIDList = array_keys($cases);
         $this->view->productID  = $productID;
         $this->view->title      = $this->lang->testtask->batchRun;
         $this->view->position[] = $this->lang->testtask->common;

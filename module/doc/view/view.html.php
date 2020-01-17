@@ -18,6 +18,7 @@
 js::set('fullscreen', $lang->doc->fullscreen);
 js::set('retrack', $lang->doc->retrack);
 js::set('sysurl', common::getSysUrl());
+js::set('docID', $doc->id);
 ?>
 <div id="mainMenu" class="clearfix">
   <div class="btn-toolbar pull-left">
@@ -34,12 +35,12 @@ js::set('sysurl', common::getSysUrl());
       $i = 1;
       foreach($actions as $action)
       {
-          if($action->action == 'created')
+          if($action->action == 'created' or $action->action == 'deletedfile' or $action->action == 'commented')
           {
               $versions[$i] =  "#$i " . zget($users, $action->actor) . ' ' . substr($action->date, 2, 14);
               $i++;
           }
-          if($action->action == 'edited')
+          elseif($action->action == 'edited')
           {
               foreach($action->history as $history)
               {
@@ -117,7 +118,7 @@ js::set('sysurl', common::getSysUrl());
               <img onload="setImageSize(this, 0)" src="<?php echo $this->createLink('file', 'read', "fileID={$file->id}");?>" alt="<?php echo $file->title?>">
             </a>
             <span class='right-icon'>
-              <?php if(common::hasPriv('file', 'delete')) echo html::a('###', "<i class='icon icon-trash'></i>" . ' ' . $lang->doc->deleteFile, '', "class='btn-icon' onclick='deleteFile($file->id)'");?>
+              <?php if(common::hasPriv('file', 'delete')) echo html::a('###', "<i class='icon icon-trash'></i>", '', "class='btn-icon' title=\"{$lang->doc->deleteFile}\" onclick='deleteFile($file->id)'");?>
             </span>
           </div>
           <?php unset($doc->files[$file->id]);?>
@@ -167,7 +168,7 @@ js::set('sysurl', common::getSysUrl());
             <tbody>
               <?php if($doc->productName):?>
               <tr>
-                <th class='w-80px'><?php echo $lang->doc->product;?></th>
+                <th class='w-90px'><?php echo $lang->doc->product;?></th>
                 <td><?php echo $doc->productName;?></td>
               </tr>
               <?php endif;?>
