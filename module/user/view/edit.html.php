@@ -104,7 +104,7 @@
           </td>
           <th class='w-130px'></th>
           <td></td>
-        </tr>
+        </tr>  -->
         <tr>
           <td colspan='2' class='text-center form-actions'>
             <?php echo html::submitButton();?>
