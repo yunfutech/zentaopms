@@ -83,7 +83,7 @@ class task extends control
         $taskLink  = $this->createLink('project', 'browse', "projectID=$projectID&tab=task");
         $storyLink = $this->session->storyList ? $this->session->storyList : $this->createLink('project', 'story', "projectID=$projectID");
 
-        $task->mailto = $project->PM;
+        $task->mailto = $project->PO;
 
         /* Set menu. */
         $this->project->setMenu($this->project->getPairs(), $project->id);
