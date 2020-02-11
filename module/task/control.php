@@ -64,7 +64,6 @@ class task extends control
         $task->desc       = '';
         $task->estStarted = '';
         $task->deadline   = '';
-        $task->mailto     = '';
         $task->color      = '';
         if($taskID > 0)
         {
@@ -83,6 +82,8 @@ class task extends control
         $project   = $this->project->getById($projectID);
         $taskLink  = $this->createLink('project', 'browse', "projectID=$projectID&tab=task");
         $storyLink = $this->session->storyList ? $this->session->storyList : $this->createLink('project', 'story', "projectID=$projectID");
+
+        $task->mailto = $project->PM;
 
         /* Set menu. */
         $this->project->setMenu($this->project->getPairs(), $project->id);
@@ -1584,7 +1585,7 @@ class task extends control
             $users = $this->dao->select('id, account, realname')->from(TABLE_USER)->where('deleted')->eq(0)->andWhere('dept')->eq($deptId)->fetchall();
             $users_count += count($users);
             foreach($users as $user) {
-                $estimate = $this->dao->select('sum(estimate) as sum')->from(TABLE_TASK)->where('status')->ne('closed')->andWhere('status')->ne('cancel')->andWhere('deadline')->eq($today)->andWhere('assignedTo')->eq($user->account)->fetch();
+                $estimate = $this->dao->select('sum(t1.estimate) as sum')->from(TABLE_TASK)->alias('t1')->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')->where('t1.status')->ne('closed')->andWhere('t1.status')->ne('cancel')->andWhere('t1.deadline')->eq($today)->andWhere('t1.assignedTo')->eq($user->account)->andWhere('t1.deleted')->ne(1)->andWhere('t2.status')->eq('doing')->fetch();
                 if (!$estimate) {
                     continue;
                 }
