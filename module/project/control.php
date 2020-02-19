@@ -2592,6 +2592,8 @@ class project extends control
         $position[] = $this->lang->project->target;
 
         $experiments = $this->target->getExperiment($projectID, $categoryID);
+        $experiments = $this->getMaxRecord($experiments);
+
         foreach ($experiments as $experiment) {
             $experiment->recordLen = count($experiment->record) == 0 ? 1 : count($experiment->record);
             $surplusRecord = [];
@@ -2617,6 +2619,33 @@ class project extends control
         $this->view->currentCategory = $categoryID;
 
         $this->display();
+    }
+
+    public function getMaxRecord($experiments)
+    {
+        foreach($experiments as $experiment) {
+            $maxPrecision = $experiment->record->performance->precision_;
+            $maxRecall = $experiment->record->performance->recall;
+            $maxF1 = $experiment->record->performance->f1;
+            foreach($experiment->record as $record) {
+                $precision = $record->performance->precision_;
+                $recall = $record->performance->recall;
+                $f1 = $record->performance->f1;
+                if ($precision > $maxPrecision) {
+                    $maxPrecision = $precision;
+                }
+                if ($recall > $maxRecall) {
+                    $maxRecall = $recall;
+                }
+                if ($f1 > $maxF1) {
+                    $maxF1 = $f1;
+                }
+            }
+            $experiment->maxPrecision = $maxPrecision;
+            $experiment->maxRecall = $maxRecall;
+            $experiment->maxF1 = $maxF1;
+        }
+        return $experiments;
     }
 
     public function targetVue()

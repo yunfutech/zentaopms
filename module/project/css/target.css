@@ -25,6 +25,9 @@
 .bgred {
     color: red;
 }
+.bgmax {
+    background: #fbe3e3;
+}
 .time-td {
     overflow: hidden;
     white-space: normal !important;

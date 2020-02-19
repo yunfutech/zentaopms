@@ -58,7 +58,7 @@
   </div>
 
   <div data-ride='table'>
-    <table class='target_table table table-condensed table-striped table-bordered table-fixed no-margin with-footer-fixed'>
+    <table class='target_table table table-condensed table-bordered table-fixed no-margin with-footer-fixed'>
       <thead>
         <tr class="text-center">
           <th class='w-100px' rowspan="2"><?php echo $lang->target->category;?></th>
@@ -86,7 +86,7 @@
         <?php foreach ($experiments as $experiment):?>
           <tr class="text-center">
             <?php echo "<td class='target-td-$experiment->id' rowspan='1'>"?><?php echo $experiment->category->name;?></td>
-            <?php if ($experiment->dataset->type == '测试集'):?> 
+            <?php if ($experiment->dataset->type == '测试集'):?>
               <?php echo "<td class='target-td-$experiment->id' rowspan='1'>"?><span class="label-pri label-pri-1" style=" margin-top: -3px;margin-right: 10px">测</span><?php echo $experiment->dataset->name;?></td>
             <?php elseif ($experiment->dataset->type == '开发集'):?>
               <?php echo "<td class='target-td-$experiment->id' rowspan='1'>"?><span class="label-pri label-pri-2" style=" margin-top: -3px;margin-right: 10px">开</span><?php echo $experiment->dataset->name;?></td>
@@ -100,21 +100,18 @@
             <?php echo "<td class='target-td-$experiment->id' rowspan='1'>"?><?php echo $experiment->target->performance->f1;?></td>
             <?php if (!empty($experiment->record)):?>
               <td class="time-td"><?php echo $experiment->record[0]->time;?></td>
-              <td class='<?php if ($experiment->record[0]->performance->precision_ >= $experiment->target->performance->precision_): 
+              <td class='<?php if ($experiment->record[0]->performance->precision_ >= $experiment->target->performance->precision_):
                                   echo 'bggreen';
                                else:
-                                echo 'bgred';?>
-                          <?php endif;?>'><?php echo $experiment->record[0]->performance->precision_;?></td>
+                                echo 'bgred';?><?php endif;?> <?php if ($experiment->record[0]->performance->precision_ == $experiment->maxPrecision): echo 'bgmax'?><?php endif;?>'><?php echo $experiment->record[0]->performance->precision_;?></td>
               <td class='<?php if ($experiment->record[0]->performance->recall >= $experiment->target->performance->recall): 
                                   echo 'bggreen';
                                else:
-                                echo 'bgred';?>
-                          <?php endif;?>'><?php echo $experiment->record[0]->performance->recall;?></td>
+                                echo 'bgred';?> <?php endif;?> <?php if ($experiment->record[0]->performance->recall == $experiment->maxRecall): echo 'bgmax'?><?php endif;?>'><?php echo $experiment->record[0]->performance->recall;?></td>
               <td class='<?php if ($experiment->record[0]->performance->f1 >= $experiment->target->performance->f1): 
                                   echo 'bggreen';
                                else:
-                                echo 'bgred';?>
-                          <?php endif;?>'><?php echo $experiment->record[0]->performance->f1;?></td>
+                                echo 'bgred';?><?php endif;?> <?php if ($experiment->record[0]->performance->f1 == $experiment->maxF1): echo 'bgmax'?><?php endif;?>'><?php echo $experiment->record[0]->performance->f1;?></td>
               <td><?php echo $experiment->record[0]->solution;?></td>
               <td>
                 <?php
@@ -160,18 +157,15 @@
               <td class='<?php if ($record->performance->precision_ >= $experiment->target->performance->precision_): 
                                   echo 'bggreen';
                                else:
-                                echo 'bgred';?>
-                          <?php endif;?>'><?php echo $record->performance->precision_;?></td>
+                                echo 'bgred';?><?php endif;?> <?php if ($record->performance->precision_ == $experiment->maxPrecision): echo 'bgmax'?><?php endif;?>'><?php echo $record->performance->precision_;?></td>
               <td class='<?php if ($record->performance->recall >= $experiment->target->performance->recall): 
                                   echo 'bggreen';
                                else:
-                                echo 'bgred';?>
-                          <?php endif;?>'><?php echo $record->performance->recall;?></td>
+                                echo 'bgred';?><?php endif;?> <?php if ($record->performance->recall == $experiment->maxRecall): echo 'bgmax'?><?php endif;?>'><?php echo $record->performance->recall;?></td>
               <td class='<?php if ($record->performance->f1 >= $experiment->target->performance->f1): 
                                   echo 'bggreen';
                                else:
-                                echo 'bgred';?>
-                          <?php endif;?>'><?php echo $record->performance->f1;?></td>
+                                echo 'bgred';?><?php endif;?> <?php if ($record->performance->f1 == $experiment->maxF1): echo 'bgmax'?><?php endif;?>'><?php echo $record->performance->f1;?></td>
               <td><?php echo $record->solution;?></td>
               <td>
                 <?php
