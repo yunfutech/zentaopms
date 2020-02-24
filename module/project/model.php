@@ -339,24 +339,8 @@ class projectModel extends model
             }
 
             /* Create doc lib. */
-            $this->app->loadLang('doc');
-            $this->insertLib($this->lang->doclib->main['project'], $projectID);
-            $this->insertLib($this->lang->doclib->test, $projectID);
-            $this->insertLib($this->lang->doclib->badcase, $projectID);
-            $this->insertLib($this->lang->doclib->technicalCommunication, $projectID);
-            $journalID = $this->insertLib($this->lang->doclib->journal, $projectID);
-            $meetID = $this->insertLib($this->lang->doclib->minutesOfMeeting, $projectID);
-            $this->insertSubLib($journalID, $this->lang->doclib->weekly, $this->lang->doclib->weeklyOrder);
-            $this->insertSubLib($journalID, $this->lang->doclib->daily, $this->lang->doclib->dailyOrder);
-
-            $this->insertSubLib($meetID, $this->lang->doclib->clientMeeting, $this->lang->doclib->clientMeetingOrder);
-            $this->insertSubLib($meetID, $this->lang->doclib->startingMeeting, $this->lang->doclib->startingMeetingOrder);
-            $this->insertSubLib($meetID, $this->lang->doclib->regularMeeting, $this->lang->doclib->regularMeetingOrder);
-            $this->insertSubLib($meetID, $this->lang->doclib->discuss, $this->lang->doclib->discussOrder);
-            $this->insertSubLib($meetID, $this->lang->doclib->codeReview, $this->lang->doclib->codeReviewOrder);
-            $this->insertSubLib($meetID, $this->lang->doclib->acceptanceMeeting, $this->lang->doclib->acceptanceMeetingOrder);
-            $this->insertSubLib($meetID, $this->lang->doclib->summingUpMeeting, $this->lang->doclib->summingUpMeetingOrder);
-
+            $createLibResult = $this->createLib($projectID);
+            $this->createSubLib($createLibResult['journalID'], $createLibResult['meetID']);
 
             if($project->acl != 'open') $this->loadModel('user')->updateUserView($projectID, 'project');
             if(isset($_POST['products']))
@@ -371,6 +355,37 @@ class projectModel extends model
             if(!dao::isError()) $this->loadModel('score')->create('project', 'create', $projectID);
             return $projectID;
         }
+    }
+
+    public function createLib($projectID) {
+        $this->app->loadLang('doc');
+        $this->insertLib($this->lang->doclib->main['project'], $projectID);
+        $this->insertLib($this->lang->doclib->test, $projectID);
+        $this->insertLib($this->lang->doclib->badcase, $projectID);
+        $this->insertLib($this->lang->doclib->technicalCommunication, $projectID);
+        $journalID = $this->insertLib($this->lang->doclib->journal, $projectID);
+        $meetID = $this->insertLib($this->lang->doclib->minutesOfMeeting, $projectID);
+        return ['journalID' => $journalID, 'meetID' => $meetID];
+    }
+
+    public function createSubLib($journalID, $meetID) {
+        $this->insertSubLib($journalID, $this->lang->doclib->weekly, $this->lang->doclib->weeklyOrder);
+        $this->insertSubLib($journalID, $this->lang->doclib->daily, $this->lang->doclib->dailyOrder);
+
+        $this->insertSubLib($meetID, $this->lang->doclib->clientMeeting, $this->lang->doclib->clientMeetingOrder);
+        $this->insertSubLib($meetID, $this->lang->doclib->startingMeeting, $this->lang->doclib->startingMeetingOrder);
+        $this->insertSubLib($meetID, $this->lang->doclib->regularMeeting, $this->lang->doclib->regularMeetingOrder);
+        $this->insertSubLib($meetID, $this->lang->doclib->discuss, $this->lang->doclib->discussOrder);
+        $this->insertSubLib($meetID, $this->lang->doclib->codeReview, $this->lang->doclib->codeReviewOrder);
+        $this->insertSubLib($meetID, $this->lang->doclib->acceptanceMeeting, $this->lang->doclib->acceptanceMeetingOrder);
+        $this->insertSubLib($meetID, $this->lang->doclib->summingUpMeeting, $this->lang->doclib->summingUpMeetingOrder);
+    }
+
+    public function getWeeklyByJournal($journalID) {
+        return $this->dao->select('id')->from(TABLE_MODULE)
+            ->where('root') -> eq($journalID)
+            ->andWhere('name')->eq('周报')
+            ->fetch();
     }
 
     private function insertLib($name, $projectID) {

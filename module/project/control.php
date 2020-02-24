@@ -2652,4 +2652,32 @@ class project extends control
     {
         $this->display();
     }
+
+    public function updateDocSublib() {
+        $this->loadModel('doc');
+        $projects = $this->project->getList();
+        foreach($projects as $project) {
+            $pid = $project->id;
+            $weekly = $this->doc->getLibByProject($pid, '周报');
+            if (!empty($weekly)) {
+                $this->doc->updateWeeklyToJournal($pid);
+                $journalID = $weekly->id;
+            } else {
+                $journal = $this->doc->getLibByProject($pid, '日志');
+                if (empty($journal)) {
+                    $journalID = $this->doc->createLibByPid($pid, '日志');
+                }
+            }
+            $meet = $this->doc->getLibByProject($pid, '会议纪要');
+            if (empty($meet)) {
+                $meetID = $this->doc->createLibByPid($pid, '会议纪要');
+            } else {
+                $meetID = $meet->id;
+            }
+            if (empty($this->project->getWeeklyByJournal($journalID))) {
+                $this->project->createSubLib($journalID, $meetID);
+            }
+        }
+        echo '完成';
+    }
 }

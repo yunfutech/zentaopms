@@ -1610,4 +1610,38 @@ class docModel extends model
 
         return $actions;
     }
+
+    public function getAllLibs() {
+        $unclosedProjects = $this->dao->select('id')->from(TABLE_PROJECT)->where('deleted')->eq(0)->andWhere('status')->notin('done,closed')->fetchPairs('id', 'id');
+       return $this->dao->select('*')->from(TABLE_DOCLIB)
+           ->where('deleted')->eq(0)
+           ->orWhere('project')->in($unclosedProjects)
+           ->orderBy('`order`,id desc')
+           ->fetchAll();
+   }
+
+   public function getLibByProject($pid, $name) {
+       return $this->dao->select('*')->from(TABLE_DOCLIB)
+           ->where('type') -> eq('project')
+           ->andWhere('project')->eq($pid)
+           ->andWhere('name')->eq($name)
+           ->fetch();
+   }
+
+   public function updateWeeklyToJourbal($pid) {
+       $this->dao->update(TABLE_DOCLIB)->set('name')->eq('日志')->where('project')->eq($pid)->andWhere('name')->eq('周报')->exec();
+   }
+
+   public function createLibByPid($pid, $name) {
+        $doclib = new stdClass();
+        $doclib->type = 'project';
+        $doclib->product = 0;
+        $doclib->project = $pid;
+        $doclib->name = $name;
+        $doclib->main = 1;
+        $doclib->order = 0;
+        $doclib->deleted = 0;
+        $this->dao->insert(TABLE_DOCLIB)->data($doclib)->exec();
+        return $this->dao->lastInsertID();
+   }
 }
