@@ -1628,7 +1628,7 @@ class docModel extends model
            ->fetch();
    }
 
-   public function updateWeeklyToJourbal($pid) {
+   public function updateWeeklyToJournal($pid) {
        $this->dao->update(TABLE_DOCLIB)->set('name')->eq('日志')->where('project')->eq($pid)->andWhere('name')->eq('周报')->exec();
    }
 
