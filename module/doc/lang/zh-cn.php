@@ -212,11 +212,30 @@ $lang->doclib->create['custom']  = '创建自定义文档库';
 $lang->doclib->main['product'] = $lang->productCommon . '主库';
 $lang->doclib->main['project'] = $lang->projectCommon . '主库';
 
-$lang->doclib->weekly                   = '周报';
+$lang->doclib->journal                  = '日志';
 $lang->doclib->minutesOfMeeting         = '会议纪要';
 $lang->doclib->test                     = '测试';
 $lang->doclib->badcase                  = 'badcase分析';
 $lang->doclib->technicalCommunication   = '技术沟通';
+$lang->doclib->weekly                   = '周报';
+$lang->doclib->daily                    = '日报';
+$lang->doclib->clientMeeting            = '客户会议';
+$lang->doclib->startingMeeting          = '启动会';
+$lang->doclib->regularMeeting           = '例会';
+$lang->doclib->discuss                  = '方案讨论';
+$lang->doclib->codeReview               = '代码审查';
+$lang->doclib->acceptanceMeeting        = '验收会';
+$lang->doclib->summingUpMeeting         = '总结会';
+$lang->doclib->weeklyOrder              = 10;
+$lang->doclib->dailyOrder               = 20;
+$lang->doclib->clientMeetingOrder       = 10;
+$lang->doclib->startingMeetingOrder     = 20;
+$lang->doclib->regularMeetingOrder      = 30;
+$lang->doclib->discussOrder             = 40;
+$lang->doclib->codeReviewOrder          = 50;
+$lang->doclib->acceptanceMeetingOrder   = 60;
+$lang->doclib->summingUpMeetingOrder    = 70;
+
 
 $lang->doclib->tabList['product'] = $lang->productCommon;
 $lang->doclib->tabList['project'] = $lang->projectCommon;
