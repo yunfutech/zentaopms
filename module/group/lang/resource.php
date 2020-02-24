@@ -345,6 +345,7 @@ $lang->resource->project->export            = 'exportAction';
 $lang->resource->project->storyKanban       = 'storyKanban';
 $lang->resource->project->storySort         = 'storySort';
 $lang->resource->project->target            = 'target';
+$lang->resource->project->updateDocSublib   = 'updateDocSublib';
 
 $lang->project->methodOrder[0]   = 'index';
 $lang->project->methodOrder[5]   = 'view';
