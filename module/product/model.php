@@ -423,17 +423,66 @@ class productModel extends model
         $this->dao->update(TABLE_PRODUCT)->set('`order`')->eq($productID * 5)->where('id')->eq($productID)->exec();
 
         /* Create doc lib. */
-        $this->app->loadLang('doc');
-        $lib = new stdclass();
-        $lib->product = $productID;
-        $lib->name    = $this->lang->doclib->main['product'];
-        $lib->type    = 'product';
-        $lib->main    = '1';
-        $lib->acl     = 'default';
-        $this->dao->insert(TABLE_DOCLIB)->data($lib)->exec();
+        $createResult = $this->createLib($productID);
+        $this->createSubLib($createResult['journalID'], $createResult['meetID']);
         if($product->acl != 'open') $this->loadModel('user')->updateUserView($productID, 'product');
 
         return $productID;
+    }
+
+    public function createLib($productID) {
+        $this->app->loadLang('doc');
+        $this->insertLib($this->lang->doclib->main['product'], $productID);
+        $this->insertLib($this->lang->doclib->test, $productID);
+        $this->insertLib($this->lang->doclib->badcase, $productID);
+        $this->insertLib($this->lang->doclib->technicalCommunication, $productID);
+        $journalID = $this->insertLib($this->lang->doclib->journal, $productID);
+        $meetID = $this->insertLib($this->lang->doclib->minutesOfMeeting, $productID);
+        return ['journalID' => $journalID, 'meetID' => $meetID];
+    }
+
+    public function createSubLib($journalID, $meetID) {
+        $this->insertSubLib($journalID, $this->lang->doclib->weekly, $this->lang->doclib->weeklyOrder);
+        $this->insertSubLib($journalID, $this->lang->doclib->daily, $this->lang->doclib->dailyOrder);
+
+        $this->insertSubLib($meetID, $this->lang->doclib->clientMeeting, $this->lang->doclib->clientMeetingOrder);
+        $this->insertSubLib($meetID, $this->lang->doclib->startingMeeting, $this->lang->doclib->startingMeetingOrder);
+        $this->insertSubLib($meetID, $this->lang->doclib->regularMeeting, $this->lang->doclib->regularMeetingOrder);
+        $this->insertSubLib($meetID, $this->lang->doclib->discuss, $this->lang->doclib->discussOrder);
+        $this->insertSubLib($meetID, $this->lang->doclib->codeReview, $this->lang->doclib->codeReviewOrder);
+        $this->insertSubLib($meetID, $this->lang->doclib->acceptanceMeeting, $this->lang->doclib->acceptanceMeetingOrder);
+        $this->insertSubLib($meetID, $this->lang->doclib->summingUpMeeting, $this->lang->doclib->summingUpMeetingOrder);
+    }
+
+    private function insertLib($name, $productID) {
+        $lib = $this->buildDoclib($name, $productID);
+        $this->dao->insert(TABLE_DOCLIB)->data($lib)->exec();
+        return $this->dao->lastInsertID();
+    }
+
+    private function insertSubLib($parentID, $name, $order) {
+        $module          = new stdClass();
+        $module->root    = $parentID;
+        $module->name    = strip_tags(trim($name));
+        $module->parent  = 0;
+        $module->branch  = 0;
+        $module->grade   = 1;
+        $module->type    = 'doc';
+        $module->order   = $order;
+        $this->dao->insert(TABLE_MODULE)->data($module)->exec();
+        $moduleID  = $this->dao->lastInsertID();
+        $childPath = ",$moduleID,";
+        $this->dao->update(TABLE_MODULE)->set('path')->eq($childPath)->where('id')->eq($moduleID)->limit(1)->exec();
+    }
+
+    private function buildDoclib($name, $productID) {
+        $lib = new stdclass();
+        $lib->product = $productID;
+        $lib->name    = $name;
+        $lib->type    = 'product';
+        $lib->main    = '1';
+        $lib->acl     = 'default';
+        return $lib;
     }
 
     /**

@@ -339,8 +339,7 @@ class projectModel extends model
             }
 
             /* Create doc lib. */
-            $createLibResult = $this->createLib($projectID);
-            $this->createSubLib($createLibResult['journalID'], $createLibResult['meetID']);
+            $this->createLib($projectID);
 
             if($project->acl != 'open') $this->loadModel('user')->updateUserView($projectID, 'project');
             if(isset($_POST['products']))
@@ -363,22 +362,6 @@ class projectModel extends model
         $this->insertLib($this->lang->doclib->test, $projectID);
         $this->insertLib($this->lang->doclib->badcase, $projectID);
         $this->insertLib($this->lang->doclib->technicalCommunication, $projectID);
-        $journalID = $this->insertLib($this->lang->doclib->journal, $projectID);
-        $meetID = $this->insertLib($this->lang->doclib->minutesOfMeeting, $projectID);
-        return ['journalID' => $journalID, 'meetID' => $meetID];
-    }
-
-    public function createSubLib($journalID, $meetID) {
-        $this->insertSubLib($journalID, $this->lang->doclib->weekly, $this->lang->doclib->weeklyOrder);
-        $this->insertSubLib($journalID, $this->lang->doclib->daily, $this->lang->doclib->dailyOrder);
-
-        $this->insertSubLib($meetID, $this->lang->doclib->clientMeeting, $this->lang->doclib->clientMeetingOrder);
-        $this->insertSubLib($meetID, $this->lang->doclib->startingMeeting, $this->lang->doclib->startingMeetingOrder);
-        $this->insertSubLib($meetID, $this->lang->doclib->regularMeeting, $this->lang->doclib->regularMeetingOrder);
-        $this->insertSubLib($meetID, $this->lang->doclib->discuss, $this->lang->doclib->discussOrder);
-        $this->insertSubLib($meetID, $this->lang->doclib->codeReview, $this->lang->doclib->codeReviewOrder);
-        $this->insertSubLib($meetID, $this->lang->doclib->acceptanceMeeting, $this->lang->doclib->acceptanceMeetingOrder);
-        $this->insertSubLib($meetID, $this->lang->doclib->summingUpMeeting, $this->lang->doclib->summingUpMeetingOrder);
     }
 
     public function getWeeklyByJournal($journalID) {
@@ -392,21 +375,6 @@ class projectModel extends model
         $lib = $this->buildDoclib($name, $projectID);
         $this->dao->insert(TABLE_DOCLIB)->data($lib)->exec();
         return $this->dao->lastInsertID();
-    }
-
-    private function insertSubLib($parentID, $name, $order) {
-        $module          = new stdClass();
-        $module->root    = $parentID;
-        $module->name    = strip_tags(trim($name));
-        $module->parent  = 0;
-        $module->branch  = 0;
-        $module->grade   = 1;
-        $module->type    = 'doc';
-        $module->order   = $order;
-        $this->dao->insert(TABLE_MODULE)->data($module)->exec();
-        $moduleID  = $this->dao->lastInsertID();
-        $childPath = ",$moduleID,";
-        $this->dao->update(TABLE_MODULE)->set('path')->eq($childPath)->where('id')->eq($moduleID)->limit(1)->exec();
     }
 
     private function buildDoclib($name, $projectID) {
