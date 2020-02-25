@@ -2655,9 +2655,10 @@ class project extends control
 
     public function updateDocSublib() {
         $this->loadModel('doc');
-        $projects = $this->project->getList();
-        foreach($projects as $project) {
-            $pid = $project->id;
+        $this->loadModel('product');
+        $products = $this->product->getList();
+        foreach($products as $product) {
+            $pid = $product->id;
             $weekly = $this->doc->getLibByProject($pid, '周报');
             if (!empty($weekly)) {
                 $this->doc->updateWeeklyToJournal($pid);
@@ -2668,16 +2669,26 @@ class project extends control
                     $journalID = $this->doc->createLibByPid($pid, '日志');
                 }
             }
+            $this->addLib($pid, '测试');
+            $this->addLib($pid, 'badcase分析');
+            $this->addLib($pid, '技术沟通');
             $meet = $this->doc->getLibByProject($pid, '会议纪要');
             if (empty($meet)) {
                 $meetID = $this->doc->createLibByPid($pid, '会议纪要');
             } else {
                 $meetID = $meet->id;
             }
-            if (empty($this->project->getWeeklyByJournal($journalID))) {
-                $this->project->createSubLib($journalID, $meetID);
+            if (empty($this->product->getWeeklyByJournal($journalID))) {
+                $this->product->createSubLib($journalID, $meetID);
             }
         }
         echo '完成';
+    }
+
+    private function addLib($pid, $name) {
+        $journal = $this->doc->getLibByProject($pid, $name);
+        if (empty($journal)) {
+            $this->doc->createLibByPid($pid, $name);
+        }
     }
 }

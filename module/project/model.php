@@ -364,13 +364,6 @@ class projectModel extends model
         $this->insertLib($this->lang->doclib->technicalCommunication, $projectID);
     }
 
-    public function getWeeklyByJournal($journalID) {
-        return $this->dao->select('id')->from(TABLE_MODULE)
-            ->where('root') -> eq($journalID)
-            ->andWhere('name')->eq('周报')
-            ->fetch();
-    }
-
     private function insertLib($name, $projectID) {
         $lib = $this->buildDoclib($name, $projectID);
         $this->dao->insert(TABLE_DOCLIB)->data($lib)->exec();

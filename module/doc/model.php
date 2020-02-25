@@ -1622,21 +1622,21 @@ class docModel extends model
 
    public function getLibByProject($pid, $name) {
        return $this->dao->select('*')->from(TABLE_DOCLIB)
-           ->where('type') -> eq('project')
-           ->andWhere('project')->eq($pid)
+           ->where('type') -> eq('product')
+           ->andWhere('product')->eq($pid)
            ->andWhere('name')->eq($name)
            ->fetch();
    }
 
    public function updateWeeklyToJournal($pid) {
-       $this->dao->update(TABLE_DOCLIB)->set('name')->eq('日志')->where('project')->eq($pid)->andWhere('name')->eq('周报')->exec();
+       $this->dao->update(TABLE_DOCLIB)->set('name')->eq('日志')->where('product')->eq($pid)->andWhere('name')->eq('周报')->exec();
    }
 
    public function createLibByPid($pid, $name) {
         $doclib = new stdClass();
-        $doclib->type = 'project';
-        $doclib->product = 0;
-        $doclib->project = $pid;
+        $doclib->type = 'product';
+        $doclib->project = 0;
+        $doclib->product = $pid;
         $doclib->name = $name;
         $doclib->main = 1;
         $doclib->order = 0;

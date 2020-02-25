@@ -454,13 +454,20 @@ class productModel extends model
         $this->insertSubLib($meetID, $this->lang->doclib->summingUpMeeting, $this->lang->doclib->summingUpMeetingOrder);
     }
 
-    private function insertLib($name, $productID) {
+    public function getWeeklyByJournal($journalID) {
+        return $this->dao->select('id')->from(TABLE_MODULE)
+            ->where('root') -> eq($journalID)
+            ->andWhere('name')->eq('周报')
+            ->fetch();
+    }
+
+    public function insertLib($name, $productID) {
         $lib = $this->buildDoclib($name, $productID);
         $this->dao->insert(TABLE_DOCLIB)->data($lib)->exec();
         return $this->dao->lastInsertID();
     }
 
-    private function insertSubLib($parentID, $name, $order) {
+    public function insertSubLib($parentID, $name, $order) {
         $module          = new stdClass();
         $module->root    = $parentID;
         $module->name    = strip_tags(trim($name));
@@ -475,7 +482,7 @@ class productModel extends model
         $this->dao->update(TABLE_MODULE)->set('path')->eq($childPath)->where('id')->eq($moduleID)->limit(1)->exec();
     }
 
-    private function buildDoclib($name, $productID) {
+    public function buildDoclib($name, $productID) {
         $lib = new stdclass();
         $lib->product = $productID;
         $lib->name    = $name;
