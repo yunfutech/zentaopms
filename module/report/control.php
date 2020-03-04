@@ -440,9 +440,8 @@ class report extends control
         $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
         $this->display();
     }
-    
-    // 导出
 
+    // 导出
     public function export($dept = 3)
     {
         $this->loadModel('file');
@@ -456,7 +455,7 @@ class report extends control
         foreach ($tasks as $user => $task) {
             $rows[] = json_decode(json_encode([
                 "姓名" => $users[$user],
-                "任务" => '(' . $task['complete'] . "/" . $task['all'] . ')',
+                "任务" => '(' . $task['consumed'] . "/" . $task['complete'] . "/" . $task['all'] . ')',
             ]));
         }
         $fields = [
