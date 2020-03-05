@@ -30,6 +30,7 @@ $lang->product->orderAction  = "{$lang->productCommon}排序";
 $lang->product->all          = "所有{$lang->productCommon}";
 $lang->product->export       = '导出数据';
 $lang->product->exportAction = "导出{$lang->productCommon}";
+$lang->product->pri          = '优先级';
 
 $lang->product->basicInfo = '基本信息';
 $lang->product->otherInfo = '其他信息';
@@ -157,3 +158,9 @@ $lang->product->moreSelects['activestory']  = $lang->product->activeStory;
 $lang->product->moreSelects['changedstory'] = $lang->product->changedStory;
 $lang->product->moreSelects['willclose']    = $lang->product->willClose;
 $lang->product->moreSelects['closedstory']  = $lang->product->closedStory;
+
+$lang->product->priList[0] = '';
+$lang->product->priList[1] = '1';
+$lang->product->priList[2] = '2';
+$lang->product->priList[3] = '3';
+$lang->product->priList[4] = '4';

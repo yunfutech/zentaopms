@@ -28,7 +28,16 @@
           <tr>
             <th class='w-140px'><?php echo $lang->product->name;?></th>
             <td class='w-p40-f'><?php echo html::input('name', $product->name, "class='form-control' required");?></td><td></td>
-          </tr>  
+          </tr>
+          <tr>
+            <th><?php echo $lang->product->pri;?></th>
+            <td>
+            <?php
+              $priList = $lang->product->priList;
+            ?>
+            <?php echo html::select('pri', (array)$priList, $product->pri, "class='form-control'");?>
+            </td>
+          </tr>
           <tr>
             <th><?php echo $lang->product->code;?></th>
             <td><?php echo html::input('code', $product->code, "class='form-control' required");?></td><td></td>

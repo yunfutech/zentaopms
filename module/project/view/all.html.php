@@ -77,7 +77,7 @@
             <?php endif;?>
             <?php echo zget($lang->project->priList, $project->pri)?></span>
           </td>
-          
+
           <td><?php echo zget($lang->project->project_typeList, $project->project_type);?></td>
           <td class='text-left' title='<?php echo $project->name?>'>
             <?php
