@@ -82,6 +82,11 @@
                         <div class='task-detail'>
                             <span class='overview'><?php echo $list->consumed; ?> / <?php echo $list->estimate; ?></span>
                             <?php echo html::a($this->createLink('project', 'task', "projectID={$list->project}"), "<span class='project-name'><span  class='pri pri_{$list->pri}'>{$list->pri}</span>{$list->projectName}</span>"); ?>
+                            <?php if ($list->moduleId):?>
+                            <?php echo html::a($this->createLink('project', 'task', "projectID=$list->project&browseType=byModule&param=$list->moduleId"), "<span class='module-name'>{$list->moduleName}</span>") ?>
+                            <?php else:?>
+                            <span class='no-module-name'>&nbsp;</span>
+                            <?php endif;?>
                             <span class='taskid'><?php echo $list->id; ?></span>
                             <span class='taskstatus status-<?php echo $list->status; ?>'><?php echo zget($lang->task->statusList, $list->status) ?></span>
                             <?php if ($canBatchEdit): ?>

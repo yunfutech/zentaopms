@@ -118,6 +118,21 @@ td .deviation{padding-left:20px; text-align:left;}
     padding: 5px;
     background: #81c19e;
 }
+.module-name {
+    display: inline-block;
+    width: 150px;
+    color: #fff;
+    background: #81c19e;
+    border-radius: 4px;
+    padding: 5px;
+}
+.no-module-name {
+    display: inline-block;
+    width: 150px;
+    background: #999b9a;
+    border-radius: 4px;
+    padding: 5px;
+}
 .task-name{
     display: inline-block;
     background: #67967c;
