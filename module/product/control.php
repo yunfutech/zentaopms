@@ -808,4 +808,29 @@ class product extends control
 
         $this->display();
     }
+
+    public function weekly($productID, $orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
+    {
+        $this->app->loadClass('pager', $static=true);
+        $pager = pager::init($recTotal, $recPerPage, $pageID);
+        $sort = $this->loadModel('common')->appendOrder($orderBy);
+
+        $weeklies = $this->loadModel('productweekly')->getWeekly($productID, $pager, $sort);
+        $this->view->weeklies = $weeklies;
+        $this->view->productID = $productID;
+        $this->product->setMenu($this->products, $productID);
+
+        $product   = $this->product->getById($productID);
+        $this->view->title      = $product->name . $this->lang->colon .$this->lang->product->weekly;
+        $this->view->position[] = $this->lang->product->weekly;
+
+        $this->view->isFinished = $this->loadModel('productweekly')->checkFinished($product->id);
+        $this->view->recTotal   = $recTotal;
+        $this->view->recPerPage = $recPerPage;
+        $this->view->pageID     = $pageID;
+        $this->view->orderBy    = $orderBy;
+        $this->view->pager      = $pager;
+        $this->display();
+    }
+
 }

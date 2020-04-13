@@ -17,6 +17,7 @@ $lang->index->menuOrder[10] = 'project';
 /* my menu order. */
 $lang->my->menuOrder[5]  = 'index';
 $lang->my->menuOrder[10] = 'calendar';
+$lang->my->menuOrder[12] = 'userlog';
 $lang->my->menuOrder[15] = 'task';
 $lang->my->menuOrder[20] = 'bug';
 $lang->my->menuOrder[25] = 'testtask';
@@ -39,12 +40,14 @@ $lang->product->menuOrder[35] = 'doc';
 $lang->product->menuOrder[40] = 'branch';
 $lang->product->menuOrder[45] = 'module';
 $lang->product->menuOrder[50] = 'view';
+$lang->product->menuOrder[52] = 'weekly';
 $lang->product->menuOrder[55] = 'create';
 $lang->product->menuOrder[60] = 'all';
 $lang->story->menuOrder       = $lang->product->menuOrder;
 $lang->productplan->menuOrder = $lang->product->menuOrder;
 $lang->release->menuOrder     = $lang->product->menuOrder;
 $lang->branch->menuOrder      = $lang->product->menuOrder;
+$lang->weekly->menuOrder      = $lang->product->menuOrder;
 
 /* project menu order. */
 $lang->project->menuOrder[5]  = 'task';

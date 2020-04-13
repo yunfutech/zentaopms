@@ -962,6 +962,7 @@ $lang->resource->report->workload         = 'workload';
 $lang->resource->report->taskboard        = 'taskboard';
 $lang->resource->report->projectboard     = 'projectboard';
 $lang->resource->report->usertaskdoneboard     = 'usertaskdoneboard';
+$lang->resource->report->userlogboard     = 'usertaskdoneboard';
 $lang->resource->report->undonetask        = 'undonetask';
 $lang->resource->report->export        = 'export';
 

@@ -96,6 +96,10 @@ $lang->product->subStatus      = '子状态';
 $lang->product->PO             = "{$lang->productCommon}负责人";
 $lang->product->createdBy      = '由谁创建';
 $lang->product->createdDate    = '创建日期';
+$lang->product->weekly         = '项目周报';
+$lang->product->noWeekly       = '没有周报';
+$lang->product->generateWeekly = '创建本周周报';
+$lang->product->weeklyName     = '周报名称';
 
 $lang->product->searchStory  = '搜索';
 $lang->product->assignedToMe = '指给我';

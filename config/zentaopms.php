@@ -177,6 +177,9 @@ define('TABLE_TARGET_TARGET', '`' . $config->db->prefix . 'target_target`');
 define('TABLE_TARGET_RECORD', '`' . $config->db->prefix . 'target_record`');
 define('TABLE_TARGET_EXPERIMENT', '`' . $config->db->prefix . 'target_experiment`');
 
+define('TABLE_USERLOG', '`' . $config->db->prefix . 'userlog`');
+define('TABLE_PRODUCTWEEKLY', '`' . $config->db->prefix . 'productweekly`');
+
 define('TABLE_OAUTH',   '`' . $config->db->prefix . 'oauth`');
 define('TABLE_REPO',        '`' . $config->db->prefix . 'repo`');
 define('TABLE_REPOHISTORY', '`' . $config->db->prefix . 'repohistory`');

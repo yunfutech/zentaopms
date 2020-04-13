@@ -616,4 +616,32 @@ class my extends control
         }
     }
 
+    public function userlog($type = 'weekly', $orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
+    {
+
+        $this->app->loadClass('pager', $static=true);
+        $pager = pager::init($recTotal, $recPerPage, $pageID);
+        $sort = $this->loadModel('common')->appendOrder($orderBy);
+        $account = $this->app->user->account;
+        $userlogs = $this->loadModel('userlog')->getUserlogByUser($account, $type, $pager, $sort);
+        if ($type == 'daily') {
+            $isFinished = substr($userlogs[0]->date, 0, 10) == strval(date('Y-m-d')) ? 1 : 0;
+        } else {
+            $isFinished = 1;
+        }
+
+        $this->view->title      = $this->lang->my->common . $this->lang->colon . $this->lang->my->userlog;
+        $this->view->position[] = $this->lang->my->userlog;
+
+        $this->view->isHaveDaily = $this->userlog->isHaveDaily();
+        $this->view->isFinished = $isFinished;
+        $this->view->userlogs   = $userlogs;
+        $this->view->recTotal   = $recTotal;
+        $this->view->recPerPage = $recPerPage;
+        $this->view->pageID     = $pageID;
+        $this->view->type       = $type;
+        $this->view->orderBy    = $orderBy;
+        $this->view->pager      = $pager;
+        $this->display();
+    }
 }

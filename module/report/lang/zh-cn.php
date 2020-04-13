@@ -14,6 +14,7 @@ $lang->report->index = '统计首页';
 $lang->report->taskboard = '任务看板';
 $lang->report->projectboard = '迭代看板';
 $lang->report->usertaskdoneboard = '用户看板';
+$lang->report->userlogboard = '日志看板';
 $lang->report->undonetask = '任务池';
 $lang->report->list = '统计报表';
 $lang->report->item = '条目';

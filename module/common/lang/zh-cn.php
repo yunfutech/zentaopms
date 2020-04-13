@@ -116,6 +116,7 @@ $lang->taskboard    = '任务看板';
 $lang->undonetask    = '任务池';
 $lang->projectboard    = '迭代看板';
 $lang->usertaskdoneboard    = '用户看板';
+$lang->userlogboard = '日志看板';
 
 $lang->common = new stdclass();
 $lang->common->common = '公有模块';
@@ -190,6 +191,7 @@ $lang->my->menu = new stdclass();
 
 $lang->my->menu->index          = '首页|my|index';
 $lang->my->menu->calendar       = array('link' => '日程|my|calendar|', 'subModule' => 'todo', 'alias' => 'todo');
+$lang->my->menu->userlog        = '日志|my|userlog';
 $lang->my->menu->task           = array('link' => '任务|my|task|', 'subModule' => 'task');
 $lang->my->menu->bug            = array('link' => 'Bug|my|bug|', 'subModule' => 'bug');
 $lang->my->menu->testtask       = array('link' => '测试|my|testtask|', 'subModule' => 'testcase,testtask', 'alias' => 'testcase');
@@ -200,6 +202,9 @@ $lang->my->menu->profile        = array('link' => '档案|my|profile', 'alias' =
 $lang->my->menu->changePassword = '密码|my|changepassword';
 $lang->my->menu->manageContacts = '联系人|my|managecontacts';
 $lang->my->menu->score          = array('link' => '积分|my|score', 'subModule' => 'score');
+
+$lang->userlog       = new stdclass();
+$lang->userlog->menu = $lang->my->menu;
 
 $lang->my->dividerMenu = ',task,myProject,profile,';
 
@@ -222,6 +227,7 @@ $lang->product->menu->dynamic = '动态|product|dynamic|productID=%s';
 $lang->product->menu->doc     = array('link' => '文档|doc|objectLibs|type=product&objectID=%s&from=product', 'subModule' => 'doc');
 $lang->product->menu->branch  = '@branch@|branch|manage|productID=%s';
 $lang->product->menu->module  = '模块|tree|browse|productID=%s&view=story';
+$lang->product->menu->weekly  = array('link' => '周报|product|weekly|productID=%s');
 $lang->product->menu->view    = array('link' => '概况|product|view|productID=%s', 'alias' => 'edit');
 
 $lang->product->dividerMenu = ',plan,project,doc,';
@@ -364,6 +370,7 @@ $lang->report->menu->taskboard = array('link' => $lang->taskboard . '|report|tas
 $lang->report->menu->undonetask = array('link' => $lang->undonetask . '|report|undonetask');
 $lang->report->menu->projectboard = array('link' => $lang->projectboard . '|report|projectboard');
 $lang->report->menu->usertaskdoneboard = array('link' => $lang->usertaskdoneboard . '|report|usertaskdoneboard');
+$lang->report->menu->userlogboard = array('link' => $lang->userlogboard . '|report|userlogboard');
 $lang->report->menu->test    = array('link' => '测试|report|bugcreate', 'alias' => 'bugassign');
 $lang->report->menu->staff   = array('link' => '组织|report|workload');
 
@@ -476,6 +483,7 @@ $lang->menugroup->people      = 'company';
 $lang->menugroup->dept        = 'company';
 $lang->menugroup->todo        = 'my';
 $lang->menugroup->score       = 'my';
+$lang->menugroup->userlog     = 'my';
 $lang->menugroup->action      = 'admin';
 $lang->menugroup->backup      = 'admin';
 $lang->menugroup->cron        = 'admin';
