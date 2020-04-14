@@ -18,6 +18,8 @@ $lang->moduleOrder[10]  = 'todo';
 $lang->moduleOrder[15]  = 'product';
 $lang->moduleOrder[20]  = 'story';
 $lang->moduleOrder[25]  = 'productplan';
+$lang->moduleOrder[26]  = 'productweekly';
+$lang->moduleOrder[27]  = 'userlog';
 $lang->moduleOrder[30]  = 'release';
 
 $lang->moduleOrder[35]  = 'project';
@@ -156,6 +158,7 @@ $lang->resource->product->updateOrder = 'orderAction';
 $lang->resource->product->all         = 'all';
 $lang->resource->product->build       = 'build';
 $lang->resource->product->export      = 'exportAction';
+$lang->resource->product->weekly      = 'weekly';
 
 $lang->product->methodOrder[0]  = 'index';
 $lang->product->methodOrder[5]  = 'browse';
@@ -173,6 +176,17 @@ $lang->product->methodOrder[65] = 'updateOrder';
 $lang->product->methodOrder[70] = 'all';
 $lang->product->methodOrder[75] = 'build';
 $lang->product->methodOrder[80] = 'export';
+$lang->product->methodOrder[85] = 'weekly';
+
+$lang->resource->productweekly = new stdclass();
+$lang->resource->productweekly->view = 'view';
+$lang->resource->productweekly->edit = 'edit';
+$lang->resource->productweekly->generateWeekly = 'generateWeekly';
+
+$lang->productweekly->methodOrder[0]  = 'view';
+$lang->productweekly->methodOrder[5]  = 'edit';
+$lang->productweekly->methodOrder[10]  = 'generateWeekly';
+
 
 /* Branch. */
 $lang->resource->branch = new stdclass();
@@ -492,6 +506,18 @@ $lang->task->methodOrder[100] = 'editEstimate';
 $lang->task->methodOrder[105] = 'deleteEstimate';
 $lang->task->methodOrder[110] = 'report';
 $lang->task->methodOrder[115] = 'batchChangeModule';
+
+$lang->resource->userlog = new stdclass();
+$lang->resource->userlog->view = 'view';
+$lang->resource->userlog->edit = 'edit';
+$lang->resource->userlog->finish = 'finish';
+$lang->resource->userlog->generateDaily = 'generateDaily';
+
+$lang->userlog->methodOrder[5]  = 'view';
+$lang->userlog->methodOrder[10]  = 'edit';
+$lang->userlog->methodOrder[15]  = 'finish';
+$lang->userlog->methodOrder[20]  = 'generateDaily';
+
 
 /* Build. */
 $lang->resource->build = new stdclass();
@@ -963,14 +989,18 @@ $lang->resource->report->taskboard        = 'taskboard';
 $lang->resource->report->projectboard     = 'projectboard';
 $lang->resource->report->usertaskdoneboard     = 'usertaskdoneboard';
 $lang->resource->report->userlogboard     = 'usertaskdoneboard';
-$lang->resource->report->undonetask        = 'undonetask';
-$lang->resource->report->export        = 'export';
+$lang->resource->report->undonetask       = 'undonetask';
+$lang->resource->report->export           = 'export';
+$lang->resource->report->userlogboard     = 'userlogboard';
+$lang->resource->report->weeklyboard      = 'weeklyboard';
 
 $lang->report->methodOrder[0]  = 'index';
 $lang->report->methodOrder[5]  = 'projectDeviation';
 $lang->report->methodOrder[10] = 'productSummary';
 $lang->report->methodOrder[15] = 'bugCreate';
 $lang->report->methodOrder[20] = 'workload';
+$lang->report->methodOrder[25] = 'userlogboard';
+$lang->report->methodOrder[30] = 'weeklyboard';
 
 /* Search. */
 $lang->resource->search = new stdclass();

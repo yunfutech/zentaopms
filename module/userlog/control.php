@@ -136,7 +136,7 @@ class userlog extends control
         }
     }
 
-    public function sendEmail($email, $subject, $mailContent)
+    private function sendEmail($email, $subject, $mailContent)
     {
         $this->mail->sendToEmail($email, $subject, $mailContent);
         if ($this->mail->isError()) {

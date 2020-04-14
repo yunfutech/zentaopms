@@ -2,7 +2,7 @@
 <div id="mainMenu" class="clearfix">
   <div class="btn-toolbar pull-right">
     <?php $disabled = $isFinished? 'disabled' : ''?>
-    <?php common::printLink('productweekly', 'generateWeekly', 'productID=' . $productID, "<i class='icon icon-plus'></i> " . $lang->product->generateWeekly, '', "class='btn btn-primary' data-width='80%'  $disabled");?>
+    <?php common::printLink('productweekly', 'generateWeekly', 'productID=' . $productID, "<i class='icon icon-plus'></i> " . $lang->productweekly->generateWeekly, '', "class='btn btn-primary' data-width='80%'  $disabled");?>
   </div>
 </div>
 <div id="mainContent">

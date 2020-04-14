@@ -821,8 +821,8 @@ class product extends control
         $this->product->setMenu($this->products, $productID);
 
         $product   = $this->product->getById($productID);
-        $this->view->title      = $product->name . $this->lang->colon .$this->lang->product->weekly;
-        $this->view->position[] = $this->lang->product->weekly;
+        $this->view->title      = $product->name . $this->lang->colon .$this->lang->productweekly->common;
+        $this->view->position[] = $this->lang->productweekly->common;
 
         $this->view->isFinished = $this->loadModel('productweekly')->checkFinished($product->id);
         $this->view->recTotal   = $recTotal;

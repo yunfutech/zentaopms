@@ -4,16 +4,16 @@
 <div id='mainContent' class='main-content'>
   <div class='center-block'>
     <div class='main-header'>
-      <h2><?php echo $lang->weekly->edit;?></h2>
+      <h2><?php echo $lang->productweekly->edit;?></h2>
     </div>
     <form class='load-indicator main-form form-ajax' method='post' enctype='multipart/form-data' id='dataform'>
       <table class='table table-form'>
         <tr>
-          <th><?php echo $lang->weekly->name;?></th>
+          <th><?php echo $lang->productweekly->name;?></th>
           <td colspan='3'><?php echo html::input("name", $weekly->name, "class='form-control' required");?></td>
         </tr>
         <tr>
-          <th><?php echo $lang->weekly->content;?></th>
+          <th><?php echo $lang->productweekly->content;?></th>
           <td colspan='3'>
             <div class='contentmarkdown'><?php echo html::textarea('content', $weekly->content, "style='width:100%;height:200px'");?></div>
           </td>

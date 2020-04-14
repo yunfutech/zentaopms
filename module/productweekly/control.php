@@ -11,8 +11,8 @@ class productweekly extends control
         $hyperdown    = $this->app->loadClass('hyperdown');
         $weekly->content = $hyperdown->makeHtml($weekly->content);
 
-        $this->view->title      = $this->view->weekly->name . $this->lang->colon .$this->lang->userlog->edit;
-        $this->view->position[] = $this->lang->weekly->view;
+        $this->view->title      = $this->lang->productweekly->view;
+        $this->view->position[] = $this->lang->productweekly->view;
 
         $this->view->weekly = $weekly;
         $this->view->weeklyID = $weeklyID;
@@ -41,8 +41,8 @@ class productweekly extends control
         $weekly = $this->productweekly->getWeeklyById($weeklyID);
         $this->view->weekly = $weekly;
 
-        $this->view->title      = $this->view->weekly->name . $this->lang->colon .$this->lang->userlog->edit;
-        $this->view->position[] = $this->lang->weekly->edit;
+        $this->view->title      = $this->lang->productweekly->edit;
+        $this->view->position[] = $this->lang->productweekly->edit;
 
         $this->view->weeklyID = $weeklyID;
         $this->view->productID = $productID;
