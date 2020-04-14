@@ -608,8 +608,8 @@ class report extends control
             $isFinished = 1;
         }
 
-        $this->view->title      = $this->lang->my->common . $this->lang->colon . $this->lang->my->userlog;
-        $this->view->position[] = $this->lang->my->userlog;
+        $this->view->title      = $this->lang->report->userlogboard;
+        $this->view->position[] = $this->lang->report->userlogboard;
 
         $this->view->isHaveDaily = $this->userlog->isHaveDaily();
         $this->view->isFinished = $isFinished;
@@ -618,6 +618,25 @@ class report extends control
         $this->view->recPerPage = $recPerPage;
         $this->view->pageID     = $pageID;
         $this->view->type       = $type;
+        $this->view->orderBy    = $orderBy;
+        $this->view->pager      = $pager;
+        $this->display();
+    }
+
+    public function weeklyboard($orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
+    {
+        $this->app->loadClass('pager', $static=true);
+        $pager = pager::init($recTotal, $recPerPage, $pageID);
+        $sort = $this->loadModel('common')->appendOrder($orderBy);
+        $weeklies = $this->loadModel('productweekly')->getWeekly($pager, $sort);
+
+        $this->view->title      = $this->lang->report->weeklyboard;
+        $this->view->position[] = $this->lang->report->weeklyboard;
+
+        $this->view->weeklies   = $weeklies;
+        $this->view->recTotal   = $recTotal;
+        $this->view->recPerPage = $recPerPage;
+        $this->view->pageID     = $pageID;
         $this->view->orderBy    = $orderBy;
         $this->view->pager      = $pager;
         $this->display();

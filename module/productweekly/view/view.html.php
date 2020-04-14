@@ -25,7 +25,7 @@
       <div class="btn-toolbar">
         <?php common::printBack($this->createLink('product', 'weekly', "productID=" . $productID));?>
         <?php
-          common::printIcon('productWeekly', 'edit', "weeklyID=$weekly->id", $weekly, 'button', 'edit');
+          common::printIcon('productWeekly', 'edit', "weeklyID=$weekly->id&productID=$productID", $weekly, 'button', 'edit');
           ?>
       </div>
     </div>

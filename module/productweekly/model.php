@@ -2,10 +2,18 @@
 
 class productweeklyModel extends model
 {
-    public function getWeekly($productID, $pager, $sort)
+    public function getWeeklyByProduct($productID, $pager, $sort)
     {
         return $this->dao->select('*')->from(TABLE_PRODUCTWEEKLY)
             ->where('product')->eq($productID)
+            ->orderBy($sort)
+            ->page($pager)
+            ->fetchAll();
+    }
+
+    public function getWeekly($pager, $sort)
+    {
+        return $this->dao->select('*')->from(TABLE_PRODUCTWEEKLY)
             ->orderBy($sort)
             ->page($pager)
             ->fetchAll();
@@ -68,7 +76,11 @@ class productweeklyModel extends model
             ->fetchAll();
         if (!empty($weeklies)) {
             $weekly = $weeklies[0];
-            echo $weekly->date - helper::now();
+            $date =  substr($weekly->date, 0, 11);
+            $firstday = date('Y-m-d', strtotime('this week'));
+            if ($date > $firstday) {
+                $isFinished = true;
+            }
         }
         return $isFinished;
     }

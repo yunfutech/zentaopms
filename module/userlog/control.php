@@ -6,6 +6,7 @@ class userlog extends control
     {
         parent::__construct($moduleName, $methodName);
         $this->loadModel('dept');
+        $this->loadModel('mail');
     }
 
     public function view($userlogId)
@@ -120,5 +121,28 @@ class userlog extends control
             }
         }
         return $formatedTasks;
+    }
+
+    /**
+     * 发送邮件提醒未提交日报员工
+     */
+    public function remind()
+    {
+        $uncommittedAccounts = $this->userlog->getUncommittedDailies();
+        $subject = '每日日报提醒';
+        $mailContent = '请尽快前往禅道提交今日的日报！';
+        foreach ($uncommittedAccounts as $account) {
+            $this->sendEmail($account . '@yunfutech.com', $subject, $mailContent);
+        }
+    }
+
+    public function sendEmail($email, $subject, $mailContent)
+    {
+        $this->mail->sendToEmail($email, $subject, $mailContent);
+        if ($this->mail->isError()) {
+            echo "发送失败: \n";
+            a($this->mail->getError());
+        }
+        echo "发送成功\n";
     }
 }

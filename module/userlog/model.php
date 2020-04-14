@@ -13,6 +13,7 @@ class userlogModel extends model
         return $this->dao->select('*')
             ->from(TABLE_USERLOG)
             ->where('type')->eq($type)
+            ->andWhere('status')->eq(1)
             ->orderBy($sort)
             ->page($pager)
             ->fetchAll();
@@ -35,6 +36,28 @@ class userlogModel extends model
             ->orderBy($sort)
             ->page($pager)
             ->fetchAll();
+    }
+
+    public function getUncommittedDailies()
+    {
+        $committedUserlogs = $this->dao->select('*')
+            ->from(TABLE_USERLOG)
+            ->where('type')->eq($this->daily)
+            ->andWhere('status')->eq(1)
+            ->andWhere('DATE_FORMAT(date, "%Y-%m-%d")')->eq(helper::today())
+            ->fetchAll();
+        $committedAccounts = [];
+        foreach ($committedUserlogs as $committedUserlog) {
+            array_push($committedAccounts, $committedUserlog->account);
+        }
+
+        $users = $this->loadModel('dept')->getUsers($this->getDepts($this->daily));
+        $accounts = [];
+        foreach ($users as $user) {
+            array_push($accounts, $user->account);
+        }
+        $uncommittedAccounts = array_diff($accounts, $committedAccounts);
+        return $uncommittedAccounts;
     }
 
     public function create($account, $tasks, $type, $realname)

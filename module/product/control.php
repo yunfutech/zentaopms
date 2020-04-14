@@ -815,7 +815,7 @@ class product extends control
         $pager = pager::init($recTotal, $recPerPage, $pageID);
         $sort = $this->loadModel('common')->appendOrder($orderBy);
 
-        $weeklies = $this->loadModel('productweekly')->getWeekly($productID, $pager, $sort);
+        $weeklies = $this->loadModel('productweekly')->getWeeklyByProduct($productID, $pager, $sort);
         $this->view->weeklies = $weeklies;
         $this->view->productID = $productID;
         $this->product->setMenu($this->products, $productID);

@@ -4,6 +4,8 @@ class productweekly extends control
 {
     public function view($weeklyID, $productID)
     {
+        $this->loadModel('product')->setMenu($this->loadModel('product')->getPairs('nocode'), $productID);
+
         $weekly = $this->productweekly->getWeeklyById($weeklyID);
 
         $hyperdown    = $this->app->loadClass('hyperdown');
@@ -18,7 +20,7 @@ class productweekly extends control
         $this->display();
     }
 
-    public function edit($weeklyID)
+    public function edit($weeklyID, $productID)
     {
         if(!empty($_POST))
         {
@@ -31,9 +33,11 @@ class productweekly extends control
                 $response['message'] = dao::getError();
                 $this->send($response);
             }
-            $response['locate']  = inlink('view', 'weeklyID=' . $weeklyID);
+            $response['locate']  = inlink('view', 'weeklyID=' . $weeklyID . '&productID=' . $productID);
             $this->send($response);
         }
+        $this->loadModel('product')->setMenu($this->loadModel('product')->getPairs('nocode'), $productID);
+
         $weekly = $this->productweekly->getWeeklyById($weeklyID);
         $this->view->weekly = $weekly;
 
@@ -41,6 +45,7 @@ class productweekly extends control
         $this->view->position[] = $this->lang->weekly->edit;
 
         $this->view->weeklyID = $weeklyID;
+        $this->view->productID = $productID;
         $this->display();
     }
 
@@ -56,7 +61,7 @@ class productweekly extends control
             $response['message'] = dao::getError();
             $this->send($response);
         }
-        $response['locate']  = $this->createLink('product', 'weekly', "");
+        $response['locate']  = $this->createLink('product', 'weekly', "productID=" . $productID);
         $this->send($response);
     }
 }

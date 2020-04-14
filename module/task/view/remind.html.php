@@ -34,6 +34,27 @@
 <tr>
   <td style='padding: 10px; border: none;'>
     <fieldset style='border: 1px solid #e5e5e5'>
+      <legend style='color: #114f8e'>未提交日报名单</legend>
+      <div style='padding:5px;'>
+        <table>
+          <tr>
+            <th width="50">姓名</th>
+            <th width="50">运动</th>
+          </tr>
+          <?php foreach($uncommittedUsers as $user):?>
+          <tr>
+            <td><?php echo $user->realname;?></td>
+            <td><?php echo 10;?></td>
+          </tr>
+          <?php endforeach;?>
+        </table>
+      </div>
+    </fieldset>
+  </td>
+</tr>
+<tr>
+  <td style='padding: 10px; border: none;'>
+    <fieldset style='border: 1px solid #e5e5e5'>
       <legend style='color: #114f8e'>迭代延期排行榜</legend>
       <div style='padding:5px;'>
         <table>

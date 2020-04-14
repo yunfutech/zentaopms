@@ -13,7 +13,7 @@
   <?php else:?>
   <form class="main-table table-task">
     <table class="table has-sort-head table-fixed">
-      <?php $vars = "orderBy=%s&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID"; ?>
+      <?php $vars = "productID=$productID&orderBy=%s&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID"; ?>
       <thead>
         <tr>
           <th class="c-id">
@@ -34,7 +34,7 @@
           <td class='c-date'><?php echo $weekly->date?></td>
           <td class='c-actions'>
             <?php
-              common::printIcon('productweekly', 'edit', "weeklyID=$weekly->id", $weekly, 'list');
+              common::printIcon('productweekly', 'edit', "weeklyID=$weekly->id&productID=$productID", $weekly, 'list');
             ?>
           </td>
         </tr>

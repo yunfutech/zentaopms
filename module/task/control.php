@@ -1613,6 +1613,9 @@ class task extends control
 
         $delayProjects = $this->dao->select('t2.realname, group_concat(DISTINCT t1.name ORDER BY t1.end SEPARATOR \'<br/>\') as projects, count(t1.name) as cnt')->from(TABLE_PROJECT)->alias('t1')->leftJoin(TABLE_USER)->alias('t2')->on('t1.PO = t2.account')->where('t1.end')->lt($today)->andWhere('t1.status')->eq('doing')->andWhere('t1.deleted')->ne(1)->groupBy('t1.PO')->orderBy('cnt desc')->fetchAll();
         // var_dump($this->dao->sqlobj);
+        $uncommittedAccounts = $this->loadModel('userlog')->getUncommittedDailies();
+
+        $uncommittedUsers = $this->dao->query('SELECT realname FROM zt_user WHERE account in (\'' . join('\',\'', $uncommittedAccounts) . '\')')->fetchAll();
 
         // 节假日
         if ($less_count / $users_count >= 0.5) {
@@ -1641,6 +1644,7 @@ class task extends control
         $this->view->summary = $summary;
         $this->view->deleyTasksRank = $deleyTasksRank;
         $this->view->delayProjects = $delayProjects;
+        $this->view->uncommittedUsers = $uncommittedUsers;
         $this->loadModel('mail');
         // $this->display();
 

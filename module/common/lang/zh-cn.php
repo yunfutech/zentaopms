@@ -117,6 +117,7 @@ $lang->undonetask    = '任务池';
 $lang->projectboard    = '迭代看板';
 $lang->usertaskdoneboard    = '用户看板';
 $lang->userlogboard = '日志看板';
+$lang->weeklyboard = '项目周报看板';
 
 $lang->common = new stdclass();
 $lang->common->common = '公有模块';
@@ -236,11 +237,13 @@ $lang->story       = new stdclass();
 $lang->productplan = new stdclass();
 $lang->release     = new stdclass();
 $lang->branch      = new stdclass();
+$lang->productweekly      = new stdclass();
 
 $lang->branch->menu      = $lang->product->menu;
 $lang->story->menu       = $lang->product->menu;
 $lang->productplan->menu = $lang->product->menu;
 $lang->release->menu     = $lang->product->menu;
+$lang->productweekly->menu      = $lang->product->menu;
 
 /* 项目视图菜单设置。*/
 $lang->project = new stdclass();
@@ -371,6 +374,7 @@ $lang->report->menu->undonetask = array('link' => $lang->undonetask . '|report|u
 $lang->report->menu->projectboard = array('link' => $lang->projectboard . '|report|projectboard');
 $lang->report->menu->usertaskdoneboard = array('link' => $lang->usertaskdoneboard . '|report|usertaskdoneboard');
 $lang->report->menu->userlogboard = array('link' => $lang->userlogboard . '|report|userlogboard');
+$lang->report->menu->weeklyboard = array('link' => $lang->weeklyboard . '|report|weeklyboard');
 $lang->report->menu->test    = array('link' => '测试|report|bugcreate', 'alias' => 'bugassign');
 $lang->report->menu->staff   = array('link' => '组织|report|workload');
 
@@ -465,6 +469,7 @@ $lang->menugroup->release     = 'product';
 $lang->menugroup->story       = 'product';
 $lang->menugroup->branch      = 'product';
 $lang->menugroup->productplan = 'product';
+$lang->menugroup->productweekly = 'product';
 $lang->menugroup->task        = 'project';
 $lang->menugroup->build       = 'project';
 $lang->menugroup->convert     = 'admin';

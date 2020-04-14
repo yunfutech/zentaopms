@@ -162,3 +162,10 @@ $lang->report->annualData->poStatistics  = "月创建{$lang->storyCommon}数";
 $lang->report->annualData->devStatistics = "月完成任务数及累计工时和解决Bug数";
 
 $lang->report->annualData->unit = "个";
+
+
+$lang->report->userlogboard = '日志看板';
+$lang->report->weeklyboard = '项目周报看板';
+$lang->report->noWeekly = '没有周报';
+$lang->report->weeklyName = '名称';
+$lang->report->createdDate = '日期';
