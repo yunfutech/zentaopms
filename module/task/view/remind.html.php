@@ -31,7 +31,7 @@
     </fieldset>
   </td>
 </tr>
-<tr>
+<!-- <tr>
   <td style='padding: 10px; border: none;'>
     <fieldset style='border: 1px solid #e5e5e5'>
       <legend style='color: #114f8e'>未提交日报名单</legend>
@@ -51,7 +51,7 @@
       </div>
     </fieldset>
   </td>
-</tr>
+</tr> -->
 <tr>
   <td style='padding: 10px; border: none;'>
     <fieldset style='border: 1px solid #e5e5e5'>
