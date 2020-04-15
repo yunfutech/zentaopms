@@ -602,17 +602,10 @@ class report extends control
         $pager = pager::init($recTotal, $recPerPage, $pageID);
         $sort = $this->loadModel('common')->appendOrder($orderBy);
         $userlogs = $this->loadModel('userlog')->getUserlog($type, $pager, $sort);
-        if ($type == 'daily') {
-            $isFinished = substr($userlogs[0]->date, 0, 10) == strval(date('Y-m-d')) ? 1 : 0;
-        } else {
-            $isFinished = 1;
-        }
 
         $this->view->title      = $this->lang->report->userlogboard;
         $this->view->position[] = $this->lang->report->userlogboard;
 
-        $this->view->isHaveDaily = $this->userlog->isHaveDaily();
-        $this->view->isFinished = $isFinished;
         $this->view->userlogs   = $userlogs;
         $this->view->recTotal   = $recTotal;
         $this->view->recPerPage = $recPerPage;

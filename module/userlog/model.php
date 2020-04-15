@@ -13,7 +13,12 @@ class userlogModel extends model
         return $this->dao->select('*')
             ->from(TABLE_USERLOG)
             ->where('type')->eq($type)
+            ->beginIF($type == $this->daily)
             ->andWhere('status')->eq(1)
+            ->fi()
+            ->beginIF($type == $this->weekly)
+            ->andWhere('status')->eq(0)
+            ->fi()
             ->orderBy($sort)
             ->page($pager)
             ->fetchAll();
