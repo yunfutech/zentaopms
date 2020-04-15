@@ -38,7 +38,7 @@ class userlogModel extends model
             ->fetchAll();
     }
 
-    public function getUncommittedDailies()
+    public function getUncommittedAccounts()
     {
         $committedUserlogs = $this->dao->select('*')
             ->from(TABLE_USERLOG)
@@ -53,7 +53,11 @@ class userlogModel extends model
 
         $users = $this->loadModel('dept')->getUsers($this->getDepts($this->daily));
         $accounts = [];
+        $filterAccounts = ['xinjie', 'zhangfan', 'zhaoyaping'];
         foreach ($users as $user) {
+            if (in_array($user->account, $filterAccounts)) {
+                continue;
+            }
             array_push($accounts, $user->account);
         }
         $uncommittedAccounts = array_diff($accounts, $committedAccounts);

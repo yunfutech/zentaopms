@@ -169,3 +169,4 @@ $lang->report->weeklyboard = '项目周报看板';
 $lang->report->noWeekly = '没有周报';
 $lang->report->weeklyName = '名称';
 $lang->report->createdDate = '日期';
+$lang->task->noUserlog     = '没有日志';

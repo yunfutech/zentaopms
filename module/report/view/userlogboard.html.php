@@ -12,7 +12,7 @@
 <div id="mainContent">
   <?php if(empty($userlogs)):?>
   <div class="table-empty-tip">
-    <p><span class="text-muted"><?php echo $lang->task->noTask;?></span></p>
+    <p><span class="text-muted"><?php echo $lang->task->noUserlog;?></span></p>
   </div>
   <?php else:?>
   <form class="main-table table-task">

@@ -128,7 +128,7 @@ class userlog extends control
      */
     public function remind()
     {
-        $uncommittedAccounts = $this->userlog->getUncommittedDailies();
+        $uncommittedAccounts = $this->userlog->getUncommittedAccounts();
         $subject = '每日日报提醒';
         $mailContent = '请尽快前往禅道提交今日的日报！';
         foreach ($uncommittedAccounts as $account) {

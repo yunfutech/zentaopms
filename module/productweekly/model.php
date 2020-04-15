@@ -84,4 +84,16 @@ class productweeklyModel extends model
         }
         return $isFinished;
     }
+
+    public function checkPri($productID)
+    {
+        $pri = 4;
+        $projectIDs = $this->dao->select('*')->from(TABLE_PROJECTPRODUCT)->where('product')->eq($productID)->fetchAll();
+        if (!empty($projectIDs)) {
+            $projectID = $projectIDs[0]->project;
+            $project = $this->dao->select('pri')->from(TABLE_PROJECT)->where('id')->eq($projectID)->fetch();
+            $pri = $project->pri;
+        }
+        return $pri;
+    }
 }

@@ -824,7 +824,8 @@ class product extends control
         $this->view->title      = $product->name . $this->lang->colon .$this->lang->productweekly->common;
         $this->view->position[] = $this->lang->productweekly->common;
 
-        $this->view->isFinished = $this->loadModel('productweekly')->checkFinished($product->id);
+        $this->view->isFinished = $this->loadModel('productweekly')->checkFinished($productID);
+        $this->view->pri        = $this->loadModel('productweekly')->checkPri($productID);
         $this->view->recTotal   = $recTotal;
         $this->view->recPerPage = $recPerPage;
         $this->view->pageID     = $pageID;
