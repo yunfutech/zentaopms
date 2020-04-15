@@ -1,6 +1,6 @@
 <?php
 
-$lang->userlog->common      = '员工日报和周报';
+$lang->userlog->common      = '员工日志';
 $lang->userlog->daily       = '日报';
 $lang->userlog->weekly      = '周报';
 $lang->userlog->edit        = '编辑日志';

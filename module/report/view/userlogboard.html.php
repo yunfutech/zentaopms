@@ -4,9 +4,7 @@
   <div class="btn-toolbar pull-left">
     <?php
     $recTotalLabel = " <span class='label label-light label-badge'>{$pager->recTotal}</span>";
-    if ($isHaveDaily) {
-      echo html::a(inlink('userlogboard', "type=daily"), "<span class='text'>{$lang->userlog->daily}</span>" . ($type == 'daily' ? $recTotalLabel : ''), '', "class='btn btn-link" . ($type == 'daily' ? ' btn-active-text' : '') . "'");
-    }
+    echo html::a(inlink('userlogboard', "type=daily"), "<span class='text'>{$lang->userlog->daily}</span>" . ($type == 'daily' ? $recTotalLabel : ''), '', "class='btn btn-link" . ($type == 'daily' ? ' btn-active-text' : '') . "'");
     echo html::a(inlink('userlogboard', "type=weekly"), "<span class='text'>{$lang->userlog->weekly}</span>"   . ($type == 'weekly'   ? $recTotalLabel : ''),   '', "class='btn btn-link" . ($type == 'weekly'   ? ' btn-active-text' : '') . "'");
     ?>
   </div>
