@@ -7,6 +7,7 @@ $lang->my->todo           = '我的待办';
 $lang->my->calendar       = '日程';
 $lang->my->task           = '我的任务';
 $lang->my->userlog        = '我的日志';
+$lang->my->noUserlog      = '暂无日志';
 $lang->my->bug            = '我的Bug';
 $lang->my->testTask       = '我的版本';
 $lang->my->testCase       = '我的用例';
