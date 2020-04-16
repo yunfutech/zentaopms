@@ -616,16 +616,27 @@ class report extends control
         $this->display();
     }
 
-    public function weeklyboard($orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
+    public function weeklyboard($orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1, $week=0)
     {
         $this->app->loadClass('pager', $static=true);
         $pager = pager::init($recTotal, $recPerPage, $pageID);
         $sort = $this->loadModel('common')->appendOrder($orderBy);
-        $weeklies = $this->loadModel('productweekly')->getWeekly($pager, $sort);
+        if (strstr($sort, ',')) {
+            $why = explode(',', $sort);
+            $week = intval($why[0]);
+            $sort = $why[1];
+        }
+        $weeklies = $this->loadModel('productweekly')->getWeekly($pager, $sort, $week);
 
         $this->view->title      = $this->lang->report->weeklyboard;
         $this->view->position[] = $this->lang->report->weeklyboard;
 
+        $year = date('Y');
+        $weeks = date("W", mktime(0, 0, 0, 12, 28, $year));
+        $weeks = range(1, $weeks);
+        array_unshift($weeks, '');
+        $this->view->week       = $week;
+        $this->view->weeks      = $weeks;
         $this->view->weeklies   = $weeklies;
         $this->view->recTotal   = $recTotal;
         $this->view->recPerPage = $recPerPage;

@@ -4,16 +4,23 @@ class productweeklyModel extends model
 {
     public function getWeeklyByProduct($productID, $pager, $sort)
     {
-        return $this->dao->select('*')->from(TABLE_PRODUCTWEEKLY)
-            ->where('product')->eq($productID)
+        return $this->dao->select('t1.*, t2.realname')
+            ->from(TABLE_PRODUCTWEEKLY)->alias('t1')
+            ->leftJoin(TABLE_USER)->alias('t2')->on('t1.account= t2.account')
+            ->where('t1.product')->eq($productID)
             ->orderBy($sort)
             ->page($pager)
             ->fetchAll();
     }
 
-    public function getWeekly($pager, $sort)
+    public function getWeekly($pager, $sort, $week=null)
     {
-        return $this->dao->select('*')->from(TABLE_PRODUCTWEEKLY)
+        return $this->dao->select('t1.*, t2.realname')
+            ->from(TABLE_PRODUCTWEEKLY)->alias('t1')
+            ->leftJoin(TABLE_USER)->alias('t2')->on('t1.account= t2.account')
+            ->beginIF($week != 0)
+            ->where('WEEK(t1.date, 1)')->eq($week)
+            ->fi()
             ->orderBy($sort)
             ->page($pager)
             ->fetchAll();
@@ -30,10 +37,11 @@ class productweeklyModel extends model
     {
         $content = $this->generateMarkdown();
         $weekly = new stdClass();
-        $weekly->name = strval(date('Y-m-d') . '-' . $productName . '-' . '项目周报');
+        $weekly->name = '第' . strval(date('W') . '周-' . $productName . '-' . '项目周报');
         $weekly->content = $content;
         $weekly->date = helper::now();
         $weekly->product = $productID;
+        $weekly->account = $this->app->user->account;
         $this->dao->insert(TABLE_PRODUCTWEEKLY)->data($weekly)->exec();
         return $this->dao->lastInsertID();
     }

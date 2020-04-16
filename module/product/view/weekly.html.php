@@ -19,8 +19,9 @@
           <th class="c-id">
             <?php common::printOrderLink('id', $orderBy, $vars, $lang->idAB);?>
           </th>
-          <th class='c-name'><?php common::printOrderLink('name', $orderBy, $vars, $lang->product->weeklyName);?></th>
-          <th class='c-date w-150px'><?php common::printOrderLink('date', $orderBy, $vars, $lang->product->createdDate);?></th>
+          <th><?php common::printOrderLink('name', $orderBy, $vars, $lang->product->weeklyName);?></th>
+          <th class='w-150px'><?php common::printOrderLink('realname', $orderBy, $vars, $lang->product->account);?></th>
+          <th class='w-150px'><?php common::printOrderLink('date', $orderBy, $vars, $lang->product->createdDate);?></th>
           <th class='c-actions-1'><?php echo $lang->actions;?></th>
         </tr>
       </thead>
@@ -30,8 +31,9 @@
           <td class="c-id">
             <?php printf('%03d', $weekly->id);?>
           </td>
-          <td class='c-name' title="<?php echo $weekly->name;?>"><?php echo html::a($this->createLink('productweekly', 'view', "weeklyID=$weekly->id&productID=$productID"), $weekly->name);?></td>
-          <td class='c-date'><?php echo $weekly->date?></td>
+          <td title="<?php echo $weekly->name;?>"><?php echo html::a($this->createLink('productweekly', 'view', "weeklyID=$weekly->id&productID=$productID"), $weekly->name);?></td>
+          <td><?php echo $weekly->realname?></td>
+          <td><?php echo $weekly->date?></td>
           <td class='c-actions'>
             <?php
               common::printIcon('productweekly', 'edit', "weeklyID=$weekly->id&productID=$productID", $weekly, 'list');

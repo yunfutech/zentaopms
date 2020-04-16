@@ -165,8 +165,10 @@ $lang->report->annualData->unit = "个";
 
 
 $lang->report->userlogboard = '日志看板';
-$lang->report->weeklyboard = '项目周报看板';
-$lang->report->noWeekly = '没有周报';
-$lang->report->weeklyName = '名称';
-$lang->report->createdDate = '日期';
-$lang->task->noUserlog     = '没有日志';
+$lang->report->weeklyboard  = '项目周报看板';
+$lang->report->noWeekly     = '没有周报';
+$lang->report->weeklyName   = '名称';
+$lang->report->createdDate  = '日期';
+$lang->task->noUserlog      = '没有日志';
+$lang->report->week         = '第几周';
+$lang->report->account      = '创建用户';
