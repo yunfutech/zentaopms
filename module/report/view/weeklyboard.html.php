@@ -1,18 +1,10 @@
 <?php include '../../common/view/header.html.php';?>
 <div id="mainMenu" class="clearfix">
   <div class="btn-toolbar pull-left">
-    <?php foreach($lang->report->periods as $period => $label):?>
-    <?php
-    $label  = "<span class='text'>$label</span>";
-    $active = '';
-    if($period == $type)
-    {
-        $active = 'btn-active-text';
-        $label .= " <span class='label label-light label-badge'>{$pager->recTotal}</span>";
-    }
-    echo html::a(inlink('weeklyboard', "type=$period"), $label, '', "class='btn btn-link $active' id='{$period}'")
-    ?>
-    <?php endforeach;?>
+    <?php echo html::a($this->createLink('report', 'weeklyboard', "week=0&product=0"), $lang->report->all, '', "class='btn btn-primary next'"); ?>
+    <?php echo html::a($this->createLink('report', 'weeklyboard', "week={$lastWeek}&product={$product}"), $lang->report->lastWeek, '', "class='btn btn-primary next'"); ?>
+    <?php echo html::a($this->createLink('report', 'weeklyboard', "week={$thisWeek}&product={$product}"), $lang->report->thisWeek, '', "class='btn btn-primary next'"); ?>
+    <?php echo html::a($this->createLink('report', 'weeklyboard', "week={$nextWeek}&product={$product}"), $lang->report->nextWeek, '', "class='btn btn-primary next'"); ?>
     <div class="input-control space w-200px">
       <?php echo html::select('week', $weeks, $week, "onchange=changeWeek(this.value) class='form-control chosen'"); ?>
     </div>

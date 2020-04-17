@@ -85,7 +85,7 @@ class productweeklyModel extends model
             . '| --- | --- | --- | --- |' . PHP_EOL
             . '| | | | |' . PHP_EOL . PHP_EOL
             . '### 下周工作计划' . PHP_EOL
-            . '| 目标 | 目标完成度 | 实际完成度 | 备注 |' . PHP_EOL
+            . '| 目标 | 当前完成度 | 目标完成度 | 备注 |' . PHP_EOL
             . '| --- | --- | --- | --- |' . PHP_EOL
             . '| | | | |' . PHP_EOL . PHP_EOL
             . '### 备注' . PHP_EOL

@@ -173,11 +173,7 @@ $lang->task->noUserlog      = '没有日志';
 $lang->report->week         = '第几周';
 $lang->report->account      = '创建用户';
 
-$lang->report->dynamic = new stdclass();
-$lang->report->dynamic->thisWeek   = '本周';
-$lang->report->dynamic->lastWeek   = '上周';
-$lang->report->dynamic->all        = '所有';
-
-$lang->report->periods['all']       = $lang->report->dynamic->all;
-$lang->report->periods['thisweek']  = $lang->report->dynamic->thisWeek;
-$lang->report->periods['lastweek']  = $lang->report->dynamic->lastWeek;
+$lang->report->thisWeek   = '本周';
+$lang->report->lastWeek   = '上一周';
+$lang->report->nextWeek   = '下一周';
+$lang->report->all        = '所有';

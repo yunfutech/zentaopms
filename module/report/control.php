@@ -616,23 +616,21 @@ class report extends control
         $this->display();
     }
 
-    public function weeklyboard($type='thisweek', $week=0, $product=0, $orderBy='id_desc', $recTotal=0, $recPerPage=20, $pageID=1)
+    public function weeklyboard($week=0, $product=0, $orderBy='id_desc', $recTotal=0, $recPerPage=20, $pageID=1)
     {
         $this->app->loadClass('pager', $static=true);
         $pager = pager::init($recTotal, $recPerPage, $pageID);
         $sort = $this->loadModel('common')->appendOrder($orderBy);
-        if ($week == 0) {
-            if ($type == 'thisweek') $week = date('W');
-            if ($type == 'lastweek') $week = date('W') - 1;
-            if ($type == 'all') $week = 0;
-        }
         $weeklies = $this->loadModel('productweekly')->getWeekly($pager, $sort, $week, $product);
         $products = $this->loadModel('productweekly')->getWeeklyProducts();
 
         $this->view->title      = $this->lang->report->weeklyboard;
         $this->view->position[] = $this->lang->report->weeklyboard;
-
+        if ($week == 0) $week = date('W');
         $this->view->week       = $week;
+        $this->view->thisWeek   = date('W');
+        $this->view->lastWeek   = $week - 1;
+        $this->view->nextWeek   = $week + 1;
         $this->view->weeks      = $this->getWeeksRange();
         $this->view->weeklies   = $weeklies;
         $this->view->recTotal   = $recTotal;
@@ -640,7 +638,6 @@ class report extends control
         $this->view->pageID     = $pageID;
         $this->view->orderBy    = $orderBy;
         $this->view->pager      = $pager;
-        $this->view->type = $type;
         $this->view->product = $product;
         $this->view->products = $products;
         $this->display();

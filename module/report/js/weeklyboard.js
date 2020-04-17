@@ -1,7 +1,7 @@
 function changeWeek (week) {
     var product = $('#product').val()
     if (week !== 0) {
-        var link = createLink('report', 'weeklyboard', 'type=thisweek&week=' + week + '&product=' + product);
+        var link = createLink('report', 'weeklyboard', 'week=' + week + '&product=' + product);
     } else {
         var link = createLink('report', 'weeklyboard');
     }
@@ -11,7 +11,7 @@ function changeWeek (week) {
 function changeProduct (product) {
     var week = $('#week').val()
     if (product !== 0) {
-        var link = createLink('report', 'weeklyboard', 'type=thisweek&week=' + week + '&product=' + product);
+        var link = createLink('report', 'weeklyboard', 'week=' + week + '&product=' + product);
     } else {
         var link = createLink('report', 'weeklyboard');
     }
