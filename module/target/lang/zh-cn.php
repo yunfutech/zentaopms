@@ -19,6 +19,7 @@ $lang->target->precision        = '准确率';
 $lang->target->recall           = '召回率';
 $lang->target->f1               = 'F1';
 $lang->target->experiment       = '实验';
+$lang->target->explain          = '说明';
 
 $lang->target->createModule     = '新增模块';
 $lang->target->editModule       = '新增模块';

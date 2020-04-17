@@ -30,6 +30,7 @@ class target extends control
                 $this->send($response);
             }
         }
+        $this->view->projectID = $projectID;
         $this->display();
     }
 

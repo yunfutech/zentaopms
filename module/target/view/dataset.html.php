@@ -23,6 +23,7 @@
           <th class='w-120px'><?php echo $lang->target->type;?></th>
           <th class='w-120px'><?php echo $lang->target->source;?></th>
           <th class='w-120px'><?php echo $lang->target->size;?></th>
+          <th class='w-120px'><?php echo $lang->target->explain;?></th>
           <th class='w-120px'><?php echo $lang->target->handle;?></th>
         </tr>
       </thead>
@@ -34,6 +35,7 @@
             <td><?php echo $dataset->type;?></td>
             <td><?php echo $dataset->source;?></td>
             <td><?php echo $dataset->size;?></td>
+            <td><?php echo $dataset->explain;?></td>
             <td>
               <?php
                 $link = $this->createLink('target', 'editDataset', "projectID=$projectID&category=$dataset->id");
@@ -41,7 +43,7 @@
               ?>
               <?php
                 $link = $this->createLink('target', 'deleteDataset', "projectID=$projectID&category=$dataset->id");
-                echo html::a($link, "<i class='icon icon-plus'></i> {$lang->target->deleteDataset}", '', "class='btn btn-primary'");
+                echo html::a($link, "<i class='icon icon-trash'></i> {$lang->target->deleteDataset}", '', "class='btn btn-primary'");
               ?>
             </td>
           </tr>

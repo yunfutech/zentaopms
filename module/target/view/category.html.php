@@ -35,7 +35,7 @@
               ?>
               <?php
                 $link = $this->createLink('target', 'deleteCategory', "projectID=$projectID&category=$category->id");
-                echo html::a($link, "<i class='icon icon-plus'></i> {$lang->target->deleteCategory}", '', "class='btn btn-primary'");
+                echo html::a($link, "<i class='icon icon-trash'></i> {$lang->target->deleteCategory}", '', "class='btn btn-primary'");
               ?>
             </td>
           </tr>

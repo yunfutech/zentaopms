@@ -64,6 +64,7 @@ class targetModel extends model
         $dataset->source = $params['source'];
         $dataset->type = $params['type'] == 1? '测试集' : '开发集';
         $dataset->size = $params['size'];
+        $dataset->explain_ = $params['explain'];
         return $this->dao->insert(TABLE_TARGET_DATASET)->data($dataset)->exec();
     }
 
