@@ -1,8 +1,17 @@
-function changeParams () {
-    var week = $('#conditions').find('#week').val();
-    if (parseInt(week) !== 0) {
-        week = parseInt(week) + 1
-        var link = createLink('report', 'weeklyboard', 'week=' + week);
+function changeWeek (week) {
+    var product = $('#product').val()
+    if (week !== 0) {
+        var link = createLink('report', 'weeklyboard', 'type=thisweek&week=' + week + '&product=' + product);
+    } else {
+        var link = createLink('report', 'weeklyboard');
+    }
+    location.href = link;
+}
+
+function changeProduct (product) {
+    var week = $('#week').val()
+    if (product !== 0) {
+        var link = createLink('report', 'weeklyboard', 'type=thisweek&week=' + week + '&product=' + product);
     } else {
         var link = createLink('report', 'weeklyboard');
     }

@@ -13,7 +13,7 @@ class productweeklyModel extends model
             ->fetchAll();
     }
 
-    public function getWeekly($pager, $sort, $week=null)
+    public function getWeekly($pager, $sort, $week=0, $product=0)
     {
         return $this->dao->select('t1.*, t2.realname')
             ->from(TABLE_PRODUCTWEEKLY)->alias('t1')
@@ -21,9 +21,26 @@ class productweeklyModel extends model
             ->beginIF($week != 0)
             ->where('WEEK(t1.date, 1)')->eq($week)
             ->fi()
+            ->beginIF($product != 0)
+            ->andWhere('t1.product')->eq($product)
+            ->fi()
             ->orderBy($sort)
             ->page($pager)
             ->fetchAll();
+    }
+
+    public function getWeeklyProducts()
+    {
+        $products = $this->dao->select('t2.id, t2.name')
+            ->from(TABLE_PRODUCTWEEKLY)->alias('t1')
+            ->leftJoin(TABLE_PRODUCT)->alias('t2')->on('t1.product=t2.id')
+            ->fetchAll();
+        $result = [0 => '项目'];
+        foreach ($products as $product) {
+            $result[$product->id] = $product->name;
+        }
+        $result = array_unique($result);
+        return $result;
     }
 
     public function getWeeklyById($weeklyID)

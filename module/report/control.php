@@ -616,33 +616,71 @@ class report extends control
         $this->display();
     }
 
-    public function weeklyboard($orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1, $week=0)
+    public function weeklyboard($type='thisweek', $week=0, $product=0, $orderBy='id_desc', $recTotal=0, $recPerPage=20, $pageID=1)
     {
         $this->app->loadClass('pager', $static=true);
         $pager = pager::init($recTotal, $recPerPage, $pageID);
         $sort = $this->loadModel('common')->appendOrder($orderBy);
-        if (strstr($sort, ',')) {
-            $why = explode(',', $sort);
-            $week = intval($why[0]);
-            $sort = $why[1];
+        if ($week == 0) {
+            if ($type == 'thisweek') $week = date('W');
+            if ($type == 'lastweek') $week = date('W') - 1;
+            if ($type == 'all') $week = 0;
         }
-        $weeklies = $this->loadModel('productweekly')->getWeekly($pager, $sort, $week);
+        $weeklies = $this->loadModel('productweekly')->getWeekly($pager, $sort, $week, $product);
+        $products = $this->loadModel('productweekly')->getWeeklyProducts();
 
         $this->view->title      = $this->lang->report->weeklyboard;
         $this->view->position[] = $this->lang->report->weeklyboard;
 
-        $year = date('Y');
-        $weeks = date("W", mktime(0, 0, 0, 12, 28, $year));
-        $weeks = range(1, $weeks);
-        array_unshift($weeks, '');
         $this->view->week       = $week;
-        $this->view->weeks      = $weeks;
+        $this->view->weeks      = $this->getWeeksRange();
         $this->view->weeklies   = $weeklies;
         $this->view->recTotal   = $recTotal;
         $this->view->recPerPage = $recPerPage;
         $this->view->pageID     = $pageID;
         $this->view->orderBy    = $orderBy;
         $this->view->pager      = $pager;
+        $this->view->type = $type;
+        $this->view->product = $product;
+        $this->view->products = $products;
         $this->display();
+    }
+
+    private function getWeeksRange()
+    {
+        $year = date('Y');
+        $weeks = date("W", mktime(0, 0, 0, 12, 31, $year));
+        $weeks = range(1, $weeks);
+        $weekRange = [];
+        foreach($weeks as $week) {
+            $weekday = $this->weekday($week);
+            $start = date('m.d', ($weekday['start']));
+            $end = date('m.d', ($weekday['end']));
+            array_push($weekRange, '第' . $week . '周(' . $start . '-' . $end . ')');
+        }
+        array_unshift($weekRange, '第几周');
+        return $weekRange;
+    }
+
+    public function weekday($week=1){
+        $year = date('Y');
+        $year_start = mktime(0,0,0,1,1,$year);
+        $year_end = mktime(0,0,0,12,31,$year);
+        if (intval(date('W', $year_start))===1){
+            $start = $year_start;
+        } else {
+            $week++;
+            $start = strtotime('+1 monday', $year_start);
+        }
+        if ($week == 1){
+            $weekday['start'] = $start;
+        }else{
+            $weekday['start'] = strtotime('+'.($week-1).' monday', $start);
+        }
+        $weekday['end'] = strtotime('+1 sunday', $weekday['start']);
+        if (date('Y', $weekday['end']) != $year){
+            $weekday['end'] = $year_end;
+        }
+        return $weekday;
     }
 }

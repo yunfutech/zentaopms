@@ -1,15 +1,27 @@
 <?php include '../../common/view/header.html.php';?>
-<div id="mainContent">
-  <div class='cell'>
-    <div class="row" id='conditions'>
-      <div class='col-sm-2'>
-        <div class='input-group'>
-          <span class='input-group-addon'><?php echo $lang->report->week; ?></span>
-          <?php echo html::select('week', $weeks, $week - 1, "class='form-control chosen' onchange='changeParams()'"); ?>
-        </div>
-      </div>
+<div id="mainMenu" class="clearfix">
+  <div class="btn-toolbar pull-left">
+    <?php foreach($lang->report->periods as $period => $label):?>
+    <?php
+    $label  = "<span class='text'>$label</span>";
+    $active = '';
+    if($period == $type)
+    {
+        $active = 'btn-active-text';
+        $label .= " <span class='label label-light label-badge'>{$pager->recTotal}</span>";
+    }
+    echo html::a(inlink('weeklyboard', "type=$period"), $label, '', "class='btn btn-link $active' id='{$period}'")
+    ?>
+    <?php endforeach;?>
+    <div class="input-control space w-200px">
+      <?php echo html::select('week', $weeks, $week, "onchange=changeWeek(this.value) class='form-control chosen'"); ?>
+    </div>
+    <div class="input-control space w-150px">
+      <?php echo html::select('product', $products, $product, 'onchange=changeProduct(this.value) class="form-control chosen"');?>
     </div>
   </div>
+</div>
+<div id="mainContent">
   <?php if(empty($weeklies)):?>
   <div class="table-empty-tip">
     <p><span class="text-muted"><?php echo $lang->report->noWeekly;?></span></p>
