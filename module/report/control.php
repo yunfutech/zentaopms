@@ -280,14 +280,19 @@ class report extends control
 
     // 任务看板
 
-    public function taskboard($date = 0, $dept = 3)
+    public function taskboard($date = 0, $dept = -1)
     {
+        global $app;
         if ($_POST) {
             $data = fixer::input('post')->get();
             $dept = $data->dept;
             $date = $data->date;
         }
-
+        if ($dept > -1) {
+            $dept = $dept;
+        } else {
+            $dept = $app->user->dept;
+        }
         if($date == '' || $date == 0 || $date == 'today' || !$date) {
             $date = date('Y-m-d');
         } else {
