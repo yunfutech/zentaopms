@@ -1664,4 +1664,47 @@ class task extends control
         }
         echo "发送成功\n";
     }
+
+    public function generateMeetingTask()
+    {
+        $ids = [2, 4, 19, 131, 18, 88];   # 张总、贾总、曾总、程总、建行、王琪
+        $projectID = 315;   # 日常工作2020
+        $users = $this->dao->select('account')->from(TABLE_USER)->where('id')->in($ids)->fetchall();
+        foreach($users as $user) {
+            $now = date('Y-m-d H:i:s');
+            $days = $this->getNextweekDays();
+            foreach($days as $day) {
+                $task = [
+                    'project' => $projectID,
+                    'name' => '',
+                    'type' => 'discuss',
+                    'estimate' => 0.5,
+                    'consumed' => 0,
+                    'left' => 0.5,
+                    'deadline' => $day,
+                    'subStatus' => '',
+                    'color' => '',
+                    'desc' => '',
+                    'openedBy' => $user->account,
+                    'assignedTo' => $user->account,
+                    'openedDate' => $now,
+                    'assignedDate' => $now
+                ];
+                $task['name'] = '早会' . $day;
+                $this->dao->insert(TABLE_TASK)->data($task)->exec();
+                $task['name'] = '验收会' . $day;
+                $this->dao->insert(TABLE_TASK)->data($task)->exec();
+            }
+        }
+        echo "生成会议任务成功";
+    }
+
+    private function getNextweekDays() {
+        $days = [];
+        $weeks = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+        foreach($weeks as $week) {
+            array_push($days, date('Y-m-d', strtotime('next ' . $week)));
+        }
+        return $days;
+    }
 }
