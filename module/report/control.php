@@ -335,12 +335,15 @@ class report extends control
     }
 
     // 迭代看板
-    public function projectboard($begin = '', $end = '')
+    public function projectboard($begin = '', $end = '', $project_type='')
     {
+        $this->app->loadLang('project');
+        $this->lang->project->project_typeList = array_merge(['' => '全部'], $this->lang->project->project_typeList);
         if ($_POST) {
             $data = fixer::input('post')->get();
             $begin = $data->begin;
             $end = $data->end;
+            $project_type = intval($data->project_type);
         }
         $date = date('Y-m-d');
         $w = date('w', strtotime($date));
@@ -383,8 +386,9 @@ class report extends control
         $this->view->cur = $cur;
         $this->view->title = $this->lang->report->projectboard;
         $this->view->position[] = $this->lang->report->projectboard;
-        $this->view->projects = $this->report->getProjectStatistics($begin, $end);
+        $this->view->projects = $this->report->getProjectStatistics($begin, $end, $project_type);
         $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
+        $this->view->project_type = $project_type;
         $this->display();
     }
 

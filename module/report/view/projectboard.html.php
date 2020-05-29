@@ -6,6 +6,12 @@
       <form method='post'>
       <?php $canBatchEdit = common::hasPriv('task', 'batchEdit');?>
         <div class="row" id='conditions'>
+          <div class='col-sm-2'>
+            <div class='input-group'>
+              <span class='input-group-addon'><?php echo $lang->project->project_type; ?></span>
+              <?php echo html::select('project_type', $lang->project->project_typeList, $project_type, "class='form-control chosen' onchange='changeParams(this)'"); ?>
+            </div>
+          </div>
           <div class='col-sm-3'>
             <div class='input-group input-group-sm'>
               <span class='input-group-addon'><?php echo $lang->report->beginAndEnd;?></span>

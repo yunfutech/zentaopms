@@ -85,7 +85,7 @@ $lang->project->typeList['sprint']    = "短期$lang->projectCommon";
 $lang->project->typeList['waterfall'] = "长期$lang->projectCommon";
 $lang->project->typeList['ops']       = "运维$lang->projectCommon";
 
-$lang->project->project_typeList['0']    = "研发";
+$lang->project->project_typeList['0'] = "研发";
 $lang->project->project_typeList['1'] = "商务";
 
 $lang->project->endList[7]   = '一星期';

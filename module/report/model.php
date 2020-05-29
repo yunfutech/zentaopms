@@ -655,14 +655,17 @@ class reportModel extends model
                 $tasks[$task->assignedTo]['detail'][]  = $task;
             }
         }
-        
+
         return $tasks;
     }
 
-    public function getProjectStatistics($begin, $end)
+    public function getProjectStatistics($begin, $end, $project_type)
     {
         $projects = $this->dao->select('p.id, p.name, p.pri, p.end, p.begin')->from(TABLE_PROJECT)->alias('p')
         ->where('p.begin')->le($end)
+        ->beginIF($project_type != '')
+        ->andWhere('project_type')->eq($project_type)
+        ->fi()
         ->andWhere('p.status')->notin('cancel, closed')
         ->orderBy('p.pri')->fetchAll();
         $projects_json = [];

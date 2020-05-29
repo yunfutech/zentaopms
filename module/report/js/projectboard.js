@@ -1,6 +1,7 @@
 function changeParams (obj) {
     var begin   = $('#conditions').find('#begin').val();
     var end     = $('#conditions').find('#end').val();
+    var projectType = $('#conditions').find('#project_type').val();
     if(begin.indexOf('-') != -1)
     {
         var beginarray = begin.split("-");
@@ -13,7 +14,7 @@ function changeParams (obj) {
         var end = '';
         for(i = 0 ; i < endarray.length ; i++) end = end + endarray[i];
     }
-    var link = createLink('report', 'projectboard', 'begin=' + begin + '&end=' + end);
+    var link = createLink('report', 'projectboard', 'begin=' + begin + '&end=' + end + '&project_type=' + projectType);
     location.href = link;
 }
 
