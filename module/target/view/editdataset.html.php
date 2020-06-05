@@ -39,7 +39,7 @@
           <tr>
             <th><?php echo $lang->target->explain;?></th>
             <td>
-              <?php echo html::textarea("explain", $dataset->explain_, "style='height: 100px;' class='form-control'");?>
+              <?php echo html::textarea("explain_", $dataset->explain_, "style='height: 100px;' class='form-control'");?>
             </td>
           </tr>
         </tbody>
