@@ -666,7 +666,7 @@ class reportModel extends model
         ->beginIF($project_type != '')
         ->andWhere('project_type')->eq($project_type)
         ->fi()
-        ->andWhere('p.status')->notin('cancel, closed')
+        ->andWhere('p.status')->notin('cancel')
         ->orderBy('p.pri')->fetchAll();
         $projects_json = [];
         $projects_ids = [];
