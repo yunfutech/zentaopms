@@ -87,6 +87,7 @@ $lang->project->typeList['ops']       = "运维$lang->projectCommon";
 
 $lang->project->project_typeList['0'] = "研发";
 $lang->project->project_typeList['1'] = "商务";
+$lang->project->project_typeList['2'] = "其他";
 
 $lang->project->endList[7]   = '一星期';
 $lang->project->endList[14]  = '两星期';
