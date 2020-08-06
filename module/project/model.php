@@ -459,6 +459,7 @@ class projectModel extends model
             $projects[$projectID] = new stdClass();
             $projects[$projectID]->name   = $data->names[$projectID];
             $projects[$projectID]->code   = $data->codes[$projectID];
+            $projects[$projectID]->pri    = $data->pris[$projectID];
             $projects[$projectID]->PM     = $data->PMs[$projectID];
             $projects[$projectID]->PO     = $data->POs[$projectID];
             $projects[$projectID]->QD     = $data->QDs[$projectID];

@@ -44,6 +44,7 @@
             <th class='w-50px'><?php echo $lang->idAB;?></th>
             <th class='required <?php echo $minWidth?>'><?php echo $lang->project->name;?></th>
             <th class='w-150px required'><?php echo $lang->project->code;?></th>
+            <th class='w-100px<?php echo zget($visibleFields, 'pri',   ' hidden') . zget($requiredFields, 'pri',   '', ' required');?>'><?php echo $lang->project->pri;?></th>
             <th class='w-150px<?php echo zget($visibleFields, 'PM',     ' hidden') . zget($requiredFields, 'PM',     '', ' required');?>'><?php echo $lang->project->PM;?></th>
             <th class='w-150px<?php echo zget($visibleFields, 'PO',     ' hidden') . zget($requiredFields, 'PO',     '', ' required');?>'><?php echo $lang->project->PO;?></th>
             <th class='w-150px<?php echo zget($visibleFields, 'QD',     ' hidden') . zget($requiredFields, 'QD',     '', ' required');?>'><?php echo $lang->project->QD;?></th>
@@ -64,6 +65,7 @@
             <td><?php echo sprintf('%03d', $projectID) . html::hidden("projectIDList[$projectID]", $projectID);?></td>
             <td title='<?php echo $projects[$projectID]->name?>'><?php echo html::input("names[$projectID]", $projects[$projectID]->name, "class='form-control'");?></td>
             <td><?php echo html::input("codes[$projectID]",     $projects[$projectID]->code, "class='form-control'");?></td>
+            <td class='<?php echo zget($visibleFields, 'pri',   'hidden')?>'><?php echo html::select("pris[$projectID]",    $lang->project->priList,   $projects[$projectID]->pri,   'class=form-control');?></td>
             <td class='text-left<?php echo zget($visibleFields, 'PM', ' hidden')?>' style='overflow:visible'><?php echo html::select("PMs[$projectID]", $pmUsers, $projects[$projectID]->PM, "class='form-control chosen'");?></td>
             <td class='text-left<?php echo zget($visibleFields, 'PO', ' hidden')?>' style='overflow:visible'><?php echo html::select("POs[$projectID]", $poUsers, $projects[$projectID]->PO, "class='form-control chosen'");?></td>
             <td class='text-left<?php echo zget($visibleFields, 'QD', ' hidden')?>' style='overflow:visible'><?php echo html::select("QDs[$projectID]", $qdUsers, $projects[$projectID]->QD, "class='form-control chosen'");?></td>
