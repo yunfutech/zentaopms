@@ -1585,7 +1585,8 @@ class task extends control
             $users = $this->dao->select('id, account, realname')->from(TABLE_USER)->where('deleted')->eq(0)->andWhere('dept')->eq($deptId)->fetchall();
             $users_count += count($users);
             foreach($users as $user) {
-                $estimate = $this->dao->select('sum(t1.estimate) as sum')->from(TABLE_TASK)->alias('t1')->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')->where('t1.status')->ne('closed')->andWhere('t1.status')->ne('cancel')->andWhere('t1.deadline')->eq($today)->andWhere('t1.assignedTo')->eq($user->account)->andWhere('t1.deleted')->ne(1)->andWhere('t2.status')->eq('doing')->fetch();
+                $estimate = $this->dao->select('sum(t1.estimate) as sum')->from(TABLE_TASK)->alias('t1')->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')->where('t1.status')->notin('cancel, closed')->andWhere('t1.deadline')->eq($today)->andWhere('t1.assignedTo')->eq($user->account)->andWhere('t1.deleted')->ne(1)->andWhere('t2.status')->notin('cancel, closed')->fetch();
+                // var_dump($this->dao->sqlobj);
                 if (!$estimate) {
                     continue;
                 }
@@ -1597,7 +1598,7 @@ class task extends control
                     array_push($moreUsers, ['name' => $user->realname, 'estimate' => $sum]);
                 }
 
-                $delayTasks = $this->dao->select('count(t1.id) as cnt')->from(TABLE_TASK)->alias('t1')->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')->where('t1.status')->ne('closed')->andWhere('t1.status')->ne('cancel')->andWhere('t1.status')->ne('done')->andWhere('t1.deadline')->lt($today)->andWhere('t1.assignedTo')->eq($user->account)->andWhere('t2.status')->notin('cancel, closed')->andWhere('t1.deleted')->ne(1)->fetch();
+                $delayTasks = $this->dao->select('count(t1.id) as cnt')->from(TABLE_TASK)->alias('t1')->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')->where('t1.status')->notin('cancel, closed, done')->andWhere('t1.deadline')->lt($today)->andWhere('t1.assignedTo')->eq($user->account)->andWhere('t2.status')->notin('cancel, closed')->andWhere('t1.deleted')->ne(1)->fetch();
                 // var_dump($this->dao->sqlobj);
                 if ($delayTasks->cnt == 0) {
                     continue;
