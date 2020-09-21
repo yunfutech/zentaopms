@@ -19,7 +19,7 @@ $lang->report->annualData->qaOverview      = "{$lang->productCommon}创建Bug数
 $lang->report->annualData->projectOverview = "参与{$lang->projectCommon}概览";
 $lang->report->annualData->doneProject     = "已完成的{$lang->projectCommon}";
 $lang->report->annualData->doingProject    = "正在进行的{$lang->projectCommon}";
-$lang->report->annualData->suspendProject  = "已挂起的{$lang->projectCommon}";
+$lang->report->annualData->suspendProject  = "待验收的{$lang->projectCommon}";
 
 $lang->report->annualData->projectName   = "{$lang->projectCommon}名称";
 $lang->report->annualData->finishedStory = "完成{$lang->storyCommon}数";

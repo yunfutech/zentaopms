@@ -115,7 +115,7 @@ $lang->project->otherInfo = '其他信息';
 /* 字段取值列表。*/
 $lang->project->statusList['wait']      = '未开始';
 $lang->project->statusList['doing']     = '进行中';
-$lang->project->statusList['suspended'] = '已挂起';
+$lang->project->statusList['suspended'] = '待验收';
 $lang->project->statusList['closed']    = '已关闭';
 
 $lang->project->aclList['open']    = "默认设置(有{$lang->projectCommon}视图权限，即可访问)";
