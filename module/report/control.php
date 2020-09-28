@@ -417,30 +417,13 @@ class report extends control
             $end = date('Y-m-d', strtotime($end));
         }
         $begin_w = date('w', strtotime($begin));
-        $next_date = date("Ymd", strtotime("+7 days", strtotime($begin)));
-        $next_start = date('Ymd',strtotime("$next_date -".($begin_w ? $begin_w - 1 : 6).' days'));
-        $next_end = date('Ymd',strtotime("$next_start +6 days"));
-        $cur = [
-            "start"=> date("Ymd", strtotime($week_start)),
-            "end"=> date("Ymd", strtotime($week_end))
-        ];
-        $next = [
-            "start"=> $next_start,
-            "end"=> $next_end
-        ];
-        $pre_date = date("Ymd", strtotime("-7 days", strtotime($begin)));
-        $pre_start = date('Ymd',strtotime("$pre_date -".($begin_w ? $begin_w - 1 : 6).' days'));
-        $pre_end = date('Ymd',strtotime("$pre_start +6 days"));
-        $pre = [
-            "start"=> $pre_start,
-            "end"=> $pre_end
-        ];
+
         $this->app->loadConfig('project');
         $this->view->begin = $begin;
         $this->view->end = $end;
-        $this->view->next = $next;
-        $this->view->pre = $pre;
-        $this->view->cur = $cur;
+        $this->view->next = $this->getNextWeek($begin, $begin_w);
+        $this->view->pre = $this->getPreWeekDate($begin, $begin_w);
+        $this->view->cur = $this->getCurWeek($week_start, $week_end);
         $this->view->title = $this->lang->report->usertaskdoneboard;
         $this->view->position[] = $this->lang->report->usertaskdoneboard;
         $this->view->depts = $this->loadModel('dept')->getOptionMenu();
@@ -448,6 +431,40 @@ class report extends control
         $this->view->dept = $dept;
         $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
         $this->display();
+    }
+
+    private function getCurWeek($week_start, $week_end)
+    {
+        $cur = [
+            "start"=> date("Ymd", strtotime($week_start)),
+            "end"=> date("Ymd", strtotime($week_end))
+        ];
+        return $cur;
+    }
+
+    private function getPreWeekDate($begin, $begin_w)
+    {
+
+        $pre_date = date("Ymd", strtotime("-7 days", strtotime($begin)));
+        $pre_start = date('Ymd',strtotime("$pre_date -".($begin_w ? $begin_w - 1 : 6).' days'));
+        $pre_end = date('Ymd',strtotime("$pre_start +6 days"));
+        $pre = [
+            "start"=> $pre_start,
+            "end"=> $pre_end
+        ];
+        return $pre;
+    }
+
+    private function getNextWeek($begin, $begin_w)
+    {
+        $next_date = date("Ymd", strtotime("+7 days", strtotime($begin)));
+        $next_start = date('Ymd',strtotime("$next_date -".($begin_w ? $begin_w - 1 : 6).' days'));
+        $next_end = date('Ymd',strtotime("$next_start +6 days"));
+        $next = [
+            "start"=> $next_start,
+            "end"=> $next_end
+        ];
+        return $next;
     }
 
     // 导出

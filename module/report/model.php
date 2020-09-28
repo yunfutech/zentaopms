@@ -726,13 +726,16 @@ class reportModel extends model
                 ];
             }
         }
-        $tasks = $this->dao->select('t1.id, t1.project as pid, t1.name, t1.status, t1.project, t1.estimate, t1.consumed, t1.finishedBy, t1.finishedDate, t2.pri, t2.name as projectName')->from(TABLE_TASK)->alias('t1')
+        $end = date('Y-m-d',strtotime("$end +1 days"));
+        $tasks = $this->dao->select('t1.id, t1.project as pid, t1.name, t1.status, t1.project, t1.estimate, t1.consumed, t1.finishedBy, t1.deadline, t2.pri, t2.name as projectName')->from(TABLE_TASK)->alias('t1')
         ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
         ->where('t1.deleted')->eq(0)
         ->andWhere('t1.finishedBy')->in($usernames)
-        ->andWhere('t1.finishedDate')->ge($begin)
-        ->andWhere('t1.finishedDate')->le($end)
+        ->andWhere('t1.deadline')->ge($begin)
+        ->andWhere('t1.deadline')->lt($end)
+        ->andWhere('t1.status')->in(['done', 'closed'])
         ->fetchAll();
+        // var_dump($this->dao->sqlobj);
         foreach($tasks as $task)
         {
             if($task->consumed > 0) {
