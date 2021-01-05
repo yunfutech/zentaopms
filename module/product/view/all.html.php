@@ -19,7 +19,7 @@
     </div>
   </div>
   <div class="btn-toolbar pull-left">
-    <?php 
+    <?php
     foreach($lang->product->featureBar['all'] as $key => $label)
     {
         if(is_string($label)) $link = inlink("all", "productID={$productID}&line=&status={$key}");
@@ -72,6 +72,8 @@
             <th><?php common::printOrderLink('name', $orderBy, $vars, $lang->product->name);?></th>
             <th class='w-110px text-left'><?php common::printOrderLink('line', $orderBy, $vars, $lang->product->line);?></th>
             <th class='w-80px' title='<?php echo $lang->product->po;?>'><?php echo $lang->product->po;?></th>
+            <th class='w-50px text-center' title='<?php echo $lang->product->progress;?>'><?php echo $lang->product->progress;?></th>
+            <th class='w-100px text-center' title='<?php echo $lang->product->state;?>'><?php echo $lang->product->state;?></th>
             <th class='w-80px' title='<?php echo $lang->product->activeStoriesTitle;?>'><?php echo $lang->product->activeStories;?></th>
             <th class='w-90px' title='<?php echo $lang->product->changedStoriesTitle;?>'><?php echo $lang->product->changedStories;?></th>
             <th class='w-70px' title='<?php echo $lang->product->draftStoriesTitle;?>'><?php echo $lang->product->draftStories;?></th>
@@ -104,6 +106,8 @@
           <td class="c-name" title='<?php echo $product->name?>'><?php echo html::a($this->createLink('product', 'view', 'product=' . $product->id), $product->name);?></td>
           <td title='<?php echo zget($lines, $product->line, '')?>'><?php echo zget($lines, $product->line, '');?></td>
           <td class='text-center'><?php echo $product->PO;?></td>
+          <td class='text-center'><?php echo $product->progress . '%';?></td>
+          <td class='text-center'><?php echo zget($lang->product->stateList, $product->state)?></td>
           <td class='text-center'><?php echo $product->stories['active'];?></td>
           <td class='text-center'><?php echo $product->stories['changed'];?></td>
           <td class='text-center'><?php echo $product->stories['draft'];?></td>

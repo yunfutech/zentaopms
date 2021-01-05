@@ -41,7 +41,7 @@
           <tr>
             <th><?php echo $lang->product->code;?></th>
             <td><?php echo html::input('code', $product->code, "class='form-control' required");?></td><td></td>
-          </tr>  
+          </tr>
           <tr>
             <th><?php echo $lang->product->line;?></th>
             <td><?php echo html::select('line', $lines, $product->line, "class='form-control chosen'");?></td>
@@ -54,32 +54,46 @@
           <tr>
             <th><?php echo $lang->product->QD;?></th>
             <td><?php echo html::select('QD', $qdUsers, $product->QD, "class='form-control chosen'");?></td><td></td>
-          </tr>  
+          </tr>
           <tr>
             <th><?php echo $lang->product->RD;?></th>
             <td><?php echo html::select('RD', $rdUsers, $product->RD, "class='form-control chosen'");?></td><td></td>
-          </tr>  
+          </tr>
           <tr>
             <th><?php echo $lang->product->type;?></th>
             <td><?php echo html::select('type', $lang->product->typeList, $product->type, "class='form-control'");?></td><td></td>
-          </tr>  
+          </tr>
           <tr>
             <th><?php echo $lang->product->status;?></th>
             <td><?php echo html::select('status', $lang->product->statusList, $product->status, "class='form-control'");?></td><td></td>
-          </tr>  
+          </tr>
+          <tr>
+            <th><?php echo $lang->product->progress;?></th>
+            <td>
+              <div class='input-group'>
+                <?php echo html::input('progress', $product->progress, "class='form-control' placeholder='". $lang->product->progressPlaceholder ."'");?>
+                <span class="input-group-addon">%</span>
+              </div>
+              </td>
+            <td></td>
+          </tr>
+          <tr>
+            <th><?php echo $lang->product->state;?></th>
+            <td><?php echo html::select('state', $lang->product->stateList, $product->state, "class='form-control chosen'");?></td><td></td>
+          </tr>
           <?php $this->printExtendFields($product, 'table');?>
           <tr>
             <th><?php echo $lang->product->desc;?></th>
             <td colspan='2'><?php echo html::textarea('desc', htmlspecialchars($product->desc), "rows='8' class='form-control'");?></td>
-          </tr>  
+          </tr>
           <tr>
             <th><?php echo $lang->product->acl;?></th>
             <td colspan='2'><?php echo nl2br(html::radio('acl', $lang->product->aclList, $product->acl, "onclick='setWhite(this.value);'", 'block'));?></td>
-          </tr>  
+          </tr>
           <tr id='whitelistBox' <?php if($product->acl != 'custom') echo "class='hidden'";?>>
             <th><?php echo $lang->product->whitelist;?></th>
             <td colspan='2'><?php echo html::checkbox('whitelist', $groups, $product->whitelist);?></td>
-          </tr>  
+          </tr>
           <tr>
             <td colspan='3' class='text-center form-actions'>
               <?php echo html::submitButton();?>

@@ -37,7 +37,7 @@
           <tr>
             <th><?php echo $lang->product->code;?></th>
             <td><?php echo html::input('code', '', "class='form-control input-product-code' required");?></td><td></td>
-          </tr>  
+          </tr>
           <tr>
             <th><?php echo $lang->product->line;?></th>
             <td>
@@ -51,15 +51,15 @@
           <tr>
             <th><?php echo $lang->product->PO;?></th>
             <td><?php echo html::select('PO', $poUsers, $this->app->user->account, "class='form-control chosen'");?></td><td></td>
-          </tr>  
+          </tr>
           <tr>
             <th><?php echo $lang->product->QD;?></th>
             <td><?php echo html::select('QD', $qdUsers, '', "class='form-control chosen'");?></td><td></td>
-          </tr>  
+          </tr>
           <tr>
             <th><?php echo $lang->product->RD;?></th>
             <td><?php echo html::select('RD', $rdUsers, '', "class='form-control chosen'");?></td><td></td>
-          </tr>  
+          </tr>
           <tr>
             <th><?php echo $lang->product->type;?></th>
             <td>
@@ -69,7 +69,22 @@
               ?>
               <?php echo html::select('type', $productTypeList, 'normal', "class='form-control'");?>
             </td><td></td>
-          </tr>  
+          </tr>
+          <tr>
+            <th><?php echo $lang->product->progress;?></th>
+            <td>
+              <div class='input-group'>
+                <?php echo html::input('progress', '', "class='form-control' placeholder='". $lang->product->progressPlaceholder ."'");?>
+                <span class="input-group-addon">%</span>
+              </div>
+            </td><td></td>
+          </tr>
+          <tr>
+            <th><?php echo $lang->product->state;?></th>
+            <td>
+              <?php echo html::select('state', $lang->product->stateList, '', "class='form-control chosen'");?>
+            </td><td></td>
+          </tr>
           <tr class='hide'>
             <th><?php echo $lang->product->status;?></th>
             <td><?php echo html::hidden('status', 'normal');?></td>
@@ -82,15 +97,15 @@
               <?php echo $this->fetch('user', 'ajaxPrintTemplates', "type=product&link=desc");?>
               <?php echo html::textarea('desc', '', "rows='8' class='form-control kindeditor' hidefocus='true' tabindex=''");?>
             </td>
-          </tr>  
+          </tr>
           <tr>
             <th><?php echo $lang->product->acl;?></th>
             <td colspan='2'><?php echo nl2br(html::radio('acl', $lang->product->aclList, 'custom', "onclick='setWhite(this.value);'", 'block'));?></td>
-          </tr>  
+          </tr>
           <tr id='whitelistBox'>
             <th><?php echo $lang->product->whitelist;?></th>
             <td colspan='2'><?php echo html::checkbox('whitelist', $groups, '1', '', 'inline');?></td>
-          </tr>  
+          </tr>
           <tr>
             <td colspan='3' class='text-center form-actions'>
               <?php echo html::submitButton();?>

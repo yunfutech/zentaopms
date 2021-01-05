@@ -101,6 +101,16 @@ $lang->product->noWeekly       = '没有周报';
 $lang->product->generateWeekly = '创建本周周报';
 $lang->product->weeklyName     = '周报名称';
 $lang->product->account        = '创建用户';
+$lang->product->progress       = '进度';
+$lang->product->progressPlaceholder = '请输入0-100的数字';
+$lang->product->state          = '阶段';
+
+$lang->product->stateList['']           = '';
+$lang->product->stateList['research']   = '需求调研';
+$lang->product->stateList['design']     = '系统设计';
+$lang->product->stateList['dev']        = '系统研发';
+$lang->product->stateList['optimize']   = '系统优化';
+$lang->product->stateList['support']    = '技术支持';
 
 $lang->product->searchStory  = '搜索';
 $lang->product->assignedToMe = '指给我';

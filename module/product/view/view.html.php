@@ -166,6 +166,14 @@
                     <td><em><?php echo zget($lines, $product->line);?></em></td>
                   </tr>
                   <tr>
+                    <th><?php echo $lang->product->progress;?></th>
+                    <td><em><?php echo $product->progress . '%';?></em></td>
+                  </tr>
+                  <tr>
+                    <th><?php echo $lang->product->state;?></th>
+                    <td><em><?php echo zget($lang->product->stateList, $product->state);?></em></td>
+                  </tr>
+                  <tr>
                     <th><?php echo $lang->story->openedBy?></th>
                     <td><em><?php echo zget($users, $product->createdBy);?></em></td>
                   </tr>

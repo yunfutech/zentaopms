@@ -1,0 +1,1 @@
+ALTER TABLE `zt_product` ADD `progress` VARCHAR( 10 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '进度' AFTER `type`, ADD `state` ENUM('','research','design','dev','optimize','support') NULL COMMENT '状态' AFTER `progress`;
