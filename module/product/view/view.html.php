@@ -167,7 +167,7 @@
                   </tr>
                   <tr>
                     <th><?php echo $lang->product->progress;?></th>
-                    <td><em><?php echo $product->progress . '%';?></em></td>
+                    <td><em><?php echo $product->progress != ''? $product->progress . '%' : ''?></em></td>
                   </tr>
                   <tr>
                     <th><?php echo $lang->product->state;?></th>
