@@ -72,8 +72,8 @@
             <th><?php common::printOrderLink('name', $orderBy, $vars, $lang->product->name);?></th>
             <th class='w-110px text-left'><?php common::printOrderLink('line', $orderBy, $vars, $lang->product->line);?></th>
             <th class='w-80px' title='<?php echo $lang->product->po;?>'><?php echo $lang->product->po;?></th>
-            <th class='w-50px text-center' title='<?php echo $lang->product->progress;?>'><?php echo $lang->product->progress;?></th>
-            <th class='w-100px text-center' title='<?php echo $lang->product->state;?>'><?php echo $lang->product->state;?></th>
+            <th class='w-100px text-center' title='<?php echo $lang->product->progress;?>'><?php echo $lang->product->progress;?></th>
+            <th class='w-110px text-center' title='<?php echo $lang->product->state;?>'><?php echo $lang->product->state;?></th>
             <th class='w-80px' title='<?php echo $lang->product->activeStoriesTitle;?>'><?php echo $lang->product->activeStories;?></th>
             <!-- <th class='w-90px' title='<?php echo $lang->product->changedStoriesTitle;?>'><?php echo $lang->product->changedStories;?></th>
             <th class='w-70px' title='<?php echo $lang->product->draftStoriesTitle;?>'><?php echo $lang->product->draftStories;?></th>
