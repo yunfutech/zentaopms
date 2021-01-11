@@ -1195,7 +1195,7 @@ class task extends control
         else
         {
             $this->task->delete(TABLE_TASK, $taskID);
-            if($task->parent > 0) 
+            if($task->parent > 0)
             {
                 $this->task->updateParentStatus($task->id);
                 $this->loadModel('action')->create('task', $task->parent, 'deleteChildrenTask', '', $taskID);
@@ -1372,7 +1372,7 @@ class task extends control
             /* Process multiple task info. */
             if(!empty($taskTeam))
             {
-                foreach($taskTeam as $taskID => $team) 
+                foreach($taskTeam as $taskID => $team)
                 {
                     $tasks[$taskID]->team     = $team;
                     $tasks[$taskID]->estimate = '';
@@ -1383,7 +1383,7 @@ class task extends control
                     {
                         $tasks[$taskID]->estimate .= zget($users, $userInfo->account) . ':' . $userInfo->estimate . "\n";
                         $tasks[$taskID]->left     .= zget($users, $userInfo->account) . ':' . $userInfo->left . "\n";
-                        $tasks[$taskID]->consumed .= zget($users, $userInfo->account) . ':' . $userInfo->consumed . "\n"; 
+                        $tasks[$taskID]->consumed .= zget($users, $userInfo->account) . ':' . $userInfo->consumed . "\n";
                     }
                 }
             }
@@ -1668,8 +1668,8 @@ class task extends control
 
     public function generateMeetingTask()
     {
-        $ids = [2, 4, 19, 131, 18, 88, 137, 123];   # 张总、贾总、曾总、程总、建行、王琪、王莞钦、赵娅平
-        $projectID = 360;   # 项目管理2020
+        $ids = [2, 4, 19, 131, 18, 88, 137, 123, 99];   # 张总、贾总、曾总、程总、建行、王琪、王莞钦、赵娅平、罗家成
+        $projectID = 434;   # 项目管理2021
         $users = $this->dao->select('account')->from(TABLE_USER)->where('id')->in($ids)->fetchall();
         foreach($users as $user) {
             $now = date('Y-m-d H:i:s');
