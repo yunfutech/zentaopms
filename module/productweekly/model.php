@@ -54,7 +54,7 @@ class productweeklyModel extends model
     {
         $content = $this->generateMarkdown();
         $weekly = new stdClass();
-        $weekly->name = '第' . strval(date('W') . '周-' . $productName . '-' . '项目周报');
+        $weekly->name = strval(date('Y')) . '年第' . strval(date('W') . '周-' . $productName . '-' . '项目周报');
         $weekly->content = $content;
         $weekly->date = helper::now();
         $weekly->product = $productID;
