@@ -1577,6 +1577,10 @@ class task extends control
         $users_count = 0;
         $less_count = 0;
         $deleyTasksRank = array();
+
+        $mentionedUsers = [];
+        $user2cnt = [];
+
         foreach($depts as $dept) {
             $deptId = $dept->id;
             if ($deptId == 4 || $deptId == 9) {
@@ -1593,9 +1597,9 @@ class task extends control
                 $sum = round($estimate->sum, 1);
                 if (intval($sum) < 8) {
                     $less_count += 1;
-                    array_push($lessUsers, ['name' => $user->realname, 'estimate' => $sum]);
+                    array_push($lessUsers, ['name' => $user->realname, 'account' => $user->account, 'estimate' => $sum]);
                 } else if (intval($sum) > 10) {
-                    array_push($moreUsers, ['name' => $user->realname, 'estimate' => $sum]);
+                    array_push($moreUsers, ['name' => $user->realname, 'account' => $user->account, 'estimate' => $sum]);
                 }
 
                 $delayTasks = $this->dao->select('count(t1.id) as cnt')->from(TABLE_TASK)->alias('t1')->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')->where('t1.status')->notin('cancel, closed, done')->andWhere('t1.deadline')->lt($today)->andWhere('t1.assignedTo')->eq($user->account)->andWhere('t2.status')->notin('cancel, closed')->andWhere('t1.deleted')->ne(1)->fetch();
@@ -1603,6 +1607,8 @@ class task extends control
                 if ($delayTasks->cnt == 0) {
                     continue;
                 }
+                array_push($mentionedUsers, $user->account);
+                $user2cnt[$user->realname] = $delayTasks->cnt * 10;
                 array_push($deleyTasksRank, ['name' => $user->realname, 'delay_count' => $delayTasks->cnt, 'train_count' => '+' . strval(10 * $delayTasks->cnt)]);
             }
         }
@@ -1612,7 +1618,15 @@ class task extends control
         }
         array_multisort($cntArray, SORT_DESC, $deleyTasksRank);
 
-        $delayProjects = $this->dao->select('t2.realname, group_concat(DISTINCT t1.name ORDER BY t1.end SEPARATOR \'<br/>\') as projects, count(t1.name) as cnt')->from(TABLE_PROJECT)->alias('t1')->leftJoin(TABLE_USER)->alias('t2')->on('t1.PO = t2.account')->where('t1.end')->lt($today)->andWhere('t1.status')->eq('doing')->andWhere('t1.deleted')->ne(1)->groupBy('t1.PO')->orderBy('cnt desc')->fetchAll();
+        $delayProjects = $this->dao->select('t2.realname, t2.account, group_concat(DISTINCT t1.name ORDER BY t1.end SEPARATOR \'<br/>\') as projects, count(t1.name) as cnt')->from(TABLE_PROJECT)->alias('t1')->leftJoin(TABLE_USER)->alias('t2')->on('t1.PO = t2.account')->where('t1.end')->lt($today)->andWhere('t1.status')->eq('doing')->andWhere('t1.deleted')->ne(1)->groupBy('t1.PO')->orderBy('cnt desc')->fetchAll();
+        foreach($delayProjects as $project) {
+            if (array_key_exists($project->realname, $user2cnt)) {
+                $user2cnt[$project->realname] += $project->cnt * 50;
+            } else {
+                $user2cnt[$project->realname] = $project->cnt * 50;
+            }
+            array_push($mentionedUsers, $project->account);
+        }
         // var_dump($this->dao->sqlobj);
         // $uncommittedAccounts = $this->loadModel('userlog')->getUncommittedAccounts();
 
@@ -1627,6 +1641,12 @@ class task extends control
         if (!empty($lessUsers)) {
             $summary .= '任务不饱和(运动+20)：';
             foreach($lessUsers as $lessUser) {
+                if (array_key_exists($lessUser['name'], $user2cnt)) {
+                    $user2cnt[$lessUser['name']] += 20;
+                } else {
+                    $user2cnt[$lessUser['name']] = 20;
+                }
+                array_push($mentionedUsers, $lessUser['account']);
                 $summary .= $lessUser['name'] . '(' . strval($lessUser['estimate']) . ')';
                 if ($lessUser != $lessUsers[count($lessUsers) - 1]) {
                     $summary .= '、';
@@ -1649,6 +1669,9 @@ class task extends control
         $this->loadModel('mail');
         // $this->display();
 
+        $wxParams = $this->getWxMsgParams($user2cnt, $mentionedUsers);
+        $this->sendQywx($wxParams['text'], $wxParams['markdown'], $wxParams['mentionedUsers']);
+
         $subject = '禅道日报';
         $modulePath = $this->app->getModulePath($appName = '', 'task');
         $viewFile   = $modulePath . 'view/remind.html.php';
@@ -1664,6 +1687,70 @@ class task extends control
             a($this->mail->getError());
         }
         echo "发送成功\n";
+    }
+
+    private function getWxMsgParams($user2cnt, $mentionedUsers) {
+        $markdown = '## # 总计' . PHP_EOL;
+        arsort($user2cnt);
+        foreach($user2cnt as $user => $cnt) {
+            $markdown .= '###### - ' . $user . ' ' . strval($cnt) . PHP_EOL;
+        }
+        $mentionedUsers = array_unique($mentionedUsers);
+        // $mentionedList = [];
+        // foreach($mentionedUsers as $mentionedUser) {
+        //     array_push($mentionedList, $this->config->user->mobileList[$mentionedUser]);
+        // }
+        $text = '任务不符合规范或有延期迭代，按下方统计结果做运动, 详情见邮件内容';
+        return ['text' => $text, 'markdown' => $markdown, 'mentionedUsers' => $mentionedUsers];
+    }
+
+    /**
+     * 请求微信机器人api
+     */
+    public function sendQywx($text, $markdown, $mentionedUsers)
+    {
+        if (empty($mentionedUsers)) {
+            die();
+        }
+        // $url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=1c0ced10-00da-48a7-898b-5ba1f39867ce';
+        $url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=67754c4e-8a3d-4170-8907-f962de0ea662'; # 全体群
+        $postData = [
+            'msgtype' => 'text',
+            "text" => [
+                'content' => $text,
+                'mentioned_list' => ['@all']
+            ]
+        ];
+        $postData2 = [
+            'msgtype' => 'markdown',
+            "markdown" => [
+                'content' => $markdown,
+                'mentioned_list' => ['@all']
+            ]
+        ];
+        $result = $this->post($url, $postData, $json=true);
+        var_dump($result);
+        $result = $this->post($url, $postData2, $json=true);
+        var_dump($result);
+    }
+
+    public function post($url,$data = [],$json = false)
+    {
+        if($json){
+            $str = 'application/json';
+            $data = json_encode($data, JSON_UNESCAPED_UNICODE);
+        }else{
+            $str = 'application/x-www-form-urlencoded';
+            $data = http_build_query($data);
+        }
+        $options[ 'http' ] = array(
+            'timeout' => 5,
+            'method'  => 'POST',
+            'header'  => "Content-Type: $str;charset=utf-8",
+            'content' => $data,
+        );
+        $context = stream_context_create($options);
+        return file_get_contents($url, false, $context);
     }
 
     public function generateMeetingTask()
