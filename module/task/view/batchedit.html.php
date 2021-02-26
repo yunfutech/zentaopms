@@ -53,7 +53,7 @@
             <th class='w-50px'><?php echo $lang->idAB;?></th>
             <th class='required <?php if(count($visibleFields) > 10) echo 'w-150px';?>'><?php echo $lang->task->name?></th>
             <th class='w-200px<?php echo zget($visibleFields, 'project', ' hidden') . zget($requiredFields, 'project', '', ' required');?>'><?php echo $lang->task->project?></th>
-            <th class='w-150px<?php echo zget($visibleFields, 'module', ' hidden') . zget($requiredFields, 'module', '', ' required');?>'><?php echo $lang->task->module?></th>
+            <th class='w-300px<?php echo zget($visibleFields, 'module', ' hidden') . zget($requiredFields, 'module', '', ' required');?>'><?php echo $lang->task->module?></th>
             <?php if ($projectID != 0):?>
             <?php if (empty($stories)):?>
               <th class='w-100px<?php echo zget($visibleFields, 'story', ' hidden') . zget($requiredFields, 'story', '', ' required');?>'><?php echo $lang->task->story?></th>
