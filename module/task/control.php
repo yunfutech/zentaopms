@@ -1710,7 +1710,7 @@ class task extends control
     public function sendQywx($text, $markdown, $mentionedUsers)
     {
         if (empty($mentionedUsers)) {
-            die();
+            return;
         }
         // $url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=1c0ced10-00da-48a7-898b-5ba1f39867ce';
         $url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=67754c4e-8a3d-4170-8907-f962de0ea662'; # 全体群
