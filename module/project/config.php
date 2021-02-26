@@ -41,8 +41,8 @@ $config->project->search['fields']['pri']            = $lang->task->pri;
 
 $config->project->search['fields']['project']        = $lang->task->project;
 $config->project->search['fields']['module']         = $lang->task->module;
-$config->project->search['fields']['estimate']       = $lang->task->estimate;      
-$config->project->search['fields']['left']           = $lang->task->left; 
+$config->project->search['fields']['estimate']       = $lang->task->estimate;
+$config->project->search['fields']['left']           = $lang->task->left;
 $config->project->search['fields']['consumed']       = $lang->task->consumed;
 $config->project->search['fields']['type']           = $lang->task->type;
 $config->project->search['fields']['fromBug']        = $lang->task->fromBug;
@@ -51,7 +51,7 @@ $config->project->search['fields']['closedReason']   = $lang->task->closedReason
 $config->project->search['fields']['openedBy']       = $lang->task->openedBy;
 $config->project->search['fields']['finishedBy']     = $lang->task->finishedBy;
 $config->project->search['fields']['closedBy']       = $lang->task->closedBy;
-$config->project->search['fields']['canceledBy']     = $lang->task->canceledBy;  
+$config->project->search['fields']['canceledBy']     = $lang->task->canceledBy;
 $config->project->search['fields']['lastEditedBy']   = $lang->task->lastEditedBy;
 
 $config->project->search['fields']['mailto']         = $lang->task->mailto;
@@ -115,3 +115,5 @@ $config->project->kanbanSetting->colorList['pause']  = '#fdc137';
 $config->project->kanbanSetting->colorList['done']   = '#0BD986';
 $config->project->kanbanSetting->colorList['cancel'] = '#CBD0DB';
 $config->project->kanbanSetting->colorList['closed'] = '#838A9D';
+
+$config->project->task->allModule = true;

@@ -38,8 +38,8 @@ $config->task->exportFields = '
     ';
 if($config->global->flow == 'onlyTask') $config->task->exportFields = str_replace(array(' story,'), '', $config->task->exportFields);
 
-$config->task->customCreateFields      = 'story,estStarted,deadline,mailto,pri,estimate'; 
-$config->task->customBatchCreateFields = 'module,story,assignedTo,estimate,estStarted,deadline,desc,pri'; 
+$config->task->customCreateFields      = 'story,estStarted,deadline,mailto,pri,estimate';
+$config->task->customBatchCreateFields = 'module,story,assignedTo,estimate,estStarted,deadline,desc,pri';
 $config->task->customBatchEditFields   = 'project,module,story,assignedTo,status,pri,estimate,record,left,estStarted,deadline,finishedBy,canceledBy,closedBy,closedReason';
 
 $config->task->custom = new stdclass();

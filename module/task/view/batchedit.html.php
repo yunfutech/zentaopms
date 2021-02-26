@@ -69,7 +69,7 @@
             <th class='w-70px<?php  echo zget($visibleFields, 'record',       ' hidden') . zget($requiredFields, 'record',       '', ' required');?>'><?php echo $lang->task->consumedThisTime?></th>
             <th class='w-70px<?php  echo zget($visibleFields, 'left',         ' hidden') . zget($requiredFields, 'left',         '', ' required');?>'><?php echo $lang->task->leftAB?></th>
             <th class='w-90px<?php  echo zget($visibleFields, 'estStarted',   ' hidden') . zget($requiredFields, 'estStarted',   '', ' required');?>'><?php echo $lang->task->estStarted?></th>
-            <th class='w-90px<?php  echo zget($visibleFields, 'deadline',     ' hidden') . zget($requiredFields, 'deadline',     '', ' required');?>'><?php echo $lang->task->deadline?></th>
+            <th class='w-100px<?php  echo zget($visibleFields, 'deadline',     ' hidden') . zget($requiredFields, 'deadline',     '', ' required');?>'><?php echo $lang->task->deadline?></th>
             <th class='w-100px<?php echo zget($visibleFields, 'finishedBy',   ' hidden') . zget($requiredFields, 'finishedBy',   '', ' required');?>'><?php echo $lang->task->finishedBy;?></th>
             <th class='w-100px<?php echo zget($visibleFields, 'canceledBy',   ' hidden') . zget($requiredFields, 'canceledBy',   '', ' required');?>'><?php echo $lang->task->canceledBy;?></th>
             <th class='w-100px<?php echo zget($visibleFields, 'closedBy',     ' hidden') . zget($requiredFields, 'closedBy',     '', ' required');?>'><?php echo $lang->task->closedBy;?></th>

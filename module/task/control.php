@@ -260,7 +260,7 @@ class task extends control
         $stories = $this->story->getProjectStoryPairs($projectID, 0, 0, 0, 'short');
         $members = $this->project->getTeamMemberPairs($projectID, 'nodeleted');
 
-        $showAllModule = isset($this->config->project->task->allModule) ? $this->config->project->task->allModule : '';
+        $showAllModule    = isset($this->config->project->task->allModule) ? $this->config->project->task->allModule : '';
         $modules       = $this->loadModel('tree')->getTaskOptionMenu($projectID, 0, 0, $showAllModule ? 'allModule' : '');
 
         $title      = $project->name . $this->lang->colon . $this->lang->task->batchCreate;
@@ -281,6 +281,7 @@ class task extends control
         $this->view->storyTasks = $this->task->getStoryTaskCounts(array_keys($stories), $projectID);
         $this->view->members    = $members;
         $this->view->moduleID   = $moduleID;
+        $this->view->showAllModule = $showAllModule;
         $this->display();
     }
 

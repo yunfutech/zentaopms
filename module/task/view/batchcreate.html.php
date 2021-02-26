@@ -16,7 +16,7 @@
   <div class="main-header clearfix">
     <h2 class="pull-left">
       <?php if($parent):?>
-      <span class='pull-left'><?php echo $parentTitle . $this->lang->colon;?></span> 
+      <span class='pull-left'><?php echo $parentTitle . $this->lang->colon;?></span>
       <?php echo $lang->task->batchCreateChildren;?>
       <?php else:?>
       <?php echo $lang->task->batchCreate;?>
@@ -54,13 +54,13 @@
   ?>
   <form method='post' class='load-indicator batch-actions-form form-ajax' enctype='multipart/form-data' id="batchCreateForm">
     <div class="table-responsive">
-      <table class="table table-form" id="tableBody">
+      <table class="table table-form table-fixed" id="tableBody">
         <thead>
           <tr>
             <th class='w-30px'><?php echo $lang->idAB;?></th>
-            <th class='w-150px<?php echo zget($visibleFields, 'module', ' hidden') . zget($requiredFields, 'module', '', ' required');?>'><?php echo $lang->task->module?></th>
+            <th class='w-300px<?php echo zget($visibleFields, 'module', ' hidden') . zget($requiredFields, 'module', '', ' required');?>'><?php echo $lang->task->module?></th>
             <?php if($project->type != 'ops'):?>
-            <th class='w-200px<?php echo zget($visibleFields, 'story', ' hidden') . zget($requiredFields, 'story', '', ' required'); echo $hiddenStory;?>'><?php echo $lang->task->story;?></th>
+            <th class='w-300px<?php echo zget($visibleFields, 'story', ' hidden') . zget($requiredFields, 'story', '', ' required'); echo $hiddenStory;?>'><?php echo $lang->task->story;?></th>
             <?php endif;?>
             <th class='c-name required has-btn'><?php echo $lang->task->name;?></span></th>
             <th class='w-80px required'><?php echo $lang->typeAB;?></span></th>
