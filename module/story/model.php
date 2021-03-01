@@ -84,9 +84,9 @@ class storyModel extends model
 
     /**
      * Get test stories.
-     * 
-     * @param  array  $storyIdList 
-     * @param  int    $projectID 
+     *
+     * @param  array  $storyIdList
+     * @param  int    $projectID
      * @access public
      * @return array
      */
@@ -1079,8 +1079,8 @@ class storyModel extends model
 
     /**
      * Assign story.
-     * 
-     * @param  int    $storyID 
+     *
+     * @param  int    $storyID
      * @access public
      * @return array
      */

@@ -392,6 +392,17 @@ class report extends control
         $this->display();
     }
 
+    /**
+     * 项目看板
+     */
+    public function productboard() {
+        $this->view->products = $this->loadModel('product')->getBoardProducts();
+        $this->app->loadConfig('product');
+        $this->view->title = $this->lang->report->productboard;
+        $this->view->position[] = $this->lang->report->productboard;
+        $this->display();
+    }
+
     // 用户看板
 
     public function usertaskdoneboard($begin = '', $end = '', $dept = 3)

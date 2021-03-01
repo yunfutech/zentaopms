@@ -12,7 +12,8 @@
 $lang->report->common = '统计视图';
 $lang->report->index = '统计首页';
 $lang->report->taskboard = '任务看板';
-$lang->report->projectboard = '迭代看板';
+$lang->report->projectboard = $lang->projectCommon . '看板';
+$lang->report->productboard = $lang->productCommon . '看板';
 $lang->report->usertaskdoneboard = '用户看板';
 $lang->report->userlogboard = '日志看板';
 $lang->report->undonetask = '任务池';
@@ -177,3 +178,11 @@ $lang->report->thisWeek   = '本周';
 $lang->report->lastWeek   = '上一周';
 $lang->report->nextWeek   = '下一周';
 $lang->report->all        = '所有';
+
+$$lang->report->boardProduct = new stdClass();
+$lang->report->boardProduct->productName = '项目名称';
+$lang->report->boardProduct->allStoiresCount = '需求数';
+$lang->report->boardProduct->manHour = '需求总工时';
+$lang->report->boardProduct->doneStoriesCount = '需求完成数';
+$lang->report->boardProduct->doneManHour = '已用工时';
+$lang->report->boardProduct->manHour = '项目进度';

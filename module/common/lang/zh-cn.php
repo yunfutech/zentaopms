@@ -114,7 +114,8 @@ $lang->assignedToAB = '指派';
 $lang->typeAB       = '类型';
 $lang->taskboard    = '任务看板';
 $lang->undonetask    = '任务池';
-$lang->projectboard    = '迭代看板';
+$lang->projectboard    = $lang->projectCommon . '看板';
+$lang->productboard    = $lang->productCommon . '看板';
 $lang->usertaskdoneboard    = '用户看板';
 $lang->userlogboard = '日志看板';
 $lang->weeklyboard = '项目周报看板';
@@ -372,6 +373,7 @@ $lang->report->menu->prj     = array('link' => $lang->projectCommon . '|report|p
 $lang->report->menu->taskboard = array('link' => $lang->taskboard . '|report|taskboard');
 $lang->report->menu->undonetask = array('link' => $lang->undonetask . '|report|undonetask');
 $lang->report->menu->projectboard = array('link' => $lang->projectboard . '|report|projectboard');
+$lang->report->menu->productboard = array('link' => $lang->productboard . '|report|productboard');
 $lang->report->menu->usertaskdoneboard = array('link' => $lang->usertaskdoneboard . '|report|usertaskdoneboard');
 $lang->report->menu->userlogboard = array('link' => $lang->userlogboard . '|report|userlogboard');
 $lang->report->menu->weeklyboard = array('link' => $lang->weeklyboard . '|report|weeklyboard');

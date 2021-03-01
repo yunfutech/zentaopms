@@ -340,10 +340,10 @@ class productModel extends model
     }
 
     /**
-     * Get ordered products 
-     * 
-     * @param  string $status 
-     * @param  int    $num 
+     * Get ordered products
+     *
+     * @param  string $status
+     * @param  int    $num
      * @access public
      * @return array
      */
@@ -372,11 +372,11 @@ class productModel extends model
         foreach($productList as $product)
         {
             if(!$this->app->user->admin and !$this->checkPriv($product->id)) continue;
-            if($product->status == 'normal' and $product->PO == $this->app->user->account) 
+            if($product->status == 'normal' and $product->PO == $this->app->user->account)
             {
                 $mineProducts[$product->id] = $product;
             }
-            elseif($product->status == 'normal' and $product->PO != $this->app->user->account) 
+            elseif($product->status == 'normal' and $product->PO != $this->app->user->account)
             {
                 $otherProducts[$product->id] = $product;
             }
@@ -1162,5 +1162,38 @@ class productModel extends model
             ->orderBy('t2.begin desc')
             ->limit(1)
             ->fetch();
+    }
+
+    /**
+     * 获取项目看板数据
+     * 项目名称	需求数	需求总工时	需求完成数	已用工时	项目进度（已完成需求工时/需求总工时）
+     */
+    public function getBoardProducts() {
+        $products = $this->dao->select('id, name')->from(TABLE_PRODUCT)
+            ->where('deleted')->eq(0)
+            ->andwhere('status')->ne('closed')
+            ->fetchAll('id');
+        foreach ($products as $id => $product) {
+            $stories = $this->dao->select('id, title, closedReason')->from(TABLE_STORY)
+                ->where('product')->eq($id)
+                ->andWhere('deleted')->eq(0)
+                ->fetchAll();
+            $product->allStoiresCount = count($stories);
+            $product->manHour = 0;
+            $product->doneStoriesCount = 0;
+            $product->doneManHour = 0;
+            foreach ($stories as $story) {
+                $countTaskConsumed = $this->dao->select('sum(consumed) AS count')->from(TABLE_TASK)
+                ->where('story')->eq($story->id)
+                ->fetch('count');
+                $countTaskConsumed = round($countTaskConsumed, 2);
+                if ($story->closedReason == 'done') {
+                    $product->doneStoriesCount += 1;
+                    $product->doneManHour = bcadd($product->doneManHour, $countTaskConsumed, 2);
+                }
+                $product->manHour = bcadd($product->manHour, $countTaskConsumed, 2);
+            }
+        }
+        return $products;
     }
 }
