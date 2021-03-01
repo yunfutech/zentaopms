@@ -404,6 +404,7 @@ class report extends control
         $this->view->position[] = $this->lang->report->productboard;
         $this->view->selectLines = $selectLines;
         krsort($this->view->lines);
+        $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
         $this->display();
     }
 

@@ -187,6 +187,7 @@ $lang->report->all        = '所有';
 $$lang->report->boardProduct = new stdClass();
 $lang->report->boardProduct->productLine = $lang->productCommon . '线';
 $lang->report->boardProduct->productName = $lang->productCommon . '名称';
+$lang->report->boardProduct->productPO = $lang->productCommon . '经理';
 $lang->report->boardProduct->allStoiresCount = $lang->storyCommon . '数';
 $lang->report->boardProduct->manHour = '预计工时';
 $lang->report->boardProduct->doneStoriesCount = $lang->storyCommon . '完成数';

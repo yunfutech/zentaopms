@@ -34,6 +34,7 @@
             <tr class='colhead text-center'>
               <th class="w-80px"><?php echo $lang->report->boardProduct->productLine ?></th>
               <th class="w-200px"><?php echo $lang->report->boardProduct->productName ?></th>
+              <th class="w-100px"><?php echo $lang->report->boardProduct->productPO ?></th>
               <th class="w-100px"><?php echo $lang->report->boardProduct->allStoiresCount ?></th>
               <th class="w-100px"><?php echo $lang->report->boardProduct->manHour ?></th>
               <th class="w-100px"><?php echo $lang->report->boardProduct->doneStoriesCount ?></th>
@@ -48,6 +49,7 @@
               <tr class="text-left">
                   <td class='text-center'><?php echo $product->line; ?></td>
                   <td class='text-center'><?php echo $product->name; ?></td>
+                  <td class='text-center'><?php echo zget($users, $product->PO, ''); ?></td>
                   <td class='text-center'><?php echo $product->allStoiresCount; ?></td>
                   <td class='text-center'><?php echo $product->manHour; ?></td>
                   <td class='text-center'><?php echo $product->doneStoriesCount; ?></td>
