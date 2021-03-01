@@ -1168,20 +1168,27 @@ class productModel extends model
      * 获取项目看板数据
      * 项目名称	需求数	需求总工时	需求完成数	已用工时	项目进度（已完成需求工时/需求总工时）
      */
-    public function getBoardProducts() {
-        $products = $this->dao->select('id, name')->from(TABLE_PRODUCT)
-            ->where('deleted')->eq(0)
-            ->andwhere('status')->ne('closed')
-            ->fetchAll('id');
-        foreach ($products as $id => $product) {
-            $stories = $this->dao->select('id, title, closedReason')->from(TABLE_STORY)
-                ->where('product')->eq($id)
+    public function getBoardProducts($selectLines) {
+        $selectLines = explode(',', $selectLines);
+        $products = $this->dao->select('t1.id, t1.name')->from(TABLE_PRODUCT)->alias('t1')
+            ->leftJoin(TABLE_MODULE)->alias('t2')->on('t1.line = t2.id')
+            ->where('t1.deleted')->eq(0)
+            ->andwhere('t1.status')->ne('closed')
+            ->andwhere('t2.deleted')->eq(0)
+            ->beginIF($selectLines != [''])
+            ->andwhere('t2.name')->in($selectLines)
+            ->fi()
+            ->fetchAll();
+        foreach ($products as $product) {
+            $stories = $this->dao->select('id, title, closedReason, estimate')->from(TABLE_STORY)
+                ->where('product')->eq($product->id)
                 ->andWhere('deleted')->eq(0)
                 ->fetchAll();
             $product->allStoiresCount = count($stories);
             $product->manHour = 0;
             $product->doneStoriesCount = 0;
             $product->doneManHour = 0;
+            $product->doneStoriesManHour = 0;
             foreach ($stories as $story) {
                 $countTaskConsumed = $this->dao->select('sum(consumed) AS count')->from(TABLE_TASK)
                 ->where('story')->eq($story->id)
@@ -1189,10 +1196,13 @@ class productModel extends model
                 $countTaskConsumed = round($countTaskConsumed, 2);
                 if ($story->closedReason == 'done') {
                     $product->doneStoriesCount += 1;
-                    $product->doneManHour = bcadd($product->doneManHour, $countTaskConsumed, 2);
+                    $product->doneStoriesManHour += $countTaskConsumed;
                 }
-                $product->manHour = bcadd($product->manHour, $countTaskConsumed, 2);
+                $product->manHour += $story->estimate;
+                $product->doneManHour += $countTaskConsumed;
             }
+            $product->schedule = $product->manHour > 0 ? round($product->doneStoriesManHour / $product->manHour, 4) : 0;
+            $product->accuracy = $product->manHour > 0 ? round($product->doneManHour / $product->manHour, 4) : 0;
         }
         return $products;
     }
