@@ -30,8 +30,8 @@ class report extends control
      */
     public function projectDeviation($begin = 0, $end = 0)
     {
-        $begin = $begin ? date('Y-m-d', strtotime($begin)) : '';
-        $end = $end ? date('Y-m-d', strtotime($end)) : '';
+        $begin = $begin ? date('Y-m-d', strtotime($begin)) : date('Y-m-d', strtotime(strval(date('Y')) . '-1-1'));
+        $end = $end ? date('Y-m-d', strtotime($end)) : date('Y-m-d');
 
         $this->view->title = $this->lang->report->projectDeviation;
         $this->view->position[] = $this->lang->report->projectDeviation;
