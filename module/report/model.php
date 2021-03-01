@@ -271,7 +271,7 @@ class reportModel extends model
     {
         $deptUsers = array();
         if($dept) $deptUsers = $this->loadModel('dept')->getDeptUserPairs($dept);
-        
+
         if($assign == 'noassign')
         {
             $members = $this->dao->select('t1.account,t2.name,t1.root')->from(TABLE_TEAM)->alias('t1')
@@ -584,7 +584,7 @@ class reportModel extends model
             if (in_array($user, $usernames)) {
                 if($dept == 3) {
                     if($task['all'] - 8 < 0) {
-                        $short[$user] = $task['all']; 
+                        $short[$user] = $task['all'];
                     }elseif($task['all'] - 8 > 2) {
                         $exceed[$user] = $task['all'];
                     }
@@ -759,9 +759,9 @@ class reportModel extends model
     }
     /**
      * Get user year logins.
-     * 
-     * @param  string $account 
-     * @param  int    $year 
+     *
+     * @param  string $account
+     * @param  int    $year
      * @access public
      * @return int
      */
@@ -772,9 +772,9 @@ class reportModel extends model
 
     /**
      * Get user year actions.
-     * 
-     * @param  string $account 
-     * @param  int    $year 
+     *
+     * @param  string $account
+     * @param  int    $year
      * @access public
      * @return int
      */
@@ -785,9 +785,9 @@ class reportModel extends model
 
     /**
      * Get user year efforts.
-     * 
-     * @param  string $account 
-     * @param  int    $year 
+     *
+     * @param  string $account
+     * @param  int    $year
      * @access public
      * @return object
      */
@@ -798,10 +798,10 @@ class reportModel extends model
 
     /**
      * Get user year story.
-     * 
-     * @param  array  $products 
-     * @param  string $account 
-     * @param  int    $year 
+     *
+     * @param  array  $products
+     * @param  string $account
+     * @param  int    $year
      * @access public
      * @return array
      */
@@ -833,9 +833,9 @@ class reportModel extends model
 
     /**
      * Get user year created bugs.
-     * 
-     * @param  string $account 
-     * @param  int    $year 
+     *
+     * @param  string $account
+     * @param  int    $year
      * @access public
      * @return array
      */
@@ -862,9 +862,9 @@ class reportModel extends model
 
     /**
      * Get user year resolved bugs.
-     * 
-     * @param  string $account 
-     * @param  int    $year 
+     *
+     * @param  string $account
+     * @param  int    $year
      * @access public
      * @return array
      */
@@ -891,9 +891,9 @@ class reportModel extends model
 
     /**
      * Get user year finished tasks.
-     * 
-     * @param  string $account 
-     * @param  int    $year 
+     *
+     * @param  string $account
+     * @param  int    $year
      * @access public
      * @return array
      */
@@ -931,9 +931,9 @@ class reportModel extends model
 
     /**
      * Get user year created cases.
-     * 
-     * @param  string $account 
-     * @param  int    $year 
+     *
+     * @param  string $account
+     * @param  int    $year
      * @access public
      * @return array
      */
@@ -960,9 +960,9 @@ class reportModel extends model
 
     /**
      * Get user year products.
-     * 
-     * @param  string $account 
-     * @param  int    $year 
+     *
+     * @param  string $account
+     * @param  int    $year
      * @access public
      * @return array
      */
@@ -993,10 +993,10 @@ class reportModel extends model
 
     /**
      * Get plans by products.
-     * 
-     * @param  array  $products 
-     * @param  string $account 
-     * @param  int    $year 
+     *
+     * @param  array  $products
+     * @param  string $account
+     * @param  int    $year
      * @access public
      * @return array
      */
@@ -1016,10 +1016,10 @@ class reportModel extends model
 
     /**
      * Get stories by products.
-     * 
-     * @param  array  $products 
-     * @param  string $account 
-     * @param  int    $year 
+     *
+     * @param  array  $products
+     * @param  string $account
+     * @param  int    $year
      * @access public
      * @return array
      */
@@ -1035,9 +1035,9 @@ class reportModel extends model
 
     /**
      * Get user year projects.
-     * 
-     * @param  string $account 
-     * @param  int    $year 
+     *
+     * @param  string $account
+     * @param  int    $year
      * @access public
      * @return array
      */
@@ -1070,11 +1070,11 @@ class reportModel extends model
     }
 
     /**
-     * Get finished story by projects 
-     * 
-     * @param  array  $projects 
-     * @param  string $account 
-     * @param  int    $year 
+     * Get finished story by projects
+     *
+     * @param  array  $projects
+     * @param  string $account
+     * @param  int    $year
      * @access public
      * @return array
      */
@@ -1096,10 +1096,10 @@ class reportModel extends model
 
     /**
      * Get finished task by projects.
-     * 
-     * @param  array  $projects 
-     * @param  string $account 
-     * @param  int    $year 
+     *
+     * @param  array  $projects
+     * @param  string $account
+     * @param  int    $year
      * @access public
      * @return array
      */
@@ -1128,10 +1128,10 @@ class reportModel extends model
 
     /**
      * Get resolved bug by projects.
-     * 
-     * @param  array  $projects 
-     * @param  string $account 
-     * @param  int    $year 
+     *
+     * @param  array  $projects
+     * @param  string $account
+     * @param  int    $year
      * @access public
      * @return array
      */
@@ -1147,8 +1147,8 @@ class reportModel extends model
 
     /**
      * Get stat by projects.
-     * 
-     * @param  array $projects 
+     *
+     * @param  array $projects
      * @access public
      * @return array
      */
@@ -1171,10 +1171,10 @@ class reportModel extends model
 
     /**
      * Get stat by products.
-     * 
-     * @param  array  $products 
-     * @param  string $account 
-     * @param  int    $year 
+     *
+     * @param  array  $products
+     * @param  string $account
+     * @param  int    $year
      * @access public
      * @return array
      */
@@ -1204,10 +1204,10 @@ class reportModel extends model
     }
 
     /**
-     * Get effort for month 
-     * 
-     * @param  string $account 
-     * @param  int    $year 
+     * Get effort for month
+     *
+     * @param  string $account
+     * @param  int    $year
      * @access public
      * @return array
      */
@@ -1228,10 +1228,10 @@ class reportModel extends model
     }
 
     /**
-     * Get user year products for qa 
-     * 
-     * @param  string $account 
-     * @param  int    $year 
+     * Get user year products for qa
+     *
+     * @param  string $account
+     * @param  int    $year
      * @access public
      * @return array
      */
@@ -1248,10 +1248,10 @@ class reportModel extends model
 
     /**
      * Get bug stat by products.
-     * 
-     * @param  array  $products 
-     * @param  string $account 
-     * @param  int    $year 
+     *
+     * @param  array  $products
+     * @param  string $account
+     * @param  int    $year
      * @access public
      * @return array
      */
@@ -1282,10 +1282,10 @@ class reportModel extends model
 
     /**
      * Get created bug by products.
-     * 
-     * @param  array  $products 
-     * @param  string $account 
-     * @param  int    $year 
+     *
+     * @param  array  $products
+     * @param  string $account
+     * @param  int    $year
      * @access public
      * @return array
      */
