@@ -28,18 +28,19 @@ class report extends control
      * @access public
      * @return void
      */
-    public function projectDeviation($begin = 0, $end = 0)
+    public function projectDeviation($begin = 0, $end = 0, $status='noclosed')
     {
-        $begin = $begin ? date('Y-m-d', strtotime($begin)) : date('Y-m-d', strtotime(strval(date('Y', strtotime('-1 years'))) . '-1-1'));
-        $end = $end ? date('Y-m-d', strtotime($end)) : date('Y-m-d');
+        $begin = $begin ? date('Y-m-d', strtotime($begin)) : '';
+        $end = $end ? date('Y-m-d', strtotime($end)) : '';
 
         $this->view->title = $this->lang->report->projectDeviation;
         $this->view->position[] = $this->lang->report->projectDeviation;
 
-        $this->view->projects = $this->report->getProjects($begin, $end);
+        $this->view->projects = $this->report->getProjects($begin, $end, $status);
         $this->view->begin = $begin;
         $this->view->end = $end;
         $this->view->submenu = 'project';
+        $this->view->status = $status;
         $this->display();
     }
 

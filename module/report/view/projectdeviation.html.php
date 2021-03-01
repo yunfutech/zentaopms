@@ -31,7 +31,24 @@
     <div class='cell'>
       <div class='panel'>
         <div class="panel-heading">
-          <div class="panel-title"><?php echo $title;?></div>
+          <div class="panel-title">
+            <div class="table-row" id='status'>
+              <div class="col-xs"><?php echo $title;?></div>
+              <div class="col-xs text-right text-gray text-middle"><?php echo $lang->report->proj->status . '：'?></div>
+              <div class='col'>
+                <?php
+                    $active = $status == 'noclosed' ? 'btn-active-text' : '';
+                    $label = $status == 'noclosed' ? "<span class='label label-light label-badge'>" . count($projects) . "</span>" : '';
+                    echo html::a($this->inlink('projectdeviation', "begin=$begin&end=$end&status=noclosed"), "<span class='text'>{$lang->report->proj->statusList['noclosed']}</span>" . $label, '', "class='btn btn-link $active'") . '</li>';
+                ?>
+                <?php
+                    $allActive = $status == 'all' ? 'btn-active-text' : '';
+                    $label = $status == 'all' ? "<span class='label label-light label-badge'>" . count($projects) . "</span>" : '';
+                    echo html::a($this->inlink('projectdeviation', "begin=$begin&end=$end&status=all"), "<span class='text'>{$lang->report->proj->statusList['all']}</span>" . $label, '', "class='btn btn-link $allActive'") . '</li>';
+                ?>
+              </div>
+            </div>
+          </div>
           <nav class="panel-actions btn-toolbar"></nav>
         </div>
         <div data-ride='table'>

@@ -28,6 +28,11 @@ $lang->report->prev_day = '上一天';
 $lang->report->next_day = '下一天';
 $lang->report->annual     = '年度总结';
 
+$$lang->report->proj = new stdclass();
+$lang->report->proj->status = '状态';
+$lang->report->proj->statusList['noclosed']   = '未关闭';
+$lang->report->proj->statusList['all']        = '全部';
+
 $lang->report->colors[] = 'AFD8F8';
 $lang->report->colors[] = 'F6BD0F';
 $lang->report->colors[] = '8BBA00';

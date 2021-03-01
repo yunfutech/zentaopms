@@ -94,7 +94,7 @@ class reportModel extends model
      * @access public
      * @return void
      */
-    public function getProjects($begin = 0, $end = 0)
+    public function getProjects($begin = 0, $end = 0, $status = 'all')
     {
         $tasks = $this->dao->select('t1.project, t1.estimate, t1.consumed, t2.name as projectName')->from(TABLE_TASK)->alias('t1')
             ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
@@ -103,8 +103,9 @@ class reportModel extends model
             ->beginIF(!$this->app->user->admin)->andWhere('t2.id')->in($this->app->user->view->projects)->fi()
             ->andWhere('t2.deleted')->eq(0)
             ->andWhere('t1.parent')->lt(1)
-            ->andWhere('t2.status')->eq('closed')
+            // ->andWhere('t2.status')->eq('closed')
             ->beginIF($begin)->andWhere('t2.begin')->ge($begin)->fi()
+            ->beginIF($status == 'noclosed')->andWhere('t2.status')->ne('closed')->fi()
             ->beginIF($end)->andWhere('t2.end')->le($end)->fi()
             ->orderBy('t2.end_desc')
             ->fetchAll();
