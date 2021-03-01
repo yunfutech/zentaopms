@@ -96,7 +96,7 @@ class reportModel extends model
      */
     public function getProjects($begin = 0, $end = 0)
     {
-        $tasks = $this->dao->select('t1.*,t2.name as projectName')->from(TABLE_TASK)->alias('t1')
+        $tasks = $this->dao->select('t1.project, t1.estimate, t1.consumed, t2.name as projectName')->from(TABLE_TASK)->alias('t1')
             ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
             ->where('t1.status')->ne('cancel')
             ->andWhere('t1.deleted')->eq(0)
