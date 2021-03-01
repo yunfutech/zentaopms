@@ -185,4 +185,4 @@ $lang->report->boardProduct->allStoiresCount = '需求数';
 $lang->report->boardProduct->manHour = '需求总工时';
 $lang->report->boardProduct->doneStoriesCount = '需求完成数';
 $lang->report->boardProduct->doneManHour = '已用工时';
-$lang->report->boardProduct->manHour = '项目进度';
+$lang->report->boardProduct->schedule = '项目进度';

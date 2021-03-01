@@ -24,7 +24,7 @@
               <th class="w-200px"><?php echo $lang->report->boardProduct->manHour ?></th>
               <th class="w-200px"><?php echo $lang->report->boardProduct->doneStoriesCount ?></th>
               <th class="w-200px"><?php echo $lang->report->boardProduct->doneManHour ?></th>
-              <th class="w-200px"><?php echo $lang->report->boardProduct->manHour ?></th>
+              <th class="w-200px"><?php echo $lang->report->boardProduct->schedule ?></th>
             </tr>
           </thead>
           <tbody>
