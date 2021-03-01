@@ -32,6 +32,7 @@
         <table class='table table-condensed table-striped table-bordered table-fixed no-margin' id="workload">
           <thead>
             <tr class='colhead text-center'>
+              <th class="w-80px"><?php echo $lang->report->boardProduct->productLine ?></th>
               <th class="w-200px"><?php echo $lang->report->boardProduct->productName ?></th>
               <th class="w-100px"><?php echo $lang->report->boardProduct->allStoiresCount ?></th>
               <th class="w-100px"><?php echo $lang->report->boardProduct->manHour ?></th>
@@ -45,6 +46,7 @@
           <tbody>
             <?php foreach ($products as $product): ?>
               <tr class="text-left">
+                  <td class='text-center'><?php echo $product->line; ?></td>
                   <td class='text-center'><?php echo $product->name; ?></td>
                   <td class='text-center'><?php echo $product->allStoiresCount; ?></td>
                   <td class='text-center'><?php echo $product->manHour; ?></td>

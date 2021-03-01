@@ -180,11 +180,12 @@ $lang->report->nextWeek   = '下一周';
 $lang->report->all        = '所有';
 
 $$lang->report->boardProduct = new stdClass();
-$lang->report->boardProduct->productName = '项目名称';
-$lang->report->boardProduct->allStoiresCount = '需求数';
+$lang->report->boardProduct->productLine = $lang->productCommon . '线';
+$lang->report->boardProduct->productName = $lang->productCommon . '名称';
+$lang->report->boardProduct->allStoiresCount = $lang->storyCommon . '数';
 $lang->report->boardProduct->manHour = '预计工时';
-$lang->report->boardProduct->doneStoriesCount = '需求完成数';
-$lang->report->boardProduct->doneStoriesManHour = '已完成需求所用工时';
-$lang->report->boardProduct->schedule = '项目进度';
+$lang->report->boardProduct->doneStoriesCount = $lang->storyCommon . '完成数';
+$lang->report->boardProduct->doneStoriesManHour = '已完成' . $lang->storyCommon . '所用工时';
+$lang->report->boardProduct->schedule = $lang->productCommon . '进度';
 $lang->report->boardProduct->doneManHour = '实际工时';
 $lang->report->boardProduct->accuracy = '实际工时/预计工时';
