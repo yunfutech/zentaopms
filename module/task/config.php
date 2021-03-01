@@ -44,7 +44,7 @@ $config->task->customBatchEditFields   = 'project,module,story,assignedTo,status
 
 $config->task->custom = new stdclass();
 $config->task->custom->createFields      = $config->task->customCreateFields;
-$config->task->custom->batchCreateFields = 'module,story,assignedTo,estimate,desc,pri';
+$config->task->custom->batchCreateFields = 'module,story,assignedTo,estimate,pri';
 $config->task->custom->batchEditFields   = 'project,module,story,assignedTo,status,pri,estimate,record,left,finishedBy,closedBy,closedReason';
 
 if($config->global->flow == 'onlyTask')
