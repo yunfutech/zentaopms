@@ -1191,15 +1191,30 @@ class productModel extends model
             $product->doneManHour = 0;
             $product->doneStoriesManHour = 0;
             foreach ($stories as $story) {
-                $countTaskConsumed = $this->dao->select('sum(consumed) AS count')->from(TABLE_TASK)
-                ->where('story')->eq($story->id)
-                ->fetch('count');
-                $countTaskConsumed = round($countTaskConsumed, 2);
                 if ($story->closedReason == 'done') {
+                    $countTaskConsumed = $this->dao->select('sum(consumed) AS count')->from(TABLE_TASK)
+                        ->where('story')->eq($story->id)
+                        ->andWhere('deleted')->eq(0)
+                        ->andwhere('status')->ne('cancel')
+                        ->fetch('count');
+                    $countTaskConsumed = round($countTaskConsumed, 2);
                     $product->doneStoriesCount += 1;
                     $product->doneStoriesManHour += $countTaskConsumed;
                 }
                 $product->manHour += $story->estimate;
+            }
+            $projects = $this->dao->select('t1.id')->from(TABLE_PROJECT)->alias('t1')
+                ->leftJoin(TABLE_PROJECTPRODUCT)->alias('t2')->on('t1.id=t2.project')
+                ->where('t2.product')->eq($product->id)
+                ->andWhere('t1.deleted')->eq(0)
+                ->fetchAll();
+            foreach ($projects as $project) {
+                $countTaskConsumed = $this->dao->select('sum(consumed) AS count')->from(TABLE_TASK)
+                    ->where('project')->eq($project->id)
+                    ->andWhere('deleted')->eq(0)
+                    ->andwhere('status')->ne('cancel')
+                    ->fetch('count');
+                $countTaskConsumed = round($countTaskConsumed, 2);
                 $product->doneManHour += $countTaskConsumed;
             }
             $product->schedule = $product->manHour > 0 ? round($product->doneStoriesManHour / $product->manHour, 4) : 0;
