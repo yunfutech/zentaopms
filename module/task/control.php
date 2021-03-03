@@ -421,6 +421,8 @@ class task extends control
 
         $taskIDList = $this->post->taskIDList ? $this->post->taskIDList : die(js::locate($this->session->taskList, 'parent'));
         $taskIDList = array_unique($taskIDList);
+        $showAllModule = isset($this->config->project->task->allModule) ? $this->config->project->task->allModule : '';
+        $this->view->showAllModule    = $showAllModule;
 
         /* The tasks of project. */
         if($projectID)
@@ -431,7 +433,6 @@ class task extends control
             /* Set modules and members. */
             $stories = $this->story->getProjectStoryPairs($projectID);
             $projects = $this->project->getPairs('noclosed,nocode');
-            $showAllModule = isset($this->config->project->task->allModule) ? $this->config->project->task->allModule : '';
             $modules       = $this->tree->getTaskOptionMenu($projectID, 0, 0, $showAllModule ? 'allModule' : '');
             $modules       = array('ditto' => $this->lang->task->ditto) + $modules;
 

@@ -83,6 +83,7 @@
           {
               $prjInfo = $this->project->getById($tasks[$taskID]->project);
               $modules = $this->tree->getOptionMenu($tasks[$taskID]->project, $viewType = 'task');
+              $modules       = $this->tree->getTaskOptionMenu($tasks[$taskID]->project, 0, 0, $showAllModule ? 'allModule' : '');
               foreach($modules as $moduleID => $moduleName) $modules[$moduleID] = '/' . $prjInfo->name. $moduleName;
               $modules = array('ditto' => $this->lang->task->ditto) + $modules;
 
