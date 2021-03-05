@@ -43,6 +43,7 @@
             <th class='w-200px required'><?php echo $lang->product->name;?></th>
             <th class='w-150px required'><?php echo $lang->product->code;?></th>
             <th class='w-150px<?php echo zget($visibleFields, 'line',   ' hidden') . zget($requiredFields, 'line',   '', ' required');?>'><?php echo $lang->product->line;?></th>
+            <th class='w-150px<?php echo zget($visibleFields, 'director',     ' hidden') . zget($requiredFields, 'director',     '', ' required');?>'><?php echo $lang->product->director;?></th>
             <th class='w-150px<?php echo zget($visibleFields, 'PO',     ' hidden') . zget($requiredFields, 'PO',     '', ' required');?>'><?php echo $lang->product->PO;?></th>
             <th class='w-150px<?php echo zget($visibleFields, 'QD',     ' hidden') . zget($requiredFields, 'QD',     '', ' required');?>'><?php echo $lang->product->QD;?></th>
             <th class='w-150px<?php echo zget($visibleFields, 'RD',     ' hidden') . zget($requiredFields, 'RD',     '', ' required');?>'><?php echo $lang->product->RD;?></th>
@@ -59,6 +60,7 @@
             <td title='<?php echo $products[$productID]->name?>'><?php echo html::input("names[$productID]", $products[$productID]->name, "class='form-control'");?></td>
             <td><?php echo html::input("codes[$productID]", $products[$productID]->code, "class='form-control'");?></td>
             <td class='text-left<?php echo zget($visibleFields, 'line', ' hidden')?>' style='overflow:visible'><?php echo html::select("lines[$productID]", $lines, $products[$productID]->line, "class='form-control chosen'");?></td>
+            <td class='text-left<?php echo zget($visibleFields, 'director', ' hidden')?>' style='overflow:visible'><?php echo html::select("Directors[$productID]",  $directorUsers, $products[$productID]->director, "class='form-control chosen'");?></td>
             <td class='text-left<?php echo zget($visibleFields, 'PO', ' hidden')?>' style='overflow:visible'><?php echo html::select("POs[$productID]",  $poUsers, $products[$productID]->PO, "class='form-control chosen'");?></td>
             <td class='text-left<?php echo zget($visibleFields, 'QD', ' hidden')?>' style='overflow:visible'><?php echo html::select("QDs[$productID]",  $qdUsers, $products[$productID]->QD, "class='form-control chosen'");?></td>
             <td class='text-left<?php echo zget($visibleFields, 'RD', ' hidden')?>' style='overflow:visible'><?php echo html::select("RDs[$productID]",  $rdUsers, $products[$productID]->RD, "class='form-control chosen'");?></td>

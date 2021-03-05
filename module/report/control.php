@@ -396,13 +396,14 @@ class report extends control
     /**
      * 项目看板
      */
-    public function productboard($selectLines = 'yfc,yfkg,yfbot,yfdoc,yfweb,yflabel,yfbid') {
-        $this->view->products = $this->loadModel('product')->getBoardProducts($selectLines);
-        $this->view->lines = $this->loadModel('tree')->getLinePairs();
+    public function productboard($selectLines = 'yfc,yfkg,yfbot,yfdoc,yfweb,yflabel,yfbid', $status='noclosed') {
+        $this->view->products = $this->loadModel('product')->getBoardProducts($selectLines, $status);
+        $this->view->lines = $this->loadModel('tree')->getLinePairs() + array('其他');
         $this->app->loadConfig('product');
         $this->view->title = $this->lang->report->productboard;
         $this->view->position[] = $this->lang->report->productboard;
         $this->view->selectLines = $selectLines;
+        $this->view->status = $status;
         krsort($this->view->lines);
         $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
         $this->display();

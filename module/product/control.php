@@ -323,6 +323,7 @@ class product extends control
             $appendPoUsers[$product->PO] = $product->PO;
             $appendQdUsers[$product->QD] = $product->QD;
             $appendRdUsers[$product->RD] = $product->RD;
+            $appendDirectorUsers[$product->director] = $product->director;
         }
 
         $this->view->title         = $this->lang->product->batchEdit;
@@ -333,6 +334,7 @@ class product extends control
         $this->view->poUsers       = $this->loadModel('user')->getPairs('nodeleted|pofirst', $appendPoUsers);
         $this->view->qdUsers       = $this->loadModel('user')->getPairs('nodeleted|qdfirst', $appendQdUsers);
         $this->view->rdUsers       = $this->loadModel('user')->getPairs('nodeleted|devfirst', $appendRdUsers);
+        $this->view->directorUsers       = $this->loadModel('user')->getPairs('nodeleted|devfirst', $appendDirectorUsers);
 
         unset($this->lang->product->typeList['']);
         $this->display();
