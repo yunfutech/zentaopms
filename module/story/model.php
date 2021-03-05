@@ -2640,7 +2640,11 @@ class storyModel extends model
                 echo round($story->progress, 2) * 100 . '%';
                 break;
             case 'yestodayCompletion':
-                echo round($story->yestodayCompletion / $story->estimate, 2) * 100 . '%';
+                if ($$story->estimate == 0) {
+                    echo '0%';
+                } else {
+                    echo round($story->yestodayCompletion / $story->estimate, 2) * 100 . '%';
+                }
                 break;
             }
             echo '</td>';
