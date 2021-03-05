@@ -145,10 +145,12 @@
                   <tr>
                     <th class='w-100px'><i class="icon icon-person icon-sm"></i> <?php echo $lang->productCommon;?></th>
                     <td><em><?php echo zget($users, $product->PO);?></em></td>
-                    <th><i class="icon icon-person icon-sm"></i> <?php echo $lang->product->qa;?></th>
-                    <td><em><?php echo zget($users, $product->QD);?></em></td>
+                    <th class='w-100px'><i class="icon icon-person icon-sm"></i> <?php echo $lang->product->director;?></th>
+                    <td><em><?php echo zget($users, $product->director);?></em></td>
                   </tr>
                   <tr>
+                    <th><i class="icon icon-person icon-sm"></i> <?php echo $lang->product->qa;?></th>
+                    <td><em><?php echo zget($users, $product->QD);?></em></td>
                     <th><i class="icon icon-person icon-sm"></i> <?php echo $lang->product->release;?></th>
                     <td><em><?php echo zget($users, $product->RD);?></em></td>
                   </tr>

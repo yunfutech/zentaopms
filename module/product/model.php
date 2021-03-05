@@ -1170,7 +1170,7 @@ class productModel extends model
      */
     public function getBoardProducts($selectLines) {
         $selectLines = explode(',', $selectLines);
-        $products = $this->dao->select('t1.id, t1.name, t1.PO, t2.name as line, CONVERT(t1.name USING gbk) as gbkName')->from(TABLE_PRODUCT)->alias('t1')
+        $products = $this->dao->select('t1.id, t1.name, t1.director, t1.PO, t2.name as line, CONVERT(t1.name USING gbk) as gbkName')->from(TABLE_PRODUCT)->alias('t1')
             ->leftJoin(TABLE_MODULE)->alias('t2')->on('t1.line = t2.id')
             ->where('t1.deleted')->eq(0)
             ->andwhere('t1.status')->ne('closed')

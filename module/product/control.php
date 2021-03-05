@@ -688,11 +688,6 @@ class product extends control
 
         // 将PO改为realname
         $productStats = $this->product->getStats($orderBy, $pager, $status, $line);
-        foreach ($productStats as $product) {
-            $po = $product->PO;
-            $user = $this->dao->select('*')->from(TABLE_USER)->where('account')->eq($po)->fetch();
-            $product->PO = $user->realname;
-        }
 
         $this->app->loadLang('my');
         $this->view->title        = $this->lang->product->allProduct;
@@ -705,6 +700,7 @@ class product extends control
         $this->view->status       = $status;
         $this->view->orderBy      = $orderBy;
         $this->view->pager        = $pager;
+        $this->view->users        = $this->loadModel('user')->getPairs('noletter');
         $this->display();
     }
 

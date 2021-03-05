@@ -71,6 +71,7 @@
             <th class='w-70px'><?php common::printOrderLink('pri', $orderBy, $vars, $lang->product->pri);?></th>
             <th><?php common::printOrderLink('name', $orderBy, $vars, $lang->product->name);?></th>
             <th class='w-110px text-left'><?php common::printOrderLink('line', $orderBy, $vars, $lang->product->line);?></th>
+            <th class='w-80px' title='<?php echo $lang->product->director;?>'><?php echo $lang->product->director;?></th>
             <th class='w-80px' title='<?php echo $lang->product->po;?>'><?php echo $lang->product->po;?></th>
             <th class='w-100px text-center' title='<?php echo $lang->product->progress;?>'><?php echo $lang->product->progress;?></th>
             <th class='w-110px text-center' title='<?php echo $lang->product->state;?>'><?php echo $lang->product->state;?></th>
@@ -105,7 +106,8 @@
           </td>
           <td class="c-name" title='<?php echo $product->name?>'><?php echo html::a($this->createLink('product', 'view', 'product=' . $product->id), $product->name);?></td>
           <td title='<?php echo zget($lines, $product->line, '')?>'><?php echo zget($lines, $product->line, '');?></td>
-          <td class='text-center'><?php echo $product->PO;?></td>
+          <td class='text-center'><?php echo zget($users, $product->director, '');?></td>
+          <td class='text-center'><?php echo zget($users, $product->PO, '');?></td>
           <td class='text-center'><?php echo $product->progress != ''? $product->progress . '%' : ''?></td>
           <td class='text-center'><?php echo zget($lang->product->stateList, $product->state)?></td>
           <td class='text-center'><?php echo $product->stories['active'];?></td>

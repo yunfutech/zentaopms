@@ -48,6 +48,10 @@
             <td><?php if(!$lines) common::printLink('tree', 'browse', 'rootID=&view=line', $lang->tree->manageLine);?></td>
           </tr>
           <tr>
+            <th><?php echo $lang->product->director;?></th>
+            <td><?php echo html::select('director', $poUsers, $product->director, "class='form-control chosen'");?></td><td></td>
+          </tr>
+          <tr>
             <th><?php echo $lang->product->PO;?></th>
             <td><?php echo html::select('PO', $poUsers, $product->PO, "class='form-control chosen'");?></td><td></td>
           </tr>
