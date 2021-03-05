@@ -120,13 +120,28 @@ td .deviation{padding-left:20px; text-align:left;}
 }
 .module-name {
     display: inline-block;
-    width: 300px;
+    width: 120px;
     color: #fff;
     background: #81c19e;
     border-radius: 4px;
     padding: 5px;
 }
 .no-module-name {
+    display: inline-block;
+    width: 120px;
+    background: #999b9a;
+    border-radius: 4px;
+    padding: 5px;
+}
+.story-name {
+    display: inline-block;
+    width: 300px;
+    color: #fff;
+    background: #81c19e;
+    border-radius: 4px;
+    padding: 5px;
+}
+.no-story-name {
     display: inline-block;
     width: 300px;
     background: #999b9a;
