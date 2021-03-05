@@ -108,7 +108,7 @@ td .deviation{padding-left:20px; text-align:left;}
     margin-right: 4px;
 }
 .workload2 {
-    margin-bottom: 10px !important; 
+    margin-bottom: 10px !important;
 }
 .project-name{
     display: inline-block;
@@ -120,7 +120,7 @@ td .deviation{padding-left:20px; text-align:left;}
 }
 .module-name {
     display: inline-block;
-    width: 150px;
+    width: 300px;
     color: #fff;
     background: #81c19e;
     border-radius: 4px;
@@ -128,7 +128,7 @@ td .deviation{padding-left:20px; text-align:left;}
 }
 .no-module-name {
     display: inline-block;
-    width: 150px;
+    width: 300px;
     background: #999b9a;
     border-radius: 4px;
     padding: 5px;

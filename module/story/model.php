@@ -2518,8 +2518,8 @@ class storyModel extends model
                 echo "</span>";
                 break;
             case 'title':
-                if($story->branch and isset($branches[$story->branch])) echo "<span class='label label-outline label-badge'>{$branches[$story->branch]}</span> ";
-                if($story->module and isset($modulePairs[$story->module])) echo "<span class='label label-gray label-badge'>{$modulePairs[$story->module]}</span> ";
+                if($story->branch and isset($branches[$story->branch])) echo "<span class='label label-outline'>{$branches[$story->branch]}</span> ";
+                if($story->module and isset($modulePairs[$story->module])) echo "<span class='label label-gray'>{$modulePairs[$story->module]}</span> ";
                 echo $canView ? html::a($storyLink, $story->title, '', "style='color: $story->color'") : "<span style='color: $story->color'>{$story->title}</span>";
                 break;
             case 'plan':

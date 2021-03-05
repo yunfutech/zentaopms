@@ -69,13 +69,11 @@ $config->story->datatable->fieldList['consumed']['title']    = 'consumed';
 $config->story->datatable->fieldList['consumed']['fixed']    = 'no';
 $config->story->datatable->fieldList['consumed']['width']    = '80';
 $config->story->datatable->fieldList['consumed']['required'] = 'no';
-$config->story->datatable->fieldList['consumed']['sort']     = 'no';
 
 $config->story->datatable->fieldList['progress']['title']    = 'progress';
 $config->story->datatable->fieldList['progress']['fixed']    = 'no';
 $config->story->datatable->fieldList['progress']['width']    = '80';
 $config->story->datatable->fieldList['progress']['required'] = 'no';
-$config->story->datatable->fieldList['progress']['sort']     = 'no';
 
 $config->story->datatable->fieldList['yestodayCompletion']['title']    = 'yestodayCompletion';
 $config->story->datatable->fieldList['yestodayCompletion']['fixed']    = 'no';

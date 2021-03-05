@@ -526,25 +526,27 @@ class reportModel extends model
                 ];
             }
         }
-        $finishedIdstasks = $this->dao->select('t1.id, t1.left, t1.status, t1.pri as taskpri, t1.parent, t1.name, t1.project, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy,t2.pri, t2.name as projectName, t3.name as moduleName, t3.id as moduleId')->from(TABLE_TASK)->alias('t1')
+        $finishedIdstasks = $this->dao->select('t1.id, t1.left, t1.status, t1.pri as taskpri, t1.parent, t1.name, t1.project, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy,t2.pri, t2.name as projectName, t3.name as moduleName, t3.id as moduleId, t4.id as storyID, t4.title as storyTitle')->from(TABLE_TASK)->alias('t1')
         ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
         ->leftJoin(TABLE_MODULE)->alias('t3')->on('t1.module = t3.id')
+        ->leftJoin(TABLE_STORY)->alias('t4')->on('t1.story = t4.id')
         ->where('t1.deleted')->eq(0)
         ->andWhere('t1.finishedBy')->in($usernames)
         ->andWhere('t1.deadline')->eq($date)
         ->andWhere('t1.finishedBy')->ne('')
-        ->andWhere('assignedTo')->ne('')->orderBy('t1.id')->fetchAll();
+        ->andWhere('t1.assignedTo')->ne('')->orderBy('t1.id')->fetchAll();
 
 
-        $todoTasks = $this->dao->select('t1.id, t1.name, t1.project, t1.status, t1.pri as taskpri, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy, t2.pri, t2.name as projectName, t3.name as moduleName, t3.id as moduleId')->from(TABLE_TASK)->alias('t1')
+        $todoTasks = $this->dao->select('t1.id, t1.name, t1.project, t1.status, t1.pri as taskpri, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy, t2.pri, t2.name as projectName, t3.name as moduleName, t3.id as moduleId, t4.id as storyID, t4.title as storyTitle')->from(TABLE_TASK)->alias('t1')
         ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
         ->leftJoin(TABLE_MODULE)->alias('t3')->on('t1.module = t3.id')
+        ->leftJoin(TABLE_STORY)->alias('t4')->on('t1.story = t4.id')
         ->where('t1.deleted')->eq(0)
         ->andWhere('t1.assignedTo')->in($usernames)
         ->andWhere('t1.deadline')->eq($date)
         ->andWhere('t1.status')->notin('cancel, closed')
         ->andWhere('t1.finishedBy')->eq('')
-        ->andWhere('assignedTo')->ne('')->orderBy('t1.id')->fetchAll();
+        ->andWhere('t1.assignedTo')->ne('')->orderBy('t1.id')->fetchAll();
 
         // $todoTasks  = $todo->beginIF(0)->andWhere('t1.assignedTo')->in(array_keys($deptUsers))->fi()->fetchAll('id');
 

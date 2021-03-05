@@ -61,8 +61,8 @@
           <table class='table table-bordered table-fixed no-margin' id="workload">
             <thead>
               <tr class='colhead text-center'>
-                <th class="w-100px" ><?php echo $lang->report->user; ?></th>
-                <th class="w-150px">任务完成度<a href="javascript:;"  title="实际消耗/预计消耗/全部任务"><i class="icon-question-sign"></i></a></th>
+                <th class="w-60px" ><?php echo $lang->report->user; ?></th>
+                <th class="w-120px">完成度<a href="javascript:;"  title="实际消耗/预计消耗/全部任务"><i class="icon-question-sign"></i></a></th>
                 <th><?php echo $lang->report->task; ?></th>
               </tr>
             </thead>
@@ -73,7 +73,7 @@
                     <?php if ($index == 0): ?>
                     <td class='td-line' rowspan="<?php echo count($load['detail']); ?>"><?php echo $users[$account]; ?></td>
                     <td class='td-line' style='position:relative' rowspan="<?php echo count($load['detail']); ?>">
-                        <div class='content'><?php echo intval($load['complete'] / $load['all'] * 100); ?>% （<?php echo $load['consumed']; ?>/<?php echo $load['complete']; ?>/<?php echo $load['all']; ?>）</div>
+                        <div class='content'><?php echo $load['consumed']; ?>/<?php echo $load['complete']; ?>/<?php echo $load['all']; ?></div>
                         <div style='width:<?php echo intval($load['complete'] / $load['all'] * 100) ?>%' class='fg <?php if ($load['all'] > 10): echo 'fgred';elseif ($load['all'] > 8): echo 'fgorange';elseif ($load['all'] == 8): echo 'fggreen';elseif ($load['all'] < 8): echo 'fgblue';?><?php endif;?>'></div>
                         <div class='bg <?php if ($load['all'] > 10): echo 'bgred';elseif ($load['all'] > 8): echo 'bgorange';elseif ($load['all'] == 8): echo 'bggreen';elseif ($load['all'] < 8): echo 'bgblue';?><?php endif;?>'></div>
                     </td>
@@ -82,12 +82,11 @@
                         <div class='task-detail'>
                             <span class='overview'><?php echo $list->consumed; ?> / <?php echo $list->estimate; ?></span>
                             <?php echo html::a($this->createLink('project', 'task', "projectID={$list->project}"), "<span class='project-name'><span  class='pri pri_{$list->pri}'>{$list->pri}</span>{$list->projectName}</span>"); ?>
-                            <?php if ($list->moduleId):?>
-                            <?php echo html::a($this->createLink('project', 'task', "projectID=$list->project&browseType=byModule&param=$list->moduleId"), "<span class='module-name'>{$list->moduleName}</span>") ?>
+                            <?php if ($list->storyID):?>
+                            <?php echo html::a($this->createLink('project', 'task', "projectID=$list->project&browseType=byModule&param=$list->storyID"), "<span class='module-name'>{$list->storyTitle}</span>") ?>
                             <?php else:?>
                             <span class='no-module-name'>&nbsp;</span>
                             <?php endif;?>
-                            <span class='taskid'><?php echo $list->id; ?></span>
                             <span class='taskstatus status-<?php echo $list->status; ?>'><?php echo zget($lang->task->statusList, $list->status) ?></span>
                             <?php if ($canBatchEdit): ?>
                             <div class="checkbox-primary checkbox" >
@@ -95,7 +94,7 @@
                                 <label for='taskIDList-<?php echo $list->id; ?>'></label>
                             </div>
                             <?php endif;?>
-                            <?php echo html::a($this->createLink('task', 'view', "taskID={$list->id}"), "<span class='task-name'><span class='pri pri_{$list->taskpri}'>{$list->taskpri}</span>{$list->name}</span>"); ?>
+                            <?php echo html::a($this->createLink('task', 'view', "taskID={$list->id}"), "<span class='task-name'>&nbsp;<span class='pri pri_{$list->taskpri}'>{$list->taskpri}&nbsp;</span><span class='label label-gray'>{$list->moduleName}</span>&nbsp;&nbsp;{$list->name}</span>"); ?>
                         </div>
                     </td>
                 </tr>
