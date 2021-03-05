@@ -13,8 +13,8 @@ $config->story->edit   = new stdclass();
 $config->story->change = new stdclass();
 $config->story->close  = new stdclass();
 $config->story->review = new stdclass();
-$config->story->create->requiredFields = 'title';
-$config->story->change->requiredFields = 'title';
+$config->story->create->requiredFields = 'title,estimate';
+$config->story->change->requiredFields = 'title,estimate';
 $config->story->close->requiredFields  = 'closedReason';
 $config->story->review->requiredFields = 'assignedTo,reviewedBy';
 
@@ -48,7 +48,7 @@ $config->story->custom->batchCreateFields = 'module,plan,spec,pri,estimate,revie
 $config->story->custom->batchEditFields   = 'branch,module,plan,estimate,pri,source,stage,closedBy,closedReason';
 
 $config->story->datatable = new stdclass();
-$config->story->datatable->defaultField = array('id', 'pri', 'title', 'plan', 'openedBy', 'assignedTo', 'estimate', 'status', 'stage', 'taskCount', 'actions');
+$config->story->datatable->defaultField = array('id', 'pri', 'title', 'plan', 'openedBy', 'assignedTo', 'estimate', 'consumed', 'progress', 'yestodayCompletion', 'status', 'stage', 'taskCount', 'actions');
 
 $config->story->datatable->fieldList['id']['title']    = 'idAB';
 $config->story->datatable->fieldList['id']['fixed']    = 'left';
@@ -64,6 +64,24 @@ $config->story->datatable->fieldList['title']['title']    = 'title';
 $config->story->datatable->fieldList['title']['fixed']    = 'left';
 $config->story->datatable->fieldList['title']['width']    = 'auto';
 $config->story->datatable->fieldList['title']['required'] = 'yes';
+
+$config->story->datatable->fieldList['consumed']['title']    = 'consumed';
+$config->story->datatable->fieldList['consumed']['fixed']    = 'no';
+$config->story->datatable->fieldList['consumed']['width']    = '80';
+$config->story->datatable->fieldList['consumed']['required'] = 'no';
+$config->story->datatable->fieldList['consumed']['sort']     = 'no';
+
+$config->story->datatable->fieldList['progress']['title']    = 'progress';
+$config->story->datatable->fieldList['progress']['fixed']    = 'no';
+$config->story->datatable->fieldList['progress']['width']    = '80';
+$config->story->datatable->fieldList['progress']['required'] = 'no';
+$config->story->datatable->fieldList['progress']['sort']     = 'no';
+
+$config->story->datatable->fieldList['yestodayCompletion']['title']    = 'yestodayCompletion';
+$config->story->datatable->fieldList['yestodayCompletion']['fixed']    = 'no';
+$config->story->datatable->fieldList['yestodayCompletion']['width']    = '80';
+$config->story->datatable->fieldList['yestodayCompletion']['required'] = 'no';
+$config->story->datatable->fieldList['yestodayCompletion']['sort']     = 'no';
 
 $config->story->datatable->fieldList['branch']['title']    = 'branch';
 $config->story->datatable->fieldList['branch']['fixed']    = 'no';

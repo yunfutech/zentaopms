@@ -89,7 +89,8 @@
             <?php endif;?>
           </tr>
           <tr>
-            <th><?php echo $lang->story->reviewedBy;?></th>
+            <th id="assignToLabel-1" style="display: <?php echo $needReview ? 'none' : '' ?>"><?php echo $lang->story->reviewedBy ;?></th>
+            <th id="assignToLabel-0" style="display: <?php echo $needReview ? '' : 'none' ?>"><?php echo $lang->story->assignedTo ;?></th>
             <td><?php echo html::select('assignedTo', $users, empty($needReview) ? $product->PO : '', "class='form-control chosen'");?></td>
             <?php if(!$this->story->checkForceReview()):?>
             <td>

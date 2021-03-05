@@ -745,7 +745,7 @@ class story extends control
         $this->view->storyModule = $storyModule;
         $this->view->modulePath  = $modulePath;
         $this->view->version     = $version == 0 ? $story->version : $version;
-        $this->view->preAndNext  = $this->loadModel('common')->getPreAndNextObject('story', $storyID);
+        // $this->view->preAndNext  = $this->loadModel('common')->getPreAndNextObject('story', $storyID);
         $this->view->from        = $from;
         $this->view->param       = $param;
         $this->display();
@@ -1082,11 +1082,11 @@ class story extends control
         if(!dao::isError()) $this->loadModel('score')->create('ajax', 'batchOther');
         die(js::locate($this->session->storyList, 'parent'));
     }
-    
+
     /**
      * Assign to.
-     * 
-     * @param  int    $storyID 
+     *
+     * @param  int    $storyID
      * @access public
      * @return void
      */
@@ -1412,7 +1412,7 @@ class story extends control
         $storyInfo['estimate'] = $story->estimate;
         $storyInfo['pri']      = $story->pri;
         $storyInfo['spec']     = html_entity_decode($story->spec);
-        
+
 
         echo json_encode($storyInfo);
     }
@@ -1727,9 +1727,9 @@ class story extends control
 
     /**
      * Ajax get story status.
-     * 
-     * @param  string $method 
-     * @param  string $params 
+     *
+     * @param  string $method
+     * @param  string $params
      * @access public
      * @return void
      */
