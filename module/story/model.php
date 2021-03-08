@@ -1401,14 +1401,12 @@ class storyModel extends model
             if($branch) $branch = "0,$branch";
         }
         $stories = $this->dao->select('t1.*, sum(t2.consumed) AS consumed, sum(t2.consumed) / t1.estimate as progress')->from(TABLE_STORY)->alias('t1')
-            ->leftJoin(TABLE_TASK)->alias('t2')->on('t1.id=t2.story')
+            ->leftJoin(TABLE_TASK)->alias('t2')->on('t1.id=t2.story and t2.deleted=0 and t2.status!="cancel"')
             ->where('t1.product')->in($productID)
             ->beginIF($branch)->andWhere("t1.branch")->in($branch)->fi()
             ->beginIF(!empty($moduleIdList))->andWhere('t1.module')->in($moduleIdList)->fi()
             ->beginIF($status and $status != 'all')->andWhere('t1.status')->in($status)->fi()
             ->andWhere('t1.deleted')->eq(0)
-            ->andWhere('t2.deleted')->eq(0)
-            ->andWhere('t2.status')->ne('cancel')
             ->groupBy('t1.id')
             ->orderBy($orderBy)->page($pager)->fetchAll();
         $stories = $this->getStoriesYestodayCompletion($stories);
