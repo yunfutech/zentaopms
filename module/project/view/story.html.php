@@ -132,6 +132,9 @@
             <th class='c-estimate w-80px {sorter:false}'> <?php common::printOrderLink('estimate',   $orderBy, $vars, $lang->story->estimateAB);?></th>
             <th class='c-status {sorter:false}'> <?php common::printOrderLink('status',     $orderBy, $vars, $lang->statusAB);?></th>
             <th class='c-stage w-70px {sorter:false}'> <?php common::printOrderLink('stage',      $orderBy, $vars, $lang->story->stageAB);?></th>
+            <th title='<?php echo $lang->story->consumed?>' class='w-80px'><?php echo $lang->story->consumed;?></th>
+            <th title='<?php echo $lang->story->progress?>' class='w-80px'><?php echo $lang->story->progress;?></th>
+            <th title='<?php echo $lang->story->yestodayCompletion?>' class='w-80px'><?php echo $lang->story->yestodayCompletion;?></th>
             <th title='<?php echo $lang->story->taskCount?>' class='w-30px'><?php echo $lang->story->taskCountAB;?></th>
             <th title='<?php echo $lang->story->bugCount?>'  class='w-30px'><?php echo $lang->story->bugCountAB;?></th>
             <th title='<?php echo $lang->story->caseCount?>' class='w-30px'><?php echo $lang->story->caseCountAB;?></th>
@@ -168,6 +171,25 @@
               <span class='status-story status-<?php echo $story->status;?>'><?php echo $status;?></span>
             </td>
             <td class='c-stage'><?php echo $lang->story->stageList[$story->stage];?></td>
+            <td class='c-name'>
+              <?php
+                if ($story->consumed > $story->estimate) {
+                    echo '<div style="color: red">' . round($story->consumed, 2) . '</div>';
+                } else {
+                    echo '<div style="color: green">' . round($story->consumed, 2) . '</div>';
+                }
+              ?>
+            </td>
+            <td class='c-name'><?php echo round($story->progress, 2) * 100 . '%';?></td>
+            <td class='c-name'>
+              <?php
+                if ($story->estimate == 0) {
+                    echo '0%';
+                } else {
+                    echo round($story->yestodayCompletion / $story->estimate, 2) * 100 . '%';
+                }
+              ?>
+            </td>
             <td class='linkbox'>
               <?php
               $tasksLink = $this->createLink('story', 'tasks', "storyID=$story->id&projectID=$project->id");

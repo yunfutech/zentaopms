@@ -1400,31 +1400,44 @@ class storyModel extends model
             $branch = join(',', $branch);
             if($branch) $branch = "0,$branch";
         }
-        $stories = $this->dao->select('t1.*, sum(t2.consumed) AS consumed, sum(t2.consumed) / t1.estimate as progress')->from(TABLE_STORY)->alias('t1')
-            ->leftJoin(TABLE_TASK)->alias('t2')->on('t1.id=t2.story and t2.deleted=0 and t2.status!="cancel"')
-            ->where('t1.product')->in($productID)
-            ->beginIF($branch)->andWhere("t1.branch")->in($branch)->fi()
-            ->beginIF(!empty($moduleIdList))->andWhere('t1.module')->in($moduleIdList)->fi()
-            ->beginIF($status and $status != 'all')->andWhere('t1.status')->in($status)->fi()
-            ->andWhere('t1.deleted')->eq(0)
-            ->groupBy('t1.id')
+        $stories = $this->dao->select('*')->from(TABLE_STORY)
+            ->where('product')->in($productID)
+            ->beginIF($branch)->andWhere("branch")->in($branch)->fi()
+            ->beginIF(!empty($moduleIdList))->andWhere('module')->in($moduleIdList)->fi()
+            ->beginIF($status and $status != 'all')->andWhere('status')->in($status)->fi()
+            ->andWhere('deleted')->eq(0)
+            ->groupBy('id')
             ->orderBy($orderBy)->page($pager)->fetchAll();
-        $stories = $this->getStoriesYestodayCompletion($stories);
+        $stories = $this->getStoriesStatistic($stories);
         return $this->mergePlanTitle($productID, $stories, $branch);
     }
 
-    public function getStoriesYestodayCompletion($stories) {
-        $yestoday = date('Y-m-d', strtotime('-1 day'));
-        foreach ($stories as $story) {
-            $yestodayCompletion = $this->dao->select('sum(consumed) as totalConsumed')->from(TABLE_TASK)
-                ->where('story')->eq($story->id)
-                ->andWhere('deleted')->eq(0)
-                ->andWhere('status')->ne('cancel')
-                ->andWhere('LEFT(finishedDate, 10)')->eq($yestoday)
-                ->fetch('totalConsumed');
-            $story->yestodayCompletion = $yestodayCompletion;
+    public function getStoriesStatistic($stories) {
+        foreach ($stories as $index => $story) {
+            $stories[$index] = $this->getStoryStatistic($story);
         }
         return $stories;
+    }
+
+    public function getStoryStatistic($story) {
+        $yestoday = date('Y-m-d', strtotime('-1 day'));
+        $taskStatistic = $this->dao->select('sum(t2.consumed) AS consumed, sum(t2.consumed) / t1.estimate as progress')->from(TABLE_STORY)->alias('t1')
+            ->leftJoin(TABLE_TASK)->alias('t2')->on('t2.story = t1.id')
+            ->where('t1.id')->eq($story->id)
+            ->andWhere('t2.deleted')->eq(0)
+            ->andWhere('t2.status')->ne('cancel')
+            ->groupBy('t1.id')
+            ->fetch();
+        $story->consumed = $taskStatistic->consumed;
+        $story->progress = $taskStatistic->progress;
+        $yestodayCompletion = $this->dao->select('sum(consumed) as totalConsumed')->from(TABLE_TASK)
+            ->where('story')->eq($story->id)
+            ->andWhere('deleted')->eq(0)
+            ->andWhere('status')->ne('cancel')
+            ->andWhere('LEFT(finishedDate, 10)')->eq($yestoday)
+            ->fetch('totalConsumed');
+        $story->yestodayCompletion = $yestodayCompletion;
+        return $story;
     }
 
     /**
@@ -1561,19 +1574,16 @@ class storyModel extends model
     public function getByField($productID, $branch, $modules, $fieldName, $fieldValue, $orderBy, $pager, $operator = 'equal')
     {
         if(!$this->loadModel('common')->checkField(TABLE_STORY, $fieldName)) return array();
-        $stories = $this->dao->select('t1.*, sum(t2.consumed) AS consumed, sum(t2.consumed) / t1.estimate as progress')->from(TABLE_STORY)->alias('t1')
-            ->leftJoin(TABLE_TASK)->alias('t2')->on('t1.id=t2.story')
-            ->where('t1.product')->in($productID)
-            ->beginIF($branch)->andWhere("t1.branch")->eq($branch)->fi()
-            ->beginIF($modules)->andWhere("t1.module")->in($modules)->fi()
-            ->beginIF($operator == 'equal')->andWhere('t1.' . $fieldName)->eq($fieldValue)->fi()
-            ->beginIF($operator == 'include')->andWhere('t1.' . $fieldName)->like("%$fieldValue%")->fi()
-            ->andWhere('t1.deleted')->eq(0)
-            ->andWhere('t2.deleted')->eq(0)
-            ->andWhere('t2.status')->ne('cancel')
-            ->groupBy('t1.id')
+        $stories = $this->dao->select('*')->from(TABLE_STORY)
+            ->where('product')->in($productID)
+            ->beginIF($branch)->andWhere("branch")->eq($branch)->fi()
+            ->beginIF($modules)->andWhere("module")->in($modules)->fi()
+            ->beginIF($operator == 'equal')->andWhere($fieldName)->eq($fieldValue)->fi()
+            ->beginIF($operator == 'include')->andWhere($fieldName)->like("%$fieldValue%")->fi()
+            ->andWhere('deleted')->eq(0)
+            ->groupBy('id')
             ->orderBy($orderBy)->page($pager)->fetchAll();
-        $stories = $this->getStoriesYestodayCompletion($stories);
+        $stories = $this->getStoriesStatistic($stories);
         return $this->mergePlanTitle($productID, $stories, $branch);
     }
 
@@ -1588,19 +1598,16 @@ class storyModel extends model
      */
     public function get2BeClosed($productID, $branch, $modules, $orderBy, $pager)
     {
-        $stories = $this->dao->select('t1.*, sum(t2.consumed) AS consumed, sum(t2.consumed) / t1.estimate as progress')->from(TABLE_STORY)->alias('t1')
-            ->leftJoin(TABLE_TASK)->alias('t2')->on('t1.id=t2.story')
-            ->where('t1.product')->in($productID)
-            ->beginIF($branch)->andWhere("t1.branch")->eq($branch)->fi()
-            ->beginIF($modules)->andWhere("t1.module")->in($modules)->fi()
-            ->andWhere('t1.deleted')->eq(0)
-            ->andWhere('t1.stage')->in('developed,released')
-            ->andWhere('t1.status')->ne('closed')
-            ->andWhere('t2.deleted')->eq(0)
-            ->andWhere('t2.status')->ne('cancel')
-            ->groupBy('t1.id')
+        $stories = $this->dao->select('*')->from(TABLE_STORY)
+            ->where('product')->in($productID)
+            ->beginIF($branch)->andWhere("branch")->eq($branch)->fi()
+            ->beginIF($modules)->andWhere("module")->in($modules)->fi()
+            ->andWhere('deleted')->eq(0)
+            ->andWhere('stage')->in('developed,released')
+            ->andWhere('status')->ne('closed')
+            ->groupBy('id')
             ->orderBy($orderBy)->page($pager)->fetchAll('id');
-        $stories = $this->getStoriesYestodayCompletion($stories);
+        $stories = $this->getStoriesStatistic($stories);
         return $this->mergePlanTitle($productID, $stories, $branch);
     }
 
@@ -1776,6 +1783,7 @@ class storyModel extends model
                 ->leftJoin(TABLE_STORY)->alias('t2')->on('t1.story = t2.id')
                 ->leftJoin(TABLE_PROJECTPRODUCT)->alias('t3')->on('t1.project = t3.project')
                 ->leftJoin(TABLE_PRODUCT)->alias('t4')->on('t2.product = t4.id')
+                ->leftJoin(TABLE_TASK)->alias('t5')->on('t1.story=t5.story and t1.project=t5.project and t5.deleted=0 and t5.status!="cancel"')
                 ->where('t1.project')->eq((int)$projectID)
                 ->beginIF(!empty($productParam))->andWhere('t1.product')->eq($productParam)->fi()
                 ->beginIF(!empty($branchParam))->andWhere('t2.branch')->eq($branchParam)->fi()
@@ -1786,11 +1794,28 @@ class storyModel extends model
                 ->page($pager, 't2.id')
                 ->fetchAll('id');
         }
-
         $query    = $this->dao->get();
         $branches = array();
+        $yestoday = date('Y-m-d', strtotime('-1 day'));
         foreach($stories as $story)
         {
+            $taskStatistic = $this->dao->select('sum(t2.consumed) AS consumed, sum(t2.consumed) / t1.estimate as progress')->from(TABLE_STORY)->alias('t1')
+                ->leftJoin(TABLE_TASK)->alias('t2')->on('t2.story = t1.id')
+                ->where('t2.project')->eq($story->project)
+                ->andWhere('t1.id')->eq($story->id)
+                ->andWhere('t2.deleted')->eq(0)
+                ->andWhere('t2.status')->ne('cancel')
+                ->groupBy('t1.id')
+                ->fetch();
+            $story->consumed = $taskStatistic->consumed;
+            $story->progress = $taskStatistic->progress;
+            $yestodayCompletion = $this->dao->select('sum(consumed) as totalConsumed')->from(TABLE_TASK)
+                ->where('story')->eq($story->id)
+                ->andWhere('deleted')->eq(0)
+                ->andWhere('status')->ne('cancel')
+                ->andWhere('LEFT(finishedDate, 10)')->eq($yestoday)
+                ->fetch('totalConsumed');
+            $story->yestodayCompletion = $yestodayCompletion;
             if(empty($story->branch) and $story->productType != 'normal') $branches[$story->productBranch][$story->id] = $story->id;
         }
         foreach($branches as $branchID => $storyIdList)
@@ -2638,7 +2663,7 @@ class storyModel extends model
                 echo round($story->progress, 2) * 100 . '%';
                 break;
             case 'yestodayCompletion':
-                if ($$story->estimate == 0) {
+                if ($story->estimate == 0) {
                     echo '0%';
                 } else {
                     echo round($story->yestodayCompletion / $story->estimate, 2) * 100 . '%';
