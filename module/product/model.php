@@ -1210,23 +1210,19 @@ class productModel extends model
                 ->andWhere('deleted')->eq(0)
                 ->fetchAll();
             $product->allStoiresCount = count($stories);
-            $product->manHour = 0;
-            $product->doneStoriesCount = 0;
             $product->doneManHour = 0;
-            $product->doneStoriesManHour = 0;
-            foreach ($stories as $story) {
-                if ($story->closedReason == 'done') {
-                    $countTaskConsumed = $this->dao->select('sum(consumed) AS count')->from(TABLE_TASK)
-                        ->where('story')->eq($story->id)
-                        ->andWhere('deleted')->eq(0)
-                        ->andwhere('status')->ne('cancel')
-                        ->fetch('count');
-                    $countTaskConsumed = round($countTaskConsumed, 2);
-                    $product->doneStoriesCount += 1;
-                    $product->doneStoriesManHour += $countTaskConsumed;
-                }
-                $product->manHour += $story->estimate;
-            }
+            $manHour = $this->dao->select('sum(estimate) as manHour')->from(TABLE_STORY)
+                ->where('product')->eq($product->id)
+                ->andWhere('deleted')->eq(0)
+                ->fetch('manHour');
+            $product->manHour = $manHour;
+            $countDoneStories = $this->dao->select('sum(estimate) as doneStoriesEstimate, count(id) as doneStoriesCount')->from(TABLE_STORY)
+                ->where('product')->eq($product->id)
+                ->andWhere('closedReason')->eq('done')
+                ->andWhere('deleted')->eq(0)
+                ->fetch();
+            $product->doneStoriesCount = $countDoneStories->doneStoriesCount;
+            $product->doneStoriesEstimate = $countDoneStories->doneStoriesEstimate ? $countDoneStories->doneStoriesEstimate : 0;
             $projects = $this->dao->select('t1.id')->from(TABLE_PROJECT)->alias('t1')
                 ->leftJoin(TABLE_PROJECTPRODUCT)->alias('t2')->on('t1.id=t2.project')
                 ->where('t2.product')->eq($product->id)
@@ -1238,10 +1234,9 @@ class productModel extends model
                     ->andWhere('deleted')->eq(0)
                     ->andwhere('status')->ne('cancel')
                     ->fetch('count');
-                $countTaskConsumed = round($countTaskConsumed, 2);
                 $product->doneManHour += $countTaskConsumed;
             }
-            $product->schedule = $product->manHour > 0 ? round($product->doneStoriesManHour / $product->manHour, 4) : 0;
+            $product->schedule = $product->manHour > 0 ? round($product->doneStoriesEstimate / $product->manHour, 4) : 0;
             $product->accuracy = $product->manHour > 0 ? round($product->doneManHour / $product->manHour, 4) : 0;
         }
         return $products;

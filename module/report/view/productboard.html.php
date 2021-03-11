@@ -54,7 +54,7 @@
               <th class="w-100px"><?php echo $lang->report->boardProduct->allStoiresCount ?></th>
               <th class="w-100px"><?php echo $lang->report->boardProduct->manHour ?></th>
               <th class="w-100px"><?php echo $lang->report->boardProduct->doneStoriesCount ?></th>
-              <th class="w-100px"><?php echo $lang->report->boardProduct->doneStoriesManHour ?></th>
+              <th class="w-100px"><?php echo $lang->report->boardProduct->doneStoriesEstimate ?></th>
               <th class="w-100px"><?php echo $lang->report->boardProduct->schedule ?></th>
               <th class="w-100px"><?php echo $lang->report->boardProduct->doneManHour ?></th>
               <th class="w-100px"><?php echo $lang->report->boardProduct->accuracy; ?></th>
@@ -70,11 +70,11 @@
                 <td class='text-center'><?php echo zget($users, $product->director, ''); ?></td>
                 <td class='text-center'><?php echo zget($users, $product->PO, ''); ?></td>
                 <td class='text-center'><?php echo $product->allStoiresCount; ?></td>
-                <td class='text-center'><?php echo $product->manHour; ?></td>
+                <td class='text-center'><?php echo round($product->manHour, 2); ?></td>
                 <td class='text-center'><?php echo $product->doneStoriesCount; ?></td>
-                <td class='text-center'><?php echo $product->doneStoriesManHour; ?></td>
+                <td class='text-center'><?php echo round($product->doneStoriesEstimate, 2); ?></td>
                 <td class='text-center'><?php echo $product->schedule > 0 ? strval($product->schedule * 100) . '%' : '0%'; ?></td>
-                <td class='text-center'><?php echo $product->doneManHour; ?></td>
+                <td class='text-center'><?php echo round($product->doneManHour, 2); ?></td>
                 <td class='text-center'><?php echo $product->accuracy > 0 ? strval($product->accuracy * 100) . '%' : '0%'; ?></td>
               </tr>
             <?php endforeach;?>
