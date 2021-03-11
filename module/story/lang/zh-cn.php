@@ -61,6 +61,7 @@ $lang->story->viewAll           = '查看全部';
 $lang->story->consumed              = '消耗工时';
 $lang->story->progress              = '进度';
 $lang->story->yestodayCompletion    = '昨日完成度';
+$lang->story->weekCompletion        = '本周完成度';
 
 $lang->story->common         = $lang->storyCommon;
 $lang->story->id             = '编号';

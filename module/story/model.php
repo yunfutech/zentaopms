@@ -1437,6 +1437,15 @@ class storyModel extends model
             ->andWhere('LEFT(finishedDate, 10)')->eq($yestoday)
             ->fetch('totalConsumed');
         $story->yestodayCompletion = $yestodayCompletion;
+        $monday = helper::monday();
+        $weekCompletion = $this->dao->select('sum(consumed) as totalConsumed')->from(TABLE_TASK)
+            ->where('story')->eq($story->id)
+            ->andWhere('deleted')->eq(0)
+            ->andWhere('status')->ne('cancel')
+            ->andWhere('LEFT(finishedDate, 10)')->ge($monday)
+            ->fetch('totalConsumed');
+        $story->yestodayCompletion = $yestodayCompletion;
+        $story->weekCompletion = $weekCompletion;
         return $story;
     }
 
@@ -1816,6 +1825,13 @@ class storyModel extends model
                 ->andWhere('LEFT(finishedDate, 10)')->eq($yestoday)
                 ->fetch('totalConsumed');
             $story->yestodayCompletion = $yestodayCompletion;
+            $weekCompletion = $this->dao->select('sum(consumed) as totalConsumed')->from(TABLE_TASK)
+                ->where('story')->eq($story->id)
+                ->andWhere('deleted')->eq(0)
+                ->andWhere('status')->ne('cancel')
+                ->andWhere('LEFT(finishedDate, 10)')->ge(helper::monday())
+                ->fetch('totalConsumed');
+            $story->weekCompletion = $weekCompletion;
             if(empty($story->branch) and $story->productType != 'normal') $branches[$story->productBranch][$story->id] = $story->id;
         }
         foreach($branches as $branchID => $storyIdList)
@@ -2532,143 +2548,150 @@ class storyModel extends model
             if(isset($this->config->bizVersion)) $this->loadModel('flow')->printFlowCell('story', $story, $id);
             switch($id)
             {
-            case 'id':
-                echo html::checkbox('storyIdList', array($story->id => '')) . html::a(helper::createLink('story', 'view', "storyID=$story->id"), sprintf('%03d', $story->id));
-                break;
-            case 'pri':
-                echo "<span class='label-pri label-pri-" . $story->pri . "' title='" . zget($this->lang->story->priList, $story->pri, $story->pri) . "'>";
-                echo zget($this->lang->story->priList, $story->pri, $story->pri);
-                echo "</span>";
-                break;
-            case 'title':
-                if($story->branch and isset($branches[$story->branch])) echo "<span class='label label-outline'>{$branches[$story->branch]}</span> ";
-                if($story->module and isset($modulePairs[$story->module])) echo "<span class='label label-gray'>{$modulePairs[$story->module]}</span> ";
-                echo $canView ? html::a($storyLink, $story->title, '', "style='color: $story->color'") : "<span style='color: $story->color'>{$story->title}</span>";
-                break;
-            case 'plan':
-                echo $story->planTitle;
-                break;
-            case 'branch':
-                echo zget($branches, $story->branch, '');
-                break;
-            case 'keywords':
-                echo $story->keywords;
-                break;
-            case 'source':
-                echo zget($this->lang->story->sourceList, $story->source, $story->source);
-                break;
-            case 'sourceNote':
-                echo $story->sourceNote;
-                break;
-            case 'status':
-                echo "<span class='status-{$story->status}'>";
-                echo $this->processStatus('story', $story);
-                echo '</span>';
-                break;
-            case 'estimate':
-                echo $story->estimate;
-                break;
-            case 'stage':
-                if(isset($storyStages[$story->id]))
-                {
-                    echo "<div class='dropdown dropdown-hover'>";
-                    echo $this->lang->story->stageList[$story->stage];
-                    echo "<span class='caret'></span>";
-                    echo "<ul class='dropdown-menu pull-right'>";
-                    foreach($storyStages[$story->id] as $storyBranch => $storyStage)
+                case 'id':
+                    echo html::checkbox('storyIdList', array($story->id => '')) . html::a(helper::createLink('story', 'view', "storyID=$story->id"), sprintf('%03d', $story->id));
+                    break;
+                case 'pri':
+                    echo "<span class='label-pri label-pri-" . $story->pri . "' title='" . zget($this->lang->story->priList, $story->pri, $story->pri) . "'>";
+                    echo zget($this->lang->story->priList, $story->pri, $story->pri);
+                    echo "</span>";
+                    break;
+                case 'title':
+                    if($story->branch and isset($branches[$story->branch])) echo "<span class='label label-outline'>{$branches[$story->branch]}</span> ";
+                    if($story->module and isset($modulePairs[$story->module])) echo "<span class='label label-gray'>{$modulePairs[$story->module]}</span> ";
+                    echo $canView ? html::a($storyLink, $story->title, '', "style='color: $story->color'") : "<span style='color: $story->color'>{$story->title}</span>";
+                    break;
+                case 'plan':
+                    echo $story->planTitle;
+                    break;
+                case 'branch':
+                    echo zget($branches, $story->branch, '');
+                    break;
+                case 'keywords':
+                    echo $story->keywords;
+                    break;
+                case 'source':
+                    echo zget($this->lang->story->sourceList, $story->source, $story->source);
+                    break;
+                case 'sourceNote':
+                    echo $story->sourceNote;
+                    break;
+                case 'status':
+                    echo "<span class='status-{$story->status}'>";
+                    echo $this->processStatus('story', $story);
+                    echo '</span>';
+                    break;
+                case 'estimate':
+                    echo $story->estimate;
+                    break;
+                case 'stage':
+                    if(isset($storyStages[$story->id]))
                     {
-                        if(isset($branches[$storyBranch])) echo '<li class="text-ellipsis">' . $branches[$storyBranch] . ": " . $this->lang->story->stageList[$storyStage->stage] . '</li>';
+                        echo "<div class='dropdown dropdown-hover'>";
+                        echo $this->lang->story->stageList[$story->stage];
+                        echo "<span class='caret'></span>";
+                        echo "<ul class='dropdown-menu pull-right'>";
+                        foreach($storyStages[$story->id] as $storyBranch => $storyStage)
+                        {
+                            if(isset($branches[$storyBranch])) echo '<li class="text-ellipsis">' . $branches[$storyBranch] . ": " . $this->lang->story->stageList[$storyStage->stage] . '</li>';
+                        }
+                        echo "</ul>";
+                        echo '</div>';
                     }
-                    echo "</ul>";
-                    echo '</div>';
-                }
-                else
-                {
-                    echo $this->lang->story->stageList[$story->stage];
-                }
-                break;
-            case 'taskCount':
-                $tasksLink = helper::createLink('story', 'tasks', "storyID=$story->id");
-                $storyTasks[$story->id] > 0 ? print(html::a($tasksLink, $storyTasks[$story->id], '', 'class="iframe"')) : print(0);
-                break;
-            case 'bugCount':
-                $bugsLink = helper::createLink('story', 'bugs', "storyID=$story->id");
-                $storyBugs[$story->id] > 0 ? print(html::a($bugsLink, $storyBugs[$story->id], '', 'class="iframe"')) : print(0);
-                break;
-            case 'caseCount':
-                $casesLink = helper::createLink('story', 'cases', "storyID=$story->id");
-                $storyCases[$story->id] > 0 ? print(html::a($casesLink, $storyCases[$story->id], '', 'class="iframe"')) : print(0);
-                break;
-            case 'openedBy':
-                echo zget($users, $story->openedBy, $story->openedBy);
-                break;
-            case 'openedDate':
-                echo substr($story->openedDate, 5, 11);
-                break;
-            case 'assignedTo':
-                $this->printAssignedHtml($story, $users);
-                break;
-            case 'assignedDate':
-                echo substr($story->assignedDate, 5, 11);
-                break;
-            case 'reviewedBy':
-                echo $story->reviewedBy;
-                break;
-            case 'reviewedDate':
-                echo substr($story->reviewedDate, 5, 11);
-                break;
-            case 'closedBy':
-                echo zget($users, $story->closedBy, $story->closedBy);
-                break;
-            case 'closedDate':
-                echo substr($story->closedDate, 5, 11);
-                break;
-            case 'closedReason':
-                echo zget($this->lang->story->reasonList, $story->closedReason, $story->closedReason);
-                break;
-            case 'lastEditedBy':
-                echo zget($users, $story->lastEditedBy, $story->lastEditedBy);
-                break;
-            case 'lastEditedDate':
-                echo substr($story->lastEditedDate, 5, 11);
-                break;
-            case 'mailto':
-                $mailto = explode(',', $story->mailto);
-                foreach($mailto as $account)
-                {
-                    $account = trim($account);
-                    if(empty($account)) continue;
-                    echo zget($users, $account) . ' &nbsp;';
-                }
-                break;
-            case 'version':
-                echo $story->version;
-                break;
-            case 'actions':
-                $vars = "story={$story->id}";
-                common::printIcon('story', 'change',     $vars, $story, 'list', 'fork');
-                common::printIcon('story', 'review',     $vars, $story, 'list', 'glasses');
-                common::printIcon('story', 'close',      $vars, $story, 'list', '', '', 'iframe', true);
-                common::printIcon('story', 'edit',       $vars, $story, 'list');
-                if($this->config->global->flow != 'onlyStory') common::printIcon('story', 'createCase', "productID=$story->product&branch=$story->branch&module=0&from=&param=0&$vars", $story, 'list', 'sitemap');
-                break;
-            case 'consumed':
-                if ($story->consumed > $story->estimate) {
-                    echo '<div style="color: red">' . round($story->consumed, 2) . '</div>';
-                } else {
-                    echo '<div style="color: green">' . round($story->consumed, 2) . '</div>';
-                }
-                break;
-            case 'progress':
-                echo round($story->progress, 2) * 100 . '%';
-                break;
-            case 'yestodayCompletion':
-                if ($story->estimate == 0) {
-                    echo '0%';
-                } else {
-                    echo round($story->yestodayCompletion / $story->estimate, 2) * 100 . '%';
-                }
-                break;
+                    else
+                    {
+                        echo $this->lang->story->stageList[$story->stage];
+                    }
+                    break;
+                case 'taskCount':
+                    $tasksLink = helper::createLink('story', 'tasks', "storyID=$story->id");
+                    $storyTasks[$story->id] > 0 ? print(html::a($tasksLink, $storyTasks[$story->id], '', 'class="iframe"')) : print(0);
+                    break;
+                case 'bugCount':
+                    $bugsLink = helper::createLink('story', 'bugs', "storyID=$story->id");
+                    $storyBugs[$story->id] > 0 ? print(html::a($bugsLink, $storyBugs[$story->id], '', 'class="iframe"')) : print(0);
+                    break;
+                case 'caseCount':
+                    $casesLink = helper::createLink('story', 'cases', "storyID=$story->id");
+                    $storyCases[$story->id] > 0 ? print(html::a($casesLink, $storyCases[$story->id], '', 'class="iframe"')) : print(0);
+                    break;
+                case 'openedBy':
+                    echo zget($users, $story->openedBy, $story->openedBy);
+                    break;
+                case 'openedDate':
+                    echo substr($story->openedDate, 5, 11);
+                    break;
+                case 'assignedTo':
+                    $this->printAssignedHtml($story, $users);
+                    break;
+                case 'assignedDate':
+                    echo substr($story->assignedDate, 5, 11);
+                    break;
+                case 'reviewedBy':
+                    echo $story->reviewedBy;
+                    break;
+                case 'reviewedDate':
+                    echo substr($story->reviewedDate, 5, 11);
+                    break;
+                case 'closedBy':
+                    echo zget($users, $story->closedBy, $story->closedBy);
+                    break;
+                case 'closedDate':
+                    echo substr($story->closedDate, 5, 11);
+                    break;
+                case 'closedReason':
+                    echo zget($this->lang->story->reasonList, $story->closedReason, $story->closedReason);
+                    break;
+                case 'lastEditedBy':
+                    echo zget($users, $story->lastEditedBy, $story->lastEditedBy);
+                    break;
+                case 'lastEditedDate':
+                    echo substr($story->lastEditedDate, 5, 11);
+                    break;
+                case 'mailto':
+                    $mailto = explode(',', $story->mailto);
+                    foreach($mailto as $account)
+                    {
+                        $account = trim($account);
+                        if(empty($account)) continue;
+                        echo zget($users, $account) . ' &nbsp;';
+                    }
+                    break;
+                case 'version':
+                    echo $story->version;
+                    break;
+                case 'actions':
+                    $vars = "story={$story->id}";
+                    common::printIcon('story', 'change',     $vars, $story, 'list', 'fork');
+                    common::printIcon('story', 'review',     $vars, $story, 'list', 'glasses');
+                    common::printIcon('story', 'close',      $vars, $story, 'list', '', '', 'iframe', true);
+                    common::printIcon('story', 'edit',       $vars, $story, 'list');
+                    if($this->config->global->flow != 'onlyStory') common::printIcon('story', 'createCase', "productID=$story->product&branch=$story->branch&module=0&from=&param=0&$vars", $story, 'list', 'sitemap');
+                    break;
+                case 'consumed':
+                    if ($story->consumed > $story->estimate) {
+                        echo '<div style="color: red">' . round($story->consumed, 2) . '</div>';
+                    } else {
+                        echo '<div style="color: green">' . round($story->consumed, 2) . '</div>';
+                    }
+                    break;
+                case 'progress':
+                    echo round($story->progress, 2) * 100 . '%';
+                    break;
+                case 'yestodayCompletion':
+                    if ($story->estimate == 0) {
+                        echo '0%';
+                    } else {
+                        echo round($story->yestodayCompletion / $story->estimate, 2) * 100 . '%';
+                    }
+                    break;
+                case 'weekCompletion':
+                    if ($story->estimate == 0) {
+                        echo '0%';
+                    } else {
+                        echo round($story->weekCompletion / $story->estimate, 2) * 100 . '%';
+                    }
+                    break;
             }
             echo '</td>';
         }

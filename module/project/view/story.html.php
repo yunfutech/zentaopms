@@ -135,6 +135,7 @@
             <th title='<?php echo $lang->story->consumed?>' class='w-80px'><?php echo $lang->story->consumed;?></th>
             <th title='<?php echo $lang->story->progress?>' class='w-80px'><?php echo $lang->story->progress;?></th>
             <th title='<?php echo $lang->story->yestodayCompletion?>' class='w-80px'><?php echo $lang->story->yestodayCompletion;?></th>
+            <th title='<?php echo $lang->story->weekCompletion?>' class='w-80px'><?php echo $lang->story->weekCompletion;?></th>
             <th title='<?php echo $lang->story->taskCount?>' class='w-30px'><?php echo $lang->story->taskCountAB;?></th>
             <th title='<?php echo $lang->story->bugCount?>'  class='w-30px'><?php echo $lang->story->bugCountAB;?></th>
             <th title='<?php echo $lang->story->caseCount?>' class='w-30px'><?php echo $lang->story->caseCountAB;?></th>
@@ -188,6 +189,15 @@
                     echo '0%';
                 } else {
                     echo round($story->yestodayCompletion / $story->estimate, 2) * 100 . '%';
+                }
+              ?>
+            </td>
+            <td class='c-name'>
+              <?php
+                if ($story->estimate == 0) {
+                    echo '0%';
+                } else {
+                    echo round($story->weekCompletion / $story->estimate, 2) * 100 . '%';
                 }
               ?>
             </td>

@@ -48,7 +48,7 @@ $config->story->custom->batchCreateFields = 'module,plan,spec,pri,estimate,revie
 $config->story->custom->batchEditFields   = 'branch,module,plan,estimate,pri,source,stage,closedBy,closedReason';
 
 $config->story->datatable = new stdclass();
-$config->story->datatable->defaultField = array('id', 'pri', 'title', 'plan', 'openedBy', 'assignedTo', 'estimate', 'consumed', 'progress', 'yestodayCompletion', 'status', 'stage', 'taskCount', 'actions');
+$config->story->datatable->defaultField = array('id', 'pri', 'title', 'plan', 'openedBy', 'assignedTo', 'estimate', 'consumed', 'progress', 'yestodayCompletion', 'weekCompletion', 'status', 'stage', 'taskCount', 'actions');
 
 $config->story->datatable->fieldList['id']['title']    = 'idAB';
 $config->story->datatable->fieldList['id']['fixed']    = 'left';
@@ -82,6 +82,12 @@ $config->story->datatable->fieldList['yestodayCompletion']['fixed']    = 'no';
 $config->story->datatable->fieldList['yestodayCompletion']['width']    = '80';
 $config->story->datatable->fieldList['yestodayCompletion']['required'] = 'no';
 $config->story->datatable->fieldList['yestodayCompletion']['sort']     = 'no';
+
+$config->story->datatable->fieldList['weekCompletion']['title']    = 'weekCompletion';
+$config->story->datatable->fieldList['weekCompletion']['fixed']    = 'no';
+$config->story->datatable->fieldList['weekCompletion']['width']    = '80';
+$config->story->datatable->fieldList['weekCompletion']['required'] = 'no';
+$config->story->datatable->fieldList['weekCompletion']['sort']     = 'no';
 
 $config->story->datatable->fieldList['branch']['title']    = 'branch';
 $config->story->datatable->fieldList['branch']['fixed']    = 'no';
