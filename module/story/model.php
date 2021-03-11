@@ -1421,31 +1421,30 @@ class storyModel extends model
 
     public function getStoryStatistic($story) {
         $yestoday = date('Y-m-d', strtotime('-1 day'));
-        $taskStatistic = $this->dao->select('sum(t2.consumed) AS consumed, sum(t2.consumed) / t1.estimate as progress')->from(TABLE_STORY)->alias('t1')
+        $consumed = $this->dao->select('sum(t2.consumed) AS consumed')->from(TABLE_STORY)->alias('t1')
             ->leftJoin(TABLE_TASK)->alias('t2')->on('t2.story = t1.id')
             ->where('t1.id')->eq($story->id)
             ->andWhere('t2.deleted')->eq(0)
             ->andWhere('t2.status')->ne('cancel')
             ->groupBy('t1.id')
-            ->fetch();
-        $story->consumed = $taskStatistic->consumed;
-        $story->progress = $taskStatistic->progress;
-        $yestodayCompletion = $this->dao->select('sum(consumed) as totalConsumed')->from(TABLE_TASK)
+            ->fetch('consumed');
+        $story->consumed = $consumed;
+        $story->progress = $story->estimate ? $consumed / $story->estimate : 0;
+        $yestodayConsumed = $this->dao->select('sum(consumed) as totalConsumed')->from(TABLE_TASK)
             ->where('story')->eq($story->id)
             ->andWhere('deleted')->eq(0)
             ->andWhere('status')->ne('cancel')
             ->andWhere('LEFT(finishedDate, 10)')->eq($yestoday)
             ->fetch('totalConsumed');
-        $story->yestodayCompletion = $yestodayCompletion;
+        $story->yestodayCompletion = $story->estimate ? $yestodayConsumed / $story->estimate : 0;
         $monday = helper::monday();
-        $weekCompletion = $this->dao->select('sum(consumed) as totalConsumed')->from(TABLE_TASK)
+        $weekConsumed = $this->dao->select('sum(consumed) as totalConsumed')->from(TABLE_TASK)
             ->where('story')->eq($story->id)
             ->andWhere('deleted')->eq(0)
             ->andWhere('status')->ne('cancel')
             ->andWhere('LEFT(finishedDate, 10)')->ge($monday)
             ->fetch('totalConsumed');
-        $story->yestodayCompletion = $yestodayCompletion;
-        $story->weekCompletion = $weekCompletion;
+        $story->weekCompletion = $story->estimate ? $weekConsumed / $story->estimate : 0;
         return $story;
     }
 
@@ -1808,30 +1807,30 @@ class storyModel extends model
         $yestoday = date('Y-m-d', strtotime('-1 day'));
         foreach($stories as $story)
         {
-            $taskStatistic = $this->dao->select('sum(t2.consumed) AS consumed, sum(t2.consumed) / t1.estimate as progress')->from(TABLE_STORY)->alias('t1')
+            $consumed = $this->dao->select('sum(t2.consumed) AS consumed')->from(TABLE_STORY)->alias('t1')
                 ->leftJoin(TABLE_TASK)->alias('t2')->on('t2.story = t1.id')
                 ->where('t2.project')->eq($story->project)
                 ->andWhere('t1.id')->eq($story->id)
                 ->andWhere('t2.deleted')->eq(0)
                 ->andWhere('t2.status')->ne('cancel')
                 ->groupBy('t1.id')
-                ->fetch();
-            $story->consumed = $taskStatistic->consumed;
-            $story->progress = $taskStatistic->progress;
-            $yestodayCompletion = $this->dao->select('sum(consumed) as totalConsumed')->from(TABLE_TASK)
+                ->fetch('consumed');
+            $story->consumed = $consumed;
+            $story->progress = $story->estimate ? $consumed / $story->estimate : 0;
+            $yestodayConsumed = $this->dao->select('sum(consumed) as totalConsumed')->from(TABLE_TASK)
                 ->where('story')->eq($story->id)
                 ->andWhere('deleted')->eq(0)
                 ->andWhere('status')->ne('cancel')
                 ->andWhere('LEFT(finishedDate, 10)')->eq($yestoday)
                 ->fetch('totalConsumed');
-            $story->yestodayCompletion = $yestodayCompletion;
-            $weekCompletion = $this->dao->select('sum(consumed) as totalConsumed')->from(TABLE_TASK)
+            $story->yestodayCompletion = $story->estimate ? $yestodayConsumed / $story->estimate : 0;
+            $weekConsumed = $this->dao->select('sum(consumed) as totalConsumed')->from(TABLE_TASK)
                 ->where('story')->eq($story->id)
                 ->andWhere('deleted')->eq(0)
                 ->andWhere('status')->ne('cancel')
                 ->andWhere('LEFT(finishedDate, 10)')->ge(helper::monday())
                 ->fetch('totalConsumed');
-            $story->weekCompletion = $weekCompletion;
+            $story->weekCompletion = $story->estimate ? $weekConsumed / $story->estimate : 0;
             if(empty($story->branch) and $story->productType != 'normal') $branches[$story->productBranch][$story->id] = $story->id;
         }
         foreach($branches as $branchID => $storyIdList)
@@ -2679,18 +2678,10 @@ class storyModel extends model
                     echo round($story->progress, 2) * 100 . '%';
                     break;
                 case 'yestodayCompletion':
-                    if ($story->estimate == 0) {
-                        echo '0%';
-                    } else {
-                        echo round($story->yestodayCompletion / $story->estimate, 2) * 100 . '%';
-                    }
+                    echo round($story->yestodayCompletion, 2) * 100 . '%';
                     break;
                 case 'weekCompletion':
-                    if ($story->estimate == 0) {
-                        echo '0%';
-                    } else {
-                        echo round($story->weekCompletion / $story->estimate, 2) * 100 . '%';
-                    }
+                    echo round($story->weekCompletion, 2) * 100 . '%';
                     break;
             }
             echo '</td>';

@@ -195,7 +195,15 @@
         </thead>
         <tbody>
           <?php foreach($stories as $story):?>
-          <tr data-id='<?php echo $story->id?>' data-estimate='<?php echo $story->estimate?>' data-cases='<?php echo zget($storyCases, $story->id, 0);?>'>
+          <tr
+            data-id='<?php echo $story->id?>'
+            data-estimate='<?php echo $story->estimate?>'
+            data-consumed='<?php echo $story->consumed?>'
+            data-progress='<?php echo $story->progress?>'
+            data-yestodayCompletion='<?php echo $story->yestodayCompletion?>'
+            data-weekCompletion='<?php echo $story->weekCompletion?>'
+            data-cases='<?php echo zget($storyCases, $story->id, 0);?>
+          '>
             <?php foreach($setting as $key => $value) $this->story->printCell($value, $story, $users, $branches, $storyStages, $modulePairs, $storyTasks, $storyBugs, $storyCases, $useDatatable ? 'datatable' : 'table');?>
           </tr>
           <?php endforeach;?>
@@ -395,6 +403,7 @@
     <?php endif;?>
   </div>
 </div>
+<?php js::set('checkedSummary', $lang->product->checkedSummary);?>
 <script>
 var moduleID = <?php echo $moduleID?>;
 $('#module<?php echo $moduleID;?>').closest('li').addClass('active');
@@ -414,6 +423,11 @@ $(function()
 
             var checkedEstimate = 0;
             var checkedCase     = 0;
+            var checkedConsumed = 0;
+            var checkedProgress = 0;
+            var checkedYesCompletion = 0;
+            var checkedWeekCompletion = 0;
+            var stoires = [];
             $checkedRows.each(function()
             {
                 var $row = $(this);
@@ -422,13 +436,42 @@ $(function()
                     $row = $originTable.find('tbody>tr[data-id="' + $row.data('id') + '"]');
                 }
                 var data = $row.data();
-                checkedEstimate += data.estimate;
+                stoires.push(data)
+                checkedEstimate += Number(data.estimate);
+                checkedConsumed += Number(data.consumed);
                 if(data.cases > 0) checkedCase += 1;
             });
+            stoires.forEach(item => {
+              var weight = Number(item.estimate) / checkedEstimate
+              console.log(item)
+              if (item.progress >= 1) {
+                  item.progress = 1
+              }
+              if (item.weekcompletion >= 1) {
+                  item.weekcompletion = 1
+              }
+              if (item.yestodaycompletion >= 1) {
+                  item.yestodaycompletion = 1
+              }
+              if (checkedEstimate != 0) {
+                  checkedProgress += weight * item.progress
+                  checkedYesCompletion += weight * item.yestodaycompletion
+                  checkedWeekCompletion += weight * item.weekcompletion
+              }
+            });
             var rate = Math.round(checkedCase / checkedTotal * 10000 / 100) + '' + '%';
+            checkedEstimate =checkedEstimate.toFixed(2);
+            checkedConsumed =checkedConsumed.toFixed(2);
+            checkedProgress = Math.round(checkedProgress * 10000) / 100  + '' + '%';
+            checkedYesCompletion = Math.round(checkedYesCompletion * 10000) / 100  + '' + '%';
+            checkedWeekCompletion = Math.round(checkedWeekCompletion * 10000) / 100  + '' + '%';
             return checkedSummary.replace('%total%', checkedTotal)
-                  .replace('%estimate%', checkedEstimate.toFixed(1))
-                  .replace('%rate%', rate);
+              .replace('%estimate%', checkedEstimate)
+              .replace('%rate%', rate)
+              .replace('%consumed%', checkedConsumed)
+              .replace('%progress%', checkedProgress)
+              .replace('%yestodayCompletion%', checkedYesCompletion)
+              .replace('%weekCompletion%', checkedWeekCompletion)
         }
     });
 });

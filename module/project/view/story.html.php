@@ -148,7 +148,17 @@
           $storyLink      = $this->createLink('story', 'view', "storyID=$story->id&version=$story->version&from=project&param=$project->id");
           $totalEstimate += $story->estimate;
           ?>
-          <tr id="story<?php echo $story->id;?>" data-id='<?php echo $story->id;?>' data-order='<?php echo $story->order ?>' data-estimate='<?php echo $story->estimate?>' data-cases='<?php echo zget($storyCases, $story->id, 0)?>'>
+          <tr
+            id="story<?php echo $story->id;?>"
+            data-id='<?php echo $story->id;?>'
+            data-order='<?php echo $story->order ?>'
+            data-estimate='<?php echo $story->estimate?>'
+            data-cases='<?php echo zget($storyCases, $story->id, 0)?>'
+            data-consumed='<?php echo $story->consumed?>'
+            data-progress='<?php echo $story->progress?>'
+            data-yestodayCompletion='<?php echo $story->yestodayCompletion?>'
+            data-weekCompletion='<?php echo $story->weekCompletion?>'
+          >
             <td class='c-id'>
               <?php if($canBatchEdit or $canBatchClose):?>
               <?php echo html::checkbox('storyIdList', array($story->id => '')) . html::a(helper::createLink('story', 'view', "storyID=$story->id"), sprintf('%03d', $story->id));?>
@@ -185,20 +195,12 @@
             <td class='c-name'><?php echo round($story->progress, 2) * 100 . '%';?></td>
             <td class='c-name'>
               <?php
-                if ($story->estimate == 0) {
-                    echo '0%';
-                } else {
-                    echo round($story->yestodayCompletion / $story->estimate, 2) * 100 . '%';
-                }
+                echo round($story->yestodayCompletion, 2) * 100 . '%';
               ?>
             </td>
             <td class='c-name'>
               <?php
-                if ($story->estimate == 0) {
-                    echo '0%';
-                } else {
-                    echo round($story->weekCompletion / $story->estimate, 2) * 100 . '%';
-                }
+                echo round($story->weekCompletion, 2) * 100 . '%';
               ?>
             </td>
             <td class='linkbox'>
@@ -336,6 +338,11 @@ $(function()
 
             var checkedEstimate = 0;
             var checkedCase     = 0;
+            var checkedConsumed = 0;
+            var checkedProgress = 0;
+            var checkedYesCompletion = 0;
+            var checkedWeekCompletion = 0;
+            var stoires = [];
             $checkedRows.each(function()
             {
                 var $row = $(this);
@@ -344,13 +351,42 @@ $(function()
                     $row = $originTable.find('tbody>tr[data-id="' + $row.data('id') + '"]');
                 }
                 var data = $row.data();
-                checkedEstimate += data.estimate;
+                stoires.push(data)
+                checkedEstimate += Number(data.estimate);
+                checkedConsumed += Number(data.consumed);
                 if(data.cases > 0) checkedCase += 1;
             });
+            stoires.forEach(item => {
+              var weight = Number(item.estimate) / checkedEstimate
+              console.log(item)
+              if (item.progress >= 1) {
+                  item.progress = 1
+              }
+              if (item.weekcompletion >= 1) {
+                  item.weekcompletion = 1
+              }
+              if (item.yestodaycompletion >= 1) {
+                  item.yestodaycompletion = 1
+              }
+              if (checkedEstimate != 0) {
+                  checkedProgress += weight * item.progress
+                  checkedYesCompletion += weight * item.yestodaycompletion
+                  checkedWeekCompletion += weight * item.weekcompletion
+              }
+            });
             var rate = Math.round(checkedCase / checkedTotal * 10000 / 100) + '' + '%';
+            checkedEstimate =checkedEstimate.toFixed(2);
+            checkedConsumed =checkedConsumed.toFixed(2);
+            checkedProgress = Math.round(checkedProgress * 10000) / 100  + '' + '%';
+            checkedYesCompletion = Math.round(checkedYesCompletion * 10000) / 100  + '' + '%';
+            checkedWeekCompletion = Math.round(checkedWeekCompletion * 10000) / 100  + '' + '%';
             return checkedSummary.replace('%total%', checkedTotal)
-                  .replace('%estimate%', checkedEstimate.toFixed(1))
-                  .replace('%rate%', rate);
+              .replace('%estimate%', checkedEstimate)
+              .replace('%rate%', rate)
+              .replace('%consumed%', checkedConsumed)
+              .replace('%progress%', checkedProgress)
+              .replace('%yestodayCompletion%', checkedYesCompletion)
+              .replace('%weekCompletion%', checkedWeekCompletion)
         }
     });
 });
