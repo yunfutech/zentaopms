@@ -44,7 +44,7 @@ class project extends control
 
         if($this->app->viewType != 'mhtml') unset($this->lang->project->menu->index);
         $this->commonAction($projectID);
-        
+
         if(common::hasPriv('project', 'create')) $this->lang->modulePageActions = html::a($this->createLink('project', 'create'), "<i class='icon icon-sm icon-plus'></i> " . $this->lang->project->create, '', "class='btn btn-primary'");
 
         $this->view->title         = $this->lang->project->index;
@@ -703,6 +703,7 @@ class project extends control
         $modules  = array();
         $projectModules = $this->loadModel('tree')->getTaskTreeModules($projectID, true);
         $products = $this->project->getProducts($projectID);
+        $modulePairs = array();
         foreach($products as $product)
         {
             $productModules = $this->tree->getOptionMenu($product->id);
@@ -711,6 +712,8 @@ class project extends control
                 if($moduleID and !isset($projectModules[$moduleID])) continue;
                 $modules[$moduleID] = ((count($products) >= 2 and $moduleID) ? $product->name : '') . $moduleName;
             }
+            $productModulePairs = $this->tree->getModulePairs($product->id, 'story');
+            $modulePairs =$modulePairs + $productModulePairs;
         }
         $actionURL    = $this->createLink('project', 'story', "projectID=$projectID&orderBy=$orderBy&type=bySearch&queryID=myQueryID");
         $branchGroups = $this->loadModel('branch')->getByProducts(array_keys($products), 'noempty');
@@ -768,6 +771,7 @@ class project extends control
         $this->view->users        = $users;
         $this->view->pager        = $pager;
         $this->view->branchGroups = $branchGroups;
+        $this->view->modules      = $modulePairs;
 
         $this->display();
     }
@@ -1122,7 +1126,7 @@ class project extends control
         }
 
         $this->view->isSprint = false;
-        if(strpos($this->config->custom->productProject, '_2')) 
+        if(strpos($this->config->custom->productProject, '_2'))
         {
             $this->view->isSprint = true;
             unset($this->lang->project->typeList['waterfall']);
@@ -1227,7 +1231,7 @@ class project extends control
         }
 
         $this->view->isSprint = false;
-        if(strpos($this->config->custom->productProject, '_2')) 
+        if(strpos($this->config->custom->productProject, '_2'))
         {
             $this->view->isSprint = true;
 
@@ -2479,9 +2483,9 @@ class project extends control
         {
             foreach($planStory as $id => $story)
             {
-                if($story->status == 'draft') 
+                if($story->status == 'draft')
                 {
-                    $count++; 
+                    $count++;
                     unset($planStory[$id]);
                     continue;
                 }
