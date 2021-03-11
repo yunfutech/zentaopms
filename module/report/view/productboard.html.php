@@ -6,9 +6,9 @@
         <div class="panel-heading">
           <div class="panel-title">
             <div class="table-row">
-              <div class="col-xs-1"><?php echo $title;?></div>
-              <div class="col-xs text-right text-gray text-middle"><?php echo $lang->product->status . '：'?></div>
-              <div class='col-xs-3' id="status">
+              <div class="col-xs-1 text-middle"><?php echo $title;?></div>
+              <div class="col-xs-1 text-middle text-right text-gray"><?php echo $lang->product->status . '：'?></div>
+              <div class='col-xs-2' id="status">
                 <div class="radio inline-block">
                   <label for="<?php echo '已关闭';?>">
                     <input type="radio" name="status" value="<?php echo 'noclosed';?>" id="<?php echo 'noclosed';?>" <?php if($status == 'noclosed') echo "checked='checked'" ?> />
@@ -22,7 +22,8 @@
                   </label>
                 </div>
               </div>
-              <div class='col pull-right' id='selectLines'>
+              <div class="col-xs-1 text-middle text-right text-gray"><?php echo $lang->product->line . '：'?></div>
+              <div class='col-xs-10 text-middle' id='selectLines'>
                 <?php foreach ($lines as $line):?>
                   <div class="checkbox-primary inline-block">
                     <input type="checkbox" value="<?php echo $line;?>" id="<?php echo $line;?>" <?php if(strpos($selectLines, $line) !== false) echo "checked='checked'"?> />
@@ -30,7 +31,6 @@
                   </div>
                 <?php endforeach;?>
               </div>
-              <div class="col-xs pull-right text-right text-gray text-middle"><?php echo $lang->product->line . '：'?></div>
             </div>
           </div>
           <nav class="panel-actions btn-toolbar"></nav>

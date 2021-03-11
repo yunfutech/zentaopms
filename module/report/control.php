@@ -396,7 +396,7 @@ class report extends control
     /**
      * 项目看板
      */
-    public function productboard($selectLines = 'yfc,yfkg,yfbot,yfdoc,yfweb,yflabel,yfbid', $status='noclosed') {
+    public function productboard($selectLines = 'yfmt,yfnlp,yfc,yfkg,yfbot,yfdoc,yfweb,yflabel,yfbid', $status='noclosed') {
         $this->view->products = $this->loadModel('product')->getBoardProducts($selectLines, $status);
         $this->view->lines = $this->loadModel('tree')->getLinePairs() + array('其他');
         $this->app->loadConfig('product');
