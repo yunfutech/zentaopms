@@ -1583,6 +1583,10 @@ class task extends control
         $mentionedUsers = [];
         $user2cnt = [];
 
+        $delayProjectsNum = 20;
+        $taskLessNum = 20;
+        $delayTasksNum = 10;
+
         foreach($depts as $dept) {
             $deptId = $dept->id;
             if ($deptId == 4 || $deptId == 9) {
@@ -1610,7 +1614,7 @@ class task extends control
                     continue;
                 }
                 array_push($mentionedUsers, $user->account);
-                $user2cnt[$user->realname] = $delayTasks->cnt * 10;
+                $user2cnt[$user->realname] = $delayTasks->cnt * $delayTasksNum;
                 array_push($deleyTasksRank, ['name' => $user->realname, 'delay_count' => $delayTasks->cnt, 'train_count' => '+' . strval(10 * $delayTasks->cnt)]);
             }
         }
@@ -1623,9 +1627,9 @@ class task extends control
         $delayProjects = $this->dao->select('t2.realname, t2.account, group_concat(DISTINCT t1.name ORDER BY t1.end SEPARATOR \'<br/>\') as projects, count(t1.name) as cnt')->from(TABLE_PROJECT)->alias('t1')->leftJoin(TABLE_USER)->alias('t2')->on('t1.PO = t2.account')->where('t1.end')->lt($today)->andWhere('t1.status')->eq('doing')->andWhere('t1.deleted')->ne(1)->groupBy('t1.PO')->orderBy('cnt desc')->fetchAll();
         foreach($delayProjects as $project) {
             if (array_key_exists($project->realname, $user2cnt)) {
-                $user2cnt[$project->realname] += $project->cnt * 50;
+                $user2cnt[$project->realname] += $project->cnt * $delayProjectsNum;
             } else {
-                $user2cnt[$project->realname] = $project->cnt * 50;
+                $user2cnt[$project->realname] = $project->cnt * $delayProjectsNum;
             }
             array_push($mentionedUsers, $project->account);
         }
@@ -1644,9 +1648,9 @@ class task extends control
             $summary .= '任务不饱和(运动+20)：';
             foreach($lessUsers as $lessUser) {
                 if (array_key_exists($lessUser['name'], $user2cnt)) {
-                    $user2cnt[$lessUser['name']] += 20;
+                    $user2cnt[$lessUser['name']] += $taskLessNum;
                 } else {
-                    $user2cnt[$lessUser['name']] = 20;
+                    $user2cnt[$lessUser['name']] = $taskLessNum;
                 }
                 array_push($mentionedUsers, $lessUser['account']);
                 $summary .= $lessUser['name'] . '(' . strval($lessUser['estimate']) . ')';
