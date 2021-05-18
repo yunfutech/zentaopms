@@ -1671,6 +1671,7 @@ class task extends control
         $this->view->summary = $summary;
         $this->view->deleyTasksRank = $deleyTasksRank;
         $this->view->delayProjects = $delayProjects;
+        $this->view->delayProjectsNum = $delayProjectsNum;
         // $this->view->uncommittedUsers = $uncommittedUsers;
         $this->loadModel('mail');
         // $this->display();

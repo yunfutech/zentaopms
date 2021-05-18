@@ -68,7 +68,7 @@
           <tr>
             <td><?php echo $value->realname;?></td>
             <td class='text-center'><?php echo $value->cnt;?></td>
-            <td><?php echo '+' . strval(intval($value->cnt) * 50);?></td>
+            <td><?php echo '+' . strval(intval($value->cnt) * $delayProjectsNum);?></td>
             <td><?php echo $value->projects;?></td>
           </tr>
           <?php endforeach;?>
