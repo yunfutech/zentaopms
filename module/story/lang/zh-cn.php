@@ -77,6 +77,8 @@ $lang->story->type           = "{$lang->storyCommon}类型";
 $lang->story->color          = '标题颜色';
 $lang->story->toBug          = '转Bug';
 $lang->story->spec           = "{$lang->storyCommon}描述";
+$lang->story->solution       = "技术方案";
+$lang->story->skill          = "技能";
 $lang->story->assign         = '指派给';
 $lang->story->verify         = '验收标准';
 $lang->story->pri            = '优先级';
@@ -126,6 +128,18 @@ $lang->story->dittoNotice = "该{$lang->storyCommon}与上一{$lang->storyCommon
 
 $lang->story->useList[0] = '不使用';
 $lang->story->useList[1] = '使用';
+
+$lang->story->skillList[]           = '';
+$lang->story->skillList[1]           = '销售';
+$lang->story->skillList[2]           = '管理';
+$lang->story->skillList[3]           = '产品';
+$lang->story->skillList[4]           = '数据';
+$lang->story->skillList[5]           = '前端';
+$lang->story->skillList[6]           = '后端';
+$lang->story->skillList[7]           = '算法';
+$lang->story->skillList[8]           = '测试';
+$lang->story->skillList[9]           = '运维';
+$lang->story->skillList[10]           = '文档';
 
 $lang->story->statusList['']          = '';
 $lang->story->statusList['draft']     = '草稿';
@@ -198,6 +212,7 @@ $lang->story->legendCases          = '相关用例';
 $lang->story->legendLinkStories    = "相关{$lang->storyCommon}";
 $lang->story->legendChildStories   = "细分{$lang->storyCommon}";
 $lang->story->legendSpec           = "{$lang->storyCommon}描述";
+$lang->story->legendSolution       = "技术方案";
 $lang->story->legendVerify         = '验收标准';
 $lang->story->legendMisc           = '其他相关';
 

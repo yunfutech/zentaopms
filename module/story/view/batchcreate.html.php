@@ -48,13 +48,13 @@
             <th class='w-150px<?php echo zget($visibleFields, $product->type, ' hidden')?>'><?php echo $lang->product->branch;?></th>
             <th class='col-module<?php echo zget($requiredFields, 'module', '', ' required');?>'><?php echo $lang->story->module;?></th>
             <th class='col-plan<?php echo zget($visibleFields, 'plan', ' hidden') . zget($requiredFields, 'plan', '', ' required');?>'><?php echo $lang->story->plan;?></th>
+            <th class='w-150px<?php echo zget($visibleFields, 'skill', ' hidden') . zget($requiredFields, 'skill', '', ' required');?>'><?php echo $lang->story->skill;?></th>
             <th class='col-name required has-btn'><?php echo $lang->story->title;?></th>
             <th class='w-150px<?php      echo zget($visibleFields, 'spec',     ' hidden') . zget($requiredFields, 'spec',     '', ' required');?>'><?php echo $lang->story->spec;?></th>
             <th class='w-100px<?php      echo zget($visibleFields, 'source',   ' hidden') . zget($requiredFields, 'source',   '', ' required');?>'><?php echo $lang->story->source;?></th>
             <th class='w-150px<?php        echo zget($visibleFields, 'verify',   ' hidden') . zget($requiredFields, 'verify',   '', ' required');?>'><?php echo $lang->story->verify;?></th>
             <th class='col-pri<?php      echo zget($visibleFields, 'pri',      ' hidden') . zget($requiredFields, 'pri',      '', ' required');?>'><?php echo $lang->story->pri;?></th>
             <th class='col-estimate<?php echo zget($visibleFields, 'estimate', ' hidden') . zget($requiredFields, 'estimate', '', ' required');?>'><?php echo $lang->story->estimate;?></th>
-            <th class='col-review<?php   echo zget($visibleFields, 'review',   ' hidden') . zget($requiredFields, 'review',   '', ' required');?>'><?php echo $lang->story->needReview;?></th>
             <th class='w-100px<?php echo zget($visibleFields, 'keywords', ' hidden') . zget($requiredFields, 'keywords', '', ' required');?>'><?php echo $lang->story->keywords;?></th>
           </tr>
         </thead>
@@ -64,6 +64,7 @@
             <td class='text-left<?php echo zget($visibleFields, $product->type, ' hidden')?>'><?php echo html::select('branch[$id]', $branches, $branch, "class='form-control chosen' onchange='setModuleAndPlan(this.value, $productID, \$id)'");?></td>
             <td class='text-left' style='overflow:visible'><?php echo html::select('module[$id]', $moduleOptionMenu, $moduleID, "class='form-control chosen'");?></td>
             <td class='text-left<?php echo zget($visibleFields, 'plan', ' hidden')?>' style='overflow:visible'><?php echo html::select('plan[$id]', $plans, $planID, "class='form-control chosen'");?></td>
+            <td class='text-left<?php echo zget($visibleFields, 'skill', ' hidden')?>' style='overflow:visible'><?php echo html::select('skill[$id]', $skillList, '', "class='form-control chosen'");?></td>
             <td style='overflow:visible'>
               <div class="input-group">
                 <div class="input-control has-icon-right">

@@ -36,6 +36,10 @@
           </td>
           <td></td>
         </tr>
+        <tr>
+          <th><?php echo $lang->story->estimate;?></th>
+          <td><?php echo html::input('estimate', $story->estimate, 'class="form-control"');?></td>
+        </tr>
         <tr class='hide'>
           <th><?php echo $lang->story->status;?></th>
           <td><?php echo html::hidden('status', $story->status);?></td>
@@ -48,6 +52,10 @@
         <tr>
           <th><?php echo $lang->story->spec;?></th>
           <td colspan='2'><?php echo html::textarea('spec', htmlspecialchars($story->spec), 'rows=8 class="form-control"');?><span class='help-block'><?php echo $lang->story->specTemplate;?></span></td>
+        </tr>
+        <tr>
+          <th><?php echo $lang->story->solution;?></th>
+          <td colspan='2'><?php echo html::textarea('solution', htmlspecialchars($story->solution), 'rows=8 class="form-control"');?>
         </tr>
         <tr>
           <th><?php echo $lang->story->verify;?></th>

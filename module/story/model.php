@@ -28,13 +28,15 @@ class storyModel extends model
         if(!$story) return false;
         if(substr($story->closedDate, 0, 4) == '0000') $story->closedDate = '';
         if($version == 0) $version = $story->version;
-        $spec = $this->dao->select('title,spec,verify')->from(TABLE_STORYSPEC)->where('story')->eq($storyID)->andWhere('version')->eq($version)->fetch();
+        $spec = $this->dao->select('title,spec,verify,solution')->from(TABLE_STORYSPEC)->where('story')->eq($storyID)->andWhere('version')->eq($version)->fetch();
         $story->title  = isset($spec->title)  ? $spec->title  : '';
         $story->spec   = isset($spec->spec)   ? $spec->spec   : '';
+        $story->solution   = isset($spec->solution)   ? $spec->solution   : '';
         $story->verify = isset($spec->verify) ? $spec->verify : '';
 
         $story = $this->loadModel('file')->replaceImgURL($story, 'spec,verify');
         if($setImgSize) $story->spec   = $this->file->setImgSize($story->spec);
+        if($setImgSize) $story->solution = $this->file->setImgSize($story->solution);
         if($setImgSize) $story->verify = $this->file->setImgSize($story->verify);
 
         $story->projects = $this->dao->select('t1.project, t2.name, t2.status')->from(TABLE_PROJECTSTORY)->alias('t1')
@@ -183,7 +185,7 @@ class storyModel extends model
         if($this->checkForceReview()) $story->status = 'draft';
         if($story->status == 'draft') $story->stage  = $this->post->plan > 0 ? 'planned' : 'wait';
         $story = $this->loadModel('file')->processImgURL($story, $this->config->story->editor->create['id'], $this->post->uid);
-        $this->dao->insert(TABLE_STORY)->data($story, 'spec,verify')->autoCheck()->batchCheck($this->config->story->create->requiredFields, 'notempty')->exec();
+        $this->dao->insert(TABLE_STORY)->data($story, 'spec,verify,solution')->autoCheck()->batchCheck($this->config->story->create->requiredFields, 'notempty')->exec();
         if(!dao::isError())
         {
             $storyID = $this->dao->lastInsertID();
@@ -196,6 +198,7 @@ class storyModel extends model
             $data->title   = $story->title;
             $data->spec    = $story->spec;
             $data->verify  = $story->verify;
+            $data->solution  = $story->solution;
             $this->dao->insert(TABLE_STORYSPEC)->data($data)->exec();
 
             if($projectID != 0 and $story->status != 'draft')
@@ -275,6 +278,7 @@ class storyModel extends model
         $plan   = 0;
         $pri    = 0;
         $source = '';
+        $skill = '';
 
         foreach($stories->title as $i => $title)
         {
@@ -282,16 +286,19 @@ class storyModel extends model
             $plan   = $stories->plan[$i]   == 'ditto' ? $plan   : $stories->plan[$i];
             $pri    = $stories->pri[$i]    == 'ditto' ? $pri    : $stories->pri[$i];
             $source = $stories->source[$i] == 'ditto' ? $source : $stories->source[$i];
+            $skill  = $stories->skill[$i] == 'ditto' ? $skill : $stories->skill[$i];
             $stories->module[$i] = (int)$module;
             $stories->plan[$i]   = $plan;
             $stories->pri[$i]    = (int)$pri;
             $stories->source[$i] = $source;
+            $stories->skill[$i] = $skill;
         }
 
         if(isset($stories->uploadImage)) $this->loadModel('file');
 
         $forceReview = $this->checkForceReview();
         $data        = array();
+        $product  = $this->loadModel('product')->getById($productID);
         foreach($stories->title as $i => $title)
         {
             if(empty($title)) continue;
@@ -303,6 +310,7 @@ class storyModel extends model
             $story->title      = $stories->title[$i];
             $story->source     = $stories->source[$i];
             $story->pri        = $stories->pri[$i];
+            $story->skill      = $stories->skill[$i];
             $story->estimate   = $stories->estimate[$i];
             $story->status     = ($stories->needReview[$i] == 0 and !$forceReview) ? 'active' : 'draft';
             $story->keywords   = $stories->keywords[$i];
@@ -310,6 +318,7 @@ class storyModel extends model
             $story->openedBy   = $this->app->user->account;
             $story->openedDate = $now;
             $story->version    = 1;
+            $story->assignedTo = $product->PO;
 
             foreach(explode(',', $this->config->story->create->requiredFields) as $field)
             {
@@ -406,9 +415,10 @@ class storyModel extends model
     {
         $specChanged = false;
         $oldStory    = $this->dao->findById((int)$storyID)->from(TABLE_STORY)->fetch();
-        $oldSpec     = $this->dao->select('title,spec,verify')->from(TABLE_STORYSPEC)->where('story')->eq((int)$storyID)->andWhere('version')->eq($oldStory->version)->fetch();
+        $oldSpec     = $this->dao->select('title,spec,verify,solution')->from(TABLE_STORYSPEC)->where('story')->eq((int)$storyID)->andWhere('version')->eq($oldStory->version)->fetch();
         $oldStory->title  = isset($oldSpec->title)  ? $oldSpec->title  : '';
         $oldStory->spec   = isset($oldSpec->spec)   ? $oldSpec->spec   : '';
+        $oldStory->solution   = isset($oldSpec->solution)   ? $oldSpec->solution   : '';
         $oldStory->verify = isset($oldSpec->verify) ? $oldSpec->verify : '';
 
         if(!empty($_POST['lastEditedDate']) and $oldStory->lastEditedDate != $this->post->lastEditedDate)
@@ -424,7 +434,7 @@ class storyModel extends model
         }
 
         $story = fixer::input('post')->stripTags($this->config->story->editor->change['id'], $this->config->allowedTags)->get();
-        if($story->spec != $oldStory->spec or $story->verify != $oldStory->verify or $story->title != $oldStory->title or $this->loadModel('file')->getCount()) $specChanged = true;
+        if($story->spec != $oldStory->spec or $story->solution != $oldStory->solution or $story->solution != $oldStory->verify or $story->title != $oldStory->title or $this->loadModel('file')->getCount()) $specChanged = true;
 
         $now   = helper::now();
         $story = fixer::input('post')
@@ -445,7 +455,7 @@ class storyModel extends model
             ->get();
         if($specChanged and $story->status == 'active' and $this->checkForceReview()) $story->status = 'changed';
         $story = $this->loadModel('file')->processImgURL($story, $this->config->story->editor->change['id'], $this->post->uid);
-        $this->dao->update(TABLE_STORY)->data($story, 'spec,verify')
+        $this->dao->update(TABLE_STORY)->data($story, 'spec,verify,solution')
             ->autoCheck()
             ->batchCheck($this->config->story->change->requiredFields, 'notempty')
             ->where('id')->eq((int)$storyID)->exec();
@@ -458,6 +468,7 @@ class storyModel extends model
                 $data->version = $oldStory->version + 1;
                 $data->title   = $story->title;
                 $data->spec    = $story->spec;
+                $data->solution    = $story->solution;
                 $data->verify  = $story->verify;
                 $this->dao->insert(TABLE_STORYSPEC)->data($data)->exec();
             }
@@ -602,6 +613,7 @@ class storyModel extends model
                 if($data->modules[$storyID]  == 'ditto') $data->modules[$storyID]  = isset($prev['module']) ? $prev['module'] : 0;
                 if($data->plans[$storyID]    == 'ditto') $data->plans[$storyID]    = isset($prev['plan'])   ? $prev['plan']   : 0;
                 if($data->sources[$storyID]  == 'ditto') $data->sources[$storyID]  = isset($prev['source']) ? $prev['source'] : '';
+                if($data->skills[$storyID]  == 'ditto') $data->skills[$storyID]  = isset($prev['skill']) ? $prev['skill'] : '';
                 if(isset($data->stages[$storyID])        and ($data->stages[$storyID]        == 'ditto')) $data->stages[$storyID]        = isset($prev['stage'])        ? $prev['stage']        : '';
                 if(isset($data->closedBys[$storyID])     and ($data->closedBys[$storyID]     == 'ditto')) $data->closedBys[$storyID]     = isset($prev['closedBy'])     ? $prev['closedBy']     : '';
                 if(isset($data->closedReasons[$storyID]) and ($data->closedReasons[$storyID] == 'ditto')) $data->closedReasons[$storyID] = isset($prev['closedReason']) ? $prev['closedReason'] : '';
@@ -611,6 +623,7 @@ class storyModel extends model
                 $prev['module'] = $data->modules[$storyID];
                 $prev['plan']   = $data->plans[$storyID];
                 $prev['source'] = $data->sources[$storyID];
+                $prev['skill'] = $data->skills[$storyID];
                 if(isset($data->stages[$storyID]))        $prev['stage']        = $data->stages[$storyID];
                 if(isset($data->closedBys[$storyID]))     $prev['closedBy']     = $data->closedBys[$storyID];
                 if(isset($data->closedReasons[$storyID])) $prev['closedReason'] = $data->closedReasons[$storyID];
@@ -634,6 +647,7 @@ class storyModel extends model
                 $story->module         = $data->modules[$storyID];
                 $story->plan           = $data->plans[$storyID];
                 $story->source         = $data->sources[$storyID];
+                $story->skill         = $data->skills[$storyID];
                 $story->keywords       = $data->keywords[$storyID];
                 $story->stage          = isset($data->stages[$storyID])             ? $data->stages[$storyID]             : $oldStory->stage;
                 $story->closedBy       = isset($data->closedBys[$storyID])          ? $data->closedBys[$storyID]          : $oldStory->closedBy;
@@ -2575,6 +2589,9 @@ class storyModel extends model
                 case 'sourceNote':
                     echo $story->sourceNote;
                     break;
+                case 'skill':
+                    echo zget($this->lang->story->skillList, $story->skill);
+                    break;
                 case 'status':
                     echo "<span class='status-{$story->status}'>";
                     echo $this->processStatus('story', $story);
@@ -2745,8 +2762,7 @@ class storyModel extends model
     public function checkForceReview()
     {
         $forceReview = false;
-        if(!empty($this->config->story->forceReview)) $forceReview = strpos(",{$this->config->story->forceReview},", ",{$this->app->user->account},") !== false;
-
+        if(!empty($this->config->story->forceReview)) $forceReview = $this->config->story->forceReview;
         return $forceReview;
     }
 

@@ -51,7 +51,7 @@
             </div>
           </div>
           <div class='actions form-actions text-center'>
-            <?php 
+            <?php
             echo html::hidden('lastEditedDate', $story->lastEditedDate);
             echo html::submitButton($lang->save);
             echo html::backButton();
@@ -100,7 +100,7 @@
                   <div class='input-group' id='planIdBox'>
                   <?php $multiple = ($this->session->currentProductType != 'normal' and empty($story->branch)) ? true : false;?>
                   <?php echo html::select($multiple ? 'plan[]' : 'plan', $plans, $story->plan, "class='form-control chosen'" . ($multiple ? ' multiple' : ''));
-                  if(count($plans) == 1) 
+                  if(count($plans) == 1)
                   {
                       echo "<span class='input-group-addon'>";
                       echo html::a($this->createLink('productplan', 'create', "productID=$story->product&branch=$story->branch", '', true), $lang->productplan->create, '', "class='text-primary' data-toggle='modal' data-type='iframe' data-width='95%'");
@@ -152,8 +152,12 @@
                 <td><?php echo html::select('pri', $lang->story->priList, $story->pri, "class='form-control chosen'");?></td>
               </tr>
               <tr>
+                <th><?php echo $lang->story->skill;?></th>
+                <td><?php echo html::select('skill', $lang->story->skillList, $story->skill, "class='form-control chosen'");?></td>
+              </tr>
+              <tr>
                 <th><?php echo $lang->story->estimate;?></th>
-                <td><?php echo html::input('estimate', $story->estimate, "class='form-control'");?></td>
+                <td><?php echo html::input('estimate', $story->estimate, "class='form-control' disabled");?></td>
               </tr>
               <tr>
                 <th><?php echo $lang->story->keywords;?></th>
@@ -199,7 +203,7 @@
               <?php endif;?>
             </table>
           </div>
-    
+
           <?php $this->printExtendFields($story, 'div', 'position=right');?>
 
           <div class='detail'>

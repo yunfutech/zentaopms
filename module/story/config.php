@@ -19,8 +19,8 @@ $config->story->close->requiredFields  = 'closedReason';
 $config->story->review->requiredFields = 'assignedTo,reviewedBy';
 
 $config->story->editor = new stdclass();
-$config->story->editor->create   = array('id' => 'spec,verify', 'tools' => 'simpleTools');
-$config->story->editor->change   = array('id' => 'spec,verify,comment', 'tools' => 'simpleTools');
+$config->story->editor->create   = array('id' => 'spec,verify,solution', 'tools' => 'simpleTools');
+$config->story->editor->change   = array('id' => 'spec,verify,comment,solution', 'tools' => 'simpleTools');
 $config->story->editor->edit     = array('id' => 'comment', 'tools' => 'simpleTools');
 $config->story->editor->view     = array('id' => 'comment,lastComment', 'tools' => 'simpleTools');
 $config->story->editor->close    = array('id' => 'comment', 'tools' => 'simpleTools');
@@ -39,16 +39,16 @@ $config->story->list->exportFields      = '
     childStories, linkStories, duplicateStory, files';
 
 $config->story->list->customCreateFields      = 'source,verify,pri,estimate,mailto,keywords';
-$config->story->list->customBatchCreateFields = 'plan,spec,source,verify,pri,estimate,review,keywords';
-$config->story->list->customBatchEditFields   = 'branch,plan,estimate,pri,assignedTo,source,stage,closedBy,closedReason,keywords';
+$config->story->list->customBatchCreateFields = 'plan,skill,spec,source,verify,pri,estimate,keywords';
+$config->story->list->customBatchEditFields   = 'branch,plan,skill,estimate,pri,source,stage,closedBy,closedReason,keywords';
 
 $config->story->custom = new stdclass();
 $config->story->custom->createFields      = $config->story->list->customCreateFields;
-$config->story->custom->batchCreateFields = 'module,plan,spec,pri,estimate,review';
-$config->story->custom->batchEditFields   = 'branch,module,plan,estimate,pri,source,stage,closedBy,closedReason';
+$config->story->custom->batchCreateFields = 'module,plan,skill,spec,pri,estimate';
+$config->story->custom->batchEditFields   = 'branch,module,plan,skill,estimate,pri,source,stage,closedBy,closedReason';
 
 $config->story->datatable = new stdclass();
-$config->story->datatable->defaultField = array('id', 'pri', 'title', 'plan', 'openedBy', 'assignedTo', 'estimate', 'consumed', 'progress', 'yestodayCompletion', 'weekCompletion', 'status', 'stage', 'taskCount', 'actions');
+$config->story->datatable->defaultField = array('id', 'pri', 'title', 'skill', 'plan', 'openedBy', 'assignedTo', 'estimate', 'consumed', 'progress', 'yestodayCompletion', 'weekCompletion', 'status', 'stage', 'taskCount', 'actions');
 
 $config->story->datatable->fieldList['id']['title']    = 'idAB';
 $config->story->datatable->fieldList['id']['fixed']    = 'left';
@@ -64,6 +64,11 @@ $config->story->datatable->fieldList['title']['title']    = 'title';
 $config->story->datatable->fieldList['title']['fixed']    = 'left';
 $config->story->datatable->fieldList['title']['width']    = 'auto';
 $config->story->datatable->fieldList['title']['required'] = 'yes';
+
+$config->story->datatable->fieldList['skill']['title']    = 'skill';
+$config->story->datatable->fieldList['skill']['fixed']    = 'left';
+$config->story->datatable->fieldList['skill']['width']    = '80';
+$config->story->datatable->fieldList['skill']['required'] = 'no';
 
 $config->story->datatable->fieldList['consumed']['title']    = 'consumed';
 $config->story->datatable->fieldList['consumed']['fixed']    = 'no';
@@ -220,3 +225,5 @@ $config->story->datatable->fieldList['actions']['title']    = 'actions';
 $config->story->datatable->fieldList['actions']['fixed']    = 'right';
 $config->story->datatable->fieldList['actions']['width']    = '150';
 $config->story->datatable->fieldList['actions']['required'] = 'yes';
+
+$config->story->forceReview = true;

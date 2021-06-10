@@ -56,6 +56,10 @@
         <div class="detail-content article-content"><?php echo $story->spec;?></div>
       </div>
       <div class="detail">
+        <div class="detail-title"><?php echo $lang->story->legendSolution;?></div>
+        <div class="detail-content article-content"><?php echo $story->solution;?></div>
+      </div>
+      <div class="detail">
         <div class="detail-title"><?php echo $lang->story->legendVerify;?></div>
         <div class="detail-content article-content"><?php echo $story->verify;?></div>
       </div>
@@ -196,6 +200,10 @@
                 <tr>
                   <th><?php echo $lang->story->status;?></th>
                   <td><span class='status-story status-<?php echo $story->status?>'><span class="label label-dot"></span> <?php echo $this->processStatus('story', $story);?></span></td>
+                </tr>
+                <tr>
+                  <th><?php echo $lang->story->skill;?></th>
+                  <td><?php echo zget($lang->story->skillList, $story->skill);?></td>
                 </tr>
                 <tr>
                   <th><?php echo $lang->story->stage;?></th>

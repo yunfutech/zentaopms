@@ -37,12 +37,13 @@ foreach(explode(',', $showFields) as $field)
     <table class='table table-form'>
       <thead>
         <tr>
-          <th class='w-40px'> <?php echo $lang->idAB;?></th> 
+          <th class='w-40px'> <?php echo $lang->idAB;?></th>
           <?php if($branchProduct):?>
           <th class='w-120px<?php echo zget($visibleFields, 'branch', ' hidden')?>'><?php echo $lang->story->branch;?></th>
           <?php endif;?>
           <th class='w-120px'><?php echo $lang->story->module;?></th>
           <th class='w-150px<?php echo zget($visibleFields, 'plan', ' hidden')?>'><?php echo $lang->story->planAB;?></th>
+          <th class='w-150px<?php echo zget($visibleFields, 'skill', ' hidden')?>'><?php echo $lang->story->skill;?></th>
           <th class='w-150px required'><?php echo $lang->story->title;?></th>
           <th class='w-50px<?php   echo zget($visibleFields, 'estimate', ' hidden')?>'> <?php echo $lang->story->estimateAB;?></th>
           <th class='w-70px<?php   echo zget($visibleFields, 'pri', ' hidden')?>'> <?php echo $lang->priAB;?></th>
@@ -92,6 +93,9 @@ foreach(explode(',', $showFields) as $field)
           <td class='text-left<?php echo zget($visibleFields, 'plan', ' hidden')?>'>
             <?php echo html::select("plans[$storyID]", $productPlans, $story->plan, "class='form-control chosen'");?>
           </td>
+          <td class='text-left<?php echo zget($visibleFields, 'plan', ' hidden')?>'>
+            <?php echo html::select("skills[$storyID]", $skillList, $story->skill, "class='form-control chosen'");?>
+          </td>
           <!-- <td title='<?php echo $story->title?>'>
             <div class='input-group'>
             <?php echo html::hidden("colors[$storyID]", $story->color, "data-provide='colorpicker' data-wrapper='input-group-btn fix-border-right' data-pull-menu-right='false' data-btn-tip='{$lang->story->colorTag}' data-update-text='#titles\\[{$storyID}\\]'");?>
@@ -114,7 +118,7 @@ foreach(explode(',', $showFields) as $field)
               </div>
             </div>
           </td>
-          
+
           <td <?php echo zget($visibleFields, 'estimate', "class='hidden'")?>><?php echo html::input("estimates[$storyID]", $story->estimate, "class='form-control'"); ?></td>
           <td <?php echo zget($visibleFields, 'pri', "class='hidden'")?>><?php echo html::select("pris[$storyID]",     $priList, $story->pri, 'class=form-control');?></td>
           <td class='text-left<?php echo zget($visibleFields, 'assignedTo', ' hidden')?>'><?php echo html::select("assignedTo[$storyID]",     $users, $story->assignedTo, "class='form-control chosen'");?></td>

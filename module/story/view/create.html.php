@@ -102,6 +102,10 @@
             <?php endif;?>
           </tr>
           <tr>
+            <th><?php echo $lang->story->skill;?></th>
+            <td><?php echo html::select('skill', $lang->story->skillList, '', "class='form-control chosen'");?></td>
+          </tr>
+          <tr>
             <th><?php echo $lang->story->title;?></th>
             <td colspan="4">
               <div class='table-row'>
@@ -166,6 +170,12 @@
             <td colspan="4">
               <?php echo $this->fetch('user', 'ajaxPrintTemplates', 'type=story&link=spec');?>
               <?php echo html::textarea('spec', $spec, "rows='9' class='form-control kindeditor disabled-ie-placeholder' hidefocus='true' placeholder='" . htmlspecialchars($lang->story->specTemplate . "\n" . $lang->noticePasteImg) . "'");?>
+            </td>
+          </tr>
+          <tr>
+            <th><?php echo $lang->story->solution;?></th>
+            <td colspan="4">
+              <?php echo html::textarea('solution', $solution, "rows='9' class='form-control kindeditor disabled-ie-placeholder' hidefocus='true')");?>
             </td>
           </tr>
           <?php if(strpos(",$showFields,", ',verify,') !== false):?>

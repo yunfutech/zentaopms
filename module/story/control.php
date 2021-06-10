@@ -357,6 +357,8 @@ class story extends control
         $priList['ditto']    = $this->lang->story->ditto;
         $sourceList          = (array)$this->lang->story->sourceList;
         $sourceList['ditto'] = $this->lang->story->ditto;
+        $skillList          = (array)$this->lang->story->skillList;
+        $skillList['ditto'] = $this->lang->story->ditto;
 
         /* Set Custom*/
         foreach(explode(',', $this->config->story->list->customBatchCreateFields) as $field)
@@ -387,6 +389,7 @@ class story extends control
         $this->view->plans            = $plans;
         $this->view->priList          = $priList;
         $this->view->sourceList       = $sourceList;
+        $this->view->skillList        = $skillList;
         $this->view->planID           = $planID;
         $this->view->pri              = $pri;
         $this->view->productID        = $productID;
@@ -600,6 +603,7 @@ class story extends control
         $this->view->users             = $users;
         $this->view->priList           = array('0' => '', 'ditto' => $this->lang->story->ditto) + $this->lang->story->priList;
         $this->view->sourceList        = array('' => '',  'ditto' => $this->lang->story->ditto) + $this->lang->story->sourceList;
+        $this->view->skillList        = array('' => '',  'ditto' => $this->lang->story->ditto) + $this->lang->story->skillList;
         $this->view->reasonList        = array('' => '',  'ditto' => $this->lang->story->ditto) + $this->lang->story->reasonList;
         $this->view->stageList         = array('' => '',  'ditto' => $this->lang->story->ditto) + $this->lang->story->stageList;
         $this->view->productID         = $productID;
