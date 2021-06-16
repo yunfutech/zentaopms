@@ -13,8 +13,8 @@ $config->story->edit   = new stdclass();
 $config->story->change = new stdclass();
 $config->story->close  = new stdclass();
 $config->story->review = new stdclass();
-$config->story->create->requiredFields = 'title,estimate';
-$config->story->change->requiredFields = 'title,estimate';
+$config->story->create->requiredFields = 'title,estimate,skill';
+$config->story->change->requiredFields = 'title,estimate,skill';
 $config->story->close->requiredFields  = 'closedReason';
 $config->story->review->requiredFields = 'assignedTo,reviewedBy';
 

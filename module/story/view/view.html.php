@@ -75,7 +75,9 @@
         <?php if(!$story->deleted):?>
         <?php
         common::printIcon('story', 'change', "storyID=$story->id", $story, 'button', '', '', 'showinonlybody');
-        common::printIcon('story', 'review', "storyID=$story->id", $story, 'button', '', '', 'showinonlybody');
+        if ($this->app->user->account == $product->PO) {
+          common::printIcon('story', 'review', "storyID=$story->id", $story, 'button', '', '', 'showinonlybody');
+        }
         if($story->status != 'closed' and !isonlybody())
         {
             $misc = "class='btn' data-toggle='modal' data-type='iframe' data-width='95%'";

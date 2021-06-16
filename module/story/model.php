@@ -178,6 +178,9 @@ class storyModel extends model
             ->remove('files,labels,needNotReview,newStory,uid,contactListMenu')
             ->get();
 
+        $product  = $this->loadModel('product')->getById($this->post->product);
+        if(!$story->assignedTo) $story->assignedTo = $product->PO;
+
         /* Check repeat story. */
         $result = $this->loadModel('common')->removeDuplicate('story', $story, "product={$story->product}");
         if($result['stop']) return array('status' => 'exists', 'id' => $result['duplicate']);
@@ -185,6 +188,7 @@ class storyModel extends model
         if($this->checkForceReview()) $story->status = 'draft';
         if($story->status == 'draft') $story->stage  = $this->post->plan > 0 ? 'planned' : 'wait';
         $story = $this->loadModel('file')->processImgURL($story, $this->config->story->editor->create['id'], $this->post->uid);
+        if ($story->skill == 0) $story->skill = '';
         $this->dao->insert(TABLE_STORY)->data($story, 'spec,verify,solution')->autoCheck()->batchCheck($this->config->story->create->requiredFields, 'notempty')->exec();
         if(!dao::isError())
         {
@@ -2525,6 +2529,7 @@ class storyModel extends model
         $storyLink = helper::createLink('story', 'view', "storyID=$story->id");
         $account   = $this->app->user->account;
         $id        = $col->id;
+        $product  = $this->loadModel('product')->getById($story->product);
         if($col->show)
         {
             $class = "c-{$id}";
@@ -2679,7 +2684,9 @@ class storyModel extends model
                 case 'actions':
                     $vars = "story={$story->id}";
                     common::printIcon('story', 'change',     $vars, $story, 'list', 'fork');
-                    common::printIcon('story', 'review',     $vars, $story, 'list', 'glasses');
+                    if ($this->app->user->account == $product->PO) {
+                        common::printIcon('story', 'review',     $vars, $story, 'list', 'glasses');
+                    }
                     common::printIcon('story', 'close',      $vars, $story, 'list', '', '', 'iframe', true);
                     common::printIcon('story', 'edit',       $vars, $story, 'list');
                     if($this->config->global->flow != 'onlyStory') common::printIcon('story', 'createCase', "productID=$story->product&branch=$story->branch&module=0&from=&param=0&$vars", $story, 'list', 'sitemap');
