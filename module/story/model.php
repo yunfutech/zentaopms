@@ -179,7 +179,7 @@ class storyModel extends model
             ->get();
 
         $product  = $this->loadModel('product')->getById($this->post->product);
-        if(!$story->assignedTo) $story->assignedTo = $product->PO;
+        if(!$story->assignedTo) $story->assignedTo = $product->director;
 
         /* Check repeat story. */
         $result = $this->loadModel('common')->removeDuplicate('story', $story, "product={$story->product}");
@@ -457,6 +457,8 @@ class storyModel extends model
             ->stripTags($this->config->story->editor->change['id'], $this->config->allowedTags)
             ->remove('files,labels,comment,needNotReview,uid')
             ->get();
+        $product  = $this->loadModel('product')->getById($oldStory->product);
+        if(!$story->assignedTo) $story->assignedTo = $product->director;
         if($specChanged and $story->status == 'active' and $this->checkForceReview()) $story->status = 'changed';
         $story = $this->loadModel('file')->processImgURL($story, $this->config->story->editor->change['id'], $this->post->uid);
         $this->dao->update(TABLE_STORY)->data($story, 'spec,verify,solution')
@@ -2684,7 +2686,7 @@ class storyModel extends model
                 case 'actions':
                     $vars = "story={$story->id}";
                     common::printIcon('story', 'change',     $vars, $story, 'list', 'fork');
-                    if ($this->app->user->account == $product->PO) {
+                    if ($this->app->user->account == $product->director) {
                         common::printIcon('story', 'review',     $vars, $story, 'list', 'glasses');
                     }
                     common::printIcon('story', 'close',      $vars, $story, 'list', '', '', 'iframe', true);
