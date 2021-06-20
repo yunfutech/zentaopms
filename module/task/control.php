@@ -1762,7 +1762,7 @@ class task extends control
 
     public function generateMeetingTask()
     {
-        $ids = [2, 4, 19, 131, 18, 88, 137, 123, 99, 146];   # 张总、贾总、曾总、程总、建行、王琪、王莞钦、赵娅平、罗家成、程浩鹏
+        $ids = [2, 4, 19, 131, 18, 88, 137, 123, 99, 146, 156];   # 张总、贾总、曾总、程总、建行、王琪、王莞钦、赵娅平、罗家成、程浩鹏、黄天意
         $projectID = 434;   # 项目管理2021
         $users = $this->dao->select('account')->from(TABLE_USER)->where('id')->in($ids)->fetchall();
         foreach($users as $user) {
