@@ -1760,14 +1760,22 @@ class task extends control
         return file_get_contents($url, false, $context);
     }
 
-    public function generateMeetingTask()
+    public function generateMeetingTask($day='')
     {
         $ids = [2, 4, 19, 131, 18, 88, 137, 123, 99, 146, 156];   # 张总、贾总、曾总、程总、建行、王琪、王莞钦、赵娅平、罗家成、程浩鹏、黄天意
         $projectID = 434;   # 项目管理2021
         $users = $this->dao->select('account')->from(TABLE_USER)->where('id')->in($ids)->fetchall();
         foreach($users as $user) {
             $now = date('Y-m-d H:i:s');
-            $days = $this->getNextweekDays();
+            if(empty($day)) {
+                $days = $this->getNextweekDays();
+            } else {
+                $post_days = explode(',', $day);
+                $days = [];
+                foreach($post_days as $day) {
+                    array_push($days, date('Y-m-d', strtotime($day)));
+                }
+            }
             foreach($days as $day) {
                 $task = [
                     'project' => $projectID,
@@ -1802,4 +1810,5 @@ class task extends control
         }
         return $days;
     }
+
 }
