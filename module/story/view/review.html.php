@@ -13,7 +13,7 @@
 <?php include './header.html.php';?>
 <?php include '../../common/view/datepicker.html.php';?>
 <script>
-var assignedTo = '<?php $story->lastEditedBy ? print($story->lastEditedBy) : print($story->openedBy);?>';
+var assignedTo = '<?php print($product->PO);?>';
 </script>
 <div class='main-content' id='mainContent'>
   <div class='center-block'>
@@ -62,7 +62,7 @@ var assignedTo = '<?php $story->lastEditedBy ? print($story->lastEditedBy) : pri
         <?php endif;?>
         <tr>
           <th><?php echo $lang->story->assignedTo;?></th>
-          <td><?php echo html::select('assignedTo', $users, $story->lastEditedBy ? $story->lastEditedBy : $story->openedBy, "class='form-control chosen'");?></td><td></td>
+          <td><?php echo html::select('assignedTo', $users, $product->PO, "class='form-control chosen'");?></td><td></td>
         </tr>
         <tr class='hide'>
           <th><?php echo $lang->story->status;?></th>
@@ -71,7 +71,7 @@ var assignedTo = '<?php $story->lastEditedBy ? print($story->lastEditedBy) : pri
         <?php $this->printExtendFields($story, 'table');?>
         <tr>
           <th><?php echo $lang->story->reviewedBy;?></th>
-          <td colspan='2'><?php echo html::select('reviewedBy[]', $users, $product->PO, "class='form-control' multiple data-placeholder='{$lang->story->chosen->reviewedBy}' disabled");?></td>
+          <td colspan='2'><?php echo html::select('reviewedBy[]', $users, $product->director, "class='form-control' multiple data-placeholder='{$lang->story->chosen->reviewedBy}' disabled");?></td>
         </tr>
         <tr>
           <th><?php echo $lang->story->comment;?></th>

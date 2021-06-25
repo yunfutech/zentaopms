@@ -789,6 +789,8 @@ class story extends control
      */
     public function review($storyID)
     {
+        $product = $this->dao->findById($story->product)->from(TABLE_PRODUCT)->fields('name, id, PO, director')->fetch();
+
         if(!empty($_POST))
         {
             $changes = $this->story->review($storyID);
@@ -798,7 +800,7 @@ class story extends control
             {
                 $result   = $this->post->result;
                 $actionID = $this->action->create('story', $storyID, 'Reviewed', $this->post->comment, ucfirst($result));
-                if($result == 'reject') $actionID = $this->action->create('story', $storyID, 'Closed', '', ucfirst($this->post->closedReason));
+                if($result == 'reject') $actionID = $this->action->create('story', $storyID, $product->PO, '', ucfirst($this->post->closedReason));
                 $this->action->logHistory($actionID, $changes);
             }
 
@@ -809,7 +811,6 @@ class story extends control
 
         /* Get story and product. */
         $story   = $this->story->getById($storyID);
-        $product = $this->dao->findById($story->product)->from(TABLE_PRODUCT)->fields('name, id, PO')->fetch();
 
         /* Set menu. */
         $this->product->setMenu($this->product->getPairs(), $product->id, $story->branch);

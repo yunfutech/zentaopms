@@ -6,7 +6,7 @@ function switchShow(result)
     {
         $('#rejectedReasonBox').show();
         $('#preVersionBox').hide();
-        $('#assignedTo').val('closed');
+        $('#assignedTo').val(assignedTo);
         $('#assignedTo').trigger("chosen:updated");
     }
     else if(result == 'revert')

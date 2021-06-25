@@ -728,6 +728,8 @@ class storyModel extends model
             dao::$errors[] = sprintf($this->lang->error->notempty, $this->lang->comment);
             return false;
         }
+        $oldStory = $this->dao->findById($storyID)->from(TABLE_STORY)->fetch();
+        $product  = $this->dao->findById($oldStory->product)->from(TABLE_PRODUCT)->fetch();
 
         $oldStory = $this->dao->findById($storyID)->from(TABLE_STORY)->fetch();
         $now      = helper::now();
@@ -741,7 +743,7 @@ class storyModel extends model
             ->setIF($this->post->result == 'pass' and $oldStory->status == 'changed', 'status', 'active')
             ->setIF($this->post->result == 'reject', 'closedBy',   $this->app->user->account)
             ->setIF($this->post->result == 'reject', 'closedDate', $now)
-            ->setIF($this->post->result == 'reject', 'assignedTo', 'closed')
+            ->setIF($this->post->result == 'reject', 'assignedTo', $product->PO)
             ->setIF($this->post->result == 'reject', 'status', 'closed')
             ->setIF($this->post->result == 'reject', 'stage', 'closed')
             ->setIF($this->post->result == 'revert', 'version', $this->post->preVersion)
