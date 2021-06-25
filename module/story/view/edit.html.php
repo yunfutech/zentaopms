@@ -40,6 +40,10 @@
             <div class='detail-content article-content'><?php echo $story->spec;?></div>
           </div>
           <div class='detail'>
+            <div class='detail-title'><?php echo $lang->story->solution;?></div>
+            <div class='detail-content article-content'><?php echo $story->solution;?></div>
+          </div>
+          <div class='detail'>
             <div class='detail-title'><?php echo $lang->story->verify;?></div>
             <div class='detail-content article-content'><?php echo $story->verify;?></div>
           </div>
