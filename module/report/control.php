@@ -346,10 +346,8 @@ class report extends control
             $end = $data->end;
             $project_type = intval($data->project_type);
         }
-        $date = date('Y-m-d');
-        $w = date('w', strtotime($date));
-        $week_start=date('Y-m-d',strtotime("$date -".($w ? $w - 1 : 6).' days'));
-        $week_end = date('Y-m-d',strtotime("$week_start +6 days"));
+        [$week_start, $week_end] = $this->getWeekStartEnd();
+
         if($begin == '' || $begin == 0 ) {
             $begin = $week_start;
         } else {
@@ -361,30 +359,13 @@ class report extends control
             $end = date('Y-m-d', strtotime($end));
         }
         $begin_w = date('w', strtotime($begin));
-        $next_date = date("Ymd", strtotime("+7 days", strtotime($begin)));
-        $next_start = date('Ymd',strtotime("$next_date -".($begin_w ? $begin_w - 1 : 6).' days'));
-        $next_end = date('Ymd',strtotime("$next_start +6 days"));
-        $cur = [
-            "start"=> date("Ymd", strtotime($week_start)),
-            "end"=> date("Ymd", strtotime($week_end))
-        ];
-        $next = [
-            "start"=> $next_start,
-            "end"=> $next_end
-        ];
-        $pre_date = date("Ymd", strtotime("-7 days", strtotime($begin)));
-        $pre_start = date('Ymd',strtotime("$pre_date -".($begin_w ? $begin_w - 1 : 6).' days'));
-        $pre_end = date('Ymd',strtotime("$pre_start +6 days"));
-        $pre = [
-            "start"=> $pre_start,
-            "end"=> $pre_end
-        ];
+
         $this->app->loadConfig('project');
         $this->view->begin = $begin;
         $this->view->end = $end;
-        $this->view->next = $next;
-        $this->view->pre = $pre;
-        $this->view->cur = $cur;
+        $this->view->next = $this->getNextWeek($begin, $begin_w);
+        $this->view->pre = $this->getPreWeekDate($begin, $begin_w);
+        $this->view->cur = $this->getCurWeek($week_start, $week_end);
         $this->view->title = $this->lang->report->projectboard;
         $this->view->position[] = $this->lang->report->projectboard;
         $this->view->projects = $this->report->getProjectStatistics($begin, $end, $project_type);
@@ -396,8 +377,31 @@ class report extends control
     /**
      * 项目看板
      */
-    public function productboard($selectLines = 'yfmt,yfnlp,yfc,yfkg,yfbot,yfdoc,yfweb,yflabel,yfbid', $status='noclosed') {
-        $this->view->products = $this->loadModel('product')->getBoardProducts($selectLines, $status);
+    public function productboard($begin = '', $end = '', $selectLines = 'yfmt,yfnlp,yfc,yfkg,yfbot,yfdoc,yfweb,yflabel,yfbid', $status='noclosed') {
+        if ($_POST) {
+            $data = fixer::input('post')->get();
+            $begin = $data->begin;
+            $end = $data->end;
+        }
+
+        [$week_start, $week_end] = $this->getWeekStartEnd();
+        if($begin == '' || $begin == 0 ) {
+            $begin = $week_start;
+        } else {
+            $begin = date('Y-m-d', strtotime($begin));
+        }
+        if($end == '' || $end == 0 ) {
+            $end = $week_end;
+        } else {
+            $end = date('Y-m-d', strtotime($end));
+        }
+        $begin_w = date('w', strtotime($begin));
+        $this->view->begin = $begin;
+        $this->view->end = $end;
+        $this->view->next = $this->getNextWeek($begin, $begin_w);
+        $this->view->pre = $this->getPreWeekDate($begin, $begin_w);
+        $this->view->cur = $this->getCurWeek($week_start, $week_end);
+        $this->view->products = $this->loadModel('product')->getBoardProducts($begin, $end, $selectLines, $status);
         $this->view->lines = $this->loadModel('tree')->getLinePairs() + array('其他');
         $this->app->loadConfig('product');
         $this->view->title = $this->lang->report->productboard;
@@ -407,6 +411,14 @@ class report extends control
         krsort($this->view->lines);
         $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
         $this->display();
+    }
+
+    private function getWeekStartEnd() {
+        $date = date('Y-m-d');
+        $w = date('w', strtotime($date));
+        $week_start=date('Y-m-d',strtotime("$date -".($w ? $w - 1 : 6).' days'));
+        $week_end = date('Y-m-d',strtotime("$week_start +6 days"));
+        return [$week_start, $week_end];
     }
 
     // 用户看板
@@ -419,10 +431,7 @@ class report extends control
             $end = $data->end;
             $dept = $data->dept;
         }
-        $date = date('Y-m-d');
-        $w = date('w', strtotime($date));
-        $week_start=date('Y-m-d',strtotime("$date -".($w ? $w - 1 : 6).' days'));
-        $week_end = date('Y-m-d',strtotime("$week_start +6 days"));
+        [$week_start, $week_end] = $this->getWeekStartEnd();
         if($begin == '' || $begin == 0 ) {
             $begin = $week_start;
         } else {
