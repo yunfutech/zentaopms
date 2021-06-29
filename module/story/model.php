@@ -353,8 +353,10 @@ class storyModel extends model
             $specData->title   = $stories->title[$i];
             $specData->spec    = '';
             $specData->verify  = '';
+            $specData->solution  = '';
             if(!empty($stories->spec[$i]))  $specData->spec   = nl2br($stories->spec[$i]);
             if(!empty($stories->verify[$i]))$specData->verify = nl2br($stories->verify[$i]);
+            if(!empty($stories->solution[$i]))$specData->solution = nl2br($stories->solution[$i]);
 
             if(!empty($stories->uploadImage[$i]))
             {
