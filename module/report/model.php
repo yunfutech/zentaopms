@@ -660,55 +660,100 @@ class reportModel extends model
         return $tasks;
     }
 
+    /**
+     * 获取迭代看板全部迭代
+     */
+    private function getStatsProjects($end, $project_type) {
+        return $this->dao->select('id, name, pri, CONVERT(name USING gbk) as gbkName')->from(TABLE_PROJECT)
+            ->where('begin')->le($end)
+            ->beginIF($project_type != '')
+            ->andWhere('project_type')->eq($project_type)
+            ->fi()
+            ->andWhere('status')->notin('cancel')
+            ->orderBy('pri, gbkName')->fetchAll();
+    }
+
+    /**
+     * 获取迭代实际工时
+     */
+    private function getHoursByPid($projectID, $begin, $end) {
+        return $this->dao->select('finishedBy, sum(consumed) as totalConsumed')->from(TABLE_TASK)
+        ->where('deleted')->eq(0)
+        ->andWhere('project')->eq(intval($projectID))
+        ->andWhere('finishedDate')->ge($begin)
+        ->andWhere('finishedDate')->le($end)
+        ->andWhere('finishedBy')->ne('')
+        ->groupBy('finishedBy')
+        ->fetchAll();
+    }
+
+    /**
+     * 获取迭代关联需求数和总预计工时
+     */
+    private function getStoryStatsByPid($projectID, $end) {
+        return $this->dao->select('count(t1.id) as total, sum(t1.estimate) as totalEstimate')->from(TABLE_STORY)->alias('t1')
+            ->leftJoin(TABLE_PROJECTSTORY)->alias('t2')->on('t1.id = t2.story')
+            ->where('t2.project')->eq(intval($projectID))
+            ->andWhere('t1.deleted')->eq(0)
+            ->andWhere('t1.openedDate')->le($end)
+            ->fetch();
+    }
+
+    /**
+     * 获取迭代关联需求中已完成需求总数和总预计工时
+     */
+    private function getDoneStoryStatsByPid($projectID, $begin, $end) {
+        return $this->dao->select('count(t1.id) as total, sum(t1.estimate) as totalEstimate')->from(TABLE_STORY)->alias('t1')
+            ->leftJoin(TABLE_PROJECTSTORY)->alias('t2')->on('t1.id = t2.story')
+            ->where('t2.project')->eq(intval($projectID))
+            ->andWhere('t1.closedReason')->eq('done')
+            ->andWhere('t1.deleted')->eq(0)
+            ->andWhere('closedDate')->ge($begin)
+            ->andWhere('closedDate')->le($end)
+            ->fetch();
+    }
+
+    /**
+     * 获取迭代关联的项目
+     */
+    private function getProductByPid($projectID) {
+        return $this->dao->select('t1.name')->from(TABLE_PRODUCT)->alias('t1')
+            ->leftJoin(TABLE_PROJECTPRODUCT)->alias('t2')->on('t1.id = t2.product')
+            ->where('t2.project')->eq(intval($projectID))
+            ->andWhere('t1.deleted')->eq(0)
+            ->fetchPairs();
+    }
+
     public function getProjectStatistics($begin, $end, $project_type)
     {
-        $projects = $this->dao->select('p.id, p.name, p.pri, p.end, p.begin')->from(TABLE_PROJECT)->alias('p')
-        ->where('p.begin')->le($end)
-        ->beginIF($project_type != '')
-        ->andWhere('project_type')->eq($project_type)
-        ->fi()
-        ->andWhere('p.status')->notin('cancel')
-        ->orderBy('p.pri')->fetchAll();
-        $projects_json = [];
-        $projects_ids = [];
-        foreach($projects as $project)
+        $projects = [];
+        foreach($this->getStatsProjects($end, $project_type) as $project)
         {
-            $projects_ids[] = $project->id;
-            $projects_json[$project->id] = [
-                'id' => $project->id,
-                'name' => $project->name,
-                'pri' => $project->pri,
-                'consumed' => 0,
-                'tasks' => []
-            ];
-        }
-        $tasks = $this->dao->select('t1.id, t1.project as pid, t1.name, t1.status, t1.project, t1.estimate, t1.consumed, t1.finishedBy, t1.finishedDate')->from(TABLE_TASK)->alias('t1')
-        ->where('t1.deleted')->eq(0)
-        ->andWhere('t1.project')->in($projects_ids)
-        ->andWhere('t1.finishedDate')->ge($begin)
-        ->andWhere('t1.finishedDate')->le($end)
-        ->andWhere('t1.finishedBy')->ne('')
-        ->fetchAll();
-        foreach($tasks as $task)
-        {
-            if($task->consumed > 0) {
-                $projects_json[$task->pid]['consumed'] += $task->consumed;
-                if(!array_key_exists($task->finishedBy, $projects_json[$task->pid]['tasks'])) {
-                    $projects_json[$task->pid]['tasks'][$task->finishedBy] = 0;
-                }
-                $projects_json[$task->pid]['tasks'][$task->finishedBy] += $task->consumed;
+            $project->users = [];
+            $project->doneManHour = 0;
+            $consumedStats = $this->getHoursByPid($project->id, $begin, $end);
+            $project->usersCount = count($consumedStats) != 0 ? count($consumedStats) : 1;
+            foreach ($consumedStats as $item) {
+                $consumed = round($item->totalConsumed, 2);
+                $project->users[$item->finishedBy] = $consumed;
+                $project->doneManHour += $consumed;
             }
+            $storyStats = $this->getStoryStatsByPid($project->id, $end);
+            $project->allStoiresCount = $storyStats->total;
+            $project->manHour = round($storyStats->totalEstimate);
+            if ($project->manHour == 0) {
+                continue;
+            }
+            $doneStoryStats = $this->getDoneStoryStatsByPid($project->id, $begin, $end);
+            $project->allDoneStoiresCount = $doneStoryStats->total;
+            $project->doneStoriesEstimate = round($doneStoryStats->totalEstimate);
+            $project->schedule = $project->manHour > 0 ? round($project->doneStoriesEstimate / $project->manHour, 4) : 0;
+            $project->accuracy = $project->manHour > 0 ? round($project->doneManHour / $project->manHour, 4) : 0;
+            $products = $this->getProductByPid($project->id);
+            $project->products = implode('<br/>', array_values($products));
+            array_push($projects, $project);
         }
-        foreach($projects_json as $index=>$project)
-        {
-            $tmp = $project['tasks'];
-            arsort($tmp);
-            $projects_json[$index]['tasks'] = $tmp;
-        }
-        $date = date('Y-m-d');
-        $consumed = array_column($projects_json, 'consumed');
-        array_multisort($consumed, SORT_DESC, $projects_json);
-        return $projects_json;
+        return $projects;
     }
 
     public function getUserWorkHour($begin, $end, $dept)
