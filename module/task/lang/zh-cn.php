@@ -210,6 +210,7 @@ $lang->task->error->consumed         = '任务：%s工时不能小于0，忽略�
 $lang->task->error->assignedTo       = '当前状态的多人任务不能指派给任务团队外的成员。';
 $lang->task->error->consumedEmpty    = '"本次消耗"不能为空';
 $lang->task->error->deadlineSmall    = '"截止日期"必须大于"预计开始"';
+$lang->task->error->projectClosed    = '已关闭项目禁止录任务';
 
 /* Report. */
 $lang->task->report         = new stdclass();

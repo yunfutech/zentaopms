@@ -23,9 +23,13 @@ class taskModel extends model
     public function create($projectID)
     {
         if($this->post->estimate < 0)
-        {    
+        {
             dao::$errors[] = $this->lang->task->error->recordMinus;
             return false;
+        }
+        $projectStatus = $this->dao->select('*')->from(TABLE_PROJECT)->where('id')->eq($projectID)->fetch('status');
+        if ($projectStatus == 'closed') {
+            die(js::error($this->lang->task->error->projectClosed));
         }
         $taskIdList = array();
         $taskFiles  = array();
@@ -427,7 +431,7 @@ class taskModel extends model
         if($parentID <= 0) return true;
 
         $oldParentTask = $this->dao->select('*')->from(TABLE_TASK)->where('id')->eq($parentID)->fetch();
-        if($oldParentTask->parent != '-1') $this->dao->update(TABLE_TASK)->set('parent')->eq('-1')->where('id')->eq($parentID)->exec(); 
+        if($oldParentTask->parent != '-1') $this->dao->update(TABLE_TASK)->set('parent')->eq('-1')->where('id')->eq($parentID)->exec();
         $this->computeWorkingHours($parentID);
 
         $childrenStatus       = $this->dao->select('id,status')->from(TABLE_TASK)->where('parent')->eq($parentID)->andWhere('deleted')->eq(0)->fetchPairs('status', 'status');
@@ -679,7 +683,7 @@ class taskModel extends model
     {
         $oldTask = $this->dao->select('*')->from(TABLE_TASK)->where('id')->eq((int)$taskID)->fetch();
         if($this->post->estimate < 0 or $this->post->left < 0 or $this->post->consumed < 0)
-        {    
+        {
             dao::$errors[] = $this->lang->task->error->recordMinus;
             return false;
         }
@@ -1499,7 +1503,7 @@ class taskModel extends model
 
         $this->dao->update(TABLE_TASK)->data($task)->autoCheck()->where('id')->eq((int)$taskID)->exec();
         if($oldTask->parent > 0) $this->updateParentStatus($taskID);
-        if($oldTask->parent == '-1') 
+        if($oldTask->parent == '-1')
         {
             unset($task->assignedTo);
             $this->dao->update(TABLE_TASK)->data($task)->autoCheck()->where('parent')->eq((int)$taskID)->exec();
@@ -1563,7 +1567,7 @@ class taskModel extends model
             ->exec();
 
         if($oldTask->parent > 0) $this->updateParentStatus($taskID);
-        if($oldTask->parent == '-1') 
+        if($oldTask->parent == '-1')
         {
             unset($task->left);
             $this->dao->update(TABLE_TASK)->data($task)->autoCheck()->where('parent')->eq((int)$taskID)->exec();
@@ -2056,7 +2060,7 @@ class taskModel extends model
 
         $this->dao->update(TABLE_TASK)->data($data)->where('id')->eq($task->id)->exec();
         if($task->parent > 0) $this->updateParentStatus($task->id);
-        if($task->story)  $this->loadModel('story')->setStage($oldTask->story);
+        if($task->story)  $this->loadModel('story')->setStage($task->story);
 
         $oldTask = new stdClass();
         $oldTask->consumed = $task->consumed;
@@ -2110,7 +2114,7 @@ class taskModel extends model
 
         $this->dao->update(TABLE_TASK)->data($data) ->where('id')->eq($estimate->task)->exec();
         if($task->parent > 0) $this->updateParentStatus($task->id);
-        if($task->story)  $this->loadModel('story')->setStage($oldTask->story);
+        if($task->story)  $this->loadModel('story')->setStage($task->story);
 
         $oldTask = new stdClass();
         $oldTask->consumed = $task->consumed;
@@ -2128,7 +2132,7 @@ class taskModel extends model
     /**
      * Batch process tasks.
      *
-     * @param  int    $tasks
+     * @param  array    $tasks
      * @access private
      * @return void
      */
@@ -2139,7 +2143,7 @@ class taskModel extends model
             $task = $this->processTask($task);
             if(!empty($task->children))
             {
-                foreach($task->children as $child) 
+                foreach($task->children as $child)
                 {
                     $tasks[$task->id]->children[$child->id] = $this->processTask($child);
                 }
