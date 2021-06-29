@@ -1172,7 +1172,117 @@ class productModel extends model
     public function getBoardProducts($begin, $end, $selectLines, $status) {
         $other = strstr($selectLines, '其他');
         $selectLines = explode(',', $selectLines);
-        $products = $this->dao->select('t1.id, t1.name, t1.director, t1.PO, t2.name as line, CONVERT(t1.name USING gbk) as gbkName')->from(TABLE_PRODUCT)->alias('t1')
+        $products = $this->getProductsByLines($selectLines, $status, $end);
+        if ($other || $selectLines == ['']) {
+            $otherProducts = $this->getOtherProducts($status, $end);
+            foreach($otherProducts as $product) {
+                $product->line = '其他';
+            }
+            $products = array_merge($products, $otherProducts);
+        }
+        foreach ($products as $product) {
+            $stories = $this->getStoriesByProduct($product->id, $end);
+            $product->allStoiresCount = count($stories);
+            $product->doneManHour = 0;
+            $manHour = $this->getManHour($product->id, $end);
+            $product->manHour = $manHour;
+            $countDoneStories = $this->getDoneStories($product->id, $begin, $end);
+            $product->doneStoriesCount = $countDoneStories->doneStoriesCount;
+            $product->doneStoriesEstimate = $countDoneStories->doneStoriesEstimate ? $countDoneStories->doneStoriesEstimate : 0;
+            $projects = $this->getProjectByProduct($product->id);
+            foreach ($projects as $project) {
+                $countTaskConsumed = $this->getTaskConsumed($project->id, $begin, $end);
+                $product->doneManHour += $countTaskConsumed;
+            }
+            $product->schedule = $product->manHour > 0 ? round($product->doneStoriesEstimate / $product->manHour, 4) : 0;
+            $product->accuracy = $product->manHour > 0 ? round($product->doneManHour / $product->manHour, 4) : 0;
+        }
+        return $products;
+    }
+
+    /**
+     * 获取项目全部迭代
+     */
+    private function getProjectByProduct($productID) {
+        return $this->dao->select('t1.id')->from(TABLE_PROJECT)->alias('t1')
+            ->leftJoin(TABLE_PROJECTPRODUCT)->alias('t2')->on('t1.id=t2.project')
+            ->where('t2.product')->eq($productID)
+            ->andWhere('t1.deleted')->eq(0)
+            ->fetchAll();
+    }
+
+    /**
+     * 获取任务总工时
+     */
+    private function getTaskConsumed($projectID, $begin, $end) {
+        return $this->dao->select('sum(consumed) AS count')->from(TABLE_TASK)
+            ->where('project')->eq($projectID)
+            ->andWhere('finishedDate')->ge($begin)
+            ->andWhere('finishedDate')->le($end)
+            ->andWhere('deleted')->eq(0)
+            ->andwhere('status')->ne('cancel')
+            ->fetch('count');
+    }
+
+    /**
+     * 获取已完成需求统计数据
+     */
+    private function getDoneStories($productID, $begin, $end) {
+            return $this->dao->select('sum(estimate) as doneStoriesEstimate, count(id) as doneStoriesCount')->from(TABLE_STORY)
+            ->where('product')->eq($productID)
+            ->andWhere('closedReason')->eq('done')
+            ->andWhere('deleted')->eq(0)
+            ->andWhere('closedDate')->ge($begin)
+            ->andWhere('closedDate')->le($end)
+            ->fetch();
+    }
+
+    /**
+     * 获取全部需求预计工时
+     */
+    private function getManHour($productID, $end) {
+        return $this->dao->select('sum(estimate) as manHour')->from(TABLE_STORY)
+            ->where('product')->eq($productID)
+            ->andWhere('openedDate')->le($end)
+            ->andWhere('deleted')->eq(0)
+            ->fetch('manHour');
+    }
+
+    /**
+     * 获取项目全部需求
+     */
+    private function getStoriesByProduct($productID, $end) {
+        return $this->dao->select('id, title, closedReason, estimate')->from(TABLE_STORY)
+            ->where('product')->eq($productID)
+            ->andWhere('deleted')->eq(0)
+            ->andWhere('openedDate')->le($end)
+            ->fetchAll();
+    }
+
+    /**
+     * 获取无项目线项目
+     */
+    private function getOtherProducts($status, $end) {
+        return $this->dao->select('id, name, director, PO, CONVERT(name USING gbk) as gbkName')->from(TABLE_PRODUCT)
+            ->where('deleted')->eq(0)
+            ->andwhere('status')->ne('closed')
+            ->andwhere('line')->eq(0)
+            ->fi()
+            ->beginIF($status == 'closed')
+            ->andwhere('status')->eq('closed')
+            ->fi()
+            ->beginIF($end != '')
+            ->andwhere('createdDate')->le($end)
+            ->fi()
+            ->orderBy('line, gbkName')
+            ->fetchAll();
+    }
+
+    /**
+     * 根据项目线数组获取项目
+     */
+    private function getProductsByLines($selectLines, $status, $end) {
+            return $this->dao->select('t1.id, t1.name, t1.director, t1.PO, t2.name as line, CONVERT(t1.name USING gbk) as gbkName')->from(TABLE_PRODUCT)->alias('t1')
             ->leftJoin(TABLE_MODULE)->alias('t2')->on('t1.line = t2.id')
             ->where('t1.deleted')->eq(0)
             ->andwhere('t2.deleted')->eq(0)
@@ -1182,7 +1292,7 @@ class productModel extends model
             ->beginIF($status == 'closed')
             ->andwhere('t1.status')->eq('closed')
             ->fi()
-            ->beginIF($status != 'closed')
+            ->beginIF($status == 'noclosed')
             ->andwhere('t1.status')->ne('closed')
             ->fi()
             ->beginIF($end != '')
@@ -1190,67 +1300,5 @@ class productModel extends model
             ->fi()
             ->orderBy('line, gbkName')
             ->fetchAll();
-        if ($other || $selectLines == ['']) {
-            $otherProducts = $this->dao->select('id, name, director, PO, CONVERT(name USING gbk) as gbkName')->from(TABLE_PRODUCT)
-                ->where('deleted')->eq(0)
-                ->andwhere('status')->ne('closed')
-                ->beginIF($other || $selectLines == [''])
-                ->andwhere('line')->eq(0)
-                ->fi()
-                ->beginIF($status == 'closed')
-                ->andwhere('t1.status')->eq('closed')
-                ->fi()
-                ->beginIF($end != '')
-                ->andwhere('t1.createdDate')->le($end)
-                ->fi()
-                ->orderBy('line, gbkName')
-                ->fetchAll();
-            foreach($otherProducts as $product) {
-                $product->line = '其他';
-            }
-            $products = array_merge($products, $otherProducts);
-        }
-        foreach ($products as $product) {
-            $stories = $this->dao->select('id, title, closedReason, estimate')->from(TABLE_STORY)
-                ->where('product')->eq($product->id)
-                ->andWhere('deleted')->eq(0)
-                ->andWhere('openedDate')->le($end)
-                ->fetchAll();
-            $product->allStoiresCount = count($stories);
-            $product->doneManHour = 0;
-            $manHour = $this->dao->select('sum(estimate) as manHour')->from(TABLE_STORY)
-                ->where('product')->eq($product->id)
-                ->andWhere('openedDate')->le($end)
-                ->andWhere('deleted')->eq(0)
-                ->fetch('manHour');
-            $product->manHour = $manHour;
-            $countDoneStories = $this->dao->select('sum(estimate) as doneStoriesEstimate, count(id) as doneStoriesCount')->from(TABLE_STORY)
-                ->where('product')->eq($product->id)
-                ->andWhere('closedReason')->eq('done')
-                ->andWhere('deleted')->eq(0)
-                ->andWhere('closedDate')->ge($begin)
-                ->andWhere('closedDate')->le($end)
-                ->fetch();
-            $product->doneStoriesCount = $countDoneStories->doneStoriesCount;
-            $product->doneStoriesEstimate = $countDoneStories->doneStoriesEstimate ? $countDoneStories->doneStoriesEstimate : 0;
-            $projects = $this->dao->select('t1.id')->from(TABLE_PROJECT)->alias('t1')
-                ->leftJoin(TABLE_PROJECTPRODUCT)->alias('t2')->on('t1.id=t2.project')
-                ->where('t2.product')->eq($product->id)
-                ->andWhere('t1.deleted')->eq(0)
-                ->fetchAll();
-            foreach ($projects as $project) {
-                $countTaskConsumed = $this->dao->select('sum(consumed) AS count')->from(TABLE_TASK)
-                    ->where('project')->eq($project->id)
-                    ->andWhere('finishedDate')->ge($begin)
-                    ->andWhere('finishedDate')->le($end)
-                    ->andWhere('deleted')->eq(0)
-                    ->andwhere('status')->ne('cancel')
-                    ->fetch('count');
-                $product->doneManHour += $countTaskConsumed;
-            }
-            $product->schedule = $product->manHour > 0 ? round($product->doneStoriesEstimate / $product->manHour, 4) : 0;
-            $product->accuracy = $product->manHour > 0 ? round($product->doneManHour / $product->manHour, 4) : 0;
-        }
-        return $products;
     }
 }

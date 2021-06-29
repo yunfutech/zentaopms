@@ -64,7 +64,7 @@
                   <tr class="text-left">
                     <td class='text-left' rowspan="<?php echo $project->usersCount;?>">
                       <div class='task-detail'>
-                        <?php echo html::a($this->createLink('project', 'task', "projectID={$project->id}"), "<span class=''>{$project->name}</span>"); ?>
+                        <?php echo html::a($this->createLink('project', 'task', "projectID={$project->id}"), "<span style='color: #0c60e1'>{$project->name}</span>"); ?>
                       </div>
                     </td>
                     <td class='text-center' rowspan="<?php echo $project->usersCount; ?>">

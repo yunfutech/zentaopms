@@ -29,15 +29,21 @@
             <div class="table-row">
               <div class="col-sm-1 text-middle"><?php echo $title; ?></div>
               <div class="col-sm-1 text-middle text-right text-gray"><?php echo $lang->product->status . '：' ?></div>
-              <div class='col-sm-2' id="status">
+              <div class='col-sm-3' id="status">
                 <div class="radio inline-block">
-                  <label for="<?php echo '已关闭'; ?>">
+                  <label>
+                    <input type="radio" name="status" value="<?php echo 'all'; ?>" id="<?php echo 'all'; ?>" <?php if ($status == 'all') echo "checked='checked'" ?> />
+                    <?php echo '全部' ?>
+                  </label>
+                </div>
+                <div class="radio inline-block">
+                  <label>
                     <input type="radio" name="status" value="<?php echo 'noclosed'; ?>" id="<?php echo 'noclosed'; ?>" <?php if ($status == 'noclosed') echo "checked='checked'" ?> />
                     <?php echo '未关闭' ?>
                   </label>
                 </div>
                 <div class="radio inline-block">
-                  <label for="<?php echo '已关闭'; ?>">
+                  <label>
                     <input type="radio" name="status" value="<?php echo 'closed'; ?>" id="<?php echo 'closed'; ?>" <?php if ($status == 'closed') echo "checked='checked'" ?> />
                     <?php echo '已关闭' ?>
                   </label>

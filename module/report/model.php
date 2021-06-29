@@ -724,6 +724,9 @@ class reportModel extends model
             ->fetchPairs();
     }
 
+    /**
+     * 迭代看板
+     */
     public function getProjectStatistics($begin, $end, $project_type)
     {
         $projects = [];
