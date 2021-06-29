@@ -229,7 +229,9 @@
               $misc = $canBatchClose ? "onclick=\"setFormAction('$actionLink')\"" : $class;
               echo "<li>" . html::a('#', $lang->close, '', $misc) . "</li>";
 
-              if(common::hasPriv('story', 'batchReview'))
+              # common::hasPriv('story', 'batchReview') ||
+              # 只能由项目总监批量评审
+              if($this->app->user->account == $product->director)
               {
                   echo "<li class='dropdown-submenu'>";
                   echo html::a('javascript:;', $lang->story->review, '', "id='reviewItem'");
@@ -264,10 +266,10 @@
                   }
                   echo '</ul></li>';
               }
-              else
-              {
-                  echo '<li>' . html::a('javascript:;', $lang->story->review,  '', $class) . '</li>';
-              }
+              // else
+              // {
+              //     echo '<li>' . html::a('javascript:;', $lang->story->review,  '', $class) . '</li>';
+              // }
 
               if(common::hasPriv('story', 'batchChangeBranch') and $this->session->currentProductType != 'normal')
               {

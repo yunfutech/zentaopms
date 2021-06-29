@@ -665,7 +665,7 @@ class storyModel extends model
                 $story->version        = $story->title == $oldStory->title ? $oldStory->version : $oldStory->version + 1;
                 if($story->stage != $oldStory->stage) $story->stagedBy = (strpos('tested|verified|released|closed', $story->stage) !== false) ? $this->app->user->account : '';
 
-                if($story->title        != $oldStory->title)                         $story->status     = 'changed';
+                if($story->title != $oldStory->title or $story->solution != $oldStory->solution) $story->status     = 'changed';
                 if($story->plan         !== false and $story->plan == '')            $story->plan       = 0;
                 if($story->closedBy     != false  and $oldStory->closedDate == '')   $story->closedDate = $now;
                 if($story->closedReason != false  and $oldStory->closedDate == '')   $story->closedDate = $now;
@@ -674,6 +674,9 @@ class storyModel extends model
 
                 $story->spec         = $data->spec[$storyID];
                 $story->solution     = $data->solution[$storyID];
+
+                $product  = $this->loadModel('product')->getById($oldStory->product);
+                if ($story->status = 'changed') $story->assignedTo = $product->director;
                 $stories[$storyID] = $story;
             }
 
@@ -803,10 +806,12 @@ class storyModel extends model
             $oldStory = $oldStories[$storyID];
             if($oldStory->status != 'draft' and $oldStory->status != 'changed') continue;
 
+            $product  = $this->loadModel('product')->getById($oldStory->product);
             $story = new stdClass();
             $story->reviewedDate   = $date;
             $story->lastEditedBy   = $this->app->user->account;
             $story->lastEditedDate = $now;
+            $story->assignedTo = $product->PO;
             if($result == 'pass') $story->status = 'active';
             if($reason == 'done') $story->stage = 'released';
             if($result == 'reject')
@@ -814,7 +819,6 @@ class storyModel extends model
                 $story->status     = 'closed';
                 $story->closedBy   = $this->app->user->account;
                 $story->closedDate = $now;
-                $story->assignedTo = 'closed';
                 $this->action->create('story', $storyID, 'Closed', '', ucfirst($reason));
             }
 
