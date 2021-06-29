@@ -40,12 +40,12 @@ $config->story->list->exportFields      = '
 
 $config->story->list->customCreateFields      = 'source,verify,pri,estimate,mailto,keywords';
 $config->story->list->customBatchCreateFields = 'plan,skill,spec,solution,source,verify,pri,estimate,keywords';
-$config->story->list->customBatchEditFields   = 'branch,plan,skill,estimate,pri,source,stage,closedBy,closedReason,keywords';
+$config->story->list->customBatchEditFields   = 'branch,plan,skill,spec,solution,estimate,pri,source,stage,closedBy,closedReason,keywords';
 
 $config->story->custom = new stdclass();
 $config->story->custom->createFields      = $config->story->list->customCreateFields;
 $config->story->custom->batchCreateFields = 'module,plan,skill,spec,solution,pri,estimate';
-$config->story->custom->batchEditFields   = 'branch,module,plan,skill,estimate,pri,source,stage,closedBy,closedReason';
+$config->story->custom->batchEditFields   = 'branch,module,plan,skill,spec,solution,estimate,pri,source,stage,closedBy,closedReason';
 
 $config->story->datatable = new stdclass();
 $config->story->datatable->defaultField = array('id', 'pri', 'title', 'skill', 'plan', 'openedBy', 'assignedTo', 'estimate', 'consumed', 'progress', 'yestodayCompletion', 'weekCompletion', 'status', 'stage', 'taskCount', 'actions');

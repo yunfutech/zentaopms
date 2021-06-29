@@ -33,7 +33,7 @@ foreach(explode(',', $showFields) as $field)
 }
 ?>
 <form method='post' target='hiddenwin' action="<?php echo inLink('batchEdit', "from=storyBatchEdit")?>" id="batchEditForm">
-  <div class="table-responsive">
+  <div class="table-responsive" style='width: 100%; overflow-x: scroll;'>
     <table class='table table-form'>
       <thead>
         <tr>
@@ -42,10 +42,12 @@ foreach(explode(',', $showFields) as $field)
           <th class='w-120px<?php echo zget($visibleFields, 'branch', ' hidden')?>'><?php echo $lang->story->branch;?></th>
           <?php endif;?>
           <th class='w-120px'><?php echo $lang->story->module;?></th>
-          <th class='w-150px<?php echo zget($visibleFields, 'plan', ' hidden')?>'><?php echo $lang->story->planAB;?></th>
-          <th class='w-150px<?php echo zget($visibleFields, 'skill', ' hidden')?>'><?php echo $lang->story->skill;?></th>
-          <th class='w-150px required'><?php echo $lang->story->title;?></th>
-          <th class='w-50px<?php   echo zget($visibleFields, 'estimate', ' hidden')?>'> <?php echo $lang->story->estimateAB;?></th>
+          <th class='w-120px<?php echo zget($visibleFields, 'plan', ' hidden')?>'><?php echo $lang->story->planAB;?></th>
+          <th class='w-120px<?php echo zget($visibleFields, 'skill', ' hidden')?>'><?php echo $lang->story->skill;?></th>
+          <th class='w-300px required'><?php echo $lang->story->title;?></th>
+          <th class='w-300px<?php   echo zget($visibleFields, 'spec', ' hidden')?>'> <?php echo $lang->story->spec;?></th>
+          <th class='w-300px<?php   echo zget($visibleFields, 'solution', ' hidden')?>'> <?php echo $lang->story->solution;?></th>
+          <th class='w-60px<?php   echo zget($visibleFields, 'estimate', ' hidden')?>'> <?php echo $lang->story->estimateAB;?></th>
           <th class='w-70px<?php   echo zget($visibleFields, 'pri', ' hidden')?>'> <?php echo $lang->priAB;?></th>
           <th class='w-100px<?php  echo zget($visibleFields, 'assignedTo', ' hidden')?>'> <?php echo $lang->story->assignedTo;?></th>
           <th class='w-100px<?php  echo zget($visibleFields, 'source', ' hidden')?>'> <?php echo $lang->story->source;?></th>
@@ -118,7 +120,8 @@ foreach(explode(',', $showFields) as $field)
               </div>
             </div>
           </td>
-
+          <td <?php echo zget($visibleFields, 'spec', "class='hidden'")?>><?php echo html::textarea("spec[$storyID]", $story->spec, "rows='1' class='form-control autosize'"); ?></td>
+          <td <?php echo zget($visibleFields, 'solution', "class='hidden'")?>><?php echo html::textarea("solution[$storyID]", $story->solution, "rows='1' class='form-control autosize'"); ?></td>
           <td <?php echo zget($visibleFields, 'estimate', "class='hidden'")?>><?php echo html::input("estimates[$storyID]", $story->estimate, "class='form-control'"); ?></td>
           <td <?php echo zget($visibleFields, 'pri', "class='hidden'")?>><?php echo html::select("pris[$storyID]",     $priList, $story->pri, 'class=form-control');?></td>
           <td class='text-left<?php echo zget($visibleFields, 'assignedTo', ' hidden')?>'><?php echo html::select("assignedTo[$storyID]",     $users, $story->assignedTo, "class='form-control chosen'");?></td>

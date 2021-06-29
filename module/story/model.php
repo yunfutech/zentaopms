@@ -76,7 +76,7 @@ class storyModel extends model
      */
     public function getByList($storyIdList = 0)
     {
-        return $this->dao->select('t1.*, t2.spec, t2.verify')->from(TABLE_STORY)->alias('t1')
+        return $this->dao->select('t1.*, t2.spec, t2.verify, t2.solution')->from(TABLE_STORY)->alias('t1')
             ->leftJoin(TABLE_STORYSPEC)->alias('t2')->on('t1.id=t2.story')
             ->where('t1.deleted')->eq(0)
             ->andWhere('t1.version=t2.version')
@@ -322,7 +322,7 @@ class storyModel extends model
             $story->openedBy   = $this->app->user->account;
             $story->openedDate = $now;
             $story->version    = 1;
-            $story->assignedTo = $product->PO;
+            $story->assignedTo = $product->director;
 
             foreach(explode(',', $this->config->story->create->requiredFields) as $field)
             {
@@ -672,6 +672,8 @@ class storyModel extends model
                 if($story->closedBy     != false  or  $story->closedReason != false) $story->status     = 'closed';
                 if($story->closedReason != false  and $story->closedBy     == false) $story->closedBy   = $this->app->user->account;
 
+                $story->spec         = $data->spec[$storyID];
+                $story->solution     = $data->solution[$storyID];
                 $stories[$storyID] = $story;
             }
 
@@ -679,22 +681,25 @@ class storyModel extends model
             {
                 $oldStory = $oldStories[$storyID];
 
-                $this->dao->update(TABLE_STORY)->data($story)
+                $this->dao->update(TABLE_STORY)->data($story, 'spec,verify,solution')
                     ->autoCheck()
                     ->checkIF($story->closedBy, 'closedReason', 'notempty')
                     ->checkIF($story->closedReason == 'done', 'stage', 'notempty')
                     ->checkIF($story->closedReason == 'duplicate',  'duplicateStory', 'notempty')
                     ->where('id')->eq((int)$storyID)
                     ->exec();
+                $data          = new stdclass();
+                $data->story   = $storyID;
+                $data->version = $story->version;
+                $data->title   = $story->title;
+                $data->spec    = $story->spec;
+                $data->verify  = $story->verify;
+                $data->solution  = $story->solution;
                 if($story->title != $oldStory->title)
                 {
-                    $data          = new stdclass();
-                    $data->story   = $storyID;
-                    $data->version = $story->version;
-                    $data->title   = $story->title;
-                    $data->spec    = $oldStory->spec;
-                    $data->verify  = $oldStory->verify;
                     $this->dao->insert(TABLE_STORYSPEC)->data($data)->exec();
+                } else {
+                    $this->dao->update(TABLE_STORYSPEC)->data($data)->where('story')->eq((int)$storyID)->andWhere('version')->eq($story->version)->exec();
                 }
 
                 if(!dao::isError())
@@ -809,7 +814,7 @@ class storyModel extends model
                 $story->status     = 'closed';
                 $story->closedBy   = $this->app->user->account;
                 $story->closedDate = $now;
-                $story->assignedTo = closed;
+                $story->assignedTo = 'closed';
                 $this->action->create('story', $storyID, 'Closed', '', ucfirst($reason));
             }
 

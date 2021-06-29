@@ -76,7 +76,7 @@
       </tbody>
     </table>
     <div class="table-footer">
-      <div class="table-actions btn-toolbar" style=''>
+      <div class="table-actions btn-toolbar">
         <?php echo html::linkButton($lang->action->hideAll, inlink('hideAll'), 'hiddenwin');?>
         <span class='table-statistic'><?php echo $lang->action->trashTips;?></span>
       </div>

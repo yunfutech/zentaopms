@@ -789,6 +789,7 @@ class story extends control
      */
     public function review($storyID)
     {
+        $story   = $this->story->getById($storyID);
         $product = $this->dao->findById($story->product)->from(TABLE_PRODUCT)->fields('name, id, PO, director')->fetch();
 
         if(!empty($_POST))
@@ -810,7 +811,6 @@ class story extends control
         }
 
         /* Get story and product. */
-        $story   = $this->story->getById($storyID);
 
         /* Set menu. */
         $this->product->setMenu($this->product->getPairs(), $product->id, $story->branch);
