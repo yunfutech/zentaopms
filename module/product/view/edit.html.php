@@ -52,6 +52,10 @@
             <td><?php echo html::select('director', $poUsers, $product->director, "class='form-control chosen'");?></td><td></td>
           </tr>
           <tr>
+            <th><?php echo $lang->product->counselor;?></th>
+            <td><?php echo html::select('counselor', $poUsers, $product->counselor, "class='form-control chosen'");?></td><td></td>
+          </tr>
+          <tr>
             <th><?php echo $lang->product->PO;?></th>
             <td><?php echo html::select('PO', $poUsers, $product->PO, "class='form-control chosen'");?></td><td></td>
           </tr>

@@ -545,6 +545,7 @@ class productModel extends model
             $products[$productID]->code   = $data->codes[$productID];
             $products[$productID]->PO     = $data->POs[$productID];
             $products[$productID]->director = $data->Directors[$productID];
+            $products[$productID]->counselor = $data->Counselors[$productID];
             $products[$productID]->QD     = $data->QDs[$productID];
             $products[$productID]->RD     = $data->RDs[$productID];
             $products[$productID]->type   = $data->types[$productID];

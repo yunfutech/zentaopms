@@ -143,15 +143,19 @@
               <table class="table table-data">
                 <tbody>
                   <tr>
-                    <th class='w-100px'><i class="icon icon-person icon-sm"></i> <?php echo $lang->productCommon;?></th>
-                    <td><em><?php echo zget($users, $product->PO);?></em></td>
                     <th class='w-100px'><i class="icon icon-person icon-sm"></i> <?php echo $lang->product->director;?></th>
                     <td><em><?php echo zget($users, $product->director);?></em></td>
+                    <th class='w-100px'><i class="icon icon-person icon-sm"></i> <?php echo $lang->product->counselor;?></th>
+                    <td><em><?php echo zget($users, $product->counselor);?></em></td>
                   </tr>
                   <tr>
-                    <th><i class="icon icon-person icon-sm"></i> <?php echo $lang->product->qa;?></th>
+                    <th class='w-100px'><i class="icon icon-person icon-sm"></i> <?php echo $lang->product->PO;?></th>
+                    <td><em><?php echo zget($users, $product->PO);?></em></td>
+                    <th><i class="icon icon-person icon-sm"></i> <?php echo $lang->product->QD;?></th>
                     <td><em><?php echo zget($users, $product->QD);?></em></td>
-                    <th><i class="icon icon-person icon-sm"></i> <?php echo $lang->product->release;?></th>
+                  </tr>
+                  <tr>
+                    <th><i class="icon icon-person icon-sm"></i> <?php echo $lang->product->RD;?></th>
                     <td><em><?php echo zget($users, $product->RD);?></em></td>
                   </tr>
                 </tbody>
