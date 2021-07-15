@@ -27,7 +27,7 @@ class taskModel extends model
             dao::$errors[] = $this->lang->task->error->recordMinus;
             return false;
         }
-        $projectStatus = $this->dao->select('*')->from(TABLE_PROJECT)->where('id')->eq($projectID)->fetch('status');
+        $projectStatus = $this->dao->select('status')->from(TABLE_PROJECT)->where('id')->eq($projectID)->fetch('status');
         if ($projectStatus == 'closed') {
             die(js::error($this->lang->task->error->projectClosed));
         }
@@ -198,6 +198,10 @@ class taskModel extends model
      */
     public function batchCreate($projectID)
     {
+        $projectStatus = $this->dao->select('status')->from(TABLE_PROJECT)->where('id')->eq($projectID)->fetch('status');
+        if ($projectStatus == 'closed') {
+            die(js::error($this->lang->task->error->projectClosed));
+        }
         $this->loadModel('action');
         $now      = helper::now();
         $mails    = array();
