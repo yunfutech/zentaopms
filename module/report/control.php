@@ -341,15 +341,15 @@ class report extends control
     }
 
     // 迭代看板
-    public function projectboard($begin = '', $end = '', $project_type='')
+    public function projectboard($begin = '', $end = '', $projectType='', $status='noclosed')
     {
         $this->app->loadLang('project');
-        $this->lang->project->project_typeList = array_merge(['' => '全部'], $this->lang->project->project_typeList);
+        $this->lang->project->projectTypeList = array_merge(['' => '全部'], $this->lang->project->projectTypeList);
         if ($_POST) {
             $data = fixer::input('post')->get();
             $begin = $data->begin;
             $end = $data->end;
-            $project_type = intval($data->project_type);
+            $projectType = intval($data->projectType);
         }
         [$week_start, $week_end] = $this->getWeekStartEnd();
 
@@ -373,9 +373,10 @@ class report extends control
         $this->view->cur = $this->getCurWeek($week_start, $week_end);
         $this->view->title = $this->lang->report->projectboard;
         $this->view->position[] = $this->lang->report->projectboard;
-        $this->view->projects = $this->report->getProjectStatistics($begin, $end, $project_type);
+        $this->view->projects = $this->report->getProjectStatistics($begin, $end, $projectType, $status);
         $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
-        $this->view->project_type = $project_type;
+        $this->view->projectType = $projectType;
+        $this->view->status = $status;
         $this->display();
     }
 

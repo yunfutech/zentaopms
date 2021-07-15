@@ -8,8 +8,14 @@
         <div class="row" id='conditions'>
           <div class='col-sm-2'>
             <div class='input-group'>
-              <span class='input-group-addon'><?php echo $lang->project->project_type; ?></span>
-              <?php echo html::select('project_type', $lang->project->project_typeList, $project_type, "class='form-control chosen' onchange='changeParams(this)'"); ?>
+              <span class='input-group-addon'><?php echo $lang->project->projectType; ?></span>
+              <?php echo html::select('projectType', $lang->project->projectTypeList, $projectType, "class='form-control chosen' onchange='changeParams(this)'"); ?>
+            </div>
+          </div>
+          <div class='col-sm-2'>
+            <div class='input-group'>
+              <span class='input-group-addon'><?php echo $lang->project->status; ?></span>
+              <?php echo html::select('status', $lang->project->report->statusList, $status, "class='form-control chosen' onchange='changeParams(this)'"); ?>
             </div>
           </div>
           <div class='col-sm-3'>

@@ -667,19 +667,6 @@ class reportModel extends model
     }
 
     /**
-     * 获取迭代看板全部迭代
-     */
-    private function getStatsProjects($end, $project_type) {
-        return $this->dao->select('id, name, pri, CONVERT(name USING gbk) as gbkName')->from(TABLE_PROJECT)
-            ->where('begin')->le($end)
-            ->beginIF($project_type != '')
-            ->andWhere('project_type')->eq($project_type)
-            ->fi()
-            ->andWhere('status')->notin('cancel')
-            ->orderBy('pri, gbkName')->fetchAll();
-    }
-
-    /**
      * 获取迭代实际工时
      */
     private function getHoursByPid($projectID, $begin, $end) {
@@ -731,12 +718,31 @@ class reportModel extends model
     }
 
     /**
+     * 获取迭代看板全部迭代
+     */
+    private function getStatsProjects($end, $projectType, $status) {
+        return $this->dao->select('id, name, pri, CONVERT(name USING gbk) as gbkName')->from(TABLE_PROJECT)
+            ->where('begin')->le($end)
+            ->beginIF($projectType != '')
+            ->andWhere('projectType')->eq($projectType)
+            ->fi()
+            ->andWhere('status')->notin('cancel')
+            ->beginIF($status == 'closed')
+            ->andWhere('status')->eq('closed')
+            ->fi()
+            ->beginIF($status == 'unclosed')
+            ->andWhere('status')->ne('closed')
+            ->fi()
+            ->orderBy('pri, gbkName')->fetchAll();
+    }
+
+    /**
      * 迭代看板
      */
-    public function getProjectStatistics($begin, $end, $project_type)
+    public function getProjectStatistics($begin, $end, $projectType, $status)
     {
         $projects = [];
-        foreach($this->getStatsProjects($end, $project_type) as $project)
+        foreach($this->getStatsProjects($end, $projectType, $status) as $project)
         {
             $project->users = [];
             $project->doneManHour = 0;

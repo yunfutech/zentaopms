@@ -2312,7 +2312,7 @@ class project extends control
      * @access public
      * @return void
      */
-    public function all($status = 'undone', $projectID = 0, $orderBy = 'order_desc', $productID = 0, $project_type = 0, $recTotal = 0, $recPerPage = 10, $pageID = 1)
+    public function all($status = 'undone', $projectID = 0, $orderBy = 'order_desc', $productID = 0, $projectType = 0, $recTotal = 0, $recPerPage = 10, $pageID = 1)
     {
         if($this->projects)
         {
@@ -2328,11 +2328,11 @@ class project extends control
         $this->app->loadLang('my');
         $this->view->title         = $this->lang->project->allProject;
         $this->view->position[]    = $this->lang->project->allProject;
-        $this->view->projectStats  = $this->project->getProjectStats($status == 'byproduct' ? 'all' : $status, $productID, 0, 30, $orderBy, $pager, $project_type);
+        $this->view->projectStats  = $this->project->getProjectStats($status == 'byproduct' ? 'all' : $status, $productID, 0, 30, $orderBy, $pager, $projectType);
         $this->view->products      = array(0 => $this->lang->product->select) + $this->loadModel('product')->getPairs();
         $this->view->productID     = $productID;
         $this->view->projectID     = $projectID;
-        $this->view->project_type  = $project_type;
+        $this->view->projectType  = $projectType;
         $this->view->pager         = $pager;
         $this->view->orderBy       = $orderBy;
         $this->view->users         = $this->loadModel('user')->getPairs('noletter');

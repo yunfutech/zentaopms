@@ -14,7 +14,7 @@ $lang->project->common        = $lang->projectCommon . '视图';
 $lang->project->allProjects   = '所有' . $lang->projectCommon;
 $lang->project->id            = $lang->projectCommon . '编号';
 $lang->project->type          = $lang->projectCommon . '类型';
-$lang->project->project_type  = $lang->projectCommon . '类别';
+$lang->project->projectType  = $lang->projectCommon . '类别';
 $lang->project->name          = $lang->projectCommon . '名称';
 $lang->project->code          = $lang->projectCommon . '代号';
 $lang->project->statge        = '阶段';
@@ -85,9 +85,9 @@ $lang->project->typeList['sprint']    = "短期$lang->projectCommon";
 $lang->project->typeList['waterfall'] = "长期$lang->projectCommon";
 $lang->project->typeList['ops']       = "运维$lang->projectCommon";
 
-$lang->project->project_typeList['0'] = "研发";
-$lang->project->project_typeList['1'] = "商务";
-$lang->project->project_typeList['2'] = "其他";
+$lang->project->projectTypeList['0'] = "研发";
+$lang->project->projectTypeList['1'] = "商务";
+$lang->project->projectTypeList['2'] = "其他";
 
 $lang->project->endList[7]   = '一星期';
 $lang->project->endList[14]  = '两星期';
@@ -117,6 +117,11 @@ $lang->project->statusList['wait']      = '未开始';
 $lang->project->statusList['doing']     = '进行中';
 $lang->project->statusList['suspended'] = '待验收';
 $lang->project->statusList['closed']    = '已关闭';
+
+$lang->project->report = new stdclass();
+$lang->project->report->statusList['unclosed'] = '未关闭';
+$lang->project->report->statusList['all']      = '全部';
+$lang->project->report->statusList['closed']   = '已关闭';
 
 $lang->project->aclList['open']    = "默认设置(有{$lang->projectCommon}视图权限，即可访问)";
 $lang->project->aclList['private'] = "私有{$lang->projectCommon}(只有{$lang->projectCommon}团队成员才能访问)";

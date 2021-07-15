@@ -20,8 +20,8 @@
       <?php echo html::select('product', $products, $productID, "class='chosen form-control' onchange='byProduct(this.value, $projectID, \"$status\")'");?>
     </div>
   </div>
-  <div class='btn-toolbar  pull-left project_type'>
-    <?php echo nl2br(html::radio('project_type', $lang->project->project_typeList, $project_type, "onclick='goProjectType(this.value, \"$status\" ,$productID)'"));?>
+  <div class='btn-toolbar  pull-left projectType'>
+    <?php echo nl2br(html::radio('projectType', $lang->project->projectTypeList, $projectType, "onclick='goProjectType(this.value, \"$status\" ,$productID)'"));?>
   </div>
   <div class='btn-toolbar pull-right'>
     <?php common::printLink('project', 'export', "status=$status&productID=$productID&orderBy=$orderBy", "<i class='icon-export muted'> </i>" . $lang->export, '', "class='btn btn-link export'")?>
@@ -32,7 +32,7 @@
   <?php $canOrder = (common::hasPriv('project', 'updateOrder') and strpos($orderBy, 'order') !== false)?>
   <form class='main-table' id='projectsForm' method='post' action='<?php echo inLink('batchEdit', "projectID=$projectID");?>' data-ride='table'>
     <table class='table has-sort-head table-fixed' id='projectList'>
-      <?php $vars = "status=$status&projectID=$projectID&orderBy=%s&productID=$productID&project_type=$project_type&recTotal={$pager->recTotal}&recPerPage={$pager->recPerPage}&pageID={$pager->pageID}";?>
+      <?php $vars = "status=$status&projectID=$projectID&orderBy=%s&productID=$productID&projectType=$projectType&recTotal={$pager->recTotal}&recPerPage={$pager->recPerPage}&pageID={$pager->pageID}";?>
       <thead>
         <tr>
           <th class='c-id'>
@@ -42,7 +42,7 @@
             <?php common::printOrderLink('id', $orderBy, $vars, $lang->idAB);?>
           </th>
           <th class='w-70px'><?php common::printOrderLink('pri', $orderBy, $vars, $lang->project->pri);?></th>
-          <th class='w-80px'><?php echo $lang->project->project_type;?></th>
+          <th class='w-80px'><?php echo $lang->project->projectType;?></th>
           <th><?php common::printOrderLink('name', $orderBy, $vars, $lang->project->name);?></th>
           <th class='w-80px'><?php common::printOrderLink('PO', $orderBy, $vars, $lang->project->PO);?></th>
           <th class='w-80px'><?php common::printOrderLink('PM', $orderBy, $vars, $lang->project->PM);?></th>
@@ -78,7 +78,7 @@
             <?php echo zget($lang->project->priList, $project->pri)?></span>
           </td>
 
-          <td><?php echo zget($lang->project->project_typeList, $project->project_type);?></td>
+          <td><?php echo zget($lang->project->projectTypeList, $project->projectType);?></td>
           <td class='text-left' title='<?php echo $project->name?>'>
             <?php
             if(isset($project->delay)) echo "<span class='label label-danger label-badge'>{$lang->project->delayed}</span> ";

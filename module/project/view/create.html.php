@@ -110,8 +110,8 @@
           <td class='muted' colspan='2'><div class='type-tips'><?php echo $lang->project->typeDesc;?></div></td>
         </tr>
         <tr>
-          <th><?php echo $lang->project->project_type;?></th>
-          <td colspan='2'><?php echo nl2br(html::radio('project_type', $lang->project->project_typeList, $project->project_type, "class='block'"));?></td>
+          <th><?php echo $lang->project->projectType;?></th>
+          <td colspan='2'><?php echo nl2br(html::radio('projectType', $lang->project->projectTypeList, $project->projectType, "class='block'"));?></td>
         </tr>
         <tr <?php if($config->global->flow == 'onlyTask') echo "class='hidden'";?>>
           <th><?php echo $lang->project->manageProducts;?></th>

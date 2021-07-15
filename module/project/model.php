@@ -859,13 +859,13 @@ class projectModel extends model
      * @access public
      * @return void
      */
-    public function getProjectStats($status = 'undone', $productID = 0, $branch = 0, $itemCounts = 30, $orderBy = 'order_desc', $pager = null, $project_type = 0)
+    public function getProjectStats($status = 'undone', $productID = 0, $branch = 0, $itemCounts = 30, $orderBy = 'order_desc', $pager = null, $projectType = 0)
     {
         /* Init vars. */
         $projects = $this->getList($status, 0, $productID, $branch);
         $projects = $this->dao->select('*')->from(TABLE_PROJECT)
             ->where('id')->in(array_keys($projects))
-            ->andWhere('project_type')->eq($project_type)
+            ->andWhere('projectType')->eq($projectType)
             ->orderBy($orderBy)
             ->page($pager)
             ->fetchAll('id');
@@ -1166,9 +1166,9 @@ class projectModel extends model
 
     /**
      * Get ordered projects.
-     * 
-     * @param  string $status 
-     * @param  int    $num 
+     *
+     * @param  string $status
+     * @param  int    $num
      * @access public
      * @return array
      */
@@ -2096,7 +2096,7 @@ class projectModel extends model
              ->andWhere('t1.id')->in(array_keys($taskIdList))
              ->orderBy($orderBy)
              ->fetchAll('id');
-        
+
         if(empty($tasks)) return array();
 
         $taskTeam = $this->dao->select('*')->from(TABLE_TEAM)->where('root')->in(array_keys($tasks))->andWhere('type')->eq('task')->fetchGroup('root');
@@ -2111,10 +2111,10 @@ class projectModel extends model
             if($task->parent > 0) $parents[$task->parent] = $task->parent;
         }
         $parents = $this->dao->select('*')->from(TABLE_TASK)->where('id')->in($parents)->fetchAll('id');
-        
+
         foreach($tasks as $task)
         {
-            if($task->parent > 0) 
+            if($task->parent > 0)
             {
                 if(isset($tasks[$task->parent]))
                 {
@@ -3042,8 +3042,8 @@ class projectModel extends model
 
     /**
      * Update user view of project and it's product.
-     * 
-     * @param  int    $projectID 
+     *
+     * @param  int    $projectID
      * @access public
      * @return void
      */

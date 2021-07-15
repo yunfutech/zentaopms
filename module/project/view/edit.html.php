@@ -76,8 +76,8 @@
         </tr>
         <?php endif;?>
         <tr>
-          <th><?php echo $lang->project->project_type;?></th>
-          <td colspan='2'><?php echo nl2br(html::radio('project_type', $lang->project->project_typeList, $project->project_type, "class='block'"));?></td>
+          <th><?php echo $lang->project->projectType;?></th>
+          <td colspan='2'><?php echo nl2br(html::radio('projectType', $lang->project->projectTypeList, $project->projectType, "class='block'"));?></td>
         </tr>
         <tr>
           <th><?php echo $lang->project->teamname;?></th>
@@ -134,7 +134,7 @@
                 <div class="input-group<?php if($hasBranch) echo ' has-branch';?>">
                   <?php echo html::select("products[$i]", $allProducts, $product->id, "class='form-control chosen' onchange='loadBranches(this)' data-last='" . $product->id . "'");?>
                   <span class='input-group-addon fix-border'></span>
-                  <?php if($hasBranch) echo html::select("branch[$i]", $branchGroups[$product->id], $product->branch, "class='form-control chosen' onchange=\"loadPlans('#products{$i}', this.value)\"");?> 
+                  <?php if($hasBranch) echo html::select("branch[$i]", $branchGroups[$product->id], $product->branch, "class='form-control chosen' onchange=\"loadPlans('#products{$i}', this.value)\"");?>
                 </div>
               </div>
               <?php $i++;?>

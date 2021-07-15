@@ -10,11 +10,11 @@ $(function()
 
 function byProduct(productID, projectID, status)
 {
-    var project_type = $("input[name='project_type']").val()
-    location.href = createLink('project', 'all', "status=" + status + "&project=" + projectID + "&orderBy=" + orderBy + '&productID=' + productID + '&project_type=' + project_type);
+    var projectType = $("input[name='projectType']").val()
+    location.href = createLink('project', 'all', "status=" + status + "&project=" + projectID + "&orderBy=" + orderBy + '&productID=' + productID + '&projectType=' + projectType);
 }
 
 function goProjectType(value, status, projectID) {
     var productID = 0
-    location.href = createLink('project', 'all', "status=" + status + "&project=" + 0 + "&orderBy=order_desc&productID=" + productID + '&project_type=' + value);
+    location.href = createLink('project', 'all', "status=" + status + "&project=" + 0 + "&orderBy=order_desc&productID=" + productID + '&projectType=' + value);
 }

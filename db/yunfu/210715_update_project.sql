@@ -1,0 +1,1 @@
+ALTER TABLE `zt_project` CHANGE `project_type` `projectType` TINYINT(3) NOT NULL DEFAULT '0';
