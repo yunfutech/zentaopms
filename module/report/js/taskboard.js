@@ -1,6 +1,7 @@
 function changeParams (obj) {
     var date = $('#conditions').find('#date').val();
     var dept = $('#conditions').find('#dept').val();
+    var project = $('#conditions').find('#project').val();
     if (date.indexOf('-') != -1) {
         var beginarray = date.split("-");
         var date = '';
@@ -8,7 +9,7 @@ function changeParams (obj) {
             date = date + beginarray[i];
         }
     }
-    var link = createLink('report', 'taskboard', 'date=' + date + '&dept=' + dept);
+    var link = createLink('report', 'taskboard', 'date=' + date + '&dept=' + dept) + '&project=' + project;
     location.href = link;
 }
 

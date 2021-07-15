@@ -13,15 +13,21 @@
             </div>
           </div>
           <div class='col-sm-2'>
+            <div class='input-group'>
+              <span class='input-group-addon'><?php echo $lang->report->project; ?></span>
+              <?php echo html::select('project', $projects, $project, "class='form-control chosen' onchange='changeParams(this)'"); ?>
+            </div>
+          </div>
+          <div class='col-sm-2'>
             <div class='input-group input-group-sm'>
               <span class='input-group-addon'>日期选择</span>
               <div class='datepicker-wrapper datepicker-date'><?php echo html::input('date', $date, "class='form-control' style='padding-right:10px' onchange='changeParams(this)'"); ?></div>
             </div>
           </div>
           <div class='col-sm-3'>
-          <?php echo html::a($this->createLink('report', 'taskboard', "date={$prev_day}&dept={$dept}"), 上一天, '', "class='btn btn-primary next'"); ?>
-          <?php echo html::a($this->createLink('report', 'taskboard', "date={$toady}&dept={$dept}"), 今天, '', "class='btn btn-primary next'"); ?>
-          <?php echo html::a($this->createLink('report', 'taskboard', "date={$next_day}&dept={$dept}"), 下一天, '', "class='btn btn-primary next'"); ?>
+          <?php echo html::a($this->createLink('report', 'taskboard', "date={$prev_day}&dept={$dept}"), '上一天', '', "class='btn btn-primary next'"); ?>
+          <?php echo html::a($this->createLink('report', 'taskboard', "date={$toady}&dept={$dept}"), '今天', '', "class='btn btn-primary next'"); ?>
+          <?php echo html::a($this->createLink('report', 'taskboard', "date={$next_day}&dept={$dept}"), '下一天', '', "class='btn btn-primary next'"); ?>
           <?php echo html::a($this->createLink('report', 'export', "&dept={$dept}"), "<i class='icon icon-export muted'> </i>导出", '', "class='btn btn-primary download-btn'"); ?>
           </div>
         </div>

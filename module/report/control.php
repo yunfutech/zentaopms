@@ -281,7 +281,7 @@ class report extends control
 
     // 任务看板
 
-    public function taskboard($date = 0, $dept = -1)
+    public function taskboard($date = 0, $dept = -1, $project=0)
     {
         global $app;
         if ($_POST) {
@@ -299,11 +299,14 @@ class report extends control
         } else {
             $date = date('Y-m-d', strtotime($date));
         }
+
+        $projects = [0 => '全部'] + $this->loadModel('project')->getPairs('noclosed');
+
         $this->app->session->set('taskList',  $this->app->getURI(true));
         $this->app->loadConfig('project');
         $this->view->title = $this->lang->report->taskboard;
         $this->view->position[] = $this->lang->report->taskboard;
-        $tasks = $this->report->getTaskStatistics($dept, $date);
+        $tasks = $this->report->getTaskStatistics($dept, $date, $project);
         $this->view->workload = $tasks['tasks'];
         $this->view->short = $tasks['short'];
         $this->view->exceed = $tasks['exceed'];
@@ -314,6 +317,8 @@ class report extends control
         $this->view->prev_day = date("Ymd", strtotime("-1 days", strtotime($date)));
         $this->view->next_day = date("Ymd", strtotime("+1 days", strtotime($date)));
         $this->view->dept = $dept;
+        $this->view->projects = $projects;
+        $this->view->project = $project;
         $this->display();
     }
 

@@ -504,7 +504,7 @@ class reportModel extends model
     }
 
 
-    public function getTaskStatistics($dept = 0, $date)
+    public function getTaskStatistics($dept = 0, $date, $project=0)
     {
         $childDeptIds = $this->loadModel('dept')->getAllChildID($dept);
         $deptUsers = $this->dept->getUsers($childDeptIds);
@@ -534,6 +534,9 @@ class reportModel extends model
         ->andWhere('t1.finishedBy')->in($usernames)
         ->andWhere('t1.deadline')->eq($date)
         ->andWhere('t1.finishedBy')->ne('')
+        ->beginIF($project != 0)
+        ->andWhere('t2.id')->eq($project)
+        ->fi()
         ->andWhere('t1.assignedTo')->ne('')->orderBy('t1.id')->fetchAll();
 
 
@@ -546,6 +549,9 @@ class reportModel extends model
         ->andWhere('t1.deadline')->eq($date)
         ->andWhere('t1.status')->notin('cancel, closed')
         ->andWhere('t1.finishedBy')->eq('')
+        ->beginIF($project != 0)
+        ->andWhere('t2.id')->eq($project)
+        ->fi()
         ->andWhere('t1.assignedTo')->ne('')->orderBy('t1.id')->fetchAll();
 
         // $todoTasks  = $todo->beginIF(0)->andWhere('t1.assignedTo')->in(array_keys($deptUsers))->fi()->fetchAll('id');
