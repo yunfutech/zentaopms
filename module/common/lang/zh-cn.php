@@ -590,6 +590,7 @@ if(!defined('DT_DATE3'))      define('DT_DATE3',     'Y年m月d日');
 if(!defined('DT_DATE4'))      define('DT_DATE4',     'n月j日');
 if(!defined('DT_TIME1'))      define('DT_TIME1',     'H:i:s');
 if(!defined('DT_TIME2'))      define('DT_TIME2',     'H:i');
+if(!defined('DT_TIME3'))     define('DT_TIME3',     'H');
 
 /* datepicker 时间*/
 $lang->datepicker = new stdclass();

@@ -455,7 +455,7 @@ class baseHelper
      */
     static public function monday()
     {
-        return date('Y-m-d', time() - (date('w', time()) - 1) * 60 * 60 * 24);
+        return date(DT_DATE1, time() - (date('w', time()) - 1) * 60 * 60 * 24);
     }
 
     /**
@@ -471,6 +471,14 @@ class baseHelper
     }
 
     /**
+     * 获取明天
+     */
+    static public function tomorrow()
+    {
+        return date(DT_DATE1, strtotime('+1 day'));
+    }
+
+    /**
      *  获取当前日期，使用common语言文件定义的DT_TIME1常量。
      *  Get now time use the DT_TIME1 constant defined in the lang file.
      *
@@ -480,6 +488,14 @@ class baseHelper
     static public function time()
     {
         return date(DT_TIME1);
+    }
+
+    /**
+     * 获取当前小时
+     */
+    static public function hour()
+    {
+        return date(DT_TIME3);
     }
 
     /**

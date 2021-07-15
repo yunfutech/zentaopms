@@ -63,7 +63,11 @@ class task extends control
         $task->estimate   = '';
         $task->desc       = '';
         $task->estStarted = '';
-        $task->deadline   = '';
+        if (helper::hour() >= $this->config->task->deadlinePoint) {
+            $task->deadline = helper::tomorrow();
+        } else {
+            $task->deadline = helper::today();
+        }
         $task->color      = '';
         if($taskID > 0)
         {
@@ -270,6 +274,12 @@ class task extends control
 
         if($taskID) $this->view->parentTitle = $this->dao->select('name')->from(TABLE_TASK)->where('id')->eq($taskID)->fetch('name');
 
+        if (helper::hour() >= $this->config->task->deadlinePoint) {
+            $defaultDeadline = helper::tomorrow();
+        } else {
+            $defaultDeadline = helper::today();
+        }
+
         $this->view->title      = $title;
         $this->view->position   = $position;
         $this->view->project    = $project;
@@ -282,6 +292,7 @@ class task extends control
         $this->view->members    = $members;
         $this->view->moduleID   = $moduleID;
         $this->view->showAllModule = $showAllModule;
+        $this->view->defaultDeadline = $defaultDeadline;
         $this->display();
     }
 
