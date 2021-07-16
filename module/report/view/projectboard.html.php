@@ -26,7 +26,13 @@
               <div class='datepicker-wrapper datepicker-date'><?php echo html::input('end', $end, "class='form-control' style='padding-right:10px' onchange='changeParams(this)'"); ?></div>
             </div>
           </div>
-          <div class='col-sm-3'>
+          <div class='col-sm-2'>
+            <div class='input-group'>
+              <span class='input-group-addon'><?php echo $lang->report->orderBy; ?></span>
+              <?php echo html::select('orderBy', $lang->report->orderList, $orderBy, "class='form-control chosen' onchange='changeParams(this)'"); ?>
+            </div>
+          </div>
+          <div class='col-sm-2'>
             <?php echo html::a($this->createLink('report', 'projectboard', "begin={$pre['start']}&end={$pre['end']}"), '上一周', '', "class='btn btn-primary next'"); ?>
             <?php echo html::a($this->createLink('report', 'projectboard', "begin={$cur['start']}&end={$cur['end']}"), '本周', '', "class='btn btn-primary next'"); ?>
             <?php echo html::a($this->createLink('report', 'projectboard', "begin={$next['start']}&end={$next['end']}"), '下一周', '', "class='btn btn-primary next'"); ?>

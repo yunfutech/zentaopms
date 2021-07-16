@@ -743,13 +743,13 @@ class reportModel extends model
             ->beginIF($status == 'unclosed')
             ->andWhere('status')->ne('closed')
             ->fi()
-            ->orderBy('pri, gbkName')->fetchAll();
+            ->fetchAll();
     }
 
     /**
      * 迭代看板
      */
-    public function getProjectStatistics($begin, $end, $projectType, $status)
+    public function getProjectStatistics($begin, $end, $projectType, $status, $orderBy)
     {
         $projects = [];
         foreach($this->getStatsProjects($end, $projectType, $status) as $project)
@@ -762,6 +762,9 @@ class reportModel extends model
                 $consumed = round($item->totalConsumed, 2);
                 $project->users[$item->finishedBy] = $consumed;
                 $project->doneManHour += $consumed;
+            }
+            if ($project->doneManHour == 0) {
+                continue;
             }
             $storyStats = $this->getStoryStatsByPid($project->id, $end);
             $project->allStoiresCount = $storyStats->total;
@@ -778,6 +781,16 @@ class reportModel extends model
             $project->products = implode('<br/>', array_values($products));
             array_push($projects, $project);
         }
+        $sortArr = array();
+        foreach ($projects as $key => $value) {
+            $sortArr[$key] = $value->$orderBy;
+        }
+        if ($orderBy == 'pri') {
+            array_multisort($sortArr, SORT_ASC, $projects);
+        } else {
+            array_multisort($sortArr, SORT_DESC, $projects);
+        }
+
         return $projects;
     }
 

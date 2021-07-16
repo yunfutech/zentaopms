@@ -196,3 +196,7 @@ $lang->report->boardProduct->doneStoriesEstimate = '已完成' . $lang->storyCom
 $lang->report->boardProduct->schedule = $lang->productCommon . '进度';
 $lang->report->boardProduct->doneManHour = '实际工时';
 $lang->report->boardProduct->accuracy = '实际工时/预计工时';
+
+$lang->report->orderBy = '排序字段';
+$lang->report->orderList['pri'] = '优先级';
+$lang->report->orderList['doneManHour'] = '实际工时';

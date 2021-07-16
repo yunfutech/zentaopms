@@ -349,7 +349,7 @@ class report extends control
     }
 
     // 迭代看板
-    public function projectboard($begin = '', $end = '', $projectType='', $status='noclosed')
+    public function projectboard($begin = '', $end = '', $projectType='', $status='noclosed', $orderBy='pri')
     {
         $this->app->loadLang('project');
         $this->lang->project->projectTypeList = array_merge(['' => '全部'], $this->lang->project->projectTypeList);
@@ -381,10 +381,11 @@ class report extends control
         $this->view->cur = $this->getCurWeek($week_start, $week_end);
         $this->view->title = $this->lang->report->projectboard;
         $this->view->position[] = $this->lang->report->projectboard;
-        $this->view->projects = $this->report->getProjectStatistics($begin, $end, $projectType, $status);
+        $this->view->projects = $this->report->getProjectStatistics($begin, $end, $projectType, $status, $orderBy);
         $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
         $this->view->projectType = $projectType;
         $this->view->status = $status;
+        $this->view->orderBy = $orderBy;
         $this->display();
     }
 
