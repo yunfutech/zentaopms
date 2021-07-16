@@ -308,6 +308,32 @@ class productModel extends model
     }
 
     /**
+     * 获取全部项目
+     */
+    public function getAllPairs($mode = '', $director='')
+    {
+        $products = $this->dao->select('*,  IF(INSTR(" closed", status) < 2, 0, 1) AS isClosed')
+            ->from(TABLE_PRODUCT)
+            ->where('deleted')->eq(0)
+            ->beginIF(strpos($mode, 'noclosed') !== false)->andWhere('status')->ne('closed')->fi()
+            ->beginIF($director != '')->andWhere('director')->eq($director)->fi()
+            ->fetchPairs('id', 'name');
+        return $products;
+    }
+
+    /**
+     * 获取全部项目负责人
+     */
+    public function getDirectors() {
+        $directors = $this->dao->select('t1.director, t2.realname')
+            ->from(TABLE_PRODUCT)->alias('t1')
+            ->leftJoin(TABLE_USER)->alias('t2')->on('t1.director= t2.account')
+            ->where('t1.deleted')->eq(0)
+            ->fetchPairs('director');
+        return $directors;
+    }
+
+    /**
      * Get products by project.
      *
      * @param  int    $projectID

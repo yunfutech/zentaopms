@@ -74,6 +74,7 @@ $lang->reportList->staff->lists[10] = '员工负载表|report|workload';
 $lang->report->id = '编号';
 $lang->report->project = $lang->projectCommon;
 $lang->report->product = $lang->productCommon;
+$lang->report->productDirector = '项目负责人';
 $lang->report->user = '姓名';
 $lang->report->bugTotal = 'Bug';
 $lang->report->task = '详情';

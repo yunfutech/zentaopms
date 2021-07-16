@@ -281,7 +281,7 @@ class report extends control
 
     // 任务看板
 
-    public function taskboard($date = 0, $dept = -1, $project=0)
+    public function taskboard($date = 0, $dept = -1, $director='', $product=0)
     {
         global $app;
         if ($_POST) {
@@ -300,13 +300,19 @@ class report extends control
             $date = date('Y-m-d', strtotime($date));
         }
 
-        $projects = [0 => '全部'] + $this->loadModel('project')->getPairs('noclosed');
+
+        $directors = ['' => '全部'] + $this->loadModel('product')->getDirectors();
+
+        $products = [0 => '全部'] + $this->loadModel('product')->getAllPairs('noclosed', $director);
+
+        $productIDs = array_keys($products);
+
 
         $this->app->session->set('taskList',  $this->app->getURI(true));
         $this->app->loadConfig('project');
         $this->view->title = $this->lang->report->taskboard;
         $this->view->position[] = $this->lang->report->taskboard;
-        $tasks = $this->report->getTaskStatistics($dept, $date, $project);
+        $tasks = $this->report->getTaskStatistics($dept, $date, $productIDs, $product);
         $this->view->workload = $tasks['tasks'];
         $this->view->short = $tasks['short'];
         $this->view->exceed = $tasks['exceed'];
@@ -317,8 +323,10 @@ class report extends control
         $this->view->prev_day = date("Ymd", strtotime("-1 days", strtotime($date)));
         $this->view->next_day = date("Ymd", strtotime("+1 days", strtotime($date)));
         $this->view->dept = $dept;
-        $this->view->projects = $projects;
-        $this->view->project = $project;
+        $this->view->products = $products;
+        $this->view->product = $product;
+        $this->view->directors = $directors;
+        $this->view->director = $director;
         $this->display();
     }
 

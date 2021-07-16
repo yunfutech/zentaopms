@@ -504,7 +504,7 @@ class reportModel extends model
     }
 
 
-    public function getTaskStatistics($dept = 0, $date, $project=0)
+    public function getTaskStatistics($dept = 0, $date, $productIDs=[], $product=0)
     {
         $childDeptIds = $this->loadModel('dept')->getAllChildID($dept);
         $deptUsers = $this->dept->getUsers($childDeptIds);
@@ -530,12 +530,17 @@ class reportModel extends model
         ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
         ->leftJoin(TABLE_MODULE)->alias('t3')->on('t1.module = t3.id')
         ->leftJoin(TABLE_STORY)->alias('t4')->on('t1.story = t4.id')
+        ->leftJoin(TABLE_PROJECTPRODUCT)->alias('t5')->on('t1.project = t5.project')
+        ->leftJoin(TABLE_PRODUCT)->alias('t6')->on('t5.product = t6.id')
         ->where('t1.deleted')->eq(0)
         ->andWhere('t1.finishedBy')->in($usernames)
         ->andWhere('t1.deadline')->eq($date)
         ->andWhere('t1.finishedBy')->ne('')
-        ->beginIF($project != 0)
-        ->andWhere('t2.id')->eq($project)
+        ->beginIF(!empty($productIDs))
+        ->andWhere('t6.id')->in($productIDs)
+        ->fi()
+        ->beginIF($product != 0)
+        ->andWhere('t6.id')->eq($product)
         ->fi()
         ->andWhere('t1.assignedTo')->ne('')->orderBy('t1.id')->fetchAll();
 
@@ -544,13 +549,18 @@ class reportModel extends model
         ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
         ->leftJoin(TABLE_MODULE)->alias('t3')->on('t1.module = t3.id')
         ->leftJoin(TABLE_STORY)->alias('t4')->on('t1.story = t4.id')
+        ->leftJoin(TABLE_PROJECTPRODUCT)->alias('t5')->on('t1.project = t5.project')
+        ->leftJoin(TABLE_PRODUCT)->alias('t6')->on('t5.product = t6.id')
         ->where('t1.deleted')->eq(0)
         ->andWhere('t1.assignedTo')->in($usernames)
         ->andWhere('t1.deadline')->eq($date)
         ->andWhere('t1.status')->notin('cancel, closed')
         ->andWhere('t1.finishedBy')->eq('')
-        ->beginIF($project != 0)
-        ->andWhere('t2.id')->eq($project)
+        ->beginIF(!empty($productIDs))
+        ->andWhere('t6.id')->in($productIDs)
+        ->fi()
+        ->beginIF($product != 0)
+        ->andWhere('t6.id')->eq($product)
         ->fi()
         ->andWhere('t1.assignedTo')->ne('')->orderBy('t1.id')->fetchAll();
 
