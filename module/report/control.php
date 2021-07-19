@@ -280,7 +280,7 @@ class report extends control
     }
 
     // 任务看板
-
+ 
     public function taskboard($date = 0, $dept = -1, $director='', $product=0)
     {
         global $app;

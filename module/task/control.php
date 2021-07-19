@@ -1773,9 +1773,15 @@ class task extends control
 
     public function generateMeetingTask($day='')
     {
-        $ids = [2, 4, 19, 131, 18, 88, 137, 123, 99, 146, 156];   # 张总、贾总、曾总、程总、建行、王琪、王莞钦、赵娅平、罗家成、程浩鹏、黄天意
+        // $ids = [2, 4, 19, 131, 18, 123, 99, 146, 156, 157];   # 张总、贾总、曾总、程总、建行、赵娅平、罗家成、程浩鹏、黄天意
+        $users = $this->dao->select('id, account')->from(TABLE_USER)
+            ->where('dept')->in($this->config->task->meetTaskDepts)
+            ->andWhere('deleted')->eq('0')
+            ->andWhere('leaved')->eq('0')
+            ->andWhere('id')->notin($this->config->task->blacklist)
+            ->fetchall();
+        print_r($users);
         $projectID = 434;   # 项目管理2021
-        $users = $this->dao->select('account')->from(TABLE_USER)->where('id')->in($ids)->fetchall();
         $now = date('Y-m-d H:i:s');
         if(empty($day)) {
             $days = $this->getNextweekDays();
