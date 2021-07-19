@@ -683,8 +683,8 @@ class reportModel extends model
         return $this->dao->select('finishedBy, sum(consumed) as totalConsumed')->from(TABLE_TASK)
         ->where('deleted')->eq(0)
         ->andWhere('project')->eq(intval($projectID))
-        ->andWhere('finishedDate')->ge($begin)
-        ->andWhere('finishedDate')->le($end)
+        ->andWhere('deadline')->ge($begin)
+        ->andWhere('deadline')->le($end)
         ->andWhere('finishedBy')->ne('')
         ->groupBy('finishedBy')
         ->fetchAll();
