@@ -280,8 +280,8 @@ class report extends control
     }
 
     // 任务看板
- 
-    public function taskboard($date = 0, $dept = -1, $director='', $product=0)
+
+    public function taskboard($date = 0, $dept = -1, $director='', $product=0, $debug=0)
     {
         global $app;
         if ($_POST) {
@@ -312,7 +312,7 @@ class report extends control
         $this->app->loadConfig('project');
         $this->view->title = $this->lang->report->taskboard;
         $this->view->position[] = $this->lang->report->taskboard;
-        $tasks = $this->report->getTaskStatistics($dept, $date, $productIDs, $product);
+        $tasks = $this->report->getTaskStatistics($dept, $date, $productIDs, $product, $debug);
         $this->view->workload = $tasks['tasks'];
         $this->view->short = $tasks['short'];
         $this->view->exceed = $tasks['exceed'];
