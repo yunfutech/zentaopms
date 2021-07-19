@@ -769,9 +769,6 @@ class reportModel extends model
             $storyStats = $this->getStoryStatsByPid($project->id, $end);
             $project->allStoiresCount = $storyStats->total;
             $project->manHour = round($storyStats->totalEstimate);
-            if ($project->manHour == 0) {
-                continue;
-            }
             $doneStoryStats = $this->getDoneStoryStatsByPid($project->id, $begin, $end);
             $project->allDoneStoiresCount = $doneStoryStats->total;
             $project->doneStoriesEstimate = round($doneStoryStats->totalEstimate);
