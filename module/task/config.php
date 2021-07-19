@@ -205,5 +205,5 @@ $config->task->datatable->fieldList['actions']['required'] = 'yes';
 
 $config->task->deadlinePoint = 18;
 
-$config->task->meetTaskDepts = [1, 9, 10];
+$config->task->meetTaskDepts = [9, 10];
 $config->task->blacklist = [];
