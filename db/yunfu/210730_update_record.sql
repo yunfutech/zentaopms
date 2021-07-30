@@ -1,0 +1,1 @@
+ALTER TABLE `zt_target_record` CHANGE `solution` `solution` TEXT CHARACTER SET utf8 COLLATE utf8_general_ci NULL COMMENT '方法';

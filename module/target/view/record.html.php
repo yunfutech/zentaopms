@@ -19,6 +19,12 @@
             </td>
           </tr>
           <tr>
+            <th><i class="icon icon-exclamation-sign"></i></th>
+            <td colspan="3" style="color: #EA644A">
+              指标输入需保留三位小数
+            </td>
+          </tr>
+          <tr>
             <th>准确率</th>
             <td>
               <?php echo html::input('precision', '', "class='form-control' required");?>
@@ -34,8 +40,8 @@
           </tr>
           <tr>
             <th>方案</th>
-            <td>
-              <?php echo html::textarea('solution', '', "style='height: 100px;' class='form-control kindeditor disabled-ie-placeholder' hidefocus='true' required");?>
+            <td colspan='5'>
+              <?php echo html::textarea('solution', '', "style='height: 300px;' class='form-control kindeditor disabled-ie-placeholder' hidefocus='true' required");?>
             </td>
           </tr>
         </tbody>
