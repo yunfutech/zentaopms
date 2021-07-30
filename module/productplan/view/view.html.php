@@ -188,8 +188,7 @@
                   $actionLink = $this->createLink('story', 'batchEdit', "productID=$plan->product&projectID=0&branch=$branch");
                   $misc = $canBatchEdit ? "onclick=\"setFormAction('$actionLink', '', this)\"" : $class;
                   echo "<li>" . html::a('#', $lang->edit, '', $misc) . "</li>";
-
-                  if($canBatchReview)
+                  if($this->app->user->account == $product->director)
                   {
                       echo "<li class='dropdown-submenu'>";
                       echo html::a('javascript:;', $lang->story->review, '', "id='reviewItem'");
@@ -223,10 +222,6 @@
                           }
                       }
                       echo '</ul></li>';
-                  }
-                  else
-                  {
-                      echo '<li>' . html::a('javascript:;', $lang->story->review,  '', $class) . '</li>';
                   }
 
                   if($canBatchChangeBranch and $this->session->currentProductType != 'normal')
