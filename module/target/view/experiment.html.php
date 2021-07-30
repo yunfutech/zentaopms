@@ -1,7 +1,7 @@
 <?php include '../../common/view/header.html.php';?>
 
 <div id="mainContent" class="main-content">
-  <?php $backLink = $this->session->{$viewType . 'List'} ? $this->session->{$viewType . 'List'} : 'javascript:history.go(-1)';?>
+  <?php $backLink = $this->createLink('project', 'target', 'project=' . $projectID, '');?>
   <a href="<?php echo $backLink;?>" class="btn btn-secondary">
     <i class="icon icon-back icon-sm"></i> <?php echo $lang->goback;?>
   </a>
@@ -27,7 +27,13 @@
           <tr>
             <th>日期</th>
             <td>
-              <?php echo html::input("deadline", '', "class='form-control form-datetime' required");?>
+              <?php echo html::input("deadline", date('Y-m-d'), "class='form-control form-date' required");?>
+            </td>
+          </tr>
+          <tr>
+            <th><i class="icon icon-exclamation-sign"></i></th>
+            <td colspan="3" style="color: #EA644A">
+              指标输入需保留三位小数
             </td>
           </tr>
           <tr>

@@ -156,6 +156,7 @@ class target extends control
         foreach ($datasets as $dataset) {
             $view_datasets[$dataset->id] = $dataset->name;
         }
+        $this->view->projectID = $projectID;
         $this->view->categories = $view_categories;
         $this->view->datasets = $view_datasets;
         $this->display();
