@@ -722,7 +722,6 @@ class report extends control
             $end = date('m.d', ($weekday['end']));
             array_push($weekRange, '第' . $week . '周(' . $start . '-' . $end . ')');
         }
-        array_unshift($weekRange, '第几周');
         return $weekRange;
     }
 

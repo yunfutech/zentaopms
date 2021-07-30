@@ -21,7 +21,7 @@
   <?php else:?>
   <form class="main-table table-task">
     <table class="table has-sort-head table-fixed">
-      <?php $vars = "orderBy=%s&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID"; ?>
+      <?php $vars = "week=$week&product=$product&orderBy=%s&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID"; ?>
       <thead>
         <tr>
           <th class="c-id">
@@ -38,7 +38,7 @@
           <td class="c-id">
             <?php printf('%03d', $weekly->id);?>
           </td>
-          <td class='c-name' title="<?php echo $weekly->name;?>"><?php echo html::a($this->createLink('productweekly', 'view', "weeklyID=$weekly->id&productID=$weekly->product"), $weekly->name);?></td>
+          <td class='c-name' title="<?php echo $weekly->name;?>"><?php echo html::a($this->createLink('productweekly', 'view', "weeklyID=$weekly->id&productID=$weekly->product"), $weekly->name, $target="_blank");?></td>
           <td class='c-date'><?php echo $weekly->realname?></td>
           <td class='c-date'><?php echo $weekly->date?></td>
         </tr>
