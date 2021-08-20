@@ -112,7 +112,7 @@
           </tr>
           <tr id='whitelistBox'>
             <th><?php echo $lang->product->whitelist;?></th>
-            <td colspan='2'><?php echo html::checkbox('whitelist', $groups, '1', '', 'inline');?></td>
+            <td colspan='2'><?php echo html::checkbox('whitelist', $groups, '1,4', '', 'inline');?></td>
           </tr>
           <tr>
             <td colspan='3' class='text-center form-actions'>
