@@ -46,11 +46,11 @@
       <table class='table table-form'>
         <thead>
           <tr>
-            <th class='w-50px'><?php echo $lang->idAB;?></th> 
+            <th class='w-50px'><?php echo $lang->idAB;?></th>
             <th class='w-120px<?php echo zget($visibleFields, $product->type, ' hidden')?>'> <?php echo $lang->product->branch;?></th>
             <th class='w-120px<?php echo zget($requiredFields, 'module', '', ' required');?>'> <?php echo $lang->bug->module;?></th>
             <th class='w-130px<?php echo zget($visibleFields, 'project', ' hidden') . zget($requiredFields, 'project', '', ' required');?>'><?php echo $lang->bug->project;?></th>
-            <th class='w-100px required'><?php echo $lang->bug->openedBuild;?></th>
+            <th class='w-120px required'><?php echo $lang->bug->openedBuild;?></th>
             <th class='c-title required'><?php echo $lang->bug->title;?></th>
             <th class='w-100px<?php echo zget($visibleFields, 'deadline', ' hidden') . zget($requiredFields, 'deadline', '', ' required');?>'><?php echo $lang->bug->deadline;?></th>
             <th class='w-150px<?php echo zget($visibleFields, 'steps', ' hidden') . zget($requiredFields, 'steps', '', ' required');?>'><?php echo $lang->bug->steps;?></th>
@@ -102,7 +102,7 @@
                 </div>
               </div>
             </td>
-            <td class='<?php echo zget($visibleFields, 'deadline', 'hidden')?>'><?php echo html::input("deadlines[$i]", '', "class='form-control form-date'");?></td>
+            <td class='<?php echo zget($visibleFields, 'deadline', 'hidden')?>'><?php echo html::input("deadlines[$i]", helper::today(), "class='form-control form-date'");?></td>
             <td class='<?php echo zget($visibleFields, 'steps', 'hidden')?>'><?php echo html::textarea("stepses[$i]", '', "rows='1' class='form-control autosize'");?></td>
             <td class='<?php echo zget($visibleFields, 'type', 'hidden')?>' style='overflow:visible'>    <?php echo html::select("types[$i]", $lang->bug->typeList, $type, "class='form-control chosen'");?></td>
             <td class='<?php echo zget($visibleFields, 'pri', 'hidden')?>' style='overflow:visible'>     <?php echo html::select("pris[$i]", $lang->bug->priList, $pri, "class='form-control'");?></td>
@@ -129,7 +129,7 @@
             <td class='<?php echo zget($visibleFields, $product->type, ' hidden')?>' style='overflow:visible'><?php echo html::select("branches[$i]", $branches, $branch, "class='form-control chosen' onchange='setBranchRelated(this.value, $productID, $i)'");?></td>
             <td><?php echo html::select("modules[$i]", $moduleOptionMenu, $moduleID, "class='form-control chosen'");?></td>
             <td class='<?php echo zget($visibleFields, 'project', ' hidden')?>' style='overflow:visible'><?php echo html::select("projects[$i]", $projects, $projectID, "class='form-control chosen' onchange='loadProjectBuilds($productID, this.value, $i)'");?></td>
-            <td id='buildBox<?php echo $i;?>'><?php echo html::select("openedBuilds[$i][]", $builds, '', "class='form-control chosen' multiple");?></td>
+            <td id='buildBox<?php echo $i;?>'><?php echo html::select("openedBuilds[$i][]", $builds, 'trunk', "class='form-control chosen' multiple");?></td>
             <td>
               <div class='input-group'>
                 <div class="input-control has-icon-right">
@@ -144,7 +144,7 @@
                 </div>
               </div>
             </td>
-            <td class='<?php echo zget($visibleFields, 'deadline', 'hidden')?>'><?php echo html::input("deadlines[$i]", '', "class='form-control form-date'");?></td>
+            <td class='<?php echo zget($visibleFields, 'deadline', 'hidden')?>'><?php echo html::input("deadlines[$i]", helper::today(), "class='form-control form-date'");?></td>
             <td class='<?php echo zget($visibleFields, 'steps', 'hidden')?>'><?php echo html::textarea("stepses[$i]", '', "rows='1' class='form-control autosize'");?></td>
             <td class='<?php echo zget($visibleFields, 'type', 'hidden')?>' style='overflow:visible'>    <?php echo html::select("types[$i]", $lang->bug->typeList, $type, "class='form-control chosen'");?></td>
             <td class='<?php echo zget($visibleFields, 'pri', 'hidden')?>' style='overflow:visible'>     <?php echo html::select("pris[$i]", $lang->bug->priList, $pri, "class='form-control'");?></td>
