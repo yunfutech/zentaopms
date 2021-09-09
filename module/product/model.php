@@ -453,6 +453,8 @@ class productModel extends model
         $this->createSubLib($createResult['journalID'], $createResult['meetID']);
         if($product->acl != 'open') $this->loadModel('user')->updateUserView($productID, 'product');
 
+        $this->loadModel('milestone')->createDefault($productID, $product->line);
+
         return $productID;
     }
 

@@ -34,6 +34,7 @@ $lang->product->menuOrder[5]  = 'story';
 $lang->product->menuOrder[10] = 'plan';
 $lang->product->menuOrder[15] = 'release';
 $lang->product->menuOrder[20] = 'roadmap';
+$lang->product->menuOrder[21] = 'milestone';
 $lang->product->menuOrder[25] = 'project';
 $lang->product->menuOrder[30] = 'dynamic';
 $lang->product->menuOrder[35] = 'doc';

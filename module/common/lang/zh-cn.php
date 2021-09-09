@@ -224,6 +224,7 @@ $lang->product->menu->story   = array('link' => "{$lang->storyCommon}|product|br
 $lang->product->menu->plan    = array('link' => '计划|productplan|browse|productID=%s', 'subModule' => 'productplan');
 $lang->product->menu->release = array('link' => '发布|release|browse|productID=%s',     'subModule' => 'release');
 $lang->product->menu->roadmap = '路线图|product|roadmap|productID=%s';
+$lang->product->menu->milestone = '里程碑|product|milestone|productID=%s';
 $lang->product->menu->project = "{$lang->projectCommon}|product|project|status=all&productID=%s";
 $lang->product->menu->dynamic = '动态|product|dynamic|productID=%s';
 $lang->product->menu->doc     = array('link' => '文档|doc|objectLibs|type=product&objectID=%s&from=product', 'subModule' => 'doc');

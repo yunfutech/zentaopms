@@ -834,4 +834,26 @@ class product extends control
         $this->display();
     }
 
+    public function milestone($productID, $orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
+    {
+        $product   = $this->product->getById($productID);
+
+        $this->app->loadClass('pager', $static=true);
+        $pager = pager::init($recTotal, $recPerPage, $pageID);
+        $sort = $this->loadModel('common')->appendOrder($orderBy);
+
+        $milestones = $this->loadModel('milestone')->getAll($productID, $pager, $sort);
+
+        $this->view->title      = $product->name . $this->lang->milestone->common;
+        $this->view->position[] = $this->lang->product->milestone->common;
+        $this->view->productID = $productID;
+        $this->view->milestones = $milestones;
+        $this->product->setMenu($this->products, $productID);
+        $this->view->recTotal   = $recTotal;
+        $this->view->recPerPage = $recPerPage;
+        $this->view->pageID     = $pageID;
+        $this->view->orderBy    = $orderBy;
+        $this->view->pager      = $pager;
+        $this->display();
+    }
 }
