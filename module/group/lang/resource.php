@@ -189,7 +189,16 @@ $lang->resource->productweekly->generateWeekly = 'generateWeekly';
 
 $lang->productweekly->methodOrder[0]  = 'view';
 $lang->productweekly->methodOrder[5]  = 'edit';
-$lang->productweekly->methodOrder[10]  = 'generateWeekly';
+$lang->productweekly->methodOrder[10] = 'generateWeekly';
+
+$lang->resource->milestone = new stdclass();
+$lang->resource->milestone->create  = 'create';
+$lang->resource->milestone->edit    = 'edit';
+$lang->resource->milestone->delete  = 'delete';
+
+$lang->milestone->methodOrder[0]  = 'create';
+$lang->milestone->methodOrder[5]  = 'edit';
+$lang->milestone->methodOrder[10] = 'delete';
 
 
 /* Branch. */

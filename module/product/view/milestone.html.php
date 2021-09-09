@@ -42,10 +42,10 @@
           <td><?php echo $milestone->comment?></td>
           <td class='c-actions'>
             <?php
-              common::printIcon('milestone', 'edit', "milestoneID=$milestone->id&productID=$productID", $milestone, 'list');
+              if(common::hasPriv('milestone', 'edit')) common::printIcon('milestone', 'edit', "milestoneID=$milestone->id&productID=$productID", $milestone, 'list');
             ?>
             <?php
-              common::printIcon('milestone', 'delete', "milestoneID=$milestone->id&productID=$productID", $milestone, 'list', 'trash', 'hiddenwin');
+              if(common::hasPriv('milestone', 'delete')) common::printIcon('milestone', 'delete', "milestoneID=$milestone->id&productID=$productID", $milestone, 'list', 'trash', 'hiddenwin');
             ?>
           </td>
         </tr>
