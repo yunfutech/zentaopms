@@ -5,7 +5,8 @@ class milestoneModel extends model
     /**
      * 创建项目时创建默认里程碑
      */
-    public function createDefault($productID, $line) {
+    public function createDefault($productID, $line)
+    {
         if (intval($line) == $this::DAILY_LINE_ID) {
             return;
         }
@@ -24,10 +25,33 @@ class milestoneModel extends model
     /**
      * 获取项目全部里程碑
      */
-    public function getAll($productID, $pager, $orderBy) {
+    public function getByProductID($productID, $pager, $sort)
+    {
         return $this->dao->select('*')->from(TABLE_MILESTONE)
             ->where('product')->eq($productID)
-            ->orderBy($orderBy)
+            ->orderBy($sort)
+            ->page($pager)
+            ->fetchAll();
+    }
+
+    public function getAll($pager, $sort, $begin, $productID=0, $line=0, $isContract='', $completed='')
+    {
+        return $this->dao->select('t1.*')->from(TABLE_MILESTONE)->alias('t1')
+            ->leftJoin(TABLE_PRODUCT)->alias('t2')->on('t1.product = t2.id')
+            ->where('date')->ge($begin)
+            ->beginIF($productID > 0)
+            ->andWhere('t1.product')->eq($productID)
+            ->fi()
+            ->beginIF($line > 0)
+            ->andWhere('t2.line')->eq($line)
+            ->fi()
+            ->beginIF($isContract != '')
+            ->andWhere('t1.isContract')->eq($isContract)
+            ->fi()
+            ->beginIF($completed != '')
+            ->andWhere('t1.completed')->eq($completed)
+            ->fi()
+            ->orderBy($sort)
             ->page($pager)
             ->fetchAll();
     }
@@ -35,7 +59,8 @@ class milestoneModel extends model
     /**
      * 根据id获取里程碑
      */
-    public function getById($milestoneID) {
+    public function getById($milestoneID)
+    {
         return $this->dao->select('*')->from(TABLE_MILESTONE)
             ->where('id')->eq($milestoneID)
             ->fetch();

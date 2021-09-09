@@ -746,4 +746,37 @@ class report extends control
         }
         return $weekday;
     }
+
+    public function milestoneboard($orderBy = 'date_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1, $productID=0, $line=0, $begin='', $isContract='', $completed='')
+    {
+        if($begin == '' || $begin == 0 ) {
+            $begin = date('Y-m-d', strtotime('-1 month'));
+        } else {
+            $begin = date('Y-m-d', strtotime($begin));
+        }
+
+        $this->app->loadClass('pager', $static=true);
+        $pager = pager::init($recTotal, $recPerPage, $pageID);
+        $sort = $this->loadModel('common')->appendOrder($orderBy);
+
+        $milestones = $this->loadModel('milestone')->getAll($pager, $sort, $begin, $productID, $line, $isContract, $completed);
+        $this->view->milestones=  $milestones;
+
+        $this->view->products = array(0 => '') + $this->loadModel('product')->getPairs();
+        $this->view->lines    = array(0 => '') + $this->loadModel('tree')->getLinePairs();
+
+        $this->view->title      = $this->lang->report->milestoneBoard;
+        $this->view->position[] = $this->lang->report->milestoneBoard;
+        $this->view->recTotal   = $recTotal;
+        $this->view->recPerPage = $recPerPage;
+        $this->view->pageID     = $pageID;
+        $this->view->orderBy    = $orderBy;
+        $this->view->pager      = $pager;
+        $this->view->begin      = $begin;
+        $this->view->productID  = $productID;
+        $this->view->line       = $line;
+        $this->view->isContract = $isContract;
+        $this->view->completed  = $completed;
+        $this->display();
+    }
 }

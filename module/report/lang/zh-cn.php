@@ -200,3 +200,10 @@ $lang->report->boardProduct->accuracy = '实际工时/预计工时';
 $lang->report->orderBy = '排序字段';
 $lang->report->orderList['pri'] = '优先级';
 $lang->report->orderList['doneManHour'] = '实际工时';
+
+$lang->report->milestoneboard = '里程碑看板';
+
+$lang->report->begin = '开始日期';
+$lang->report->productLine = $lang->productCommon . '线';
+$lang->report->isContract = '合同里程碑';
+$lang->report->completed = '是否完成';

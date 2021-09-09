@@ -842,7 +842,7 @@ class product extends control
         $pager = pager::init($recTotal, $recPerPage, $pageID);
         $sort = $this->loadModel('common')->appendOrder($orderBy);
 
-        $milestones = $this->loadModel('milestone')->getAll($productID, $pager, $sort);
+        $milestones = $this->loadModel('milestone')->getByProductID($productID, $pager, $sort);
 
         $this->view->title      = $product->name . $this->lang->milestone->common;
         $this->view->position[] = $this->lang->product->milestone->common;

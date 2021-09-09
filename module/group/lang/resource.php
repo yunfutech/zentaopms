@@ -1007,6 +1007,7 @@ $lang->resource->report->undonetask       = 'undonetask';
 $lang->resource->report->export           = 'export';
 $lang->resource->report->userlogboard     = 'userlogboard';
 $lang->resource->report->weeklyboard      = 'weeklyboard';
+$lang->resource->report->milestoneboard   = 'milestoneboard';
 
 $lang->report->methodOrder[0]  = 'index';
 $lang->report->methodOrder[5]  = 'projectDeviation';
@@ -1015,6 +1016,7 @@ $lang->report->methodOrder[15] = 'bugCreate';
 $lang->report->methodOrder[20] = 'workload';
 $lang->report->methodOrder[25] = 'userlogboard';
 $lang->report->methodOrder[30] = 'weeklyboard';
+$lang->report->methodOrder[35] = 'milestoneboard';
 
 /* Search. */
 $lang->resource->search = new stdclass();
