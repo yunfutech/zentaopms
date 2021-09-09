@@ -1244,10 +1244,11 @@ class productModel extends model
     private function getTaskConsumed($projectID, $begin, $end) {
         return $this->dao->select('sum(consumed) AS count')->from(TABLE_TASK)
             ->where('project')->eq($projectID)
-            ->andWhere('finishedDate')->ge($begin)
-            ->andWhere('finishedDate')->le($end)
+            ->andWhere('deadline')->ge($begin)
+            ->andWhere('deadline')->le($end)
             ->andWhere('deleted')->eq(0)
             ->andwhere('status')->ne('cancel')
+            ->andWhere('finishedBy')->ne('')
             ->fetch('count');
     }
 
