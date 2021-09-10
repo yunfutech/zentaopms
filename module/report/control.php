@@ -305,7 +305,11 @@ class report extends control
 
         $products = [0 => '全部'] + $this->loadModel('product')->getAllPairs('noclosed', $director);
 
-        $independentProjects = $this->loadModel('project')->getIndependentProjects();
+        if ($director == '' && $product == 0) {
+            $independentProjects = $this->loadModel('project')->getIndependentProjects();
+        } else {
+            $independentProjects = [];
+        }
 
         $productIDs = array_keys($products);
 

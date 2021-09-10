@@ -575,6 +575,7 @@ class reportModel extends model
             ->fi()
             ->andWhere('t1.finishedBy')->ne('')
             ->andWhere('t1.assignedTo')->ne('')
+            ->andWhere('t2.id')->in($projectIDs)
             ->orderBy('t1.id')
             ->fetchAll('id');
         return $finishedTasks;
@@ -593,9 +594,7 @@ class reportModel extends model
             ->beginIF($date != '')
             ->andWhere('t1.deadline')->eq($date)
             ->fi()
-            ->beginIF(!empty($projectIDs))
             ->andWhere('t2.id')->in($projectIDs)
-            ->fi()
             ->andWhere('t1.status')->notin('cancel, closed')
             ->andWhere('t1.finishedBy')->eq('')
             ->andWhere('t1.assignedTo')->ne('')
@@ -632,7 +631,6 @@ class reportModel extends model
 
         $independentProjectFinishedTasks = $this->getIndependentProjectFinishedTasks($usernames, $date, $independentProjects);
         $independentProjectTodoTasks = $this->getIndependentProjectTodoTasks($usernames, $date, $independentProjects);
-
         $finishedTasks += $independentProjectFinishedTasks;
         $todoTasks += $independentProjectTodoTasks;
 
