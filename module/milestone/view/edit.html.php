@@ -16,13 +16,17 @@
         </tr>
         <tr>
           <th><?php echo $lang->milestone->isContract;?></th>
-          <td><?php echo html::select('isContract', $lang->milestone->isContractList, $milestone->isContract, "class='form-control chosen'");?></td>
+          <td><?php echo html::select('isContract', $lang->milestone->isContractList, $milestone->isContract, "class='form-control chosen' onChange=changeContract(this.value)");?></td>
           <th><?php echo $lang->milestone->pri;?></th>
           <td colspan='1'>
           <?php
               $priList = $lang->milestone->priList;
           ?>
-          <?php echo html::select('pri', (array)$priList, '3', "class='form-control'");?>
+          <?php if($milestone->isContract == '1'):?>
+          <?php echo html::select('pri', (array)$priList, $milestone->pri, "class='form-control' disabled");?>
+          <?php else:?>
+          <?php echo html::select('pri', (array)$priList, $milestone->pri, "class='form-control'");?>
+          <?php endif;?>
           </td>
         </tr>
         <tr>

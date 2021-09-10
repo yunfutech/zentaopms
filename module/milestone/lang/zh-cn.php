@@ -11,6 +11,7 @@ $lang->milestone->isContractList[0] = '否';
 $lang->milestone->isContractList[1] = '是';
 $lang->milestone->isContract        = '合同里程碑';
 $lang->milestone->pri               = '重要程度';
+$lang->milestone->priList[0]        = '0';
 $lang->milestone->priList[1]        = '1';
 $lang->milestone->priList[2]        = '2';
 $lang->milestone->priList[3]        = '3';

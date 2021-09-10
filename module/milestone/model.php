@@ -78,6 +78,7 @@ class milestoneModel extends model
             ->setDefault('product', $productID)
             ->setIF(strpos($requiredFields, 'name') !== false, 'name', $this->post->name)
             ->setIF(strpos($requiredFields, 'date') !== false, 'date', $this->post->date)
+            ->setIF($this->post->isContract == '1', 'pri', '0')
             ->stripTags($this->config->milestone->editor->create['id'], $this->config->allowedTags)
             ->remove('uid')
             ->get();
@@ -96,6 +97,7 @@ class milestoneModel extends model
             ->setIF(strpos($requiredFields, 'name') !== false, 'name', $this->post->name)
             ->setIF(strpos($requiredFields, 'date') !== false, 'date', $this->post->date)
             ->stripTags($this->config->milestone->editor->create['id'], $this->config->allowedTags)
+            ->setIF($this->post->isContract == '1', 'pri', '0')
             ->remove('uid')
             ->get();
         $this->dao->update(TABLE_MILESTONE)->data($milestone)
