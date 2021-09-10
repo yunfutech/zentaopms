@@ -71,14 +71,19 @@ class milestoneModel extends model
      */
     public function create($productID)
     {
+        $requiredFields = $this->config->milestone->create->requiredFields;
         $milestone = fixer::input('post')
             ->setDefault('createdBy', $this->app->user->account)
             ->setDefault('createdDate', helper::now())
             ->setDefault('product', $productID)
+            ->setIF(strpos($requiredFields, 'name') !== false, 'name', $this->post->name)
+            ->setIF(strpos($requiredFields, 'date') !== false, 'date', $this->post->date)
             ->stripTags($this->config->milestone->editor->create['id'], $this->config->allowedTags)
             ->remove('uid')
             ->get();
-        $this->dao->insert(TABLE_MILESTONE)->data($milestone)->exec();
+        $this->dao->insert(TABLE_MILESTONE)->data($milestone)
+            ->batchCheck($requiredFields, 'notempty')
+            ->exec();
     }
 
     /**
@@ -86,11 +91,18 @@ class milestoneModel extends model
      */
     public function edit($milestoneID)
     {
+        $requiredFields = $this->config->milestone->edit->requiredFields;
         $milestone = fixer::input('post')
+            ->setIF(strpos($requiredFields, 'name') !== false, 'name', $this->post->name)
+            ->setIF(strpos($requiredFields, 'date') !== false, 'date', $this->post->date)
             ->stripTags($this->config->milestone->editor->create['id'], $this->config->allowedTags)
             ->remove('uid')
             ->get();
-        $this->dao->update(TABLE_MILESTONE)->data($milestone)->where('id')->eq($milestoneID)->exec();
+        $this->dao->update(TABLE_MILESTONE)->data($milestone)
+            ->batchCheck($requiredFields, 'notempty')
+            ->where('id')
+            ->eq($milestoneID)
+            ->exec();
     }
 
     /**

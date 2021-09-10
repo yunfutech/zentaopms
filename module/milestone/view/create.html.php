@@ -12,7 +12,7 @@
           <th><?php echo $lang->milestone->name;?></th>
           <td colspan='1'><?php echo html::input("name", '', "class='form-control' required");?></td>
           <th><?php echo $lang->milestone->date;?></th>
-          <td><?php echo html::input('date', '', "class='form-control form-datetime'");?></td>
+          <td><?php echo html::input('date', '', "class='form-control form-date' required");?></td>
         </tr>
         <tr>
           <th><?php echo $lang->milestone->isContract;?></th>
@@ -22,7 +22,7 @@
           <?php
               $priList = $lang->milestone->priList;
           ?>
-          <?php echo html::select('pri', (array)$priList, '4', "class='form-control'");?>
+          <?php echo html::select('pri', (array)$priList, '3', "class='form-control'");?>
           </td>
         </tr>
         <tr>

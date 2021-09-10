@@ -12,7 +12,7 @@
           <th><?php echo $lang->milestone->name;?></th>
           <td colspan='1'><?php echo html::input("name", $milestone->name, "class='form-control' required");?></td>
           <th><?php echo $lang->milestone->date;?></th>
-          <td><?php echo html::input('date', $milestone->date, "class='form-control form-datetime'");?></td>
+          <td><?php echo html::input('date', $milestone->date, "class='form-control form-date' required");?></td>
         </tr>
         <tr>
           <th><?php echo $lang->milestone->isContract;?></th>
