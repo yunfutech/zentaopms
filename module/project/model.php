@@ -1363,6 +1363,18 @@ class projectModel extends model
             ->fetchPairs();
     }
 
+
+    public function getIndependentProjects()
+    {
+        $relatedProjects = $this->dao->select('project')->from(TABLE_PROJECTPRODUCT)->fetchAll('project');
+        $relatedProjects = array_keys($relatedProjects);
+        $projects = $this->dao->select('id')->from(TABLE_PROJECT)
+            ->where('id')->notin($relatedProjects)
+            ->andWhere('deleted')->eq(0)
+            ->fetchPairs('id');
+        return array_keys($projects);
+    }
+
     /**
      * Get tasks can be imported.
      *

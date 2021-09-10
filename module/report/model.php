@@ -503,8 +503,108 @@ class reportModel extends model
             ->fetchGroup('user');
     }
 
+    public function getFinishedTasks($usernames=[], $date='', $productIDs=[], $product=0)
+    {
+        $finishedTasks = $this->dao->select('distinct t1.id, t1.left, t1.status, t1.pri as taskpri, t1.parent, t1.name, t1.project, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy,t2.pri, t2.name as projectName, t3.name as moduleName, t3.id as moduleId, t4.id as storyID, t4.title as storyTitle')->from(TABLE_TASK)->alias('t1')
+            ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
+            ->leftJoin(TABLE_MODULE)->alias('t3')->on('t1.module = t3.id')
+            ->leftJoin(TABLE_STORY)->alias('t4')->on('t1.story = t4.id')
+            ->leftJoin(TABLE_PROJECTPRODUCT)->alias('t5')->on('t1.project = t5.project')
+            ->leftJoin(TABLE_PRODUCT)->alias('t6')->on('t5.product = t6.id')
+            ->where('t1.deleted')->eq(0)
+            ->beginIF(!empty($usernames))
+            ->andWhere('t1.finishedBy')->in($usernames)
+            ->fi()
+            ->beginIF($date != '')
+            ->andWhere('t1.deadline')->eq($date)
+            ->fi()
+            ->andWhere('t1.finishedBy')->ne('')
+            ->beginIF(!empty($productIDs))
+            ->andWhere('t6.id')->in($productIDs)
+            ->fi()
+            ->beginIF($product != 0)
+            ->andWhere('t6.id')->eq($product)
+            ->fi()
+            ->andWhere('t1.assignedTo')->ne('')
+            ->orderBy('t1.id')
+            ->fetchAll('id');
+        return $finishedTasks;
+    }
 
-    public function getTaskStatistics($dept = 0, $date, $productIDs=[], $product=0, $debug=1)
+    public function getTodoTasks($usernames=[], $date='', $productIDs=[], $product=0)
+    {
+        $todoTasks = $this->dao->select('distinct t1.id, t1.name, t1.project, t1.status, t1.pri as taskpri, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy, t2.pri, t2.name as projectName, t3.name as moduleName, t3.id as moduleId, t4.id as storyID, t4.title as storyTitle')->from(TABLE_TASK)->alias('t1')
+            ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
+            ->leftJoin(TABLE_MODULE)->alias('t3')->on('t1.module = t3.id')
+            ->leftJoin(TABLE_STORY)->alias('t4')->on('t1.story = t4.id')
+            ->leftJoin(TABLE_PROJECTPRODUCT)->alias('t5')->on('t1.project = t5.project')
+            ->leftJoin(TABLE_PRODUCT)->alias('t6')->on('t5.product = t6.id')
+            ->where('t1.deleted')->eq(0)
+            ->beginIF(!empty($usernames))
+            ->andWhere('t1.assignedTo')->in($usernames)
+            ->fi()
+            ->beginIF($date != '')
+            ->andWhere('t1.deadline')->eq($date)
+            ->fi()
+            ->andWhere('t1.status')->notin('cancel, closed')
+            ->andWhere('t1.finishedBy')->eq('')
+            ->beginIF(!empty($productIDs))
+            ->andWhere('t6.id')->in($productIDs)
+            ->fi()
+            ->beginIF($product != 0)
+            ->andWhere('t6.id')->eq($product)
+            ->fi()
+            ->andWhere('t1.assignedTo')->ne('')
+            ->orderBy('t1.id')
+            ->fetchAll('id');
+        return $todoTasks;
+    }
+
+    public function getIndependentProjectFinishedTasks($usernames=[], $date='', $projectIDs=[])
+    {
+        $finishedTasks = $this->dao->select('distinct t1.id, t1.left, t1.status, t1.pri as taskpri, t1.parent, t1.name, t1.project, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy,t2.pri, t2.name as projectName, t3.name as moduleName, t3.id as moduleId, t4.id as storyID, t4.title as storyTitle')->from(TABLE_TASK)->alias('t1')
+            ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
+            ->leftJoin(TABLE_MODULE)->alias('t3')->on('t1.module = t3.id')
+            ->leftJoin(TABLE_STORY)->alias('t4')->on('t1.story = t4.id')
+            ->where('t1.deleted')->eq(0)
+            ->beginIF(!empty($usernames))
+            ->andWhere('t1.finishedBy')->in($usernames)
+            ->fi()
+            ->beginIF($date != '')
+            ->andWhere('t1.deadline')->eq($date)
+            ->fi()
+            ->andWhere('t1.finishedBy')->ne('')
+            ->andWhere('t1.assignedTo')->ne('')
+            ->orderBy('t1.id')
+            ->fetchAll('id');
+        return $finishedTasks;
+    }
+
+    public function getIndependentProjectTodoTasks($usernames=[], $date='', $projectIDs=[])
+    {
+        $todoTasks = $this->dao->select('distinct t1.id, t1.name, t1.project, t1.status, t1.pri as taskpri, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy, t2.pri, t2.name as projectName, t3.name as moduleName, t3.id as moduleId, t4.id as storyID, t4.title as storyTitle')->from(TABLE_TASK)->alias('t1')
+            ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
+            ->leftJoin(TABLE_MODULE)->alias('t3')->on('t1.module = t3.id')
+            ->leftJoin(TABLE_STORY)->alias('t4')->on('t1.story = t4.id')
+            ->where('t1.deleted')->eq(0)
+            ->beginIF(!empty($usernames))
+            ->andWhere('t1.assignedTo')->in($usernames)
+            ->fi()
+            ->beginIF($date != '')
+            ->andWhere('t1.deadline')->eq($date)
+            ->fi()
+            ->beginIF(!empty($projectIDs))
+            ->andWhere('t2.id')->in($projectIDs)
+            ->fi()
+            ->andWhere('t1.status')->notin('cancel, closed')
+            ->andWhere('t1.finishedBy')->eq('')
+            ->andWhere('t1.assignedTo')->ne('')
+            ->orderBy('t1.id')
+            ->fetchAll('id');
+        return $todoTasks;
+    }
+
+    public function getTaskStatistics($dept = 0, $date, $productIDs=[], $product=0, $independentProjects)
     {
         $childDeptIds = $this->loadModel('dept')->getAllChildID($dept);
         $deptUsers = $this->dept->getUsers($childDeptIds);
@@ -526,53 +626,15 @@ class reportModel extends model
                 ];
             }
         }
-        $finishedIdstasks = $this->dao->select('distinct t1.id, t1.left, t1.status, t1.pri as taskpri, t1.parent, t1.name, t1.project, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy,t2.pri, t2.name as projectName, t3.name as moduleName, t3.id as moduleId, t4.id as storyID, t4.title as storyTitle')->from(TABLE_TASK)->alias('t1')
-            ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
-            ->leftJoin(TABLE_MODULE)->alias('t3')->on('t1.module = t3.id')
-            ->leftJoin(TABLE_STORY)->alias('t4')->on('t1.story = t4.id')
-            ->leftJoin(TABLE_PROJECTPRODUCT)->alias('t5')->on('t1.project = t5.project')
-            ->leftJoin(TABLE_PRODUCT)->alias('t6')->on('t5.product = t6.id')
-            ->where('t1.deleted')->eq(0)
-            ->andWhere('t1.finishedBy')->in($usernames)
-            ->andWhere('t1.deadline')->eq($date)
-            ->andWhere('t1.finishedBy')->ne('')
-            ->beginIF(!empty($productIDs))
-            ->andWhere('t6.id')->in($productIDs)
-            ->fi()
-            ->beginIF($product != 0)
-            ->andWhere('t6.id')->eq($product)
-            ->fi()
-            ->andWhere('t1.assignedTo')->ne('')->orderBy('t1.id')->fetchAll();
 
-        if ($debug == 1) {
-            echo $this->dao->printSQL();
-        }
+        $finishedTasks = $this->getFinishedTasks($usernames, $date, $productIDs, $product);
+        $todoTasks = $this->getTodoTasks($usernames, $date, $productIDs, $product);
 
+        $independentProjectFinishedTasks = $this->getIndependentProjectFinishedTasks($usernames, $date, $independentProjects);
+        $independentProjectTodoTasks = $this->getIndependentProjectTodoTasks($usernames, $date, $independentProjects);
 
-        $todoTasks = $this->dao->select('distinct t1.id, t1.name, t1.project, t1.status, t1.pri as taskpri, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy, t2.pri, t2.name as projectName, t3.name as moduleName, t3.id as moduleId, t4.id as storyID, t4.title as storyTitle')->from(TABLE_TASK)->alias('t1')
-            ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
-            ->leftJoin(TABLE_MODULE)->alias('t3')->on('t1.module = t3.id')
-            ->leftJoin(TABLE_STORY)->alias('t4')->on('t1.story = t4.id')
-            ->leftJoin(TABLE_PROJECTPRODUCT)->alias('t5')->on('t1.project = t5.project')
-            ->leftJoin(TABLE_PRODUCT)->alias('t6')->on('t5.product = t6.id')
-            ->where('t1.deleted')->eq(0)
-            ->andWhere('t1.assignedTo')->in($usernames)
-            ->andWhere('t1.deadline')->eq($date)
-            ->andWhere('t1.status')->notin('cancel, closed')
-            ->andWhere('t1.finishedBy')->eq('')
-            ->beginIF(!empty($productIDs))
-            ->andWhere('t6.id')->in($productIDs)
-            ->fi()
-            ->beginIF($product != 0)
-            ->andWhere('t6.id')->eq($product)
-            ->fi()
-            ->andWhere('t1.assignedTo')->ne('')->orderBy('t1.id')->fetchAll();
-
-        if ($debug == 1) {
-            echo '<br/>';
-            echo $this->dao->printSQL();
-        }
-        // $todoTasks  = $todo->beginIF(0)->andWhere('t1.assignedTo')->in(array_keys($deptUsers))->fi()->fetchAll('id');
+        $finishedTasks += $independentProjectFinishedTasks;
+        $todoTasks += $independentProjectTodoTasks;
 
         $status_dict = array(
             'doing'=>1,
@@ -580,7 +642,7 @@ class reportModel extends model
             'wait'=>3
         );
 
-        foreach($finishedIdstasks as $task)
+        foreach($finishedTasks as $task)
         {
             if (in_array($task->finishedBy, $usernames)) {
                 $task->status_sort = $status_dict[$task->status];
@@ -636,14 +698,6 @@ class reportModel extends model
         $complete = array_column($tasks, 'consumed');
         $all = array_column($tasks, 'all');
         array_multisort($complete, SORT_DESC, $all, SORT_DESC,  $tasks);
-        if ($debug == 1) {
-            echo '<br/>';
-            var_dump([
-                "tasks"=> $tasks,
-                "short"=> $short,
-                "exceed"=> $exceed
-            ]);
-        }
         return  [
             "tasks"=> $tasks,
             "short"=> $short,
