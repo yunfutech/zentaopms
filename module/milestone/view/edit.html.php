@@ -4,7 +4,7 @@
 <div id='mainContent' class='main-content'>
   <div class='center-block'>
     <div class='main-header'>
-      <h2><?php echo $lang->milestone->create;?></h2>
+      <h2><?php echo $lang->milestone->edit;?></h2>
     </div>
     <form class='load-indicator main-form form-ajax' method='post' enctype='multipart/form-data' id='dataform'>
       <table class='table table-form'>

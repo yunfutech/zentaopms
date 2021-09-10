@@ -51,6 +51,8 @@ class milestone extends control
         }
         $milestone = $this->milestone->getById($milestoneID);
 
+        $this->loadModel('product')->setMenu($this->loadModel('product')->getPairs('nocode'), $productID);
+
         $this->view->title      = $this->lang->milestone->create;
         $this->view->position[] = $this->lang->milestone->create;
 
