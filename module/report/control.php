@@ -749,7 +749,7 @@ class report extends control
         return $weekday;
     }
 
-    public function milestoneboard($orderBy = 'date_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1, $productID=0, $line=0, $begin='', $isContract='', $completed='')
+    public function milestoneboard($orderBy = 'date_asc', $recTotal = 0, $recPerPage = 20, $pageID = 1, $productID=0, $line=0, $begin='', $isContract='', $completed='')
     {
         if($begin == '' || $begin == 0 ) {
             $begin = date('Y-m-d', strtotime('-1 month'));
@@ -767,8 +767,8 @@ class report extends control
         $this->view->products = array(0 => '') + $this->loadModel('product')->getPairs();
         $this->view->lines    = array(0 => '') + $this->loadModel('tree')->getLinePairs();
 
-        $this->view->title      = $this->lang->report->milestoneBoard;
-        $this->view->position[] = $this->lang->report->milestoneBoard;
+        $this->view->title      = $this->lang->report->milestoneboard;
+        $this->view->position[] = $this->lang->report->milestoneboard;
         $this->view->recTotal   = $recTotal;
         $this->view->recPerPage = $recPerPage;
         $this->view->pageID     = $pageID;

@@ -1,0 +1,1 @@
+ALTER TABLE `zt_milestone` CHANGE `date` `date` DATE NULL DEFAULT NULL COMMENT '日期', CHANGE `pri` `pri` ENUM('0','1','2','3','4') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '重要程度';

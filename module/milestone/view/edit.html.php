@@ -16,7 +16,7 @@
         </tr>
         <tr>
           <th><?php echo $lang->milestone->isContract;?></th>
-          <td><?php echo html::select('isContract', $lang->milestone->isContractList, '', "class='form-control chosen'");?></td>
+          <td><?php echo html::select('isContract', $lang->milestone->isContractList, $milestone->isContract, "class='form-control chosen'");?></td>
           <th><?php echo $lang->milestone->pri;?></th>
           <td colspan='1'>
           <?php
@@ -27,7 +27,7 @@
         </tr>
         <tr>
           <th><?php echo $lang->milestone->completed;?></th>
-          <td><?php echo html::select('completed', $lang->milestone->completedList, '', "class='form-control chosen'");?></td><td></td>
+          <td><?php echo html::select('completed', $lang->milestone->completedList, $milestone->completed, "class='form-control chosen'");?></td><td></td>
         </tr>
         <tr>
           <th><?php echo $lang->milestone->comment;?></th>

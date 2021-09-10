@@ -51,7 +51,10 @@
       <?php else:?>
       <form class="main-table table-task">
         <table class="table has-sort-head table-fixed">
-          <?php $vars = "orderBy=%s&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID&begin=$begin&productID=$productID&line=$line&isContract=$isContract&completed=$completed"; ?>
+          <?php
+            $begin = implode('', explode('-', $begin));
+            $vars = "orderBy=%s&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID&productID=$productID&line=$line&begin=$begin&isContract=$isContract&completed=$completed";
+          ?>
           <thead>
             <tr>
               <th class="c-id">

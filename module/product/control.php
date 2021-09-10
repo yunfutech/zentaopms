@@ -834,7 +834,7 @@ class product extends control
         $this->display();
     }
 
-    public function milestone($productID, $orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
+    public function milestone($productID, $orderBy = 'date_asc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
         $product   = $this->product->getById($productID);
 
