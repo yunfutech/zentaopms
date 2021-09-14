@@ -754,8 +754,8 @@ class reportModel extends model
         ->andWhere('deadline')->ge($begin)
         ->andWhere('deadline')->le($end)
         ->andWhere('finishedBy')->ne('')
-        ->groupBy('finishedBy')
         ->andwhere('status')->ne('cancel')
+        ->groupBy('finishedBy')
         ->fetchAll();
     }
 
