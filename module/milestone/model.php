@@ -29,6 +29,7 @@ class milestoneModel extends model
     {
         return $this->dao->select('*')->from(TABLE_MILESTONE)
             ->where('product')->eq($productID)
+            ->andWhere('deleted')->eq(0)
             ->orderBy($sort)
             ->page($pager)
             ->fetchAll();
@@ -36,9 +37,11 @@ class milestoneModel extends model
 
     public function getAll($pager, $sort, $begin, $productID=0, $line=0, $isContract='', $completed='')
     {
-        return $this->dao->select('t1.*')->from(TABLE_MILESTONE)->alias('t1')
+        return $this->dao->select('t1.*, CONVERT(t2.name USING gbk) as productName, CONVERT(t3.name USING gbk) as productLine')->from(TABLE_MILESTONE)->alias('t1')
             ->leftJoin(TABLE_PRODUCT)->alias('t2')->on('t1.product = t2.id')
+            ->leftJoin(TABLE_MODULE)->alias('t3')->on('t2.line = t3.id')
             ->where('date')->ge($begin)
+            ->andWhere('t1.deleted')->eq(0)
             ->beginIF($productID > 0)
             ->andWhere('t1.product')->eq($productID)
             ->fi()
@@ -112,7 +115,13 @@ class milestoneModel extends model
      */
     public function delete($milestoneID)
     {
-        $this->dao->delete()->from(TABLE_MILESTONE)->where('id')->eq(intval($milestoneID))->exec();
+        $this->dao->update(TABLE_MILESTONE)->set('deleted')->eq(1)->where('id')->eq(intval($milestoneID))->exec();
+        return !dao::isError();
+    }
+
+    public function deleteAll($productID)
+    {
+        $this->dao->update(TABLE_MILESTONE)->set('deleted')->eq(1)->where('product')->eq(intval($productID))->exec();
         return !dao::isError();
     }
 }

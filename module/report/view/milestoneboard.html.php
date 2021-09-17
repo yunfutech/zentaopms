@@ -61,6 +61,8 @@
                 <?php common::printOrderLink('id', $orderBy, $vars, $lang->idAB);?>
               </th>
               <th class='w-450px'><?php common::printOrderLink('name', $orderBy, $vars, $lang->milestone->name);?></th>
+              <th class='w-200px'><?php common::printOrderLink('productName', $orderBy, $vars, $lang->report->product);?></th>
+              <th class='w-150px'><?php common::printOrderLink('productLine', $orderBy, $vars, $lang->report->productLine);?></th>
               <th class='w-150px'><?php common::printOrderLink('date', $orderBy, $vars, $lang->milestone->date);?></th>
               <th class='w-150px'><?php common::printOrderLink('isContract', $orderBy, $vars, $lang->milestone->isContract);?></th>
               <th class='w-150px'><?php common::printOrderLink('pri', $orderBy, $vars, $lang->milestone->pri);?></th>
@@ -73,6 +75,8 @@
             <tr>
               <td class="c-id"><?php echo $milestone->id?></td>
               <td><?php echo $milestone->name?></td>
+              <td><?php echo $milestone->productName?></td>
+              <td><?php echo $milestone->productLine?></td>
               <td><?php echo $milestone->date?></td>
               <td><?php echo $milestone->isContract ? '是' : '否'?></td>
               <td><?php echo $milestone->pri?></td>
