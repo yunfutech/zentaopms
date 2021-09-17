@@ -756,6 +756,7 @@ class reportModel extends model
         ->andWhere('finishedBy')->ne('')
         ->andwhere('status')->ne('cancel')
         ->groupBy('finishedBy')
+        ->orderBy('totalConsumed desc')
         ->fetchAll();
     }
 
@@ -848,11 +849,13 @@ class reportModel extends model
             array_push($projects, $project);
         }
         $sortArr = array();
+        $doneArr = array();
         foreach ($projects as $key => $value) {
             $sortArr[$key] = $value->$orderBy;
+            $doneArr[$key] = $value->doneManHour;
         }
         if ($orderBy == 'pri') {
-            array_multisort($sortArr, SORT_ASC, $projects);
+            array_multisort($sortArr, SORT_ASC, $doneArr, SORT_DESC, $projects);
         } else {
             array_multisort($sortArr, SORT_DESC, $projects);
         }
