@@ -857,4 +857,27 @@ class product extends control
         $this->view->pager      = $pager;
         $this->display();
     }
+
+    public function producttarget($productID, $orderBy = '', $recTotal = 0, $recPerPage = 20, $pageID = 1)
+    {
+        $product   = $this->product->getById($productID);
+
+        $this->app->loadClass('pager', $static=true);
+        $pager = pager::init($recTotal, $recPerPage, $pageID);
+        $sort = $this->loadModel('common')->appendOrder($orderBy);
+
+        $targets = $this->loadModel('producttarget')->getByProductID($productID, $pager, $sort);
+
+        $this->view->title      = $product->name . $this->lang->producttarget->common;
+        $this->view->position[] = $this->lang->producttarget->common;
+        $this->view->productID = $productID;
+        $this->view->targets = $targets;
+        $this->product->setMenu($this->products, $productID);
+        $this->view->recTotal   = $recTotal;
+        $this->view->recPerPage = $recPerPage;
+        $this->view->pageID     = $pageID;
+        $this->view->orderBy    = $orderBy;
+        $this->view->pager      = $pager;
+        $this->display();
+    }
 }

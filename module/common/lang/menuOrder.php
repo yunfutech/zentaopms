@@ -30,6 +30,7 @@ $lang->my->menuOrder[55] = 'score';
 $lang->todo->menuOrder   = $lang->my->menuOrder;
 
 /* product menu order. */
+$lang->product->menuOrder[0] = 'target';
 $lang->product->menuOrder[5]  = 'story';
 $lang->product->menuOrder[10] = 'plan';
 $lang->product->menuOrder[15] = 'release';
