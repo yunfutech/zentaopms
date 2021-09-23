@@ -70,10 +70,11 @@ class producttargetModel extends model
             ->fetch();
     }
 
-    public function getByMonth($month)
+    public function getByMonth($productID, $month)
     {
         return $this->dao->select('*')->from(TABLE_PRODUCTTARGET)
             ->where('month')->eq($month)
+            ->andWhere('product')->eq($productID)
             ->andWhere('deleted')->eq(0)
             ->fetch();
     }

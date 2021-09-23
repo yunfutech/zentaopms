@@ -870,7 +870,7 @@ class product extends control
 
         $thisMonth = date('Ym');
         $nextMonth = date('Ym', strtotime("$thisMonth +1 month"));
-        $preTarget = $this->loadModel('producttarget')->getByMonth($nextMonth);
+        $preTarget = $this->loadModel('producttarget')->getByMonth($productID, $nextMonth);
         $this->view->hasPreTarget = boolval($preTarget);
 
         $this->view->title      = $product->name . $this->lang->producttarget->common;
