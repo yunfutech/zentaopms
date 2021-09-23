@@ -4,17 +4,21 @@ class producttargetModel extends model
     /**
      * 创建月目标
      */
-    public function create($productID)
+    public function create($productID, $month='')
     {
         $requiredFields = $this->config->producttarget->create->requiredFields;
         $producttarget = fixer::input('post')
             ->setDefault('createdBy', $this->app->user->account)
             ->setDefault('createdDate', helper::now())
             ->setDefault('product', $productID)
-            ->setIF(strpos($requiredFields, 'name') !== false, 'name', $this->post->name)
+            ->setDefault('middle', 0)
+            ->setDefault('performance', 0)
             ->stripTags($this->config->producttarget->editor->create['id'], $this->config->allowedTags)
             ->remove('uid')
             ->get();
+        if ($month) {
+            $producttarget->month = $month;
+        }
         $this->dao->insert(TABLE_PRODUCTTARGET)->data($producttarget)
             ->batchCheck($requiredFields, 'notempty')
             ->exec();
@@ -63,6 +67,14 @@ class producttargetModel extends model
     {
         return $this->dao->select('*')->from(TABLE_PRODUCTTARGET)
             ->where('id')->eq($producttargetID)
+            ->fetch();
+    }
+
+    public function getByMonth($month)
+    {
+        return $this->dao->select('*')->from(TABLE_PRODUCTTARGET)
+            ->where('month')->eq($month)
+            ->andWhere('deleted')->eq(0)
             ->fetch();
     }
 
@@ -160,6 +172,7 @@ class producttargetModel extends model
     {
         return $this->dao->select('*')->from(TABLE_PRODUCTTARGETITEM)
             ->where('target')->eq($producttargetID)
+            ->andWhere('deleted')->eq(0)
             ->fetchAll();
     }
 
@@ -169,11 +182,11 @@ class producttargetModel extends model
     public function getReport($month, $productID, $line)
     {
 
-        $producttargets = $this->dao->select('t1.*, CONVERT(t2.name USING gbk) as productName, CONVERT(t3.name USING gbk) as productLine')->from(TABLE_PRODUCTTARGET)->alias('t1')
+        $producttargets = $this->dao->select('t1.*, CONVERT(t2.name USING gbk) as productName, t2.id as productID, t2.director, CONVERT(t3.name USING gbk) as productLine')->from(TABLE_PRODUCTTARGET)->alias('t1')
             ->leftJoin(TABLE_PRODUCT)->alias('t2')->on('t1.product = t2.id')
             ->leftJoin(TABLE_MODULE)->alias('t3')->on('t2.line = t3.id')
             ->where('t1.deleted')->eq(0)
-            ->andWhere('month')->eq('202109')
+            ->andWhere('month')->eq($month)
             ->beginIF($productID > 0)
             ->andWhere('t1.product')->eq($productID)
             ->fi()
@@ -183,13 +196,30 @@ class producttargetModel extends model
             ->orderBy('productLine,performance desc')
             ->fetchAll();
         $data = [];
+        $productIDs = [];
         foreach ($producttargets as $producttarget) {
+            array_push($productIDs, $producttarget->productID);
             $producttarget->items = $this->getItemByTarget($producttarget->id);
             if (!isset($data[$producttarget->productLine])) {
                 $data[$producttarget->productLine] = [];
             }
             $data[$producttarget->productLine][$producttarget->productName] = $producttarget;
         }
-        return $data;
+
+        $begin = date('Y-m-01', strtotime(substr($month, 0, 4) . '-'. substr($month, 4, 2)));
+        $end = date('Y-m-d', strtotime("$begin +1 month -1 day"));
+
+        $id2hour = [];
+        foreach($productIDs as $productID) {
+            $manHour = $this->loadModel('product')->getManHour($productID, $end);
+            $doneManHour = 0;
+            $projects = $this->loadModel('product')->getProjectByProduct($productID);
+            foreach ($projects as $project) {
+                $doneManHour += $this->loadModel('product')->getTaskConsumed($productID, $begin, $end);
+            }
+            $accuracy = $manHour > 0 ? round($doneManHour / $manHour, 4) : 0;
+            $id2hour[$productID] = ['manHour' => $manHour, 'doneManHour' => $doneManHour, 'accuracy' => $accuracy];
+        }
+        return ['data' => $data, 'id2hour' => $id2hour];
     }
 }

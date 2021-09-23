@@ -14,10 +14,19 @@ class producttarget extends control
      */
     public function create($productID)
     {
+        $thisMonth = date('Ym');
+        $nextMonth = date('Ym', strtotime("$thisMonth +1 month"));
+        $product = $this->product->getById($productID);
+        $this->view->name = $nextMonth . $product->name . '月目标';
+        $preTarget = $this->producttarget->getByMonth($thisMonth);
+        if ($preTarget) {
+            $this->view->lastTarget = $preTarget->performance;
+        }
+
         if (!empty($_POST)) {
             $response['result']  = 'success';
             $response['message'] = $this->lang->saveSuccess;
-            $this->producttarget->create($productID);
+            $this->producttarget->create($productID, $nextMonth);
             if (dao::isError()) {
                 $response['result']  = 'fail';
                 $response['message'] = dao::getError();
@@ -42,6 +51,9 @@ class producttarget extends control
     {
         if(!empty($_POST))
         {
+            if ($_POST['performance']!= 0 && $_POST['cause'] == '' && $_POST['target'] != $_POST['performance']) {
+                die(js::alert('请输入进度偏差原因'));
+            }
             $response['result']  = 'success';
             $response['message'] = $this->lang->saveSuccess;
             $this->producttarget->edit($producttargetID);

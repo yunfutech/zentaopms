@@ -603,7 +603,7 @@ class reportModel extends model
         return $todoTasks;
     }
 
-    public function getTaskStatistics($dept = 0, $date, $productIDs=[], $product=0, $independentProjects)
+    public function getTaskStatistics($dept = 0, $date, $productIDs=[], $product=0, $independentProjects=[])
     {
         $childDeptIds = $this->loadModel('dept')->getAllChildID($dept);
         $deptUsers = $this->dept->getUsers($childDeptIds);

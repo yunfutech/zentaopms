@@ -1232,7 +1232,7 @@ class productModel extends model
     /**
      * 获取项目全部迭代
      */
-    private function getProjectByProduct($productID) {
+    public function getProjectByProduct($productID) {
         return $this->dao->select('t1.id')->from(TABLE_PROJECT)->alias('t1')
             ->leftJoin(TABLE_PROJECTPRODUCT)->alias('t2')->on('t1.id=t2.project')
             ->where('t2.product')->eq($productID)
@@ -1243,7 +1243,7 @@ class productModel extends model
     /**
      * 获取任务总工时
      */
-    private function getTaskConsumed($projectID, $begin, $end) {
+    public function getTaskConsumed($projectID, $begin, $end) {
         return $this->dao->select('sum(consumed) AS count')->from(TABLE_TASK)
             ->where('project')->eq($projectID)
             ->andWhere('deadline')->ge($begin)
@@ -1257,7 +1257,7 @@ class productModel extends model
     /**
      * 获取已完成需求统计数据
      */
-    private function getDoneStories($productID, $begin, $end) {
+    public function getDoneStories($productID, $begin, $end) {
             return $this->dao->select('sum(estimate) as doneStoriesEstimate, count(id) as doneStoriesCount')->from(TABLE_STORY)
             ->where('product')->eq($productID)
             ->andWhere('closedReason')->eq('done')
@@ -1270,7 +1270,7 @@ class productModel extends model
     /**
      * 获取全部需求预计工时
      */
-    private function getManHour($productID, $end) {
+    public function getManHour($productID, $end) {
         return $this->dao->select('sum(estimate) as manHour')->from(TABLE_STORY)
             ->where('product')->eq($productID)
             ->andWhere('openedDate')->le($end)
@@ -1281,7 +1281,7 @@ class productModel extends model
     /**
      * 获取项目全部需求
      */
-    private function getStoriesByProduct($productID, $end) {
+    public function getStoriesByProduct($productID, $end) {
         return $this->dao->select('id, title, closedReason, estimate')->from(TABLE_STORY)
             ->where('product')->eq($productID)
             ->andWhere('deleted')->eq(0)
@@ -1292,7 +1292,7 @@ class productModel extends model
     /**
      * 获取无项目线项目
      */
-    private function getOtherProducts($status, $end) {
+    public function getOtherProducts($status, $end) {
         return $this->dao->select('id, name, director, PO, CONVERT(name USING gbk) as gbkName')->from(TABLE_PRODUCT)
             ->where('deleted')->eq(0)
             ->andwhere('status')->ne('closed')
@@ -1311,7 +1311,7 @@ class productModel extends model
     /**
      * 根据项目线数组获取项目
      */
-    private function getProductsByLines($selectLines, $status, $end) {
+    public function getProductsByLines($selectLines, $status, $end) {
             return $this->dao->select('t1.id, t1.name, t1.director, t1.PO, t2.name as line, CONVERT(t1.name USING gbk) as gbkName')->from(TABLE_PRODUCT)->alias('t1')
             ->leftJoin(TABLE_MODULE)->alias('t2')->on('t1.line = t2.id')
             ->where('t1.deleted')->eq(0)

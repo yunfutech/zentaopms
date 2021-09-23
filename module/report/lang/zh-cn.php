@@ -195,7 +195,7 @@ $lang->report->boardProduct->doneStoriesCount = $lang->storyCommon . '完成数'
 $lang->report->boardProduct->doneStoriesEstimate = '已完成' . $lang->storyCommon . '预计工时';
 $lang->report->boardProduct->schedule = $lang->productCommon . '进度';
 $lang->report->boardProduct->doneManHour = '实际工时';
-$lang->report->boardProduct->accuracy = '实际工时/预计工时';
+$lang->report->boardProduct->accuracy = '实际/预计工时';
 
 $lang->report->orderBy = '排序字段';
 $lang->report->orderList['pri'] = '优先级';
@@ -210,3 +210,4 @@ $lang->report->isContract = '合同里程碑';
 $lang->report->completed = '是否完成';
 
 $lang->report->producttargetboard = '月目标看板';
+$lang->report->month = '选择月份';

@@ -33,24 +33,24 @@
             <td title="<?php echo $product->name;?>"><?php echo html::a($this->createLink('product', 'browse', "productID=$productID"), $product->name);?></td>
           </tr>
           <tr>
-            <th><?php echo $lang->producttarget->lastTarget;?></th>
-            <td><?php echo $producttarget->lastTarget;?></td>
-          </tr>
-          <tr>
-            <th><?php echo $lang->producttarget->target;?></th>
-            <td><?php echo $producttarget->target; ?> </td>
-          </tr>
-          <tr>
             <th><?php echo $lang->producttarget->confidence;?></th>
             <td><?php echo zget($lang->producttarget->confidenceList, $producttarget->confidence);?> </td>
           </tr>
           <tr>
+            <th><?php echo $lang->producttarget->lastTarget;?></th>
+            <td><?php echo $producttarget->lastTarget . '%';?></td>
+          </tr>
+          <tr>
+            <th><?php echo $lang->producttarget->target;?></th>
+            <td><?php echo $producttarget->target . '%'; ?> </td>
+          </tr>
+          <tr>
             <th><?php echo $lang->producttarget->middle;?></th>
-            <td><?php echo $producttarget->middle; ?> </td>
+            <td><?php echo $producttarget->middle . '%'; ?> </td>
           </tr>
           <tr>
             <th><?php echo $lang->producttarget->performance;?></th>
-            <td><?php echo $producttarget->performance; ?> </td>
+            <td><?php echo $producttarget->performance . '%'; ?> </td>
           </tr>
           <tr>
             <th><?php echo $lang->producttarget->cause;?></th>

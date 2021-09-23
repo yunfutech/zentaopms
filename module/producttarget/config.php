@@ -7,7 +7,7 @@ $config->producttarget->editor->create = array('id' => 'cause', 'tools' => 'simp
 $config->producttarget->editor->edit = array('id' => 'cause', 'tools' => 'simpleTools');
 
 $config->producttarget->create   = new stdclass();
-$config->producttarget->create->requiredFields      = 'name,date';
+$config->producttarget->create->requiredFields      = 'name,lastTarget,target';
 $config->producttarget->edit     = new stdclass();
 $config->producttarget->edit->requiredFields        = $config->producttarget->create->requiredFields;
 

@@ -3,7 +3,11 @@
   <div class="btn-toolbar pull-right">
     <?php
       $link = $this->createLink('producttarget', 'create', "productID=$productID");
-      if(common::hasPriv('producttarget', 'create')) echo html::a($link, "<i class='icon icon-plus'></i> {$lang->producttarget->create}", '', "class='btn btn-primary'");
+      if ($hasPreTarget) {
+        if(common::hasPriv('producttarget', 'create')) echo html::a($link, "<i class='icon icon-plus'></i> {$lang->producttarget->create}", '', "class='btn btn-primary' disabled");
+      } else {
+        if(common::hasPriv('producttarget', 'create')) echo html::a($link, "<i class='icon icon-plus'></i> {$lang->producttarget->create}", '', "class='btn btn-primary'");
+      }
     ?>
   </div>
 </div>
@@ -22,8 +26,8 @@
             <?php common::printOrderLink('id', $orderBy, $vars, $lang->idAB);?>
           </th>
           <th class='w-450px'><?php common::printOrderLink('name', $orderBy, $vars, $lang->producttarget->name);?></th>
-          <th class='w-150px'><?php common::printOrderLink('target', $orderBy, $vars, $lang->producttarget->target);?></th>
           <th class='w-150px'><?php common::printOrderLink('confidence', $orderBy, $vars, $lang->producttarget->confidence);?></th>
+          <th class='w-150px'><?php common::printOrderLink('target', $orderBy, $vars, $lang->producttarget->target);?></th>
           <th class='w-150px'><?php common::printOrderLink('middle', $orderBy, $vars, $lang->producttarget->middle);?></th>
           <th class='w-150px'><?php common::printOrderLink('performance', $orderBy, $vars, $lang->producttarget->performance);?></th>
           <th class='w-150px'><?php common::printOrderLink('createdDate', $orderBy, $vars, $lang->producttarget->createdDate);?></th>
@@ -35,11 +39,11 @@
         <tr>
           <td class="c-id"><?php echo $producttarget->id?></td>
           <td title="<?php echo $producttarget->name;?>"><?php echo html::a($this->createLink('producttarget', 'view', "producttargetID=$producttarget->id"), $producttarget->name);?></td>
-          <td><?php echo $producttarget->target?></td>
           <td><?php echo zget($lang->producttarget->confidenceList, $producttarget->confidence)?></td>
-          <td><?php echo $producttarget->middle?></td>
-          <td><?php echo $producttarget->performance?></td>
-          <td><?php echo $producttarget->createdDate?></td>
+          <td><?php echo $producttarget->target . '%'?></td>
+          <td><?php echo $producttarget->middle . '%'?></td>
+          <td><?php echo $producttarget->performance . '%'?></td>
+          <td><?php echo $producttarget->createdDate . '%'?></td>
           <td class='c-actions'>
             <?php
               if(common::hasPriv('producttarget', 'edit')) common::printIcon('producttarget', 'edit', "producttargetID=$producttarget->id&productID=$productID", $producttarget, 'list');

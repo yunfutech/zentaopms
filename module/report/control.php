@@ -786,57 +786,32 @@ class report extends control
         $this->display();
     }
 
-    private function getThisMonth($date) {
-        $start = date('Y-m-01', strtotime($date));
-        $end = date('Y-m-d', strtotime("$start +1 month -1 day"));
-        return ['start' => $start, 'end' => $end];
-    }
-
-    private function getPreMonth($date)
+    public function producttargetboard($productID=0, $line=0, $month='')
     {
-        $start = date('Y-m-01', strtotime("$date -1 month"));
-        $end = date('Y-m-d', strtotime("$start +1 month -1 day"));
-        return ['start' => $start, 'end' => $end];
-    }
-
-    private function getNextMonath($date)
-    {
-        $start = date('Y-m-01', strtotime("$date +1 month"));
-        $end = date('Y-m-d', strtotime("$start +1 month -1 day"));
-        return ['start' => $start, 'end' => $end];
-    }
-
-    public function producttargetboard($orderBy = 'date_asc', $recTotal = 0, $recPerPage = 20, $pageID = 1, $productID=0, $line=0, $month='')
-    {
-        $thisMonth = date('Y-m');
-        $preMonth = date('Y-m', strtotime("$thisMonth -1 month"));
-        $nextMonth = date('Y-m', strtotime("$thisMonth -1 month"));
+        $thisMonth = date('Ym');
         if ($month == '' || $month == 0) {
             $month = $thisMonth;
         }
+        $preMonth = strval($month - 1);
+        $nextMonth = strval($month + 1);
 
-        $this->view->month = $month;
+        $this->view->month = $thisMonth;
         $this->view->preMonth = $preMonth;
         $this->view->nextMonth = $nextMonth;
 
-        $this->app->loadClass('pager', $static=true);
-        $pager = pager::init($recTotal, $recPerPage, $pageID);
-        $sort = $this->loadModel('common')->appendOrder($orderBy);
-
-        $data = $this->loadModel('producttarget')->getReport($month, $productID, $line);
-        $this->view->data = $data;
-        $this->view->rowspanArr = $this->countRowspan($data);
+        $result = $this->loadModel('producttarget')->getReport($month, $productID, $line);
+        $this->view->data = $result['data'];
+        $this->view->id2hour = $result['id2hour'];
+        $this->view->rowspanArr = $this->countRowspan($result['data']);
 
         $this->view->products = array(0 => '') + $this->loadModel('product')->getPairs();
         $this->view->lines    = array(0 => '') + $this->loadModel('tree')->getLinePairs();
+        $this->view->productID  = $productID;
+        $this->view->line       = $line;
+        $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
 
         $this->view->title = $this->lang->report->producttargetboard;
         $this->view->position[] = $this->lang->report->producttargetboard;
-        $this->view->recTotal   = $recTotal;
-        $this->view->recPerPage = $recPerPage;
-        $this->view->pageID     = $pageID;
-        $this->view->orderBy    = $orderBy;
-        $this->view->pager      = $pager;
         $this->display();
     }
 
@@ -856,5 +831,55 @@ class report extends control
             }
         }
         return $rowspanArr;
+    }
+
+    /**
+     * 导出月目标
+     */
+    public function exportTarget($productID=0, $line=0, $month='')
+    {
+        $thisMonth = date('Ym');
+        if ($month == '' || $month == 0) {
+            $month = $thisMonth;
+        }
+
+        $result = $this->loadModel('producttarget')->getReport($month, $productID, $line);
+        $data = $result['data'];
+        $id2hour = $result['id2hour'];
+        $users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
+
+        $rows = [];
+        foreach ($data as $line => $products) {
+            foreach ($products as $name => $target) {
+                $rows[] = json_decode(json_encode([
+                    $this->lang->producttarget->productLine => $line,
+                    $this->lang->producttarget->productName => $name,
+                    $this->lang->product->director =>  zget($users, $target->director),
+                    $this->lang->report->boardProduct->manHour => $id2hour[$target->productID]['manHour'],
+                    $this->lang->report->boardProduct->doneManHour => $id2hour[$target->productID]['doneManHour'],
+                    $this->lang->report->boardProduct->accuracy => $id2hour[$target->productID]['accuracy'],
+                    $this->lang->producttarget->lastTarget => $target->lastTarget . '%',
+                    $this->lang->producttarget->target => $target->target . '%',
+                    $this->lang->producttarget->performance => $target->performance . '%',
+                    $this->lang->producttarget->deviation => ($target->performance - $target->target) . '%',
+                ]));
+            }
+        }
+
+        $this->loadModel('file');
+        $this->loadModel('branch');
+
+        if (!empty($rows)) {
+            $row = json_decode(json_encode($rows[0]), true);
+            $keys = array_keys($row);
+            $fields = array_combine($keys, $keys);
+        } else {
+            $fields = [];
+        }
+        $this->post->set('fields', $fields);
+        $this->post->set('fileName', '' . $month . '月目标报告');
+        $this->post->set('rows', $rows);
+        $this->post->set('encode', 'gbk');
+        $this->fetch('file', 'export2' . 'csv', $_POST);
     }
 }

@@ -10,32 +10,43 @@
       <table class='table table-form'>
         <tr>
           <th><?php echo $lang->producttarget->name;?></th>
-          <td colspan='1'><?php echo html::input("name", '', "class='form-control' required");?></td>
+          <td colspan='4'><?php echo html::input("name", $name, "class='form-control' readonly");?></td>
+        </tr>
+        <tr>
           <th><?php echo $lang->producttarget->confidence;?></th>
           <td colspan='1'>
           <?php echo html::select('confidence', $lang->producttarget->confidenceList, '0', "class='form-control' required");?>
           </td>
         </tr>
         <tr>
-          <th><?php echo $lang->producttarget->lastTarget;?></th>
-          <td colspan='1'><?php echo html::input("lastTarget", '', "class='form-control'");?></td>
+            <th><?php echo $lang->producttarget->lastTarget;?></th>
+            <td colspan='2'>
+              <div class="input-group">
+                <?php if ($lastTarget):?>
+                  <?php echo html::input("lastTarget", $lastTarget, "class='form-control' readonly oninput='value=value.replace(/[^\d]/g,\"\")'");?>
+                <?php else:?>
+                  <?php echo html::input("lastTarget", '', "class='form-control' oninput='value=value.replace(/[^\d]/g,\"\")'");?>
+                <?php endif;?>
+                <span class="input-group-addon">%</span>
+              </div>
+            </td>
+          </div>
           <th><?php echo $lang->producttarget->target;?></th>
-          <td colspan='1'><?php echo html::input("target", '', "class='form-control' required");?></td>
-        </tr>
-        <tr>
-          <th><?php echo $lang->producttarget->middle;?></th>
-          <td colspan='1'><?php echo html::input("middle", '', "class='form-control'");?></td>
-          <th><?php echo $lang->producttarget->performance;?></th>
-          <td colspan='1'><?php echo html::input("performance", '', "class='form-control'");?></td>
+          <td colspan='2'>
+            <div class="input-group">
+              <?php echo html::input("target", '', "class='form-control' required oninput='value=value.replace(/[^\d]/g,\"\")'");?>
+              <span class="input-group-addon">%</span>
+            </div>
+          </td>
         </tr>
         <tr>
           <th><?php echo $lang->producttarget->cause;?></th>
-          <td colspan='3'>
+          <td colspan='12'>
             <div class='cause'><?php echo html::textarea('cause', '', "style='width:100%;height:200px'");?></div>
           </td>
         </tr>
         <tr>
-          <td  colspan='4' class='text-center form-actions'>
+          <td colspan='12' class='text-center form-actions'>
             <?php echo html::submitButton();?>
             <?php echo html::backButton();?>
           </td>
