@@ -210,15 +210,15 @@ class producttargetModel extends model
         $end = date('Y-m-d', strtotime("$begin +1 month -1 day"));
 
         $id2hour = [];
-        foreach($productIDs as $productID) {
-            $manHour = $this->loadModel('product')->getManHour($productID, $end);
+        foreach($productIDs as $productID2) {
+            $manHour = $this->loadModel('product')->getManHour($productID2, $end);
             $doneManHour = 0;
-            $projects = $this->loadModel('product')->getProjectByProduct($productID);
+            $projects = $this->loadModel('product')->getProjectByProduct($productID2);
             foreach ($projects as $project) {
-                $doneManHour += $this->loadModel('product')->getTaskConsumed($productID, $begin, $end);
+                $doneManHour += $this->loadModel('product')->getTaskConsumed($project->id, $begin, $end);
             }
             $accuracy = $manHour > 0 ? round($doneManHour / $manHour, 4) : 0;
-            $id2hour[$productID] = ['manHour' => $manHour, 'doneManHour' => $doneManHour, 'accuracy' => $accuracy];
+            $id2hour[$productID2] = ['manHour' => $manHour, 'doneManHour' => $doneManHour, 'accuracy' => $accuracy];
         }
         return ['data' => $data, 'id2hour' => $id2hour];
     }

@@ -45,6 +45,7 @@ $lang->product->cases       = '用例数';
 $lang->product->builds      = 'BUILD数';
 $lang->product->roadmap     = "{$lang->productCommon}路线图";
 $lang->product->milestone   = "{$lang->productCommon}里程碑";
+$lang->product->producttarget = '月目标';
 $lang->product->doc         = '文档列表';
 $lang->product->project     = $lang->projectCommon . '列表';
 $lang->product->build       = '版本列表';

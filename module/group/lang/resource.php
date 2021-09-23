@@ -144,6 +144,7 @@ $lang->todo->methodOrder[75] = 'batchClose';
 
 /* Product. */
 $lang->resource->product = new stdclass();
+$lang->resource->product->producttarget   = 'producttarget';
 $lang->resource->product->index       = 'index';
 $lang->resource->product->browse      = 'browse';
 $lang->resource->product->create      = 'create';
@@ -164,6 +165,7 @@ $lang->resource->product->build       = 'build';
 $lang->resource->product->export      = 'exportAction';
 $lang->resource->product->weekly      = 'weekly';
 
+$lang->product->methodOrder[0]  = 'producttarget';
 $lang->product->methodOrder[0]  = 'index';
 $lang->product->methodOrder[5]  = 'browse';
 $lang->product->methodOrder[10] = 'create';
@@ -202,6 +204,22 @@ $lang->milestone->methodOrder[0]  = 'create';
 $lang->milestone->methodOrder[5]  = 'edit';
 $lang->milestone->methodOrder[10] = 'delete';
 
+$lang->resource->producttarget = new stdclass();
+$lang->resource->producttarget->view    = 'view';
+$lang->resource->producttarget->create  = 'create';
+$lang->resource->producttarget->edit    = 'edit';
+$lang->resource->producttarget->delete  = 'delete';
+$lang->resource->producttarget->batchCreateItem     = 'batchCreateItem';
+$lang->resource->producttarget->deleteItem          = 'deleteItem';
+$lang->resource->producttarget->editItem            = 'editItem';
+
+$lang->milestone->producttarget[0]  = 'view';
+$lang->milestone->producttarget[1]  = 'create';
+$lang->milestone->producttarget[2]  = 'edit';
+$lang->milestone->producttarget[3]  = 'delete';
+$lang->milestone->producttarget[4]  = 'batchCreateItem';
+$lang->milestone->producttarget[5]  = 'deleteItem';
+$lang->milestone->producttarget[6]  = 'editItem';
 
 /* Branch. */
 $lang->resource->branch = new stdclass();
@@ -1010,6 +1028,7 @@ $lang->resource->report->export           = 'export';
 $lang->resource->report->userlogboard     = 'userlogboard';
 $lang->resource->report->weeklyboard      = 'weeklyboard';
 $lang->resource->report->milestoneboard   = 'milestoneboard';
+$lang->resource->report->producttargetboard   = 'producttargetboard';
 
 $lang->report->methodOrder[0]  = 'index';
 $lang->report->methodOrder[5]  = 'projectDeviation';
@@ -1019,6 +1038,7 @@ $lang->report->methodOrder[20] = 'workload';
 $lang->report->methodOrder[25] = 'userlogboard';
 $lang->report->methodOrder[30] = 'weeklyboard';
 $lang->report->methodOrder[35] = 'milestoneboard';
+$lang->report->methodOrder[40] = 'producttargetboard';
 
 /* Search. */
 $lang->resource->search = new stdclass();

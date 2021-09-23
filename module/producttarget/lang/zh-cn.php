@@ -49,3 +49,7 @@ $lang->producttargetitem->noData        = '没有目标数据';
 
 
 $lang->producttargetitem->confirmDelete     = '是否删除' . $lang->producttargetitem->common ;
+
+$lang->producttarget->batchCreateItem   = '批量创建' . $lang->producttargetitem->common;
+$lang->producttarget->deleteItem        = '删除' . $lang->producttargetitem->common;
+$lang->producttarget->editItem          = '编辑' . $lang->producttargetitem->common;
