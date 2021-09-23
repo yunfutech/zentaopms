@@ -204,6 +204,9 @@ $lang->report->orderList['doneManHour'] = '实际工时';
 $lang->report->milestoneboard = '里程碑看板';
 
 $lang->report->begin = '开始日期';
+$lang->report->end = '结束日期';
 $lang->report->productLine = $lang->productCommon . '线';
 $lang->report->isContract = '合同里程碑';
 $lang->report->completed = '是否完成';
+
+$lang->report->producttargetboard = '月目标看板';

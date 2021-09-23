@@ -120,6 +120,7 @@ $lang->usertaskdoneboard    = '用户看板';
 $lang->userlogboard = '日志看板';
 $lang->weeklyboard  = '项目周报看板';
 $lang->milestoneboard = '里程碑看板';
+$lang->producttargetboard = '月目标看板';
 
 $lang->common = new stdclass();
 $lang->common->common = '公有模块';
@@ -381,6 +382,7 @@ $lang->report->menu->usertaskdoneboard  = array('link' => $lang->usertaskdoneboa
 $lang->report->menu->userlogboard       = array('link' => $lang->userlogboard . '|report|userlogboard');
 $lang->report->menu->weeklyboard        = array('link' => $lang->weeklyboard . '|report|weeklyboard');
 $lang->report->menu->milestoneboard     = array('link' => $lang->milestoneboard . '|report|milestoneboard');
+$lang->report->menu->producttargetboard = array('link' => $lang->producttargetboard . '|report|producttargetboard');
 $lang->report->menu->test               = array('link' => '测试|report|bugcreate', 'alias' => 'bugassign');
 $lang->report->menu->staff              = array('link' => '组织|report|workload');
 

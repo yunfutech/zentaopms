@@ -13,3 +13,5 @@ ALTER TABLE `zt_producttarget` ADD `confidence` ENUM('0','1','2') NOT NULL COMME
 ALTER TABLE `zt_producttarget` ADD `product` INT NOT NULL COMMENT '所属项目' AFTER `name`;
 
 ALTER TABLE `zt_producttarget` ADD `lastTarget` INT NULL COMMENT '上月月末进度' AFTER `product`;
+
+ALTER TABLE `zt_producttarget` ADD `month` VARCHAR(10) NULL COMMENT '月份' AFTER `cause`;

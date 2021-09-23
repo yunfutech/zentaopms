@@ -66,8 +66,6 @@ class producttargetModel extends model
             ->fetch();
     }
 
-    public function getReport() {}
-
     /**
      * 批量创建目标
      */
@@ -153,5 +151,45 @@ class producttargetModel extends model
         return $this->dao->select('*')->from(TABLE_PRODUCTTARGETITEM)
             ->where('id')->eq($producttargetitemID)
             ->fetch();
+    }
+
+    /**
+     * 根据月目标id获取目标
+     */
+    public function getItemByTarget($producttargetID)
+    {
+        return $this->dao->select('*')->from(TABLE_PRODUCTTARGETITEM)
+            ->where('target')->eq($producttargetID)
+            ->fetchAll();
+    }
+
+    /**
+     * 获取看板数据
+     */
+    public function getReport($month, $productID, $line)
+    {
+
+        $producttargets = $this->dao->select('t1.*, CONVERT(t2.name USING gbk) as productName, CONVERT(t3.name USING gbk) as productLine')->from(TABLE_PRODUCTTARGET)->alias('t1')
+            ->leftJoin(TABLE_PRODUCT)->alias('t2')->on('t1.product = t2.id')
+            ->leftJoin(TABLE_MODULE)->alias('t3')->on('t2.line = t3.id')
+            ->where('t1.deleted')->eq(0)
+            ->andWhere('month')->eq('202109')
+            ->beginIF($productID > 0)
+            ->andWhere('t1.product')->eq($productID)
+            ->fi()
+            ->beginIF($line > 0)
+            ->andWhere('t2.line')->eq($line)
+            ->fi()
+            ->orderBy('productLine,performance desc')
+            ->fetchAll();
+        $data = [];
+        foreach ($producttargets as $producttarget) {
+            $producttarget->items = $this->getItemByTarget($producttarget->id);
+            if (!isset($data[$producttarget->productLine])) {
+                $data[$producttarget->productLine] = [];
+            }
+            $data[$producttarget->productLine][$producttarget->productName] = $producttarget;
+        }
+        return $data;
     }
 }

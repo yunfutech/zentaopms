@@ -785,4 +785,76 @@ class report extends control
         $this->view->completed  = $completed;
         $this->display();
     }
+
+    private function getThisMonth($date) {
+        $start = date('Y-m-01', strtotime($date));
+        $end = date('Y-m-d', strtotime("$start +1 month -1 day"));
+        return ['start' => $start, 'end' => $end];
+    }
+
+    private function getPreMonth($date)
+    {
+        $start = date('Y-m-01', strtotime("$date -1 month"));
+        $end = date('Y-m-d', strtotime("$start +1 month -1 day"));
+        return ['start' => $start, 'end' => $end];
+    }
+
+    private function getNextMonath($date)
+    {
+        $start = date('Y-m-01', strtotime("$date +1 month"));
+        $end = date('Y-m-d', strtotime("$start +1 month -1 day"));
+        return ['start' => $start, 'end' => $end];
+    }
+
+    public function producttargetboard($orderBy = 'date_asc', $recTotal = 0, $recPerPage = 20, $pageID = 1, $productID=0, $line=0, $month='')
+    {
+        $thisMonth = date('Y-m');
+        $preMonth = date('Y-m', strtotime("$thisMonth -1 month"));
+        $nextMonth = date('Y-m', strtotime("$thisMonth -1 month"));
+        if ($month == '' || $month == 0) {
+            $month = $thisMonth;
+        }
+
+        $this->view->month = $month;
+        $this->view->preMonth = $preMonth;
+        $this->view->nextMonth = $nextMonth;
+
+        $this->app->loadClass('pager', $static=true);
+        $pager = pager::init($recTotal, $recPerPage, $pageID);
+        $sort = $this->loadModel('common')->appendOrder($orderBy);
+
+        $data = $this->loadModel('producttarget')->getReport($month, $productID, $line);
+        $this->view->data = $data;
+        $this->view->rowspanArr = $this->countRowspan($data);
+
+        $this->view->products = array(0 => '') + $this->loadModel('product')->getPairs();
+        $this->view->lines    = array(0 => '') + $this->loadModel('tree')->getLinePairs();
+
+        $this->view->title = $this->lang->report->producttargetboard;
+        $this->view->position[] = $this->lang->report->producttargetboard;
+        $this->view->recTotal   = $recTotal;
+        $this->view->recPerPage = $recPerPage;
+        $this->view->pageID     = $pageID;
+        $this->view->orderBy    = $orderBy;
+        $this->view->pager      = $pager;
+        $this->display();
+    }
+
+    private function countRowspan($data)
+    {
+        $rowspanArr = [];
+        foreach ($data as $line => $products) {
+            $rowspanArr['line' . $line] = 0;
+            foreach ($products as $name => $target) {
+                if (count($target->items) == 0) {
+                    $rowspanArr['product' . $name] = 1;
+                    $rowspanArr['line' . $line] += 1;
+                } else {
+                    $rowspanArr['product' . $name] = count($target->items);
+                    $rowspanArr['line' . $line] += count($target->items);
+                }
+            }
+        }
+        return $rowspanArr;
+    }
 }
