@@ -765,8 +765,9 @@ class report extends control
         $pager = pager::init($recTotal, $recPerPage, $pageID);
         $sort = $this->loadModel('common')->appendOrder($orderBy);
 
-        $milestones = $this->loadModel('milestone')->getAll($pager, $sort, $begin, $productID, $line, $isContract, $completed);
-        $this->view->milestones=  $milestones;
+        $data = $this->loadModel('milestone')->getReport($pager, $sort, $begin, $productID, $line, $isContract, $completed);
+        $this->view->data=  $data;
+        $this->view->rowspanArr = $this->countMilestoneRowspan($data);
 
         $this->view->products = array(0 => '') + $this->loadModel('product')->getPairs();
         $this->view->lines    = array(0 => '') + $this->loadModel('tree')->getLinePairs();
@@ -786,6 +787,19 @@ class report extends control
         $this->display();
     }
 
+    public function countMilestoneRowspan($data)
+    {
+        $rowspanArr = [];
+        foreach ($data as $line => $products) {
+            $rowspanArr['line' . $line] = 0;
+            foreach ($products as $name => $milestones) {
+                $rowspanArr['product' . $name] = count($milestones);
+                $rowspanArr['line' . $line] += count($milestones);
+            }
+        }
+        return $rowspanArr;
+    }
+
     public function producttargetboard($productID=0, $line=0, $month='')
     {
         $thisMonth = date('Ym');
@@ -802,7 +816,7 @@ class report extends control
         $result = $this->loadModel('producttarget')->getReport($month, $productID, $line);
         $this->view->data = $result['data'];
         $this->view->id2hour = $result['id2hour'];
-        $this->view->rowspanArr = $this->countRowspan($result['data']);
+        $this->view->rowspanArr = $this->countTargetRowspan($result['data']);
 
         $this->view->products = array(0 => '') + $this->loadModel('product')->getPairs();
         $this->view->lines    = array(0 => '') + $this->loadModel('tree')->getLinePairs();
@@ -815,7 +829,7 @@ class report extends control
         $this->display();
     }
 
-    private function countRowspan($data)
+    private function countTargetRowspan($data)
     {
         $rowspanArr = [];
         foreach ($data as $line => $products) {

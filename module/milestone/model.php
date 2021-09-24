@@ -35,9 +35,9 @@ class milestoneModel extends model
             ->fetchAll();
     }
 
-    public function getAll($pager, $sort, $begin, $productID=0, $line=0, $isContract='', $completed='')
+    public function getReport($pager, $sort, $begin, $productID=0, $line=0, $isContract='', $completed='')
     {
-        return $this->dao->select('t1.*, CONVERT(t2.name USING gbk) as productName, CONVERT(t3.name USING gbk) as productLine')->from(TABLE_MILESTONE)->alias('t1')
+        $milestones = $this->dao->select('t1.*, CONVERT(t2.name USING gbk) as productName, CONVERT(t3.name USING gbk) as productLine')->from(TABLE_MILESTONE)->alias('t1')
             ->leftJoin(TABLE_PRODUCT)->alias('t2')->on('t1.product = t2.id')
             ->leftJoin(TABLE_MODULE)->alias('t3')->on('t2.line = t3.id')
             ->where('date')->ge($begin)
@@ -57,6 +57,17 @@ class milestoneModel extends model
             ->orderBy($sort)
             ->page($pager)
             ->fetchAll();
+        $data = [];
+        foreach($milestones as $milestone) {
+            if (!isset($data[$milestone->productLine])) {
+                $data[$milestone->productLine] = [];
+            }
+            if (!isset($data[$milestone->productLine][$milestone->productName])) {
+                $data[$milestone->productLine][$milestone->productName] = [];
+            }
+            array_push($data[$milestone->productLine][$milestone->productName], $milestone);
+        }
+        return $data;
     }
 
     /**
