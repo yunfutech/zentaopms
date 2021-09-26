@@ -82,7 +82,7 @@
                 <?php endif;?>
                 <td rowspan="<?php echo $productRowsapn;?>"><?php echo $name?></td>
                 <td class='text-center' rowspan="<?php echo $productRowsapn;?>">
-                  <span class='pri pri_' . <?php echo $milestones[0]->productPri?>><?php echo $milestones[0]->productPri?></span>
+                  <span class='pri pri_<?php echo $milestones[0]->productPri?>'><?php echo $milestones[0]->productPri?></span>
                 </td>
                 <?php foreach ($milestones as $key => $milestone):?>
                   <?php if ($key != 0):?>

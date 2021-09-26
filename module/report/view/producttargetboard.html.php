@@ -77,7 +77,7 @@
                 <?php endif;?>
                 <td rowspan="<?php echo $targetRowsapn;?>"><?php echo $name?></td>
                 <td class='text-center' rowspan="<?php echo $targetRowsapn;?>">
-                  <span class='pri pri_' . <?php echo $target->productPri?>><?php echo $target->productPri?></span>
+                  <span class='pri pri_<?php echo $target->productPri?>'><?php echo $target->productPri?></span>
                 </td>
                 <td rowspan="<?php echo $targetRowsapn;?>"><?php echo zget($users, $target->director)?></td>
                 <?php
