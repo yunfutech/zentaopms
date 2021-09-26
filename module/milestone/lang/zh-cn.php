@@ -31,3 +31,5 @@ $lang->milestone->defaultNames      = [
 ];
 $lang->noMilestones                 = '没有' . $lang->milestone->common;
 $lang->milestone->confirmDelete     = '是否删除里程碑';
+$lang->milestone->productName       = '项目名称';
+$lang->milestone->productPri        = '优先级';

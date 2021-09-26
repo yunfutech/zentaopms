@@ -23,8 +23,9 @@ $lang->producttarget->confidenceList['1'] = '中';
 $lang->producttarget->confidenceList['2'] = '低';
 $lang->producttarget->createdDate   = '创建日期';
 $lang->producttarget->createdBy     = '创建人';
-$lang->producttarget->productName =  '项目名称';
-$lang->producttarget->productLine =  '项目线';
+$lang->producttarget->productName   =  '项目名称';
+$lang->producttarget->productPri    =  '优先级';
+$lang->producttarget->productLine   =  '项目线';
 
 $lang->producttarget->confirmDelete     = '是否删除' . $lang->producttarget->common ;
 

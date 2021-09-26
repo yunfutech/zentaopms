@@ -28,7 +28,7 @@
           <div class='input-group'>
             <span class='input-group-addon'><?php echo $lang->report->isContract; ?></span>
             <div class='datepicker-wrapper datepicker-date'>
-              <?php echo html::select('isContract', array('' => '') + $this->lang->milestone->isContractList, $isContract, "class='form-control' style='padding-right:10px' onchange='changeParams(this)'"); ?>
+              <?php echo html::select('isContract', array('' => '') + $this->lang->milestone->isContractList, $isContract, "class='form-control chosen' style='padding-right:10px' onchange='changeParams(this)'"); ?>
             </div>
           </div>
         </div>
@@ -36,7 +36,7 @@
           <div class='input-group'>
             <span class='input-group-addon'><?php echo $lang->report->completed; ?></span>
             <div class='datepicker-wrapper datepicker-date'>
-              <?php echo html::select('completed', array('' => '') + $this->lang->milestone->completedList, $completed, "class='form-control' style='padding-right:10px' onchange='changeParams(this)'"); ?>
+              <?php echo html::select('completed', array('' => '') + $this->lang->milestone->completedList, $completed, "class='form-control chosen' style='padding-right:10px' onchange='changeParams(this)'"); ?>
             </div>
           </div>
         </div>
@@ -58,7 +58,8 @@
           <thead>
             <tr>
               <th class='w-150px'><?php common::printOrderLink('productLine', $orderBy, $vars, $lang->report->productLine);?></th>
-              <th class='w-200px'><?php common::printOrderLink('productName', $orderBy, $vars, $lang->report->product);?></th>
+              <th class='w-200px'><?php common::printOrderLink('productName', $orderBy, $vars, $lang->milestone->productName);?></th>
+              <th class='w-80px'><?php common::printOrderLink('productPri', $orderBy, $vars, $lang->milestone->productPri);?></th>
               <th class='w-450px'><?php common::printOrderLink('name', $orderBy, $vars, $lang->milestone->name);?></th>
               <th class='w-150px'><?php common::printOrderLink('date', $orderBy, $vars, $lang->milestone->date);?></th>
               <th class='w-150px'><?php common::printOrderLink('isContract', $orderBy, $vars, $lang->milestone->isContract);?></th>
@@ -80,6 +81,9 @@
                 <tr>
                 <?php endif;?>
                 <td rowspan="<?php echo $productRowsapn;?>"><?php echo $name?></td>
+                <td class='text-center' rowspan="<?php echo $productRowsapn;?>">
+                  <span class='pri pri_' . <?php echo $milestones[0]->productPri?>><?php echo $milestones[0]->productPri?></span>
+                </td>
                 <?php foreach ($milestones as $key => $milestone):?>
                   <?php if ($key != 0):?>
                   <tr>

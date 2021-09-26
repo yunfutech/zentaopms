@@ -45,6 +45,7 @@
             <tr>
               <th rowspan="2" class='w-100px text-center'><?php common::printOrderLink('productLine', $orderBy, $vars, $lang->producttarget->productLine);?></th>
               <th rowspan="2" class='w-200px text-center'><?php common::printOrderLink('productName', $orderBy, $vars, $lang->producttarget->productName);?></th>
+              <th rowspan="2" class='w-50px text-center'><?php common::printOrderLink('productPri', $orderBy, $vars, $lang->producttarget->productPri);?></th>
               <th rowspan="2" class='w-100px text-center'><?php common::printOrderLink('director', $orderBy, $vars, $lang->product->director);?></th>
               <th rowspan="2" class='w-80px text-center'><?php common::printOrderLink('manHour', $orderBy, $vars, $lang->report->boardProduct->manHour);?></th>
               <th rowspan="2" class='w-80px text-center'><?php common::printOrderLink('doneManHour', $orderBy, $vars, $lang->report->boardProduct->doneManHour);?></th>
@@ -75,6 +76,9 @@
                   <tr>
                 <?php endif;?>
                 <td rowspan="<?php echo $targetRowsapn;?>"><?php echo $name?></td>
+                <td class='text-center' rowspan="<?php echo $targetRowsapn;?>">
+                  <span class='pri pri_' . <?php echo $target->productPri?>><?php echo $target->productPri?></span>
+                </td>
                 <td rowspan="<?php echo $targetRowsapn;?>"><?php echo zget($users, $target->director)?></td>
                 <?php
                   $manHour = $id2hour[$target->productID]['manHour'];
