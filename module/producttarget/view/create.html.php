@@ -22,7 +22,7 @@
             <th><?php echo $lang->producttarget->lastTarget;?></th>
             <td colspan='2'>
               <div class="input-group">
-                <?php if ($lastTarget):?>
+                <?php if (!is_null($lastTarget)):?>
                   <?php echo html::input("lastTarget", $lastTarget, "class='form-control' readonly oninput='value=value.replace(/[^\d]/g,\"\")'");?>
                 <?php else:?>
                   <?php echo html::input("lastTarget", '', "class='form-control' oninput='value=value.replace(/[^\d]/g,\"\")'");?>

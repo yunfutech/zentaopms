@@ -17,16 +17,22 @@ class producttarget extends control
         $thisMonth = date('Ym');
         $nextMonth = date('Ym', strtotime("$thisMonth +1 month"));
         $product = $this->product->getById($productID);
-        $this->view->name = $nextMonth . $product->name . '月目标';
-        $preTarget = $this->producttarget->getByMonth($thisMonth);
+        $preTarget = $this->producttarget->getByMonth($productID, $thisMonth);
         if ($preTarget) {
             $this->view->lastTarget = $preTarget->performance;
+            $this->view->name = $nextMonth . $product->name . '月目标';
+        } else {
+            $this->view->name = $thisMonth . $product->name . '月目标';
         }
 
         if (!empty($_POST)) {
             $response['result']  = 'success';
             $response['message'] = $this->lang->saveSuccess;
-            $this->producttarget->create($productID, $nextMonth);
+            if ($preTarget) {
+                $this->producttarget->create($productID, $nextMonth);
+            } else {
+                $this->producttarget->create($productID, $thisMonth);
+            }
             if (dao::isError()) {
                 $response['result']  = 'fail';
                 $response['message'] = dao::getError();
