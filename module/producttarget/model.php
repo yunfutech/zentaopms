@@ -37,6 +37,13 @@ class producttargetModel extends model
             ->where('id')
             ->eq($producttargetID)
             ->exec();
+        $producttarget = $this->getById($producttargetID);
+        $month = $producttarget->month;
+        $nextMonth = date('Y-m', strtotime("$month +1 month"));
+        $nextMonthTargets = $this->getByMonth($producttarget->product, $nextMonth);
+        foreach ($nextMonthTargets as $target) {
+            $this->dao->update(TABLE_PRODUCTTARGET)->set('lastTarget')->eq($producttarget->performance)->where('id')->eq($target->id)->exec();
+        }
     }
 
     /**
@@ -82,7 +89,7 @@ class producttargetModel extends model
             ->where('month')->eq($month)
             ->andWhere('product')->eq($productID)
             ->andWhere('deleted')->eq(0)
-            ->fetch();
+            ->fetchAll();
     }
 
     /**
