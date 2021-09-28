@@ -10,7 +10,9 @@
       <table class='table table-form'>
         <tr>
           <th><?php echo $lang->producttarget->name;?></th>
-          <td colspan='4'><?php echo html::input("name", $name, "class='form-control' readonly");?></td>
+          <td colspan='3'><?php echo html::input("name", $name, "class='form-control' readonly");?></td>
+          <th><?php echo $lang->producttarget->month;?></th>
+          <td colspan='2'><input type="month" name="month" id="month" value="<?php echo $month?>" class="form-control" autocomplete="off" onchange="changeMonth(this.value)"></td>
         </tr>
         <tr>
           <th><?php echo $lang->producttarget->confidence;?></th>
@@ -57,3 +59,4 @@
 </div>
 
 <?php include '../../common/view/footer.html.php';?>
+<?php echo html::hidden('oldTargets', json_encode($oldTargets))?>

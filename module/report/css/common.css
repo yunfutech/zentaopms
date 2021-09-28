@@ -64,6 +64,12 @@ td .deviation{padding-left:20px; text-align:left;}
     z-index: 2;
 }
 
+.bgdanger{background:#ED1C24!important;}
+.bgwarning{background:#F37021!important;}
+.bgnotice{background:#FFCB05!important;}
+.bgclose{background:#82bde6!important;}
+.bgignore{background:#acea74!important;}
+
 .fgred{background:#f1babc!important;}
 .fgorange{background:#f5ed8e !important;}
 .fggreen{background:#acea74 !important;}

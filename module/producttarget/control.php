@@ -14,25 +14,21 @@ class producttarget extends control
      */
     public function create($productID)
     {
-        $thisMonth = date('Ym');
-        $nextMonth = date('Ym', strtotime("$thisMonth +1 month"));
         $product = $this->product->getById($productID);
-        $preTarget = $this->producttarget->getByMonth($productID, $thisMonth);
-        if ($preTarget) {
-            $this->view->lastTarget = $preTarget->performance;
-            $this->view->name = $nextMonth . $product->name . '月目标';
-        } else {
-            $this->view->name = $thisMonth . $product->name . '月目标';
+        $oldTargets = $this->producttarget->getOldTargets($productID);
+        $thisMonth = date('Y-m');
+        $lastMonth = date('Y-m', strtotime("$thisMonth -1 month"));
+        if (isset($oldTargets[$lastMonth])) {
+            $this->view->lastTarget = $oldTargets[$lastMonth]->performance;
         }
+        $this->view->name = $product->name . '月目标';
+        $this->view->month = date('Y-m');
+        $this->view->oldTargets = $oldTargets;
 
         if (!empty($_POST)) {
             $response['result']  = 'success';
             $response['message'] = $this->lang->saveSuccess;
-            if ($preTarget) {
-                $this->producttarget->create($productID, $nextMonth);
-            } else {
-                $this->producttarget->create($productID, $thisMonth);
-            }
+            $this->producttarget->create($productID);
             if (dao::isError()) {
                 $response['result']  = 'fail';
                 $response['message'] = dao::getError();

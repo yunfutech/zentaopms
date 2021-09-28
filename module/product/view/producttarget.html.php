@@ -3,11 +3,7 @@
   <div class="btn-toolbar pull-right">
     <?php
       $link = $this->createLink('producttarget', 'create', "productID=$productID");
-      if ($hasPreTarget) {
-        if(common::hasPriv('producttarget', 'create')) echo html::a($link, "<i class='icon icon-plus'></i> {$lang->producttarget->create}", '', "class='btn btn-primary' disabled");
-      } else {
-        if(common::hasPriv('producttarget', 'create')) echo html::a($link, "<i class='icon icon-plus'></i> {$lang->producttarget->create}", '', "class='btn btn-primary'");
-      }
+      if(common::hasPriv('producttarget', 'create')) echo html::a($link, "<i class='icon icon-plus'></i> {$lang->producttarget->create}", '', "class='btn btn-primary'");
     ?>
   </div>
 </div>

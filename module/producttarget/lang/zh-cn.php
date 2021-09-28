@@ -11,6 +11,7 @@ $lang->producttarget->edit      = '编辑' . $lang->producttarget->common;
 $lang->producttarget->delete    = '删除' . $lang->producttarget->common;
 
 $lang->producttarget->name          = '月目标名称';
+$lang->producttarget->month         = '月份';
 $lang->producttarget->lastTarget    = '上月月末进度';
 $lang->producttarget->target        = '本月目标进度';
 $lang->producttarget->middle        = '月中实际进度';

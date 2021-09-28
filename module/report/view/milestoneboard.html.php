@@ -89,7 +89,17 @@
                   <tr>
                   <?php endif;?>
                   <td><?php echo $milestone->name?></td>
-                  <td><?php echo $milestone->date?></td>
+                  <?php if ($milestone->date > $seasonLater):?>
+                    <td class="bgignore"><?php echo $milestone->date?></td>
+                  <?php elseif ($milestone->date > $monthLater): ?>
+                    <td class="bgclose"><?php echo $milestone->date?></td>
+                  <?php elseif ($milestone->date > $weekLater): ?>
+                    <td class="bgnotice"><?php echo $milestone->date?></td>
+                  <?php elseif ($milestone->date > $today): ?>
+                    <td class="bgwarning"><?php echo $milestone->date?></td>
+                  <?php else: ?>
+                    <td class="bgdanger"><?php echo $milestone->date?></td>
+                  <?php endif ?>
                   <td><?php echo $milestone->isContract ? '是' : '否'?></td>
                   <td><?php echo $milestone->pri?></td>
                   <td><?php echo $milestone->completed ? '是' : '否'?></td>

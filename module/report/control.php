@@ -761,6 +761,11 @@ class report extends control
             $begin = date('Y-m-d', strtotime($begin));
         }
 
+        $this->view->today = date('Y-m-d');
+        $this->view->weekLater = date('Y-m-d', strtotime('+1 week'));
+        $this->view->monthLater = date('Y-m-d', strtotime('+1 month'));
+        $this->view->seasonLater = date('Y-m-d', strtotime('+3 month'));
+
         $this->app->loadClass('pager', $static=true);
         $pager = pager::init($recTotal, $recPerPage, $pageID);
         $sort = $this->loadModel('common')->appendOrder($orderBy);
@@ -812,6 +817,8 @@ class report extends control
         $this->view->month = $thisMonth;
         $this->view->preMonth = $preMonth;
         $this->view->nextMonth = $nextMonth;
+
+        $month = DateTime::createFromFormat('Ym', $month)->format('Y-m');;
 
         $result = $this->loadModel('producttarget')->getReport($month, $productID, $line);
         $this->view->data = $result['data'];

@@ -868,11 +868,6 @@ class product extends control
 
         $targets = $this->loadModel('producttarget')->getByProductID($productID, $pager, $sort);
 
-        $thisMonth = date('Ym');
-        $nextMonth = date('Ym', strtotime("$thisMonth +1 month"));
-        $preTarget = $this->loadModel('producttarget')->getByMonth($productID, $nextMonth);
-        $this->view->hasPreTarget = boolval($preTarget);
-
         $this->view->title      = $product->name . $this->lang->producttarget->common;
         $this->view->position[] = $this->lang->producttarget->common;
         $this->view->productID = $productID;

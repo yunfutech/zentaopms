@@ -4,7 +4,7 @@ class producttargetModel extends model
     /**
      * 创建月目标
      */
-    public function create($productID, $month='')
+    public function create($productID)
     {
         $requiredFields = $this->config->producttarget->create->requiredFields;
         $producttarget = fixer::input('post')
@@ -16,9 +16,7 @@ class producttargetModel extends model
             ->stripTags($this->config->producttarget->editor->create['id'], $this->config->allowedTags)
             ->remove('uid')
             ->get();
-        if ($month) {
-            $producttarget->month = $month;
-        }
+        $producttarget->name = $producttarget->month . $producttarget->name;
         $this->dao->insert(TABLE_PRODUCTTARGET)->data($producttarget)
             ->batchCheck($requiredFields, 'notempty')
             ->exec();
@@ -58,6 +56,14 @@ class producttargetModel extends model
             ->orderBy($sort)
             ->page($pager)
             ->fetchAll();
+    }
+
+    public function getOldTargets($productID)
+    {
+        return $this->dao->select('*')->from(TABLE_PRODUCTTARGET)
+            ->where('product')->eq($productID)
+            ->andWhere('deleted')->eq(0)
+            ->fetchAll('month');
     }
 
     /**
