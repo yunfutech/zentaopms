@@ -20,11 +20,17 @@
         </div>
         <div class='col-sm-2'>
           <div class='input-group'>
+            <span class='input-group-addon'><?php echo $lang->report->productDirector; ?></span>
+            <?php echo html::select('director', $directors, $director, 'onchange=changeParams(this) class="form-control chosen"');?>
+          </div>
+        </div>
+        <div class='col-sm-2'>
+          <div class='input-group'>
             <span class='input-group-addon'><?php echo $lang->report->product; ?></span>
             <?php echo html::select('productID', $products, $productID, 'onchange=changeParams(this) class="form-control chosen"');?>
           </div>
         </div>
-        <div class='col-sm-2'>
+        <div class='col-sm-3'>
           <?php echo html::a($this->createLink('report', 'producttargetboard', "productID=$productID&line=$line&month=$preMonth"), '上月', '', "class='btn btn-primary next'"); ?>
           <?php echo html::a($this->createLink('report', 'producttargetboard', "productID=$productID&line=$line&month=$month"), '本月', '', "class='btn btn-primary next'"); ?>
           <?php echo html::a($this->createLink('report', 'producttargetboard', "productID=$productID&line=$line&month=$nextMonth"), '下月', '', "class='btn btn-primary next'"); ?>
@@ -44,16 +50,16 @@
           <thead>
             <tr>
               <th rowspan="2" class='w-100px text-center'><?php common::printOrderLink('productLine', $orderBy, $vars, $lang->producttarget->productLine);?></th>
-              <th rowspan="2" class='w-200px text-center'><?php common::printOrderLink('productName', $orderBy, $vars, $lang->producttarget->productName);?></th>
+              <th rowspan="2" class='w-160px text-center'><?php common::printOrderLink('productName', $orderBy, $vars, $lang->producttarget->productName);?></th>
               <th rowspan="2" class='w-50px text-center'><?php common::printOrderLink('productPri', $orderBy, $vars, $lang->producttarget->productPri);?></th>
-              <th rowspan="2" class='w-100px text-center'><?php common::printOrderLink('director', $orderBy, $vars, $lang->product->director);?></th>
-              <th rowspan="2" class='w-80px text-center'><?php common::printOrderLink('manHour', $orderBy, $vars, $lang->report->boardProduct->manHour);?></th>
-              <th rowspan="2" class='w-80px text-center'><?php common::printOrderLink('doneManHour', $orderBy, $vars, $lang->report->boardProduct->doneManHour);?></th>
-              <th rowspan="2" class='w-110px text-center'><?php common::printOrderLink('accuracy', $orderBy, $vars, $lang->report->boardProduct->accuracy);?></th>
-              <th rowspan="2" class='w-100px text-center'><?php common::printOrderLink('lastTarget', $orderBy, $vars, $lang->producttarget->lastTarget);?></th>
-              <th rowspan="2" class='w-100px text-center'><?php common::printOrderLink('target', $orderBy, $vars, $lang->producttarget->target );?></th>
-              <th rowspan="2" class='w-100px text-center'><?php common::printOrderLink('performance', $orderBy, $vars, $lang->producttarget->performance);?></th>
-              <th rowspan="2" class='w-100px text-center'><?php common::printOrderLink('deviation', $orderBy, $vars, $lang->producttarget->deviation );?></th>
+              <th rowspan="2" class='w-70px text-center'><?php common::printOrderLink('director', $orderBy, $vars, $lang->product->director);?></th>
+              <th rowspan="2" class='w-60px text-center'><?php common::printOrderLink('manHour', $orderBy, $vars, $lang->report->boardProduct->manHour);?></th>
+              <th rowspan="2" class='w-60px text-center'><?php common::printOrderLink('doneManHour', $orderBy, $vars, $lang->report->boardProduct->doneManHour);?></th>
+              <th rowspan="2" class='w-60px text-center'><?php common::printOrderLink('accuracy', $orderBy, $vars, $lang->report->boardProduct->accuracy);?></th>
+              <th rowspan="2" class='w-60px text-center'><?php common::printOrderLink('lastTarget', $orderBy, $vars, $lang->producttarget->lastTarget);?></th>
+              <th rowspan="2" class='w-60px text-center'><?php common::printOrderLink('target', $orderBy, $vars, $lang->producttarget->target );?></th>
+              <th rowspan="2" class='w-60px text-center'><?php common::printOrderLink('performance', $orderBy, $vars, $lang->producttarget->performance);?></th>
+              <th rowspan="2" class='w-60px text-center'><?php common::printOrderLink('deviation', $orderBy, $vars, $lang->producttarget->deviation );?></th>
               <th colspan="4" class="text-center"><?php echo $lang->producttargetitem->common;?></th>
             </tr>
             <tr>
@@ -105,8 +111,8 @@
                   <?php endif;?>
                     <td><?php echo $item->name?></td>
                     <td><?php echo $item->intro?></td>
-                    <td><?php echo $item->name?></td>
-                    <td><?php echo $item->name?></td>
+                    <td><?php echo $item->acceptance?></td>
+                    <td><?php echo $item->completion?></td>
                   </tr>
                   <?php endforeach;?>
                 <?php endif;?>

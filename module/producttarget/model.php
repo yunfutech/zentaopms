@@ -193,9 +193,8 @@ class producttargetModel extends model
     /**
      * 获取看板数据
      */
-    public function getReport($month, $productID, $line)
+    public function getReport($month, $productID, $line, $director)
     {
-
         $producttargets = $this->dao->select('t1.*, CONVERT(t2.name USING gbk) as productName, t2.pri as productPri, t2.id as productID, t2.director, CONVERT(t3.name USING gbk) as productLine')->from(TABLE_PRODUCTTARGET)->alias('t1')
             ->leftJoin(TABLE_PRODUCT)->alias('t2')->on('t1.product = t2.id')
             ->leftJoin(TABLE_MODULE)->alias('t3')->on('t2.line = t3.id')
@@ -206,6 +205,9 @@ class producttargetModel extends model
             ->fi()
             ->beginIF($line > 0)
             ->andWhere('t2.line')->eq($line)
+            ->fi()
+            ->beginIF($director != '' && $director != '0')
+            ->andWhere('t2.director')->eq($director)
             ->fi()
             ->orderBy('productLine,performance desc,pri')
             ->fetchAll();

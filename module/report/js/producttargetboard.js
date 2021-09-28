@@ -2,15 +2,15 @@ function changeParams (obj) {
     var productID   = $('#conditions').find('#productID').val();
     var line     = $('#conditions').find('#line').val();
     var month = $('#conditions').find('#month').val();
-    console.log(month)
+    var director = $('#conditions').find('#director').val();
     if(month.indexOf('-') != -1)
     {
         var montharray = month.split("-");
         var month = '';
         for(i = 0; i < montharray.length; i++) month = month + montharray[i];
     }
-    var link = createLink('report', 'producttargetboard', 'productID=' + productID + '&line=' + line + '&month=' + month);
-    // location.href = link;
+    var link = createLink('report', 'producttargetboard', 'productID=' + productID + '&line=' + line+ '&month=' + month + '&director=' + director);
+    location.href = link;
 }
 
 

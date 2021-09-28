@@ -159,8 +159,8 @@ class producttarget extends control
         $productID = $producttarget->product;
         $this->loadModel('product')->setMenu($this->loadModel('product')->getPairs('nocode'), $productID);
 
-        $this->view->title      = $this->lang->producttarget->create;
-        $this->view->position[] = $this->lang->producttarget->create;
+        $this->view->title      = $this->lang->producttargetitem->create;
+        $this->view->position[] = $this->lang->producttargetitem->create;
 
         $this->view->productID = $productID;
         $this->display();

@@ -805,7 +805,7 @@ class report extends control
         return $rowspanArr;
     }
 
-    public function producttargetboard($productID=0, $line=0, $month='')
+    public function producttargetboard($productID=0, $line=0, $month='', $director='')
     {
         $thisMonth = date('Ym');
         if ($month == '' || $month == 0) {
@@ -819,16 +819,17 @@ class report extends control
         $this->view->nextMonth = $nextMonth;
 
         $month = DateTime::createFromFormat('Ym', $month)->format('Y-m');;
-
-        $result = $this->loadModel('producttarget')->getReport($month, $productID, $line);
+        $result = $this->loadModel('producttarget')->getReport($month, $productID, $line, $director);
         $this->view->data = $result['data'];
         $this->view->id2hour = $result['id2hour'];
         $this->view->rowspanArr = $this->countTargetRowspan($result['data']);
 
         $this->view->products = array(0 => '') + $this->loadModel('product')->getPairs();
         $this->view->lines    = array(0 => '') + $this->loadModel('tree')->getLinePairs();
+        $this->view->directors = array(0 => '') + $this->loadModel('product')->getDirectors();
         $this->view->productID  = $productID;
         $this->view->line       = $line;
+        $this->view->director   = $director;
         $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
 
         $this->view->title = $this->lang->report->producttargetboard;

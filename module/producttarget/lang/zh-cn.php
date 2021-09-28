@@ -33,7 +33,7 @@ $lang->producttarget->confirmDelete     = '是否删除' . $lang->producttarget-
 $lang->producttarget->base = '基本信息';
 
 $lang->producttargetitem = new stdclass();
-$lang->producttargetitem->common        = '目标';
+$lang->producttargetitem->common        = '细化目标';
 $lang->producttargetitem->create        = '创建' . $lang->producttargetitem->common;
 $lang->producttargetitem->view          = '查看' . $lang->producttargetitem->common;
 $lang->producttargetitem->edit          = '编辑' . $lang->producttargetitem->common;

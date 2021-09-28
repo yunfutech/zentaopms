@@ -39,7 +39,7 @@
           <td><?php echo $producttarget->target . '%'?></td>
           <td><?php echo $producttarget->middle . '%'?></td>
           <td><?php echo $producttarget->performance . '%'?></td>
-          <td><?php echo $producttarget->createdDate . '%'?></td>
+          <td><?php echo $producttarget->createdDate?></td>
           <td class='c-actions'>
             <?php
               if(common::hasPriv('producttarget', 'edit')) common::printIcon('producttarget', 'edit', "producttargetID=$producttarget->id&productID=$productID", $producttarget, 'list');
