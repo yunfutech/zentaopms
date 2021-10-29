@@ -31,10 +31,10 @@
           </div>
         </div>
         <div class='col-sm-3'>
-          <?php echo html::a($this->createLink('report', 'producttargetboard', "productID=$productID&line=$line&month=$preMonth"), '上月', '', "class='btn btn-primary next'"); ?>
-          <?php echo html::a($this->createLink('report', 'producttargetboard', "productID=$productID&line=$line&month=$month"), '本月', '', "class='btn btn-primary next'"); ?>
-          <?php echo html::a($this->createLink('report', 'producttargetboard', "productID=$productID&line=$line&month=$nextMonth"), '下月', '', "class='btn btn-primary next'"); ?>
-          <?php echo html::a($this->createLink('report', 'exportTarget', "productID=$productID&line=$line&month=$month"), "<i class='icon icon-export muted'> </i>导出", '', "class='btn btn-primary download-btn'"); ?>
+          <?php echo html::a($this->createLink('report', 'producttargetboard', "productID=$productID&line=$line&month=$preMonth&director=$director"), '上月', '', "class='btn btn-primary next'"); ?>
+          <?php echo html::a($this->createLink('report', 'producttargetboard', "productID=$productID&line=$line&month=$thisMonth&director=$director"), '本月', '', "class='btn btn-primary next'"); ?>
+          <?php echo html::a($this->createLink('report', 'producttargetboard', "productID=$productID&line=$line&month=$nextMonth&director=$director"), '下月', '', "class='btn btn-primary next'"); ?>
+          <?php echo html::a($this->createLink('report', 'exportTarget', "productID=$productID&line=$line&month=$month&director=$director"), "<i class='icon icon-export muted'> </i>导出", '', "class='btn btn-primary download-btn'"); ?>
         </div>
       </div>
     </div>
@@ -81,7 +81,9 @@
                 <?php if ($name != $names[0]):?>
                   <tr>
                 <?php endif;?>
-                <td rowspan="<?php echo $targetRowsapn;?>"><?php echo $name?></td>
+                <td rowspan="<?php echo $targetRowsapn;?>">
+                  <?php echo html::a($this->createLink('product', 'view', "productID={$target->productID}"), "$name"); ?>
+                </td>
                 <td class='text-center' rowspan="<?php echo $targetRowsapn;?>">
                   <span class='pri pri_<?php echo $target->productPri?>'><?php echo $target->productPri?></span>
                 </td>

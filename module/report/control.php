@@ -814,7 +814,8 @@ class report extends control
         $preMonth = strval($month - 1);
         $nextMonth = strval($month + 1);
 
-        $this->view->month = $thisMonth;
+        $this->view->month = $month;
+        $this->view->thisMonth = $thisMonth;
         $this->view->preMonth = $preMonth;
         $this->view->nextMonth = $nextMonth;
 
