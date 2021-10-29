@@ -22,28 +22,28 @@
           <th><?php echo $lang->producttarget->lastTarget;?></th>
           <td colspan='2'>
             <div class="input-group">
-              <?php echo html::input("lastTarget", $producttarget->lastTarget, "class='form-control' readonly oninput='value=value.replace(/[^\d]/g,\"\")'");?>
+              <?php echo html::input("lastTarget", $producttarget->lastTarget, "class='form-control' readonly");?>
               <span class="input-group-addon">%</span>
             </div>
           </td>
           <th><?php echo $lang->producttarget->target;?></th>
           <td colspan='2'>
             <div class="input-group">
-              <?php echo html::input("target", $producttarget->target, "class='form-control' readonly oninput='value=value.replace(/[^\d]/g,\"\")'");?>
+              <?php echo html::input("target", $producttarget->target, "class='form-control' readonly");?>
               <span class="input-group-addon">%</span>
             </div>
           </td>
           <th><?php echo $lang->producttarget->middle;?></th>
           <td colspan='2'>
             <div class="input-group">
-              <?php echo html::input("middle", $producttarget->middle, "class='form-control' oninput='value=value.replace(/[^\d]/g,\"\")'");?>
+              <?php echo html::input("middle", $producttarget->middle, "class='form-control' oninput='clearNoNum(this)'");?>
               <span class="input-group-addon">%</span>
             </div>
           </td>
           <th><?php echo $lang->producttarget->performance;?></th>
           <td colspan='2'>
             <div class="input-group">
-              <?php echo html::input("performance", $producttarget->performance, "class='form-control' oninput='value=value.replace(/[^\d]/g,\"\")'");?>
+              <?php echo html::input("performance", $producttarget->performance, "class='form-control' oninput='clearNoNum(this)'");?>
               <span class="input-group-addon">%</span>
             </div>
           </td>

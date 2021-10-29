@@ -1,0 +1,1 @@
+ALTER TABLE `zt_producttarget` CHANGE `lastTarget` `lastTarget` DECIMAL(11,2) NULL DEFAULT NULL COMMENT '上月月末进度', CHANGE `target` `target` DECIMAL(11,2) NOT NULL COMMENT '目标进度', CHANGE `middle` `middle` DECIMAL(11,2) NULL DEFAULT NULL COMMENT '月中实际进度', CHANGE `performance` `performance` DECIMAL(11,2) NULL DEFAULT NULL COMMENT '实际进度';

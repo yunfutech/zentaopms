@@ -25,9 +25,9 @@
             <td colspan='2'>
               <div class="input-group">
                 <?php if (!is_null($lastTarget)):?>
-                  <?php echo html::input("lastTarget", $lastTarget, "class='form-control' readonly oninput='value=value.replace(/[^\d]/g,\"\")'");?>
+                  <?php echo html::input("lastTarget", $lastTarget, "class='form-control' readonly oninput='clearNoNum(this)'");?>
                 <?php else:?>
-                  <?php echo html::input("lastTarget", '', "class='form-control' oninput='value=value.replace(/[^\d]/g,\"\")'");?>
+                  <?php echo html::input("lastTarget", '', "class='form-control' oninput='clearNoNum(this)'");?>
                 <?php endif;?>
                 <span class="input-group-addon">%</span>
               </div>
@@ -36,7 +36,7 @@
           <th><?php echo $lang->producttarget->target;?></th>
           <td colspan='2'>
             <div class="input-group">
-              <?php echo html::input("target", '', "class='form-control' required oninput='value=value.replace(/[^\d]/g,\"\")'");?>
+              <?php echo html::input("target", '', "class='form-control' required oninput='clearNoNum(this)'");?>
               <span class="input-group-addon">%</span>
             </div>
           </td>
