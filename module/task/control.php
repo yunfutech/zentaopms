@@ -1812,8 +1812,8 @@ class task extends control
                 ];
                 $task['name'] = '早会' . $day;
                 $this->dao->insert(TABLE_TASK)->data($task)->exec();
-                $task['name'] = '验收会' . $day;
-                $this->dao->insert(TABLE_TASK)->data($task)->exec();
+                // $task['name'] = '验收会' . $day;
+                // $this->dao->insert(TABLE_TASK)->data($task)->exec();
             }
         }
         echo "生成会议任务成功";
