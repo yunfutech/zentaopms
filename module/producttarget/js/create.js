@@ -14,7 +14,6 @@ function changeMonth(value) {
     var oldTargets   = $('#oldTargets').val();
     oldTargets = JSON.parse(oldTargets)
     if (oldTargets.hasOwnProperty(lastMonth)) {
-        console.log(oldTargets[lastMonth])
         $('#lastTarget').val(oldTargets[lastMonth].performance)
         $('#lastTarget').attr('readonly', true);
     } else {
