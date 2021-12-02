@@ -32,6 +32,10 @@
       <?php $customLink = $this->createLink('custom', 'ajaxSaveCustomFields', 'module=task&section=custom&key=batchCreateFields')?>
       <?php include '../../common/view/customfield.html.php';?>
     </div>
+    <div class="pull-right text-danger" style="padding: 6px;margin-right: 30px;">
+      <i class="icon icon-exclamation-sign"></i>
+      <span>注意: 默认截止日期在每天<?php echo $config->task->deadlinePoint?>点之后为明天</span>
+    </div>
   </div>
   <?php
   $visibleFields  = array();
