@@ -1793,7 +1793,7 @@ class task extends control
         }
         foreach($users as $user) {
             foreach($days as $day) {
-                if ($user['dept'] == 10) {
+                if ($user->dept == 10) {
                     $projectID = 438;   # 云孚销售2021
                 } else {
                     $projectID = 434;   # 项目管理2021
@@ -1816,7 +1816,7 @@ class task extends control
                 ];
                 $task['name'] = '早会' . $day;
                 $this->dao->insert(TABLE_TASK)->data($task)->exec();
-                if ($user['dept'] == 10) {
+                if ($user->dept == 10) {
                     $task['name'] = '验收会' . $day;
                     $this->dao->insert(TABLE_TASK)->data($task)->exec();
                 }
