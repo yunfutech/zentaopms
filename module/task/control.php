@@ -1774,14 +1774,13 @@ class task extends control
     public function generateMeetingTask($day='')
     {
         // $ids = [2, 4, 19, 131, 18, 123, 99, 146, 156, 157];   # 张总、贾总、曾总、程总、建行、赵娅平、罗家成、程浩鹏、黄天意
-        $users = $this->dao->select('id, account')->from(TABLE_USER)
+        $users = $this->dao->select('id, account, dept')->from(TABLE_USER)
             ->where('dept')->in($this->config->task->meetTaskDepts)
             ->andWhere('deleted')->eq('0')
             ->andWhere('leaved')->eq('0')
             ->andWhere('id')->notin($this->config->task->blacklist)
             ->fetchall();
         print_r($users);
-        $projectID = 434;   # 项目管理2021
         $now = date('Y-m-d H:i:s');
         if(empty($day)) {
             $days = $this->getNextweekDays();
@@ -1794,6 +1793,11 @@ class task extends control
         }
         foreach($users as $user) {
             foreach($days as $day) {
+                if ($user['dept'] == 10) {
+                    $projectID = 438;   # 云孚销售2021
+                } else {
+                    $projectID = 434;   # 项目管理2021
+                }
                 $task = [
                     'project' => $projectID,
                     'name' => '',
@@ -1812,8 +1816,10 @@ class task extends control
                 ];
                 $task['name'] = '早会' . $day;
                 $this->dao->insert(TABLE_TASK)->data($task)->exec();
-                // $task['name'] = '验收会' . $day;
-                // $this->dao->insert(TABLE_TASK)->data($task)->exec();
+                if ($user['dept'] == 10) {
+                    $task['name'] = '验收会' . $day;
+                    $this->dao->insert(TABLE_TASK)->data($task)->exec();
+                }
             }
         }
         echo "生成会议任务成功";
