@@ -1656,9 +1656,9 @@ class task extends control
         foreach ($users as $user) {
             foreach ($days as $day) {
                 if ($user->dept == 10) {
-                    $projectID = 438;   # 云孚销售2021
+                    $projectID = 547;   # 云孚销售2021
                 } else {
-                    $projectID = 434;   # 项目管理2021
+                    $projectID = 552;   # 项目管理2021
                 }
                 $task = [
                     'project' => $projectID,
