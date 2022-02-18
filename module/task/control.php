@@ -1655,11 +1655,7 @@ class task extends control
         }
         foreach ($users as $user) {
             foreach ($days as $day) {
-                if ($user->dept == 10) {
-                    $projectID = 547;   # 云孚销售2021
-                } else {
-                    $projectID = 552;   # 项目管理2021
-                }
+                $projectID = $this->config->task->deptToProject[$user->dept];
                 $task = [
                     'project' => $projectID,
                     'name' => '',

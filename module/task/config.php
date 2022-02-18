@@ -36,7 +36,7 @@ $config->task->exportFields = '
     closedBy, closedDate, closedReason,
     lastEditedBy, lastEditedDate,files
     ';
-if($config->global->flow == 'onlyTask') $config->task->exportFields = str_replace(array(' story,'), '', $config->task->exportFields);
+if ($config->global->flow == 'onlyTask') $config->task->exportFields = str_replace(array(' story,'), '', $config->task->exportFields);
 
 $config->task->customCreateFields      = 'story,estStarted,deadline,mailto,pri,estimate';
 $config->task->customBatchCreateFields = 'module,story,assignedTo,estimate,estStarted,deadline,desc,pri';
@@ -47,8 +47,7 @@ $config->task->custom->createFields      = $config->task->customCreateFields;
 $config->task->custom->batchCreateFields = 'module,story,assignedTo,estimate,pri';
 $config->task->custom->batchEditFields   = 'project,module,story,assignedTo,status,pri,estimate,record,left,finishedBy,closedBy,closedReason';
 
-if($config->global->flow == 'onlyTask')
-{
+if ($config->global->flow == 'onlyTask') {
     $config->task->customCreateFields        = str_replace(array('story,'), '', $config->task->customCreateFields);
     $config->task->customBatchCreateFields   = str_replace(array('story,'), '', $config->task->customBatchCreateFields);
     $config->task->customBatchEditFields   = str_replace(array('story,'), '', $config->task->customBatchEditFields);
@@ -206,4 +205,9 @@ $config->task->datatable->fieldList['actions']['required'] = 'yes';
 $config->task->deadlinePoint = 20;
 
 $config->task->meetTaskDepts = [9, 10];
+$config->task->deptToProject = [
+    9 => 552,   # 管理层 => 项目管理20222
+    10 => 547,   # 销售部 => 云孚销售2022
+    19 => 550   # 市场部 => 市场工作2022
+];
 $config->task->blacklist = [];
