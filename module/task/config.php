@@ -204,7 +204,7 @@ $config->task->datatable->fieldList['actions']['required'] = 'yes';
 
 $config->task->deadlinePoint = 20;
 
-$config->task->meetTaskDepts = [19];
+$config->task->meetTaskDepts = [9, 10, 19];
 $config->task->deptToProject = [
     9 => 552,   # 管理层 => 项目管理20222
     10 => 547,   # 销售部 => 云孚销售2022
