@@ -11,7 +11,14 @@
  */
 $lang->testcase->id               = 'ID';
 $lang->testcase->product          = $lang->productCommon;
+$lang->testcase->project          = 'Project';
+$lang->testcase->execution        = 'Execution';
 $lang->testcase->module           = 'Module';
+$lang->testcase->auto             = 'Test Automation Cases';
+$lang->testcase->frame            = 'Test Automation Cramework';
+$lang->testcase->howRun           = 'Testing Method';
+$lang->testcase->frequency        = 'Frequency';
+$lang->testcase->path             = 'Path';
 $lang->testcase->lib              = "Case Library";
 $lang->testcase->branch           = "Branch/Platform";
 $lang->testcase->moduleAB         = 'Module';
@@ -37,6 +44,10 @@ $lang->testcase->linkCase         = 'Linked Cases';
 $lang->testcase->linkCases        = 'Link Case';
 $lang->testcase->unlinkCase       = 'Unlink Cases';
 $lang->testcase->stage            = 'Phase';
+$lang->testcase->scriptedBy       = 'ScriptedBy';
+$lang->testcase->scriptedDate     = 'ScriptedDate';
+$lang->testcase->scriptStatus     = 'Script Status';
+$lang->testcase->scriptLocation   = 'Script Location';
 $lang->testcase->reviewedBy       = 'ReviewedBy';
 $lang->testcase->reviewedDate     = 'ReviewedDate';
 $lang->testcase->reviewResult     = 'Review Result';
@@ -54,6 +65,8 @@ $lang->testcase->assignedTo       = 'AssingedTo';
 $lang->testcase->colorTag         = 'Color';
 $lang->testcase->lastRunResult    = 'Result';
 $lang->testcase->desc             = 'Steps';
+$lang->testcase->parent           = 'Parent';
+$lang->testcase->xml              = 'XML';
 $lang->testcase->expect           = 'Expectations';
 $lang->testcase->allProduct       = "All {$lang->productCommon}s";
 $lang->testcase->fromBug          = 'From Bug';
@@ -72,7 +85,13 @@ $lang->testcase->sync             = 'Synchronize Case';
 $lang->testcase->ignore           = 'Ignore';
 $lang->testcase->fromTesttask     = 'From Test Request';
 $lang->testcase->fromCaselib      = 'From Case Library';
+$lang->testcase->fromCaseID       = 'From Case ID';
+$lang->testcase->fromCaseVersion  = 'From Case Version';
+$lang->testcase->mailto           = 'Mailto';
 $lang->testcase->deleted          = 'Deleted';
+$lang->testcase->browseUnits      = 'Unit Test';
+$lang->testcase->suite            = 'Test Suite';
+
 $lang->case = $lang->testcase;  // For dao checking using. Because 'case' is a php keywords, so the module name is testcase, table name is still case.
 
 $lang->testcase->stepID      = 'ID';
@@ -104,7 +123,7 @@ $lang->testcase->browse                  = "Case List";
 $lang->testcase->groupCase               = "View By Group";
 $lang->testcase->import                  = "Import";
 $lang->testcase->importAction            = "Import Case";
-$lang->testcase->importFile              = "Import CSV";
+$lang->testcase->fileImport              = "Import CSV";
 $lang->testcase->importFromLib           = "Import From Library";
 $lang->testcase->showImport              = "Show Import";
 $lang->testcase->exportTemplet           = "Export Template";
@@ -172,6 +191,7 @@ $lang->testcase->typeList['config']      = 'Configuration';
 $lang->testcase->typeList['install']     = 'Installation';
 $lang->testcase->typeList['security']    = 'Security';
 $lang->testcase->typeList['interface']   = 'Interface';
+$lang->testcase->typeList['unit']        = 'Unit';
 $lang->testcase->typeList['other']       = 'Others';
 
 $lang->testcase->stageList['']           = '';
@@ -211,13 +231,18 @@ $lang->testcase->searchStories = 'Enter to search for stories';
 $lang->testcase->selectLib     = 'Select Library';
 
 $lang->testcase->action = new stdclass();
-$lang->testcase->action->fromlib  = array('main' => '$date, imported by <strong>$actor</strong> from <strong>$extra</strong>.');
-$lang->testcase->action->reviewed = array('main' => '$date, recorded by <strong>$actor</strong> and the review result is <strong>$extra</strong>.', 'extra' => 'reviewResultList');
+$lang->testcase->action->fromlib               = array('main' => '$date, imported by <strong>$actor</strong> from <strong>$extra</strong>.');
+$lang->testcase->action->reviewed              = array('main' => '$date, recorded by <strong>$actor</strong> and the review result is <strong>$extra</strong>.', 'extra' => 'reviewResultList');
+$lang->testcase->action->linked2project        = array('main' => '$date, 由 <strong>$actor</strong> 关联到项目 <strong>$extra</strong>。');
+$lang->testcase->action->unlinkedfromproject   = array('main' => '$date, 由 <strong>$actor</strong> 从项目 <strong>$extra</strong> 移除。');
+$lang->testcase->action->linked2execution      = array('main' => '$date, 由 <strong>$actor</strong> 关联到' . $lang->executionCommon . ' <strong>$extra</strong>。');
+$lang->testcase->action->unlinkedfromexecution = array('main' => '$date, 由 <strong>$actor</strong> 从' . $lang->executionCommon . ' <strong>$extra</strong> 移除。');
 
 $lang->testcase->featureBar['browse']['all']         = $lang->testcase->allCases;
 $lang->testcase->featureBar['browse']['wait']        = 'Waiting';
 $lang->testcase->featureBar['browse']['needconfirm'] = $lang->testcase->needConfirm;
-$lang->testcase->featureBar['browse']['group']       = '';
+$lang->testcase->featureBar['browse']['group']       = 'Group View';
 $lang->testcase->featureBar['browse']['suite']       = 'Suite';
-$lang->testcase->featureBar['browse']['zerocase']    = '';
+$lang->testcase->featureBar['browse']['zerocase']    = 'Zero Case Story';
+$lang->testcase->featureBar['browse']['browseunits'] = 'Unit Test';
 $lang->testcase->featureBar['groupcase']             = $lang->testcase->featureBar['browse'];

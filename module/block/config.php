@@ -14,16 +14,29 @@ $config->block->version = 2;
 $config->block->editor  = new stdclass();
 $config->block->editor->set = array('id' => 'html', 'tools' => 'simple');
 
+$config->block->moduleIndex = array();
+$config->block->moduleIndex['program'] = 'project';
+$config->block->moduleIndex['project'] = 'execution';
+
 $config->block->longBlock = array();
-$config->block->longBlock['']['flowchart']        = 'flowchart';
-$config->block->longBlock['']['welcome']          = 'welcome';
-$config->block->longBlock['product']['statistic'] = 'statistic';
-$config->block->longBlock['project']['statistic'] = 'statistic';
-$config->block->longBlock['qa']['statistic']      = 'statistic';
+$config->block->longBlock['']['flowchart']              = 'flowchart';
+$config->block->longBlock['']['welcome']                = 'welcome';
+$config->block->longBlock['']['assigntome']             = 'assigntome';
+$config->block->longBlock['product']['statistic']       = 'statistic';
+$config->block->longBlock['execution']['statistic']     = 'statistic';
+$config->block->longBlock['qa']['statistic']            = 'statistic';
+$config->block->longBlock['project']['waterfallreport'] = 'waterfallreport';
+$config->block->longBlock['project']['waterfallissue']  = 'waterfallissue';
+$config->block->longBlock['project']['waterfallrisk']   = 'waterfallrisk';
 
 $config->block->shortBlock = array();
-$config->block->shortBlock['product']['overview'] = 'overview';
-$config->block->shortBlock['project']['overview'] = 'overview';
+$config->block->shortBlock['product']['overview']          = 'overview';
+$config->block->shortBlock['project']['overview']          = 'overview';
+$config->block->shortBlock['project']['waterfallestimate'] = 'waterfallestimate';
+$config->block->shortBlock['project']['waterfallprogress'] = 'waterfallprogress';
+$config->block->shortBlock['']['contribute'] = 'contribute';
 
 $config->statistic = new stdclass();
 $config->statistic->storyStages = array('wait', 'planned', 'developing', 'testing', 'released');
+
+$config->block->workMethods = 'task,story,requirement,bug,testcase,testtask,issue,risk,meeting';

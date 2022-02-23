@@ -25,6 +25,19 @@
       <table align='center' class="table table-form">
         <?php $thClass = common::checkNotCN() ? 'w-enVerifyPassword' : 'w-verifyPassword';?>
         <tr>
+          <th class='<?php echo $thClass?>'><?php echo $lang->user->type;?></th>
+          <td colspan='2'><?php echo html::radio('type', $lang->user->typeList , 'inside', "onclick='changeType(this.value)'");?></td>
+        </tr>
+        <tr id='companyBox' class='hide'>
+          <th><?php echo $lang->user->company;?></th>
+          <td>
+            <div class='input-group'>
+            <?php echo html::select('company', $companies, '', "class='form-control chosen'");?>
+            <span class='input-group-addon'><?php echo html::checkBox('new', $lang->company->create);?></span>
+            </div>
+          </td>
+        </tr>
+        <tr>
           <th class='<?php echo $thClass?>'><?php echo $lang->user->dept;?></th>
           <td class='w-p40'><?php echo html::select('dept', $depts, $deptID, "class='form-control chosen'");?></td>
         </tr>
@@ -41,6 +54,7 @@
               <span class='input-group-addon' id='passwordStrength'></span>
             </span>
           </td>
+          <td><?php echo $lang->user->placeholder->password1;?></td>
         </tr>
         <tr>
           <th><?php echo $lang->user->password2;?></th>
@@ -59,11 +73,13 @@
           <td><?php echo html::select('role', $lang->user->roleList, '', "class='form-control' onchange='changeGroup(this.value)'");?></td>
           <td><?php echo $lang->user->placeholder->role?></td>
         </tr>
+        <?php if(common::hasPriv('group', 'managemember')):?>
         <tr>
           <th><?php echo $lang->user->group;?></th>
           <td><?php echo html::select('group', $groupList, '', "class='form-control chosen'");?></td>
           <td><?php echo $lang->user->placeholder->group?></td>
         </tr>
+        <?php endif;?>
         <tr>
           <th><?php echo $lang->user->email;?></th>
           <td><?php echo html::input('email', '', "class='form-control'");?></td>
@@ -76,16 +92,15 @@
           <th><?php echo $lang->user->gender;?></th>
           <td><?php echo html::radio('gender', (array)$lang->user->genderList, 'm');?></td>
         </tr>
-        <!-- <tr>
+        <tr>
           <th><?php echo $lang->user->verifyPassword;?></th>
-          <td>
-            <div class="required required-wrapper"></div>
+          <td class="required">
             <?php echo html::password('verifyPassword', '', "class='form-control disabled-ie-placeholder' placeholder='{$lang->user->placeholder->verify}'");?>
           </td>
-        </tr> -->
+        </tr>
         <tr>
           <th></th>
-          <td colspan='2' class='text-left form-actions'>
+          <td class='text-center form-actions'>
             <?php echo html::submitButton();?>
             <?php echo html::backButton();?>
           </td>

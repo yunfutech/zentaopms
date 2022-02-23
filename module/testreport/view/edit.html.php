@@ -18,20 +18,23 @@
   <div class='center-block'>
     <div class='main-header'>
       <h2><?php echo $lang->testreport->edit;?></h2>
-      <div class='btn-toolbar pull-right'><?php echo html::backButton('<i class="icon icon-back icon-sm"></i>' . $lang->goback, '', 'btn btn-link');?></div>
+      <div class='btn-toolbar pull-right'><?php echo html::backButton('<i class="icon icon-back icon-sm"></i> ' . $lang->goback, '', 'btn btn-link');?></div>
     </div>
     <form method='post' enctype='multipart/form-data' target='hiddenwin'>
       <div class='detail'>
         <div class='detail-title'><?php echo $lang->testreport->legendBasic?></div>
         <table class='table table-form'>
           <tr>
-            <th class='w-100px'><?php echo $lang->testreport->startEnd?></th>
+            <th class='c-date'><?php echo $lang->testreport->startEnd?></th>
             <td class='w-p50'>
               <div class='input-group'>
-                <?php echo html::input('begin', $report->begin, "class='form-control form-date'")?>
+                <?php echo html::input('begin', $begin, "class='form-control form-date' onchange=changeDate()")?>
                 <span class='input-group-addon'> ~ </span>
-                <?php echo html::input('end', $report->end, "class='form-control form-date'")?>
-                <?php echo html::hidden('product', $productIdList) . ($config->global->flow != 'onlyTest' ? html::hidden('project', $project->id) : '') . html::hidden('tasks', $tasks);?>
+                <?php echo html::input('end', $end, "class='form-control form-date' onchange=changeDate()")?>
+                <div class='input-group-btn hidden' id='refresh'>
+                  <a onclick=refreshPage() class='btn' data-toggle='modal' data-type='iframe'><?php echo $lang->refresh?></a>
+                </div>
+                <?php echo html::hidden('product', $productIdList) . html::hidden('execution', $execution->id) . html::hidden('tasks', $tasks);?>
               </div>
             </td>
             <td>
@@ -52,10 +55,13 @@
             <td colspan='2'><?php echo html::input('title', $report->title, "class='form-control'")?></td>
             <td></td>
           </tr>
-          <?php if($config->global->flow != 'onlyTest'):?>
+          <?php if(!empty($execution->desc)):?>
           <tr>
             <th><?php echo $lang->testreport->goal?></th>
-            <td colspan='2'><?php echo $project->desc?></td>
+            <td colspan='2'>
+              <?php echo $execution->desc?>
+              <a data-toggle='tooltip' class='text-warning' title='<?php echo $lang->testreport->goalTip;?>'><i class='icon-help'></i></a>
+            </td>
             <td></td>
           </tr>
           <?php endif;?>
@@ -65,8 +71,7 @@
             <?php
             echo '<p>' . $storySummary . '</p>';
             echo '<p>' . sprintf($lang->testreport->buildSummary, empty($builds) ? 1 : count($builds)) . $caseSummary . '</p>';
-            echo '<p>' . sprintf($lang->testreport->bugSummary, $bugInfo['foundBugs'], count($legacyBugs), $bugInfo['countBugByTask'], $bugInfo['bugConfirmedRate'] . '%', $bugInfo['bugCreateByCaseRate'] . '%') . '</p>';
-            unset($bugInfo['countBugByTask']); unset($bugInfo['bugConfirmedRate']); unset($bugInfo['bugCreateByCaseRate']); unset($bugInfo['foundBugs']);
+            echo '<p>' . sprintf($lang->testreport->bugSummary, $bugSummary['foundBugs'], count($legacyBugs), $bugSummary['activatedBugs'], $bugSummary['countBugByTask'], $bugSummary['bugConfirmedRate'] . '%', $bugSummary['bugCreateByCaseRate'] . '%') . '</p>';
             ?>
             </td>
             <td></td>
@@ -113,4 +118,6 @@
     </form>
   </div>
 </div>
+<?php js::set('reportID', $report->id);?>
+<?php js::set('method', 'edit');?>
 <?php include '../../common/view/footer.html.php';?>

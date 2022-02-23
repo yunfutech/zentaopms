@@ -24,14 +24,14 @@
     <table align='center' class='table table-form' id="tableBody">
       <thead>
         <tr class='text-center'>
-          <th class='w-50px'> <?php echo $lang->idAB;?></th>
-          <th class='w-180px'><?php echo $lang->testcase->module;?></th>
+          <th class='c-id'><?php echo $lang->idAB;?></th>
+          <th class='c-module'><?php echo $lang->testcase->module;?></th>
           <th class='required'><?php echo $lang->testcase->title;?></th>
-          <th class='w-100px required'><?php echo $lang->testcase->type;?></th>
-          <th class='w-80px'> <?php echo $lang->testcase->pri;?></th>
-          <th class='w-150px'><?php echo $lang->testcase->precondition;?></th>
-          <th class='w-100px'><?php echo $lang->testcase->keywords;?></th>
-          <th class='w-200px'><?php echo $lang->testcase->stage;?></th>
+          <th class='c-status required'><?php echo $lang->testcase->type;?></th>
+          <th class='c-status'><?php echo $lang->testcase->pri;?></th>
+          <th class='c-text'><?php echo $lang->testcase->precondition;?></th>
+          <th class='c-text'><?php echo $lang->testcase->keywords;?></th>
+          <th class='c-text'><?php echo $lang->testcase->stage;?></th>
         </tr>
       </thead>
       <tbody>
@@ -75,7 +75,7 @@
 </div>
 <table class='template' id='trTemp'>
   <tbody>
-    <tr class='text-center'>
+    <tr>
       <td>%s</td>
       <td class='text-left' style='overflow:visible'><?php echo html::select("module[%s]", $moduleOptionMenu, $currentModuleID, "class='form-control chosen'");?></td>
       <td style='overflow:visible'>
@@ -91,8 +91,8 @@
         </div>
       </td>
       <td><?php echo html::select("type[%s]", $lang->testcase->typeList, $type, "class='form-control chosen'");?></td>
-      <td><?php echo html::select("pri[%s]", $lang->testcase->priList, $pri, "class=form-control chosen");?></td>
-      <td><?php echo html::textarea("precondition[%s]", '', "class='form-control'")?></td>
+      <td><?php echo html::select("pri[%s]", $lang->testcase->priList, $pri, "class='form-control chosen'");?></td>
+      <td><?php echo html::textarea("precondition[%s]", '', "rows='1' class='form-control autosize'")?></td>
       <td><?php echo html::input("keywords[%s]", '', "class='form-control'");?></td>
       <td class='text-left' style='overflow:visible'><?php echo html::select("stage[%s][]", $lang->testcase->stageList, '', "class='form-control chosen' multiple");?></td>
     </tr>

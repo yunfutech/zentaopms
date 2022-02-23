@@ -12,13 +12,14 @@
 ?>
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
+<?php js::set('confirmLink', $lang->release->confirmLink);?>
 <div id='mainContent' class='main-content'>
   <div class='center-block'>
     <div class='main-header'>
       <h2><?php echo $lang->release->create;?></h2>
     </div>
     <form class='load-indicator main-form form-ajax' id='dataform' method='post' enctype='multipart/form-data'>
-      <table class='table table-form'> 
+      <table class='table table-form'>
         <tbody>
           <tr>
             <th><?php echo $lang->release->name;?></th>
@@ -33,7 +34,7 @@
           </tr>
           <tr>
             <th><?php echo $lang->release->build;?></th>
-            <td><?php echo html::select('build', $builds, '', "class='form-control chosen'");?></td><td></td>
+            <td><?php echo html::select('build', $builds, '', "class='form-control chosen'");?></td>
           </tr>
           <tr>
             <th><?php echo $lang->release->date;?></th>
@@ -50,18 +51,27 @@
             <td colspan='2'><?php echo html::textarea('desc', '', "rows='10' class='form-control kindeditor' hidefocus='true'");?></td>
           </tr>
           <tr>
+            <th><?php echo $lang->release->mailto;?></th>
+            <td colspan='2'>
+              <div class="input-group">
+                <?php echo html::select('mailto[]', $users, '', "class='form-control chosen' data-placeholder='{$lang->chooseUsersToMail}' multiple");?>
+              </div>
+            </td>
+          </tr>
+          <tr>
             <th><?php echo $lang->files;?></th>
             <td colspan='2'><?php echo $this->fetch('file', 'buildform');?></td>
-          </tr>  
+          </tr>
           <tr>
             <td colspan='3' class='text-center form-actions'>
               <?php echo html::submitButton();?>
+              <?php echo html::hidden('sync', 'false');?>
               <?php echo html::backButton();?>
             </td>
           </tr>
         </tbody>
       </table>
-    </form>  
+    </form>
   </div>
 </div>
 <script>

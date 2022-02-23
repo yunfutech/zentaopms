@@ -1,7 +1,8 @@
 <?php
 $config->bug = new stdClass();
-$config->bug->batchCreate = 10;
-$config->bug->longlife    = 7;
+$config->bug->batchCreate  = 10;
+$config->bug->longlife     = 7;
+$config->bug->removeFields = 'objectTypeList,productList,executionList,gitlabID,gitlabProjectID';
 
 $config->bug->create  = new stdclass();
 $config->bug->edit    = new stdclass();
@@ -11,51 +12,40 @@ $config->bug->edit->requiredFields    = $config->bug->create->requiredFields;
 $config->bug->resolve->requiredFields = 'resolution';
 
 $config->bug->list = new stdclass();
-$config->bug->list->allFields = 'id, module, project, story, task, 
+$config->bug->list->allFields = 'id, module, execution, story, task,
     title, keywords, severity, pri, type, os, browser, hardware,
     found, steps, status, deadline, activatedCount, confirmed, mailto,
-    openedBy, openedDate, openedBuild, 
+    openedBy, openedDate, openedBuild,
     assignedTo, assignedDate,
     resolvedBy, resolution, resolvedBuild, resolvedDate,
-    closedBy, closedDate, 
-    duplicateBug, linkBug, 
+    closedBy, closedDate,
+    duplicateBug, linkBug,
     case,
     lastEditedBy,
     lastEditedDate';
 
 $config->bug->list->defaultFields = 'id,severity,pri,title,openedBy,assignedTo,resolvedBy,resolution';
 
-$config->bug->list->exportFields = 'id, product, branch, module, project, story, task, 
+$config->bug->list->exportFields = 'id, product, branch, module, project, execution, story, task,
     title, keywords, severity, pri, type, os, browser,
     steps, status, deadline, activatedCount, confirmed, mailto,
-    openedBy, openedDate, openedBuild, 
+    openedBy, openedDate, openedBuild,
     assignedTo, assignedDate,
     resolvedBy, resolution, resolvedBuild, resolvedDate,
-    closedBy, closedDate, 
-    duplicateBug, linkBug, 
+    closedBy, closedDate,
+    duplicateBug, linkBug,
     case,
     lastEditedBy,
     lastEditedDate, files';
 
-$config->bug->list->customCreateFields      = 'project,story,task,pri,severity,os,browser,deadline,mailto,keywords';
-$config->bug->list->customBatchCreateFields = 'project,steps,type,pri,deadline,severity,os,browser,keywords';
-$config->bug->list->customBatchEditFields   = 'type,severity,pri,productplan,assignedTo,deadline,status,resolvedBy,resolution,os,browser,keywords';
+$config->bug->list->customCreateFields      = 'execution,story,task,pri,severity,os,browser,deadline,mailto,keywords';
+$config->bug->list->customBatchCreateFields = 'execution,steps,type,pri,deadline,severity,os,browser,keywords';
+$config->bug->list->customBatchEditFields   = 'type,severity,pri,productplan,assignedTo,deadline,resolvedBy,resolution,os,browser,keywords';
 
 $config->bug->custom = new stdclass();
 $config->bug->custom->createFields      = $config->bug->list->customCreateFields;
-$config->bug->custom->batchCreateFields = 'project,deadline,steps,type,severity,os,browser';
-$config->bug->custom->batchEditFields   = 'type,severity,pri,branch,assignedTo,deadline,status,resolvedBy,resolution';
-
-if($config->global->flow == 'onlyTest')
-{
-    $config->bug->list->allFields    = str_replace(array('project, ', 'story, ', 'task,'), '', $config->bug->list->allFields);
-    $config->bug->list->exportFields = str_replace(array('project, ', 'story, ', 'task,'), '', $config->bug->list->exportFields);
-
-    $config->bug->list->customCreateFields      = str_replace(array('project,', 'story,', 'task,'), '', $config->bug->list->customCreateFields);
-    $config->bug->list->customBatchCreateFields = str_replace('project,', '', $config->bug->list->customBatchCreateFields);
-
-    $config->bug->custom->batchCreateFields = str_replace('project,', '', $config->bug->custom->batchCreateFields);
-}
+$config->bug->custom->batchCreateFields = 'execution,deadline,steps,type,severity,os,browser,%s';
+$config->bug->custom->batchEditFields   = 'type,severity,pri,assignedTo,deadline,status,resolvedBy,resolution';
 
 $config->bug->editor = new stdclass();
 $config->bug->editor->create     = array('id' => 'steps', 'tools' => 'bugTools');
@@ -67,10 +57,12 @@ $config->bug->editor->resolve    = array('id' => 'comment', 'tools' => 'bugTools
 $config->bug->editor->close      = array('id' => 'comment', 'tools' => 'bugTools');
 $config->bug->editor->activate   = array('id' => 'comment', 'tools' => 'bugTools');
 
+$config->bug->discardedTypes = array('interface', 'designchange', 'newfeature', 'trackthings');
+
 global $lang;
 $config->bug->search['module']                   = 'bug';
 $config->bug->search['fields']['title']          = $lang->bug->title;
-$config->bug->search['fields']['id']             = $lang->bug->id;
+$config->bug->search['fields']['module']         = $lang->bug->module;
 $config->bug->search['fields']['keywords']       = $lang->bug->keywords;
 $config->bug->search['fields']['steps']          = $lang->bug->steps;
 $config->bug->search['fields']['assignedTo']     = $lang->bug->assignedTo;
@@ -79,11 +71,12 @@ $config->bug->search['fields']['resolvedBy']     = $lang->bug->resolvedBy;
 $config->bug->search['fields']['status']         = $lang->bug->status;
 $config->bug->search['fields']['confirmed']      = $lang->bug->confirmed;
 
+if($config->systemMode == 'new') $config->bug->search['fields']['project'] = $lang->bug->project;
 $config->bug->search['fields']['product']        = $lang->bug->product;
 $config->bug->search['fields']['branch']         = '';
-$config->bug->search['fields']['plan']          = $lang->bug->productplan;
-$config->bug->search['fields']['module']         = $lang->bug->module;
-$config->bug->search['fields']['project']        = $lang->bug->project;
+$config->bug->search['fields']['plan']           = $lang->bug->productplan;
+$config->bug->search['fields']['id']             = $lang->bug->id;
+$config->bug->search['fields']['execution']      = $lang->bug->execution;
 
 $config->bug->search['fields']['severity']       = $lang->bug->severity;
 $config->bug->search['fields']['pri']            = $lang->bug->pri;
@@ -113,14 +106,6 @@ $config->bug->search['fields']['closedDate']     = $lang->bug->closedDate;
 $config->bug->search['fields']['lastEditedDate'] = $lang->bug->lastEditedDateAB;
 $config->bug->search['fields']['deadline']       = $lang->bug->deadline;
 
-if($config->global->flow == 'onlyTest')
-{
-    unset($config->bug->search['fields']['project']);
-    unset($config->bug->search['fields']['plan']);
-    unset($config->bug->search['fields']['toTask']);
-    unset($config->bug->search['fields']['toStory']);
-}
-
 $config->bug->search['params']['title']         = array('operator' => 'include', 'control' => 'input',  'values' => '');
 $config->bug->search['params']['keywords']      = array('operator' => 'include', 'control' => 'input',  'values' => '');
 $config->bug->search['params']['steps']         = array('operator' => 'include', 'control' => 'input',  'values' => '');
@@ -130,11 +115,12 @@ $config->bug->search['params']['resolvedBy']    = array('operator' => '=',      
 $config->bug->search['params']['status']        = array('operator' => '=',       'control' => 'select', 'values' => $lang->bug->statusList);
 $config->bug->search['params']['confirmed']     = array('operator' => '=',       'control' => 'select', 'values' => $lang->bug->confirmedList);
 
+if($config->systemMode == 'new') $config->bug->search['params']['project'] = array('operator' => '=', 'control' => 'select', 'values' => '');
 $config->bug->search['params']['product']       = array('operator' => '=',       'control' => 'select', 'values' => '');
 $config->bug->search['params']['branch']        = array('operator' => '=',       'control' => 'select', 'values' => '');
 $config->bug->search['params']['plan']          = array('operator' => '=',       'control' => 'select', 'values' => '');
 $config->bug->search['params']['module']        = array('operator' => 'belong',  'control' => 'select', 'values' => 'modules');
-$config->bug->search['params']['project']       = array('operator' => '=',       'control' => 'select', 'values' => 'projects');
+$config->bug->search['params']['execution']     = array('operator' => '=',       'control' => 'select', 'values' => 'executions');
 
 $config->bug->search['params']['severity']      = array('operator' => '=',       'control' => 'select', 'values' => $lang->bug->severityList);
 $config->bug->search['params']['pri']           = array('operator' => '=',       'control' => 'select', 'values' => $lang->bug->priList);
@@ -191,6 +177,7 @@ $config->bug->datatable->fieldList['title']['title']    = 'title';
 $config->bug->datatable->fieldList['title']['fixed']    = 'left';
 $config->bug->datatable->fieldList['title']['width']    = 'auto';
 $config->bug->datatable->fieldList['title']['required'] = 'yes';
+$config->bug->datatable->fieldList['title']['minWidth'] = '200';
 
 $config->bug->datatable->fieldList['branch']['title']    = 'branch';
 $config->bug->datatable->fieldList['branch']['fixed']    = 'left';
@@ -202,10 +189,18 @@ $config->bug->datatable->fieldList['type']['fixed']    = 'no';
 $config->bug->datatable->fieldList['type']['width']    = '90';
 $config->bug->datatable->fieldList['type']['required'] = 'no';
 
-$config->bug->datatable->fieldList['project']['title']    = 'project';
-$config->bug->datatable->fieldList['project']['fixed']    = 'no';
-$config->bug->datatable->fieldList['project']['width']    = '120';
-$config->bug->datatable->fieldList['project']['required'] = 'no';
+if($config->systemMode == 'new')
+{
+    $config->bug->datatable->fieldList['project']['title']    = 'project';
+    $config->bug->datatable->fieldList['project']['fixed']    = 'no';
+    $config->bug->datatable->fieldList['project']['width']    = '120';
+    $config->bug->datatable->fieldList['project']['required'] = 'no';
+}
+
+$config->bug->datatable->fieldList['execution']['title']    = 'execution';
+$config->bug->datatable->fieldList['execution']['fixed']    = 'no';
+$config->bug->datatable->fieldList['execution']['width']    = '120';
+$config->bug->datatable->fieldList['execution']['required'] = 'no';
 
 $config->bug->datatable->fieldList['plan']['title']    = 'plan';
 $config->bug->datatable->fieldList['plan']['fixed']    = 'no';
@@ -236,6 +231,11 @@ $config->bug->datatable->fieldList['task']['title']    = 'task';
 $config->bug->datatable->fieldList['task']['fixed']    = 'no';
 $config->bug->datatable->fieldList['task']['width']    = '120';
 $config->bug->datatable->fieldList['task']['required'] = 'no';
+
+$config->bug->datatable->fieldList['toTask']['title']    = 'toTask';
+$config->bug->datatable->fieldList['toTask']['fixed']    = 'no';
+$config->bug->datatable->fieldList['toTask']['width']    = '120';
+$config->bug->datatable->fieldList['toTask']['required'] = 'no';
 
 $config->bug->datatable->fieldList['keywords']['title']    = 'keywords';
 $config->bug->datatable->fieldList['keywords']['fixed']    = 'no';

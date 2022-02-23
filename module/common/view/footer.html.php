@@ -5,28 +5,10 @@ $.initSidebar();
 <?php if($extView = $this->getExtViewFile(__FILE__)){include $extView; return helper::cd();}?>
 
 <iframe frameborder='0' name='hiddenwin' id='hiddenwin' scrolling='no' class='debugwin hidden'></iframe>
-
-<?php if($onlybody != 'yes'):?>
+<?php if($onlybody != 'yes' and $app->viewType != 'xhtml'):?>
 </main><?php /* end '#wrap' in 'header.html.php'. */ ?>
-<footer id='footer'>
-  <div class="container">
-    <?php commonModel::printBreadMenu($this->moduleName, isset($position) ? $position : ''); ?>
-    <div id='poweredBy'>
-      <small class='muted'><?php echo $lang->designedByAIUX;?></small> &nbsp;
-      <a href='<?php echo $lang->website;?>' target='_blank'><i class='icon-zentao'></i> <?php echo $lang->zentaoPMS . $config->version;?></a> &nbsp;
-      <?php echo $lang->proVersion;?>
-      <?php if(isset($config->xxserver->installed) and $config->xuanxuan->turnon) commonModel::printClientLink();?>
-    </div>
-  </div>
-</footer>
 <div id="noticeBox"><?php echo $this->loadModel('score')->getNotice(); ?></div>
 <script>
-<?php if(!isset($config->global->browserNotice)):?>
-browserNotice = '<?php echo $lang->browserNotice?>'
-function ajaxIgnoreBrowser(){$.get(createLink('misc', 'ajaxIgnoreBrowser'));}
-$(function(){showBrowserNotice()});
-<?php endif;?>
-
 <?php $this->app->loadConfig('message');?>
 <?php if($config->message->browser->turnon):?>
 /* Alert got messages. */

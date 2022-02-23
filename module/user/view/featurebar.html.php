@@ -8,52 +8,62 @@
 
     $methodName = $this->app->getMethodName();
 
-    if($config->global->flow == 'full')
+    $label  = "<span class='text'>{$lang->user->schedule}</span>";
+    $active = $methodName == 'todo' ? ' btn-active-text' : '';
+    common::printLink('user', 'todo', "userID={$user->id}&type=all", $label, '', "class='btn btn-link $active'");
+
+    $label  = "<span class='text'>{$lang->user->task}</span>";
+    $active = $methodName == 'task' ? ' btn-active-text' : '';
+    common::printLink('user', 'task', "userID={$user->id}", $label, '', "class='btn btn-link $active'");
+
+    if($config->URAndSR)
     {
-        $label  = "<span class='text'>{$lang->user->schedule}</span>";
-        $active = $methodName == 'todo' ? ' btn-active-text' : '';
-        common::printLink('user', 'todo', "account=$account", $label, '', "class='btn btn-link $active'");
+        $label  = "<span class='text'>{$lang->URCommon}</span>";
+        $active = ($methodName == 'story' and $storyType == 'requirement') ? ' btn-active-text' : '';
+        common::printLink('user', 'story', "userID={$user->id}&storyType=requirement", $label, '', "class='btn btn-link $active'");
     }
 
-    if($config->global->flow != 'onlyTask' and $config->global->flow != 'onlyTest')
+    $label  = "<span class='text'>{$lang->SRCommon}</span>";
+    $active = ($methodName == 'story' and $storyType == 'story')  ? ' btn-active-text' : '';
+    common::printLink('user', 'story', "userID={$user->id}&storyType=story", $label, '', "class='btn btn-link $active'");
+
+    $label  = "<span class='text'>{$lang->user->bug}</span>";
+    $active = $methodName == 'bug' ? ' btn-active-text' : '';
+    common::printLink('user', 'bug', "userID={$user->id}", $label, '', "class='btn btn-link $active'");
+
+    $label  = "<span class='text'>{$lang->user->testTask}</span>";
+    $active = $methodName == 'testtask' ? ' btn-active-text' : '';
+    common::printLink('user', 'testtask', "userID={$user->id}", $label, '', "class='btn btn-link $active'");
+
+    $label  = "<span class='text'>{$lang->user->testCase}</span>";
+    $active = $methodName == 'testcase' ? ' btn-active-text' : '';
+    common::printLink('user', 'testcase', "userID={$user->id}", $label, '', "class='btn btn-link $active'");
+
+    if($this->config->systemMode == 'new')
     {
-        $label  = "<span class='text'>{$lang->user->story}</span>";
-        $active = $methodName == 'story' ? ' btn-active-text' : '';
-        common::printLink('user', 'story', "account=$account", $label, '', "class='btn btn-link $active'");
+        $label  = "<span class='text'>{$lang->user->execution}</span>";
+        $active = $methodName == 'execution' ? ' btn-active-text' : '';
+        common::printLink('user', 'execution',  "userID={$user->id}", $label, '', "class='btn btn-link $active'");
     }
 
-    if($config->global->flow == 'full' or $config->global->flow == 'onlyTask') 
+    if(isset($this->config->maxVersion))
     {
-        $label  = "<span class='text'>{$lang->user->task}</span>";
-        $active = $methodName == 'task' ? ' btn-active-text' : '';
-        common::printLink('user', 'task', "account=$account", $label, '', "class='btn btn-link $active'");
-    }
+        $label  = "<span class='text'>{$lang->user->issue}</span>";
+        $active = $methodName == 'issue' ? ' btn-active-text' : '';
+        common::printLink('user', 'issue', "userID={$user->id}", $label, '', "class='btn btn-link $active'");
 
-    if($config->global->flow == 'full' or $config->global->flow == 'onlyTest') 
-    {
-        $label  = "<span class='text'>{$lang->user->bug}</span>";
-        $active = $methodName == 'bug' ? ' btn-active-text' : '';
-        common::printLink('user', 'bug', "account=$account", $label, '', "class='btn btn-link $active'");
-
-        $label  = "<span class='text'>{$lang->user->test}</span>";
-        $active = ($methodName == 'testtask' or $methodName == 'testcase')? ' btn-active-text' : '';
-        common::printLink('user', 'testtask', "account=$account", $label, '', "class='btn btn-link $active'");
+        $label  = "<span class='text'>{$lang->user->risk}</span>";
+        $active = $methodName == 'risk' ? ' btn-active-text' : '';
+        common::printLink('user', 'risk', "userID={$user->id}", $label, '', "class='btn btn-link $active'");
     }
 
     $label  = "<span class='text'>{$lang->user->dynamic}</span>";
     $active = $methodName == 'dynamic' ? ' btn-active-text' : '';
-    common::printLink('user', 'dynamic',  "type=today&account=$account", $label, '', "class='btn btn-link $active'");
-
-    if($config->global->flow == 'full' or $config->global->flow == 'onlyTask')
-    {
-        $label  = "<span class='text'>{$lang->user->project}</span>";
-        $active = $methodName == 'project' ? ' btn-active-text' : '';
-        common::printLink('user', 'project',  "account=$account", $label, '', "class='btn btn-link $active'");
-    }
+    common::printLink('user', 'dynamic',  "userID={$user->id}&type=today", $label, '', "class='btn btn-link $active'");
 
     $label  = "<span class='text'>{$lang->user->profile}</span>";
     $active = $methodName == 'profile' ? ' btn-active-text' : '';
-    common::printLink('user', 'profile',  "account=$account", $label, '', "class='btn btn-link $active'");
+    common::printLink('user', 'profile',  "userID={$user->id}", $label, '', "class='btn btn-link $active'");
     ?>
   </div>
 </div>

@@ -13,7 +13,7 @@ class group extends control
 {
     /**
      * Construct function.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -26,19 +26,16 @@ class group extends control
 
     /**
      * Browse groups.
-     * 
-     * @param  int    $companyID 
+     *
      * @access public
      * @return void
      */
-    public function browse($companyID = 0)
+    public function browse()
     {
-        if($companyID == 0) $companyID = $this->app->company->id;
-
         $title      = $this->lang->company->orgView . $this->lang->colon . $this->lang->group->browse;
         $position[] = $this->lang->group->browse;
 
-        $groups = $this->group->getList($companyID);
+        $groups = $this->group->getList();
         $groupUsers = array();
         foreach($groups as $group) $groupUsers[$group->id] = $this->group->getUserPairs($group->id);
 
@@ -52,7 +49,7 @@ class group extends control
 
     /**
      * Create a group.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -60,8 +57,9 @@ class group extends control
     {
         if(!empty($_POST))
         {
-            $this->group->create();
+            $groupID = $this->group->create();
             if(dao::isError()) die(js::error(dao::getError()));
+            if($this->viewType == 'json') return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'id' => $groupID));
             if(isonlybody()) die(js::closeModal('parent.parent', 'this'));
             die(js::locate($this->createLink('group', 'browse'), 'parent'));
         }
@@ -73,8 +71,8 @@ class group extends control
 
     /**
      * Edit a group.
-     * 
-     * @param  int    $groupID 
+     *
+     * @param  int    $groupID
      * @access public
      * @return void
      */
@@ -89,6 +87,7 @@ class group extends control
 
         $title      = $this->lang->company->orgView . $this->lang->colon . $this->lang->group->edit;
         $position[] = $this->lang->group->edit;
+
         $this->view->title    = $title;
         $this->view->position = $position;
         $this->view->group    = $this->group->getById($groupID);
@@ -98,8 +97,8 @@ class group extends control
 
     /**
      * Copy a group.
-     * 
-     * @param  int    $groupID 
+     *
+     * @param  int    $groupID
      * @access public
      * @return void
      */
@@ -120,9 +119,9 @@ class group extends control
     }
 
     /**
-     * manageView 
-     * 
-     * @param  int    $groupID 
+     * Manage view.
+     *
+     * @param  int    $groupID
      * @access public
      * @return void
      */
@@ -131,25 +130,31 @@ class group extends control
         if($_POST)
         {
             $this->group->updateView($groupID);
-            if(dao::isError()) $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
-            $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'reload'));
+            $link = isonlybody() ? 'parent' : $this->createLink('group', 'browse');
+            return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => $link));
         }
 
-        $group = $this->group->getById($groupID);
-        if($group->acl) $group->acl = json_decode($group->acl, true);
+        /* Get the group data by id. */
+        $group = $this->group->getByID($groupID);
+        $this->view->title = $this->lang->company->common . $this->lang->colon . $group->name . $this->lang->colon . $this->lang->group->manageView;
 
-        $this->view->title      = $this->lang->company->common . $this->lang->colon . $group->name . $this->lang->colon . $this->lang->group->manageView;
-        $this->view->position[] = $group->name;
-        $this->view->position[] = $this->lang->group->manageView;
-        
         $this->view->group      = $group;
-        $this->view->products   = $this->dao->select('*')->from(TABLE_PRODUCT)->where('deleted')->eq('0')->orderBy('order_desc')->fetchPairs('id', 'name');
-        $this->view->projects   = $this->dao->select('*')->from(TABLE_PROJECT)->where('deleted')->eq('0')->orderBy('order_desc')->fetchPairs('id', 'name');
+        $this->view->programs   = $this->loadModel('program')->getPairs(true, 'order_desc');
+        $this->view->projects   = $this->loadModel('project')->getPairsByProgram('', 'all', true, 'order_desc');
+        $this->view->executions = $this->loadModel('execution')->getPairs(0, 'all', 'all');
+        $this->view->products   = $this->loadModel('product')->getPairs();
 
-        $menugroup = array();
-        foreach($this->lang->menugroup as $moduleName => $groupName) $menugroup[$groupName][$moduleName] = $moduleName;
-        $this->view->menugroup = $menugroup;
+        $navGroup = array();
+        foreach($this->lang->navGroup as $moduleName => $groupName)
+        {
+            if($groupName == $moduleName) continue;
+            if($moduleName == 'testcase') $moduleName = 'case';
+
+            $navGroup[$groupName][$moduleName] = $moduleName;
+        }
+        $this->view->navGroup = $navGroup;
 
         $this->display();
     }
@@ -174,9 +179,9 @@ class group extends control
         {
             if($type == 'byGroup')  $result = $this->group->updatePrivByGroup($groupID, $menu, $version);
             if($type == 'byModule') $result = $this->group->updatePrivByModule();
-            if(dao::isError()) $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
-            $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => inlink('browse')));
+            return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => inlink('browse')));
         }
 
         if($type == 'byGroup')
@@ -184,6 +189,14 @@ class group extends control
             $this->group->sortResource();
             $group      = $this->group->getById($groupID);
             $groupPrivs = $this->group->getPrivs($groupID);
+
+            if($this->config->systemMode == 'classic')
+            {
+                if(isset($groupPrivs['project']['browse']))
+                {
+                    $groupPrivs['project']['list'] = 'list';
+                }
+            }
 
             $this->view->title      = $this->lang->company->common . $this->lang->colon . $group->name . $this->lang->colon . $this->lang->group->managePriv;
             $this->view->position[] = $group->name;
@@ -194,11 +207,11 @@ class group extends control
             $changelog = array();
             foreach($this->lang->changelog as $currentVersion => $currentChangeLog)
             {
-                if(version_compare($currentVersion, $realVersion, '>=')) $changelog[] = join($currentChangeLog, ',');
+                if(version_compare($currentVersion, $realVersion, '>=')) $changelog[] = join(',', $currentChangeLog);
             }
 
             $this->view->group      = $group;
-            $this->view->changelogs = ',' . join($changelog, ',') . ',';
+            $this->view->changelogs = ',' . join(',', $changelog) . ',';
             $this->view->groupPrivs = $groupPrivs;
             $this->view->groupID    = $groupID;
             $this->view->menu       = $menu;
@@ -227,8 +240,8 @@ class group extends control
 
     /**
      * Manage members of a group.
-     * 
-     * @param  int    $groupID 
+     *
+     * @param  int    $groupID
      * @param  int    $deptID
      * @access public
      * @return void
@@ -241,29 +254,70 @@ class group extends control
             if(isonlybody()) die(js::closeModal('parent.parent', 'this'));
             die(js::locate($this->createLink('group', 'browse'), 'parent'));
         }
-        $group      = $this->group->getById($groupID);
-        $groupUsers = $this->group->getUserPairs($groupID);
-        $allUsers   = $this->loadModel('dept')->getDeptUserPairs($deptID);
-        $otherUsers = array_diff_assoc($allUsers, $groupUsers);
+        $group        = $this->group->getById($groupID);
+        $groupUsers   = $this->group->getUserPairs($groupID);
+        $allUsers     = $this->loadModel('dept')->getDeptUserPairs($deptID);
+        $otherUsers   = array_diff_assoc($allUsers, $groupUsers);
+
+        if($this->config->systemMode == 'new')
+        {
+            $outsideUsers = $this->user->getPairs('outside|noclosed|noletter|noempty');
+            $this->view->outsideUsers = array_diff_assoc($outsideUsers, $groupUsers);
+        }
 
         $title      = $this->lang->company->common . $this->lang->colon . $group->name . $this->lang->colon . $this->lang->group->manageMember;
         $position[] = $group->name;
         $position[] = $this->lang->group->manageMember;
 
-        $this->view->title      = $title;
-        $this->view->position   = $position;
-        $this->view->group      = $group;
-        $this->view->deptTree   = $this->loadModel('dept')->getTreeMenu($rooteDeptID = 0, array('deptModel', 'createGroupManageMemberLink'), $groupID);
-        $this->view->groupUsers = $groupUsers;
-        $this->view->otherUsers = $otherUsers;
+        $this->view->title        = $title;
+        $this->view->position     = $position;
+        $this->view->group        = $group;
+        $this->view->deptTree     = $this->loadModel('dept')->getTreeMenu($rooteDeptID = 0, array('deptModel', 'createGroupManageMemberLink'), $groupID);
+        $this->view->groupUsers   = $groupUsers;
+        $this->view->otherUsers   = $otherUsers;
+        $this->display();
+    }
+
+    /**
+     * Manage members of a group.
+     *
+     * @param  int    $groupID
+     * @param  int    $deptID
+     * @access public
+     * @return void
+     */
+    public function manageProjectAdmin($groupID, $deptID = 0)
+    {
+        if(!empty($_POST))
+        {
+            $this->group->updateProjectAdmin($groupID);
+            die(js::locate(inlink('manageProjectAdmin', "group=$groupID"), 'parent'));
+        }
+        $group        = $this->group->getById($groupID);
+        $groupUsers   = $this->group->getUserPairs($groupID);
+        $userPrograms = $this->group->getUserPrograms($groupID);
+        $allUsers     = array('' => '') + $groupUsers + $this->loadModel('dept')->getDeptUserPairs($deptID);
+
+        $title      = $this->lang->company->common . $this->lang->colon . $group->name . $this->lang->colon . $this->lang->group->manageMember;
+        $position[] = $group->name;
+        $position[] = $this->lang->group->manageMember;
+
+        $this->view->title        = $title;
+        $this->view->position     = $position;
+        $this->view->allUsers     = $allUsers;
+        $this->view->group        = $group;
+        $this->view->programs     = $this->dao->select('id, name')->from(TABLE_PROJECT)->where('type')->eq('project')->andWhere('deleted')->eq(0)->fetchPairs();
+        $this->view->deptTree     = $this->loadModel('dept')->getTreeMenu($rooteDeptID = 0, array('deptModel', 'createManageProjectAdminLink'), $groupID);
+        $this->view->groupUsers   = $groupUsers;
+        $this->view->userPrograms = $userPrograms;
 
         $this->display();
     }
 
     /**
      * Delete a group.
-     * 
-     * @param  int    $groupID 
+     *
+     * @param  int    $groupID
      * @param  string $confirm  yes|no
      * @access public
      * @return void
@@ -291,7 +345,7 @@ class group extends control
                     $response['result']  = 'success';
                     $response['message'] = '';
                 }
-                $this->send($response);
+                return $this->send($response);
             }
             die(js::locate($this->createLink('group', 'browse'), 'parent'));
         }

@@ -20,7 +20,7 @@
     if($period == $type)
     {
         $active = 'btn-active-text';
-        $label .= " <span class='label label-light label-badge'>{$pager->recTotal}</span>";
+        $label .= " <span class='label label-light label-badge'>{$originTotal}</span>";
     }
     echo html::a(inlink('dynamic', "type=$period"), $label, '', "class='btn btn-link $active' id='{$period}'")
     ?>
@@ -38,14 +38,14 @@
     <?php foreach($dateGroups as $date => $actions):?>
     <?php $isToday = date(DT_DATE4) == $date;?>
     <div class="dynamic <?php if($isToday) echo 'active';?>">
-      <div class="dynamic-date">
+      <div class="dynamic-date <?php if($type == 'all') echo 'w-200px';?>">
         <?php if($isToday):?>
         <span class="date-label"><?php echo $lang->action->dynamic->today;?></span>
         <?php endif;?>
         <span class="date-text"><?php echo $date;?></span>
         <button type="button" class="btn btn-info btn-icon btn-sm dynamic-btn"><i class="icon icon-caret-down"></i></button>
       </div>
-      <ul class="timeline timeline-tag-left">
+      <ul class="timeline timeline-tag-left <?php if($type == 'all') echo 'margin-l-50px';?>">
         <?php if($direction == 'next') $actions = array_reverse($actions);?>
         <?php foreach($actions as $i => $action):?>
         <?php if(empty($firstAction)) $firstAction = $action;?>
@@ -57,8 +57,29 @@
               <span class='label-action'><?php echo ' ' . $action->actionLabel;?></span>
               <?php if($action->action != 'login' and $action->action != 'logout'):?>
               <span class="text-muted"><?php echo $action->objectLabel;?></span>
-              <?php echo html::a($action->objectLink, $action->objectName);?>
+              <?php $tab = '';?>
+              <?php if($action->objectType == 'meeting') $tab = $action->project ? "data-app='project'" : "data-app='my'";?>
+              <?php
+              if((isset($config->maxVersion) and strpos($config->action->assetType, $action->objectType) !== false) and empty($action->objectName))
+              {
+                  echo '#' . $action->objectID;
+              }
+              elseif(empty($action->objectID) and $action->extra)
+              {
+                  echo $action->extra;
+              }
+              elseif(empty($action->objectLink))
+              {
+                  echo $action->objectName;
+              }
+              else
+              {
+                  echo html::a($action->objectLink, $action->objectName, '', $tab);
+              }
+              ?>
+              <?php if($action->objectID):?>
               <span class="label label-id"><?php echo $action->objectID;?></span>
+              <?php endif;?>
               <?php endif;?>
             </span>
           </div>
@@ -76,8 +97,8 @@ $firstDate = date('Y-m-d', strtotime($firstAction->originalDate) + 24 * 3600);
 $lastDate  = substr($action->originalDate, 0, 10);
 $hasPre    = $this->action->hasPreOrNext($firstDate, 'pre');
 $hasNext   = $this->action->hasPreOrNext($lastDate, 'next');
-$preLink   = $hasPre ? inlink('dynamic', "type=$type&recTotal={$pager->recTotal}&date=" . strtotime($firstDate) . '&direction=pre') : 'javascript:;';
-$nextLink  = $hasNext ? inlink('dynamic', "type=$type&recTotal={$pager->recTotal}&date=" . strtotime($lastDate) . '&direction=next') : 'javascript:;';
+$preLink   = $hasPre ? inlink('dynamic', "type=$type&recTotal={$pager->recTotal}&date=" . strtotime($firstDate) . '&direction=pre&originTotal=' . $originTotal) : 'javascript:;';
+$nextLink  = $hasNext ? inlink('dynamic', "type=$type&recTotal={$pager->recTotal}&date=" . strtotime($lastDate) . '&direction=next&originTotal=' . $originTotal) : 'javascript:;';
 ?>
 <?php if($hasPre or $hasNext):?>
 <div id="mainActions" class='main-actions'>

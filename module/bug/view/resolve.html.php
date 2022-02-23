@@ -13,7 +13,7 @@
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
 <?php include '../../common/view/datepicker.html.php';?>
-<?php 
+<?php
 js::set('page'      , 'resolve');
 js::set('productID' , $bug->product);
 ?>
@@ -42,19 +42,19 @@ js::set('productID' , $bug->product);
         </tr>
         <tr>
           <th><?php echo $lang->bug->resolvedBuild;?></th>
-          <td id='newBuildProjectBox' class='hidden'>
+          <td id='newBuildExecutionBox' class='hidden'>
             <div class='input-group'>
-              <span class='input-group-addon'><?php echo $lang->build->project;?></span>
-              <?php echo html::select('buildProject', $projects, '', "class='form-control chosen'");?>
+              <span class='input-group-addon'><?php echo $lang->build->execution;?></span>
+              <?php echo html::select('buildExecution', $executions, '', "class='form-control chosen'");?>
             </div>
           </td>
           <td>
-            <span id='resolvedBuildBox'><?php echo html::select('resolvedBuild', $builds, '', "class='form-control chosen'");?></span>
-            <span id='newBuildBox' class='hidden'><?php echo html::input('buildName', '', "class='form-control' placeholder='{$lang->bug->placeholder->newBuildName}'");?></span>
+            <div id='resolvedBuildBox'><?php echo html::select('resolvedBuild', $builds, '', "class='form-control chosen'");?></div>
+            <div id='newBuildBox' class='hidden'><?php echo html::input('buildName', '', "class='form-control' placeholder='{$lang->bug->placeholder->newBuildName}'");?></div>
           </td>
           <td>
             <?php if(common::hasPriv('build', 'create')):?>
-            <div class='checkbox-primary'> 
+            <div class='checkbox-primary'>
               <input type='checkbox' id='createBuild' name='createBuild' value='1' />
               <label for='createBuild'><?php echo $lang->bug->createBuild;?></label>
             </div>
@@ -77,7 +77,7 @@ js::set('productID' , $bug->product);
           <th><?php echo $lang->bug->status;?></th>
           <td><?php echo html::hidden('status', 'resolved');?></td>
         </tr>
-        <?php $this->printExtendFields($bug, 'table');?>
+        <?php $this->printExtendFields($bug, 'table', "columns=3");?>
         <tr>
           <th><?php echo $lang->bug->files;?></th>
           <td colspan='2'><?php echo $this->fetch('file', 'buildform', 'fileCount=1&percent=0.85');?></td>

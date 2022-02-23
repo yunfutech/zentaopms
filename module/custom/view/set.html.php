@@ -31,6 +31,11 @@ EOT;
 <?php js::set('itemRow', $itemRow)?>
 <?php js::set('module',  $module)?>
 <?php js::set('field',   $field)?>
+<?php js::set('confirmReviewCase', $lang->custom->notice->confirmReviewCase)?>
+<?php js::set('stopSubmit', true)?>
+<style>
+.checkbox-primary {width: 170px; margin: 0 10px 10px 0; display: inline-block;}
+</style>
 <div id='mainContent' class='main-row'>
   <div class='side-col' id='sidebar'>
     <div class='cell'>
@@ -51,7 +56,38 @@ EOT;
           <strong><?php echo $lang->custom->object[$module] . $lang->arrow . $lang->custom->$module->fields[$field]?></strong>
         </div>
       </div>
-      <?php if(($module == 'story' or $module == 'testcase') and $field == 'review'):?>
+      <?php if($module == 'project' and $field == 'unitList'):?>
+      <table class='table table-form'>
+        <tr>
+          <th class='<?php echo strpos($this->app->getClientLang(), 'zh') === false ? 'w-120px' : 'w-70px';?> text-left'><?php echo $lang->custom->project->currencySetting;?></th>
+        </tr>
+        <tr>
+          <td colspan='5'><?php echo html::checkbox('unitList', $lang->project->unitList, $unitList);?></td>
+        </tr>
+        <tr>
+          <th class='text-left'><?php echo $lang->custom->project->defaultCurrency;?></th>
+          <td><?php echo html::select('defaultCurrency', $lang->project->unitList, $defaultCurrency, "class='form-control chosen' required");?></td>
+        </tr>
+        <tr>
+          <td colspan='4' class='text-center'><?php echo html::submitButton();?></td>
+        </tr>
+      </table>
+      <?php elseif($module == 'story' and $field == 'reviewRules'):?>
+      <table class='table table-form mw-700px'>
+        <tr>
+          <th class='thWidth'><?php echo $lang->custom->reviewRule;?></th>
+          <td><?php echo html::radio('reviewRules', $lang->custom->reviewRules, $reviewRule);?></td>
+          <td></td>
+        </tr>
+        <tr>
+          <th class="thWidth"><?php echo $lang->custom->superReviewers;?></th>
+          <td><?php echo html::select('superReviewers[]', $users, $superReviewers, "class='form-control chosen' multiple");?></td>
+        </tr>
+        <tr>
+          <td colspan='2' class='text-center'><?php echo html::submitButton();?></td>
+        </tr>
+      </table>
+      <?php elseif(($module == 'story' or $module == 'testcase') and $field == 'review'):?>
       <table class='table table-form mw-800px'>
         <tr>
           <th class='thWidth'><?php echo $lang->custom->storyReview;?></th>

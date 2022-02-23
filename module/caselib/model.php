@@ -21,107 +21,28 @@ class caselibModel extends model
      * @access public
      * @return void
      */
-    public function setLibMenu($libraries, $libID, $moduleID = 0)
+    public function setLibMenu($libraries, $libID)
     {
-        $currentLibName = zget($libraries, $libID, '');
-        $isMobile       = $this->app->viewType == 'mhtml';
-        $selectHtml     = '';
-        if(!empty($libraries))
-        {
-            if($isMobile)
-            {
-                $selectHtml = "<a id='currentItem' href=\"javascript:showSearchMenu('caselib', '$libID', 'caselib', 'browse', '')\">{$currentLibName} <span class='icon-caret-down'></span></a><div id='currentItemDropMenu' class='hidden affix enter-from-bottom layer'></div>";
-            }
-            else
-            {
-                $dropMenuLink = helper::createLink('caselib', 'ajaxGetDropMenu', "objectID=$libID&module=caselib&method=browse");
-                $selectHtml  = "<div class='btn-group angle-btn'><div class='btn-group'><button data-toggle='dropdown' type='button' class='btn btn-limit' id='currentItem'>{$currentLibName} <span class='caret'></span></button><div id='dropMenu' class='dropdown-menu search-list' data-ride='searchList' data-url='$dropMenuLink'>";
-                $selectHtml .= '<div class="input-control search-box has-icon-left has-icon-right search-example"><input type="search" class="form-control search-input" /><label class="input-control-icon-left search-icon"><i class="icon icon-search"></i></label><a class="input-control-icon-right search-clear-btn"><i class="icon icon-close icon-sm"></i></a></div>';
-                $selectHtml .= "</div></div></div>";
-            }
-        }
+        /* Set case lib menu. */
+        $products = $this->loadModel('product')->getPairs();
+        if(!empty($products) and $this->session->product) $this->loadModel('qa')->setMenu($products, $this->session->product);
+        if(empty($products)) $this->loadModel('qa')->setMenu(array(0 => ''), 0);
 
-        if($this->config->global->flow == 'onlyTest')
+        if($libraries)
         {
-            $modules    = $this->loadModel('tree')->getModulePairs($libID, 'caselib');
-            $moduleName = ($moduleID && isset($modules[$moduleID])) ? $modules[$moduleID] : $this->lang->tree->all;
+            $libName = '';
+            if(!isset($libraries[$libID])) $libName = $this->dao->select('name')->from(TABLE_TESTSUITE)->where('id')->eq($libID)->fetch('name');
+            $currentLibName = zget($libraries, $libID, $libName);
+            setCookie("lastCaseLib", $libID, $this->config->cookieLife, $this->config->webRoot, '', false, true);
 
-            if(!$isMobile)
-            {
-                $dropMenuLink = helper::createLink('tree', 'ajaxGetDropMenu', "objectID=$libID&module=caselib&method=browse");
-                $selectHtml .= "<div class='btn-group'><button id='currentModule' data-toggle='dropdown' type='button' class='btn btn-limit'>{$moduleName} <span class='caret'></span></button><div id='dropMenu' class='dropdown-menu search-list' data-ride='searchList' data-url='$dropMenuLink'>";
-                $selectHtml .= '<div class="input-control search-box has-icon-left has-icon-right search-example"><input type="search" class="form-control search-input" /><label class="input-control-icon-left search-icon"><i class="icon icon-search"></i></label><a class="input-control-icon-right search-clear-btn"><i class="icon icon-close icon-sm"></i></a></div>';
-                $selectHtml .= "</div></div>";
-            }
-            else
-            {
-                $selectHtml .= "<a id='currentModule' href=\"javascript:showSearchMenu('tree', '$libID', 'caselib', 'browse', '')\">{$moduleName} <span class='icon-caret-down'></span></a><div id='currentBranchDropMenu' class='hidden affix enter-from-bottom layer'></div>";
-            }
-        }
+            $dropMenuLink = helper::createLink('caselib', 'ajaxGetDropMenu', "objectID=$libID&module=caselib&method=browse");
 
-        setCookie("lastCaseLib", $libID, $this->config->cookieLife, $this->config->webRoot, '', false, true);
+            $output  = "<div class='btn-group header-btn' id='swapper'><button data-toggle='dropdown' type='button' class='btn' id='currentItem' title='{$currentLibName}'><span class='text'>{$currentLibName}</span> <span class='caret' style='margin-top: 3px'></span></button><div id='dropMenu' class='dropdown-menu search-list' data-ride='searchList' data-url='$dropMenuLink'>";
+            $output .= '<div class="input-control search-box has-icon-left has-icon-right search-example"><input type="search" class="form-control search-input" /><label class="input-control-icon-left search-icon"><i class="icon icon-search"></i></label><a class="input-control-icon-right search-clear-btn"><i class="icon icon-close icon-sm"></i></a></div>';
+            $output .= "</div></div>";
 
-        $pageNav     = '';
-        $pageActions = '';
-        $isMobile    = $this->app->viewType == 'mhtml';
-        if($isMobile)
-        {
-            $this->app->loadLang('qa');
-            $pageNav = html::a(helper::createLink('qa', 'index'), $this->lang->qa->index) . $this->lang->colon;
+            $this->lang->switcherMenu = $output;
         }
-        else
-        {
-            if($this->config->global->flow == 'full')
-            {
-                $this->app->loadLang('qa');
-                $pageNav .= '<div class="btn-group angle-btn"><div class="btn-group"><button data-toggle="dropdown" type="button" class="btn">' . $this->lang->qa->index . ' <span class="caret"></span></button>';
-                $pageNav .= '<ul class="dropdown-menu">';
-                if(common::hasPriv('caselib', 'create')) $pageNav .= '<li>' . html::a(helper::createLink('caselib', 'create'), '<i class="icon icon-plus"></i> ' . $this->lang->caselib->create) . '</li>';
-                $pageNav .= '</ul></div></div>';
-            }
-            else
-            {
-                $this->app->loadLang('testcase');
-                $pageActions .= "<div class='btn-group'>";
-                if(common::hasPriv('caselib', 'exportTemplet'))
-                {
-                    $link = helper::createLink('caselib', 'exportTemplet', "libID=$libID");
-                    $pageActions .= html::a($link, "<i class='icon icon-export muted'> </i>" . $this->lang->caselib->exportTemplet, '', "class='btn btn-link export'");
-                }
-                if(common::hasPriv('caselib', 'import'))
-                {
-                    $link = helper::createLink('caselib', 'import', "libID=$libID");
-                    $pageActions .= html::a($link, "<i class='icon muted icon-import'> </i>" . $this->lang->testcase->importFile, '', "class='btn btn-link export'");
-                }
-                $pageActions .= '</div>';
-                $params = "libID=$libID&moduleID=" . (isset($moduleID) ? $moduleID : 0);
-                if(common::hasPriv('caselib', 'batchCreateCase'))
-                {
-                    $link = helper::createLink('caselib', 'batchCreateCase', $params);
-                    $pageActions .= html::a($link, "<i class='icon-plus'></i>" . $this->lang->testcase->batchCreate, '', "class='btn btn-secondary'");
-                }
-                if(common::hasPriv('caselib', 'createCase'))
-                {
-                    $link = helper::createLink('caselib', 'createCase', $params);
-                    $pageActions .= html::a($link, "<i class='icon-plus'></i>" . $this->lang->testcase->create, '', "class='btn btn-primary'");
-                }
-                if(common::hasPriv('caselib', 'create'))
-                {
-                    $link = helper::createLink('caselib', 'create');
-                    $pageActions .= html::a($link, "<i class='icon-plus'></i>" . $this->lang->caselib->create, '', "class='btn btn-primary'");
-                }
-            }
-        }
-        $pageNav .= $selectHtml;
-
-        $this->lang->modulePageNav     = $pageNav;
-        $this->lang->modulePageActions = $pageActions;
-        foreach($this->lang->caselib->menu as $key => $value)
-        {
-            $replace = $libID;
-            common::setMenuVars($this->lang->caselib->menu, $key, $replace);
-        }
-        if($this->config->global->flow != 'full' && $this->app->getMethodName() != 'view') $this->lang->caselib->menu->bysearch = "<a class='querybox-toggle' id='bysearchTab'><i class='icon icon-search muted'> </i>{$this->lang->testcase->bySearch}</a>";
     }
 
     /**
@@ -224,6 +145,25 @@ class caselibModel extends model
     }
 
     /**
+     * Get library list.
+     *
+     * @param  string $orderBy
+     * @param  object $pager
+     * @access public
+     * @return array
+     */
+    public function getList($orderBy = 'id_desc', $pager = null)
+    {
+        return $this->dao->select('*')->from(TABLE_TESTSUITE)
+            ->where('product')->eq(0)
+            ->andWhere('deleted')->eq(0)
+            ->andWhere('type')->eq('library')
+            ->orderBy($orderBy)
+            ->page($pager)
+            ->fetchAll('id');
+    }
+
+    /**
      * Create lib.
      *
      * @access public
@@ -234,11 +174,15 @@ class caselibModel extends model
         $lib = fixer::input('post')
             ->stripTags($this->config->caselib->editor->create['id'], $this->config->allowedTags)
             ->setForce('type', 'library')
+            ->setIF($this->config->systemMode == 'new' and $this->lang->navGroup->caselib != 'qa', 'project', $this->session->project)
             ->add('addedBy', $this->app->user->account)
             ->add('addedDate', helper::now())
             ->remove('uid')
             ->get();
         $lib = $this->loadModel('file')->processImgURL($lib, $this->config->caselib->editor->create['id'], $this->post->uid);
+
+        $this->lang->testsuite->name = $this->lang->caselib->name;
+        $this->lang->testsuite->desc = $this->lang->caselib->desc;
         $this->dao->insert(TABLE_TESTSUITE)->data($lib)
             ->batchcheck($this->config->caselib->create->requiredFields, 'notempty')
             ->check('name', 'unique', "deleted = '0'")
@@ -310,10 +254,10 @@ class caselibModel extends model
 
             $cases = $this->dao->select('*')->from(TABLE_CASE)->where($caseQuery)
                 ->beginIF($queryLibID != 'all')->andWhere('lib')->eq((int)$libID)->fi()
+                ->beginIF($this->config->systemMode == 'new' and $this->lang->navGroup->caselib != 'qa')->andWhere('project')->eq($this->session->project)->fi()
                 ->andWhere('product')->eq(0)
                 ->andWhere('deleted')->eq(0)
                 ->orderBy($sort)->page($pager)->fetchAll();
-
         }
         return $cases;
     }
@@ -454,9 +398,11 @@ class caselibModel extends model
             {
                 $caseID      = $data->id[$key];
                 $stepChanged = false;
-                $steps       = array();
                 $oldStep     = isset($oldSteps[$caseID]) ? $oldSteps[$caseID] : array();
                 $oldCase     = $oldCases[$caseID];
+
+                /* Ignore updating cases for different libs. */
+                if($oldCase->lib != $caseData->lib) continue;
 
                 /* Remove the empty setps in post. */
                 $steps = array();
@@ -468,8 +414,8 @@ class caselibModel extends model
                         if(empty($desc)) continue;
                         $step = new stdclass();
                         $step->type   = $data->stepType[$key][$id];
-                        $step->desc   = $desc;
-                        $step->expect = trim($data->expect[$key][$id]);
+                        $step->desc   = htmlSpecialString($desc);
+                        $step->expect = htmlSpecialString(trim($data->expect[$key][$id]));
 
                         $steps[] = $step;
                     }
@@ -532,6 +478,7 @@ class caselibModel extends model
             }
             else
             {
+                $caseData->project    = (int)$this->session->project;
                 $caseData->version    = 1;
                 $caseData->openedBy   = $this->app->user->account;
                 $caseData->openedDate = $now;
@@ -551,8 +498,8 @@ class caselibModel extends model
                         $stepData->parent  = ($stepData->type == 'item') ? $parentStepID : 0;
                         $stepData->case    = $caseID;
                         $stepData->version = 1;
-                        $stepData->desc    = $desc;
-                        $stepData->expect  = $data->expect[$key][$id];
+                        $stepData->desc    = htmlSpecialString($desc);
+                        $stepData->expect  = htmlSpecialString(trim($data->expect[$key][$id]));
                         $this->dao->insert(TABLE_CASESTEP)->data($stepData)->autoCheck()->exec();
                         if($stepData->type == 'group') $parentStepID = $this->dao->lastInsertID();
                         if($stepData->type == 'step')  $parentStepID = 0;
@@ -562,8 +509,11 @@ class caselibModel extends model
             }
         }
 
-        unlink($this->session->importFile);
-        unset($_SESSION['importFile']);
+        if($this->post->isEndPage)
+        {
+            unlink($this->session->fileImport);
+            unset($_SESSION['fileImport']);
+        }
     }
 
     /**
@@ -578,14 +528,14 @@ class caselibModel extends model
         $this->loadModel('testcase');
         $this->loadModel('action');
 
-        $now      = helper::now();
-        $cases    = fixer::input('post')->get();
-        $batchNum = count(reset($cases));
+        $now   = helper::now();
+        $libID = (int)$libID;
+        $cases = fixer::input('post')->get();
 
         $result = $this->loadModel('common')->removeDuplicate('case', $cases, "lib={$libID}");
         $cases  = $result['data'];
 
-        for($i = 0; $i < $batchNum; $i++)
+        foreach($cases->title as $i => $title)
         {
             if(!empty($cases->title[$i]) and empty($cases->type[$i])) die(js::alert(sprintf($this->lang->error->notempty, $this->lang->testcase->type)));
         }
@@ -593,18 +543,18 @@ class caselibModel extends model
         $module = 0;
         $type   = '';
         $pri    = 3;
-        for($i = 0; $i < $batchNum; $i++)
+        foreach($cases->title as $i => $title)
         {
             $module = $cases->module[$i] == 'ditto' ? $module : $cases->module[$i];
             $type   = $cases->type[$i] == 'ditto'   ? $type   : $cases->type[$i];
-            $pri    = $cases->pri[$i] == 'ditto'    ?  $pri   : $cases->pri[$i];
+            $pri    = $cases->pri[$i] == 'ditto'    ? $pri    : $cases->pri[$i];
             $cases->module[$i] = (int)$module;
             $cases->type[$i]   = $type;
             $cases->pri[$i]    = $pri;
         }
 
         $forceNotReview = $this->testcase->forceNotReview();
-        for($i = 0; $i < $batchNum; $i++)
+        foreach($cases->title as $i => $title)
         {
             if($cases->type[$i] != '' and $cases->title[$i] != '')
             {
@@ -622,6 +572,7 @@ class caselibModel extends model
                 $data[$i]->openedDate   = $now;
                 $data[$i]->status       = $forceNotReview ? 'normal' : 'wait';
                 $data[$i]->version      = 1;
+                if($this->config->systemMode == 'new' and $this->lang->navGroup->caselib != 'qa') $data[$i]->project = $this->session->project;
 
                 $this->dao->insert(TABLE_CASE)->data($data[$i])
                     ->autoCheck()

@@ -35,12 +35,23 @@ if(empty($config->notMd5Pwd))js::import($jsRoot . 'md5.js');
               <tbody>
                 <tr>
                   <th><?php echo $lang->user->account;?></th>
-                  <td><input class='form-control' type='text' name='account' id='account' autofocus /></td>
+                  <td><input class='form-control' type='text' name='account' id='account' autocomplete='off' autofocus /></td>
                 </tr>
                 <tr>
                   <th><?php echo $lang->user->password;?></th>
-                  <td><input class='form-control' type='password' name='password' /></td>
+                  <td><input class='form-control' type='password' name='password' autocomplete='off' /></td>
                 </tr>
+                <?php if(!empty($this->config->safe->loginCaptcha)):?>
+                <tr>
+                  <th><?php echo $lang->user->captcha;?></th>
+                  <td class='captchaBox'>
+                    <div class='input-group'>
+                      <?php echo html::input('captcha', '', "class='form-control'");?>
+                      <span class='input-group-addon'><img src="<?php echo $this->createLink('misc', 'captcha', "sessionVar=captcha");?>" /></span>
+                    </div>
+                  </td>
+                </tr>
+                <?php endif;?>
                 <tr>
                   <th></th>
                   <td id="keeplogin"><?php echo html::checkBox('keepLogin', $lang->user->keepLogin, $keepLogin);?></td>
@@ -52,7 +63,6 @@ if(empty($config->notMd5Pwd))js::import($jsRoot . 'md5.js');
                   echo html::submitButton($lang->login, '', 'btn btn-primary');
                   if($app->company->guest) echo html::linkButton($lang->user->asGuest, $this->createLink($config->default->module));
                   echo html::hidden('referer', $referer);
-                  echo html::hidden('verifyRand', $rand);
                   echo html::a(inlink('reset'), $lang->user->resetPassword);
                   ?>
                   </td>
@@ -62,17 +72,23 @@ if(empty($config->notMd5Pwd))js::import($jsRoot . 'md5.js');
           </form>
         </div>
       </div>
-      <?php if(isset($demoUsers)):?>
+      <?php if(!empty($this->config->global->showDemoUsers)):?>
+      <?php
+      $demoPassword = '123456';
+      $md5Password  = md5('123456');
+      $demoUsers    = 'productManager,projectManager,dev1,dev2,dev3,tester1,tester2,tester3,testManager';
+      if($this->app->getClientLang() == 'en') $demoUsers = 'thePO,pm1,pm2,pg1,pg2,pg3,thePM,qa1,theQS';
+      $demoUsers = $this->dao->select('account,password,realname')->from(TABLE_USER)->where('account')->in($demoUsers)->andWhere('deleted')->eq(0)->andWhere('password')->eq($md5Password)->fetchAll('account');
+      ?>
       <footer>
         <span><?php echo $lang->user->loginWithDemoUser;?></span>
         <?php
-        $password = md5('123456');
-        $link     = inlink('login');
-        $link    .= strpos($link, '?') !== false ? '&' : '?';
+        $link  = inlink('login');
+        $link .= strpos($link, '?') !== false ? '&' : '?';
         foreach($demoUsers as $demoAccount => $demoUser)
         {
-            if($demoUser->password != $password) continue;
-            echo html::a($link . "account={$demoAccount}&password=" . md5($password . $this->session->rand), $demoUser->realname, 'hiddenwin');
+            if($demoUser->password != $md5Password) continue;
+            echo html::a($link . "account={$demoAccount}&password=" . md5($md5Password . $this->session->rand), $demoUser->realname);
         }
         ?>
       </footer>
@@ -81,6 +97,9 @@ if(empty($config->notMd5Pwd))js::import($jsRoot . 'md5.js');
     <div id="info" class="table-row">
       <div class="table-col text-middle text-center">
         <div id="poweredby">
+          <?php if($unsafeSites):?>
+          <div><a class='showNotice' href='javascript:showNotice()',><?php echo $lang->user->notice4Safe;?></a></div>
+          <?php endif;?>
           <?php if($config->checkVersion):?>
           <iframe id='updater' class='hidden' frameborder='0' width='100%' height='45' scrolling='no' allowtransparency='true' src="<?php echo $this->createLink('misc', 'checkUpdate', "sn=$s");?>"></iframe>
           <?php endif;?>
@@ -89,4 +108,24 @@ if(empty($config->notMd5Pwd))js::import($jsRoot . 'md5.js');
     </div>
   </div>
 </main>
+<?php
+if($unsafeSites)
+{
+    $paths     = array();
+    $databases = array();
+    $isXampp   = false;
+    foreach($unsafeSites as $webRoot => $site)
+    {
+        $path = $site['path'];
+        if(strpos($path, 'xampp') !== false) $isXampp = true;
+
+        $paths[]     = $site['path'];
+        $databases[] = $site['database'];
+    }
+
+    $process4Safe = $isXampp ? $lang->user->process4DB : $lang->user->process4DIR;
+    $process4Safe = sprintf($process4Safe, join(' ', $isXampp ? $databases : $paths));
+    js::set('process4Safe', $process4Safe);
+}
+?>
 <?php include '../../common/view/footer.lite.html.php';?>

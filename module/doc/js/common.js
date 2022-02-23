@@ -1,24 +1,59 @@
+/**
+ * Load modules by libID.
+ *
+ * @param  int    $libID
+ * @access public
+ * @return void
+ */
 function loadModules(libID)
 {
-    link = createLink('doc', 'ajaxGetModules', 'libID=' + libID);
+    var link = createLink('doc', 'ajaxGetModules', 'libID=' + libID);
     $('#moduleBox').load(link, function(){$('#moduleBox').find('select').chosen()});
 }
 
+/**
+ * Toggle acl.
+ *
+ * @param  string $acl
+ * @param  string $type
+ * @access public
+ * @return void
+ */
 function toggleAcl(acl, type)
 {
     if(acl == 'custom')
     {
         $('#whiteListBox').removeClass('hidden');
+        $('#groupBox').removeClass('hidden');
+    }
+    else if(acl == 'private')
+    {
+        $('#whiteListBox').removeClass('hidden');
+        $('#groupBox').addClass('hidden');
     }
     else
     {
         $('#whiteListBox').addClass('hidden');
     }
+
     if(type == 'lib')
     {
         var libType = $('input[name="type"]:checked').val();
         var notice  = typeof(noticeAcl[libType][acl]) != 'undefined' ? noticeAcl[libType][acl] : '';
         $('#noticeAcl').html(notice);
+
+        if(libType == 'custom' && acl == 'private') $('#whiteListBox').addClass('hidden');
+
+        if(libType == 'project' && typeof(doclibID) != 'undefined')
+        {
+            var link = createLink('doc', 'ajaxGetWhitelist', 'doclibID=' + doclibID + '&acl=' + acl);
+            $.get(link, function(users)
+            {
+                $('#users').replaceWith(users);
+                $('#users_chosen').remove();
+                $('#users').chosen();
+            })
+        }
     }
     else
     {
@@ -27,9 +62,16 @@ function toggleAcl(acl, type)
     }
 }
 
+/**
+ * Load doc module by libID.
+ *
+ * @param  int    $libID
+ * @access public
+ * @return void
+ */
 function loadDocModule(libID)
 {
-    link = createLink('doc', 'ajaxGetChild', 'libID=' + libID);
+    var link = createLink('doc', 'ajaxGetChild', 'libID=' + libID);
     $.post(link, function(data)
     {
         $('#module').replaceWith(data);
@@ -38,6 +80,13 @@ function loadDocModule(libID)
     });
 }
 
+/**
+ * Set cookie of browse type and reload.
+ *
+ * @param  type $type
+ * @access public
+ * @return void
+ */
 function setBrowseType(type)
 {
     $.cookie('browseType', type, {expires:config.cookieLife, path:config.webRoot});
@@ -46,7 +95,7 @@ function setBrowseType(type)
 
 $(document).ready(function()
 {
-    // hide #module chosen dropdown on #lib dropdown show
+    /* Hide #module chosen dropdown on #lib dropdown show. */
     $('#lib').on('chosen:showing_dropdown', function()
     {
         $('#module').trigger('chosen:close');
@@ -83,10 +132,9 @@ $(document).ready(function()
 
     'use strict';
 
-    var NAME = 'zui.splitRow'; // model name
+    var NAME = 'zui.splitRow'; // model name.
 
-    // File input list
-    // The SplitRow model class
+    /* The SplitRow model class. */
     var SplitRow = function(element, options)
     {
         var that = this;
@@ -146,7 +194,9 @@ $(document).ready(function()
                     var deltaX = e.pageX - mouseDownX;
                     setFirstColWidth(startFirstWidth + deltaX);
                     e.preventDefault();
-                } else {
+                }
+                else
+                {
                     $(document).off(documentEventName);
                     $element.removeClass('row-spliting');
                 }
@@ -164,7 +214,8 @@ $(document).ready(function()
             if (options.middleSize) $col.toggleClass('col-md-size', $col.width() < options.middleSize);
         };
 
-        var resizeCols = function() {
+        var resizeCols = function()
+        {
             var cellHeight = $(window).height() - $('#footer').outerHeight() - $('#header').outerHeight() - 42;
             $cols.children('.panel').height(cellHeight).css('maxHeight', cellHeight).find('.panel-body').css('position', 'absolute');
             var sideHeight = cellHeight - $cols.find('.nav-tabs').height() - $cols.find('.side-footer').height() - 35;
@@ -179,7 +230,7 @@ $(document).ready(function()
         resizeCols();
     };
 
-    // default options
+    /* default options. */
     SplitRow.DEFAULTS =
     {
         spliter: '<div class="col-spliter"></div>',
@@ -187,7 +238,7 @@ $(document).ready(function()
         middleSize: 850
     };
 
-    // Extense jquery element
+    /* Extense jquery element. */
     $.fn.splitRow = function(option)
     {
         return this.each(function()
@@ -203,7 +254,7 @@ $(document).ready(function()
 
     $.fn.splitRow.Constructor = SplitRow;
 
-    // Auto call splitRow after document load complete
+    /* Auto call splitRow after document load complete. */
     $(function()
     {
         $('.split-row').splitRow();
@@ -218,22 +269,22 @@ $(document).ready(function()
         }).on('click', function(e){e.stopPropagation()});
     }
 
-    $('.ajaxCollect').mousedown(function (event) {
+    $(document).on('mousedown', '.ajaxCollect', function (event) {
         var obj = $(this);
         var url = obj.data('url');
         $.get(url, function(response)
         {
-          if(response.status == 'yes')
-          {
-            obj.children('i').removeClass().addClass('icon icon-star text-yellow');
-            obj.parent().prev().children('.file-name').children('i').remove('.icon');
-            obj.parent().prev().children('.file-name').prepend('<i class="icon icon-star text-yellow"></i> ');
-          }
-          else
-          {
-            obj.children('i').removeClass().addClass('icon icon-star-empty');
-            obj.parent().prev().children('.file-name').children('i').remove(".icon");
-          }
+            if(response.status == 'yes')
+            {
+                obj.children('i').removeClass().addClass('icon icon-star text-yellow');
+                obj.parent().prev().children('.file-name').children('i').remove('.icon');
+                obj.parent().prev().children('.file-name').prepend('<i class="icon icon-star text-yellow"></i> ');
+            }
+            else
+            {
+                obj.children('i').removeClass().addClass('icon icon-star-empty');
+                obj.parent().prev().children('.file-name').children('i').remove(".icon");
+            }
         }, 'json');
         return false;
     });

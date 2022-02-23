@@ -20,6 +20,15 @@ js::set('createRelease', $lang->release->create);
 js::set('createBuild', $lang->build->create);
 js::set('refresh', $lang->refresh);
 js::set('flow', $config->global->flow);
+js::set('stepsRequired', $stepsRequired);
+js::set('stepsNotEmpty', $lang->bug->stepsNotEmpty);
+js::set('isStepsTemplate', $isStepsTemplate);
+js::set('oldProjectID', $projectID);
+js::set('blockID', $blockID);
+js::set('moduleID', $moduleID);
+js::set('tab', $this->app->tab);
+if($this->app->tab == 'execution') js::set('objectID', $executionID);
+if($this->app->tab == 'project')   js::set('objectID', $projectID);
 ?>
 <div id="mainContent" class="main-content fade">
   <div class="center-block">
@@ -30,6 +39,12 @@ js::set('flow', $config->global->flow);
         <?php include '../../common/view/customfield.html.php';?>
       </div>
     </div>
+    <?php
+    foreach(explode(',', $config->bug->create->requiredFields) as $field)
+    {
+        if($field and strpos($showFields, $field) === false) $showFields .= ',' . $field;
+    }
+    ?>
     <form class="load-indicator main-form form-ajax" method='post' enctype='multipart/form-data' id='dataform'>
       <table class="table table-form">
         <tbody>
@@ -38,7 +53,7 @@ js::set('flow', $config->global->flow);
             <td>
               <div class='input-group'>
                 <?php echo html::select('product', $products, $productID, "onchange='loadAll(this.value);' class='form-control chosen control-product'");?>
-                <?php if($this->session->currentProductType != 'normal' and isset($products[$productID])):?>
+                <?php if($productInfo->type != 'normal' and isset($products[$productID])):?>
                 <?php  echo html::select('branch', $branches, $branch, "onchange='loadBranch()' class='form-control chosen control-branch'");?>
                 <?php endif;?>
               </div>
@@ -60,11 +75,14 @@ js::set('flow', $config->global->flow);
               </div>
             </td>
           </tr>
-          <?php $showProject = (strpos(",$showFields,", ',project,') !== false && $config->global->flow != 'onlyTest');?>
+          <?php $showExecution = (strpos(",$showFields,", ',execution,') !== false);?>
           <tr>
-            <th><?php echo ($showProject) ? $lang->bug->project : $lang->bug->type;?></th>
+            <th>
+              <?php if($config->systemMode == 'classic') $lang->bug->project = $lang->bug->execution;?>
+              <?php echo ($showExecution) ? $lang->bug->project : $lang->bug->type;?>
+            </th>
 
-            <?php if(!$showProject):?>
+            <?php if(!$showExecution):?>
             <?php $showOS      = strpos(",$showFields,", ',os,')      !== false;?>
             <?php $showBrowser = strpos(",$showFields,", ',browser,') !== false;?>
             <td>
@@ -81,13 +99,31 @@ js::set('flow', $config->global->flow);
               </div>
             </td>
             <?php endif;?>
-            <?php if($showProject):?>
-            <td><span id='projectIdBox'><?php echo html::select('project', $projects, $projectID, "class='form-control chosen' onchange='loadProjectRelated(this.value)'");?></span></td>
+            <?php if($showExecution):?>
+            <td>
+              <?php if($config->systemMode == 'new'):?>
+              <div class='table-row'>
+                <div class='table-col' id='projectBox'>
+                  <?php echo html::select('project', $projects, $projectID, "class='form-control chosen' onchange='loadProductExecutions({$productID}, this.value)'");?>
+                </div>
+                <div class='table-col'>
+                  <div class='input-group' id='executionIdBox'>
+                    <span class='input-group-addon fix-border' id='executionBox'><?php echo (isset($project->model) and $project->model == 'kanban') ? $lang->bug->kanban : $lang->bug->execution;?></span>
+                    <?php echo html::select('execution', $executions, $executionID, "class='form-control chosen' onchange='loadExecutionRelated(this.value)'");?>
+                  </div>
+                </div>
+              </div>
+              <?php else:?>
+              <div class='input-group' id='executionIdBox'>
+                <?php echo html::select('execution', $executions, $executionID, "class='form-control chosen' onchange='loadExecutionRelated(this.value)'");?>
+              </div>
+              <?php endif;?>
+            </td>
             <?php endif;?>
             <td>
               <div class='input-group' id='buildBox'>
                 <span class="input-group-addon"><?php echo $lang->bug->openedBuild?></span>
-                <?php echo html::select('openedBuild[]', $builds, 'trunk', "size=4 multiple=multiple class='chosen form-control'");?>
+                <?php echo html::select('openedBuild[]', $builds, empty($buildID) ? '' : $buildID, "multiple=multiple class='chosen form-control'");?>
                 <span class='input-group-addon fix-border' id='buildBoxActions'></span>
                 <div class='input-group-btn'><?php echo html::commonButton($lang->bug->allBuilds, "class='btn' id='all' data-toggle='tooltip' onclick='loadAllBuilds()'")?></div>
               </div>
@@ -97,7 +133,7 @@ js::set('flow', $config->global->flow);
             <th><nobr><?php echo $lang->bug->lblAssignedTo;?></nobr></th>
             <td>
               <div class='input-group'>
-                <?php echo html::select('assignedTo', $projectMembers, $assignedTo, "class='form-control chosen'");?>
+                <?php echo html::select('assignedTo', $productMembers, $assignedTo, "class='form-control chosen'");?>
                 <span class='input-group-btn'><?php echo html::commonButton($lang->bug->allUsers, "class='btn btn-default' onclick='loadAllUsers()' data-toggle='tooltip'");?></span>
               </div>
             </td>
@@ -110,8 +146,28 @@ js::set('flow', $config->global->flow);
               </div>
             </td>
           </tr>
+          <tr>
+            <th><nobr><?php echo $lang->bug->feedbackBy;?></nobr></th>
+            <td><?php echo html::input('feedbackBy', '', "class='form-control'");?></td>
+            <td id='notifyEmailTd'>
+              <div class='input-group'>
+                <span class='input-group-addon'><?php echo $lang->bug->notifyEmail?></span>
+                <span><?php echo html::input('notifyEmail', '', "class='form-control'");?></span>
+              </div>
+            </td>
+          </tr>
+          <?php else:?>
+            <td>
+              <div class='input-group' id='feedback'>
+              <span class="input-group-addon"><?php echo $lang->bug->feedbackBy?></span>
+              <?php echo html::input('feedbackBy', '', "class='form-control'");?>
+              <span class="input-group-addon"><?php echo $lang->bug->notifyEmail?></span>
+              <?php echo html::input('notifyEmail', '', "class='form-control'");?>
+              </div>
+            </td>
+          </tr>
           <?php endif;?>
-          <?php if($this->config->global->flow != 'onlyTest' && $showProject):?>
+          <?php if($showExecution):?>
           <?php $showOS      = strpos(",$showFields,", ',os,')      !== false;?>
           <?php $showBrowser = strpos(",$showFields,", ',browser,') !== false;?>
           <tr>
@@ -195,6 +251,11 @@ js::set('flow', $config->global->flow);
                 }
                 $priList = $lang->bug->priList;
                 if(end($priList)) unset($priList[0]);
+                if(!isset($priList[$pri]))
+                {
+                    reset($priList);
+                    $pri = key($priList);
+                }
                 ?>
                 <?php if($hasCustomPri):?>
                 <?php echo html::select('pri', (array)$priList, $pri, "class='form-control'");?>
@@ -223,7 +284,7 @@ js::set('flow', $config->global->flow);
             $showStory = strpos(",$showFields,", ',story,') !== false;
             $showTask  = strpos(",$showFields,", ',task,')  !== false;
           ?>
-          <?php if(($showStory or $showTask) and $this->config->global->flow != 'onlyTest'):?>
+          <?php if(($showStory or $showTask)):?>
           <tr>
             <th><?php echo ($showStory) ? $lang->bug->story : $lang->bug->task;?></th>
             <?php if($showStory):?>
@@ -255,10 +316,10 @@ js::set('flow', $config->global->flow);
             <?php if($showMailto):?>
             <td>
               <div class='input-group' id='contactListGroup'>
-              <?php
-              echo html::select('mailto[]', $users, str_replace(' ', '', $mailto), "class='form-control chosen' multiple");
-              echo $this->fetch('my', 'buildContactLists');
-              ?>
+                <?php
+                echo html::select('mailto[]', $users, str_replace(' ', '', $mailto), "class='form-control chosen' multiple");
+                echo $this->fetch('my', 'buildContactLists');
+                ?>
               </div>
             </td>
             <?php endif;?>
@@ -277,6 +338,7 @@ js::set('flow', $config->global->flow);
           <tr class='hide'>
             <th><?php echo $lang->bug->status;?></th>
             <td><?php echo html::hidden('status', 'active');?></td>
+            <td><?php echo html::hidden('issueKey', $issueKey);?></td>
           </tr>
           <?php $this->printExtendFields('', 'table');?>
           <tr>
@@ -287,10 +349,13 @@ js::set('flow', $config->global->flow);
         <tfoot>
           <tr>
             <td colspan="3" class="text-center form-actions">
+              <?php $browseLink = $this->session->bugList ? $this->session->bugList : $this->inlink('browse', "productID=$productID");?>
               <?php echo html::submitButton();?>
-              <?php if($caseID == 0) echo html::backButton();?>
+              <?php if($caseID) echo html::a($browseLink, $lang->goback, '', 'class="btn btn-wide"');?>
+              <?php if(!$caseID and $gobackLink) echo html::a($gobackLink, $lang->goback, '', 'class="btn btn-wide"');?>
+              <?php if(!$caseID and !$gobackLink) echo html::backButton();?>
               <?php echo html::hidden('case', (int)$caseID) . html::hidden('caseVersion', (int)$version);?>
-              <?php echo html::hidden('result', (int)$runID) . html::hidden('testtask', (int)$testtask);?>
+              <?php echo html::hidden('result', (int)$runID) . html::hidden('testtask', empty($testtask) ? 0 : $testtask->id);?>
             </td>
           </tr>
         </tfoot>
@@ -299,4 +364,9 @@ js::set('flow', $config->global->flow);
   </div>
 </div>
 <?php js::set('bugModule', $lang->bug->module);?>
+<?php js::set('bugExecution', $lang->bug->execution);?>
+<?php js::set('systemMode', $config->systemMode);?>
+<script>
+$(function(){parent.$('body.hide-modal-close').removeClass('hide-modal-close');})
+</script>
 <?php include '../../common/view/footer.html.php';?>

@@ -1,217 +1,38 @@
-.choose-date span, .dp-choose-date{ display:block; float:left; margin:0 10px;}
-.dp-applied{float:left;}
-.choose-date span{line-height:20px;}
-.date{width:80px;}
-ul li{list-style:none;}
+.choose-date span, .dp-choose-date {display: block; float: left; margin: 0 10px;}
+.dp-applied {float: left;}
+.choose-date span {line-height: 20px;}
+.date {width: 80px;}
+ul li {list-style: none;}
 
-#productList p{margin:2px 0;}
-.table-bordered, .outer.with-side .main, .outer.with-side > form > .table, .outer.with-side > .table{border: none}
+.side-col {padding-right: 20px; width: 15%;}
+#sidebar>.cell {width: 100%;}
+#productList p {margin: 2px 0;}
+.table-bordered, .outer.with-side .main, .outer.with-side > form > .table, .outer.with-side > .table {border: none;}
 
 #report-list.list-group {margin-bottom: 0;}
 #report-list .list-group-item {padding: 8px 15px; border-left: none; border-right: none;}
-#report-list .list-group-item:first-child {border-top: 1px}
-#report-list .list-group-item:last-child {border-bottom: 1px}
-#report-list .list-group-item.active{background:none;color:#333;}
-.proversion a {color: #81511C}
+#report-list .list-group-item:first-child {border-top: 1px;}
+#report-list .list-group-item:last-child {border-bottom: 1px;}
+#report-list .list-group-item.active {background: none; color: #333;}
+.proversion a {color: #81511C;}
 
 .main > .input-group {margin-bottom: 10px;}
 .main > .input-group > .datepicker-wrapper {display: table-cell;}
-.main > .input-group > .datepicker-wrapper > .form-control {padding: 5px 10px; height: 30px}
-.main > .input-group > .datepicker-wrapper:before {top: 4px}
-.main > .input-group > .datepicker-wrapper + .input-group-addon {border-left: none;border-right: none;}
+.main > .input-group > .datepicker-wrapper > .form-control {padding: 5px 10px; height: 30px;}
+.main > .input-group > .datepicker-wrapper:before {top: 4px;}
+.main > .input-group > .datepicker-wrapper + .input-group-addon {border-left: none; border-right: none;}
 
-td .deviation{padding-left:20px; text-align:left;}
-.up{color:red; padding-right:2px;}
-.down{color:green; padding-right:2px;}
-.zero{color:#66CD00;}
-.u50{color:#ED1C24;}
-.u30{color:#F37021;}
-.u10{color:#FAA61A;}
-.u0{color:#FFCB05;}
-.d0{color:#76B043;}
-.d20{color:#33A52E;}
-.icon-question-sign:before {content: '\e968';}
-.chosen-container[id^="product"] .chosen-drop {min-width: 300px;!important}
-.chosen-container[id^="project"] .chosen-drop {min-width: 300px;!important}
-.chosen-container[id^="dept"]    .chosen-drop {min-width: 400px;!important}
+td .deviation {padding-left: 20px; text-align: left;}
+.up {color: red; padding-right: 2px;}
+.down {color: green; padding-right: 2px;}
+.zero {color: #66CD00;}
+.u50 {color: #ED1C24;}
+.u30 {color: #F37021;}
+.u10 {color: #FAA61A;}
+.u0 {color: #FFCB05;}
+.d0 {color: #76B043;}
+.d20 {color: #33A52E;}
 
 .checkboxes {margin-bottom: 10px;}
 .checkboxes .checkbox-primary {margin-bottom: 5px;}
-.fixed-header-copy thead tr th{color:#fff !important;}
-.table>tbody>tr>td .content {
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 3;
-    padding-left: 10px;
-    line-height: 100%;
-    vertical-align: middle;
-}
-.table>tbody>tr>td .bg{
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    z-index: 1;
-    width: 100%;
-}
-.table>tbody>tr>td .fg{
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    z-index: 2;
-}
-
-.bgdanger{background:#ED1C24!important;}
-.bgwarning{background:#F37021!important;}
-.bgnotice{background:#FFCB05!important;}
-.bgclose{background:#82bde6!important;}
-.bgignore{background:#acea74!important;}
-
-.fgred{background:#f1babc!important;}
-.fgorange{background:#f5ed8e !important;}
-.fggreen{background:#acea74 !important;}
-.fgblue{background:#82bde6 !important;}
-.bgred{background:#f1ced0;}
-.bgorange{background: #fdf7be;}
-.bggreen{background:#d4fbb1;}
-.bgblue{background:#b2d6ef}
-.download-btn {margin-left: 20px;}
-.overview {
-    width: 80px;
-    text-align: center;
-    background: #13ce66;
-    color: #fff;
-    border-radius: 4px;
-    padding: 5px;
-    display: inline-block;
-}
-.table>tbody>tr.expired-1 td {
-    background:#f1ced0
-}
-.table>tbody>tr.expired-1 .td-1{
-    background:#f9f9f9
-}
-.bigbox table td{
-    padding: 2px 5px;
-    border-bottom: 0;
-    border-top: 0;
-}
-.bigbox table td.td-line {
-    border-bottom: 1px solid #cbd0db;
-}
-.bigbox table a{
-    vertical-align: initial;
-    padding: 0;
-}
-.bigbox table .checkbox {
-    margin: 0;
-    margin-top: -3px;
-}
-.user {
-    margin-right: 4px;
-}
-.workload2 {
-    margin-bottom: 10px !important;
-}
-.project-name{
-    display: inline-block;
-    width: 300px;
-    color: #fff;
-    border-radius: 4px;
-    padding: 5px;
-    background: #81c19e;
-}
-.module-name {
-    display: inline-block;
-    width: 120px;
-    color: #fff;
-    background: #81c19e;
-    border-radius: 4px;
-    padding: 5px;
-}
-.no-module-name {
-    display: inline-block;
-    width: 120px;
-    background: #999b9a;
-    border-radius: 4px;
-    padding: 5px;
-}
-.story-name {
-    display: inline-block;
-    width: 300px;
-    color: #fff;
-    background: #81c19e;
-    border-radius: 4px;
-    padding: 5px;
-}
-.no-story-name {
-    display: inline-block;
-    width: 300px;
-    background: #999b9a;
-    border-radius: 4px;
-    padding: 5px;
-}
-.task-name{
-    display: inline-block;
-    background: #67967c;
-    color: #fff;
-    border-radius: 4px;
-    padding: 5px;
-}
-.project-name a,.task-name a{
-    color: #fff;
-    width: 100%;
-    height: 100%;
-}
-.task-detail {
-    vertical-align: middle;
-}
-.checkbox {
-    display: inline-block;
-}
-.table-footer {
-    border:1px solid #cbd0db;
-    border-top: none;
-}
-.bigbox {
-    position: relative;
-}
-.pri {
-    width: 20px;
-    height: 20px;
-    text-align: center;
-    line-height: 20px;
-    margin-right: 5px;
-    display: inline-block;
-    border-radius: 50%;
-    background: #81511C;
-    color: #fff;
-}
-.pri_1 {
-    background: #d50000;
-}
-.pri_2 {
-    background: #ff9800;
-}
-.pri_3 {
-    background: #2098ee;
-}
-.pri_4 {
-    background: #009688;
-}
-.taskid {
-    width: 70px;
-    margin-left: 15px;
-    display: inline-block;
-    background: #81511C;
-    color: #fff;
-    padding: 5px;
-    text-align: center;
-    border-radius: 4px;
-}
-.taskstatus {
-    margin: 0 5px;
-}
+.fixed-header-copy thead tr th {color: #fff !important;}

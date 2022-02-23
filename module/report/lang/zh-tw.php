@@ -9,7 +9,6 @@
  * @version     $Id: zh-tw.php 5080 2013-07-10 00:46:59Z wyd621@gmail.com $
  * @link        http://www.zentao.net
  */
-$lang->report->common     = '統計視圖';
 $lang->report->index      = '統計首頁';
 $lang->report->list       = '統計報表';
 $lang->report->item       = '條目';
@@ -18,6 +17,8 @@ $lang->report->percent    = '百分比';
 $lang->report->undefined  = '未設定';
 $lang->report->query      = '查詢';
 $lang->report->annual     = '年度總結';
+$lang->report->project    = '項目';
+$lang->report->PO         = 'PO';
 
 $lang->report->colors[]   = 'AFD8F8';
 $lang->report->colors[]   = 'F6BD0F';
@@ -33,11 +34,11 @@ $lang->report->colors[]   = '9D080D';
 $lang->report->colors[]   = 'A186BE';
 
 $lang->report->assign['noassign'] = '未指派';
-$lang->report->assign['assign'] = '已指派';
+$lang->report->assign['assign']   = '已指派';
 
 $lang->report->singleColor[] = 'F6BD0F';
 
-$lang->report->projectDeviation = $lang->projectCommon . '偏差報表';
+$lang->report->projectDeviation = "{$lang->execution->common}偏差報表";
 $lang->report->productSummary   = $lang->productCommon . '彙總表';
 $lang->report->bugCreate        = 'Bug創建表';
 $lang->report->bugAssign        = 'Bug指派表';
@@ -45,17 +46,25 @@ $lang->report->workload         = '員工負載表';
 $lang->report->workloadAB       = '工作負載';
 $lang->report->bugOpenedDate    = 'Bug創建時間';
 $lang->report->beginAndEnd      = '起止時間';
+$lang->report->begin            = '起始日期';
+$lang->report->end              = '結束日期';
 $lang->report->dept             = '部門';
-$lang->report->deviationChart   = $lang->projectCommon . '偏差曲綫';
+$lang->report->deviationChart   = "{$lang->execution->common}偏差曲綫";
 
-$lang->reportList->project->lists[10] = $lang->projectCommon . '偏差報表|report|projectdeviation';
+$lang->reportList = new stdclass();
+$lang->reportList->project = new stdclass();
+$lang->reportList->product = new stdclass();
+$lang->reportList->test    = new stdclass();
+$lang->reportList->staff   = new stdclass();
+
+$lang->reportList->project->lists[10] = "{$lang->execution->common}偏差報表|report|projectdeviation";
 $lang->reportList->product->lists[10] = $lang->productCommon . '彙總表|report|productsummary';
 $lang->reportList->test->lists[10]    = 'Bug創建表|report|bugcreate';
 $lang->reportList->test->lists[13]    = 'Bug指派表|report|bugassign';
 $lang->reportList->staff->lists[10]   = '員工負載表|report|workload';
 
 $lang->report->id            = '編號';
-$lang->report->project       = $lang->projectCommon;
+$lang->report->execution     = $lang->execution->common;
 $lang->report->product       = $lang->productCommon;
 $lang->report->user          = '姓名';
 $lang->report->bugTotal      = 'Bug';
@@ -71,7 +80,7 @@ $lang->report->taskTotal     = "總任務數";
 $lang->report->manhourTotal  = "總工時";
 $lang->report->validRate     = "有效率";
 $lang->report->validRateTips = "方案為已解決或延期/狀態為已解決或已關閉";
-$lang->report->unplanned     = '未計劃';
+$lang->report->unplanned     = "未計劃";
 $lang->report->workday       = '每天工時';
 $lang->report->diffDays      = '工作日天數';
 
@@ -82,7 +91,7 @@ $lang->report->typeList['line']    = '折線圖';
 
 $lang->report->conditions    = '篩選條件：';
 $lang->report->closedProduct = '關閉' . $lang->productCommon;
-$lang->report->overduePlan   = '過期計劃';
+$lang->report->overduePlan   = "過期計劃";
 
 /* daily reminder. */
 $lang->report->idAB         = 'ID';
@@ -99,53 +108,126 @@ $lang->report->mailTitle->task     = " 任務(%s),";
 $lang->report->mailTitle->todo     = " 待辦(%s),";
 $lang->report->mailTitle->testTask = " 測試版本(%s),";
 
-$lang->report->proVersion   = '<a href="https://api.zentao.net/goto.php?item=proversion&from=reportpage" target="_blank">更多精彩，盡在專業版！</a>';
-$lang->report->proVersionEn = '<a href="http://api.zentao.pm/goto.php?item=proversion&from=reportpage" target="_blank">Try ZenTao Pro for more!</a>';
+$lang->report->deviationDesc = '按照已關閉執行統計偏差率（偏差率 = (總消耗 - 總預計) / 總預計），總預計為0時偏差率為n/a。';
+$lang->report->proVersion    = '<a href="https://www.zentao.net/page/enterprise.html" target="_blank">更多精彩，盡在企業版！</a>';
+$lang->report->proVersionEn  = '<a href="https://www.zentao.pm/" target="_blank">Try ZenTao Biz for more!</a>';
+$lang->report->workloadDesc  = '工作負載=用戶所有任務剩餘工時之和/選擇的時間天數*每天的工時。例如：起止時間設為1月1日~1月7日、工作日天數5天、每天工時8h，統計的是所有指派給該人員的未完成的任務，在5天內，每天8h的情況下的工作負載。';
+
 
 $lang->report->annualData = new stdclass();
-$lang->report->annualData->title            = "%s年工作內容統計一覽表 —— %s";
-$lang->report->annualData->baseInfo         = "基本數據信息";
-$lang->report->annualData->logins           = "累計登錄次數";
-$lang->report->annualData->actions          = "累計動態數";
-$lang->report->annualData->efforts          = "累計日誌數";
-$lang->report->annualData->consumed         = "累計工時數";
-$lang->report->annualData->foundBugs        = "累計創建Bug數";
-$lang->report->annualData->createdCases     = "累計創建用例數";
-$lang->report->annualData->involvedProducts = "累計參與{$lang->productCommon}數";
-$lang->report->annualData->createdPlans     = "累計創建計劃數";
-$lang->report->annualData->createdStories   = "累計創建{$lang->storyCommon}數";
+$lang->report->annualData->title            = "%s %s年工作彙總";
+$lang->report->annualData->exportByZentao   = "由禪道系統導出";
+$lang->report->annualData->scope            = "統計範圍";
+$lang->report->annualData->allUser          = "所有用戶";
+$lang->report->annualData->allDept          = "全公司";
+$lang->report->annualData->soFar            = "（%s年）";
+$lang->report->annualData->baseInfo         = "基本數據";
+$lang->report->annualData->actionData       = "操作數據";
+$lang->report->annualData->contributionData = "貢獻數據";
+$lang->report->annualData->radar            = "能力雷達圖";
+$lang->report->annualData->executions       = "{$lang->executionCommon}數據";
+$lang->report->annualData->products         = "{$lang->productCommon}數據";
+$lang->report->annualData->stories          = "需求數據";
+$lang->report->annualData->tasks            = "任務數據";
+$lang->report->annualData->bugs             = "Bug數據";
+$lang->report->annualData->cases            = "用例數據";
+$lang->report->annualData->statusStat       = "{$lang->SRCommon}/任務/Bug狀態分佈（截止今日）";
 
-$lang->report->annualData->productOverview = "{$lang->productCommon}創建{$lang->storyCommon}數及占比";
-$lang->report->annualData->qaOverview      = "{$lang->productCommon}創建Bug數及占比";
-$lang->report->annualData->projectOverview = "參與{$lang->projectCommon}概覽";
-$lang->report->annualData->doneProject     = "已完成的{$lang->projectCommon}";
-$lang->report->annualData->doingProject    = "正在進行的{$lang->projectCommon}";
-$lang->report->annualData->suspendProject  = "已掛起的{$lang->projectCommon}";
+$lang->report->annualData->companyUsers     = "公司總人數";
+$lang->report->annualData->deptUsers        = "部門人數";
+$lang->report->annualData->logins           = "登錄次數";
+$lang->report->annualData->actions          = "操作次數";
+$lang->report->annualData->contributions    = "貢獻數";
+$lang->report->annualData->consumed         = "消耗工時";
+$lang->report->annualData->todos            = "待辦數";
 
-$lang->report->annualData->projectName   = "{$lang->projectCommon}名稱";
-$lang->report->annualData->finishedStory = "完成{$lang->storyCommon}數";
-$lang->report->annualData->finishedTask  = '完成任務數';
-$lang->report->annualData->foundBug      = '創建Bug數';
-$lang->report->annualData->resolvedBug   = '解決Bug數';
-$lang->report->annualData->productName   = "{$lang->productCommon}名稱";
-$lang->report->annualData->planCount     = '計劃數';
-$lang->report->annualData->storyCount    = "{$lang->storyCommon}數";
+$lang->report->annualData->storyStatusStat = "需求狀態分佈";
+$lang->report->annualData->taskStatusStat  = "任務狀態分佈";
+$lang->report->annualData->bugStatusStat   = "Bug狀態分佈";
+$lang->report->annualData->caseResultStat  = "用例結果分佈";
+$lang->report->annualData->allStory        = "總需求";
+$lang->report->annualData->allTask         = "總任務";
+$lang->report->annualData->allBug          = "總Bug";
+$lang->report->annualData->undone          = "未完成";
+$lang->report->annualData->unresolve       = "未解決";
 
-$lang->report->annualData->qaData           = "累計創建Bug數和創建用例數";
-$lang->report->annualData->totalCreatedBug  = '累計創建Bug數';
-$lang->report->annualData->totalCreatedCase = '累計創建用例數';
+$lang->report->annualData->storyMonthActions = "每月需求操作情況";
+$lang->report->annualData->taskMonthActions  = "每月任務操作情況";
+$lang->report->annualData->bugMonthActions   = "每月Bug操作情況";
+$lang->report->annualData->caseMonthActions  = "每月用例操作情況";
 
-$lang->report->annualData->devData           = "完成任務數和解決Bug數";
-$lang->report->annualData->totalFinishedTask = '完成任務數';
-$lang->report->annualData->totalResolvedBug  = '解決Bug數';
-$lang->report->annualData->totalConsumed     = '累計工時';
+$lang->report->annualData->executionFields['name']  = "{$lang->executionCommon}名稱";
+$lang->report->annualData->executionFields['story'] = "完成{$lang->SRCommon}數";
+$lang->report->annualData->executionFields['task']  = "完成任務數";
+$lang->report->annualData->executionFields['bug']   = "解決Bug數";
 
-$lang->report->annualData->poData          = "所創建{$lang->storyCommon}數和對應的優先順序及狀態";
-$lang->report->annualData->totalStoryPri   = "創建{$lang->storyCommon}優先順序分佈";
-$lang->report->annualData->totalStoryStage = "創建{$lang->storyCommon}階段分佈";
+$lang->report->annualData->productFields['name'] = "{$lang->productCommon}名稱";
+$lang->report->annualData->productFields['plan'] = "計劃數";
+global $config;
+if(!empty($config->URAndSR))
+{
+    $lang->report->annualData->productFields['requirement'] = "創建{$lang->URCommon}數";
+}
+$lang->report->annualData->productFields['story']  = "創建{$lang->SRCommon}數";
+$lang->report->annualData->productFields['closed'] = "關閉需求數";
 
-$lang->report->annualData->qaStatistics  = "月創建Bug數和創建用例數";
-$lang->report->annualData->poStatistics  = "月創建{$lang->storyCommon}數";
-$lang->report->annualData->devStatistics = "月完成任務數及累計工時和解決Bug數";
+$lang->report->annualData->objectTypeList['product']     = $lang->productCommon;
+$lang->report->annualData->objectTypeList['story']       = "需求";
+$lang->report->annualData->objectTypeList['productplan'] = "計劃";
+$lang->report->annualData->objectTypeList['release']     = "發佈";
+$lang->report->annualData->objectTypeList['execution']   = $lang->executionCommon;
+$lang->report->annualData->objectTypeList['task']        = '任務';
+$lang->report->annualData->objectTypeList['repo']        = '代碼';
+$lang->report->annualData->objectTypeList['bug']         = 'Bug';
+$lang->report->annualData->objectTypeList['build']       = '版本';
+$lang->report->annualData->objectTypeList['testtask']    = '測試單';
+$lang->report->annualData->objectTypeList['case']        = '用例';
+$lang->report->annualData->objectTypeList['doc']         = '文檔';
 
-$lang->report->annualData->unit = "個";
+$lang->report->annualData->actionList['create']    = '創建';
+$lang->report->annualData->actionList['edit']      = '編輯';
+$lang->report->annualData->actionList['close']     = '關閉';
+$lang->report->annualData->actionList['review']    = '評審';
+$lang->report->annualData->actionList['gitCommit'] = 'GIT提交';
+$lang->report->annualData->actionList['svnCommit'] = 'SVN提交';
+$lang->report->annualData->actionList['start']     = '開始';
+$lang->report->annualData->actionList['finish']    = '完成';
+$lang->report->annualData->actionList['assign']    = '指派';
+$lang->report->annualData->actionList['activate']  = '激活';
+$lang->report->annualData->actionList['resolve']   = '解決';
+$lang->report->annualData->actionList['run']       = '執行';
+$lang->report->annualData->actionList['stop']      = '停止維護';
+$lang->report->annualData->actionList['putoff']    = '延期';
+$lang->report->annualData->actionList['suspend']   = '掛起';
+$lang->report->annualData->actionList['change']    = '變更';
+$lang->report->annualData->actionList['pause']     = '暫停';
+$lang->report->annualData->actionList['cancel']    = '取消';
+$lang->report->annualData->actionList['confirm']   = '確認';
+$lang->report->annualData->actionList['createBug'] = '轉Bug';
+
+$lang->report->annualData->todoStatus['all']    = '所有待辦';
+$lang->report->annualData->todoStatus['undone'] = '未完成';
+$lang->report->annualData->todoStatus['done']   = '已完成';
+
+$lang->report->annualData->radarItems['product']   = '產品管理';
+$lang->report->annualData->radarItems['execution'] = '項目管理';
+$lang->report->annualData->radarItems['devel']     = "研發";
+$lang->report->annualData->radarItems['qa']        = "測試";
+$lang->report->annualData->radarItems['other']     = "其他";
+
+$lang->report->companyRadar        = "公司能力雷達圖";
+$lang->report->outputData          = "產出數據";
+$lang->report->outputTotal         = "產出總數";
+$lang->report->storyOutput         = "需求產出";
+$lang->report->planOutput          = "計劃產出";
+$lang->report->releaseOutput       = "發佈產出";
+$lang->report->executionOutput     = "執行產出";
+$lang->report->taskOutput          = "任務產出";
+$lang->report->bugOutput           = "Bug產出";
+$lang->report->caseOutput          = "用例產出";
+$lang->report->bugProgress         = "Bug進展";
+$lang->report->productProgress     = "產品進展";
+$lang->report->executionProgress   = "執行進展";
+$lang->report->projectProgress     = "項目進展";
+$lang->report->yearProjectOverview = "年度項目總覽";
+$lang->report->projectOverview     = "截止目前項目總覽";

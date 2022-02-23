@@ -3,81 +3,110 @@
  * The create view file of repo module of ZenTaoPMS.
  *
  * @copyright   Copyright 2009-2012 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @author      Wang Yidong, Zhu Jinyong 
+ * @author      Wang Yidong, Zhu Jinyong
  * @package     repo
  * @version     $Id: create.html.php $
  */
 ?>
 <?php include '../../common/view/header.html.php';?>
+<?php include '../../common/view/kindeditor.html.php';?>
+<?php js::import($jsRoot . 'misc/base64.js');?>
 <?php if(common::checkNotCN()):?>
-<style>
-.user-addon{padding-right: 16px; padding-left: 16px;}
-</style>
+<style>.user-addon {padding-right: 16px; padding-left: 16px;}</style>
 <?php endif;?>
-<div id='mainContent' class='main-content'>
-  <div class='center-block'>
-    <div class='main-header'>
-      <h2><?php echo $lang->repo->create;?></h2>
+<?php js::set('scm',  'Git')?>
+<div id='mainContent' class='main-row'>
+  <div class='main-col main-content'>
+    <div class='center-block'>
+      <div class='main-header'>
+        <h2><?php echo $lang->repo->createAction;?></h2>
+      </div>
+      <form id='repoForm' method='post' class='form-ajax'>
+        <table class='table table-form'>
+          <tr>
+            <th><?php echo $lang->repo->product; ?></th>
+            <td class='required'><?php echo html::select('product[]', $products, '', "class='form-control chosen' multiple"); ?></td>
+          </tr>
+          <tr>
+            <th class='thWidth'><?php echo $lang->repo->type; ?></th>
+            <td style="width:550px"><?php echo html::select('SCM', $lang->repo->scmList, 'Gitlab', "onchange='scmChanged(this.value)' class='form-control'"); ?></td>
+            <td class="tips-git"><?php echo $lang->repo->syncTips; ?></td>
+          </tr>
+          <tr class='gitlab hide'>
+            <th><?php echo $lang->repo->gitlabHost;?></th>
+            <td class='required'><?php echo html::select('gitlabHost', $gitlabHosts, '', "class='form-control' placeholder='{$lang->repo->placeholder->gitlabHost}'");?>
+          </tr>
+          <tr class='gitlab hide'>
+            <th><?php echo $lang->repo->gitlabProject;?></th>
+            <td class='required'><?php echo html::select('gitlabProject', array(''), '', "class='form-control chosen'");?>
+          </tr>
+          <tr>
+            <th><?php echo $lang->repo->name; ?></th>
+            <td class='required'><?php echo html::input('name', '', "class='form-control'"); ?></td>
+            <td></td>
+          </tr>
+          <tr class='hide-gitlab'>
+            <th><?php echo $lang->repo->path; ?></th>
+            <td class='required'><?php echo html::input('path', '', "class='form-control'"); ?></td>
+            <td class='muted'>
+                <span class="tips-git"><?php echo $lang->repo->example->path->git;?></span>
+                <span class="tips-svn"><?php echo $lang->repo->example->path->svn;?></span>
+            </td>
+          </tr>
+          <tr>
+            <th><?php echo $lang->repo->encoding; ?></th>
+            <td class='required'><?php echo html::input('encoding', 'utf-8', "class='form-control'"); ?></td>
+            <td class='muted'><?php echo $lang->repo->encodingsTips; ?></td>
+          </tr>
+          <tr class='hide-gitlab'>
+            <th><?php echo $lang->repo->client;?></th>
+            <td class='required'><?php echo html::input('client', '', "class='form-control'")?></td>
+            <td class='muted'>
+                <span class="tips-git"><?php echo $lang->repo->example->client->git;?></span>
+                <span class="tips-svn"><?php echo $lang->repo->example->client->svn;?></span>
+            </td>
+          </tr>
+          <tr class="account-fields hide-gitlab">
+            <th><?php echo $lang->repo->account;?></th>
+            <td><?php echo html::input('account', '', "class='form-control'");?></td>
+          </tr>
+          <tr class="account-fields hide-gitlab">
+            <th><?php echo $lang->repo->password;?></th>
+            <td>
+              <div class='input-group'>
+                <?php echo html::password('password', '', "class='form-control'");?>
+                <span class='input-group-addon fix-border fix-padding'></span>
+                <?php echo html::select('encrypt', $lang->repo->encryptList, 'base64', "class='form-control'");?>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <th><?php echo $lang->repo->acl;?></th>
+            <td class='acl'>
+              <div class='input-group mgb-10'>
+                <span class='input-group-addon'><?php echo $lang->repo->group?></span>
+                <?php echo html::select('acl[groups][]', $groups, '', "class='form-control chosen' multiple")?>
+              </div>
+              <div class='input-group'>
+                <span class='input-group-addon user-addon'><?php echo $lang->repo->user?></span>
+                <?php echo html::select('acl[users][]', $users, '', "class='form-control chosen' multiple")?>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <th><?php echo $lang->repo->desc; ?></th>
+            <td colspan='2'><?php echo html::textarea('desc', '', "rows='3' class='form-control'"); ?></td>
+          </tr>
+          <tr>
+            <th></th>
+            <td colspan='2' class='text-center form-actions'>
+              <?php echo html::submitButton(); ?>
+              <?php if(!isonlybody()) echo html::a(inlink('maintain', ""), $lang->goback, '', 'class="btn btn-wide"');?>
+            </td>
+          </tr>
+        </table>
+      </form>
     </div>
-    <form class='form-indicator main-form' method='post' target='hiddenwin' id='dataform'>
-      <table class='table table-form'> 
-        <tr>
-          <th><?php echo $lang->repo->SCM;?></th>
-          <td><?php echo html::select('SCM', $lang->repo->scmList, 'Subversion', "class='form-control'");?></td>
-        </tr>
-        <tr>
-          <th><?php echo $lang->repo->name;?></th>
-          <td><?php echo html::input('name', '', "class='form-control'");?></td>
-        </tr>
-        <tr>
-          <th><?php echo $lang->repo->path;?></th>
-          <td><?php echo html::input('path', '', "class='form-control'")?></td>
-          <td class='muted'><?php echo $lang->repo->example->path;?></td>
-        </tr>  
-        <tr>
-          <th><?php echo $lang->repo->encoding;?></th>
-          <td><?php echo html::input('encoding', 'utf-8', "class='form-control'");?></td>
-        </tr> 
-        <tr>
-          <th><?php echo $lang->repo->client;?></th>
-          <td><?php echo html::input('client', '', "class='form-control'")?></td>
-          <td class='muted'><?php echo $lang->repo->example->client;?></td>
-        </tr>
-        <tr>
-          <th><?php echo $lang->repo->account;?></th>
-          <td><?php echo html::input('account', '', "class='form-control'");?></td>
-        </tr>  
-        <tr>
-          <th><?php echo $lang->repo->password;?></th>
-          <td>
-            <div class='input-group'>
-              <?php echo html::password('password', '', "class='form-control'");?>
-              <span class='input-group-addon fix-border fix-padding'></span>
-              <?php echo html::select('encrypt', $lang->repo->encryptList, 'base64', "class='form-control'");?>
-            </div>
-          </td>
-        </tr>  
-        <tr>
-          <th><?php echo $lang->repo->acl;?></th>
-          <td class='acl'>
-            <div class='input-group mgb-10'>
-              <span class='input-group-addon'><?php echo $lang->repo->group?></span>
-              <?php echo html::select('acl[groups][]', $groups, '', "class='form-control chosen' multiple")?>
-            </div>
-            <div class='input-group'>
-              <span class='input-group-addon user-addon'><?php echo $lang->repo->user?></span>
-              <?php echo html::select('acl[users][]', $users, '', "class='form-control chosen' multiple")?>
-            </div>
-          </td>
-        </tr>  
-        <tr>
-          <td colspan='3' class='text-center form-actions'>
-            <?php echo html::submitButton();?>
-            <?php echo html::backButton();?>
-          </td>
-        </tr>
-      </table>
-    </form>
   </div>
 </div>
-<?php include '../../common/view/footer.html.php';?>
+<?php include '../../common/view/footer.html.php'; ?>

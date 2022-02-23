@@ -14,6 +14,7 @@ $lang->testreport->product     = $lang->productCommon;
 $lang->testreport->bugTitle    = 'Bug Titel';
 $lang->testreport->storyTitle  = 'Story Titel';
 $lang->testreport->project     = 'Projekt';
+$lang->testreport->execution   = 'Execution';
 $lang->testreport->testtask    = 'Test Build';
 $lang->testreport->tasks       = $lang->testreport->testtask;
 $lang->testreport->startEnd    = 'Start&Ende';
@@ -48,6 +49,7 @@ $lang->testreport->legendLegacyBugs  = 'Legacy Bugs';
 $lang->testreport->legendReport      = 'Bericht';
 $lang->testreport->legendComment     = 'Summe';
 $lang->testreport->legendMore        = 'Mehr';
+$lang->testreport->date              = 'Date';
 
 $lang->testreport->bugSeverityGroups   = 'Nach Dringlichkeit';
 $lang->testreport->bugTypeGroups       = 'Nach Typ';
@@ -56,9 +58,16 @@ $lang->testreport->bugOpenedByGroups   = 'Nach Ersteller';
 $lang->testreport->bugResolvedByGroups = 'Nach Löser';
 $lang->testreport->bugResolutionGroups = 'Nach Lösung';
 $lang->testreport->bugModuleGroups     = 'Nach Modul';
+$lang->testreport->bugStageGroups      = 'Bug Priority Distribution';
+$lang->testreport->bugHandleGroups     = 'Distribution of daily bug processing';
 $lang->testreport->legacyBugs          = 'Legacy Bugs';
 $lang->testreport->bugConfirmedRate    = 'Bestätigte Bugs Rate (Lösung ist gelöst oder verschoben / Status ist gelöst oder Geschlossen)';
 $lang->testreport->bugCreateByCaseRate = 'Bug in Fall Rate (Bugs erstellt in Fall / Neu hinzugefügte Bugs)';
+
+$lang->testreport->bugStageList = array();
+$lang->testreport->bugStageList['generated'] = 'Generated Bugs';
+$lang->testreport->bugStageList['legacy']    = 'Legacy Bugs';
+$lang->testreport->bugStageList['resolved']  = 'Resolved Bugs';
 
 $lang->testreport->caseSummary    = ' <strong>%s</strong> Fälle in Summe : <strong>%s</strong> ausgeführt, <strong>%s</strong> Ergebnisse, <strong>%s</strong> fehlgeschlagen.';
 $lang->testreport->buildSummary   = 'Getsetetes <strong>%s</strong> Build.';
@@ -71,8 +80,9 @@ $lang->testreport->legacyBugTip   = "Aktive Bugs, oder gelöst nach der Testperi
 $lang->testreport->fromCaseBugTip = "Bugs created after case-failure in the test period.";
 $lang->testreport->errorTrunk     = "Die Trunk Version kann kein Testbericht erstellen. Bitte passen Sie die zugeordnete Version an!";
 $lang->testreport->noTestTask     = "No test requests for this {$lang->productCommon}, so no reports can be generated. Please go to {$lang->productCommon} which has test requests and then generate the report.";
-$lang->testreport->noObjectID     = "No test request or {$lang->projectCommon} is selected, so no report can be generated.";
+$lang->testreport->noObjectID     = "No test request or {$lang->executionCommon} is selected, so no report can be generated.";
 $lang->testreport->moreProduct    = "Ein Testbericht kann nur innerhalb des selben Produkts erstellt werden.";
+$lang->testreport->hiddenCase     = "Hide %s use cases";
 
 $lang->testreport->bugSummary = <<<EOD
 <strong>%s</strong> Bug(s) in Summe erstellt <a data-toggle='tooltip' class='text-warning' title='{$lang->testreport->foundBugTip}'><i class='icon-exclamation-sign'></i></a>,

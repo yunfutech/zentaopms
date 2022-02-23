@@ -17,25 +17,23 @@
     <ul class='nav nav-default'>
       <?php
       $that = zget($lang->user->thirdPerson, $user->gender);
-      echo "<li class='active'>"  . html::a($this->createLink('user', 'testtask', "account=$account"),  sprintf($lang->user->testTask2Him, $that)) . "</li>";
-      echo "<li>"  . html::a($this->createLink('user', 'testcase', "account=$account&type=case2Him"),  sprintf($lang->user->case2Him, $that)) . "</li>";
-      echo "<li>" . html::a($this->createLink('user', 'testcase', "account=$account&type=caseByHim"),  sprintf($lang->user->caseByHim, $that)) . "</li>";
+      echo "<li class='active'>" . html::a($this->createLink('user', 'testtask', "userID={$user->id}"), sprintf($lang->user->testTask2Him, $that)) . "</li>";
       ?>
     </ul>
   </nav>
 
   <div class='main-table'>
     <table class='table has-sort-head'>
-      <?php $vars = "account=$account&orderBy=%s&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID"; ?>
+      <?php $vars = "userID={$user->id}&orderBy=%s&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID"; ?>
       <thead>
         <tr>
-          <th class='w-id'>   <?php common::printOrderLink('id',      $orderBy, $vars, $lang->idAB);?></th>
-          <th>                <?php common::printOrderLink('name',    $orderBy, $vars, $lang->testtask->name);?></th>
-          <th>                <?php common::printOrderLink('project', $orderBy, $vars, $lang->testtask->project);?></th>
-          <th>                <?php common::printOrderLink('build',   $orderBy, $vars, $lang->testtask->build);?></th>
-          <th class='w-100px'><?php common::printOrderLink('begin',   $orderBy, $vars, $lang->testtask->begin);?></th>
-          <th class='w-100px'><?php common::printOrderLink('end',     $orderBy, $vars, $lang->testtask->end);?></th>
-          <th class='w-80px'> <?php common::printOrderLink('status',  $orderBy, $vars, $lang->statusAB);?></th>
+          <th class='c-id'>    <?php common::printOrderLink('id',      $orderBy, $vars, $lang->idAB);?></th>
+          <th>                 <?php common::printOrderLink('name',    $orderBy, $vars, $lang->testtask->name);?></th>
+          <th>                 <?php common::printOrderLink('project', $orderBy, $vars, $lang->testtask->execution);?></th>
+          <th>                 <?php common::printOrderLink('build',   $orderBy, $vars, $lang->testtask->build);?></th>
+          <th class='c-date'>  <?php common::printOrderLink('begin',   $orderBy, $vars, $lang->testtask->begin);?></th>
+          <th class='c-date'>  <?php common::printOrderLink('end',     $orderBy, $vars, $lang->testtask->end);?></th>
+          <th class='c-status'><?php common::printOrderLink('status',  $orderBy, $vars, $lang->statusAB);?></th>
         </tr>
       </thead>
       <tbody>
@@ -43,7 +41,7 @@
         <tr>
           <td><?php echo html::a($this->createLink('testtask', 'view', "taskID=$task->id"), sprintf('%03d', $task->id));?></td>
           <td class='text-left nobr'><?php echo html::a($this->createLink('testtask', 'view', "taskID=$task->id"), $task->name);?></td>
-          <td class='nobr'><?php echo $task->projectName?></td>
+          <td class='nobr'><?php echo $task->executionName?></td>
           <td class='nobr'><?php $task->build == 'trunk' ? print($lang->trunk) : print(html::a($this->createLink('build', 'view', "buildID=$task->build"), $task->buildName));?></td>
           <td><?php echo $task->begin?></td>
           <td><?php echo $task->end?></td>

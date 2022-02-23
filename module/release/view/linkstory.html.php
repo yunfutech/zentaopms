@@ -18,10 +18,10 @@
     </div>
     <table class='table tablesorter'>
       <thead>
-        <tr class='text-center'>
+        <tr>
           <th class='c-id text-left'>
             <?php if($allStories):?>
-            <div class="checkbox-primary check-all" title="<?php echo $lang->selectAll?>">
+            <div class="checkbox-primary check-all tablesorter-noSort" title="<?php echo $lang->selectAll?>">
               <label></label>
             </div>
             <?php endif;?>
@@ -29,18 +29,16 @@
           </th>
           <th class='c-pri'><?php echo $lang->priAB;?></th>
           <th class='text-left'><?php echo $lang->story->title;?></th>
-          <th class='c-user'>  <?php echo $lang->openedByAB;?></th>
-          <th class='c-user'>  <?php echo $lang->assignedToAB;?></th>
-          <th class='w-50px'>  <?php echo $lang->story->estimateAB;?></th>
+          <th class='c-user'><?php echo $lang->openedByAB;?></th>
+          <th class='c-user'><?php echo $lang->assignedToAB;?></th>
+          <th class='c-estimate text-right'><?php echo $lang->story->estimateAB;?></th>
           <th class='c-status'><?php echo $lang->statusAB;?></th>
-          <th class='w-80px'><?php echo $lang->story->stageAB;?></th>
+          <th class='c-stage'><?php echo $lang->story->stageAB;?></th>
         </tr>
       </thead>
-      <tbody class='text-center'>
+      <tbody>
         <?php $unlinkedCount = 0;?>
         <?php foreach($allStories as $story):?>
-        <?php if(strpos(",{$release->stories},", ",{$story->id},") !== false) continue; ?>
-        <?php if($release->product != $story->product) continue; ?>
         <tr>
           <td class='c-id text-left'>
             <div class="checkbox-primary">
@@ -50,10 +48,15 @@
             <?php printf('%03d', $story->id);?>
           </td>
           <td><span class='label-pri <?php echo 'label-pri-' . $story->pri;?>' title='<?php echo zget($lang->story->priList, $story->pri)?>'><?php echo zget($lang->story->priList, $story->pri)?></span></td>
-          <td class='text-left nobr' title='<?php echo $story->title?>'><?php echo html::a($this->createLink('story', 'view', "storyID=$story->id", '', true), $story->title, '', "data-toggle='modal' data-type='iframe' data-width='90%'");?></td>
+          <td class='text-left nobr c-name' title='<?php echo $story->title?>'>
+            <?php
+            if($story->parent > 0) echo "<span class='label'>{$lang->story->childrenAB}</span>";
+            echo html::a($this->createLink('story', 'view', "storyID=$story->id", '', true), $story->title, '', "data-toggle='modal' data-type='iframe' data-width='90%'");
+            ?>
+          </td>
           <td><?php echo zget($users, $story->openedBy);?></td>
           <td><?php echo zget($users, $story->assignedTo);?></td>
-          <td><?php echo $story->estimate;?></td>
+          <td class='text-right' title="<?php echo $story->estimate . ' ' . $lang->hourCommon;?>"><?php echo $story->estimate . $config->hourUnit;?></td>
           <td><span class='status-story status-<?php echo $story->status?>'><?php echo $this->processStatus('story', $story);?></span></td>
           <td><?php echo zget($lang->story->stageList, $story->stage);?></td>
         </tr>
@@ -72,9 +75,14 @@
         <?php echo html::a(inlink('view', "releaseID=$release->id&type=story"), $lang->goback, '', "class='btn'");?>
       </div>
       <div class='table-statistic'></div>
+      <?php $pager->show('right', 'pagerjs');?>
     </div>
   </form>
 </div>
 <script>
-$(function(){$('#unlinkStoryList .tablesorter').sortTable();});
+$(function()
+{
+    $('#unlinkStoryList .tablesorter').sortTable();
+    setForm();
+});
 </script>

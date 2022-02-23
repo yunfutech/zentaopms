@@ -11,6 +11,8 @@
  */
 $lang->user->common           = 'Utilisateur';
 $lang->user->id               = 'ID';
+$lang->user->inside           = 'Inside Members';
+$lang->user->outside          = 'Outside Members';
 $lang->user->company          = 'Entreprise';
 $lang->user->dept             = 'Compartiment';
 $lang->user->account          = 'Compte';
@@ -49,6 +51,11 @@ $lang->user->newPassword      = 'Nouveau Password';
 $lang->user->verifyPassword   = 'Mot de Passe';
 $lang->user->resetPassword    = 'Password oublié ?';
 $lang->user->score            = 'Score';
+$lang->user->name             = 'Name';
+$lang->user->type             = 'User Type';
+$lang->user->cropAvatar       = 'Crop Avatar';
+$lang->user->cropAvatarTip    = 'Drag and drop the box to select the image clipping range.';
+$lang->user->cropImageTip     = 'The image used is too small, the recommended image size is at least 48x48, the current image size is %s';
 
 $lang->user->legendBasic        = 'Informations de Base';
 $lang->user->legendContribution = 'Contribution';
@@ -63,6 +70,8 @@ $lang->user->unlock        = "Débloquer Utilisateur";
 $lang->user->delete        = "Supprimer Utilisateur";
 $lang->user->unbind        = "Dissocier de Zdoo";
 $lang->user->login         = "Login";
+$lang->user->bind          = "Bind User";
+$lang->user->oauthRegister = "Register a new account";
 $lang->user->mobileLogin   = "Mobile";
 $lang->user->editProfile   = "Editer Profil";
 $lang->user->deny          = "Your access is denied.";
@@ -74,6 +83,7 @@ $lang->user->asGuest       = "Invité";
 $lang->user->goback        = "Retour";
 $lang->user->deleted       = '(Supprimé)';
 $lang->user->search        = 'Recherche';
+$lang->user->else          = 'Else';
 
 $lang->user->saveTemplate          = 'Sauver comme Modèle';
 $lang->user->setPublic             = 'Définir comme Modèle Public';
@@ -82,19 +92,22 @@ $lang->user->setTemplateTitle      = 'Entrez le titre du Modèle.';
 $lang->user->applyTemplate         = 'Modèles';
 $lang->user->confirmDeleteTemplate = 'Voulez-vous vraiment supprimer ce modèle ?';
 $lang->user->setPublicTemplate     = 'Définir comme Modèle Public';
-$lang->user->tplContentNotEmpty    = 'The template content cannot be empty!';
+$lang->user->tplContentNotEmpty    = 'Le contenu du modèle ne peut pas être vide !';
 
-$lang->user->profile     = 'Profil';
-$lang->user->project     = $lang->projectCommon . 's';
-$lang->user->task        = 'Tâches';
-$lang->user->bug         = 'Bugs';
-$lang->user->test        = 'Test';
-$lang->user->testTask    = 'Recettes';
-$lang->user->testCase    = 'CasTests';
-$lang->user->schedule    = 'Agenda';
-$lang->user->todo        = 'Todo List';
-$lang->user->story       = 'Stories';
-$lang->user->dynamic     = 'Historique';
+$lang->user->profile   = 'Profil';
+$lang->user->project   = $lang->executionCommon . 's';
+$lang->user->execution = 'Execution';
+$lang->user->task      = 'Tâches';
+$lang->user->bug       = 'Bugs';
+$lang->user->test      = 'Test';
+$lang->user->testTask  = 'Recettes';
+$lang->user->testCase  = 'CasTests';
+$lang->user->issue     = 'Issue';
+$lang->user->risk      = 'Risk';
+$lang->user->schedule  = 'Agenda';
+$lang->user->todo      = 'Todo List';
+$lang->user->story     = 'Stories';
+$lang->user->dynamic   = 'Historique';
 
 $lang->user->openedBy    = 'Créé par %s';
 $lang->user->assignedTo  = 'Assigné à %s';
@@ -108,13 +121,13 @@ $lang->user->testTask2Him = 'Recette assignée à %s';
 $lang->user->case2Him     = 'CasTest assigné à %s';
 $lang->user->caseByHim    = 'CasTest créé par %s';
 
-$lang->user->errorDeny    = "Sorry, your access to <b>%s</b> of <b>%s</b> is denied. Please contact your Admin to get privileges. Click Back to return.";
-$lang->user->errorView    = "Sorry, your access view <b>%s</b> is denied. Please contact your Admin to get privileges. Click Back to return.";
+$lang->user->errorDeny    = "Sorry, your access to <b>%2\$s</b> of <b>%1\$s</b> is denied. Please contact your Admin to get privileges. Return to home page or login again.";
+$lang->user->errorView    = "Sorry, your access view <b>%s</b> is denied. Please contact your Admin to get privileges. Return to home page or login again.";
 $lang->user->loginFailed  = "Echec de connexion. Vérifiez votre login et mot de passe.";
 $lang->user->lockWarning  = "Vous avez %s essais.";
 $lang->user->loginLocked  = "Votre compte est bloqué. Contactez l'administrateur pour débloquer votre compte ou attendez %s minutes pour une nouvelle tentative.";
 $lang->user->weakPassword = "Votre mot de passe ne respecte pas les règles de sécurité.";
-$lang->user->errorWeak    = "Passwords cannot use [%s] these commonly used weak passwords.";
+$lang->user->errorWeak    = "Les mots de passe ne peuvent pas utiliser ces [%s] mots de passe faibles couramment utilisés.";
 
 $lang->user->roleList['']       = '';
 $lang->user->roleList['dev']    = 'Développeur';
@@ -133,6 +146,9 @@ $lang->user->genderList['f'] = 'Femme';
 $lang->user->thirdPerson['m'] = 'lui';
 $lang->user->thirdPerson['f'] = 'lui';
 
+$lang->user->typeList['inside']  = $lang->user->inside;
+$lang->user->typeList['outside'] = $lang->user->outside;
+
 $lang->user->passwordStrengthList[0] = "<span style='color:red'>Faible</span>";
 $lang->user->passwordStrengthList[1] = "<span style='color:#000'>Bon</span>";
 $lang->user->passwordStrengthList[2] = "<span style='color:green'>Fort</span>";
@@ -140,11 +156,18 @@ $lang->user->passwordStrengthList[2] = "<span style='color:green'>Fort</span>";
 $lang->user->statusList['active'] = 'Actif';
 $lang->user->statusList['delete'] = 'Supprimé';
 
-$lang->user->personalData['createdTodo']  = 'Entrées Agenda Créées';
-$lang->user->personalData['createdStory'] = 'Stories Créées';
-$lang->user->personalData['finishedTask'] = 'Tâches Terminées';
-$lang->user->personalData['resolvedBug']  = 'Bugs Résolus';
-$lang->user->personalData['createdCase']  = 'CasTests Créés';
+$lang->user->personalData['createdTodos']        = 'Todos Created';
+$lang->user->personalData['createdRequirements'] = "Requirements Created";
+$lang->user->personalData['createdStories']      = "Stories Created";
+$lang->user->personalData['finishedTasks']       = 'Tasks Finished';
+$lang->user->personalData['createdBugs']         = 'Bugs Created';
+$lang->user->personalData['resolvedBugs']        = 'Bugs Resolved';
+$lang->user->personalData['createdCases']        = 'Cases Created';
+$lang->user->personalData['createdRisks']        = 'Risks Created';
+$lang->user->personalData['resolvedRisks']       = 'Risks Resolved';
+$lang->user->personalData['createdIssues']       = 'Issues Created';
+$lang->user->personalData['resolvedIssues']      = 'Issues Resolved';
+$lang->user->personalData['createdDocs']         = 'Docs Created';
 
 $lang->user->keepLogin['on']      = 'Rester connecté';
 $lang->user->loginWithDemoUser    = "Se connecté en tant qu'invité :";
@@ -176,11 +199,12 @@ $lang->user->error->realname      = "ID %s，doit être votre véritable nom";
 $lang->user->error->password      = "ID %s，Mot de passe doit être >= 6 caractères.";
 $lang->user->error->mail          = "ID %s，entrez une adresse mail valide";
 $lang->user->error->reserved      = "ID %s，compte réservé. Vous ne pouvez pas l'utiliser.";
-$lang->user->error->weakPassword   = "ID %s，the password strength is less than the system setting.";
-$lang->user->error->dangerPassword = "ID %s，Passwords cannot be used with [%s] these commonly used if-passwords.";
+$lang->user->error->weakPassword   = "ID %s，la force du mot de passe est inférieure au paramètrage système.";
+$lang->user->error->dangerPassword = "ID %s，Les mots de passe ne peuvent pas utiliser ces [%s] mots de passe faibles couramment utilisés.";
 
 $lang->user->error->verifyPassword   = "Vérification en échec. Entrez votre Mot de Passe de Connexion.";
 $lang->user->error->originalPassword = "Ancien Mot de Passe incorrect.";
+$lang->user->error->noAccess         = "This user is not from your department. You have no access to this user information.";
 
 $lang->user->contactFieldList['phone']    = $lang->user->phone;
 $lang->user->contactFieldList['mobile']   = $lang->user->mobile;
@@ -190,6 +214,9 @@ $lang->user->contactFieldList['weixin']   = $lang->user->weixin;
 $lang->user->contactFieldList['skype']    = $lang->user->skype;
 $lang->user->contactFieldList['slack']    = $lang->user->slack;
 $lang->user->contactFieldList['whatsapp'] = $lang->user->whatsapp;
+
+$lang->user->executionTypeList['stage']  = 'Stage';
+$lang->user->executionTypeList['sprint'] = $lang->iterationCommon;
 
 $lang->user->contacts = new stdclass();
 $lang->user->contacts->common   = 'Contacts';
@@ -205,12 +232,33 @@ $lang->user->contacts->noListYet     = 'Aucune liste de contacts existante. Cré
 $lang->user->contacts->confirmDelete = 'Voulez-vous supprimer cette liste de contacts ?';
 $lang->user->contacts->or            = ' ou ';
 
-$lang->user->resetFail       = "ECHEC. Vérifiez votre compte.";
-$lang->user->resetSuccess    = "Reset ! Utilisez votre nouveau mot de passe pour vous connecter.";
-$lang->user->noticeResetFile = "<h5>Contactez l'administrateur pour réinitialiser votre mot de passe.</h5>
+$lang->user->resetFail        = "ECHEC. Vérifiez votre compte.";
+$lang->user->resetSuccess     = "Reset ! Utilisez votre nouveau mot de passe pour vous connecter.";
+$lang->user->noticeDelete     = 'Do you want to delete "%s" from ZenTao?';
+$lang->user->noticeHasDeleted = "This user has been deleted. If you want to view it, please go to the Admin-System-Data-Recycle to restore it.";
+$lang->user->noticeResetFile  = "<h5>Contactez l'administrateur pour réinitialiser votre mot de passe.</h5>
     <h5>Si vous êtres l'administrateur, connectez-vous au serveur Zentao et créez un fichier vide nommé <span> '%s' </span>.</h5>
     <p>Note :</p>
     <ol>
     <li>Gardez ce fichier vide.</li>
     <li>Si le fichier existe déjà, supprimez le et créez le à nouveau.</li><li>Bonne chance.</li>
     </ol>";
+$lang->user->notice4Safe = "Warning: Weak password of one click package detected";
+$lang->user->process4DIR = "It is detected that you may be using the one click installation package environment. Other sites in the environment are still using simple passwords. For security reasons, if you do not use other sites, please handle them in time. Delete or rename the %s directory. Visit: <a href='https://www.zentao.pm/book/zentaomanual/fix-weak-password-564.html' target='_blank'>https://www.zentao.pm/book/zentaomanual/fix-weak-password-564.html</a>";
+$lang->user->process4DB  = "It is detected that you may be using the one click installation package environment. Other sites in the environment are still using simple passwords. For security reasons, if you do not use other sites, please handle them in time. Please login database and modify password field of zt_user table of %s database. Visit: <a href='https://www.zentao.pm/book/zentaomanual/fix-weak-password-564.html' target='_blank'>https://www.zentao.pm/book/zentaomanual/fix-weak-password-564.html</a>";
+$lang->user->mkdirWin = <<<EOT
+    <html><head><meta charset='utf-8'></head>
+    <body><table align='center' style='width:700px; margin-top:100px; border:1px solid gray; font-size:14px;'><tr><td style='padding:8px'>
+    <div style='margin-bottom:8px;'>不能创建临时目录，请确认目录<strong style='color:#ed980f'>%s</strong>是否存在并有操作权限。</div>
+    <div>Can't create tmp directory, make sure the directory <strong style='color:#ed980f'>%s</strong> exists and has permission to operate.</div>
+    </td></tr></table></body></html>
+EOT;
+$lang->user->mkdirLinux = <<<EOT
+    <html><head><meta charset='utf-8'></head>
+    <body><table align='center' style='width:700px; margin-top:100px; border:1px solid gray; font-size:14px;'><tr><td style='padding:8px'>
+    <div style='margin-bottom:8px;'>不能创建临时目录，请确认目录<strong style='color:#ed980f'>%s</strong>是否存在并有操作权限。</div>
+    <div style='margin-bottom:8px;'>命令为：<strong style='color:#ed980f'>chmod o=rwx -R %s</strong>。</div>
+    <div>Can't create tmp directory, make sure the directory <strong style='color:#ed980f'>%s</strong> exists and has permission to operate.</div>
+    <div style='margin-bottom:8px;'>Commond: <strong style='color:#ed980f'>chmod o=rwx -R %s</strong>.</div>
+    </td></tr></table></body></html>
+EOT;

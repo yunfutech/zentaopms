@@ -1,5 +1,4 @@
 <?php
-
 /**
  * The control file of task module of ZenTaoPMS.
  *
@@ -22,34 +21,39 @@ class task extends control
     {
         parent::__construct($module, $method);
         $this->loadModel('project');
+        $this->loadModel('execution');
         $this->loadModel('story');
         $this->loadModel('tree');
-
-        if ($this->config->global->flow == 'onlyTask') {
-            $this->config->task->customCreateFields        = str_replace(array('story,'), '', $this->config->task->customCreateFields);
-            $this->config->task->customBatchCreateFields   = str_replace(array('story,'), '', $this->config->task->customBatchCreateFields);
-            $this->config->task->custom->batchCreateFields = str_replace(array('story,'), '', $this->config->task->custom->batchCreateFields);
-        }
     }
 
     /**
      * Create a task.
      *
-     * @param  int    $projectID
+     * @param  int    $executionID
      * @param  int    $storyID
      * @param  int    $moduleID
      * @param  int    $taskID
      * @param  int    $todoID
+     * @param  string $extra
      * @access public
      * @return void
      */
-    public function create($projectID = 0, $storyID = 0, $moduleID = 0, $taskID = 0, $todoID = 0)
+    public function create($executionID = 0, $storyID = 0, $moduleID = 0, $taskID = 0, $todoID = 0, $extra = '')
     {
-        $this->project->getLimitedProject();
-        $limitedProjects = !empty($_SESSION['limitedProjects']) ? $_SESSION['limitedProjects'] : '';
-        if (strpos(",{$limitedProjects},", ",$projectID,") !== false) {
+        if(empty($this->app->user->view->sprints) and !$executionID) $this->locate($this->createLink('execution', 'create'));
+        $extra = str_replace(array(',', ' '), array('&', ''), $extra);
+        parse_str($extra, $output);
+
+        $executions  = $this->execution->getPairs();
+        $executionID = $this->execution->saveState($executionID, $executions);
+        $this->execution->setMenu($executionID);
+
+        $this->execution->getLimitedExecution();
+        $limitedExecutions = !empty($_SESSION['limitedExecutions']) ? $_SESSION['limitedExecutions'] : '';
+        if(strpos(",{$limitedExecutions},", ",$executionID,") !== false)
+        {
             echo js::alert($this->lang->task->createDenied);
-            die(js::locate($this->createLink('project', 'task', "projectID=$projectID")));
+            die(js::locate($this->createLink('execution', 'task', "executionID=$executionID")));
         }
 
         $task = new stdClass();
@@ -62,124 +66,179 @@ class task extends control
         $task->estimate   = '';
         $task->desc       = '';
         $task->estStarted = '';
-        if (helper::hour() >= $this->config->task->deadlinePoint) {
-            $task->deadline = helper::tomorrow();
-        } else {
-            $task->deadline = helper::today();
-        }
+        $task->deadline   = '';
+        $task->mailto     = '';
         $task->color      = '';
-        if ($taskID > 0) {
-            $task      = $this->task->getByID($taskID);
-            $projectID = $task->project;
+        if($taskID > 0)
+        {
+            $task        = $this->task->getByID($taskID);
+            $executionID = $task->execution;
         }
 
-        if ($todoID > 0) {
+        if($todoID > 0)
+        {
             $todo = $this->loadModel('todo')->getById($todoID);
             $task->name = $todo->name;
             $task->pri  = $todo->pri;
             $task->desc = $todo->desc;
         }
 
-        $project   = $this->project->getById($projectID);
-        $taskLink  = $this->createLink('project', 'browse', "projectID=$projectID&tab=task");
-        $storyLink = $this->session->storyList ? $this->session->storyList : $this->createLink('project', 'story', "projectID=$projectID");
-
-        $task->mailto = $project->PO;
+        $execution = $this->execution->getById($executionID);
+        $taskLink  = $this->createLink('execution', 'browse', "executionID=$executionID&tab=task");
 
         /* Set menu. */
-        $this->project->setMenu($this->project->getPairs(), $project->id);
+        $this->execution->setMenu($execution->id);
 
-        if (!empty($_POST)) {
+        if(!empty($_POST))
+        {
             $response['result']  = 'success';
             $response['message'] = $this->lang->saveSuccess;
 
-            if ($this->post->project) $projectID = $this->post->project;
-            $tasksID = $this->task->create($projectID);
-            if (dao::isError()) {
+            setcookie('lastTaskModule', (int)$this->post->module, $this->config->cookieLife, $this->config->webRoot, '', $this->config->cookieSecure, false);
+            if($this->post->execution) $executionID = (int)$this->post->execution;
+
+            /* Create task here. */
+            $tasksID = $this->task->create($executionID);
+            if(dao::isError())
+            {
                 $response['result']  = 'fail';
                 $response['message'] = dao::getError();
-                $this->send($response);
+                return $this->send($response);
             }
 
             /* if the count of tasksID is 1 then check exists. */
-            if (count($tasksID) == 1) {
+            if(count($tasksID) == 1)
+            {
                 $taskID = current($tasksID);
-                if ($taskID['status'] == 'exists') {
+                if($taskID['status'] == 'exists')
+                {
                     $response['locate']  = $this->createLink('task', 'view', "taskID={$taskID['id']}");
                     $response['message'] = sprintf($this->lang->duplicate, $this->lang->task->common);
-                    $this->send($response);
+                    return $this->send($response);
                 }
             }
 
             /* Create actions. */
             $this->loadModel('action');
-            foreach ($tasksID as $taskID) {
+            foreach($tasksID as $taskID)
+            {
                 /* if status is exists then this task has exists not new create. */
-                if ($taskID['status'] == 'exists') continue;
+                if($taskID['status'] == 'exists') continue;
 
                 $taskID   = $taskID['id'];
                 $this->action->create('task', $taskID, 'Opened', '');
             }
 
-            /* If link from no head then reload*/
-            if (isonlybody()) {
-                $this->executeHooks($taskID);
-                $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'parent'));
-            }
+            $this->loadModel('kanban');
+            $kanbanID = $execution->type == 'kanban' ? $executionID : $_POST['execution'];
+            if(isset($output['laneID']) and isset($output['columnID'])) $this->kanban->addKanbanCell($kanbanID, $output['laneID'], $output['columnID'], 'task', $taskID);
+            if(!isset($output['laneID']) or !isset($output['columnID'])) $this->kanban->updateLane($kanbanID, 'task');
 
-            if ($todoID > 0) {
+            if($todoID > 0)
+            {
                 $this->dao->update(TABLE_TODO)->set('status')->eq('done')->where('id')->eq($todoID)->exec();
                 $this->action->create('todo', $todoID, 'finished', '', "TASK:$taskID");
             }
 
             $this->executeHooks($taskID);
 
-            /* Locate the browser. */
-            if ($this->app->getViewType() == 'xhtml') {
-                $taskLink  = $this->createLink('task', 'view', "taskID=$taskID");
-                $response['locate'] = $taskLink;
-                $this->send($response);
+            /* Return task id when call the API. */
+            if($this->viewType == 'json' or (defined('RUN_MODE') && RUN_MODE == 'api')) return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'id' => $taskID));
+
+            /* If link from no head then reload. */
+            if(isonlybody())
+            {
+                if($execution->type == 'kanban' and $this->app->tab == 'execution')
+                {
+                    $kanbanData = $this->kanban->getRDKanban($executionID, $this->session->execLaneType ? $this->session->execLaneType : 'all');
+                    $kanbanData = json_encode($kanbanData);
+
+                    return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'closeModal' => true, 'callback' => "parent.updateKanban($kanbanData, 0)"));
+                }
+                else
+                {
+                    return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'parent'));
+                }
             }
 
-            if ($this->post->after == 'continueAdding') {
+            /* Locate the browser. */
+            if($this->app->getViewType() == 'xhtml')
+            {
+                $taskLink  = $this->createLink('task', 'view', "taskID=$taskID", 'html');
+                $response['locate'] = $taskLink;
+                return $this->send($response);
+            }
+
+            if($this->post->after == 'continueAdding')
+            {
                 $response['message'] = $this->lang->task->successSaved . $this->lang->task->afterChoices['continueAdding'];
-                $response['locate']  = $this->createLink('task', 'create', "projectID=$projectID&storyID={$this->post->story}&moduleID=$moduleID");
-                $this->send($response);
-            } elseif ($this->post->after == 'toTaskList') {
-                setcookie('moduleBrowseParam',  0, 0, $this->config->webRoot, '', false, false);
-                $taskLink  = $this->createLink('project', 'task', "projectID=$projectID&status=unclosed&param=0&orderBy=id_desc");
+                $response['locate']  = $this->createLink('task', 'create', "executionID=$executionID&storyID={$this->post->story}&moduleID=$moduleID");
+                return $this->send($response);
+            }
+            elseif($this->post->after == 'toTaskList')
+            {
+                setcookie('moduleBrowseParam',  0, 0, $this->config->webRoot, '', $this->config->cookieSecure, false);
+                $taskLink  = $this->createLink('execution', 'task', "executionID=$executionID&status=unclosed&param=0&orderBy=id_desc");
                 $response['locate'] = $taskLink;
-                $this->send($response);
-            } elseif ($this->post->after == 'toStoryList') {
-                $response['locate'] = $storyLink;
-                $this->send($response);
-            } else {
+                return $this->send($response);
+            }
+            elseif($this->post->after == 'toStoryList')
+            {
+                $response['locate'] = $this->createLink('execution', 'story', "executionID=$executionID");
+                return $this->send($response);
+            }
+            else
+            {
                 $response['locate'] = $taskLink;
-                $this->send($response);
+                return $this->send($response);
             }
         }
 
         $users            = $this->loadModel('user')->getPairs('noclosed|nodeleted');
-        $members          = $this->project->getTeamMemberPairs($projectID, 'nodeleted');
-        $showAllModule    = isset($this->config->project->task->allModule) ? $this->config->project->task->allModule : '';
-        $moduleOptionMenu = $this->tree->getTaskOptionMenu($projectID, 0, 0, $showAllModule ? 'allModule' : '');
+        $members          = $this->loadModel('user')->getTeamMemberPairs($executionID, 'execution', 'nodeleted');
+        $showAllModule    = isset($this->config->execution->task->allModule) ? $this->config->execution->task->allModule : '';
+        $moduleOptionMenu = $this->tree->getTaskOptionMenu($executionID, 0, 0, $showAllModule ? 'allModule' : '');
+
+        /* Fix bug #3381. When the story module is the root module. */
+        if($storyID)
+        {
+            $task->module = $this->dao->findByID($storyID)->from(TABLE_STORY)->fetch('module');
+        }
+        else
+        {
+            $task->module = $task->module ? $task->module : (int)$this->cookie->lastTaskModule;
+            if(!isset($moduleOptionMenu[$task->module])) $task->module = 0;
+        }
 
         /* Fix bug #2737. When moduleID is not story module. */
         $moduleIdList = array();
-        if ($moduleID) {
-            $moduleID     = $this->tree->getStoryModule($moduleID);
+        if($task->module)
+        {
+            $moduleID     = $this->tree->getStoryModule($task->module);
             $moduleIdList = $this->tree->getAllChildID($moduleID);
         }
-        $stories = $this->story->getProjectStoryPairs($projectID, 0, 0, $moduleIdList);
+        $stories = $this->story->getExecutionStoryPairs($executionID, 0, 'all', $moduleIdList, 'full', 'unclosed');
 
-        $title      = $project->name . $this->lang->colon . $this->lang->task->create;
-        $position[] = html::a($taskLink, $project->name);
+        /* Get block id of assinge to me. */
+        $blockID = 0;
+        if(isonlybody())
+        {
+            $blockID = $this->dao->select('id')->from(TABLE_BLOCK)
+                ->where('block')->eq('assingtome')
+                ->andWhere('module')->eq('my')
+                ->andWhere('account')->eq($this->app->user->account)
+                ->orderBy('order_desc')
+                ->fetch('id');
+        }
+
+        $title      = $execution->name . $this->lang->colon . $this->lang->task->create;
+        $position[] = html::a($taskLink, $execution->name);
         $position[] = $this->lang->task->common;
         $position[] = $this->lang->task->create;
 
         /* Set Custom*/
-        foreach (explode(',', $this->config->task->customCreateFields) as $field) $customFields[$field] = $this->lang->task->$field;
-        if ($project->type == 'ops') unset($customFields['story']);
+        foreach(explode(',', $this->config->task->customCreateFields) as $field) $customFields[$field] = $this->lang->task->$field;
+        if($execution->type == 'ops') unset($customFields['story']);
 
         $this->view->customFields  = $customFields;
         $this->view->showFields    = $this->config->task->custom->createFields;
@@ -187,91 +246,138 @@ class task extends control
 
         $this->view->title            = $title;
         $this->view->position         = $position;
-        $this->view->project          = $project;
-        $this->view->projects         = $this->loadModel('project')->getPairs();
+        $this->view->gobackLink       = (isset($output['from']) and $output['from'] == 'global') ? $this->createLink('execution', 'task', "executionID=$executionID") : '';
+        $this->view->execution        = $execution;
+        $this->view->executions       = $this->config->systemMode == 'classic' ? $executions : $this->execution->getByProject(0, 'undone', 0, true);
         $this->view->task             = $task;
         $this->view->users            = $users;
+        $this->view->storyID          = $storyID;
         $this->view->stories          = $stories;
-        $this->view->testStoryIdList  = $this->loadModel('story')->getTestStories(array_keys($stories), $project->id);
+        $this->view->testStoryIdList  = $this->loadModel('story')->getTestStories(array_keys($stories), $execution->id);
         $this->view->members          = $members;
+        $this->view->blockID          = $blockID;
         $this->view->moduleOptionMenu = $moduleOptionMenu;
+
         $this->display();
     }
 
     /**
      * Batch create task.
      *
-     * @param int $projectID
-     * @param int $storyID
-     * @param int $iframe
-     * @param int $taskID
+     * @param int    $executionID
+     * @param int    $storyID
+     * @param int    $iframe
+     * @param int    $taskID
+     * @param string $extra
      *
      * @access public
      * @return void
      */
-    public function batchCreate($projectID = 0, $storyID = 0, $moduleID = 0, $taskID = 0, $iframe = 0)
+    public function batchCreate($executionID = 0, $storyID = 0, $moduleID = 0, $taskID = 0, $iframe = 0, $extra = '')
     {
-        $this->project->getLimitedProject();
-        $limitedProjects = !empty($_SESSION['limitedProjects']) ? $_SESSION['limitedProjects'] : '';
-        if (strpos(",{$limitedProjects},", ",$projectID,") !== false) {
+        $this->execution->getLimitedExecution();
+        $limitedExecutions = !empty($_SESSION['limitedExecutions']) ? $_SESSION['limitedExecutions'] : '';
+        if(strpos(",{$limitedExecutions},", ",$executionID,") !== false)
+        {
             echo js::alert($this->lang->task->createDenied);
-            die(js::locate($this->createLink('project', 'task', "projectID=$projectID")));
+            die(js::locate($this->createLink('execution', 'task', "executionID=$executionID")));
         }
 
-        $project   = $this->project->getById($projectID);
-        $taskLink  = $this->createLink('project', 'browse', "projectID=$projectID&tab=task");
-        $storyLink = $this->session->storyList ? $this->session->storyList : $this->createLink('project', 'story', "projectID=$projectID");
+        $execution = $this->execution->getById($executionID);
+        if($this->config->systemMode == 'new')
+        {
+            $project = $this->project->getByID($execution->project);
+            if($project->model == 'waterfall') $this->config->task->create->requiredFields .= ',estStarted,deadline';
+        }
+
+        if($this->app->tab == 'my')
+        {
+            $taskLink = $this->createLink('my', 'work', 'mode=task');
+        }
+        else
+        {
+            $taskLink  = $this->createLink('execution', 'browse', "executionID=$executionID");
+        }
 
         /* Set menu. */
-        $this->project->setMenu($this->project->getPairs(), $project->id);
+        $this->execution->setMenu($execution->id);
 
-        if (!empty($_POST)) {
-            $mails = $this->task->batchCreate($projectID);
-            if (dao::isError()) $this->send(array('result' => 'fail', 'message' => dao::getError()));
+        /* When common task are child tasks, query whether common task are consumed. */
+        $taskConsumed = 0;
+        if($taskID) $taskConsumed = $this->dao->select('consumed')->from(TABLE_TASK)->where('id')->eq($taskID)->andWhere('parent')->eq(0)->fetch('consumed');
 
-            /* Locate the browser. */
-            if (!empty($iframe)) $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'parent'));
-            $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => $storyLink));
+        /* When common task are child tasks, query whether common task are consumed. */
+        $taskConsumed = 0;
+        if($taskID) $taskConsumed = $this->dao->select('consumed')->from(TABLE_TASK)->where('id')->eq($taskID)->andWhere('parent')->eq(0)->fetch('consumed');
+
+        if(!empty($_POST))
+        {
+            $mails = $this->task->batchCreate($executionID, $extra);
+            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+
+            $taskIDList = array();
+            foreach($mails as $mail) $taskIDList[] = $mail->taskID;
+
+            /* Return task id list when call the API. */
+            if($this->viewType == 'json' or (defined('RUN_MODE') && RUN_MODE == 'api')) return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'idList' => $taskIDList));
+
+            /* If link from no head then reload. */
+            if(isonlybody())
+            {
+                if($execution->type == 'kanban' and $this->app->tab == 'execution')
+                {
+                    $kanbanData = $this->loadModel('kanban')->getRDKanban($executionID, $this->session->execLaneType ? $this->session->execLaneType : 'all');
+                    $kanbanData = json_encode($kanbanData);
+
+                    return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'closeModal' => true, 'callback' => "parent.updateKanban($kanbanData, 0)"));
+                }
+                else
+                {
+                    return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'parent'));
+                }
+            }
+            return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => $taskLink));
         }
 
         /* Set Custom*/
-        foreach (explode(',', $this->config->task->customBatchCreateFields) as $field) $customFields[$field] = $this->lang->task->$field;
+        foreach(explode(',', $this->config->task->customBatchCreateFields) as $field) $customFields[$field] = $this->lang->task->$field;
         $this->view->customFields = $customFields;
         $this->view->showFields   = $this->config->task->custom->batchCreateFields;
 
+        $story = $this->story->getByID($storyID);
+        if($story)
+        {
+            $moduleID = $story->module;
+            $stories  = $this->story->getExecutionStoryPairs($executionID, 0, 'all', $moduleID, 'short');
+        }
+        else
+        {
+            $stories = $this->story->getExecutionStoryPairs($executionID, 0, 'all', 0, 'short');
+        }
 
-        $stories = $this->story->getProjectStoryPairs($projectID, 0, 0, 0, 'short');
-        $members = $this->project->getTeamMemberPairs($projectID, 'nodeleted');
+        $members       = $this->loadModel('user')->getTeamMemberPairs($executionID, 'execution', 'nodeleted');
+        $showAllModule = isset($this->config->execution->task->allModule) ? $this->config->execution->task->allModule : '';
+        $modules       = $this->loadModel('tree')->getTaskOptionMenu($executionID, 0, 0, $showAllModule ? 'allModule' : '');
 
-        $showAllModule    = isset($this->config->project->task->allModule) ? $this->config->project->task->allModule : '';
-        $modules       = $this->loadModel('tree')->getTaskOptionMenu($projectID, 0, 0, $showAllModule ? 'allModule' : '');
-
-        $title      = $project->name . $this->lang->colon . $this->lang->task->batchCreate;
-        $position[] = html::a($taskLink, $project->name);
+        $title      = $execution->name . $this->lang->colon . $this->lang->task->batchCreate;
+        $position[] = html::a($taskLink, $execution->name);
         $position[] = $this->lang->task->common;
         $position[] = $this->lang->task->batchCreate;
 
-        if ($taskID) $this->view->parentTitle = $this->dao->select('name')->from(TABLE_TASK)->where('id')->eq($taskID)->fetch('name');
+        if($taskID) $this->view->parentTitle = $this->dao->select('name')->from(TABLE_TASK)->where('id')->eq($taskID)->fetch('name');
 
-        if (helper::hour() >= $this->config->task->deadlinePoint) {
-            $defaultDeadline = helper::tomorrow();
-        } else {
-            $defaultDeadline = helper::today();
-        }
-
-        $this->view->title      = $title;
-        $this->view->position   = $position;
-        $this->view->project    = $project;
-        $this->view->stories    = $stories;
-        $this->view->modules    = $modules;
-        $this->view->parent     = $taskID;
-        $this->view->storyID    = $storyID;
-        $this->view->story      = $this->story->getByID($storyID);
-        $this->view->storyTasks = $this->task->getStoryTaskCounts(array_keys($stories), $projectID);
-        $this->view->members    = $members;
-        $this->view->moduleID   = $moduleID;
-        $this->view->showAllModule = $showAllModule;
-        $this->view->defaultDeadline = $defaultDeadline;
+        $this->view->title        = $title;
+        $this->view->position     = $position;
+        $this->view->execution    = $execution;
+        $this->view->stories      = $stories;
+        $this->view->modules      = $modules;
+        $this->view->parent       = $taskID;
+        $this->view->storyID      = $storyID;
+        $this->view->story        = $story;
+        $this->view->storyTasks   = $this->task->getStoryTaskCounts(array_keys($stories), $executionID);
+        $this->view->members      = $members;
+        $this->view->moduleID     = $moduleID;
+        $this->view->taskConsumed = $taskConsumed;
         $this->display();
     }
 
@@ -284,20 +390,21 @@ class task extends control
      */
     public function commonAction($taskID)
     {
-        $this->view->task    = $this->loadModel('task')->getByID($taskID);
-        $this->view->project = $this->project->getById($this->view->task->project);
-        $this->view->members = $this->project->getTeamMemberPairs($this->view->project->id, 'nodeleted');
-        $this->view->actions = $this->loadModel('action')->getList('task', $taskID);
+        $this->view->task      = $this->loadModel('task')->getByID($taskID);
+        $this->view->execution = $this->execution->getById($this->view->task->execution);
+        $this->view->members   = $this->loadModel('user')->getTeamMemberPairs($this->view->execution->id, 'execution','nodeleted');
+        $this->view->actions   = $this->loadModel('action')->getList('task', $taskID);
 
         /* Set menu. */
-        $this->project->setMenu($this->project->getPairs(), $this->view->project->id);
-        $this->view->position[] = html::a($this->createLink('project', 'browse', "project={$this->view->task->project}"), $this->view->project->name);
+        $this->execution->setMenu($this->view->execution->id);
+        $this->view->position[] = html::a($this->createLink('execution', 'browse', "execution={$this->view->task->execution}"), $this->view->execution->name);
     }
 
     /**
      * Edit a task.
      *
      * @param  int    $taskID
+     * @param  bool   $comment
      * @access public
      * @return void
      */
@@ -305,89 +412,155 @@ class task extends control
     {
         $this->commonAction($taskID);
 
-        if (!empty($_POST)) {
+        if(!empty($_POST))
+        {
             $this->loadModel('action');
             $changes = array();
             $files   = array();
-            if ($comment == false) {
+            if($comment == false)
+            {
                 $changes = $this->task->update($taskID);
-                if (dao::isError()) die(js::error(dao::getError()));
+                if(dao::isError()) return print(js::error(dao::getError()));
                 $files = $this->loadModel('file')->saveUpload('task', $taskID);
             }
 
             $task = $this->task->getById($taskID);
-            if ($this->post->comment != '' or !empty($changes) or !empty($files)) {
-                $action = !empty($changes) ? 'Edited' : 'Commented';
+            if($this->post->comment != '' or !empty($changes) or !empty($files))
+            {
+                $action     = (!empty($changes) or !empty($files)) ? 'Edited' : 'Commented';
                 $fileAction = !empty($files) ? $this->lang->addFiles . join(',', $files) . "\n" : '';
-                $actionID = $this->action->create('task', $taskID, $action, $fileAction . $this->post->comment);
-                if (!empty($changes)) $this->action->logHistory($actionID, $changes);
+                $actionID   = $this->action->create('task', $taskID, $action, $fileAction . $this->post->comment);
+                if(!empty($changes)) $this->action->logHistory($actionID, $changes);
             }
 
             $this->executeHooks($taskID);
 
-            if ($task->fromBug != 0) {
-                foreach ($changes as $change) {
-                    if ($change['field'] == 'status') {
+            if($_POST['status'] == 'doing') $this->loadModel('common')->syncPPEStatus($taskID);
+
+            if($task->fromBug != 0)
+            {
+                foreach($changes as $change)
+                {
+                    if($change['field'] == 'status')
+                    {
                         $confirmURL = $this->createLink('bug', 'view', "id=$task->fromBug");
                         $cancelURL  = $this->server->HTTP_REFERER;
                         die(js::confirm(sprintf($this->lang->task->remindBug, $task->fromBug), $confirmURL, $cancelURL, 'parent', 'parent'));
                     }
                 }
             }
-            if (defined('RUN_MODE') && RUN_MODE == 'api') {
-                die(array('status' => 'success', 'data' => $taskID));
-            } else {
+
+            if(isonlybody())
+            {
+                $execution = $this->execution->getByID($task->execution);
+                if($execution->type == 'kanban' and $this->app->tab == 'execution')
+                {
+                    $kanbanData = $this->loadModel('kanban')->getRDKanban($task->execution, $this->session->execLaneType ? $this->session->execLaneType : 'all');
+                    $kanbanData = json_encode($kanbanData);
+
+                    return print(js::closeModal('parent.parent', '', "parent.parent.updateKanban($kanbanData)"));
+                }
+                else
+                {
+                    return print(js::reload('parent.parent'));
+                }
+            }
+
+            if(defined('RUN_MODE') && RUN_MODE == 'api')
+            {
+                return $this->send(array('status' => 'success', 'data' => $taskID));
+            }
+            else
+            {
                 die(js::locate($this->createLink('task', 'view', "taskID=$taskID"), 'parent'));
             }
         }
 
-        $noclosedProjects = $this->project->getPairs('noclosed,nocode');
-        unset($noclosedProjects[$this->view->project->id]);
-        $this->view->projects = array($this->view->project->id => $this->view->project->name) + $noclosedProjects;
-        $tasks = $this->task->getParentTaskPairs($this->view->project->id);
-        if (isset($tasks[$taskID])) unset($tasks[$taskID]);
+        $tasks = $this->task->getParentTaskPairs($this->view->execution->id, $this->view->task->parent);
+        if(isset($tasks[$taskID])) unset($tasks[$taskID]);
 
-        if (!isset($this->view->members[$this->view->task->assignedTo])) $this->view->members[$this->view->task->assignedTo] = $this->view->task->assignedTo;
+        if($this->config->systemMode == 'classic')
+        {
+            $executionsPair = $this->execution->getPairs();
+        }
+        else
+        {
+            $executionsPair = array();
+            $executions     = $this->execution->getByProject(0, 'all', 0);
+            $projects       = $this->project->getPairsByProgram('', 'noclosed');
+            foreach($executions as $executionId => $execution)
+            {
+                $executionsPair[$executionId] = (isset($projects[$execution->project]) ? $projects[$execution->project] . ' / ' : '') . $execution->name;
+            }
+        }
+
+        if(!isset($this->view->members[$this->view->task->assignedTo])) $this->view->members[$this->view->task->assignedTo] = $this->view->task->assignedTo;
+        if(isset($this->view->members['closed']) or $this->view->task->status == 'closed') $this->view->members['closed']  = 'Closed';
+
         $this->view->title         = $this->lang->task->edit . 'TASK' . $this->lang->colon . $this->view->task->name;
         $this->view->position[]    = $this->lang->task->common;
         $this->view->position[]    = $this->lang->task->edit;
-        $this->view->stories       = $this->story->getProjectStoryPairs($this->view->project->id);
+        $this->view->stories       = $this->story->getExecutionStoryPairs($this->view->execution->id);
         $this->view->tasks         = $tasks;
         $this->view->users         = $this->loadModel('user')->getPairs('nodeleted', "{$this->view->task->openedBy},{$this->view->task->canceledBy},{$this->view->task->closedBy}");
-        $this->view->showAllModule = isset($this->config->project->task->allModule) ? $this->config->project->task->allModule : '';
-        $this->view->modules       = $this->tree->getTaskOptionMenu($this->view->task->project, 0, 0, $this->view->showAllModule ? 'allModule' : '');
+        $this->view->showAllModule = isset($this->config->execution->task->allModule) ? $this->config->execution->task->allModule : '';
+        $this->view->modules       = $this->tree->getTaskOptionMenu($this->view->task->execution, 0, 0, $this->view->showAllModule ? 'allModule' : '');
+        $this->view->executions    = $executionsPair;
         $this->display();
     }
 
     /**
      * Batch edit task.
      *
-     * @param  int    $projectID
+     * @param  int    $executionID
      * @access public
      * @return void
      */
-    public function batchEdit($projectID = 0)
+    public function batchEdit($executionID = 0)
     {
-        if ($this->post->names) {
+        if($this->post->names)
+        {
             $allChanges = $this->task->batchUpdate();
+            if(dao::isError()) die(js::error(dao::getError()));
 
-            if (!empty($allChanges)) {
-                foreach ($allChanges as $taskID => $changes) {
-                    if (empty($changes)) continue;
+            if(!empty($allChanges))
+            {
+                /* updateStatus is a description of whether to update the responsibility performance*/
+                $waitTaskID = false;
+                foreach($allChanges as $taskID => $changes)
+                {
+                    if(empty($changes)) continue;
+
+                    /* Determine whether the status of a task has been changed, if the status of a task has been changed, set $updateStatus to taskID*/
+                    if($waitTaskID == false)
+                    {
+                        foreach($changes as $changeField)
+                        {
+                            if($changeField['field'] == 'status' && $changeField['new'] == 'doing')
+                            {
+                                $waitTaskID = $taskID;
+                                break;
+                            }
+                        }
+                    }
 
                     $actionID = $this->loadModel('action')->create('task', $taskID, 'Edited');
                     $this->action->logHistory($actionID, $changes);
 
                     $task = $this->task->getById($taskID);
-                    if ($task->fromBug != 0) {
-                        foreach ($changes as $change) {
-                            if ($change['field'] == 'status') {
+                    if($task->fromBug != 0)
+                    {
+                        foreach($changes as $change)
+                        {
+                            if($change['field'] == 'status')
+                            {
                                 $confirmURL = $this->createLink('bug', 'view', "id=$task->fromBug");
                                 $cancelURL  = $this->server->HTTP_REFERER;
                                 die(js::confirm(sprintf($this->lang->task->remindBug, $task->fromBug), $confirmURL, $cancelURL, 'parent', 'parent'));
                             }
                         }
                     }
+                    if($waitTaskID !== false) $this->loadModel('common')->syncPPEStatus($waitTaskID);
                 }
             }
             $this->loadModel('score')->create('ajax', 'batchOther');
@@ -396,69 +569,68 @@ class task extends control
 
         $taskIDList = $this->post->taskIDList ? $this->post->taskIDList : die(js::locate($this->session->taskList, 'parent'));
         $taskIDList = array_unique($taskIDList);
-        $showAllModule = isset($this->config->project->task->allModule) ? $this->config->project->task->allModule : '';
-        $this->view->showAllModule    = $showAllModule;
 
-        /* The tasks of project. */
-        if ($projectID) {
-            $project = $this->project->getById($projectID);
-            $this->project->setMenu($this->project->getPairs(), $project->id);
+        /* The tasks of execution. */
+        if($executionID)
+        {
+            $execution = $this->execution->getById($executionID);
+            $this->execution->setMenu($execution->id);
 
             /* Set modules and members. */
-            $stories = $this->story->getProjectStoryPairs($projectID);
-            $projects = $this->project->getPairs('noclosed,nocode');
-            $modules       = $this->tree->getTaskOptionMenu($projectID, 0, 0, $showAllModule ? 'allModule' : '');
+            $showAllModule = isset($this->config->task->allModule) ? $this->config->task->allModule : '';
+            $modules       = $this->tree->getTaskOptionMenu($executionID, 0, 0, $showAllModule ? 'allModule' : '');
             $modules       = array('ditto' => $this->lang->task->ditto) + $modules;
 
-            $members = $this->project->getTeamMemberPairs($projectID, 'nodeleted');
-            $members = array('' => '', 'ditto' => $this->lang->task->ditto) + $members;
-            $members['closed'] = 'Closed';
-
-            $this->view->title      = $project->name . $this->lang->colon . $this->lang->task->batchEdit;
-            $this->view->position[] = html::a($this->createLink('project', 'browse', "project=$project->id"), $project->name);
-            $this->view->project    = $project;
-            $this->view->projects   = $projects;
-            $this->view->stories    = $stories;
+            $this->view->title      = $execution->name . $this->lang->colon . $this->lang->task->batchEdit;
+            $this->view->position[] = html::a($this->createLink('execution', 'browse', "executionID=$execution->id"), $execution->name);
+            $this->view->execution  = $execution;
             $this->view->modules    = $modules;
-            $this->view->members    = $members;
         }
-        /* The tasks of my. */ else {
-            $this->lang->task->menu = $this->lang->my->menu;
-            $this->lang->set('menugroup.task', 'my');
-            $this->lang->task->menuOrder = $this->lang->my->menuOrder;
-            $this->loadModel('my')->setMenu();
+        /* The tasks of my. */
+        else
+        {
+            /* Set my menu. */
+            $this->loadModel('my');
+            $this->lang->my->menu->work['subModule'] = 'task';
+
             $this->view->position[] = html::a($this->createLink('my', 'task'), $this->lang->my->task);
             $this->view->title      = $this->lang->task->batchEdit;
-            $projects = $this->project->getPairs('noclosed,nocode');
-            $this->view->projects   = $projects;
             $this->view->users      = $this->loadModel('user')->getPairs('noletter');
         }
 
         /* Get edited tasks. */
         $tasks = $this->dao->select('*')->from(TABLE_TASK)->where('id')->in($taskIDList)->fetchAll('id');
-        $teams = $this->dao->select('*')->from(TABLE_TEAM)->where('root')->in($taskIDList)->andWhere('type')->eq('task')->fetchAll('root');
+        $teams = $this->dao->select('*')->from(TABLE_TEAM)->where('root')->in($taskIDList)->andWhere('type')->eq('task')->fetchGroup('root', 'account');
+
+        /* Get execution teams. */
+        $executionIDList = array();
+        foreach($tasks as $task) if(!in_array($task->execution, $executionIDList)) $executionIDList[] = $task->execution;
+        $executionTeams = $this->dao->select('*')->from(TABLE_TEAM)->where('root')->in($executionIDList)->andWhere('type')->eq('execution')->fetchGroup('root', 'account');
 
         /* Judge whether the editedTasks is too large and set session. */
         $countInputVars  = count($tasks) * (count(explode(',', $this->config->task->custom->batchEditFields)) + 3);
         $showSuhosinInfo = common::judgeSuhosinSetting($countInputVars);
-        if ($showSuhosinInfo) $this->view->suhosinInfo = extension_loaded('suhosin') ? sprintf($this->lang->suhosinInfo, $countInputVars) : sprintf($this->lang->maxVarsInfo, $countInputVars);
+        if($showSuhosinInfo) $this->view->suhosinInfo = extension_loaded('suhosin') ? sprintf($this->lang->suhosinInfo, $countInputVars) : sprintf($this->lang->maxVarsInfo, $countInputVars);
 
         /* Set Custom*/
-        foreach (explode(',', $this->config->task->customBatchEditFields) as $field) $customFields[$field] = $this->lang->task->$field;
+        foreach(explode(',', $this->config->task->customBatchEditFields) as $field) $customFields[$field] = $this->lang->task->$field;
         $this->view->customFields = $customFields;
         $this->view->showFields   = $this->config->task->custom->batchEditFields;
 
         /* Assign. */
-        $this->view->position[]  = $this->lang->task->common;
-        $this->view->position[]  = $this->lang->task->batchEdit;
-        $this->view->projectID   = $projectID;
-        $this->view->priList     = array('0' => '', 'ditto' => $this->lang->task->ditto) + $this->lang->task->priList;
-        $this->view->statusList  = array('' => '',  'ditto' => $this->lang->task->ditto) + $this->lang->task->statusList;
-        $this->view->typeList    = array('' => '',  'ditto' => $this->lang->task->ditto) + $this->lang->task->typeList;
-        $this->view->taskIDList  = $taskIDList;
-        $this->view->tasks       = $tasks;
-        $this->view->teams       = $teams;
-        $this->view->projectName = isset($project) ? $project->name : '';
+        $this->view->position[]     = $this->lang->task->common;
+        $this->view->position[]     = $this->lang->task->batchEdit;
+        $this->view->executionID    = $executionID;
+        $this->view->priList        = array('0' => '', 'ditto' => $this->lang->task->ditto) + $this->lang->task->priList;
+        $this->view->statusList     = array('' => '',  'ditto' => $this->lang->task->ditto) + $this->lang->task->statusList;
+        $this->view->typeList       = array('' => '',  'ditto' => $this->lang->task->ditto) + $this->lang->task->typeList;
+        $this->view->taskIDList     = $taskIDList;
+        $this->view->tasks          = $tasks;
+        $this->view->teams          = $teams;
+        $this->view->executionTeams = $executionTeams;
+        $this->view->executionName  = isset($execution) ? $execution->name : '';
+        $this->view->executionType  = isset($execution) ? $execution->type : '';
+        $this->view->users          = $this->loadModel('user')->getPairs('nodeleted');
 
         $this->display();
     }
@@ -470,34 +642,60 @@ class task extends control
      * @access public
      * @return void
      */
-    public function assignTo($projectID, $taskID)
+    public function assignTo($executionID, $taskID)
     {
         $this->commonAction($taskID);
 
-        if (!empty($_POST)) {
+        if(!empty($_POST))
+        {
             $this->loadModel('action');
             $changes = $this->task->assign($taskID);
-            if (dao::isError()) die(js::error(dao::getError()));
+
+            if(dao::isError())
+            {
+                if($this->viewType == 'json' or (defined('RUN_MODE') && RUN_MODE == 'api')) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+                die(js::error(dao::getError()));
+            }
+
             $actionID = $this->action->create('task', $taskID, 'Assigned', $this->post->comment, $this->post->assignedTo);
             $this->action->logHistory($actionID, $changes);
 
             $this->executeHooks($taskID);
 
-            if (isonlybody()) die(js::closeModal('parent.parent', 'this'));
-            die(js::locate($this->createLink('task', 'view', "taskID=$taskID"), 'parent'));
+            if($this->viewType == 'json' or (defined('RUN_MODE') && RUN_MODE == 'api')) return $this->send(array('result' => 'success'));
+            if(isonlybody())
+            {
+                $task      = $this->task->getById($taskID);
+                $execution = $this->execution->getByID($task->execution);
+                if($execution->type == 'kanban' and $this->app->tab == 'execution')
+                {
+                    $kanbanData = $this->loadModel('kanban')->getRDKanban($task->execution, $this->session->execLaneType ? $this->session->execLaneType : 'all');
+                    $kanbanData = json_encode($kanbanData);
+
+                    return print(js::closeModal('parent.parent', '', "parent.parent.updateKanban($kanbanData)"));
+                }
+                else
+                {
+                    return print(js::closeModal('parent.parent', 'this'));
+                }
+            }
+            return print(js::locate($this->createLink('task', 'view', "taskID=$taskID"), 'parent'));
         }
 
-        $task = $this->task->getByID($taskID);
-
-        $members = $this->project->getTeamMemberPairs($projectID, 'nodeleted');
+        $members = $this->loadModel('user')->getTeamMemberPairs($executionID, 'execution', 'nodeleted');
+        $task    = $this->task->getByID($taskID);
 
         /* Compute next assignedTo. */
-        if (!empty($task->team)) {
+        if(!empty($task->team))
+        {
             $task->nextUser = $this->task->getNextUser(array_keys($task->team), $task->assignedTo);
             $members = $this->task->getMemberPairs($task);
         }
 
-        $this->view->title      = $this->view->project->name . $this->lang->colon . $this->lang->task->assign;
+        if(!isset($members[$task->assignedTo])) $members[$task->assignedTo] = $task->assignedTo;
+        if(isset($members['closed']) or $task->status == 'closed') $members['closed'] = 'Closed';
+
+        $this->view->title      = $this->view->execution->name . $this->lang->colon . $this->lang->task->assign;
         $this->view->position[] = $this->lang->task->assign;
         $this->view->task       = $task;
         $this->view->members    = $members;
@@ -514,18 +712,20 @@ class task extends control
      */
     public function batchChangeModule($moduleID)
     {
-        if ($this->post->taskIDList) {
+        if($this->post->taskIDList)
+        {
             $taskIDList = $this->post->taskIDList;
             $taskIDList = array_unique($taskIDList);
             unset($_POST['taskIDList']);
             $allChanges = $this->task->batchChangeModule($taskIDList, $moduleID);
-            if (dao::isError()) die(js::error(dao::getError()));
-            foreach ($allChanges as $taskID => $changes) {
+            if(dao::isError()) die(js::error(dao::getError()));
+            foreach($allChanges as $taskID => $changes)
+            {
                 $this->loadModel('action');
                 $actionID = $this->action->create('task', $taskID, 'Edited');
                 $this->action->logHistory($actionID, $changes);
             }
-            if (!dao::isError()) $this->loadModel('score')->create('ajax', 'batchOther');
+            if(!dao::isError()) $this->loadModel('score')->create('ajax', 'batchOther');
         }
         die(js::reload('parent'));
     }
@@ -533,26 +733,35 @@ class task extends control
     /**
      * Batch update assign of task.
      *
-     * @param  int    $project
+     * @param  int    $execution
      * @access public
      * @return void
      */
-    public function batchAssignTo($project)
+    public function batchAssignTo($execution)
     {
-        if (!empty($_POST)) {
+        if(!empty($_POST))
+        {
+            $this->loadModel('action');
             $taskIDList = $this->post->taskIDList;
             $taskIDList = array_unique($taskIDList);
             unset($_POST['taskIDList']);
-            if (!is_array($taskIDList)) die(js::locate($this->createLink('project', 'task', "projectID=$project"), 'parent'));
+            if(!is_array($taskIDList)) die(js::locate($this->createLink('execution', 'task', "executionID=$execution"), 'parent'));
             $taskIDList = array_unique($taskIDList);
-            foreach ($taskIDList as $taskID) {
-                $this->loadModel('action');
+
+            $muletipleTasks = $this->dao->select('root , account')->from(TABLE_TEAM)->where('type')->eq('task')->andWhere('root')->in($taskIDList)->fetchGroup('root', 'account');
+            $tasks          = $this->task->getByList($taskIDList);
+            $this->loadModel('action');
+            foreach($tasks as $taskID => $task)
+            {
+                if(isset($muletipleTasks[$taskID]) and $task->assignedTo != $this->app->user->account) continue;
+                if(isset($muletipleTasks[$taskID]) and !isset($muletipleTasks[$taskID][$this->post->assignedTo])) continue;
+
                 $changes = $this->task->assign($taskID);
-                if (dao::isError()) die(js::error(dao::getError()));
+                if(dao::isError()) die(js::error(dao::getError()));
                 $actionID = $this->action->create('task', $taskID, 'Assigned', $this->post->comment, $this->post->assignedTo);
                 $this->action->logHistory($actionID, $changes);
             }
-            if (!dao::isError()) $this->loadModel('score')->create('ajax', 'batchOther');
+            if(!dao::isError()) $this->loadModel('score')->create('ajax', 'batchOther');
             die(js::reload('parent'));
         }
     }
@@ -566,49 +775,63 @@ class task extends control
      */
     public function view($taskID)
     {
-        $task = $this->task->getById($taskID, true);
-        if (!$task) die(js::error($this->lang->notFound) . js::locate('back'));
+        $this->session->set('executionList', $this->app->getURI(true), 'execution');
 
-        if ($task->fromBug != 0) {
-            $bug = $this->loadModel('bug')->getById($task->fromBug);
-            $task->bugSteps = '';
-            if ($bug) {
-                $task->bugSteps = $this->loadModel('file')->setImgSize($bug->steps);
-                foreach ($bug->files as $file) $task->files[] = $file;
-            }
-            $this->view->fromBug = $bug;
-        } else {
-            $story = $this->story->getById($task->story);
-            $task->storySpec     = empty($story) ? '' : $this->loadModel('file')->setImgSize($story->spec);
-            $task->storyVerify   = empty($story) ? '' : $this->loadModel('file')->setImgSize($story->verify);
-            $task->storyFiles    = $this->loadModel('file')->getByObject('story', $task->story);
+        $taskID = (int)$taskID;
+        $task   = $this->task->getById($taskID, true);
+        if(!$task)
+        {
+            if(defined('RUN_MODE') && RUN_MODE == 'api') return $this->send(array('status' => 'fail', 'code' => 404, 'message' => '404 Not found'));
+            die(js::error($this->lang->notFound) . js::locate($this->createLink('execution', 'all')));
         }
 
-        if ($task->team) $this->lang->task->assign = $this->lang->task->transfer;
+        $this->session->project = $task->project;
+
+        if($task->fromBug != 0)
+        {
+            $bug = $this->loadModel('bug')->getById($task->fromBug);
+            $task->bugSteps = '';
+            if($bug)
+            {
+                $task->bugSteps = $this->loadModel('file')->setImgSize($bug->steps);
+                foreach($bug->files as $file) $task->files[] = $file;
+            }
+            $this->view->fromBug = $bug;
+        }
+        else
+        {
+            $story = $this->story->getById($task->story, $task->storyVersion);
+            $task->storySpec   = empty($story) ? '' : $this->loadModel('file')->setImgSize($story->spec);
+            $task->storyVerify = empty($story) ? '' : $this->loadModel('file')->setImgSize($story->verify);
+            $task->storyFiles  = $this->loadModel('file')->getByObject('story', $task->story);
+        }
+
+        if($task->team) $this->lang->task->assign = $this->lang->task->transfer;
 
         /* Update action. */
-        if ($task->assignedTo == $this->app->user->account) $this->loadModel('action')->read('task', $taskID);
+        if($task->assignedTo == $this->app->user->account) $this->loadModel('action')->read('task', $taskID);
 
         /* Set menu. */
-        $project = $this->project->getById($task->project);
-        $this->project->setMenu($this->project->getPairs(), $project->id);
+        $execution = $this->execution->getById($task->execution);
+        if($this->app->tab == 'execution') $this->execution->setMenu($execution->id);
 
         $this->executeHooks($taskID);
 
-        $title      = "TASK#$task->id $task->name / $project->name";
-        $position[] = html::a($this->createLink('project', 'browse', "projectID=$task->project"), $project->name);
+        $title      = "TASK#$task->id $task->name / $execution->name";
+        $position[] = html::a($this->createLink('execution', 'browse', "executionID=$task->execution"), $execution->name);
         $position[] = $this->lang->task->common;
         $position[] = $this->lang->task->view;
 
-        $this->view->title       = $title;
-        $this->view->position    = $position;
-        $this->view->project     = $project;
-        $this->view->task        = $task;
-        $this->view->actions     = $this->loadModel('action')->getList('task', $taskID);
-        $this->view->users       = $this->loadModel('user')->getPairs('noletter');
-        $this->view->preAndNext  = $this->loadModel('common')->getPreAndNextObject('task', $taskID);
-        $this->view->product     = $this->tree->getProduct($task->module);
-        $this->view->modulePath  = $this->tree->getParents($task->module);
+        $this->view->title        = $title;
+        $this->view->position     = $position;
+        $this->view->execution    = $execution;
+        $this->view->task         = $task;
+        $this->view->actions      = $this->loadModel('action')->getList('task', $taskID);
+        $this->view->users        = $this->loadModel('user')->getPairs('noletter');
+        $this->view->preAndNext   = $this->loadModel('common')->getPreAndNextObject('task', $taskID);
+        $this->view->product      = $this->tree->getProduct($task->module);
+        $this->view->modulePath   = $this->tree->getParents($task->module);
+        $this->view->linkMRTitles = $this->loadModel('mr')->getLinkedMRPairs($taskID, 'task');
         $this->display();
     }
 
@@ -634,32 +857,47 @@ class task extends control
      * Start a task.
      *
      * @param  int    $taskID
+     * @param  string $extra
      * @access public
      * @return void
      */
-    public function start($taskID)
+    public function start($taskID, $extra = '')
     {
         $this->commonAction($taskID);
 
-        if (!empty($_POST)) {
-            $this->loadModel('action');
-            $changes = $this->task->start($taskID);
-            if (dao::isError()) die(js::error(dao::getError()));
+        $extra = str_replace(array(',', ' '), array('&', ''), $extra);
+        parse_str($extra, $output);
 
-            if ($this->post->comment != '' or !empty($changes)) {
+        $task = $this->task->getById($taskID);
+
+        if(!empty($_POST))
+        {
+            $this->loadModel('action');
+            $changes = $this->task->start($taskID, $extra);
+
+            if(dao::isError())
+            {
+                if($this->viewType == 'json' or (defined('RUN_MODE') && RUN_MODE == 'api')) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+                die(js::error(dao::getError()));
+            }
+
+            if($this->post->comment != '' or !empty($changes))
+            {
                 $act = $this->post->left == 0 ? 'Finished' : 'Started';
                 $actionID = $this->action->create('task', $taskID, $act, $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
             }
 
-            /* Remind whether to update status of the bug, if task which from that bug has been finished. */
-            $task = $this->task->getById($taskID);
-
             $this->executeHooks($taskID);
+            $this->loadModel('common')->syncPPEStatus($taskID);
 
-            if ($changes and $this->task->needUpdateBugStatus($task)) {
-                foreach ($changes as $change) {
-                    if ($change['field'] == 'status' and $change['new'] == 'done') {
+            /* Remind whether to update status of the bug, if task which from that bug has been finished. */
+            if($changes and $this->task->needUpdateBugStatus($task))
+            {
+                foreach($changes as $change)
+                {
+                    if($change['field'] == 'status' and $change['new'] == 'done')
+                    {
                         $confirmURL = $this->createLink('bug', 'view', "id=$task->fromBug");
                         unset($_GET['onlybody']);
                         $cancelURL  = $this->createLink('task', 'view', "taskID=$taskID");
@@ -668,13 +906,33 @@ class task extends control
                 }
             }
 
-            if (isonlybody()) die(js::closeModal('parent.parent', 'this'));
+            if($this->viewType == 'json' or (defined('RUN_MODE') && RUN_MODE == 'api')) return $this->send(array('result' => 'success'));
+
+            if(isonlybody())
+            {
+                $execution = $this->execution->getByID($task->execution);
+                if($execution->type == 'kanban' and $this->app->tab == 'execution')
+                {
+                    $regionID   = isset($output['regionID']) ? $output['regionID'] : 0;
+                    $kanbanData = $this->loadModel('kanban')->getRDKanban($task->execution, $this->session->execLaneType ? $this->session->execLaneType : 'all', 'id_desc', $regionID);
+                    $kanbanData = json_encode($kanbanData);
+
+                    return print(js::closeModal('parent.parent', '', "parent.parent.updateKanban($kanbanData, $regionID)"));
+                }
+                else
+                {
+                    return print(js::closeModal('parent.parent', 'this', "function(){parent.parent.location.reload();}"));
+                }
+            }
             die(js::locate($this->createLink('task', 'view', "taskID=$taskID"), 'parent'));
         }
 
-        $this->view->title      = $this->view->project->name . $this->lang->colon . $this->lang->task->start;
+        $this->view->title      = $this->view->execution->name . $this->lang->colon .$this->lang->task->start;
         $this->view->position[] = $this->lang->task->start;
+
         $this->view->users      = $this->loadModel('user')->getPairs('noletter');
+        $this->view->members    = $this->loadModel('user')->getTeamMemberPairs($task->execution, 'execution', 'nodeleted');
+        $this->view->assignedTo = $task->assignedTo == '' ? $this->app->user->account : $task->assignedTo;
         $this->display();
     }
 
@@ -689,14 +947,21 @@ class task extends control
     {
         $this->commonAction($taskID);
 
-        if (!empty($_POST)) {
+        if(!empty($_POST))
+        {
             $changes = $this->task->recordEstimate($taskID);
+            if(dao::isError()) die(js::error(dao::getError()));
+
+            $this->loadModel('common')->syncPPEStatus($taskID);
 
             /* Remind whether to update status of the bug, if task which from that bug has been finished. */
             $task = $this->task->getById($taskID);
-            if ($changes and $this->task->needUpdateBugStatus($task)) {
-                foreach ($changes as $change) {
-                    if ($change['field'] == 'status' and $change['new'] == 'done') {
+            if($changes and $this->task->needUpdateBugStatus($task))
+            {
+                foreach($changes as $change)
+                {
+                    if($change['field'] == 'status' and $change['new'] == 'done')
+                    {
                         $confirmURL = $this->createLink('bug', 'view', "id=$task->fromBug");
                         unset($_GET['onlybody']);
                         $cancelURL  = $this->createLink('task', 'view', "taskID=$taskID");
@@ -705,12 +970,26 @@ class task extends control
                 }
             }
 
-            if (isonlybody()) die(js::closeModal('parent.parent', 'this'));
-            die(js::locate($this->createLink('task', 'view', "taskID=$taskID"), 'parent'));
+            if(isonlybody())
+            {
+                $execution = $this->execution->getByID($task->execution);
+                if($execution->type == 'kanban' and $this->app->tab == 'execution')
+                {
+                    $kanbanData = $this->loadModel('kanban')->getRDKanban($task->execution, $this->session->execLaneType ? $this->session->execLaneType : 'all');
+                    $kanbanData = json_encode($kanbanData);
+
+                    return print(js::closeModal('parent.parent', '', "parent.parent.updateKanban($kanbanData)"));
+                }
+                else
+                {
+                    return print(js::closeModal('parent.parent', 'this'));
+                }
+            }
+            return print(js::locate($this->createLink('task', 'view', "taskID=$taskID"), 'parent'));
         }
 
-        $this->session->set('estimateList', $this->app->getURI(true));
-        if (isonlybody() && $this->config->requestType != 'GET') $this->session->set('estimateList', $this->app->getURI(true) . '?onlybody=yes');
+        $this->session->set('estimateList', $this->app->getURI(true), 'execution');
+        if(isonlybody() && $this->config->requestType != 'GET') $this->session->set('estimateList', $this->app->getURI(true) . '?onlybody=yes', 'execution');
 
         $this->view->task      = $this->task->getById($taskID);
         $this->view->estimates = $this->task->getTaskEstimate($taskID);
@@ -728,9 +1007,10 @@ class task extends control
     public function editEstimate($estimateID)
     {
         $estimate = $this->task->getEstimateById($estimateID);
-        if (!empty($_POST)) {
+        if(!empty($_POST))
+        {
             $changes = $this->task->updateEstimate($estimateID);
-            if (dao::isError()) die(js::error(dao::getError()));
+            if(dao::isError()) die(js::error(dao::getError()));
 
             $actionID = $this->loadModel('action')->create('task', $estimate->task, 'EditEstimate', $this->post->work);
             $this->action->logHistory($actionID, $changes);
@@ -757,12 +1037,15 @@ class task extends control
      */
     public function deleteEstimate($estimateID, $confirm = 'no')
     {
-        if ($confirm == 'no') {
+        if($confirm == 'no')
+        {
             die(js::confirm($this->lang->task->confirmDeleteEstimate, $this->createLink('task', 'deleteEstimate', "estimateID=$estimateID&confirm=yes")));
-        } else {
+        }
+        else
+        {
             $estimate = $this->task->getEstimateById($estimateID);
             $changes  = $this->task->deleteEstimate($estimateID);
-            if (dao::isError()) die(js::error(dao::getError()));
+            if(dao::isError()) die(js::error(dao::getError()));
 
             $actionID = $this->loadModel('action')->create('task', $estimate->task, 'DeleteEstimate');
             $this->action->logHistory($actionID, $changes);
@@ -774,21 +1057,31 @@ class task extends control
      * Finish a task.
      *
      * @param  int    $taskID
+     * @param  string $extra
      * @access public
      * @return void
      */
-    public function finish($taskID)
+    public function finish($taskID, $extra = '')
     {
         $this->commonAction($taskID);
 
-        if (!empty($_POST)) {
+        $extra = str_replace(array(',', ' '), array('&', ''), $extra);
+        parse_str($extra, $output);
+
+        if(!empty($_POST))
+        {
             $this->loadModel('action');
-            $changes = $this->task->finish($taskID);
-            if (dao::isError()) die(js::error(dao::getError()));
+            $changes = $this->task->finish($taskID, $extra);
+            if(dao::isError())
+            {
+                if($this->viewType == 'json' or (defined('RUN_MODE') && RUN_MODE == 'api')) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+                die(js::error(dao::getError()));
+            }
             $files = $this->loadModel('file')->saveUpload('task', $taskID);
 
             $task = $this->task->getById($taskID);
-            if ($this->post->comment != '' or !empty($changes)) {
+            if($this->post->comment != '' or !empty($changes))
+            {
                 $fileAction = !empty($files) ? $this->lang->addFiles . join(',', $files) . "\n" : '';
                 $actionID = $this->action->create('task', $taskID, 'Finished', $fileAction . $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
@@ -796,44 +1089,72 @@ class task extends control
 
             $this->executeHooks($taskID);
 
-            if ($this->task->needUpdateBugStatus($task)) {
-                foreach ($changes as $change) {
-                    if ($change['field'] == 'status') {
-                        $confirmURL = $this->createLink('bug', 'view', "id=$task->fromBug");
+            if($this->task->needUpdateBugStatus($task))
+            {
+                foreach($changes as $change)
+                {
+                    if($change['field'] == 'status')
+                    {
+                        $confirmURL = $this->createLink('bug', 'view', "id=$task->fromBug", '', true);
                         unset($_GET['onlybody']);
                         $cancelURL  = $this->createLink('task', 'view', "taskID=$taskID");
                         die(js::confirm(sprintf($this->lang->task->remindBug, $task->fromBug), $confirmURL, $cancelURL, 'parent', 'parent.parent'));
                     }
                 }
             }
-            if (isonlybody()) die(js::closeModal('parent.parent', 'this'));
-            if (defined('RUN_MODE') && RUN_MODE == 'api') {
-                die(array('status' => 'success', 'data' => $taskID));
-            } else {
+
+            if(isonlybody())
+            {
+                $execution = $this->execution->getByID($task->execution);
+                if($execution->type == 'kanban' and $this->app->tab == 'execution')
+                {
+                    $regionID   = isset($output['regionID']) ? $output['regionID'] : 0;
+                    $kanbanData = $this->loadModel('kanban')->getRDKanban($task->execution, 'all', 'id_desc', $regionID);
+                    $kanbanData = $this->loadModel('kanban')->getRDKanban($task->execution, $this->session->execLaneType ? $this->session->execLaneType : 'all', 'id_desc', $regionID);
+                    $kanbanData = json_encode($kanbanData);
+
+                    return print(js::closeModal('parent.parent', '', "parent.parent.updateKanban($kanbanData, $regionID)"));
+                }
+                else
+                {
+                    return print(js::closeModal('parent.parent', 'this', "function(){parent.parent.location.reload();}"));
+                }
+            }
+
+            if(defined('RUN_MODE') && RUN_MODE == 'api')
+            {
+                return $this->send(array('result' => 'success', 'data' => $taskID));
+            }
+            else
+            {
                 die(js::locate($this->createLink('task', 'view', "taskID=$taskID"), 'parent'));
             }
         }
 
         $task         = $this->view->task;
-        $members      = $this->loadModel('project')->getTeamMemberPairs($task->project, 'nodeleted');
+        $members      = $this->loadModel('user')->getTeamMemberPairs($task->execution, 'execution', 'nodeleted');
         $task->nextBy = $task->openedBy;
 
         $this->view->users = $members;
-        if (!empty($task->team)) {
+        if(!empty($task->team))
+        {
             $teams = array_keys($task->team);
 
             $task->nextBy     = $this->task->getNextUser($teams, $task->assignedTo);
             $task->myConsumed = $task->team[$task->assignedTo]->consumed;
 
             $lastAccount = end($teams);
-            if ($lastAccount != $task->assignedTo) {
+            if($lastAccount != $task->assignedTo)
+            {
                 $members = $this->task->getMemberPairs($task);
-            } else {
+            }
+            else
+            {
                 $task->nextBy = $task->openedBy;
             }
         }
 
-        $this->view->title      = $this->view->project->name . $this->lang->colon . $this->lang->task->finish;
+        $this->view->title      = $this->view->execution->name . $this->lang->colon .$this->lang->task->finish;
         $this->view->position[] = $this->lang->task->finish;
         $this->view->members    = $members;
 
@@ -844,30 +1165,53 @@ class task extends control
      * Pause task.
      *
      * @param  int    $taskID
+     * @param  string $extra
      * @access public
      * @return void
      */
-    public function pause($taskID)
+    public function pause($taskID, $extra = '')
     {
         $this->commonAction($taskID);
 
-        if (!empty($_POST)) {
-            $this->loadModel('action');
-            $changes = $this->task->pause($taskID);
-            if (dao::isError()) die(js::error(dao::getError()));
+        $extra = str_replace(array(',', ' '), array('&', ''), $extra);
+        parse_str($extra, $output);
 
-            if ($this->post->comment != '' or !empty($changes)) {
+        if(!empty($_POST))
+        {
+            $this->loadModel('action');
+            $changes = $this->task->pause($taskID, $extra);
+            if(dao::isError()) die(js::error(dao::getError()));
+
+            if($this->post->comment != '' or !empty($changes))
+            {
                 $actionID = $this->action->create('task', $taskID, 'Paused', $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
             }
 
             $this->executeHooks($taskID);
 
-            if (isonlybody()) die(js::closeModal('parent.parent', 'this'));
-            die(js::locate($this->createLink('task', 'view', "taskID=$taskID"), 'parent'));
+            if(isonlybody())
+            {
+                $task      = $this->task->getById($taskID);
+                $execution = $this->execution->getByID($task->execution);
+                if($execution->type == 'kanban' and $this->app->tab == 'execution')
+                {
+                    $regionID   = isset($output['regionID']) ? $output['regionID'] : 0;
+                    $kanbanData = $this->loadModel('kanban')->getRDKanban($task->execution, $this->session->execLaneType ? $this->session->execLaneType : 'all', 'id_desc', $regionID);
+                    $kanbanData = json_encode($kanbanData);
+
+                    return print(js::closeModal('parent.parent', '', "parent.parent.updateKanban($kanbanData, $regionID)"));
+                }
+                else
+                {
+                    return print(js::closeModal('parent.parent', 'this'));
+                }
+            }
+
+            return print(js::locate($this->createLink('task', 'view', "taskID=$taskID"), 'parent'));
         }
 
-        $this->view->title      = $this->view->project->name . $this->lang->colon . $this->lang->task->pause;
+        $this->view->title      = $this->view->execution->name . $this->lang->colon .$this->lang->task->pause;
         $this->view->position[] = $this->lang->task->pause;
 
         $this->view->users = $this->loadModel('user')->getPairs('noletter');
@@ -885,12 +1229,16 @@ class task extends control
     {
         $this->commonAction($taskID);
 
-        if (!empty($_POST)) {
+        $task = $this->task->getById($taskID);
+
+        if(!empty($_POST))
+        {
             $this->loadModel('action');
             $changes = $this->task->start($taskID);
-            if (dao::isError()) die(js::error(dao::getError()));
+            if(dao::isError()) die(js::error(dao::getError()));
 
-            if ($this->post->comment != '' or !empty($changes)) {
+            if($this->post->comment != '' or !empty($changes))
+            {
                 $act = $this->post->left == 0 ? 'Finished' : 'Restarted';
                 $actionID = $this->action->create('task', $taskID, $act, $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
@@ -898,52 +1246,98 @@ class task extends control
 
             $this->executeHooks($taskID);
 
-            if (isonlybody()) die(js::closeModal('parent.parent', 'this'));
-            die(js::locate($this->createLink('task', 'view', "taskID=$taskID"), 'parent'));
+            if(isonlybody())
+            {
+                $task      = $this->task->getById($taskID);
+                $execution = $this->execution->getByID($task->execution);
+                if($execution->type == 'kanban' and $this->app->tab == 'execution')
+                {
+                    $kanbanData = $this->loadModel('kanban')->getRDKanban($task->execution, $this->session->execLaneType ? $this->session->execLaneType : 'all');
+                    $kanbanData = json_encode($kanbanData);
+
+                    return print(js::closeModal('parent.parent', '', "parent.parent.updateKanban($kanbanData)"));
+                }
+                else
+                {
+                    return print(js::closeModal('parent.parent', 'this'));
+                }
+            }
+            return print(js::locate($this->createLink('task', 'view', "taskID=$taskID"), 'parent'));
         }
 
-        $this->view->title      = $this->view->project->name . $this->lang->colon . $this->lang->task->restart;
+        $this->view->title      = $this->view->execution->name . $this->lang->colon .$this->lang->task->restart;
         $this->view->position[] = $this->lang->task->restart;
+
         $this->view->users      = $this->loadModel('user')->getPairs('noletter');
+        $this->view->members    = $this->loadModel('user')->getTeamMemberPairs($task->execution, 'execution', 'nodeleted');
+        $this->view->assignedTo = $task->assignedTo == '' ? $this->app->user->account : $task->assignedTo;
         $this->display();
     }
 
     /**
      * Close a task.
      *
-     * @param  int      $taskID
+     * @param  int    $taskID
+     * @param  string $extra
      * @access public
      * @return void
      */
-    public function close($taskID)
+    public function close($taskID, $extra = '')
     {
         $this->commonAction($taskID);
 
-        if (!empty($_POST)) {
-            $this->loadModel('action');
-            $changes = $this->task->close($taskID);
-            if (dao::isError()) die(js::error(dao::getError()));
+        $extra = str_replace(array(',', ' '), array('&', ''), $extra);
+        parse_str($extra, $output);
 
-            if ($this->post->comment != '' or !empty($changes)) {
+        if(!empty($_POST))
+        {
+            $this->loadModel('action');
+            $changes = $this->task->close($taskID, $extra);
+
+            if(dao::isError()) die(js::error(dao::getError()));
+
+            if($this->post->comment != '' or !empty($changes))
+            {
                 $actionID = $this->action->create('task', $taskID, 'Closed', $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
             }
 
             $this->executeHooks($taskID);
 
-            if (isonlybody()) die(js::closeModal('parent.parent', 'this'));
-            if (defined('RUN_MODE') && RUN_MODE == 'api') {
-                die(array('status' => 'success', 'data' => $taskID));
-            } else {
+            if(isonlybody())
+            {
+                $task      = $this->task->getById($taskID);
+                $execution = $this->execution->getByID($task->execution);
+                if($execution->type == 'kanban' and $this->app->tab == 'execution')
+                {
+                    $regionID   = isset($output['regionID']) ? $output['regionID'] : 0;
+                    $kanbanData = $this->loadModel('kanban')->getRDKanban($task->execution, $this->session->execLaneType ? $this->session->execLaneType : 'all', 'id_desc', $regionID);
+                    $kanbanData = json_encode($kanbanData);
+
+                    return print(js::closeModal('parent.parent', '', "parent.parent.updateKanban($kanbanData, $regionID)"));
+                }
+                else
+                {
+                    return print(js::closeModal('parent.parent', 'this', "function(){parent.parent.location.reload();}"));
+                }
+            }
+
+            if(defined('RUN_MODE') && RUN_MODE == 'api')
+            {
+                return $this->send(array('status' => 'success', 'data' => $taskID));
+            }
+            else
+            {
                 die(js::locate($this->createLink('task', 'view', "taskID=$taskID"), 'parent'));
             }
         }
 
-        $this->view->title      = $this->view->project->name . $this->lang->colon . $this->lang->task->finish;
+        $this->view->title      = $this->view->execution->name . $this->lang->colon .$this->lang->task->finish;
         $this->view->position[] = $this->lang->task->finish;
         $this->view->users      = $this->loadModel('user')->getPairs('noletter');
 
         $this->display();
+
     }
 
     /**
@@ -955,7 +1349,8 @@ class task extends control
      */
     public function batchCancel()
     {
-        if ($this->post->taskIDList) {
+        if($this->post->taskIDList)
+        {
             $taskIDList = $this->post->taskIDList;
             $taskIDList = array_unique($taskIDList);
             unset($_POST['taskIDList']);
@@ -963,11 +1358,13 @@ class task extends control
             $this->loadModel('action');
 
             $tasks = $this->task->getByList($taskIDList);
-            foreach ($tasks as $taskID => $task) {
-                if ($task->status == 'done' or $task->status == 'closed' or $task->status == 'cancel') continue;
+            foreach($tasks as $taskID => $task)
+            {
+                if($task->status == 'done' or $task->status == 'closed' or $task->status == 'cancel') continue;
 
                 $changes = $this->task->cancel($taskID);
-                if ($changes) {
+                if($changes)
+                {
                     $actionID = $this->action->create('task', $taskID, 'Canceled', '');
                     $this->action->logHistory($actionID, $changes);
                 }
@@ -985,40 +1382,46 @@ class task extends control
      */
     public function batchClose($skipTaskIdList = '')
     {
-        if ($this->post->taskIDList or $skipTaskIdList) {
+        if($this->post->taskIDList or $skipTaskIdList)
+        {
             $taskIDList = $this->post->taskIDList;
-            $taskIDList = array_unique($taskIDList);
-            if ($skipTaskIdList) $taskIDList = $skipTaskIdList;
+            if($taskIDList)     $taskIDList = array_unique($taskIDList);
+            if($skipTaskIdList) $taskIDList = $skipTaskIdList;
+
             unset($_POST['taskIDList']);
             unset($_POST['assignedTo']);
             $this->loadModel('action');
 
             $tasks = $this->task->getByList($taskIDList);
-            foreach ($tasks as $taskID => $task) {
-                if (empty($skipTaskIdList) and ($task->status == 'wait' or $task->status == 'doing')) {
+            foreach($tasks as $taskID => $task)
+            {
+                if(empty($skipTaskIdList) and ($task->status != 'done' and $task->status != 'cancel'))
+                {
                     $skipTasks[$taskID] = $taskID;
                     continue;
                 }
 
                 /* Skip parent task when batch close task. */
-                if ($task->parent == '-1') continue;
+                if($task->parent == '-1') continue;
 
                 /* Skip closed task when batch close task. */
-                if ($task->status == 'closed') continue;
+                if($task->status == 'closed') continue;
 
                 $changes = $this->task->close($taskID);
-                if ($changes) {
+                if($changes)
+                {
                     $actionID = $this->action->create('task', $taskID, 'Closed', '');
                     $this->action->logHistory($actionID, $changes);
                 }
             }
-            if (isset($skipTasks) and empty($skipTaskIdList)) {
+            if(isset($skipTasks) and empty($skipTaskIdList))
+            {
                 $skipTasks = join(',', $skipTasks);
                 $confirmURL = $this->createLink('task', 'batchClose', "skipTaskIdList=$skipTasks");
                 $cancelURL  = $this->server->HTTP_REFERER;
                 die(js::confirm(sprintf($this->lang->task->error->skipClose, $skipTasks), $confirmURL, $cancelURL, 'self', 'parent'));
             }
-            if (!dao::isError()) $this->loadModel('score')->create('ajax', 'batchOther');
+            if(!dao::isError()) $this->loadModel('score')->create('ajax', 'batchOther');
         }
         die(js::reload('parent'));
     }
@@ -1027,30 +1430,52 @@ class task extends control
      * Cancel a task.
      *
      * @param  int    $taskID
+     * @param  string $extra
      * @access public
      * @return void
      */
-    public function cancel($taskID)
+    public function cancel($taskID, $extra = '')
     {
         $this->commonAction($taskID);
 
-        if (!empty($_POST)) {
-            $this->loadModel('action');
-            $changes = $this->task->cancel($taskID);
-            if (dao::isError()) die(js::error(dao::getError()));
+        $extra = str_replace(array(',', ' '), array('&', ''), $extra);
+        parse_str($extra, $output);
 
-            if ($this->post->comment != '' or !empty($changes)) {
+        if(!empty($_POST))
+        {
+            $this->loadModel('action');
+            $changes = $this->task->cancel($taskID, $extra);
+            if(dao::isError()) die(js::error(dao::getError()));
+
+            if($this->post->comment != '' or !empty($changes))
+            {
                 $actionID = $this->action->create('task', $taskID, 'Canceled', $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
             }
 
             $this->executeHooks($taskID);
 
-            if (isonlybody()) die(js::closeModal('parent.parent', 'this'));
+            if(isonlybody())
+            {
+                $task      = $this->task->getById($taskID);
+                $execution = $this->execution->getByID($task->execution);
+                if($execution->type == 'kanban' and $this->app->tab == 'execution')
+                {
+                    $regionID   = isset($output['regionID']) ? $output['regionID'] : 0;
+                    $kanbanData = $this->loadModel('kanban')->getRDKanban($task->execution, $this->session->execLaneType ? $this->session->execLaneType : 'all', 'id_desc', $regionID);
+                    $kanbanData = json_encode($kanbanData);
+
+                    return print(js::closeModal('parent.parent', '', "parent.parent.updateKanban($kanbanData, $regionID)"));
+                }
+                else
+                {
+                    return print(js::closeModal('parent.parent', 'this'));
+                }
+            }
             die(js::locate($this->createLink('task', 'view', "taskID=$taskID"), 'parent'));
         }
 
-        $this->view->title      = $this->view->project->name . $this->lang->colon . $this->lang->task->cancel;
+        $this->view->title      = $this->view->execution->name . $this->lang->colon .$this->lang->task->cancel;
         $this->view->position[] = $this->lang->task->cancel;
         $this->view->users      = $this->loadModel('user')->getPairs('noletter');
 
@@ -1061,31 +1486,60 @@ class task extends control
      * Activate a task.
      *
      * @param  int    $taskID
+     * @param  string $extra
      * @access public
      * @return void
      */
-    public function activate($taskID)
+    public function activate($taskID, $extra = '')
     {
         $this->commonAction($taskID);
 
-        if (!empty($_POST)) {
-            $this->loadModel('action');
-            $changes = $this->task->activate($taskID);
-            if (dao::isError()) die(js::error(dao::getError()));
+        $extra = str_replace(array(',', ' '), array('&', ''), $extra);
+        parse_str($extra, $output);
 
-            if ($this->post->comment != '' or !empty($changes)) {
+        if(!empty($_POST))
+        {
+            $this->loadModel('action');
+            $changes = $this->task->activate($taskID, $extra);
+            if(dao::isError()) die(js::error(dao::getError()));
+
+            if($this->post->comment != '' or !empty($changes))
+            {
                 $actionID = $this->action->create('task', $taskID, 'Activated', $this->post->comment);
                 $this->action->logHistory($actionID, $changes);
             }
 
             $this->executeHooks($taskID);
 
-            if (isonlybody()) die(js::closeModal('parent.parent', 'this'));
-            die(js::locate($this->createLink('task', 'view', "taskID=$taskID"), 'parent'));
+            if(isonlybody())
+            {
+                $task      = $this->task->getById($taskID);
+                $execution = $this->execution->getByID($task->execution);
+                if($execution->type == 'kanban' and $this->app->tab == 'execution')
+                {
+                    $regionID   = isset($output['regionID']) ? $output['regionID'] : 0;
+                    $kanbanData = $this->loadModel('kanban')->getRDKanban($task->execution, $this->session->execLaneType ? $this->session->execLaneType : 'all', 'id_desc', $regionID);
+                    $kanbanData = json_encode($kanbanData);
+
+                    return print(js::closeModal('parent.parent', '', "parent.parent.updateKanban($kanbanData, $regionID)"));
+                }
+                else
+                {
+                    return print(js::closeModal('parent.parent', 'this'));
+                }
+            }
+            return print(js::locate($this->createLink('task', 'view', "taskID=$taskID"), 'parent'));
         }
 
-        if (!isset($this->view->members[$this->view->task->finishedBy])) $this->view->members[$this->view->task->finishedBy] = $this->view->task->finishedBy;
-        $this->view->title      = $this->view->project->name . $this->lang->colon . $this->lang->task->activate;
+        if(!empty($this->view->task->team))
+        {
+            $members = array();
+            foreach($this->view->task->team as $account => $member) $members[$account] = zget($this->view->members, $account);
+            $this->view->members = $members;
+        }
+
+        if(!isset($this->view->members[$this->view->task->finishedBy])) $this->view->members[$this->view->task->finishedBy] = $this->view->task->finishedBy;
+        $this->view->title      = $this->view->execution->name . $this->lang->colon . $this->lang->task->activate;
         $this->view->position[] = $this->lang->task->activate;
         $this->view->users      = $this->loadModel('user')->getPairs('noletter');
         $this->display();
@@ -1094,63 +1548,76 @@ class task extends control
     /**
      * Delete a task.
      *
-     * @param  int    $projectID
+     * @param  int    $executionID
      * @param  int    $taskID
      * @param  string $confirm yes|no
      * @access public
      * @return void
      */
-    public function delete($projectID, $taskID, $confirm = 'no')
+    public function delete($executionID, $taskID, $confirm = 'no')
     {
         $task = $this->task->getById($taskID);
-        if ($task->parent < 0) die(js::alert($this->lang->task->cannotDeleteParent));
+        if($task->parent < 0) return print(js::alert($this->lang->task->cannotDeleteParent));
 
-        if ($confirm == 'no') {
-            die(js::confirm($this->lang->task->confirmDelete, inlink('delete', "projectID=$projectID&taskID=$taskID&confirm=yes")));
-        } else {
+        if($confirm == 'no')
+        {
+            return print(js::confirm($this->lang->task->confirmDelete, inlink('delete', "executionID=$executionID&taskID=$taskID&confirm=yes")));
+        }
+        else
+        {
             $this->task->delete(TABLE_TASK, $taskID);
-            if ($task->parent > 0) {
+            if($task->parent > 0)
+            {
                 $this->task->updateParentStatus($task->id);
                 $this->loadModel('action')->create('task', $task->parent, 'deleteChildrenTask', '', $taskID);
             }
-            if ($task->fromBug != 0) $this->dao->update(TABLE_BUG)->set('toTask')->eq(0)->where('id')->eq($task->fromBug)->exec();
-            if ($task->story) $this->loadModel('story')->setStage($task->story);
+            if($task->fromBug != 0) $this->dao->update(TABLE_BUG)->set('toTask')->eq(0)->where('id')->eq($task->fromBug)->exec();
+            if($task->story) $this->loadModel('story')->setStage($task->story);
 
             $this->executeHooks($taskID);
 
-            die(js::locate($this->session->taskList, 'parent'));
+            $locateLink = $this->session->taskList ? $this->session->taskList : $this->createLink('execution', 'task', "executionID={$task->execution}");
+            return print(js::locate($locateLink, 'parent'));
         }
     }
 
     /**
      * AJAX: return tasks of a user in html select.
      *
-     * @param  string $account
+     * @param  int    $userID
      * @param  string $id
      * @param  string $status
      * @access public
      * @return string
      */
-    public function ajaxGetUserTasks($account = '', $id = '', $status = 'wait,doing')
+    public function ajaxGetUserTasks($userID = '', $id = '', $status = 'wait,doing')
     {
-        if ($account == '') $account = $this->app->user->account;
-        $tasks = $this->task->getUserTaskPairs($account, $status);
+        if($userID == '') $userID = $this->app->user->id;
+        $user    = $this->loadModel('user')->getById($userID, 'id');
+        $account = $user->account;
 
-        if ($id) die(html::select("tasks[$id]", $tasks, '', 'class="form-control"'));
+        $tasks          = $this->task->getUserTaskPairs($account, $status);
+        $suspendedTasks = $this->task->getUserSuspendedTasks($account);
+        foreach($tasks as $taskid => $task)
+        {
+            if(isset($suspendedTasks[$taskid])) unset($tasks[$taskid]);
+        }
+
+        if($id) die(html::select("tasks[$id]", $tasks, '', 'class="form-control"'));
         die(html::select('task', $tasks, '', 'class=form-control'));
     }
 
     /**
-     * AJAX: return project tasks in html select.
+     * AJAX: return execution tasks in html select.
      *
-     * @param  int    $projectID
+     * @param  int    $executionID
      * @param  int    $taskID
      * @access public
      * @return string
      */
-    public function ajaxGetProjectTasks($projectID, $taskID = 0)
+    public function ajaxGetExecutionTasks($executionID, $taskID = 0)
     {
-        $tasks = $this->task->getProjectTaskPairs((int)$projectID);
+        $tasks = $this->task->getExecutionTaskPairs((int)$executionID);
         die(html::select('task', empty($tasks) ? array('' => '') : $tasks, $taskID, "class='form-control'"));
     }
 
@@ -1170,34 +1637,38 @@ class task extends control
     /**
      * The report page.
      *
-     * @param  int    $projectID
+     * @param  int    $executionID
      * @param  string $browseType
      * @access public
      * @return void
      */
-    public function report($projectID, $browseType = 'all', $chartType = 'default')
+    public function report($executionID, $browseType = 'all', $chartType = 'default')
     {
         $this->loadModel('report');
         $this->view->charts   = array();
 
-        if (!empty($_POST)) {
-            foreach ($this->post->charts as $chart) {
+        if(!empty($_POST))
+        {
+            foreach($this->post->charts as $chart)
+            {
                 $chartFunc   = 'getDataOf' . $chart;
                 $chartData   = $this->task->$chartFunc();
                 $chartOption = $this->lang->task->report->$chart;
-                if (!empty($chartType) and $chartType != 'default') $chartOption->type = $chartType;
+                if(!empty($chartType) and $chartType != 'default') $chartOption->type = $chartType;
                 $this->task->mergeChartOption($chart);
                 $this->view->charts[$chart] = $chartOption;
                 $this->view->datas[$chart]  = $this->report->computePercent($chartData);
             }
         }
 
-        $this->project->setMenu($this->project->getPairs(), $projectID);
-        $this->projects            = $this->project->getPairs();
-        $this->view->title         = $this->projects[$projectID] . $this->lang->colon . $this->lang->task->report->common;
-        $this->view->position[]    = $this->projects[$projectID];
+        $executions = $this->execution->getPairs();
+
+        $this->execution->setMenu($executionID);
+        $this->executions          = $executions;
+        $this->view->title         = $this->executions[$executionID] . $this->lang->colon . $this->lang->task->report->common;
+        $this->view->position[]    = $this->executions[$executionID];
         $this->view->position[]    = $this->lang->task->report->common;
-        $this->view->projectID     = $projectID;
+        $this->view->executionID   = $executionID;
         $this->view->browseType    = $browseType;
         $this->view->chartType     = $chartType;
         $this->view->checkedCharts = $this->post->charts ? join(',', $this->post->charts) : '';
@@ -1208,25 +1679,27 @@ class task extends control
     /**
      * get data to export
      *
-     * @param  int $projectID
+     * @param  int $executionID
      * @param  string $orderBy
      * @access public
      * @return void
      */
-    public function export($projectID, $orderBy, $type)
+    public function export($executionID, $orderBy, $type)
     {
-        $project = $this->project->getById($projectID);
+        $execution       = $this->execution->getById($executionID);
         $allExportFields = $this->config->task->exportFields;
-        if ($project->type == 'ops') $allExportFields = str_replace(' story,', '', $allExportFields);
+        if($execution->type == 'ops') $allExportFields = str_replace(' story,', '', $allExportFields);
 
-        if ($_POST) {
+        if($_POST)
+        {
             $this->loadModel('file');
             $taskLang = $this->lang->task;
 
             /* Create field lists. */
-            $sort   = $this->loadModel('common')->appendOrder($orderBy);
+            $sort   = common::appendOrder($orderBy);
             $fields = $this->post->exportFields ? $this->post->exportFields : explode(',', $allExportFields);
-            foreach ($fields as $key => $fieldName) {
+            foreach($fields as $key => $fieldName)
+            {
                 $fieldName = trim($fieldName);
                 $fields[$fieldName] = isset($taskLang->$fieldName) ? $taskLang->$fieldName : $fieldName;
                 unset($fields[$key]);
@@ -1234,34 +1707,43 @@ class task extends control
 
             /* Get tasks. */
             $tasks = array();
-            if ($this->session->taskOnlyCondition) {
+            if($this->session->taskOnlyCondition)
+            {
                 $tasks = $this->dao->select('*')->from(TABLE_TASK)->alias('t1')->where($this->session->taskQueryCondition)
                     ->beginIF($this->post->exportType == 'selected')->andWhere('t1.id')->in($this->cookie->checkedItem)->fi()
                     ->orderBy($sort)->fetchAll('id');
 
-                foreach ($tasks as $key => $task) {
+                foreach($tasks as $key => $task)
+                {
                     /* Compute task progress. */
-                    if ($task->consumed == 0 and $task->left == 0) {
+                    if($task->consumed == 0 and $task->left == 0)
+                    {
                         $task->progress = 0;
-                    } elseif ($task->consumed != 0 and $task->left == 0) {
+                    }
+                    elseif($task->consumed != 0 and $task->left == 0)
+                    {
                         $task->progress = 100;
-                    } else {
+                    }
+                    else
+                    {
                         $task->progress = round($task->consumed / ($task->consumed + $task->left), 2) * 100;
                     }
                     $task->progress .= '%';
                 }
-            } elseif ($this->session->taskQueryCondition) {
+            }
+            elseif($this->session->taskQueryCondition)
+            {
                 $stmt = $this->dbh->query($this->session->taskQueryCondition . ($this->post->exportType == 'selected' ? " AND t1.id IN({$this->cookie->checkedItem})" : '') . " ORDER BY " . strtr($orderBy, '_', ' '));
-                while ($row = $stmt->fetch()) $tasks[$row->id] = $row;
+                while($row = $stmt->fetch()) $tasks[$row->id] = $row;
             }
 
-            /* Get users and projects. */
-            $users    = $this->loadModel('user')->getPairs('noletter');
-            $projects = $this->loadModel('project')->getPairs('all|nocode');
+            /* Get users and executions. */
+            $users      = $this->loadModel('user')->getPairs('noletter');
+            $executions = $this->execution->getPairs($execution->project, 'all', 'all|nocode');
 
             /* Get related objects id lists. */
             $relatedStoryIdList  = array();
-            foreach ($tasks as $task) $relatedStoryIdList[$task->story] = $task->story;
+            foreach($tasks as $task) $relatedStoryIdList[$task->story] = $task->story;
 
             /* Get team for multiple task. */
             $taskTeam = $this->dao->select('*')->from(TABLE_TEAM)
@@ -1270,14 +1752,17 @@ class task extends control
                 ->fetchGroup('root');
 
             /* Process multiple task info. */
-            if (!empty($taskTeam)) {
-                foreach ($taskTeam as $taskID => $team) {
+            if(!empty($taskTeam))
+            {
+                foreach($taskTeam as $taskID => $team)
+                {
                     $tasks[$taskID]->team     = $team;
                     $tasks[$taskID]->estimate = '';
                     $tasks[$taskID]->left     = '';
                     $tasks[$taskID]->consumed = '';
 
-                    foreach ($team as $userInfo) {
+                    foreach($team as $userInfo)
+                    {
                         $tasks[$taskID]->estimate .= zget($users, $userInfo->account) . ':' . $userInfo->estimate . "\n";
                         $tasks[$taskID]->left     .= zget($users, $userInfo->account) . ':' . $userInfo->left . "\n";
                         $tasks[$taskID]->consumed .= zget($users, $userInfo->account) . ':' . $userInfo->consumed . "\n";
@@ -1290,19 +1775,25 @@ class task extends control
             $relatedFiles   = $this->dao->select('id, objectID, pathname, title')->from(TABLE_FILE)->where('objectType')->eq('task')->andWhere('objectID')->in(@array_keys($tasks))->andWhere('extra')->ne('editor')->fetchGroup('objectID');
             $relatedModules = $this->loadModel('tree')->getAllModulePairs('task');
 
-            if ($tasks) {
+            if($tasks)
+            {
                 $children = array();
-                foreach ($tasks as $task) {
-                    if (!empty($task->parent) and isset($tasks[$task->parent])) {
+                foreach($tasks as $task)
+                {
+                    if($task->parent > 0 and isset($tasks[$task->parent]))
+                    {
                         $children[$task->parent][$task->id] = $task;
                         unset($tasks[$task->id]);
                     }
                 }
-                if (!empty($children)) {
+                if(!empty($children))
+                {
                     $position = 0;
-                    foreach ($tasks as $task) {
-                        $position++;
-                        if (isset($children[$task->id])) {
+                    foreach($tasks as $task)
+                    {
+                        $position ++;
+                        if(isset($children[$task->id]))
+                        {
                             array_splice($tasks, $position, 0, $children[$task->id]);
                             $position += count($children[$task->id]);
                         }
@@ -1310,15 +1801,20 @@ class task extends control
                 }
             }
 
-            if ($type == 'group') {
-                $stories    = $this->loadModel('story')->getProjectStories($projectID);
+            if($type == 'group')
+            {
+                $stories    = $this->loadModel('story')->getExecutionStories($executionID);
                 $groupTasks = array();
-                foreach ($tasks as $task) {
+                foreach($tasks as $task)
+                {
                     $task->storyTitle = isset($stories[$task->story]) ? $stories[$task->story]->title : '';
-                    if (isset($task->team)) {
-                        if ($orderBy == 'finishedBy') $task->consumed = $task->estimate = $task->left = 0;
-                        foreach ($task->team as $team) {
-                            if ($orderBy == 'finishedBy' and $team->left != 0) {
+                    if(isset($task->team))
+                    {
+                        if($orderBy == 'finishedBy') $task->consumed = $task->estimate = $task->left = 0;
+                        foreach($task->team as $team)
+                        {
+                            if($orderBy == 'finishedBy' and $team->left != 0)
+                            {
                                 $task->estimate += $team->estimate;
                                 $task->consumed += $team->consumed;
                                 $task->left     += $team->left;
@@ -1329,29 +1825,35 @@ class task extends control
                             $cloneTask->estimate = $team->estimate;
                             $cloneTask->consumed = $team->consumed;
                             $cloneTask->left     = $team->left;
-                            if ($team->left == 0) $cloneTask->status = 'done';
+                            if($team->left == 0) $cloneTask->status = 'done';
 
-                            if ($orderBy == 'assignedTo') {
+                            if($orderBy == 'assignedTo')
+                            {
                                 $cloneTask->assignedToRealName = zget($users, $team->account);
                                 $cloneTask->assignedTo = $team->account;
                             }
-                            if ($orderBy == 'finishedBy') $cloneTask->finishedBy = $team->account;
+                            if($orderBy == 'finishedBy')$cloneTask->finishedBy = $team->account;
                             $groupTasks[$team->account][] = $cloneTask;
                         }
-                        if (!empty($task->left) and $orderBy == 'finishedBy') $groupTasks[$task->finishedBy][] = $task;
-                    } else {
+                        if(!empty($task->left) and $orderBy == 'finishedBy') $groupTasks[$task->finishedBy][] = $task;
+                    }
+                    else
+                    {
                         $groupTasks[$task->$orderBy][] = $task;
                     }
                 }
 
                 $tasks = array();
-                foreach ($groupTasks as $groupTask) {
-                    foreach ($groupTask as $task) $tasks[] = $task;
+                foreach($groupTasks as $groupTask)
+                {
+                    foreach($groupTask as $task)$tasks[] = $task;
                 }
             }
 
-            foreach ($tasks as $task) {
-                if ($this->post->fileType == 'csv') {
+            foreach($tasks as $task)
+            {
+                if($this->post->fileType == 'csv')
+                {
                     $task->desc = htmlspecialchars_decode($task->desc);
                     $task->desc = str_replace("<br />", "\n", $task->desc);
                     $task->desc = str_replace('"', '""', $task->desc);
@@ -1360,22 +1862,34 @@ class task extends control
                 /* fill some field with useful value. */
                 $task->story = isset($relatedStories[$task->story]) ? $relatedStories[$task->story] . "(#$task->story)" : '';
 
-                if (isset($projects[$task->project]))                  $task->project      = $projects[$task->project] . "(#$task->project)";
-                if (isset($taskLang->typeList[$task->type]))           $task->type         = $taskLang->typeList[$task->type];
-                if (isset($taskLang->priList[$task->pri]))             $task->pri          = $taskLang->priList[$task->pri];
-                if (isset($taskLang->statusList[$task->status]))       $task->status       = $this->processStatus('task', $task);
-                if (isset($taskLang->reasonList[$task->closedReason])) $task->closedReason = $taskLang->reasonList[$task->closedReason];
-                if (isset($relatedModules[$task->module]))             $task->module       = $relatedModules[$task->module] . "(#$task->module)";
+                if(isset($executions[$task->execution]))              $task->execution    = $executions[$task->execution] . "(#$task->execution)";
+                if(isset($taskLang->typeList[$task->type]))           $task->type         = $taskLang->typeList[$task->type];
+                if(isset($taskLang->priList[$task->pri]))             $task->pri          = $taskLang->priList[$task->pri];
+                if(isset($taskLang->statusList[$task->status]))       $task->status       = $this->processStatus('task', $task);
+                if(isset($taskLang->reasonList[$task->closedReason])) $task->closedReason = $taskLang->reasonList[$task->closedReason];
+                if(isset($relatedModules[$task->module]))             $task->module       = $relatedModules[$task->module] . "(#$task->module)";
 
-                if (isset($users[$task->openedBy]))     $task->openedBy     = $users[$task->openedBy];
-                if (isset($users[$task->assignedTo]))   $task->assignedTo   = $users[$task->assignedTo];
-                if (isset($users[$task->finishedBy]))   $task->finishedBy   = $users[$task->finishedBy];
-                if (isset($users[$task->canceledBy]))   $task->canceledBy   = $users[$task->canceledBy];
-                if (isset($users[$task->closedBy]))     $task->closedBy     = $users[$task->closedBy];
-                if (isset($users[$task->lastEditedBy])) $task->lastEditedBy = $users[$task->lastEditedBy];
+                if(isset($users[$task->openedBy]))     $task->openedBy     = $users[$task->openedBy];
+                if(isset($users[$task->assignedTo]))   $task->assignedTo   = $users[$task->assignedTo];
+                if(isset($users[$task->finishedBy]))   $task->finishedBy   = $users[$task->finishedBy];
+                if(isset($users[$task->canceledBy]))   $task->canceledBy   = $users[$task->canceledBy];
+                if(isset($users[$task->closedBy]))     $task->closedBy     = $users[$task->closedBy];
+                if(isset($users[$task->lastEditedBy])) $task->lastEditedBy = $users[$task->lastEditedBy];
 
-                if ($task->parent > 0 && strpos($task->name, htmlentities('>')) !== 0) $task->name = '>' . $task->name;
-                if (!empty($task->team))   $task->name = '[' . $taskLang->multipleAB . '] ' . $task->name;
+                /* Convert username to real name. */
+                if(!empty($task->mailto))
+                {
+                    $mailtoList = explode(',', $task->mailto);
+
+                    $task->mailto = '';
+                    foreach($mailtoList as $mailto)
+                    {
+                        if(!empty($mailto)) $task->mailto .= ',' . zget($users, $mailto);
+                    }
+                }
+
+                if($task->parent > 0 && strpos($task->name, htmlentities('>')) !== 0) $task->name = '>' . $task->name;
+                if(!empty($task->team))   $task->name = '[' . $taskLang->multipleAB . '] ' . $task->name;
 
                 $task->openedDate     = substr($task->openedDate,     0, 10);
                 $task->assignedDate   = substr($task->assignedDate,   0, 10);
@@ -1383,17 +1897,22 @@ class task extends control
                 $task->canceledDate   = substr($task->canceledDate,   0, 10);
                 $task->closedDate     = substr($task->closedDate,     0, 10);
                 $task->lastEditedDate = substr($task->lastEditedDate, 0, 10);
+                $task->estimate       = $task->estimate . $this->lang->execution->workHourUnit;
+                $task->consumed       = $task->consumed . $this->lang->execution->workHourUnit;
+                $task->left           = $task->left     . $this->lang->execution->workHourUnit;
 
                 /* Set related files. */
-                if (isset($relatedFiles[$task->id])) {
-                    $task->files = '';
-                    foreach ($relatedFiles[$task->id] as $file) {
+                $task->files = '';
+                if(isset($relatedFiles[$task->id]))
+                {
+                    foreach($relatedFiles[$task->id] as $file)
+                    {
                         $fileURL = common::getSysURL() . $this->createLink('file', 'download', "fileID={$file->id}");
                         $task->files .= html::a($fileURL, $file->title, '_blank') . '<br />';
                     }
                 }
             }
-            if (isset($this->config->bizVersion)) list($fields, $tasks) = $this->loadModel('workflowfield')->appendDataFromFlow($fields, $tasks);
+            if(isset($this->config->bizVersion)) list($fields, $tasks) = $this->loadModel('workflowfield')->appendDataFromFlow($fields, $tasks);
 
             $this->post->set('fields', $fields);
             $this->post->set('rows', $tasks);
@@ -1401,21 +1920,24 @@ class task extends control
             $this->fetch('file', 'export2' . $this->post->fileType, $_POST);
         }
 
-        $this->app->loadLang('project');
-        $fileName = $this->lang->task->common;
-        $projectName = $this->dao->findById($projectID)->from(TABLE_PROJECT)->fetch('name');
-        if (isset($this->lang->project->featureBar['task'][$type])) {
-            $browseType = $this->lang->project->featureBar['task'][$type];
-        } else {
-            $browseType = isset($this->lang->project->statusSelects[$type]) ? $this->lang->project->statusSelects[$type] : '';
+        $this->app->loadLang('execution');
+        $fileName      = $this->lang->task->common;
+        $executionName = $this->dao->findById($executionID)->from(TABLE_PROJECT)->fetch('name');
+        if(isset($this->lang->execution->featureBar['task'][$type]))
+        {
+            $browseType = $this->lang->execution->featureBar['task'][$type];
+        }
+        else
+        {
+            $browseType = isset($this->lang->execution->statusSelects[$type]) ? $this->lang->execution->statusSelects[$type] : '';
         }
 
-        $this->view->fileName        = $projectName . $this->lang->dash . $browseType . $fileName;
+        $this->view->fileName        = $executionName . $this->lang->dash . $browseType . $fileName;
         $this->view->allExportFields = $allExportFields;
         $this->view->customExport    = true;
         $this->view->orderBy         = $orderBy;
         $this->view->type            = $type;
-        $this->view->projectID       = $projectID;
+        $this->view->executionID     = $executionID;
         $this->display();
     }
 
@@ -1431,263 +1953,12 @@ class task extends control
         $task     = $this->dao->select('*')->from(TABLE_TASK)->where('id')->eq($taskID)->fetch();
         $realname = $this->dao->select('*')->from(TABLE_USER)->where('account')->eq($task->assignedTo)->fetch('realname');
         $task->assignedTo = $realname ? $realname : ($task->assignedTo == 'closed' ? 'Closed' : $task->assignedTo);
-        if ($task->story) {
+        if($task->story)
+        {
             $this->app->loadLang('story');
             $stage = $this->dao->select('*')->from(TABLE_STORY)->where('id')->eq($task->story)->andWhere('version')->eq($task->storyVersion)->fetch('stage');
             $task->storyStage = zget($this->lang->story->stageList, $stage);
         }
         die(json_encode($task));
-    }
-
-    /**
-     * 发送邮件提醒，每日工时不足八小时员工
-     */
-    public function remind()
-    {
-        $depts = $this->dao->select('id,name')->from(TABLE_DEPT)->fetchall();
-        $today = date('Y-m-d');
-        $lessUsers = array();
-        $moreUsers = array();
-        $users_count = 0;
-        $less_count = 0;
-        $deleyTasksRank = array();
-
-        $mentionedUsers = [];
-        $user2cnt = [];
-
-        $delayProjectsNum = 20;
-        $taskLessNum = 20;
-        $delayTasksNum = 10;
-
-        foreach ($depts as $dept) {
-            $deptId = $dept->id;
-            if ($deptId == 4 || $deptId == 9) {
-                continue;
-            }
-            $users = $this->dao->select('id, account, realname')->from(TABLE_USER)->where('deleted')->eq(0)->andWhere('dept')->eq($deptId)->fetchall();
-            $users_count += count($users);
-            foreach ($users as $user) {
-                $estimate = $this->dao->select('sum(t1.estimate) as sum')->from(TABLE_TASK)->alias('t1')->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')->where('t1.status')->notin('cancel, closed')->andWhere('t1.deadline')->eq($today)->andWhere('t1.assignedTo')->eq($user->account)->andWhere('t1.deleted')->ne(1)->andWhere('t2.status')->notin('cancel, closed')->fetch();
-                // var_dump($this->dao->sqlobj);
-                if (!$estimate) {
-                    continue;
-                }
-                $sum = round($estimate->sum, 1);
-                if (intval($sum) < 8) {
-                    $less_count += 1;
-                    array_push($lessUsers, ['name' => $user->realname, 'account' => $user->account, 'estimate' => $sum]);
-                } else if (intval($sum) > 10) {
-                    array_push($moreUsers, ['name' => $user->realname, 'account' => $user->account, 'estimate' => $sum]);
-                }
-
-                $delayTasks = $this->dao->select('count(t1.id) as cnt')->from(TABLE_TASK)->alias('t1')->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')->where('t1.status')->notin('cancel, closed, done')->andWhere('t1.deadline')->lt($today)->andWhere('t1.assignedTo')->eq($user->account)->andWhere('t2.status')->notin('cancel, closed')->andWhere('t1.deleted')->ne(1)->fetch();
-                // var_dump($this->dao->sqlobj);
-                if ($delayTasks->cnt == 0) {
-                    continue;
-                }
-                array_push($mentionedUsers, $user->account);
-                $user2cnt[$user->realname] = $delayTasks->cnt * $delayTasksNum;
-                array_push($deleyTasksRank, ['name' => $user->realname, 'delay_count' => $delayTasks->cnt, 'train_count' => '+' . strval(10 * $delayTasks->cnt)]);
-            }
-        }
-        $cntArray = array();
-        foreach ($deleyTasksRank as $key => $value) {
-            $cntArray[$key] = $value['delay_count'];
-        }
-        array_multisort($cntArray, SORT_DESC, $deleyTasksRank);
-
-        $delayProjects = $this->dao->select('t2.realname, t2.account, group_concat(DISTINCT t1.name ORDER BY t1.end SEPARATOR \'<br/>\') as projects, count(t1.name) as cnt')->from(TABLE_PROJECT)->alias('t1')->leftJoin(TABLE_USER)->alias('t2')->on('t1.PO = t2.account')->where('t1.end')->lt($today)->andWhere('t1.status')->eq('doing')->andWhere('t1.deleted')->ne(1)->andWhere('t2.deleted')->ne(1)->groupBy('t1.PO')->orderBy('cnt desc')->fetchAll();
-        foreach ($delayProjects as $project) {
-            if (array_key_exists($project->realname, $user2cnt)) {
-                $user2cnt[$project->realname] += $project->cnt * $delayProjectsNum;
-            } else {
-                $user2cnt[$project->realname] = $project->cnt * $delayProjectsNum;
-            }
-            array_push($mentionedUsers, $project->account);
-        }
-        // var_dump($this->dao->sqlobj);
-        // $uncommittedAccounts = $this->loadModel('userlog')->getUncommittedAccounts();
-
-        // $uncommittedUsers = $this->dao->query('SELECT realname FROM zt_user WHERE account in (\'' . join('\',\'', $uncommittedAccounts) . '\')')->fetchAll();
-
-        // 节假日
-        if ($less_count / $users_count >= 0.5) {
-            echo '节假日\n';
-            exit();
-        }
-        $summary = '';
-        if (!empty($lessUsers)) {
-            $summary .= '任务不饱和(运动+20)：';
-            foreach ($lessUsers as $lessUser) {
-                if (array_key_exists($lessUser['name'], $user2cnt)) {
-                    $user2cnt[$lessUser['name']] += $taskLessNum;
-                } else {
-                    $user2cnt[$lessUser['name']] = $taskLessNum;
-                }
-                array_push($mentionedUsers, $lessUser['account']);
-                $summary .= $lessUser['name'] . '(' . strval($lessUser['estimate']) . ')';
-                if ($lessUser != $lessUsers[count($lessUsers) - 1]) {
-                    $summary .= '、';
-                }
-            }
-        }
-        if (!empty($moreUsers)) {
-            $summary .= '<br />任务超负荷：';
-            foreach ($moreUsers as $moreUser) {
-                $summary .= $moreUser['name'] . '(' . strval($moreUser['estimate']) . ')';
-                if ($moreUser != $moreUsers[count($moreUsers) - 1]) {
-                    $summary .= '、';
-                }
-            }
-        }
-        $this->view->summary = $summary;
-        $this->view->deleyTasksRank = $deleyTasksRank;
-        $this->view->delayProjects = $delayProjects;
-        $this->view->delayProjectsNum = $delayProjectsNum;
-        // $this->view->uncommittedUsers = $uncommittedUsers;
-        $this->loadModel('mail');
-        // $this->display();
-
-        $wxParams = $this->getWxMsgParams($user2cnt, $mentionedUsers);
-        $this->sendQywx($wxParams['text'], $wxParams['markdown'], $wxParams['mentionedUsers']);
-
-        $subject = '禅道日报';
-        $modulePath = $this->app->getModulePath($appName = '', 'task');
-        $viewFile   = $modulePath . 'view/remind.html.php';
-        ob_start();
-        include $viewFile;
-        $mailContent = ob_get_contents();
-        ob_end_clean();
-
-        $this->mail->sendToEmail('all@yunfutech.com', $subject, $mailContent);
-
-        if ($this->mail->isError()) {
-            echo "发送失败: \n";
-            a($this->mail->getError());
-        }
-        echo "发送成功\n";
-    }
-
-    private function getWxMsgParams($user2cnt, $mentionedUsers)
-    {
-        $markdown = '## # 总计' . PHP_EOL;
-        arsort($user2cnt);
-        foreach ($user2cnt as $user => $cnt) {
-            $markdown .= '###### - ' . $user . ' ' . strval($cnt) . PHP_EOL;
-        }
-        $mentionedUsers = array_unique($mentionedUsers);
-        // $mentionedList = [];
-        // foreach($mentionedUsers as $mentionedUser) {
-        //     array_push($mentionedList, $this->config->user->mobileList[$mentionedUser]);
-        // }
-        $text = '任务不符合规范或有延期迭代，按下方统计结果做运动, 详情见邮件内容';
-        return ['text' => $text, 'markdown' => $markdown, 'mentionedUsers' => $mentionedUsers];
-    }
-
-    /**
-     * 请求微信机器人api
-     */
-    public function sendQywx($text, $markdown, $mentionedUsers)
-    {
-        if (empty($mentionedUsers)) {
-            return;
-        }
-        // $url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=1c0ced10-00da-48a7-898b-5ba1f39867ce';
-        $url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=67754c4e-8a3d-4170-8907-f962de0ea662'; # 全体群
-        $postData = [
-            'msgtype' => 'text',
-            "text" => [
-                'content' => $text,
-                'mentioned_list' => ['@all']
-            ]
-        ];
-        $postData2 = [
-            'msgtype' => 'markdown',
-            "markdown" => [
-                'content' => $markdown,
-                'mentioned_list' => ['@all']
-            ]
-        ];
-        $result = $this->post($url, $postData, $json = true);
-        var_dump($result);
-        $result = $this->post($url, $postData2, $json = true);
-        var_dump($result);
-    }
-
-    public function post($url, $data = [], $json = false)
-    {
-        if ($json) {
-            $str = 'application/json';
-            $data = json_encode($data, JSON_UNESCAPED_UNICODE);
-        } else {
-            $str = 'application/x-www-form-urlencoded';
-            $data = http_build_query($data);
-        }
-        $options['http'] = array(
-            'timeout' => 5,
-            'method'  => 'POST',
-            'header'  => "Content-Type: $str;charset=utf-8",
-            'content' => $data,
-        );
-        $context = stream_context_create($options);
-        return file_get_contents($url, false, $context);
-    }
-
-    public function generateMeetingTask($day = '')
-    {
-        // $ids = [2, 4, 19, 131, 18, 123, 99, 146, 156, 157];   # 张总、贾总、曾总、程总、建行、赵娅平、罗家成、程浩鹏、黄天意
-        $users = $this->dao->select('id, account, dept')->from(TABLE_USER)
-            ->where('dept')->in($this->config->task->meetTaskDepts)
-            ->andWhere('deleted')->eq('0')
-            ->andWhere('leaved')->eq('0')
-            ->andWhere('id')->notin($this->config->task->blacklist)
-            ->fetchall();
-        print_r($users);
-        $now = date('Y-m-d H:i:s');
-        if (empty($day)) {
-            $days = $this->getNextweekDays();
-        } else {
-            $post_days = explode(',', $day);
-            $days = [];
-            foreach ($post_days as $day) {
-                array_push($days, date('Y-m-d', strtotime($day)));
-            }
-        }
-        foreach ($users as $user) {
-            foreach ($days as $day) {
-                $projectID = $this->config->task->deptToProject[$user->dept];
-                $task = [
-                    'project' => $projectID,
-                    'name' => '',
-                    'type' => 'discuss',
-                    'estimate' => 0.5,
-                    'consumed' => 0,
-                    'left' => 0.5,
-                    'deadline' => $day,
-                    'subStatus' => '',
-                    'color' => '',
-                    'desc' => '',
-                    'openedBy' => $user->account,
-                    'assignedTo' => $user->account,
-                    'openedDate' => $now,
-                    'assignedDate' => $now
-                ];
-                $task['name'] = '早会' . $day;
-                $this->dao->insert(TABLE_TASK)->data($task)->exec();
-                $task['name'] = '验收会' . $day;
-                $this->dao->insert(TABLE_TASK)->data($task)->exec();
-            }
-        }
-        echo "生成会议任务成功";
-    }
-
-    private function getNextweekDays()
-    {
-        $days = [];
-        $weeks = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
-        foreach ($weeks as $week) {
-            array_push($days, date('Y-m-d', strtotime('next ' . $week)));
-        }
-        return $days;
     }
 }

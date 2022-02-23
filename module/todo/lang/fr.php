@@ -16,6 +16,7 @@ $lang->todo->createCycle  = "Ajout Tâche récurrente";
 $lang->todo->assignTo     = "Affecter à";
 $lang->todo->assignedDate = "Date Affectation";
 $lang->todo->assignAction = "Affacter Action";
+$lang->todo->start        = "Start Todo";
 $lang->todo->activate     = "Activer Entrée";
 $lang->todo->batchCreate  = "Ajout par lot ";
 $lang->todo->edit         = "Editer Agenda";
@@ -32,6 +33,9 @@ $lang->todo->import       = "Importer";
 $lang->todo->legendBasic  = "Infos de Base";
 $lang->todo->cycle        = "Rendre Récurrent";
 $lang->todo->cycleConfig  = "Récurrence";
+$lang->todo->project      = "Project";
+$lang->todo->product      = "Product";
+$lang->todo->execution    = $lang->executionCommon;
 
 $lang->todo->reasonList['story'] = "Convertir en Story";
 $lang->todo->reasonList['task']  = "Convertir en Tâche";
@@ -56,6 +60,7 @@ $lang->todo->private      = 'Privé';
 $lang->todo->cycleDay     = 'Jour';
 $lang->todo->cycleWeek    = 'Semaine';
 $lang->todo->cycleMonth   = 'Mois';
+$lang->todo->day          = 'Jour';
 $lang->todo->assignedTo   = 'AssignedTo';
 $lang->todo->assignedBy   = 'AssignedBy';
 $lang->todo->finishedBy   = 'FinishedBy';
@@ -64,9 +69,15 @@ $lang->todo->closedBy     = 'ClosedBy';
 $lang->todo->closedDate   = 'ClosedDate';
 $lang->todo->deadline     = 'Expiration';
 
-$lang->todo->every      = 'Chaque';
-$lang->todo->beforeDays = "<span class='input-group-addon'>Créer automatiquement une alerte </span>%s<span class='input-group-addon'>jours avant</span>";
-$lang->todo->dayNames   = array(1 => 'Lundi', 2 => 'Mardi', 3 => 'Mercredi', 4 => 'Jeudi', 5 => 'Vendredi', 6 => 'Samedi', 0 => 'Dimanche');
+$lang->todo->cycleDaysLabel  = 'Interval days';
+$lang->todo->beforeDaysLabel = 'Days in advance';
+
+$lang->todo->every        = 'Chaque';
+$lang->todo->specify      = 'Désigner';
+$lang->todo->everyYear    = 'Tous les ans';
+$lang->todo->beforeDays   = "<span class='input-group-addon'>Créer automatiquement une alerte </span>%s<span class='input-group-addon'>jours avant</span>";
+$lang->todo->dayNames     = array(1 => 'Lundi', 2 => 'Mardi', 3 => 'Mercredi', 4 => 'Jeudi', 5 => 'Vendredi', 6 => 'Samedi', 0 => 'Dimanche');
+$lang->todo->specifiedDay = array(1 => 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31);
 
 $lang->todo->confirmBug   = "Cette action est liée au Bug #%s. Voulez-vous l'éditer ?";
 $lang->todo->confirmTask  = "Cette action est liée à la Tâche #%s. Voulez-vous l'éditer ?";
@@ -79,10 +90,9 @@ $lang->todo->statusList['closed'] = 'Fermé';
 //$lang->todo->statusList['cancel']   = 'Cancelled';
 //$lang->todo->statusList['postpone'] = 'Delayed';
 
-$lang->todo->priList[0] = '';
-$lang->todo->priList[3] = 'Normale';
 $lang->todo->priList[1] = 'Critique';
 $lang->todo->priList[2] = 'Importante';
+$lang->todo->priList[3] = 'Normale';
 $lang->todo->priList[4] = 'Faible';
 
 $lang->todo->typeList['custom']   = 'Person.';
@@ -90,10 +100,7 @@ $lang->todo->typeList['cycle']    = 'Récur';
 $lang->todo->typeList['bug']      = 'Bug';
 $lang->todo->typeList['task']     = 'Tâche';
 $lang->todo->typeList['story']    = 'Story';
-
-global $config;
-if($config->global->flow == 'onlyTest' or $config->global->flow == 'onlyStory') unset($lang->todo->typeList['task']);
-if($config->global->flow == 'onlyTask' or $config->global->flow == 'onlyStory') unset($lang->todo->typeList['bug']);
+$lang->todo->typeList['testtask'] = 'Testtask';
 
 $lang->todo->confirmDelete  = "Voulez-vous supprimer cette entrée de l'agenda ?";
 $lang->todo->thisIsPrivate  = "Il s'agit d'un rdv privé";
@@ -102,12 +109,16 @@ $lang->todo->lblBeforeDays  = "Créer une entrée %s jour(s) plus tôt";
 $lang->todo->lblClickCreate = "Cliquez pour ajouter une entrée";
 $lang->todo->noTodo         = 'Aucune entrée de ce type.';
 $lang->todo->noAssignedTo   = "Le champ Assigné à ne doit pas être vide.";
+$lang->todo->unfinishedTodo = "Les entrées de l'ID %s ne sont pas terminés et ne peuvent pas se fermer.";
 
-$lang->todo->periods['all']        = 'Toutes les entrées';
-$lang->todo->periods['thisYear']   = 'Cette Année';
-$lang->todo->periods['future']     = 'A définir';
-$lang->todo->periods['before']     = 'Non terminée';
-$lang->todo->periods['cycle']      = 'Récurrence';
+$lang->todo->periods['all']             = 'Toutes les entrées';
+$lang->todo->periods['before']          = 'Non terminée';
+$lang->todo->periods['future']          = 'A définir';
+$lang->todo->periods['thisWeek']        = 'This Week';
+$lang->todo->periods['thisMonth']       = 'This Month';
+$lang->todo->periods['thisYear']        = 'Cette Année';
+$lang->todo->periods['assignedToOther'] = 'Assigned To Other';
+$lang->todo->periods['cycle']           = 'Récurrence';
 
 $lang->todo->action = new stdclass();
 $lang->todo->action->finished = array('main' => '$date, est $extra par <strong>$actor</strong>.', 'extra' => 'reasonList');

@@ -9,15 +9,16 @@
  * @version     $Id: en.php 5080 2013-07-10 00:46:59Z wyd621@gmail.com $
  * @link        http://www.zentao.net
  */
-$lang->report->common     = 'Report';
-$lang->report->index      = 'Report Home';
-$lang->report->list       = 'Report';
-$lang->report->item       = 'Item';
-$lang->report->value      = 'Value';
-$lang->report->percent    = '%';
-$lang->report->undefined  = 'Undefined';
-$lang->report->query      = 'Query';
-$lang->report->annual     = 'Annual Summary';
+$lang->report->index     = 'Report Home';
+$lang->report->list      = 'Report';
+$lang->report->item      = 'Item';
+$lang->report->value     = 'Value';
+$lang->report->percent   = '%';
+$lang->report->undefined = 'Undefined';
+$lang->report->query     = 'Query';
+$lang->report->annual    = 'Annual Summary';
+$lang->report->project   = 'Project';
+$lang->report->PO        = 'PO';
 
 $lang->report->colors[]   = 'AFD8F8';
 $lang->report->colors[]   = 'F6BD0F';
@@ -33,11 +34,11 @@ $lang->report->colors[]   = '9D080D';
 $lang->report->colors[]   = 'A186BE';
 
 $lang->report->assign['noassign'] = 'Unassigned';
-$lang->report->assign['assign'] = 'Assigned';
+$lang->report->assign['assign']   = 'Assigned';
 
 $lang->report->singleColor[] = 'F6BD0F';
 
-$lang->report->projectDeviation = $lang->projectCommon . ' Deviation';
+$lang->report->projectDeviation = "{$lang->execution->common} Deviation";
 $lang->report->productSummary   = $lang->productCommon . ' Summary';
 $lang->report->bugCreate        = 'Bug Reported Summary';
 $lang->report->bugAssign        = 'Bug Assigned Summary';
@@ -45,17 +46,25 @@ $lang->report->workload         = 'Team Workload Summary';
 $lang->report->workloadAB       = 'Workload';
 $lang->report->bugOpenedDate    = 'Bug reported from';
 $lang->report->beginAndEnd      = ' From';
+$lang->report->begin            = ' Begin';
+$lang->report->end              = ' End';
 $lang->report->dept             = 'Department';
-$lang->report->deviationChart   = $lang->projectCommon . ' Deviation Chart';
+$lang->report->deviationChart   = 'Project Deviation Chart';
 
-$lang->reportList->project->lists[10] = $lang->projectCommon . ' Deviation|report|projectdeviation';
+$lang->reportList = new stdclass();
+$lang->reportList->project = new stdclass();
+$lang->reportList->product = new stdclass();
+$lang->reportList->test    = new stdclass();
+$lang->reportList->staff   = new stdclass();
+
+$lang->reportList->project->lists[10] = "{$lang->execution->common} Deviation|report|projectdeviation";
 $lang->reportList->product->lists[10] = $lang->productCommon . ' Summary|report|productsummary';
 $lang->reportList->test->lists[10]    = 'Bug Reported Summary|report|bugcreate';
 $lang->reportList->test->lists[13]    = 'Bug Assigned Summary|report|bugassign';
 $lang->reportList->staff->lists[10]   = 'Team Workload Summary|report|workload';
 
 $lang->report->id            = 'ID';
-$lang->report->project       = $lang->projectCommon;
+$lang->report->execution     = $lang->execution->common;
 $lang->report->product       = $lang->productCommon;
 $lang->report->user          = 'User';
 $lang->report->bugTotal      = 'Bug';
@@ -99,53 +108,109 @@ $lang->report->mailTitle->task     = " Task (%s),";
 $lang->report->mailTitle->todo     = " Todo (%s),";
 $lang->report->mailTitle->testTask = " Request (%s),";
 
-$lang->report->proVersion   = '<a href="https://api.zentao.net/goto.php?item=proversion&from=reportpage" target="_blank">Try ZenTao Pro for more!</a>';
-$lang->report->proVersionEn = '<a href="http://api.zentao.pm/goto.php?item=proversion&from=reportpage" target="_blank">Try ZenTao Pro for more!</a>';
+$lang->report->deviationDesc = 'According to the Closed Execution Deviation Rate = ((Total Cost - Total Estimate) / Total Estimate), the Deviation Rate is n/a when the Total Estimate is 0.';
+$lang->report->proVersion    = '<a href="https://www.zentao.net/page/enterprise.html" target="_blank">Try ZenTao Biz for more!</a>';
+$lang->report->proVersionEn  = '<a href="https://www.zentao.pm/" target="_blank">Try ZenTao Biz for more!</a>';
+$lang->report->workloadDesc  = 'Workload = the total left hours of all tasks of the user / selected days * hours per day.
+For example: the begin and end date is January 1st to January 7th, and the total work days is 5 days, 8 hours per day. The Work load is all unfinished tasks assigned to this user to be finished in 5 days, 8 hours per day.';
 
 $lang->report->annualData = new stdclass();
-$lang->report->annualData->title            = "%s Work Summary —— %s";
-$lang->report->annualData->baseInfo         = "Basic Information";
-$lang->report->annualData->logins           = "Login";
-$lang->report->annualData->actions          = "Action";
-$lang->report->annualData->efforts          = "Effort";
-$lang->report->annualData->consumed         = "Hour Cost";
-$lang->report->annualData->foundBugs        = "Bug Reported";
-$lang->report->annualData->createdCases     = "Case Created";
-$lang->report->annualData->involvedProducts = "{$lang->productCommon} Involved";
-$lang->report->annualData->createdPlans     = "Plan Created";
-$lang->report->annualData->createdStories   = "{$lang->storyCommon} Created";
+$lang->report->annualData->title            = "%s work summary in %s";
+$lang->report->annualData->exportByZentao   = "Export By ZenTao";
+$lang->report->annualData->scope            = "Scope";
+$lang->report->annualData->allUser          = "All Users";
+$lang->report->annualData->allDept          = "Whole Company";
+$lang->report->annualData->soFar            = " (%s)";
+$lang->report->annualData->baseInfo         = "Basic Data";
+$lang->report->annualData->actionData       = "Operation Data";
+$lang->report->annualData->contributionData = "Contribution Data";
+$lang->report->annualData->radar            = "Capability Radar Chart";
+$lang->report->annualData->executions       = "{$lang->executionCommon} Data";
+$lang->report->annualData->products         = "{$lang->productCommon} Data";
+$lang->report->annualData->stories          = "Story Data";
+$lang->report->annualData->tasks            = "Task Data";
+$lang->report->annualData->bugs             = "Bug Data";
+$lang->report->annualData->cases            = "Case Data";
+$lang->report->annualData->statusStat       = "{$lang->SRCommon}/task/bug status distribution (as of today)";
 
-$lang->report->annualData->productOverview = "{$lang->productCommon} {$lang->storyCommon} Count and Percent";
-$lang->report->annualData->qaOverview      = "{$lang->productCommon} Bug Count and Percent";
-$lang->report->annualData->projectOverview = "{$lang->projectCommon} Overview";
-$lang->report->annualData->doneProject     = "Done {$lang->projectCommon}";
-$lang->report->annualData->doingProject    = "Ongoing {$lang->projectCommon}";
-$lang->report->annualData->suspendProject  = "Suspended {$lang->projectCommon}";
+$lang->report->annualData->companyUsers     = "Number of company";
+$lang->report->annualData->deptUsers        = "Number of departments";
+$lang->report->annualData->logins           = "Login times";
+$lang->report->annualData->actions          = "Number of operations";
+$lang->report->annualData->contributions    = "Number of contributions";
+$lang->report->annualData->consumed         = "Consumed";
+$lang->report->annualData->todos            = "Number of Todos";
 
-$lang->report->annualData->projectName   = "{$lang->projectCommon}";
-$lang->report->annualData->finishedStory = "{$lang->storyCommon} Finished";
-$lang->report->annualData->finishedTask  = 'Task Finished';
-$lang->report->annualData->foundBug      = 'Bug Reported';
-$lang->report->annualData->resolvedBug   = 'Bug Resolved';
-$lang->report->annualData->productName   = "{$lang->productCommon}";
-$lang->report->annualData->planCount     = 'Plan';
-$lang->report->annualData->storyCount    = "{$lang->storyCommon}";
+$lang->report->annualData->storyStatusStat = "Story status distribution";
+$lang->report->annualData->taskStatusStat  = "Task status distribution";
+$lang->report->annualData->bugStatusStat   = "Bug status distribution";
+$lang->report->annualData->caseResultStat  = "Case result distribution";
+$lang->report->annualData->allStory        = "Total";
+$lang->report->annualData->allTask         = "Total";
+$lang->report->annualData->allBug          = "Total";
+$lang->report->annualData->undone          = "Undone";
+$lang->report->annualData->unresolve       = "Unresolve";
 
-$lang->report->annualData->qaData           = "Bug Reported and Case Created";
-$lang->report->annualData->totalCreatedBug  = 'Bug Reported';
-$lang->report->annualData->totalCreatedCase = 'Case Created';
+$lang->report->annualData->storyMonthActions = "Monthly story operation";
+$lang->report->annualData->taskMonthActions  = "Monthly task operation";
+$lang->report->annualData->bugMonthActions   = "Monthly bug operation";
+$lang->report->annualData->caseMonthActions  = "Monthly case operation";
 
-$lang->report->annualData->devData           = "Task Finished and Bug Resolved";
-$lang->report->annualData->totalFinishedTask = 'Task Finished';
-$lang->report->annualData->totalResolvedBug  = 'Bug Resolved';
-$lang->report->annualData->totalConsumed     = 'Hour Cost';
+$lang->report->annualData->executionFields['name']  = "{$lang->executionCommon} name";
+$lang->report->annualData->executionFields['story'] = "Finished stories";
+$lang->report->annualData->executionFields['task']  = "Finished tasks";
+$lang->report->annualData->executionFields['bug']   = "Resolved bugs";
 
-$lang->report->annualData->poData          = "{$lang->storyCommon} Created, Priority and Status";
-$lang->report->annualData->totalStoryPri   = "{$lang->storyCommon} Priority";
-$lang->report->annualData->totalStoryStage = "{$lang->storyCommon} Stage";
+$lang->report->annualData->productFields['name'] = "{$lang->productCommon} name";
+$lang->report->annualData->productFields['plan'] = "Plans";
+global $config;
+if(!empty($config->URAndSR))
+{
+    $lang->report->annualData->productFields['requirement'] = "Created requirements";
+}
+$lang->report->annualData->productFields['story']  = "Created stories";
+$lang->report->annualData->productFields['closed'] = "Closed stories";
 
-$lang->report->annualData->qaStatistics  = "Monthly Created Bug and Case";
-$lang->report->annualData->poStatistics  = "Monthly Created {$lang->storyCommon}";
-$lang->report->annualData->devStatistics = "Monthly Finished Task, Hour, and Resolved Bug";
+$lang->report->annualData->objectTypeList['product']     = $lang->productCommon;
+$lang->report->annualData->objectTypeList['story']       = $lang->SRCommon;
+$lang->report->annualData->objectTypeList['productplan'] = "Plan";
+$lang->report->annualData->objectTypeList['release']     = "Release";
+$lang->report->annualData->objectTypeList['execution']   = $lang->executionCommon;
+$lang->report->annualData->objectTypeList['task']        = 'Task';
+$lang->report->annualData->objectTypeList['repo']        = 'Code';
+$lang->report->annualData->objectTypeList['bug']         = 'Bug';
+$lang->report->annualData->objectTypeList['build']       = 'Build';
+$lang->report->annualData->objectTypeList['testtask']    = 'TestTask';
+$lang->report->annualData->objectTypeList['case']        = 'Case';
+$lang->report->annualData->objectTypeList['doc']         = 'Document';
 
-$lang->report->annualData->unit = " ";
+$lang->report->annualData->actionList['create']    = 'Created';
+$lang->report->annualData->actionList['edit']      = 'Edited';
+$lang->report->annualData->actionList['close']     = 'Closed';
+$lang->report->annualData->actionList['review']    = 'Reviewed';
+$lang->report->annualData->actionList['gitCommit'] = 'GIT Commited';
+$lang->report->annualData->actionList['svnCommit'] = 'SVN Commited';
+$lang->report->annualData->actionList['start']     = 'Started';
+$lang->report->annualData->actionList['finish']    = 'Finished';
+$lang->report->annualData->actionList['assign']    = 'Assigned';
+$lang->report->annualData->actionList['activate']  = 'Activated';
+$lang->report->annualData->actionList['resolve']   = 'Resolved';
+$lang->report->annualData->actionList['run']       = 'Execute';
+$lang->report->annualData->actionList['stop']      = 'Stop Maintenance';
+$lang->report->annualData->actionList['putoff']    = 'Postponed ';
+$lang->report->annualData->actionList['suspend']   = 'Suspended';
+$lang->report->annualData->actionList['change']    = 'Changed';
+$lang->report->annualData->actionList['pause']     = 'Paused';
+$lang->report->annualData->actionList['cancel']    = 'Canceled';
+$lang->report->annualData->actionList['confirm']   = 'Confirmed';
+$lang->report->annualData->actionList['createBug'] = 'Turn to bug';
+
+$lang->report->annualData->todoStatus['all']    = 'All';
+$lang->report->annualData->todoStatus['undone'] = 'Undone';
+$lang->report->annualData->todoStatus['done']   = 'Done';
+
+$lang->report->annualData->radarItems['product']   = "Product";
+$lang->report->annualData->radarItems['execution'] = "Project";
+$lang->report->annualData->radarItems['devel']     = "Development";
+$lang->report->annualData->radarItems['qa']        = "QA";
+$lang->report->annualData->radarItems['other']     = "Other";

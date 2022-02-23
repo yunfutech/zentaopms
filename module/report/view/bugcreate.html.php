@@ -1,13 +1,12 @@
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/datepicker.html.php';?>
+<?php if(isset($config->maxVersion) or isset($config->proVersion) or isset($config->bizVersion)):?>
+<style>#mainContent > .side-col.col-lg{width: 235px}</style>
+<style>.hide-sidebar #sidebar{width: 0 !important}</style>
+<?php endif;?>
 <div id='mainContent' class='main-row'>
-  <div class='side-col col-lg'>
+  <div class='side-col col-lg' id='sidebar'>
     <?php include 'blockreportlist.html.php';?>
-    <div class='panel panel-body' style='padding: 10px 6px'>
-      <div class='text proversion'>
-        <strong class='text-danger small text-latin'>PRO</strong> &nbsp;<span class='text-important'><?php echo (isset($config->isINT) and $config->isINT) ? $lang->report->proVersionEn : $lang->report->proVersion; ?></span>
-      </div>
-    </div>
   </div>
   <div class='main-col'>
     <div class='cell'>
@@ -28,8 +27,8 @@
         </div>
         <div class='col-sm-4'>
           <div class='input-group'>
-            <span class='input-group-addon'><?php echo $lang->report->project;?></span>
-            <?php echo html::select('project', $projects, $project, "class='form-control chosen' onchange='changeParams(this)'");?>
+            <span class='input-group-addon'><?php echo $this->config->systemMode == 'classic' ? $lang->executionCommon : $lang->execution->common;?></span>
+            <?php echo html::select('execution', $executions, $execution, "class='form-control chosen' onchange='changeParams(this)'");?>
           </div>
         </div>
       </div>
@@ -76,7 +75,7 @@
               </tr>
             <?php endforeach;?>
             </tbody>
-          </table> 
+          </table>
         </div>
       </div>
     </div>

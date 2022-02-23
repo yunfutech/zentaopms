@@ -1,6 +1,6 @@
 <?php if($files):?>
 <?php
-$sessionString  = $config->requestType == 'PATH_INFO' ? '?' : '&';
+$sessionString  = ($config->requestType == 'PATH_INFO' and !isonlybody()) ? '?' : '&';
 $sessionString .= session_name() . '=' . session_id();
 ?>
 <?php if($fieldset == 'true'):?>
@@ -17,8 +17,9 @@ $sessionString .= session_name() . '=' . session_id();
   function deleteFile(fileID)
   {
       if(!fileID) return;
-      hiddenwin.location.href =createLink('file', 'delete', 'fileID=' + fileID);
+      hiddenwin.location.href = createLink('file', 'delete', 'fileID=' + fileID);
   }
+
   /* Download a file, append the mouse to the link. Thus we call decide to open the file in browser no download it. */
   function downloadFile(fileID, extension, imageWidth, fileTitle)
   {
@@ -29,7 +30,7 @@ $sessionString .= session_name() . '=' . session_id();
       var url            = createLink('file', 'download', 'fileID=' + fileID + '&mouse=left') + sessionString;
       var width          = (windowWidth > imageWidth) ? ((imageWidth < windowWidth * 0.5) ? windowWidth * 0.5 : imageWidth) : windowWidth;
       var checkExtension = fileTitle.lastIndexOf('.' + extension) == (fileTitle.length - extension.length - 1);
-      if(fileTypes.indexOf(extension) >= 0 && checkExtension)
+      if(fileTypes.indexOf(extension) >= 0 && checkExtension && config.onlybody != 'yes')
       {
           $('<a>').modalTrigger({url: url, type: 'iframe', width: width}).trigger('click');
       }
@@ -52,7 +53,7 @@ $sessionString .= session_name() . '=' . session_id();
               $imageWidth = 0;
               if(stripos('jpg|jpeg|gif|png|bmp', $file->extension) !== false)
               {
-                  $imageSize  = getimagesize($file->realPath);
+                  $imageSize  = $this->file->getImageSize($file);
                   $imageWidth = $imageSize ? $imageSize[0] : 0;
               }
 
@@ -79,8 +80,8 @@ $sessionString .= session_name() . '=' . session_id();
               }
               echo "<li title='{$uploadDate}'>" . html::a($this->createLink('file', 'download', "fileID=$file->id") . $sessionString, $fileTitle . " <span class='text-muted'>({$fileSize})</span>", '_blank', "onclick=\"return downloadFile($file->id, '$file->extension', $imageWidth, '$file->title')\"");
 
-              $objectType = zget($this->config->file->objectType, $file->objectType); 
-              if(common::hasPriv($objectType, 'edit'))
+              $objectType = zget($this->config->file->objectType, $file->objectType);
+              if(common::hasPriv($objectType, 'edit', $object))
               {
                   echo "<span class='right-icon'>&nbsp; ";
                   common::printLink('file', 'edit', "fileID=$file->id", $lang->file->edit, '', "data-width='400' class='edit iframe text-primary' title='{$lang->file->edit}'");

@@ -38,6 +38,7 @@ class tutorial extends control
         $this->view->current = $task;
         $this->view->setting = $setting;
         $this->view->referer = base64_decode($referer);
+        $this->view->mode    = $this->setting->getItem('owner=system&module=common&section=global&key=mode');
         $this->display();
     }
 
@@ -52,17 +53,17 @@ class tutorial extends control
     {
         if($_POST && isset($_POST['finish'])) $finish = $_POST['finish'];
 
-        if($finish == 'keepAll') $this->send(array('result' => 'fail', 'message' => $this->lang->tutorial->ajaxSetError));
+        if($finish == 'keepAll') return $this->send(array('result' => 'fail', 'message' => $this->lang->tutorial->ajaxSetError));
         $account = $this->app->user->account;
         $this->session->set('tutorialMode', false);
         $this->loadModel('setting')->setItem("$account.tutorial.tasks.setting", $finish);
         $this->session->set('tutorialMode', true);
-        $this->send(array('result' => 'success'));
+        return $this->send(array('result' => 'success'));
     }
 
     /**
      * Exit tutorial mode
-     * 
+     *
      * @param  string $referer
      * @access public
      * @return void
@@ -77,7 +78,7 @@ class tutorial extends control
 
     /**
      * Ajax quit tutorial mode
-     * 
+     *
      * @access public
      * @return void
      */
@@ -89,28 +90,32 @@ class tutorial extends control
     }
 
     /**
-     * Wizard. 
-     * 
-     * @param  string $module 
-     * @param  string $method 
-     * @param  string $params 
+     * Wizard.
+     *
+     * @param  string $module
+     * @param  string $method
+     * @param  string $params
      * @access public
      * @return void
      */
     public function wizard($module, $method, $params = '')
     {
-        define('TUTORIAL',      true);
+        if(!defined('TUTORIAL')) define('TUTORIAL', true);
         define('WIZARD_MODULE', $module);
         define('WIZARD_METHOD', $method);
 
         /* Check priv for tutorial. */
         $hasPriv = false;
-        foreach($this->lang->tutorial->tasks as $taskName)
+        $moduleLower = strtolower($module);
+        foreach($this->lang->tutorial->tasks as $task)
         {
-            $taskModule = strtolower($taskName['nav']['module']);
-            if($taskModule == strtolower($module)) $hasPriv = true;
-            if(isset($this->lang->menugroup->$taskModule) and $this->lang->menugroup->$taskModule == strtolower($module)) $hasPriv = true;
-            if($hasPriv) break;
+            $taskModule     = strtolower($task['nav']['module']);
+            $taskMenuModule = strtolower($task['nav']['menuModule']);
+            if($taskModule == $moduleLower or $taskMenuModule == $moduleLower)
+            {
+                $hasPriv = true;
+                break;
+            }
         }
         if(!$hasPriv and $module == 'my' and $method == 'index') $hasPriv = true;
         if(!$hasPriv) die(js::locate('back'));
@@ -120,8 +125,8 @@ class tutorial extends control
         {
             $target = 'parent';
             if(($module == 'story' or $module == 'task' or $module == 'bug') and $method == 'create') $target = 'self';
-            if($module == 'project' and $method == 'linkStory') $target = 'self';
-            if($module == 'project' and $method == 'managemembers') $target = 'self';
+            if($module == 'execution' and $method == 'linkStory') $target = 'self';
+            if($module == 'execution' and $method == 'managemembers') $target = 'self';
             die(js::locate(helper::createLink('tutorial', 'wizard', "module=$module&method=$method&params=" . helper::safe64Encode($params)), $target));
         }
         die($this->fetch($module, $method, $params));
@@ -129,8 +134,8 @@ class tutorial extends control
 
     /**
      * Ajax save novice result.
-     * 
-     * @param  string $novice 
+     *
+     * @param  string $novice
      * @param  string $reload
      *
      * @access public
@@ -150,7 +155,9 @@ class tutorial extends control
      */
     public function ajaxFinish()
     {
+        $tutorialMode = $this->session->tutorialMode;
         $this->session->set('tutorialMode', false);
         $this->loadModel('score')->create('tutorial', 'finish');
+        $this->session->set('tutorialMode', $tutorialMode);
     }
 }

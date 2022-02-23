@@ -1,68 +1,117 @@
 /**
  * Load module, stories and members.
  *
- * @param  int    $projectID
+ * @param  int    $executionID
  * @access public
  * @return void
  */
-function loadAll(projectID)
+function loadAll(executionID)
 {
-    loadModuleMenu(projectID);
-    loadProjectStories(projectID);
-    loadProjectMembers(projectID);
+    loadModuleMenu(executionID);
+    loadExecutionStories(executionID);
+    loadExecutionMembers(executionID);
 }
 
 /**
- * Load team members of the project.
+ * Load team members of the execution.
  *
- * @param  int    $projectID
+ * @param  int    $executionID
  * @access public
  * @return void
  */
-function loadProjectMembers(projectID)
+function loadExecutionMembers(executionID)
 {
-    $.get(createLink('project', 'ajaxGetMembers', 'projectID=' + projectID + '&assignedTo=' + $('#assignedTo').val()), function(data)
+    $("#multipleBox").removeAttr("checked");
+    $('.team-group').addClass('hidden');
+    $.get(createLink('execution', 'ajaxGetMembers', 'executionID=' + executionID + '&assignedTo=' + $('#assignedTo').val()), function(data)
     {
         $('#assignedTo_chosen').remove();
+        $('#assignedTo').next('.picker').remove();
         $('#assignedTo').replaceWith(data);
         $('#assignedTo').attr('name', 'assignedTo[]').chosen();
 
         $('.modal-dialog #taskTeamEditor tr').each(function()
         {
             $(this).find('#team_chosen').remove();
+            $(this).find('#team').next('.picker').remove();
             $(this).find('#team').replaceWith(data);
             $(this).find('#assignedTo').attr('id', 'team').attr('name', 'team[]').chosen();
+        });
+
+        $('#testStoryBox table tbody tr').each(function(i)
+        {
+            $td = $(this).find('#testAssignedTo').closest('td');
+            $td.html(data);
+            $td.find('#assignedTo').val('').attr('id', 'testAssignedTo').attr('name', 'testAssignedTo[]').chosen();
         });
     });
 }
 
 /**
- * Load stories of the project.
+ * Load stories of the execution.
  *
- * @param  int    $projectID
+ * @param  int    $executionID
  * @access public
  * @return void
  */
-function loadProjectStories(projectID)
+function loadExecutionStories(executionID)
 {
-    $.get(createLink('story', 'ajaxGetProjectStories', 'projectID=' + projectID + '&productID=0&branch=0&moduleID=0&storyID=' + $('#story').val()), function(data)
+    $.get(createLink('story', 'ajaxGetExecutionStories', 'executionID=' + executionID + '&productID=0&branch=0&moduleID=0&storyID=' + $('#story').val()), function(data)
     {
         $('#story_chosen').remove();
+        $('#story').next('.picker').remove();
         $('#story').replaceWith(data);
-        $('#story').chosen();
+        $('#story').addClass('filled').chosen();
+
+        /* If there is no story option, select will be hidden and text will be displayed; otherwise, the opposite is true */
+        if($('#story option').length > 1)
+        {
+            $('#story').parent().removeClass('hidden');
+            $('#storyBox').addClass('hidden');
+        }
+        else
+        {
+            $('#storyBox').removeClass('hidden');
+            $('#storyBox > a:first').attr('href', createLink('execution', 'linkStory', 'executionID=' + executionID));
+            $('#storyBox > a:nth-child(2)').attr('href', "javascript:loadStories(" + executionID + ")");
+            $('#story').parent().addClass('hidden');
+        }
+
+        if($('#testStoryBox table tbody tr').length == 0)
+        {
+            var trHtml  = $('#testStoryTemplate tr').prop("outerHTML");
+            $('#testStoryBox table tbody').append(trHtml);
+
+            $td = $('#testStoryBox table tbody tr:first').find('#testStory').closest('td');
+            $td.html(data);
+            $td.find('#story').val($td.find('#story option').eq(i).val()).attr('id', 'testStory').attr('name', 'testStory[]').addClass('filled').chosen();
+
+            $td = $('#testStoryBox table tbody tr:first').find('#testPri_chosen').closest('td');
+            $td.find('#testPri_chosen').remove();
+            $td.find('#testPri').chosen();
+        }
+        else
+        {
+            $('#testStoryBox table tbody tr').each(function(i)
+            {
+                $td = $(this).find('#testStory').closest('td');
+                $td.html(data);
+                $td.find('#story').val($td.find('#story option').eq(i).val()).attr('id', 'testStory').attr('name', 'testStory[]').addClass('filled').chosen();
+            });
+        }
     });
 }
 
 /**
- * Load module of the project.
+ * Load module of the execution.
  *
- * @param  int    $projectID
+ * @param  int    $executionID
  * @access public
  * @return void
  */
-function loadModuleMenu(projectID)
+function loadModuleMenu(executionID)
 {
-    var link = createLink('tree', 'ajaxGetOptionMenu', 'rootID=' + projectID + '&viewtype=task');
+    var link = createLink('tree', 'ajaxGetOptionMenu', 'rootID=' + executionID + '&viewtype=task');
     $('#moduleIdBox').load(link, function(){$('#module').chosen();});
 }
 
@@ -93,6 +142,7 @@ function setOwners(result)
     $("#multipleBox").removeAttr("checked");
     $('.team-group').addClass('hidden');
     $('#assignedTo, #assignedTo_chosen').removeClass('hidden');
+    $('#assignedTo').next('.picker').removeClass('hidden');
     if(result == 'affair')
     {
         $('#assignedTo').attr('multiple', 'multiple');
@@ -128,12 +178,15 @@ function setStoryModule()
         var link = createLink('story', 'ajaxGetInfo', 'storyID=' + storyID);
         $.getJSON(link, function(storyInfo)
         {
-            $('#module').val(storyInfo.moduleID);
-            $("#module").trigger("chosen:updated");
+            if(storyInfo)
+            {
+                $('#module').val(storyInfo.moduleID);
+                $("#module").trigger("chosen:updated");
 
-            $('#storyEstimate').val(storyInfo.estimate);
-            $('#storyPri'     ).val(storyInfo.pri);
-            $('#storyDesc'    ).val(storyInfo.spec);
+                $('#storyEstimate').val(storyInfo.estimate);
+                $('#storyPri'     ).val(storyInfo.pri);
+                $('#storyDesc'    ).val(storyInfo.spec);
+            }
         });
     }
 }
@@ -141,7 +194,7 @@ function setStoryModule()
 /* Set the story priview link. */
 function setPreview()
 {
-    if(!$('#story').val())
+    if(!Number($('#story').val()))
     {
         $('#preview').addClass('hidden');
         $('#copyButton').addClass('hidden');
@@ -152,12 +205,15 @@ function setPreview()
     {
         storyLink  = createLink('story', 'view', "storyID=" + $('#story').val());
         var concat = config.requestType != 'GET' ? '?'  : '&';
-        storyLink  = storyLink + concat + 'onlybody=yes';
+
+        if(storyLink.indexOf("onlybody=yes") < 0) storyLink = storyLink + concat + 'onlybody=yes';
+
         $('#preview').removeClass('hidden');
         $('#preview a').attr('href', storyLink);
         $('#copyButton').removeClass('hidden');
         $('.title-group.required > div').attr('id', 'copyStory-input').removeClass('.required');
-        $('div.colorpicker').css('right', '57px');//Adjust for task #4151;
+        $('div.colorpicker').css('right', '80px');//Adjust for task #4151;
+        $('#copyButton').css('width', '80px');
     }
 
     setAfter();
@@ -191,14 +247,14 @@ function setAfter()
 /**
  * Load stories.
  *
- * @param  int    $projectID
+ * @param  int    $executionID
  * @access public
  * @return void
  */
-function loadStories(projectID)
+function loadStories(executionID)
 {
     moduleID  = $('#module').val();
-    setStories(moduleID, projectID);
+    setStories(moduleID, executionID);
 }
 
 /**
@@ -209,24 +265,39 @@ function loadStories(projectID)
  */
 function loadModuleRelated()
 {
-    moduleID  = $('#module').val();
-    projectID = $('#project').val();
-    setStories(moduleID, projectID);
+    moduleID    = $('#module').val();
+    executionID = $('#execution').val();
+    setStories(moduleID, executionID);
 }
 
 /* Get select of stories.*/
-function setStories(moduleID, projectID)
+function setStories(moduleID, executionID)
 {
-    link = createLink('story', 'ajaxGetProjectStories', 'projectID=' + projectID + '&productID=0&branch=0&moduleID=' + moduleID);
+    link = createLink('story', 'ajaxGetExecutionStories', 'executionID=' + executionID + '&productID=0&branch=all&moduleID=' + moduleID);
     $.get(link, function(stories)
     {
         var storyID = $('#story').val();
         if(!stories) stories = '<select id="story" name="story" class="form-control"></select>';
         $('#story').replaceWith(stories);
+        if($('#story').length == 0 && $('#storyBox').length != 0) $('#storyBox').html(stories);
+
         $('#story').val(storyID);
         setPreview();
         $('#story_chosen').remove();
-        $("#story").chosen();
+        $('#story').next('.picker').remove();
+        $("#story").addClass('filled').chosen();
+
+        /* If there is no story option, select will be hidden and text will be displayed; otherwise, the opposite is true */
+        if($('#story option').length > 1)
+        {
+            $('#story').parent().removeClass('hidden');
+            $('#storyBox').addClass('hidden');
+        }
+        else
+        {
+            $('#storyBox').removeClass('hidden');
+            $('#story').parent().addClass('hidden');
+        }
     });
 }
 
@@ -240,6 +311,8 @@ function toggleSelectTestStory()
         $('#estStarted').closest('tr').addClass('hidden');
         $('#estimate').closest('.table-col').addClass('hidden');
         $('#testStoryBox').removeClass('hidden');
+        $('#copyButton').addClass('hidden');
+        $('.colorpicker').css('right', '0');
     }
     else
     {
@@ -295,7 +368,6 @@ function markTestStory()
             var $tr = $(this);
             storiesHasTest[$tr.find('select[name^="testStory"]').val()] = true;
         });
-        console.log(storiesHasTest);
         return storiesHasTest;
     };
 
@@ -363,12 +435,14 @@ $(document).ready(function()
         if($(this).prop('checked'))
         {
             $('#assignedTo, #assignedTo_chosen').addClass('hidden');
+            $('#assignedTo').next('.picker').addClass('hidden');
             $('.team-group').removeClass('hidden');
             $('#estimate').attr('readonly', true);
         }
         else
         {
             $('#assignedTo, #assignedTo_chosen').removeClass('hidden');
+            $('#assignedTo').next('.picker').removeClass('hidden');
             $('.team-group').addClass('hidden');
             $('#estimate').attr('readonly', false);
         }
@@ -417,25 +491,57 @@ $(document).ready(function()
     {
         var moduleID = $('#moduleIdBox #module').val();
         var extra    = $(this).prop('checked') ? 'allModule' : '';
-        $('#moduleIdBox').load(createLink('tree', 'ajaxGetOptionMenu', "rootID=" + projectID + '&viewType=task&branch=0&rootModuleID=0&returnType=html&fieldID=&needManage=0&extra=' + extra), function()
+        $('#moduleIdBox').load(createLink('tree', 'ajaxGetOptionMenu', "rootID=" + executionID + '&viewType=task&branch=0&rootModuleID=0&returnType=html&fieldID=&needManage=0&extra=' + extra), function()
         {
-            $('#moduleIdBox #module').val(moduleID).attr('onchange', "setStories(this.value, " + projectID + ")").chosen();
+            $('#moduleIdBox #module').val(moduleID).attr('onchange', "setStories(this.value, " + executionID + ")").chosen();
         });
     });
 });
+
+$(document).on('click', '#testStory_chosen,#story_chosen', function()
+{
+    var $obj  = $(this).prev('select');
+    var value = $obj.val();
+    if($obj.hasClass('filled')) return false;
+
+    $obj.empty();
+    for(storyID in stories)
+    {
+        pinyin = (typeof(storyPinYin) == 'undefined') ? '' : storyPinYin[storyID];
+        html   = "<option value='" + storyID + "' title='" + stories[storyID] + "' data-keys='" + pinyin + "'>" + stories[storyID] + "</option>";
+        $obj.append(html);
+    }
+    $obj.val(value);
+    $obj.addClass('filled');
+    $obj.trigger("chosen:updated");
+})
 
 $('#modalTeam .btn').click(function()
 {
     var team = '';
     var time = 0;
-    $('[name*=team]').each(function()
+
+    /* Unique team. */
+    $('select[name^=team]').each(function(i)
+    {
+        value = $(this).val();
+        if(value == '') return;
+        $('select[name^=team]').each(function(j)
+        {
+            if(i <= j) return;
+            if(value == $(this).val()) $(this).closest('tr').addClass('hidden');
+        })
+    })
+    $('select[name^=team]').closest('tr.hidden').remove();
+
+    $('select[name^=team]').each(function()
     {
         if($(this).find('option:selected').text() != '')
         {
             team += ' ' + $(this).find('option:selected').text();
         }
 
-        estimate = parseFloat($(this).parents('td').next('td').find('[name*=teamEstimate]').val());
+        estimate = parseFloat($(this).parents('td').next('td').find('[name^=teamEstimate]').val());
         if(!isNaN(estimate))
         {
             time += estimate;
@@ -444,4 +550,8 @@ $('#modalTeam .btn').click(function()
         $('#teamMember').val(team);
         $('#estimate').val(time);
     })
+});
+
+$(window).unload(function(){
+    if(blockID) window.parent.refreshBlock($('#block' + blockID));
 });

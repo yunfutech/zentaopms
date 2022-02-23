@@ -12,9 +12,17 @@
 ?>
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
-<?php $browseLink = $app->session->taskList != false ? $app->session->taskList : $this->createLink('project', 'browse', "projectID=$task->project");?>
+<?php $browseLink = $app->session->taskList != false ? $app->session->taskList : $this->createLink('execution', 'browse', "executionID=$task->execution");?>
 <?php js::set('sysurl', common::getSysUrl());?>
+<?php if(strpos($_SERVER["QUERY_STRING"], 'isNotice=1') === false):?>
 <div id="mainMenu" class="clearfix">
+<?php if($this->app->getViewType() == 'xhtml'):?>
+<div class="linkButton" onclick="handleLinkButtonClick()">
+  <span title="<?php echo $lang->viewDetails;?>">
+    <i class="icon icon-import icon-rotate-270"></i>
+  </span>
+</div>
+<?php endif;?>
   <div class="btn-toolbar pull-left">
     <?php if(!isonlybody()):?>
     <?php echo html::a($browseLink, '<i class="icon icon-back icon-sm"></i> ' . $lang->goback, '', "class='btn btn-secondary'");?>
@@ -31,7 +39,7 @@
       <span class='label label-danger'><?php echo $lang->task->deleted;?></span>
       <?php endif;?>
       <?php if($task->fromBug != 0):?>
-      <small><?php echo html::icon($lang->icons['bug']) . " {$lang->task->fromBug}$lang->colon$task->fromBug";?></small>
+      <small><?php echo html::a(helper::createLink('bug', 'view', "bugID=$task->fromBug", '', true), "<i class='icon icon-bug'></i> {$lang->task->fromBug}$lang->colon$task->fromBug", '', "class='iframe' data-width='80%'");?></small>
       <?php endif;?>
     </div>
   </div>
@@ -39,13 +47,17 @@
   <div class="btn-toolbar pull-right">
     <?php
     $checkObject = new stdclass();
-    $checkObject->project = $task->project;
-    $link = $this->createLink('task', 'create', "project={$task->project}&storyID={$task->story}&moduleID={$task->module}");
+    $checkObject->execution = $task->execution;
+    $link = $this->createLink('task', 'create', "execution={$task->execution}&storyID={$task->story}&moduleID={$task->module}");
     if(common::hasPriv('task', 'create', $checkObject)) echo html::a($link, "<i class='icon icon-plus'></i> {$lang->task->create}", '', "class='btn btn-primary'");
     ?>
   </div>
   <?php endif;?>
 </div>
+<?php if($this->app->getViewType() == 'xhtml'):?>
+<div id="scrollContent">
+<?php endif;?>
+<?php endif;?>
 <div id="mainContent" class="main-row">
   <div class="main-col col-8">
     <div class="cell">
@@ -55,7 +67,7 @@
           <?php echo !empty($task->desc) ? $task->desc : "<div class='text-center text-muted'>" . $lang->noData . '</div>';?>
         </div>
       </div>
-      <?php if($project->type != 'ops'):?>
+      <?php if($execution->type != 'ops'):?>
       <?php if($task->fromBug != 0):?>
       <div class="detail">
         <div class="detail-title"><?php echo $lang->bug->steps;?></div>
@@ -83,7 +95,7 @@
         <div class='detail-title'><?php echo $lang->task->case;?></div>
         <div class='detail-content article-content'>
           <ul class='list-unstyled'>
-            <?php foreach($task->cases as $caseID => $case) echo '<li>' . html::a($this->createLink('testcase', 'view', "caseID=$caseID", '', true), "#$caseID " . $case, '', "data-toggle='modal' data-type='iframe' data-width='90%'") . '</li>';?>
+            <?php foreach($task->cases as $caseID => $case) echo '<li>' . html::a($this->createLink('testcase', 'view', "caseID=$caseID", '', true), "#$caseID " . $case, '', isonlybody() ? '' : "data-toggle='modal' data-type='iframe' data-width='90%'") . '</li>';?>
           </ul>
         </div>
       </div>
@@ -126,13 +138,13 @@
                 <td class='visible-lg'><?php echo $child->left;?></td>
                 <td class='c-actions'>
                   <?php
-                  common::printIcon('task', 'assignTo', "projectID=$child->project&taskID=$child->id", $child, 'list', '', '', 'iframe showinonlybody', true);
+                  common::printIcon('task', 'assignTo', "executionID=$child->execution&taskID=$child->id", $child, 'list', '', '', 'iframe showinonlybody', true);
                   common::printIcon('task', 'start',    "taskID=$child->id", $child, 'list', '', '', 'iframe showinonlybody', true);
                   common::printIcon('task', 'activate', "taskID=$child->id", $child, 'list', '', '', 'iframe showinonlybody', true);
+                  common::printIcon('task', 'close',    "taskID=$child->id", $child, 'list', '', '', 'iframe showinonlybody', true);
+                  common::printIcon('task', 'finish',   "taskID=$child->id", $child, 'list', '', '', 'iframe showinonlybody', true);
                   common::printIcon('task', 'recordEstimate', "taskID=$child->id", $child, 'list', 'time', '', 'iframe showinonlybody', true);
-                  common::printIcon('task', 'finish', "taskID=$child->id", $child, 'list', '', '', 'iframe showinonlybody', true);
-                  common::printIcon('task', 'close',  "taskID=$child->id", $child, 'list', '', '', 'iframe showinonlybody', true);
-                  common::printIcon('task', 'edit',   "taskID=$child->id", $child, 'list');
+                  common::printIcon('task', 'edit', "taskID=$child->id", $child, 'list');
                   ?>
                 </td>
               </tr>
@@ -142,19 +154,25 @@
         </div>
       </div>
       <?php endif;?>
-      <?php echo $this->fetch('file', 'printFiles', array('files' => $task->files, 'fieldset' => 'true'));?>
-      <?php $actionFormLink = $this->createLink('action', 'comment', "objectType=task&objectID=$task->id");?>
+      <?php
+      echo $this->fetch('file', 'printFiles', array('files' => $task->files, 'fieldset' => 'true', 'object' => $task));
+
+      $canBeChanged = common::canBeChanged('task', $task);
+      if($canBeChanged) $actionFormLink = $this->createLink('action', 'comment', "objectType=task&objectID=$task->id");
+      ?>
     </div>
     <?php $this->printExtendFields($task, 'div', "position=left&inForm=0&inCell=1");?>
+    <?php if($this->app->getViewType() != 'xhtml'):?>
     <div class="cell"><?php include '../../common/view/action.html.php';?></div>
+    <?php endif;?>
     <div class='main-actions'>
       <div class="btn-toolbar">
         <?php common::printBack($browseLink);?>
         <?php if(!isonlybody()) echo "<div class='divider'></div>";?>
         <?php if(!$task->deleted):?>
         <?php
-        if(empty($task->team) or empty($task->children)) common::printIcon('task', 'batchCreate', "project=$task->project&storyID=$task->story&moduleID=$task->module&taskID=$task->id", $task, 'button', 'treemap-alt', '', '', '', "title='{$lang->task->children}'", $lang->task->children);
-        common::printIcon('task', 'assignTo',       "projectID=$task->project&taskID=$task->id", $task, 'button', '', '', 'iframe', true, '', empty($task->team) ? $lang->task->assignTo : $lang->task->transfer);
+        if((empty($task->team) or empty($task->children)) and $execution->type != 'kanban') common::printIcon('task', 'batchCreate', "execution=$task->execution&storyID=$task->story&moduleID=$task->module&taskID=$task->id", $task, 'button', 'split', '', '', '', "title='{$lang->task->children}'", $lang->task->children);
+        common::printIcon('task', 'assignTo',       "executionID=$task->execution&taskID=$task->id", $task, 'button', '', '', 'iframe', true, '', empty($task->team) ? $lang->task->assignTo : $lang->task->transfer);
         common::printIcon('task', 'start',          "taskID=$task->id", $task, 'button', '', '', 'iframe showinonlybody', true);
         common::printIcon('task', 'restart',        "taskID=$task->id", $task, 'button', '', '', 'iframe showinonlybody', true);
         common::printIcon('task', 'recordEstimate', "taskID=$task->id", $task, 'button', '', '', 'iframe showinonlybody', true);
@@ -168,8 +186,8 @@
 
         if(!isonlybody()) echo "<div class='divider'></div>";
         common::printIcon('task', 'edit', "taskID=$task->id", $task, 'button', '', '', 'showinonlybody');
-        common::printIcon('task', 'create', "projctID={$task->project}&storyID=0&moduleID=0&taskID=$task->id", $task, 'button', 'copy');
-        common::printIcon('task', 'delete', "projectID=$task->project&taskID=$task->id", $task, 'button', 'trash', 'hiddenwin');
+        common::printIcon('task', 'create', "projctID={$task->execution}&storyID=0&moduleID=0&taskID=$task->id", $task, 'button', 'copy');
+        common::printIcon('task', 'delete', "executionID=$task->execution&taskID=$task->id", $task, 'button', 'trash', 'hiddenwin');
         if($task->parent > 0) echo html::a(helper::createLink('task', 'view', "taskID=$task->parent"), "<i class='icon icon-chevron-double-up'></i>", '', "class='btn btn-link' title='{$lang->task->parent}'");
         ?>
         <?php endif;?>
@@ -191,8 +209,8 @@
             <table class="table table-data">
               <tbody>
                 <tr>
-                  <th class='w-90px'><?php echo $lang->task->project;?></th>
-                  <td><?php if(!common::printLink('project', 'view', "projectID=$task->project", $project->name)) echo $project->name;?></td>
+                  <th class='w-90px'><?php echo $lang->task->execution;?></th>
+                  <td><?php if(!common::printLink('execution', 'view', "executionID=$task->execution", $execution->name)) echo $execution->name;?></td>
                 </tr>
                 <tr>
                   <th><?php echo $lang->task->module;?></th>
@@ -214,7 +232,7 @@
                      foreach($modulePath as $key => $module)
                      {
                          $moduleTitle .= $module->name;
-                         if(!common::printLink('project', 'task', "projectID=$task->project&browseType=byModule&param=$module->id", $module->name)) echo $module->name;
+                         if(!common::printLink('execution', 'task', "executionID=$task->execution&browseType=byModule&param=$module->id", $module->name)) echo $module->name;
                          if(isset($modulePath[$key + 1]))
                          {
                              $moduleTitle .= '/';
@@ -227,12 +245,14 @@
                   ?>
                   <td title='<?php echo $moduleTitle?>'><?php echo $printModule?></td>
                 </tr>
+                <?php if($execution->type != 'ops'):?>
                 <tr class='nofixed'>
                   <th><?php echo $lang->task->story;?></th>
                   <td>
                     <?php
                     if(!$task->storyTitle) echo $lang->noData;
-                    if($task->storyTitle and !common::printLink('story', 'view', "storyID=$task->story", $task->storyTitle, '', "class='iframe' data-width='80%'", true, true)) echo $task->storyTitle;
+                    $class = isonlybody() ? 'showinonlybody' : 'iframe';
+                    if($task->storyTitle and !common::printLink('story', 'view', "storyID=$task->story", $task->storyTitle, '', "class=$class data-width='80%'", true, true)) echo $task->storyTitle;
                     if($task->needConfirm)
                     {
                         echo "(<span class='warning'>{$lang->story->changed}</span> ";
@@ -242,6 +262,7 @@
                     ?>
                   </td>
                 </tr>
+                <?php endif;?>
                 <?php if($task->fromBug):?>
                 <tr>
                   <th><?php echo $lang->task->fromBug;?></th>
@@ -338,50 +359,81 @@
         </div>
       </div>
     </div>
-    <div class='cell'>
-      <details class="detail" open>
-        <summary class="detail-title"><?php echo $lang->task->legendEffort;?></summary>
-        <div class="detail-content">
-          <table class='table table-data'>
-            <tr>
-              <th class='effortThWidth'><?php echo $lang->task->estimate;?></th>
-              <td><?php echo $task->estimate . $lang->workingHour;?></td>
-            </tr>
-            <tr>
-              <th><?php echo $lang->task->consumed;?></th>
-              <td><?php echo round($task->consumed, 2) . $lang->workingHour;?></td>
-            </tr>
-            <tr>
-              <th><?php echo $lang->task->left;?></th>
-              <td><?php echo $task->left . $lang->workingHour;?></td>
-            </tr>
-            <tr>
-              <th><?php echo $lang->task->estStarted;?></th>
-              <td><?php echo $task->estStarted;?></td>
-            </tr>
-            <tr>
-              <th><?php echo $lang->task->realStarted;?></th>
-              <td><?php echo $task->realStarted; ?> </td>
-            </tr>
-            <tr>
-              <th><?php echo $lang->task->deadline;?></th>
-              <td>
-                <?php
-                echo $task->deadline;
-                if(isset($task->delay)) printf($lang->task->delayWarning, $task->delay);
-                ?>
-              </td>
-            </tr>
-          </table>
+    <div class="cell">
+      <div class='tabs'>
+        <ul class='nav nav-tabs'>
+          <li class='active'><a href='#legendEffort' data-toggle='tab'><?php echo $lang->task->legendEffort;?></a></li>
+          <li><a href='#legendMisc' data-toggle='tab'><?php echo $lang->task->legendMisc;?></a></li>
+        </ul>
+        <div class='tab-content'>
+          <div class='tab-pane active' id='legendEffort'>
+            <table class="table table-data">
+              <tr>
+                <th class='effortThWidth'><?php echo $lang->task->estimate;?></th>
+                <td><?php echo $task->estimate . $lang->workingHour;?></td>
+              </tr>
+              <tr>
+                <th><?php echo $lang->task->consumed;?></th>
+                <td><?php echo round($task->consumed, 2) . $lang->workingHour;?></td>
+              </tr>
+              <tr>
+                <th><?php echo $lang->task->left;?></th>
+                <td><?php echo $task->left . $lang->workingHour;?></td>
+              </tr>
+              <tr>
+                <th><?php echo $lang->task->estStarted;?></th>
+                <td><?php echo $task->estStarted;?></td>
+              </tr>
+              <tr>
+                <th><?php echo $lang->task->realStarted;?></th>
+                <td><?php echo helper::isZeroDate($task->realStarted) ? '' : $task->realStarted; ?> </td>
+              </tr>
+              <tr>
+                <th><?php echo $lang->task->deadline;?></th>
+                <td>
+                  <?php
+                  echo $task->deadline;
+                  if(isset($task->delay)) printf($lang->task->delayWarning, $task->delay);
+                  ?>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div class='tab-pane' id='legendMisc'>
+            <table class="table table-data">
+              <tr>
+                <th class='MRThWidth'><?php echo $lang->task->linkMR;?></th>
+                <td>
+                  <?php
+                  $canViewMR = common::hasPriv('mr', 'view');
+                  foreach($linkMRTitles as $MRID => $linkMRTitle)
+                  {
+                      echo ($canViewMR ? html::a($this->createLink('mr', 'view', "MRID=$MRID"), "#$MRID $linkMRTitle") : "#$MRID $linkMRTitle") . '<br />';
+                  }
+                  ?>
+                </td>
+              </tr>
+            </table>
+          </div>
         </div>
-      </details>
+      </div>
     </div>
     <?php $this->printExtendFields($task, 'div', "position=right&inForm=0&inCell=1");?>
   </div>
 </div>
+<?php if($this->app->getViewType() == 'xhtml'):?>
+</div>
+<?php endif;?>
 
 <div id="mainActions" class='main-actions'>
   <?php common::printPreAndNext($preAndNext);?>
 </div>
+<script>
+function handleLinkButtonClick()
+{
+  var xxcUrl = "xxc:openInApp/zentao-integrated/" + encodeURIComponent(window.location.href.replace(/.display=card/, '').replace(/\.xhtml/, '.html'));
+  window.open(xxcUrl);
+}
+</script>
 <?php include '../../common/view/syntaxhighlighter.html.php';?>
 <?php include '../../common/view/footer.html.php';?>

@@ -1,73 +1,109 @@
 <?php
 /**
- * The project view file of dashboard module of ZenTaoPMS.
+ * The project view file of my module of ZenTaoPMS.
  *
  * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
  * @license     ZPL (http://zpl.pub/page/zplv12.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
- * @package     dashboard
- * @version     $Id: project.html.php 5095 2013-07-11 06:03:40Z chencongzhi520@gmail.com $
+ * @package     my
+ * @version     $Id
  * @link        http://www.zentao.net
  */
 ?>
 <?php include '../../common/view/header.html.php';?>
 <div id="mainMenu" class="clearfix">
   <div class="btn-toolbar pull-left">
-    <span class='btn btn-link btn-active-text'><span class='text'><?php echo $lang->my->myProject;?></span></span>
-  </div>
-  <div class="btn-toolbar pull-right">
-    <?php if(common::hasPriv('project', 'create')) echo html::a(helper::createLink('project', 'create'), "<i class='icon-plus'></i> " . $lang->my->home->createProject, '', "class='btn btn-primary'") ?>
+    <?php foreach($lang->my->projectMenu as $key => $label):?>
+    <?php $active = $status == $key ? 'btn-active-text' : '';?>
+    <?php $label = "<span class='text'>$label</span>";?>
+    <?php if($status == $key) $label .= " <span class='label label-light label-badge'>{$pager->recTotal}</span>";?>
+    <?php echo html::a(inlink('project', "type=$key"), $label, '', "class='btn btn-link $active'");?>
+    <?php endforeach;?>
   </div>
 </div>
-<div id="mainContent" class='main-table'>
+<div id="mainContent">
   <?php if(empty($projects)):?>
   <div class="table-empty-tip">
     <p>
-      <span class="text-muted"><?php echo $lang->project->noProject;?></span>
-      <?php if(common::hasPriv('project', 'create')):?>
-      <?php echo html::a($this->createLink('project', 'create'), "<i class='icon icon-plus'></i> " . $lang->my->home->createProject, '', "class='btn btn-info'");?>
-      <?php endif;?>
+      <span class="text-muted"><?php echo $lang->project->empty;?></span>
     </p>
   </div>
   <?php else:?>
-  <table class="table has-sort-head table-fixed" id='projectList'>
-    <thead>
-      <tr class='text-center'>
-        <th class='w-id'><?php echo $lang->idAB;?></th>
-        <th class='w-160px text-left'><?php echo $lang->project->code;?></th>
-        <th class='c-name text-left'><?php echo $lang->project->name;?></th>
-        <th class='c-date'><?php echo $lang->project->begin;?></th>
-        <th class='c-date'><?php echo $lang->project->end;?></th>
-        <th class='c-status'><?php echo $lang->statusAB;?></th>
-        <th class='c-user'><?php echo $lang->team->role;?></th>
-        <th class='c-date'><?php echo $lang->team->join;?></th>
-        <th class='w-110px'><?php echo $lang->team->hours;?></th>
-      </tr>
-    </thead>
-    <tbody>
-      <?php foreach($projects as $project):?>
-      <?php $projectLink = $this->createLink('project', 'browse', "projectID=$project->id");?>
-      <tr class='text-center'>
-        <td><?php echo html::a($projectLink, $project->id);?></td>
-        <td class='text-left'><?php echo $project->code;?></td>
-        <td class='text-left'><?php echo html::a($projectLink, $project->name);?></td>
-        <td><?php echo $project->begin;?></td>
-        <td><?php echo $project->end;?></td>
-        <td class="c-status">
-          <?php if(isset($project->delay)):?>
-          <span class="status-project status-delayed" title='<?php echo $lang->project->delayed;?>'> <?php echo $lang->project->delayed;?></span>
-          <?php else:?>
-          <?php $statusName = $this->processStatus('project', $project);?>
-          <span class="status-project status-<?php echo $project->status?>" title='<?php echo $statusName;?>'> <?php echo $statusName;?></span>
+  <form class='main-table' id='projectForm' method='post' data-ride='table' data-checkable='false'>
+    <table class='table table-fixed' id='projectList'>
+      <thead>
+        <tr>
+          <th class='c-id'><?php echo $lang->idAB;?></th>
+          <th><?php echo $lang->project->name;?></th>
+          <?php if($status == 'openedbyme'):?>
+          <th class='c-status'> <?php echo $lang->project->status;?></th>
           <?php endif;?>
-        </td>
-        <td><?php echo $project->role;?></td>
-        <td><?php echo $project->join;?></td>
-        <td><?php echo $project->hours;?></td>
-      </tr>
-      <?php endforeach;?>
-    </tbody>
-  </table>
+          <th class='c-date'><?php echo $lang->project->begin;?></th>
+          <th class='c-date'><?php echo $lang->project->end;?></th>
+          <th class='text-right c-budget'><?php echo $lang->project->budget;?></th>
+          <th class='c-user'><?php echo $lang->project->PM;?></th>
+          <th class='text-center c-actions-6'><?php echo $lang->actions;?></th>
+        </tr>
+      </thead>
+      <tbody id='projectTableList'>
+        <?php foreach($projects as $project):?>
+        <tr>
+          <td class='c-id'><?php printf('%03d', $project->id);?></td>
+          <td class='c-name text-left' title='<?php echo $project->name?>'>
+            <?php
+            if($project->model === 'waterfall') echo "<span class='project-type-label label label-outline label-warning'>{$lang->project->waterfall}</span> ";
+            if($project->model === 'scrum')     echo "<span class='project-type-label label label-outline label-info'>{$lang->project->scrum}</span> ";
+            if($project->model === 'kanban')    echo "<span class='project-type-label label label-outline label-info'>{$lang->project->kanban}</span> ";
+            echo html::a($this->createLink('project', 'index', "projectID=$project->id", '', '', $project->id), $project->name, '', "data-group='project'");
+            ?>
+          </td>
+          <?php if($status == 'openedbyme'):?>
+          <td class='c-status'><span class="status-project status-<?php echo $project->status?>"><?php echo zget($lang->project->statusList, $project->status, '');?></span></td>
+          <?php endif;?>
+          <td class='text-left'><?php echo $project->begin;?></td>
+          <td class='text-left'><?php echo $project->end == LONG_TIME ? $this->lang->project->longTime : $project->end;?></td>
+          <?php $projectBudget = in_array($this->app->getClientLang(), array('zh-cn','zh-tw')) ? round((float)$project->budget / 10000, 2) . $this->lang->project->tenThousand : round((float)$project->budget, 2);?>
+          <td class='text-right'><?php echo $project->budget != 0 ? zget($lang->project->currencySymbol, $project->budgetUnit) . ' ' . $projectBudget : $lang->project->future;?></td>
+          <td>
+            <?php $userID = isset($PMList[$project->PM]) ? $PMList[$project->PM]->id : ''?>
+            <?php if(!empty($project->PM)) echo html::a($this->createLink('user', 'profile', "userID=$userID", '', true), zget($users, $project->PM), '', "data-toggle='modal' data-type='iframe' data-width='600'");?>
+          </td>
+          <td class='c-actions'>
+            <?php if($project->status == 'wait' || $project->status == 'suspended') common::printIcon('project', 'start', "projectID=$project->id", $project, 'list', 'play', '', 'iframe', true);?>
+            <?php if($project->status == 'doing')  common::printIcon('project', 'close',    "projectID=$project->id", $project, 'list', 'off',   '', 'iframe', true);?>
+            <?php if($project->status == 'closed') common::printIcon('project', 'activate', "projectID=$project->id", $project, 'list', 'magic', '', 'iframe', true);?>
+            <?php if(common::hasPriv('project','suspend') || (common::hasPriv('project','close') && $project->status != 'doing') || (common::hasPriv('project','activate') && $project->status != 'closed')):?>
+            <div class='btn-group'>
+              <button type='button' class='btn icon-caret-down dropdown-toggle' data-toggle='dropdown' title="<?php echo $this->lang->more;?>" style="width: 16px; padding-left: 0px;"></button>
+              <ul class='dropdown-menu pull-right text-center' role='menu' style="min-width:auto; padding: 5px 10px;">
+              <?php common::printIcon('project', 'suspend', "projectID=$project->id", $project, 'list', 'pause', '', 'iframe', true);?>
+              <?php if($project->status != 'doing')  common::printIcon('project', 'close',    "projectID=$project->id", $project, 'list', 'off',   '', 'iframe', true);?>
+              <?php if($project->status != 'closed') common::printIcon('project', 'activate', "projectID=$project->id", $project, 'list', 'magic', '', 'iframe', true);?>
+              </ul>
+            </div>
+            <?php endif;?>
+            <?php common::printIcon('project', 'edit', "projectID=$project->id", $project, 'list', 'edit', '',  '', false, "data-group='project'", '', $project->id);?>
+            <?php common::printIcon('project', 'manageMembers', "projectID=$project->id", $project, 'list', 'group', '', '', false, "data-group='project'", '', $project->id);?>
+            <?php common::printIcon('project', 'group', "projectID=$project->id", $project, 'list', 'lock', '',  '', false, "data-group='project'", '', $project->id);?>
+            <?php if(common::hasPriv('project','manageProducts') || common::hasPriv('project','whitelist') || common::hasPriv('project','delete')):?>
+            <div class='btn-group'>
+              <button type='button' class='btn dropdown-toggle' data-toggle='dropdown' title="<?php echo $this->lang->more;?>"><i class='icon-more-alt'></i></button>
+              <ul class='dropdown-menu pull-right text-center' role='menu'>
+                <?php common::printIcon('project', 'manageProducts', "projectID=$project->id", $project, 'list', 'link', '', '', false, "data-group='project'", '', $project->id);?>
+                <?php common::printIcon('project', 'whitelist', "projectID=$project->id&module=project", $project, 'list', 'shield-check', '', '', false, "data-group='project'", '', $project->id);?>
+                <?php if(common::hasPriv('project','delete')) echo html::a($this->createLink("project", "delete", "projectID=$project->id"), "<i class='icon-trash'></i>", 'hiddenwin', "class='btn' title='{$this->lang->project->delete}' data-group='my'");?>
+              </ul>
+            </div>
+            <?php endif;?>
+          </td>
+        </tr>
+        <?php endforeach;?>
+      </tbody>
+    </table>
+    <div class='table-footer'>
+      <?php $pager->show('right', 'pagerjs');?>
+    </div>
+  </form>
   <?php endif;?>
 </div>
 <?php include '../../common/view/footer.html.php';?>

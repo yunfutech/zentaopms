@@ -54,17 +54,30 @@ function setModuleAndPlan(branchID, productID, num)
         if(!modules) modules = '<select id="module' + num + '" name="module[' + num + ']" class="form-control"></select>';
         $('#module' + num).replaceWith(modules);
         $("#module" + num + "_chosen").remove();
+        $("#module" + num).next('.picker').remove();
         $("#module" + num).chosen();
     });
 
-    planLink = createLink('productPlan', 'ajaxGetProductPlans', 'productID=' + productID + '&branch=' + branchID + '&num=' + num);
+    planLink = createLink('productPlan', 'ajaxGetProductPlans', 'productID=' + productID + '&branch=' + branchID + '&num=' + num + '&expired=unexpired');
     $.get(planLink, function(plans)
     {
         if(!plans) plans = '<select id="plan' + num + '" name="plan[' + num + ']" class="form-control"></select>';
         $('#plan' + num).replaceWith(plans);
         $("#plan" + num + "_chosen").remove();
+        $("#plan" + num).next('.picker').remove();
         $("#plan" + num).chosen();
     });
+
+    /* If the branch of the current row is inconsistent with the one below, clear the module and plan of the nex row. */
+    var nextBranchID = $('#branch' + (num + 1)).val();
+    if(nextBranchID != branchID)
+    {
+        $('#module' + (num + 1)).find("option[value='ditto']").remove();
+        $('#module' + (num + 1)).trigger("chosen:updated");
+
+        $('#plan' + (num + 1)).find("option[value='ditto']").remove();
+        $('#plan' + (num + 1)).trigger("chosen:updated");
+    }
 }
 
 /* Copy story title as story spec. */

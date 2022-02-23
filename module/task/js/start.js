@@ -1,11 +1,21 @@
 /* If left = 0, warning. */
 function checkLeft()
 {
-    var value = $("#left").val();
-    if(isNaN(parseFloat(value)) || value == 0)
+    var left     = parseFloat($("#left").val());
+    var consumed = parseFloat($("#consumed").val());
+    if(!left)
     {
-        var result = confirm(confirmFinish);
-        if(!result) setTimeout(function() {$.enableForm()}, 500);
+        var result;
+        if(!consumed)
+        {
+            alert(noticeTaskStart);
+            result = false;
+        }
+        else
+        {
+            result = confirm(confirmFinish);
+        }
+        if(!result) setTimeout(function() {$.enableForm()}, 50);
         return result;
     }
 }

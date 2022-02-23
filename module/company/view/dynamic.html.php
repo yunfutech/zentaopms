@@ -11,6 +11,8 @@
  */
 ?>
 <?php include '../../common/view/header.html.php';?>
+<?php js::set('browseType', $browseType);?>
+<?php js::set('systemMode', $config->systemMode);?>
 <div id="mainMenu" class="clearfix">
   <div class="btn-toolbar pull-left">
     <?php foreach($lang->action->periods as $period => $label):?>
@@ -22,14 +24,16 @@
         $active = 'btn-active-text';
         $label .= " <span class='label label-light label-badge'>{$pager->recTotal}</span>";
     }
-    echo html::a(inlink('dynamic', "browseType=$period"), $label, '', "class='btn btn-link $active' id='{$period}'")
+    echo html::a(inlink('dynamic', "browseType=$period&param=&recTotal=0&date=&direction=next&userID=$userID&productID=$productID&projectID=$projectID&executionID=$executionID&orderBy=$orderBy"), $label, '', "class='btn btn-link $active' id='{$period}'")
     ?>
     <?php endforeach;?>
-    <div class="input-control space w-150px"><?php echo html::select('account', $users, $account, 'onchange=changeUser(this.value) class="form-control chosen"');?></div>
-    <div class="input-control space w-150px"><?php echo html::select('product', $products, $product, 'onchange=changeProduct(this.value) class="form-control chosen"');?></div>
-    <?php if($config->global->flow != 'onlyTest'):?>
-    <div class="input-control space w-150px"><?php echo html::select('project', $projects, $project, 'onchange=changeProject(this.value) class="form-control chosen"'); ?></div>
+    <div class="input-control space c-user"><?php echo html::select('account', $userIdPairs, $userID, 'class="form-control chosen" data-max_drop_width="215"');?></div>
+    <div class="input-control space c-product"><?php echo html::select('product', $products, $productID, 'class="form-control chosen" data-max_drop_width="215"');?></div>
+    <?php if($config->systemMode == 'new'):?>
+    <div class="input-control space c-project"><?php echo html::select('project', $projects, $projectID, 'class="form-control chosen" data-max_drop_width="215"');?></div>
     <?php endif;?>
+    <div class="input-control space c-execution"><?php echo html::select('execution', $executions, $executionID, 'class="form-control chosen" data-max_drop_width="215"'); ?></div>
+    <div class="input-control space c-order"><?php echo html::select('orderBy', $lang->company->order, $orderBy, 'class="form-control chosen" data-max_drop_width="215"'); ?></div>
     <a class="btn btn-link querybox-toggle" id="bysearchTab"><i class="icon icon-search muted"></i> <?php echo $lang->action->dynamic->search;?></a>
   </div>
 </div>
@@ -41,27 +45,47 @@
     <?php foreach($dateGroups as $date => $actions):?>
     <?php $isToday = date(DT_DATE4) == $date;?>
     <div class="dynamic <?php if($isToday) echo 'active';?>">
-      <div class="dynamic-date">
+      <div class="dynamic-date <?php if($browseType == 'all') echo 'c-date';?>">
         <?php if($isToday):?>
         <span class="date-label"><?php echo $lang->action->dynamic->today;?></span>
         <?php endif;?>
         <span class="date-text"><?php echo $date;?></span>
         <button type="button" class="btn btn-info btn-icon btn-sm dynamic-btn"><i class="icon icon-caret-down"></i></button>
       </div>
-      <ul class="timeline timeline-tag-left">
-        <?php if($direction == 'next') $actions = array_reverse($actions);?>
+      <ul class="timeline timeline-tag-left <?php if($browseType == 'all') echo 'margin-l-50px';?>">
         <?php foreach($actions as $i => $action):?>
         <?php if(empty($firstAction)) $firstAction = $action;?>
         <li <?php if($action->major) echo "class='active'";?>>
           <div>
             <span class="timeline-tag"><?php echo $action->time?></span>
             <span class="timeline-text">
-              <?php echo zget($users, $action->actor);?>
+              <?php echo zget($accountPairs, $action->actor);?>
               <span class='label-action'><?php echo ' ' . $action->actionLabel;?></span>
               <?php if($action->action != 'login' and $action->action != 'logout'):?>
               <span class="text"><?php echo $action->objectLabel;?></span>
-              <?php echo html::a($action->objectLink, $action->objectName);?>
+              <?php $tab = '';?>
+              <?php if($action->objectType == 'meeting') $tab = $action->project ? "data-app='project'" : "data-app='my'";?>
+              <?php
+              if(empty($action->objectName) and $action->objectID)
+              {
+                  echo '#' . $action->objectID;
+              }
+              elseif(empty($action->objectID) and $action->extra)
+              {
+                  echo $action->extra;
+              }
+              elseif(empty($action->objectLink))
+              {
+                  echo $action->objectName;
+              }
+              else
+              {
+                  echo html::a($action->objectLink, $action->objectName, '', $tab);
+              }
+              ?>
+              <?php if($action->objectID):?>
               <span class="label label-id"><?php echo $action->objectID;?></span>
+              <?php endif;?>
               <?php endif;?>
             </span>
           </div>
@@ -78,8 +102,8 @@ $firstDate = date('Y-m-d', strtotime($firstAction->originalDate) + 24 * 3600);
 $lastDate  = substr($action->originalDate, 0, 10);
 $hasPre    = $this->action->hasPreOrNext($firstDate, 'pre');
 $hasNext   = $this->action->hasPreOrNext($lastDate, 'next');
-$preLink   = $hasPre ? inlink('dynamic', "browseType=$browseType&param=$param&recTotal={$pager->recTotal}&date=" . strtotime($firstDate) . '&direction=pre') : 'javascript:;';
-$nextLink  = $hasNext ? inlink('dynamic', "browseType=$browseType&param=$param&recTotal={$pager->recTotal}&date=" . strtotime($lastDate) . '&direction=next') : 'javascript:;';
+$preLink   = $hasPre ? inlink('dynamic', "browseType=$browseType&param=$param&recTotal={$pager->recTotal}&date=" . strtotime($firstDate) . "&direction=pre&userID=$userID&productID=$productID&projectID=$projectID&executionID=$executionID&orderBy=$orderBy") : 'javascript:;';
+$nextLink  = $hasNext ? inlink('dynamic', "browseType=$browseType&param=$param&recTotal={$pager->recTotal}&date=" . strtotime($lastDate) . "&direction=next&userID=$userID&productID=$productID&projectID=$projectID&executionID=$executionID&orderBy=$orderBy") : 'javascript:;';
 ?>
 <?php if($hasPre or $hasNext):?>
 <div id="mainActions" class='main-actions'>

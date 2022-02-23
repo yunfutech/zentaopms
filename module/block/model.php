@@ -12,12 +12,12 @@
 class blockModel extends model
 {
     /**
-     * Save params 
-     * 
-     * @param  int    $id 
-     * @param  string $type 
-     * @param  string $appName 
-     * @param  int    $blockID 
+     * Save params
+     *
+     * @param  int    $id
+     * @param  string $type
+     * @param  string $appName
+     * @param  int    $blockID
      * @access public
      * @return void
      */
@@ -66,8 +66,8 @@ class blockModel extends model
 
     /**
      * Get block by ID.
-     * 
-     * @param  int    $blockID 
+     *
+     * @param  int    $blockID
      * @access public
      * @return object
      */
@@ -86,8 +86,8 @@ class blockModel extends model
 
     /**
      * Get saved block config.
-     * 
-     * @param  int    $id 
+     *
+     * @param  int    $id
      * @access public
      * @return object
      */
@@ -106,8 +106,8 @@ class blockModel extends model
 
     /**
      * Get last key.
-     * 
-     * @param  string $appName 
+     *
+     * @param  string $appName
      * @access public
      * @return int
      */
@@ -124,19 +124,17 @@ class blockModel extends model
 
     /**
      * Get block list for account.
-     * 
-     * @param  string $appName 
+     *
+     * @param  string $appName
      * @access public
      * @return void
      */
-    public function getBlockList($module = 'my')
+    public function getBlockList($module = 'my', $type = '')
     {
         $blocks = $this->dao->select('*')->from(TABLE_BLOCK)->where('account')->eq($this->app->user->account)
             ->andWhere('module')->eq($module)
             ->andWhere('hidden')->eq(0)
-            ->beginIF($this->config->global->flow == 'onlyStory')->andWhere('source')->notin('project,qa')->fi()
-            ->beginIF($this->config->global->flow == 'onlyTask')->andWhere('source')->notin('product,qa')->fi()
-            ->beginIF($this->config->global->flow == 'onlyTest')->andWhere('source')->notin('product,project')->fi()
+            ->beginIF($type)->andWhere('type')->eq($type)->fi()
             ->orderBy('`order`')
             ->fetchAll('id');
 
@@ -145,7 +143,7 @@ class blockModel extends model
 
     /**
      * Get hidden blocks
-     * 
+     *
      * @access public
      * @return array
      */
@@ -160,7 +158,7 @@ class blockModel extends model
 
     /**
      * Get data of welcome block.
-     * 
+     *
      * @access public
      * @return array
      */
@@ -168,19 +166,29 @@ class blockModel extends model
     {
         $data = array();
 
-        $data['tasks']    = (int)$this->dao->select('count(*) AS count')->from(TABLE_TASK)->where('assignedTo')->eq($this->app->user->account)->andWhere('deleted')->eq(0)->fetch('count');
-        $data['bugs']     = (int)$this->dao->select('count(*) AS count')->from(TABLE_BUG)
+        $tasks = $this->dao->select('t1.id')->from(TABLE_TASK)->alias('t1')
+            ->leftJoin(TABLE_PROJECT)->alias('t2')->on("t1.project = t2.id")
+            ->leftJoin(TABLE_EXECUTION)->alias('t3')->on("t1.execution = t3.id")
+            ->where('t1.assignedTo')->eq($this->app->user->account)
+            ->andWhere('(t2.status')->ne('suspended')
+            ->orWhere('t3.status')->ne('suspended')
+            ->markRight(1)
+            ->andWhere('t1.deleted')->eq('0')
+            ->andWhere('t3.deleted')->eq('0')
+            ->fetchAll('id');
+        $data['tasks']      = isset($tasks) ? count($tasks) : 0;
+        $data['doneTasks']  = (int)$this->dao->select('count(*) AS count')->from(TABLE_TASK)->where('assignedTo')->eq($this->app->user->account)->andWhere('deleted')->eq(0)->andWhere('status')->eq('done')->fetch('count');
+        $data['bugs']       = (int)$this->dao->select('count(*) AS count')->from(TABLE_BUG)
             ->where('assignedTo')->eq($this->app->user->account)
-            ->beginIF(!$this->app->user->admin)->andWhere('project')->in('0,' . $this->app->user->view->projects)->fi() //Fix bug #2373.
             ->andWhere('deleted')->eq(0)
             ->fetch('count');
-        $data['stories']  = (int)$this->dao->select('count(*) AS count')->from(TABLE_STORY)->where('assignedTo')->eq($this->app->user->account)->andWhere('deleted')->eq(0)->fetch('count');
-        $data['projects'] = (int)$this->dao->select('count(*) AS count')->from(TABLE_PROJECT)
-            ->where("(status='doing')")
-            ->beginIF(!$this->app->user->admin)->andWhere('id')->in($this->app->user->view->projects)->fi()
+        $data['stories']    = (int)$this->dao->select('count(*) AS count')->from(TABLE_STORY)->where('assignedTo')->eq($this->app->user->account)->andWhere('deleted')->eq(0)->andWhere('type')->eq('story')->fetch('count');
+        $data['executions'] = (int)$this->dao->select('count(*) AS count')->from(TABLE_EXECUTION)
+            ->where('status')->notIN('done,closed')
+            ->beginIF(!$this->app->user->admin)->andWhere('id')->in($this->app->user->view->sprints)->fi()
             ->andWhere('deleted')->eq(0)
             ->fetch('count');
-        $data['products'] = (int)$this->dao->select('count(*) AS count')->from(TABLE_PRODUCT)
+        $data['products']   = (int)$this->dao->select('count(*) AS count')->from(TABLE_PRODUCT)
             ->where('status')->ne('closed')
             ->beginIF(!$this->app->user->admin)->andWhere('id')->in($this->app->user->view->products)->fi()
             ->andWhere('deleted')->eq(0)
@@ -202,8 +210,8 @@ class blockModel extends model
             ->andWhere('deleted')->eq(0)
             ->fetch('count');
         $data['delayProject'] = (int)$this->dao->select('count(*) AS count')->from(TABLE_PROJECT)
-            ->where('status')->in('doing')
-            ->beginIF(!$this->app->user->admin)->andWhere('id')->in($this->app->user->view->projects)->fi()
+            ->where('status')->in('wait,doing')
+            ->beginIF(!$this->app->user->admin)->andWhere('id')->in($this->app->user->view->sprints)->fi()
             ->andWhere('end')->lt($today)
             ->andWhere('deleted')->eq(0)
             ->fetch('count');
@@ -212,25 +220,37 @@ class blockModel extends model
     }
 
     /**
-     * Init block when account use first. 
-     * 
-     * @param  string    $appName 
+     * Init block when account use first.
+     *
+     * @param  string    $appName
      * @access public
      * @return bool
      */
-    public function initBlock($module)
+    public function initBlock($module, $type = '')
     {
         $flow    = isset($this->config->global->flow) ? $this->config->global->flow : 'full';
-        $blocks  = $module == 'my' ? $this->lang->block->default[$flow][$module] : $this->lang->block->default[$module];
         $account = $this->app->user->account;
+        if($module == 'project')
+        {
+            $blocks = $this->lang->block->default[$type]['project'];
 
-        /* Mark this app has init. */
-        $this->loadModel('setting')->setItem("$account.$module.common.blockInited", true);
+            /* Mark project block has init. */
+            $this->loadModel('setting')->setItem("$account.$module.{$type}common.blockInited", true);
+        }
+        else
+        {
+            $blocks = $module == 'my' ? $this->lang->block->default[$flow][$module] : $this->lang->block->default[$module];
+
+            /* Mark this app has init. */
+            $this->loadModel('setting')->setItem("$account.$module.common.blockInited", true);
+        }
+
         $this->loadModel('setting')->setItem("$account.$module.block.initVersion", $this->config->block->version);
         foreach($blocks as $index => $block)
         {
             $block['order']   = $index;
             $block['module']  = $module;
+            $block['type']    = $type;
             $block['account'] = $account;
             $block['params']  = isset($block['params']) ? helper::jsonEncode($block['params']) : '';
             if(!isset($block['source'])) $block['source'] = $module;
@@ -243,14 +263,26 @@ class blockModel extends model
 
     /**
      * Get block list.
-     * 
+     *
+     * @param  string $module
+     * @param  string $dashboard
+     * @param  object $model
+     *
      * @access public
      * @return string
      */
-    public function getAvailableBlocks($module = '')
+    public function getAvailableBlocks($module = '', $dashboard = '', $model = '')
     {
         $blocks = $this->lang->block->availableBlocks;
-        if($module and isset($this->lang->block->modules[$module])) $blocks = $this->lang->block->modules[$module]->availableBlocks;
+        if($dashboard == 'project')
+        {
+            $blocks = $this->lang->block->modules[$model]['index']->availableBlocks;
+        }
+        else
+        {
+            if($module and isset($this->lang->block->modules[$module])) $blocks = $this->lang->block->modules[$module]->availableBlocks;
+        }
+
         if(isset($this->config->block->closed))
         {
             foreach($blocks as $blockKey => $blockName)
@@ -263,24 +295,25 @@ class blockModel extends model
 
     /**
      * Get list params for product|project|todo
-     * 
-     * @param  string $module 
+     *
+     * @param  string $module
      * @access public
      * @return string
      */
     public function getListParams($module = '')
     {
-        if($module == 'product') return $this->getProductParams($module);
-        if($module == 'project') return $this->getProjectParams($module);
+        if($module == 'product')   return $this->getProductParams();
+        if($module == 'project')   return $this->getProjectParams();
+        if($module == 'execution') return $this->getExecutionParams();
 
         $params = new stdclass();
-        $params = $this->onlyNumParams($params);
+        $params = $this->appendCountParams($params);
         return json_encode($params);
     }
 
     /**
      * Get todo params.
-     * 
+     *
      * @access public
      * @return json
      */
@@ -291,20 +324,16 @@ class blockModel extends model
 
     /**
      * Get task params.
-     * 
+     *
      * @access public
      * @return string
      */
     public function getTaskParams($module = '')
     {
-        $params = new stdclass();
+        $params = $this->appendCountParams();
         $params->type['name']    = $this->lang->block->type;
         $params->type['options'] = $this->lang->block->typeList->task;
         $params->type['control'] = 'select';
-
-        $params->num['name']    = $this->lang->block->num;
-        $params->num['default'] = 20; 
-        $params->num['control'] = 'input';
 
         $params->orderBy['name']    = $this->lang->block->orderBy;
         $params->orderBy['default'] = 'id_desc';
@@ -316,20 +345,16 @@ class blockModel extends model
 
     /**
      * Get Bug Params.
-     * 
+     *
      * @access public
      * @return json
      */
     public function getBugParams($module = '')
     {
-        $params = new stdclass();
+        $params = $this->appendCountParams();
         $params->type['name']    = $this->lang->block->type;
         $params->type['options'] = $this->lang->block->typeList->bug;
         $params->type['control'] = 'select';
-
-        $params->num['name']    = $this->lang->block->num;
-        $params->num['default'] = 20; 
-        $params->num['control'] = 'input';
 
         $params->orderBy['name']    = $this->lang->block->orderBy;
         $params->orderBy['default'] = 'id_desc';
@@ -341,20 +366,16 @@ class blockModel extends model
 
     /**
      * Get case params.
-     * 
+     *
      * @access public
      * @return json
      */
     public function getCaseParams($module = '')
     {
-        $params = new stdclass();
+        $params = $this->appendCountParams();
         $params->type['name']    = $this->lang->block->type;
         $params->type['options'] = $this->lang->block->typeList->case;
         $params->type['control'] = 'select';
-
-        $params->num['name']    = $this->lang->block->num;
-        $params->num['default'] = 20; 
-        $params->num['control'] = 'input';
 
         $params->orderBy['name']    = $this->lang->block->orderBy;
         $params->orderBy['default'] = 'id_desc';
@@ -366,41 +387,33 @@ class blockModel extends model
 
     /**
      * Get testtask params.
-     * 
-     * @param  string $module 
+     *
+     * @param  string $module
      * @access public
      * @return void
      */
     public function getTesttaskParams($module = '')
     {
-        $params = new stdclass();
+        $params = $this->appendCountParams();
         $params->type['name']    = $this->lang->block->type;
         $params->type['options'] = $this->lang->block->typeList->testtask;
         $params->type['control'] = 'select';
-
-        $params->num['name']    = $this->lang->block->num;
-        $params->num['default'] = 20; 
-        $params->num['control'] = 'input';
 
         return json_encode($params);
     }
 
     /**
      * Get story params.
-     * 
+     *
      * @access public
      * @return json
      */
     public function getStoryParams($module = '')
     {
-        $params = new stdclass();
+        $params = $this->appendCountParams();
         $params->type['name']    = $this->lang->block->type;
         $params->type['options'] = $this->lang->block->typeList->story;
         $params->type['control'] = 'select';
-
-        $params->num['name']    = $this->lang->block->num;
-        $params->num['default'] = 20; 
-        $params->num['control'] = 'input';
 
         $params->orderBy['name']    = $this->lang->block->orderBy;
         $params->orderBy['default'] = 'id_desc';
@@ -412,43 +425,82 @@ class blockModel extends model
 
     /**
      * Get plan params.
-     * 
+     *
      * @access public
      * @return json
      */
     public function getPlanParams()
     {
-        $params = $this->onlyNumParams();
+        $params = $this->appendCountParams();
         return json_encode($params);
     }
 
     /**
      * Get Release params.
-     * 
+     *
      * @access public
      * @return json
      */
     public function getReleaseParams()
     {
-        $params = $this->onlyNumParams();
+        $params = $this->appendCountParams();
         return json_encode($params);
     }
 
     /**
+     * Get project params.
+     *
+     * @access public
+     * @return json
+     */
+    public function getProjectParams()
+    {
+        $this->app->loadLang('project');
+        $params->type['name']    = $this->lang->block->type;
+        $params->type['options'] = $this->lang->project->featureBar;
+        $params->type['control'] = 'select';
+
+        $params->orderBy['name']    = $this->lang->block->orderBy;
+        $params->orderBy['options'] = $this->lang->block->orderByList->product;
+        $params->orderBy['control'] = 'select';
+
+        return json_encode($this->appendCountParams($params));
+    }
+
+    /**
+     * Get project team params.
+     *
+     * @access public
+     * @return json
+     */
+    public function getProjectTeamParams()
+    {
+        $this->app->loadLang('project');
+        $params->type['name']    = $this->lang->block->type;
+        $params->type['options'] = $this->lang->project->featureBar;
+        $params->type['control'] = 'select';
+
+        $params->orderBy['name']    = $this->lang->block->orderBy;
+        $params->orderBy['options'] = $this->lang->block->orderByList->project;
+        $params->orderBy['control'] = 'select';
+
+        return json_encode($this->appendCountParams($params));
+    }
+    /**
      * Get Build params.
-     * 
+     *
      * @access public
      * @return json
      */
     public function getBuildParams()
     {
-        $params = $this->onlyNumParams();
+        $params = $this->appendCountParams();
         return json_encode($params);
     }
 
     /**
      * Get product params.
-     * 
+     *
      * @access public
      * @return json
      */
@@ -458,7 +510,7 @@ class blockModel extends model
         $params->type['options'] = $this->lang->block->typeList->product;
         $params->type['control'] = 'select';
 
-        return json_encode($this->onlyNumParams($params));
+        return json_encode($this->appendCountParams($params));
     }
 
     /**
@@ -469,49 +521,60 @@ class blockModel extends model
      */
     public function getStatisticParams($module = 'product')
     {
-        if($module == 'product') return $this->getProductStatisticParams($module);
-        if($module == 'project') return $this->getProjectStatisticParams($module);
-        if($module == 'qa')      return $this->getQaStatisticParams($module);
+        if($module == 'product')   return $this->getProductStatisticParams($module);
+        if($module == 'project')   return $this->getProjectStatisticParams($module);
+        if($module == 'execution') return $this->getExecutionStatisticParams($module);
+        if($module == 'qa')        return $this->getQaStatisticParams($module);
 
         $params = new stdclass();
-        $params = $this->onlyNumParams($params);
+        $params = $this->appendCountParams($params);
         return json_encode($params);
     }
 
     /**
      * Get product statistic params.
-     * 
+     *
      * @access public
      * @return void
      */
     public function getProductStatisticParams()
     {
-        $params = new stdclass();
+        $params = $this->appendCountParams();
         $params->type['name']    = $this->lang->block->type;
         $params->type['options'] = $this->lang->block->typeList->product;
         $params->type['control'] = 'select';
-
-        $params->num['name']    = $this->lang->block->num;
-        $params->num['control'] = 'input';
 
         return json_encode($params);
     }
 
     /**
      * Get project statistic params.
-     * 
+     *
      * @access public
      * @return void
      */
     public function getProjectStatisticParams()
     {
-        $params = new stdclass();
+        $params = $this->appendCountParams();
         $params->type['name']    = $this->lang->block->type;
         $params->type['options'] = $this->lang->block->typeList->project;
         $params->type['control'] = 'select';
 
-        $params->num['name']    = $this->lang->block->num;
-        $params->num['control'] = 'input';
+        return json_encode($params);
+    }
+
+    /**
+     * Get execution statistic params.
+     *
+     * @access public
+     * @return void
+     */
+    public function getExecutionStatisticParams()
+    {
+        $params = $this->appendCountParams();
+        $params->type['name']    = $this->lang->block->type;
+        $params->type['options'] = $this->lang->block->typeList->execution;
+        $params->type['control'] = 'select';
 
         return json_encode($params);
     }
@@ -524,22 +587,30 @@ class blockModel extends model
      */
     public function getQaStatisticParams()
     {
-        $params = new stdclass();
+        $params = $this->appendCountParams();
         $params->type['name']    = $this->lang->block->type;
         $params->type['options'] = $this->lang->block->typeList->product;
         $params->type['control'] = 'select';
 
-        $params->num['name']    = $this->lang->block->num;
-        $params->num['control'] = 'input';
-
         return json_encode($params);
+    }
+
+    /**
+     * Get recent project pararms.
+     *
+     * @access public
+     * @return bool
+     */
+    public function getRecentProjectParams()
+    {
+        return false;
     }
 
     /**
      * Get product overview pararms.
      *
      * @access public
-     * @return string
+     * @return bool
      */
     public function getOverviewParams()
     {
@@ -547,41 +618,155 @@ class blockModel extends model
     }
 
     /**
-     * Get project params.
-     * 
+     * Get waterfall project report pararms.
+     *
      * @access public
-     * @return json
+     * @return string
      */
-    public function getProjectParams()
+    public function getWaterfallReportParams()
     {
-        $params->type['name']    = $this->lang->block->type;
-        $params->type['options'] = $this->lang->block->typeList->project;
-        $params->type['control'] = 'select';
-
-        return json_encode($this->onlyNumParams($params));
+        return false;
     }
 
-    public function getAssignToMeParams()
+    /**
+     * Get project estimate pararms.
+     *
+     * @access public
+     * @return string
+     */
+    public function getWaterfallEstimateParams()
     {
-        $params->todoNum['name']    = $this->lang->block->todoNum;
-        $params->todoNum['default'] = 20; 
-        $params->todoNum['control'] = 'input';
+        return false;
+    }
 
-        $params->taskNum['name']    = $this->lang->block->taskNum;
-        $params->taskNum['default'] = 20; 
-        $params->taskNum['control'] = 'input';
+    /**
+     * Get project gantt pararms.
+     *
+     * @access public
+     * @return string
+     */
+    public function getWaterfallGanttParams()
+    {
+        return false;
+    }
 
-        $params->bugNum['name']    = $this->lang->block->bugNum;
-        $params->bugNum['default'] = 20; 
-        $params->bugNum['control'] = 'input';
+    /**
+     * Get project progress pararms.
+     *
+     * @access public
+     * @return string
+     */
+    public function getWaterfallProgressParams()
+    {
+        return false;
+    }
+
+    /**
+     * Get waterfall issue params.
+     *
+     * @param  string $module
+     * @access public
+     * @return void
+     */
+    public function getWaterfallIssueParams($module = '')
+    {
+        $this->app->loadLang('issue');
+
+        $params = $this->appendCountParams();
+        $params->type['name']    = $this->lang->block->type;
+        $params->type['options'] = $this->lang->issue->labelList;
+        $params->type['control'] = 'select';
+
+        $params->orderBy['name']    = $this->lang->block->orderBy;
+        $params->orderBy['options'] = $this->lang->block->orderByList->product;
+        $params->orderBy['control'] = 'select';
 
         return json_encode($params);
     }
 
     /**
-     * Get closed block pairs. 
-     * 
-     * @param  string $closedBlock 
+     * Get waterfall risk params.
+     *
+     * @param  string $module▫
+     * @access public
+     * @return void
+     */
+    public function getWaterfallRiskParams($module = '')
+    {
+        $this->app->loadLang('risk');
+        $params = $this->appendCountParams();
+        $params->type['name']    = $this->lang->block->type;
+        $params->type['options'] = $this->lang->risk->featureBar['browse'];
+        $params->type['control'] = 'select';
+
+        $params->orderBy['name']    = $this->lang->block->orderBy;
+        $params->orderBy['options'] = $this->lang->block->orderByList->product;
+        $params->orderBy['control'] = 'select';
+
+        return json_encode($params);
+    }
+
+    /**
+     * Get execution params.
+     *
+     * @access public
+     * @return json
+     */
+    public function getExecutionParams()
+    {
+        $params->type['name']    = $this->lang->block->type;
+        $params->type['options'] = $this->lang->block->typeList->execution;
+        $params->type['control'] = 'select';
+
+        return json_encode($this->appendCountParams($params));
+    }
+
+    /**
+     * Get assign to me params.
+     *
+     * @access public
+     * @return json
+     */
+    public function getAssignToMeParams()
+    {
+        $params->todoCount['name']    = $this->lang->block->todoCount;
+        $params->todoCount['default'] = 20;
+        $params->todoCount['control'] = 'input';
+
+        $params->taskCount['name']    = $this->lang->block->taskCount;
+        $params->taskCount['default'] = 20;
+        $params->taskCount['control'] = 'input';
+
+        $params->bugCount['name']    = $this->lang->block->bugCount;
+        $params->bugCount['default'] = 20;
+        $params->bugCount['control'] = 'input';
+
+        if(isset($this->config->maxVersion))
+        {
+            $params->riskCount['name']    = $this->lang->block->riskCount;
+            $params->riskCount['default'] = 20;
+            $params->riskCount['control'] = 'input';
+
+            $params->issueCount['name']    = $this->lang->block->issueCount;
+            $params->issueCount['default'] = 20;
+            $params->issueCount['control'] = 'input';
+
+            $params->meetingCount['name']    = $this->lang->block->meetingCount;
+            $params->meetingCount['default'] = 20;
+            $params->meetingCount['control'] = 'input';
+        }
+
+        $params->storyCount['name']    = $this->lang->block->storyCount;
+        $params->storyCount['default'] = 20;
+        $params->storyCount['control'] = 'input';
+
+        return json_encode($params);
+    }
+
+    /**
+     * Get closed block pairs.
+     *
+     * @param  string $closedBlock
      * @access public
      * @return array
      */
@@ -598,6 +783,7 @@ class blockModel extends model
             list($moduleName, $blockKey) = explode('|', $block);
             if(empty($moduleName))
             {
+                if(isset($this->lang->block->$blockKey)) $blockPairs[$block] = $this->lang->block->$blockKey;
                 if($blockKey == 'html')      $blockPairs[$block] = 'HTML';
                 if($blockKey == 'flowchart') $blockPairs[$block] = $this->lang->block->lblFlowchart;
                 if($blockKey == 'dynamic')   $blockPairs[$block] = $this->lang->block->dynamic;
@@ -605,7 +791,14 @@ class blockModel extends model
             }
             else
             {
-                $blockPairs[$block] = "{$this->lang->block->moduleList[$moduleName]}|{$this->lang->block->modules[$moduleName]->availableBlocks->$blockKey}";
+                $blockName = $blockKey;
+                if(isset($this->lang->block->modules[$moduleName]->availableBlocks->$blockKey)) $blockName = $this->lang->block->modules[$moduleName]->availableBlocks->$blockKey;
+                if(isset($this->lang->block->availableBlocks->$blockKey)) $blockName = $this->lang->block->availableBlocks->$blockKey;
+                if(isset($this->lang->block->modules['scrum']['index']->availableBlocks->$blockKey)) $blockName = $this->lang->block->modules['scrum']['index']->availableBlocks->$blockKey;
+                if(isset($this->lang->block->modules['waterfall']['index']->availableBlocks->$blockKey)) $blockName = $this->lang->block->modules['waterfall']['index']->availableBlocks->$blockKey;
+
+                $blockPairs[$block]  = isset($this->lang->block->moduleList[$moduleName]) ? "{$this->lang->block->moduleList[$moduleName]}|" : '';
+                $blockPairs[$block] .= $blockName;
             }
         }
 
@@ -613,25 +806,28 @@ class blockModel extends model
     }
 
     /**
-     * Build number params.
-     * 
-     * @param  object $params 
+     * Append count params.
+     *
+     * @param  object $params
      * @access public
      * @return object
      */
-    public function onlyNumParams($params = '')
+    public function appendCountParams($params = '')
     {
         if(empty($params)) $params = new stdclass();
-        $params->num['name']    = $this->lang->block->num;
-        $params->num['default'] = 20; 
-        $params->num['control'] = 'input';
+
+        $params->count = array();
+        $params->count['name']    = $this->lang->block->count;
+        $params->count['default'] = 20;
+        $params->count['control'] = 'input';
+
         return $params;
     }
 
     /**
      * Check whether long block.
-     * 
-     * @param  object    $block 
+     *
+     * @param  object    $block
      * @access public
      * @return book
      */
@@ -643,8 +839,8 @@ class blockModel extends model
 
     /**
      * Check API for ranzhi
-     * 
-     * @param  string    $hash 
+     *
+     * @param  string    $hash
      * @access public
      * @return bool
      */
@@ -659,5 +855,116 @@ class blockModel extends model
             ->fetch('value');
 
         return $key == $hash;
+    }
+
+    /**
+     * Get testtask params.
+     *▫
+     * @param  string $module
+     * @access public
+     * @return void
+     */
+    public function getScrumTestParams($module = '')
+    {
+        $params = $this->appendCountParams();
+        $params->type['name']    = $this->lang->block->type;
+        $params->type['options'] = $this->lang->block->typeList->testtask;
+        $params->type['control'] = 'select';
+
+        return json_encode($params);
+    }
+
+    /**
+     * Get scrum project list params.
+     *
+     * @param  string $module
+     * @access public
+     * @return string
+     */
+    public function getScrumListParams($module = '')
+    {
+        $params = $this->appendCountParams();
+        $params->type['name']    = $this->lang->block->type;
+        $params->type['options'] = $this->lang->block->typeList->scrum;
+        $params->type['control'] = 'select';
+
+        return json_encode($params);
+    }
+
+    /**
+     * Get scrum overall list params.
+     *
+     * @param  string $module
+     * @access public
+     * @return string
+     */
+    public function getScrumOverviewParams($module = '')
+    {
+        return false;
+    }
+
+    /**
+     * Get scrum roadmap list params.
+     *
+     * @param  string $module
+     * @access public
+     * @return string
+     */
+    public function getScrumRoadMapParams($module = '')
+    {
+        return false;
+    }
+
+    /**
+     * Get scrum product list params.
+     *
+     * @param  string $module
+     * @access public
+     * @return string
+     */
+    public function getScrumProductParams($module = '')
+    {
+        $params = $this->appendCountParams();
+
+        return json_encode($params);
+    }
+
+
+    /**
+     * Get project dynamic params.
+     *
+     * @param  string $module
+     * @access public
+     * @return string
+     */
+    public function getProjectDynamicParams($module = '')
+    {
+        $params = $this->appendCountParams();
+
+        return json_encode($params);
+    }
+
+    /**
+     * Get scrum project list params.
+     *
+     * @param  string $module
+     * @access public
+     * @return string
+     */
+    public function getSprintParams($module = '')
+    {
+        return false;
+    }
+
+    /**
+     * Get the total estimated man hours required.
+     *
+     * @param  array $storyID
+     * @access public
+     * @return string
+     */
+    public function getStorysEstimateHours($storyID)
+    {
+        return $this->dao->select('count(estimate) as estimate')->from(TABLE_STORY)->where('id')->in($storyID)->fetch('estimate');
     }
 }

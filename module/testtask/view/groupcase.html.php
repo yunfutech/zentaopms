@@ -14,14 +14,15 @@
 <?php include '../../common/view/treetable.html.php';?>
 <?php include './caseheader.html.php';?>
 <?php js::set('browseType', $browseType);?>
-<div class="main-table" data-ride="table" data-checkable="false" data-group="true">
+<?php js::set('confirmUnlink', $lang->testtask->confirmUnlinkCase)?>
+<div id='casesForm' class="main-table" data-ride="table" data-checkable="false" data-group="true" data-replace-id="treetable">
   <table class='table table-grouped text-center' id='treetable'>
     <thead>
       <tr class="divider">
         <th class="c-side text-left has-btn group-menu">
           <div class="table-group-btns">
-            <button type="button" class="btn btn-block btn-link group-collapse-all"><?php echo $lang->project->treeLevel['root'];?> <i class="icon-caret-down"></i></button>
-            <button type="button" class="btn btn-block btn-link group-expand-all"><?php echo $lang->project->treeLevel['all'];?> <i class="icon-caret-up"></i></button>
+            <button type="button" class="btn btn-block btn-link group-collapse-all"><?php echo $lang->execution->treeLevel['root'];?> <i class="icon-caret-down"></i></button>
+            <button type="button" class="btn btn-block btn-link group-expand-all"><?php echo $lang->execution->treeLevel['all'];?> <i class="icon-caret-up"></i></button>
           </div>
         </th>
         <th class='c-id-sm'><?php echo $lang->idAB;?></th>
@@ -55,8 +56,8 @@
           <div class='group-header'><?php echo html::a('###', "<i class='icon-caret-down'></i> $groupName", '', "class='text-primary'");?></div>
         </td>
         <?php endif;?>
-        <?php 
-        if(!isset($run->case)) 
+        <?php
+        if(!isset($run->case))
         {
             echo "<td colspan='13'></td></tr>";
             break;
@@ -64,20 +65,28 @@
         ?>
         <td class='c-id-sm'><?php echo sprintf('%03d', $run->case);?></td>
         <td><span class='label-pri <?php echo 'label-pri-' . $run->pri;?>' title='<?php echo zget($lang->testcase->priList, $run->pri, $run->pri);?>'><?php echo zget($lang->testcase->priList, $run->pri, $run->pri);?></span></td>
-        <td class='text-left case-title' title='<?php echo $run->title?>'><?php if(!common::printLink('testcase', 'view', "case=$run->case", $run->title)) echo $run->title;?></td>
+        <td class='text-left case-title' title='<?php echo $run->title?>'><?php if(!common::printLink('testcase', 'view', "caseID=$run->case&version=$run->version&from=testtask&taskID=$run->task", $run->title)) echo $run->title;?></td>
         <td><?php echo zget($lang->testcase->typeList, $run->type, '');?></td>
         <td><?php echo zget($users, $run->assignedTo);?></td>
         <td><?php echo zget($users, $run->lastRunner);?></td>
         <td><?php if(!helper::isZeroDate($run->lastRunDate)) echo date(DT_MONTHTIME1, strtotime($run->lastRunDate));?></td>
         <td class='<?php echo $run->lastRunResult;?>'><?php if($run->lastRunResult) echo $lang->testcase->resultList[$run->lastRunResult];?></td>
-        <td class='<?php echo $run->status;?>'><?php echo ($run->version < $run->caseVersion) ? "<span class='warning'>{$lang->testcase->changed}</span>" : $this->processStatus('testtask', $run);?></td>
+        <td class='<?php echo $run->status;?>'><?php echo ($run->version < $run->caseVersion) ? "<span class='warning'>{$lang->testcase->changed}</span>" : $this->processStatus('testcase', $run);?></td>
         <td><?php echo (common::hasPriv('testcase', 'bugs') and $run->bugs) ? html::a($this->createLink('testcase', 'bugs', "runID={$run->id}&caseID={$run->case}"), $run->bugs, '', "class='iframe'") : $run->bugs;?></td>
         <td><?php echo (common::hasPriv('testtask', 'results') and $run->results) ? html::a($this->createLink('testtask', 'results', "runID={$run->id}&caseID={$run->case}"), $run->results, '', "class='iframe'") : $run->results;?></td>
         <td><?php echo $run->stepNumber;?></td>
         <td class='c-actions'>
+          <?php if($canBeChanged):?>
           <?php common::printIcon('testtask', 'runCase', "runID=$run->id&caseID=$run->case&version=$run->caseVersion", '', 'list', 'play', '', 'runCase iframe', false, "data-width='95%'");?>
           <?php common::printIcon('testcase', 'edit', "caseID=$run->case", '', 'list');?>
-          <?php common::printIcon('testcase', 'delete', "caseID=$run->case", '', 'list', '', 'hiddenwin');?>
+          <?php
+          if(common::hasPriv('testtask', 'unlinkCase', $run))
+          {
+              $unlinkURL = helper::createLink('testtask', 'unlinkCase', "caseID=$run->id&confirm=yes");
+              echo html::a("javascript:ajaxDelete(\"$unlinkURL\", \"casesForm\", confirmUnlink)", '<i class="icon-unlink"></i>', '', "title='{$this->lang->testtask->unlinkCase}' class='btn'");
+          }
+          ?>
+          <?php endif;?>
         </td>
       </tr>
       <?php $i++;?>

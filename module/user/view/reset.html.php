@@ -15,7 +15,7 @@
 <div class='container mw-700px' style='margin-top:100px;'>
   <div class='panel panel-default'>
     <div class='panel-heading'>
-    <strong><?php echo $lang->user->resetPassword?></strong>
+      <strong><?php echo $lang->user->resetPassword?></strong>
     </div>
     <div class='panel-body'>
       <div class='alert alert-info'>
@@ -29,7 +29,7 @@
 <div class='container mw-500px' style='margin-top:50px;'>
   <div class='panel'>
     <div class='panel-heading'>
-    <strong><?php echo $lang->user->resetPassword?></strong>
+      <strong><?php echo $lang->user->resetPassword?></strong>
     </div>
     <form method='post' target='hiddenwin'>
       <table class='table table-form'>
@@ -56,4 +56,3 @@
 </div>
 <?php endif;?>
 <?php include '../../common/view/footer.lite.html.php';?>
-

@@ -39,7 +39,8 @@
       $canBatchUnlink = common::hasPriv('testtask', 'batchUnlinkCases');
       $canBatchAssign = common::hasPriv('testtask', 'batchAssign');
       $canBatchRun    = common::hasPriv('testtask', 'batchRun');
-      $hasCheckbox    = ($canBatchEdit or $canBatchUnlink or $canBatchAssign or $canBatchRun);
+
+      $canBatchAction = ($canBeChanged and ($canBatchEdit or $canBatchUnlink or $canBatchAssign or $canBatchRun));
 
       if($useDatatable) include '../../common/view/datatable.html.php';
       if(!$useDatatable) include '../../common/view/tablesorter.html.php';
@@ -60,7 +61,7 @@
             {
                 if($value->show)
                 {
-                    $this->datatable->printHead($value, $orderBy, $vars);
+                    $this->datatable->printHead($value, $orderBy, $vars, $canBatchAction);
                     $columns ++;
                 }
             }
@@ -78,12 +79,12 @@
       <?php if(!$useDatatable) echo '</div>';?>
       <?php if($runs):?>
       <div class='table-footer'>
-        <?php if($hasCheckbox):?>
+        <?php if($canBatchAction):?>
         <div class="checkbox-primary check-all"><label><?php echo $lang->selectAll?></label></div>
         <div class='table-actions btn-toolbar'>
           <div class='btn-group dropup'>
             <?php
-            $actionLink = $this->createLink('testcase', 'batchEdit', "productID=$productID");
+            $actionLink = $this->createLink('testcase', 'batchEdit', "productID=$productID&branch=all");
             $misc       = $canBatchEdit ? "onclick=\"setFormAction('$actionLink')\"" : "disabled='disabled'";
             echo html::commonButton($lang->edit, $misc);
             ?>
@@ -102,13 +103,13 @@
           <div class="btn-group dropup">
             <button data-toggle="dropdown" type="button" class="btn"><?php echo $lang->testtask->assign;?> <span class="caret"></span></button>
             <?php
-            $withSearch = count($assignedTos) > 10;
+            $withSearch = count($assignedToList) > 10;
             $actionLink = inLink('batchAssign', "taskID=$task->id");
-            echo html::select('assignedTo', $assignedTos, '', 'class="hidden"');
+            echo html::select('assignedTo', $assignedToList, '', 'class="hidden"');
             ?>
             <div class="dropdown-menu search-list<?php if($withSearch) echo ' search-box-sink';?>" data-ride="searchList">
               <?php if($withSearch):?>
-              <?php $membersPinYin = common::convert2Pinyin($assignedTos);?>
+              <?php $membersPinYin = common::convert2Pinyin($assignedToList);?>
               <div class="input-control search-box has-icon-left has-icon-right search-example">
                 <input id="userSearchBox" type="search" autocomplete="off" class="form-control search-input">
                 <label for="userSearchBox" class="input-control-icon-left search-icon"><i class="icon icon-search"></i></label>
@@ -116,7 +117,7 @@
               </div>
               <?php endif;?>
               <div class="list-group">
-              <?php foreach ($assignedTos as $key => $value):?>
+              <?php foreach ($assignedToList as $key => $value):?>
                   <?php
                   if(empty($key) or $key == 'closed') continue;
                   $searchKey = $withSearch ? ('data-key="' . zget($membersPinYin, $value, '') . " @$key\"") : "data-key='@$key'";
@@ -140,7 +141,7 @@
       </div>
       <?php else:?>
       <div class="table-empty-tip">
-        <p><span class="text-muted"><?php echo $lang->testcase->noCase;?></span> <?php common::printLink('testtask', 'linkCase', "taskID={$taskID}", "<i class='icon icon-plus'></i> " . $lang->testtask->linkCase, '', "class='btn btn-info'");?></p>
+        <p><span class="text-muted"><?php echo $lang->testcase->noCase;?></span> <?php if($canBeChanged) common::printLink('testtask', 'linkCase', "taskID={$taskID}", "<i class='icon icon-link'></i> " . $lang->testtask->linkCase, '', "class='btn btn-info'");?></p>
       </div>
       <?php endif;?>
     </form>
@@ -161,5 +162,6 @@ if($shortcut.size() > 0)
 <?php if($useDatatable):?>
 $(function(){$('#casesForm').table();})
 <?php endif;?>
+$("thead").find('.c-assignedTo').attr('class', '');
 </script>
 <?php include '../../common/view/footer.html.php';?>

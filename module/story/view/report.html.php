@@ -13,7 +13,8 @@
 <?php include '../../common/view/header.html.php';?>
 <div id="mainMenu" class="clearfix">
   <div class="btn-toolbar pull-left">
-    <?php echo html::a($this->createLink('product', 'browse', "productID=$productID&browseType=$browseType&moduleID=$moduleID"), "<i class='icon icon-back icon-sm'> </i>" . $lang->goback, '', "class='btn btn-link'");?>
+    <?php $browseLink = $this->session->storyList ? $this->session->storyList : $this->createLink('product', 'browse', "productID=$productID&branch=$branchID&browseType=$browseType&moduleID=$moduleID&storyType=$storyType")?>
+    <?php echo html::a($browseLink, "<i class='icon icon-back icon-sm'> </i> " . $lang->goback, '', "class='btn btn-link'");?>
     <div class='divider'></div>
     <div class='page-title'>
       <span class='text'><?php echo $lang->story->report->common;?></span>
@@ -29,6 +30,7 @@
       <div class='panel-body'>
         <form method='post' id='chartTypesForm'>
           <div class='checkboxes'>
+            <?php if($storyType == 'requirement') unset($lang->story->report->charts['storysPerPlan']);?>
             <?php echo html::checkBox('charts', $lang->story->report->charts, $checkedCharts, '', 'block');?>
           </div>
           <div class='btn-toolbar'>
@@ -44,7 +46,7 @@
       <div class='btn-toolbar'>
         <?php unset($lang->report->typeList['default']);?>
         <?php foreach($lang->report->typeList as $type => $typeName):?>
-        <?php echo html::a("javascript:changeChartType(\"$type\")", "<i class='icon icon-chart-{$type} muted'> </i>" . $typeName, '', "class='btn btn-link " . ($type == $chartType ? 'btn-active-line' : '') . "'")?>
+        <?php echo html::a("javascript:changeChartType(\"$type\")", "<i class='icon icon-chart-{$type} muted'> </i> " . $typeName, '', "class='btn btn-link " . ($type == $chartType ? 'btn-active-line' : '') . "'")?>
         <?php endforeach;?>
       </div>
       <div class='text-muted' style='padding-top:5px'><?php echo str_replace('%tab%', $lang->product->unclosed . $lang->story->common, $lang->report->notice->help);?></div>
@@ -62,16 +64,16 @@
               <thead>
                 <tr>
                   <th class='chart-label' colspan='2'><?php echo $lang->story->report->$chartType->item;?></th>
-                  <th class='w-50px text-right'><?php echo $lang->story->report->value;?></th>
-                  <th class='w-50px'><?php echo $lang->report->percent;?></th>
+                  <th class='w-60px text-center'><?php echo $lang->story->report->value;?></th>
+                  <th class='w-60px text-center'><?php echo $lang->report->percent;?></th>
                 </tr>
               </thead>
               <?php foreach($datas[$chartType] as $key => $data):?>
               <tr>
                 <td class='chart-color'><i class='chart-color-dot'></i></td>
                 <td class='chart-label text-left'><?php echo $data->name;?></td>
-                <td class='chart-value text-right'><?php echo $data->value;?></td>
-                <td class='text-right'><?php echo ($data->percent * 100) . '%';?></td>
+                <td class='chart-value text-center'><?php echo $data->value;?></td>
+                <td class='text-center'><?php echo ($data->percent * 100) . '%';?></td>
               </tr>
               <?php endforeach;?>
             </table>
@@ -86,4 +88,5 @@
 <?php js::set('browseType', $browseType);?>
 <?php js::set('branchID', $branchID);?>
 <?php js::set('moduleID', $moduleID);?>
+<?php js::set('storyType', $storyType);?>
 <?php include '../../common/view/footer.html.php';?>

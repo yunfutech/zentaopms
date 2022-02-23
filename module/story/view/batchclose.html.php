@@ -11,6 +11,8 @@
  */
 ?>
 <?php include '../../common/view/header.html.php';?>
+<?php js::set('storyType', $storyType);?>
+<?php js::set('app', $app->tab);?>
 <div class='main-content' id='mainContent'>
   <div class='main-header'>
     <h2><?php echo $lang->story->common . $lang->colon . $lang->story->batchClose;?></h2>
@@ -21,12 +23,12 @@
   <form method='post' target='hiddenwin' action="<?php echo inLink('batchClose', "from=storyBatchClose")?>">
     <table class='table table-fixed table-form with-border'>
     <thead>
-      <tr>
-        <th class='w-50px'> <?php echo $lang->idAB;?></th> 
-        <th>                <?php echo $lang->story->title;?></th>
-        <th class='w-80px'> <?php echo $lang->story->status;?></th>
-        <th class='w-120px'><?php echo $lang->story->closedReason;?></th>
-        <th class='w-p40 '> <?php echo $lang->story->comment;?></th>
+      <tr class='text-center'>
+        <th class='c-id'><?php echo $lang->idAB;?></th>
+        <th class='text-left'><?php echo $lang->story->title;?></th>
+        <th class='c-status'><?php echo $lang->story->status;?></th>
+        <th class='c-reason'><?php echo $lang->story->closedReason;?></th>
+        <th class='w-p40'><?php echo $lang->story->comment;?></th>
       </tr>
     </thead>
       <?php foreach($stories as $storyID => $story):?>
@@ -35,11 +37,11 @@
         <td class='text-left'><?php echo $story->title;?></td>
         <td class='story-<?php echo $story->status;?>'><?php echo $this->processStatus('story', $story);?></td>
         <td>
-          <?php if($story->status == 'draft') unset($this->lang->story->reasonList['cancel']);?>
+          <?php if($story->status == 'draft') unset($reasonList['cancel']);?>
           <table class='w-p100'>
             <tr>
               <td class='pd-0'>
-                <?php echo html::select("closedReasons[$storyID]", $lang->story->reasonList, 'done', "class=form-control onchange=setDuplicateAndChild(this.value,$storyID) style='min-width: 70px'");?>
+                <?php echo html::select("closedReasons[$storyID]", $reasonList, 'done', "class=form-control onchange=setDuplicateAndChild(this.value,$storyID) style='min-width: 80px'");?>
               </td>
               <td class='pd-0' id='<?php echo 'duplicateStoryBox' . $storyID;?>' <?php if($story->closedReason != 'duplicate') echo "style='display:none'";?>>
               <?php echo html::input("duplicateStoryIDList[$storyID]", '', "class='form-control' placeholder='{$lang->idAB}'");?>
@@ -51,7 +53,7 @@
           </table>
         </td>
         <td><?php echo html::input("comments[$storyID]", '', "class='form-control'");?></td>
-      </tr>  
+      </tr>
       <?php endforeach;?>
       <tr>
         <td colspan='5' class='text-center form-actions'>

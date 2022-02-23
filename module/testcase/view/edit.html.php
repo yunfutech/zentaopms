@@ -12,10 +12,15 @@
 ?>
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
+<?php js::set('page', 'edit');?>
 <?php js::set('lblDelete', $lang->testcase->deleteStep);?>
 <?php js::set('lblBefore', $lang->testcase->insertBefore);?>
 <?php js::set('lblAfter',  $lang->testcase->insertAfter);?>
 <?php js::set('caseID', $case->id);?>
+<?php js::set('executionID', $case->execution);?>
+<?php js::set('tab', $this->app->tab);?>
+<?php if($this->app->tab == 'execution') js::set('objectID', $case->execution);?>
+<?php if($this->app->tab == 'project') js::set('objectID', $case->project);?>
 <div id='mainContent' class='main-content'>
   <div class='main-header'>
     <h2>
@@ -164,11 +169,11 @@
               </tr>
               <?php else:?>
               <tr>
-                <th class='w-80px'><?php echo $lang->testcase->product;?></th>
+                <th class='w-85px'><?php echo $lang->testcase->product;?></th>
                 <td>
                   <div class='input-group'>
                     <?php echo html::select('product', $products, $productID, "onchange='loadAll(this.value)' class='form-control chosen'");?>
-                    <?php if($this->session->currentProductType != 'normal') echo html::select('branch', $branches, $case->branch, "onchange='loadBranch();' class='form-control' style='width:65px'");?>
+                    <?php if(isset($product->type) and $product->type != 'normal') echo html::select('branch', $branchTagOption, $case->branch, "onchange='loadBranch();' class='form-control'");?>
                   </div>
                 </td>
               </tr>
@@ -192,15 +197,16 @@
                 </td>
               </tr>
               <?php endif;?>
-              <?php if(!$isLibCase and $config->global->flow != 'onlyTest'):?>
+              <?php if(!$isLibCase):?>
               <tr>
                 <th><?php echo $lang->testcase->story;?></th>
-                <td class='text-left'><div id='storyIdBox'><?php echo html::select('story', $stories, $case->story, 'class=form-control chosen');?></div>
+                <td class='text-left'><div id='storyIdBox'><?php echo html::select('story', $stories, $case->story, 'class="form-control chosen"');?></div>
                 </td>
               </tr>
               <?php endif;?>
               <tr>
                 <th><?php echo $lang->testcase->type;?></th>
+                <?php if($case->type != 'unit') unset($lang->testcase->typeList['unit']);?>
                 <td><?php echo html::select('type', (array)$lang->testcase->typeList, $case->type, "class='form-control chosen'");?></td>
               </tr>
               <tr>
@@ -213,7 +219,11 @@
               </tr>
               <tr>
                 <th><?php echo $lang->testcase->status;?></th>
+                <?php if(!$forceNotReview and $case->status == 'wait'):?>
+                <td><?php echo $lang->testcase->statusList[$case->status];?>
+                <?php else: ?>
                 <td><?php echo html::select('status', (array)$lang->testcase->statusList, $case->status, "class='form-control chosen'");?></td>
+                <?php endif; ?>
               </tr>
               <tr>
                 <th><?php echo $lang->testcase->keywords;?></th>
@@ -266,4 +276,11 @@
     </div>
   </form>
 </div>
+<script>
+$(function()
+{
+    $('#subNavbar [data-id=testcase]').addClass('active');
+    $('#navbar [data-id=testcase]').addClass('active');
+})
+</script>
 <?php include '../../common/view/footer.html.php';?>

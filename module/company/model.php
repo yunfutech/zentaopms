@@ -15,21 +15,23 @@ class companyModel extends model
 {
     /**
      * Set menu.
-     * 
-     * @param  int    $dept 
+     *
+     * @param  int    $dept
      * @access public
      * @return void
      */
     public function setMenu($dept = 0)
     {
+        /*
         common::setMenuVars($this->lang->company->menu, 'name', array($this->app->company->name));
         common::setMenuVars($this->lang->company->menu, 'addUser', array($dept));
         common::setMenuVars($this->lang->company->menu, 'batchAddUser', array($dept));
+         */
     }
 
     /**
      * Get company list.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -40,7 +42,7 @@ class companyModel extends model
 
     /**
      * Get the first company.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -48,11 +50,11 @@ class companyModel extends model
     {
         return $this->dao->select('*')->from(TABLE_COMPANY)->orderBy('id')->limit(1)->fetch();
     }
-    
+
     /**
      * Get company info by id.
-     * 
-     * @param  int    $companyID 
+     *
+     * @param  int    $companyID
      * @access public
      * @return object
      */
@@ -72,13 +74,13 @@ class companyModel extends model
      * @access public
      * @return array
      */
-    public function getUsers($type, $queryID, $deptID, $sort, $pager)
+    public function getUsers($browseType = 'inside', $type = '', $queryID = 0, $deptID = 0, $sort = '', $pager = null)
     {
         /* Get users. */
         if($type == 'bydept')
         {
             $childDeptIds = $this->loadModel('dept')->getAllChildID($deptID);
-            return $this->dept->getUsers($childDeptIds, $pager, $sort);
+            return $this->dept->getUsers($browseType, $childDeptIds, $pager, $sort);
         }
         else
         {
@@ -95,19 +97,47 @@ class companyModel extends model
                     $this->session->set('userQuery', ' 1 = 1');
                 }
             }
-            return $this->loadModel('user')->getByQuery($this->session->userQuery, $pager, $sort);
+            return $this->loadModel('user')->getByQuery($browseType, $this->session->userQuery, $pager, $sort);
         }
     }
 
     /**
+     * Get outside companies.
+     *
+     * @access public
+     * @return array
+     */
+    public function getOutsideCompanies()
+    {
+        $companies = $this->dao->select('id, name')->from(TABLE_COMPANY)->where('id')->ne(1)->fetchPairs();
+        return array('' => '') + $companies;
+    }
+
+    /**
+     * Get company-user pairs.
+     *
+     * @access public
+     * @return array
+     */
+    public function getCompanyUserPairs()
+    {
+        $pairs = $this->dao->select("t1.account, CONCAT_WS('/', t2.name, t1.realname)")->from(TABLE_USER)->alias('t1')
+            ->leftJoin(TABLE_COMPANY)->alias('t2')
+            ->on('t1.company = t2.id')
+            ->fetchPairs();
+
+        return $pairs;
+    }
+
+    /**
      * Update a company.
-     * 
+     *
      * @access public
      * @return void
      */
     public function update()
     {
-        $company   = fixer::input('post')->get();        
+        $company = fixer::input('post')->get();
         if($company->website  == 'http://') $company->website  = '';
         if($company->backyard == 'http://') $company->backyard = '';
         $companyID = $this->app->company->id;

@@ -15,8 +15,8 @@ class deptModel extends model
 {
     /**
      * Get a department by id.
-     * 
-     * @param  int    $deptID 
+     *
+     * @param  int    $deptID
      * @access public
      * @return object
      */
@@ -26,9 +26,21 @@ class deptModel extends model
     }
 
     /**
+     * Get all department names.
+     *
+     * @param  int   $deptID
+     * @access public
+     * @return object
+     */
+    public function getDeptPairs($deptID = 0)
+    {
+        return $this->dao->select('id,name')->from(TABLE_DEPT)->fetchPairs();
+    }
+
+    /**
      * Build the query.
-     * 
-     * @param  int    $rootDeptID 
+     *
+     * @param  int    $rootDeptID
      * @access public
      * @return string
      */
@@ -49,8 +61,8 @@ class deptModel extends model
 
     /**
      * Get option menu of departments.
-     * 
-     * @param  int    $rootDeptID 
+     *
+     * @param  int    $rootDeptID
      * @access public
      * @return array
      */
@@ -94,7 +106,7 @@ class deptModel extends model
                 else
                 {
                     $deptMenu[$dept->parent] = $deptName;
-                }    
+                }
             }
         }
 
@@ -120,7 +132,7 @@ class deptModel extends model
      * @access public
      * @return string
      */
-    public function getTreeMenu($rootDeptID = 0, $userFunc, $param = 0)
+    public function getTreeMenu($rootDeptID = 0, $userFunc = '', $param = 0)
     {
         $deptMenu = array();
         $stmt = $this->dbh->query($this->buildMenuQuery($rootDeptID));
@@ -131,33 +143,33 @@ class deptModel extends model
             if(isset($deptMenu[$dept->id]) and !empty($deptMenu[$dept->id]))
             {
                 if(!isset($deptMenu[$dept->parent])) $deptMenu[$dept->parent] = '';
-                $deptMenu[$dept->parent] .= "<li>$linkHtml";  
+                $deptMenu[$dept->parent] .= "<li>$linkHtml";
                 $deptMenu[$dept->parent] .= "<ul>".$deptMenu[$dept->id]."</ul>\n";
             }
             else
             {
                 if(isset($deptMenu[$dept->parent]) and !empty($deptMenu[$dept->parent]))
                 {
-                    $deptMenu[$dept->parent] .= "<li>$linkHtml\n";  
+                    $deptMenu[$dept->parent] .= "<li>$linkHtml\n";
                 }
                 else
                 {
-                    $deptMenu[$dept->parent] = "<li>$linkHtml\n";  
-                }    
+                    $deptMenu[$dept->parent] = "<li>$linkHtml\n";
+                }
             }
-            $deptMenu[$dept->parent] .= "</li>\n"; 
+            $deptMenu[$dept->parent] .= "</li>\n";
         }
 
         krsort($deptMenu);
         $deptMenu = array_pop($deptMenu);
         $lastMenu = "<ul class='tree' data-ride='tree' data-name='tree-dept'>{$deptMenu}</ul>\n";
-        return $lastMenu; 
+        return $lastMenu;
     }
 
     /**
      * Update dept.
-     * 
-     * @param  int    $deptID 
+     *
+     * @param  int    $deptID
      * @access public
      * @return void
      */
@@ -178,8 +190,8 @@ class deptModel extends model
 
     /**
      * Create the manage link.
-     * 
-     * @param  int    $dept 
+     *
+     * @param  object    $dept
      * @access public
      * @return string
      */
@@ -195,21 +207,21 @@ class deptModel extends model
 
     /**
      * Create the member link.
-     * 
-     * @param  int    $dept 
+     *
+     * @param  int    $dept
      * @access public
      * @return string
      */
     public function createMemberLink($dept)
     {
-        $linkHtml = html::a(helper::createLink('company', 'browse', "dept={$dept->id}"), $dept->name, '_self', "id='dept{$dept->id}'");
+        $linkHtml = html::a(helper::createLink('company', 'browse', "browseType=inside&dept={$dept->id}"), $dept->name, '_self', "id='dept{$dept->id}'");
         return $linkHtml;
     }
 
     /**
      * Create the traingoal member link.
-     * 
-     * @param  int    $dept 
+     *
+     * @param  int    $dept
      * @access public
      * @return string
      */
@@ -221,11 +233,11 @@ class deptModel extends model
 
     /**
      * Create the group manage members link.
-     * 
-     * @param  int    $dept 
+     *
+     * @param  int    $dept
      * @param  int    $groupID
      * @access public
-     * @return string 
+     * @return string
      */
     public function createGroupManageMemberLink($dept, $groupID)
     {
@@ -233,9 +245,22 @@ class deptModel extends model
     }
 
     /**
+     * Create the group manage program admin link.
+     *
+     * @param  int    $dept
+     * @param  int    $groupID
+     * @access public
+     * @return string
+     */
+    public function createManageProjectAdminLink($dept, $groupID)
+    {
+        return html::a(helper::createLink('group', 'manageProjectAdmin', "groupID=$groupID&deptID={$dept->id}"), $dept->name, '_self', "id='dept{$dept->id}'");
+    }
+
+    /**
      * Get sons of a department.
-     * 
-     * @param  int    $deptID 
+     *
+     * @param  int    $deptID
      * @access public
      * @return array
      */
@@ -243,26 +268,29 @@ class deptModel extends model
     {
         return $this->dao->select('*')->from(TABLE_DEPT)->where('parent')->eq($deptID)->orderBy('`order`')->fetchAll();
     }
-    
+
     /**
      * Get all childs.
-     * 
-     * @param  int    $deptID 
+     *
+     * @param  int    $deptID
      * @access public
      * @return array
      */
     public function getAllChildId($deptID)
     {
         if($deptID == 0) return array();
+
         $dept = $this->getById($deptID);
+        if(empty($dept)) return array();
+
         $childs = $this->dao->select('id')->from(TABLE_DEPT)->where('path')->like($dept->path . '%')->fetchPairs();
         return array_keys($childs);
     }
 
     /**
      * Get parents.
-     * 
-     * @param  int    $deptID 
+     *
+     * @param  int    $deptID
      * @access public
      * @return array
      */
@@ -277,8 +305,8 @@ class deptModel extends model
 
     /**
      * Update order.
-     * 
-     * @param  int    $orders 
+     *
+     * @param  int    $orders
      * @access public
      * @return void
      */
@@ -289,11 +317,11 @@ class deptModel extends model
 
     /**
      * Manage childs.
-     * 
-     * @param  int    $parentDeptID 
-     * @param  string $childs 
+     *
+     * @param  int    $parentDeptID
+     * @param  string $childs
      * @access public
-     * @return void
+     * @return array
      */
     public function manageChild($parentDeptID, $childs)
     {
@@ -310,18 +338,21 @@ class deptModel extends model
         }
 
         $i = 1;
+        $deptIDList = array();
         foreach($childs as $deptID => $deptName)
         {
             if(empty($deptName)) continue;
             if(is_numeric($deptID))
             {
+                $dept = new stdclass();
                 $dept->name   = strip_tags($deptName);
                 $dept->parent = $parentDeptID;
                 $dept->grade  = $grade;
                 $dept->order  = $this->post->maxOrder + $i * 10;
                 $this->dao->insert(TABLE_DEPT)->data($dept)->exec();
-                $deptID = $this->dao->lastInsertID();
-                $childPath = $parentPath . "$deptID,";
+                $deptID       = $this->dao->lastInsertID();
+                $deptIDList[] = $deptID;
+                $childPath    = $parentPath . "$deptID,";
                 $this->dao->update(TABLE_DEPT)->set('path')->eq($childPath)->where('id')->eq($deptID)->exec();
                 $i++;
             }
@@ -331,19 +362,26 @@ class deptModel extends model
                 $this->dao->update(TABLE_DEPT)->set('name')->eq(strip_tags($deptName))->where('id')->eq($deptID)->exec();
             }
         }
+
+        return $deptIDList;
     }
 
     /**
      * Get users of a deparment.
-     * 
-     * @param  int    $deptID 
+     *
+     * @param  varchar $browseType inside|outside|all
+     * @param  int     $deptID
+     * @param  object  $pager
+     * @param  varchar $orderBy
      * @access public
      * @return array
      */
-    public function getUsers($deptID, $pager = null, $orderBy = 'id')
+    public function getUsers($browseType = 'inside', $deptID = 0, $pager = null, $orderBy = 'id')
     {
         return $this->dao->select('*')->from(TABLE_USER)
             ->where('deleted')->eq(0)
+            ->beginIF($browseType == 'inside')->andWhere('type')->eq('inside')->fi()
+            ->beginIF($browseType == 'outside')->andWhere('type')->eq('outside')->fi()
             ->beginIF($deptID)->andWhere('dept')->in($deptID)->fi()
             ->orderBy($orderBy)
             ->page($pager)
@@ -354,23 +392,30 @@ class deptModel extends model
      * Get user pairs of a department.
      *
      * @param  int    $deptID
+     * @param  string $key     id|account
+     * @param  string $type    inside|outside
+     * @param  string $params  all
      * @access public
      * @return array
      */
-    public function getDeptUserPairs($deptID = 0)
+    public function getDeptUserPairs($deptID = 0, $key = 'account', $type = 'inside', $params = '')
     {
         $childDepts = $this->getAllChildID($deptID);
-        return $this->dao->select('account, realname')->from(TABLE_USER)
+        $keyField   = $key == 'id' ? 'id' : 'account';
+        $type       = $type == 'outside' ? 'outside' : 'inside';
+
+        return $this->dao->select("$keyField, realname")->from(TABLE_USER)
             ->where('deleted')->eq(0)
-            ->beginIF($deptID)->andWhere('dept')->in($childDepts)->fi()
+            ->beginIF(strpos($params, 'all') === false)->andWhere('type')->eq($type)->fi()
+            ->beginIF($childDepts)->andWhere('dept')->in($childDepts)->fi()
             ->orderBy('account')
             ->fetchPairs();
     }
-    
+
     /**
      * Delete a department.
-     * 
-     * @param  int    $deptID 
+     *
+     * @param  int    $deptID
      * @param  null   $null      compatible with that of model::delete()
      * @access public
      * @return void
@@ -382,7 +427,7 @@ class deptModel extends model
 
     /**
      * Fix dept path.
-     * 
+     *
      * @access public
      * @return void
      */

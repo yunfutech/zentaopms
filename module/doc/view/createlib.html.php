@@ -23,7 +23,15 @@
           <table class='table table-form'>
             <tr>
               <th class='w-110px'><?php echo $lang->doc->libType?></th>
-              <td><?php echo html::radio('type', $libTypeList, $type ? $type : 'product')?></td>
+              <?php if($this->app->tab != 'doc'):?>
+              <?php
+              foreach($libTypeList as $key => $libType)
+              {
+                  if($this->app->tab != $key) unset($libTypeList[$key]);
+              }
+              ?>
+              <?php endif;?>
+              <td><?php echo html::radio('type', $libTypeList, $type ? $type : key($libTypeList))?></td>
             </tr>
             <tr class='product'>
               <th><?php echo $lang->doc->product?></th>
@@ -32,6 +40,10 @@
             <tr class='project hidden'>
               <th><?php echo $lang->doc->project?></th>
               <td><?php echo html::select('project', $projects, $type == 'project' ? $objectID : '', "class='form-control chosen' data-drop_direction='down'")?></td>
+            </tr>
+            <tr class='execution hidden'>
+              <th><?php echo $lang->doc->execution?></th>
+              <td><?php echo html::select('execution', $executions, $type == 'execution' ? $objectID : '', "class='form-control chosen' data-drop_direction='down'")?></td>
             </tr>
             <tr>
               <th><?php echo $lang->doclib->name?></th>
@@ -47,7 +59,7 @@
             <tr id='whiteListBox' class='hidden'>
               <th><?php echo $lang->doc->whiteList;?></th>
               <td>
-                <div class='input-group'>
+                <div id='groupBox' class='input-group'>
                   <span class='input-group-addon groups-addon'><?php echo $lang->doclib->group?></span>
                   <?php echo html::select('groups[]', $groups, '', "class='form-control chosen' multiple")?>
                 </div>

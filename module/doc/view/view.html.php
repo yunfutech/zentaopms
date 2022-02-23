@@ -13,17 +13,24 @@
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
 <?php echo css::internal($keTableCSS);?>
-<?php $browseLink = $this->session->docList ? $this->session->docList : inlink('browse');?>
+<style>.detail-content .file-image {padding: 0 50px 0 10px;}</style>
+<?php $browseLink = $this->session->docList ? $this->session->docList : inlink('browse', 'browseType=byediteddate');?>
 <?php
-js::set('fullscreen', $lang->doc->fullscreen);
-js::set('retrack', $lang->doc->retrack);
+$sessionString  = $config->requestType == 'PATH_INFO' ? '?' : '&';
+$sessionString .= session_name() . '=' . session_id();
+?>
+<?php
+js::set('fullscreen', $lang->fullscreen);
+js::set('retrack', $lang->retrack);
 js::set('sysurl', common::getSysUrl());
 js::set('docID', $doc->id);
 ?>
 <div id="mainMenu" class="clearfix">
   <div class="btn-toolbar pull-left">
+    <?php if(!isonlybody()):?>
     <?php echo html::a($browseLink, "<i class='icon icon-back icon-sm'></i> " . $lang->goback, '', "class='btn btn-primary'");?>
     <div class="divider"></div>
+    <?php endif;?>
     <div class="page-title">
       <span class="label label-id"><?php echo $doc->id;?></span><span class="text" title='<?php echo $doc->title;?>'><?php echo $doc->title;?></span>
       <?php if($doc->deleted):?>
@@ -62,7 +69,7 @@ js::set('docID', $doc->id);
           foreach($versions as $i => $versionTitle)
           {
               $class = $i == $version ? " class='active'" : '';
-              echo '<li' . $class .'>' . html::a(inlink('view', "docID=$doc->id&version=$i"), $versionTitle) . '</li>';
+              echo '<li' . $class .'>' . html::a(inlink('view', "docID=$doc->id&version=$i&from={$lang->navGroup->doc}"), $versionTitle) . '</li>';
           }
           ?>
         </ul>
@@ -70,6 +77,11 @@ js::set('docID', $doc->id);
       <?php endif; ?>
     </div>
   </div>
+  <?php if(!isonlybody()):?>
+  <div class='btn-toolbar pull-right'>
+    <button type='button' class='btn btn-secondary fullscreen-btn' title='<?php echo $lang->retrack;?>'><i class='icon icon-fullscreen'></i><?php echo ' ' . $lang->retrack;?></button>
+  </div>
+  <?php endif;?>
 </div>
 <div id="mainContent" class="main-row">
   <div class="main-col col-8">
@@ -82,7 +94,7 @@ js::set('docID', $doc->id);
               $url = $doc->content;
               if(!preg_match('/^https?:\/\//', $doc->content)) $url = 'http://' . $url;
               $urlIsHttps = strpos($url, 'https://') === 0;
-              $serverIsHttps = isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == 'on';
+              $serverIsHttps = ((isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == 'on') or (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) and strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) == 'https'));
               if(($urlIsHttps and $serverIsHttps) or (!$urlIsHttps and !$serverIsHttps))
               {
                   echo "<iframe width='100%' id='urlIframe' src='$url'></iframe>";
@@ -115,10 +127,11 @@ js::set('docID', $doc->id);
           <?php if(in_array($file->extension, $config->file->imageExtensions)):?>
           <div class='file-image'>
             <a href="<?php echo $file->webPath?>" target="_blank">
-              <img onload="setImageSize(this, 0)" src="<?php echo $this->createLink('file', 'read', "fileID={$file->id}");?>" alt="<?php echo $file->title?>">
+              <img onload="setImageSize(this, 0)" src="<?php echo $this->createLink('file', 'read', "fileID={$file->id}");?>" alt="<?php echo $file->title?>" title="<?php echo $file->title;?>">
             </a>
             <span class='right-icon'>
-              <?php if(common::hasPriv('file', 'delete')) echo html::a('###', "<i class='icon icon-trash'></i>", '', "class='btn-icon' title=\"{$lang->doc->deleteFile}\" onclick='deleteFile($file->id)'");?>
+              <?php if(common::hasPriv('file', 'download')) echo html::a($this->createLink('file', 'download', 'fileID=' . $file->id) . $sessionString, "<i class='icon icon-import'></i>", '', "class='btn-icon' style='margin-right: 10px;' title=\"{$lang->doc->download}\"");?>
+              <?php if(common::hasPriv('doc', 'deleteFile')) echo html::a('###', "<i class='icon icon-trash'></i>", '', "class='btn-icon' title=\"{$lang->doc->deleteFile}\" onclick='deleteFile($file->id)'");?>
             </span>
           </div>
           <?php unset($doc->files[$file->id]);?>
@@ -126,24 +139,24 @@ js::set('docID', $doc->id);
           <?php endforeach;?>
         </div>
       </div>
-      <?php echo $this->fetch('file', 'printFiles', array('files' => $doc->files, 'fieldset' => 'true'));?>
+      <?php echo $this->fetch('file', 'printFiles', array('files' => $doc->files, 'fieldset' => 'true', 'object' => $doc));?>
     </div>
     <div class='main-actions'>
       <div class="btn-toolbar">
         <?php common::printBack($browseLink);?>
         <div class='divider'></div>
-            <button type='button' class='btn fullscreen-btn' title='<?php echo $lang->doc->retrack;?>'><i class='icon icon-fullscreen'></i><?php echo ' ' . $lang->doc->retrack;?></button>
         <?php
         if(!$doc->deleted)
         {
             common::printIcon('doc', 'edit', "docID=$doc->id", $doc);
-            common::printIcon('doc', 'delete', "docID=$doc->id", $doc, 'button', 'trash', 'hiddenwin');
+            common::printIcon('doc', 'delete', "docID=$doc->id&confirm=no", $doc, 'button', 'trash', 'hiddenwin');
         }
         ?>
       </div>
     </div>
   </div>
   <div class="side-col col-4 hidden">
+    <?php if(!empty($doc->digest)):?>
     <div class="cell">
       <details class="detail" open>
         <summary class="detail-title"><?php echo $lang->doc->digest;?></summary>
@@ -152,6 +165,7 @@ js::set('docID', $doc->id);
         </div>
       </details>
     </div>
+    <?php endif;?>
     <div class="cell">
       <details class="detail" open>
         <summary class="detail-title"><?php echo $lang->doc->keywords;?></summary>
@@ -172,10 +186,10 @@ js::set('docID', $doc->id);
                 <td><?php echo $doc->productName;?></td>
               </tr>
               <?php endif;?>
-              <?php if($doc->projectName):?>
+              <?php if($doc->executionName):?>
               <tr>
-                <th class='w-80px'><?php echo $lang->doc->project;?></th>
-                <td><?php echo $doc->projectName;?></td>
+                <th class='w-80px'><?php echo $lang->doc->execution;?></th>
+                <td><?php echo $doc->executionName;?></td>
               </tr>
               <?php endif;?>
               <tr>
@@ -204,7 +218,10 @@ js::set('docID', $doc->id);
       </details>
     </div>
     <div class='cell'>
-      <?php $actionFormLink = $this->createLink('action', 'comment', "objectType=doc&objectID=$doc->id");?>
+      <?php
+      $canBeChanged = common::canBeChanged('doc', $doc);
+      if($canBeChanged) $actionFormLink = $this->createLink('action', 'comment', "objectType=doc&objectID=$doc->id");
+      ?>
       <?php include '../../common/view/action.html.php';?>
     </div>
   </div>
@@ -213,5 +230,6 @@ js::set('docID', $doc->id);
 <div id="mainActions" class='main-actions'>
   <?php common::printPreAndNext($preAndNext);?>
 </div>
+<?php js::set('canDeleteFile', common::hasPriv('doc', 'deleteFile'));?>
 <?php include '../../common/view/syntaxhighlighter.html.php';?>
 <?php include '../../common/view/footer.html.php';?>

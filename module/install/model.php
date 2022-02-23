@@ -15,7 +15,7 @@ class installModel extends model
 {
     /**
      * Get license according the client lang.
-     * 
+     *
      * @access public
      * @return string
      */
@@ -32,7 +32,7 @@ class installModel extends model
 
     /**
      * Check version of zentao.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -42,7 +42,7 @@ class installModel extends model
 
     /**
      * get php version.
-     * 
+     *
      * @access public
      * @return string
      */
@@ -53,7 +53,7 @@ class installModel extends model
 
     /**
      * Get latest release.
-     * 
+     *
      * @access public
      * @return string or bool
      */
@@ -71,7 +71,7 @@ class installModel extends model
 
     /**
      * Check php version.
-     * 
+     *
      * @access public
      * @return string   ok|fail
      */
@@ -82,7 +82,7 @@ class installModel extends model
 
     /**
      * Check PDO.
-     * 
+     *
      * @access public
      * @return string   ok|fail
      */
@@ -92,8 +92,8 @@ class installModel extends model
     }
 
     /**
-     * Check PDO::MySQL 
-     * 
+     * Check PDO::MySQL
+     *
      * @access public
      * @return string   ok|fail
      */
@@ -181,21 +181,21 @@ class installModel extends model
 
     /**
      * Get tempRoot info.
-     * 
+     *
      * @access public
      * @return array
      */
     public function getTmpRoot()
     {
-        $result['path']    = $this->app->getTmpRoot();
-        $result['exists']  = is_dir($result['path']);
-        $result['writable']= is_writable($result['path']);
+        $result['path']     = $this->app->getTmpRoot();
+        $result['exists']   = is_dir($result['path']);
+        $result['writable'] = is_writable($result['path']);
         return $result;
     }
 
     /**
      * Check tmpRoot.
-     * 
+     *
      * @access public
      * @return string   ok|fail
      */
@@ -206,10 +206,10 @@ class installModel extends model
     }
 
     /**
-     * Get session save path. 
-     * 
+     * Get session save path.
+     *
      * @access public
-     * @return array 
+     * @return array
      */
     public function getSessionSavePath()
     {
@@ -220,15 +220,15 @@ class installModel extends model
     }
 
     /**
-     * Check session save path. 
-     * 
+     * Check session save path.
+     *
      * @access public
      * @return string
      */
     public function checkSessionSavePath()
     {
         $sessionSavePath = preg_replace("/\d;/", '', session_save_path());
-        $result = (is_dir($sessionSavePath) and is_writable($sessionSavePath)) ? 'ok' : 'fail'; 
+        $result = (is_dir($sessionSavePath) and is_writable($sessionSavePath)) ? 'ok' : 'fail';
         if($result == 'fail') return $result;
 
         /* Test session path again. Fix bug #1527. */
@@ -243,8 +243,8 @@ class installModel extends model
     }
 
     /**
-     * Get data root 
-     * 
+     * Get data root
+     *
      * @access public
      * @return array
      */
@@ -257,8 +257,8 @@ class installModel extends model
     }
 
     /**
-     * Check the data root. 
-     * 
+     * Check the data root.
+     *
      * @access public
      * @return string ok|fail
      */
@@ -270,7 +270,7 @@ class installModel extends model
 
     /**
      * Get the php.ini info.
-     * 
+     *
      * @access public
      * @return string
      */
@@ -287,7 +287,7 @@ class installModel extends model
 
     /**
      * Check config ok or not.
-     * 
+     *
      * @access public
      * @return array
      */
@@ -345,7 +345,7 @@ class installModel extends model
 
     /**
      * Set database params.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -362,14 +362,14 @@ class installModel extends model
 
     /**
      * Connect to database.
-     * 
+     *
      * @access public
      * @return object
      */
     public function connectDB()
     {
         $dsn = "mysql:host={$this->config->db->host}; port={$this->config->db->port}";
-        try 
+        try
         {
             $dbh = new PDO($dsn, $this->config->db->user, $this->config->db->password);
             $dbh->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
@@ -386,7 +386,7 @@ class installModel extends model
 
     /**
      * Check db exits or not.
-     * 
+     *
      * @access public
      * @return bool
      */
@@ -398,7 +398,7 @@ class installModel extends model
 
     /**
      * Check table exits or not.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -411,7 +411,7 @@ class installModel extends model
 
     /**
      * Get mysql version.
-     * 
+     *
      * @access public
      * @return string
      */
@@ -424,8 +424,8 @@ class installModel extends model
 
     /**
      * Create database.
-     * 
-     * @param  string    $version 
+     *
+     * @param  string    $version
      * @access public
      * @return bool
      */
@@ -438,43 +438,65 @@ class installModel extends model
 
     /**
      * Create tables.
-     * 
-     * @param  string    $version 
+     *
+     * @param  string    $version
      * @access public
      * @return bool
      */
     public function createTable($version)
     {
-        $dbFile = $this->app->getAppRoot() . 'db' . DS . 'zentao.sql';
-        $tables = explode(';', file_get_contents($dbFile));
-        foreach($tables as $table)
+        /* Add exception handling to ensure that all SQL is executed successfully. */
+        try
         {
-            $table = trim($table);
-            if(empty($table)) continue;
+            $this->dbh->exec("USE {$this->config->db->name}");
 
-            if(strpos($table, 'CREATE') !== false and $version <= 4.1)
+            $dbFile = $this->app->getAppRoot() . 'db' . DS . 'zentao.sql';
+            $tables = explode(';', file_get_contents($dbFile));
+
+            foreach($tables as $table)
             {
-                $table = str_replace('DEFAULT CHARSET=utf8', '', $table);
-            }
-            elseif(strpos($table, 'DROP') !== false and $this->post->clearDB != false)
-            {
-                $table = str_replace('--', '', $table);
-            }
+                $table = trim($table);
+                if(empty($table)) continue;
 
-            /* Skip sql that is note. */
-            if(strpos($table, '--') === 0) continue;
+                if(strpos($table, 'CREATE') !== false and $version <= 4.1)
+                {
+                    $table = str_replace('DEFAULT CHARSET=utf8', '', $table);
+                }
+                elseif(strpos($table, 'DROP') !== false and $this->post->clearDB != false)
+                {
+                    $table = str_replace('--', '', $table);
+                }
 
-            $table = str_replace('`zt_', $this->config->db->name . '.`zt_', $table);
-            $table = str_replace('`ztv_', $this->config->db->name . '.`ztv_', $table);
-            $table = str_replace('zt_', $this->config->db->prefix, $table);
-            if(!$this->dbh->query($table)) return false;
+                $tableToLower = strtolower($table);
+                if(strpos($tableToLower, 'fulltext') !== false and strpos($tableToLower, 'innodb') !== false and $version < 5.6)
+                {
+                    $this->lang->install->errorCreateTable = $this->lang->install->errorEngineInnodb;
+                    return false;
+                }
+
+                $table = str_replace('__DELIMITER__', ';', $table);
+                $table = str_replace('__TABLE__', $this->config->db->name, $table);
+
+                /* Skip sql that is note. */
+                if(strpos($table, '--') === 0) continue;
+
+                $table = str_replace('`zt_', $this->config->db->name . '.`zt_', $table);
+                $table = str_replace('`ztv_', $this->config->db->name . '.`ztv_', $table);
+                $table = str_replace('zt_', $this->config->db->prefix, $table);
+                if(!$this->dbh->query($table)) return false;
+            }
+        }
+        catch (PDOException $exception)
+        {
+            echo $exception->getMessage();
+            die();
         }
         return true;
     }
 
     /**
      * Create a comapny, set admin.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -487,7 +509,6 @@ class installModel extends model
         $company->name   = $this->post->company;
         $company->admins = ",{$this->post->account},";
         $this->dao->insert(TABLE_COMPANY)->data($company)->autoCheck()->batchCheck('name', 'notempty')->exec();
-
         if(!dao::isError())
         {
             /* Set admin. */
@@ -497,26 +518,73 @@ class installModel extends model
             $admin->password = md5($this->post->password);
             $admin->gender   = 'f';
             $this->dao->replace(TABLE_USER)->data($admin)->check('account', 'notempty')->exec();
+        }
+    }
 
-            /* Update group name and desc on dafault lang. */
-            $groups = $this->dao->select('*')->from(TABLE_GROUP)->orderBy('id')->fetchAll();
-            foreach($groups as $group)
+    /**
+     * Update language for group and cron.
+     *
+     * @access public
+     * @return void
+     */
+    public function updateLang()
+    {
+        /* Update group name and desc on dafault lang. */
+        $groups = $this->dao->select('*')->from(TABLE_GROUP)->orderBy('id')->fetchAll();
+        foreach($groups as $group)
+        {
+            $data = zget($this->lang->install->groupList, $group->name, '');
+            if($data) $this->dao->update(TABLE_GROUP)->data($data)->where('id')->eq($group->id)->exec();
+        }
+
+        /* Update cron remark by lang. */
+        foreach($this->lang->install->cronList as $command => $remark)
+        {
+            $this->dao->update(TABLE_CRON)->set('remark')->eq($remark)->where('command')->eq($command)->exec();
+        }
+
+        /* Update lang,stage by lang. */
+        $this->app->loadLang('stage');
+        foreach($this->lang->stage->typeList as $key => $value)
+        {
+            $this->dao->update(TABLE_LANG)->set('value')->eq($value)->where('`key`')->eq($key)->exec();
+            $this->dao->update(TABLE_STAGE)->set('name')->eq($value)->where('`type`')->eq($key)->exec();
+        }
+
+        if(!empty($this->config->bizVersion))
+        {
+            /* Update flowdatasource by lang. */
+            foreach($this->lang->install->workflowdatasource as $id => $name)
             {
-                $data = zget($this->lang->install->groupList, $group->name, '');
-                if($data) $this->dao->update(TABLE_GROUP)->data($data)->where('id')->eq($group->id)->exec();
+                $this->dao->update(TABLE_WORKFLOWDATASOURCE)->set('name')->eq($name)->where('id')->eq($id)->exec();
             }
 
-            /* Update cron remark by lang. */
-            foreach($this->lang->install->cronList as $command => $remark)
+            /* Update workflowrule by lang. */
+            foreach($this->lang->install->workflowrule as $id => $name)
             {
-                $this->dao->update(TABLE_CRON)->set('remark')->eq($remark)->where('command')->eq($command)->exec();
+                $this->dao->update(TABLE_WORKFLOWRULE)->set('name')->eq($name)->where('id')->eq($id)->exec();
+            }
+        }
+
+        if(!empty($this->config->maxVersion))
+        {
+            /* Update process by lang. */
+            foreach($this->lang->install->processList as $id => $name)
+            {
+                $this->dao->update(TABLE_PROCESS)->set('name')->eq($name)->where('id')->eq($id)->exec();
+            }
+
+            /* Update basicmeas by lang. */
+            foreach($this->lang->install->basicmeasList as $id => $basic)
+            {
+                $this->dao->update(TABLE_BASICMEAS)->set('name')->eq($basic['name'])->set('unit')->eq($basic['unit'])->set('definition')->eq($basic['definition'])->where('id')->eq($id)->exec();
             }
         }
     }
 
     /**
-     * Import demo data. 
-     * 
+     * Import demo data.
+     *
      * @access public
      * @return void
      */
@@ -526,10 +594,10 @@ class installModel extends model
         $demoDataFile = $this->app->getAppRoot() . 'db' . DS . $demoDataFile;
         $insertTables = explode(";\n", file_get_contents($demoDataFile));
         foreach($insertTables as $table)
-        { 
+        {
             $table = trim($table);
             if(empty($table)) continue;
-  
+
             $table = str_replace('`zt_', $this->config->db->name . '.`zt_', $table);
             $table = str_replace('zt_', $this->config->db->prefix, $table);
             if(!$this->dbh->query($table)) return false;

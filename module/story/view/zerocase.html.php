@@ -12,6 +12,7 @@
 ?>
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../testcase/view/caseheader.html.php';?>
+<?php js::set('resetActive', false);?>
 <div id='mainContent' class='main-control'>
   <?php if(empty($stories)):?>
   <div class="table-empty-tip">
@@ -22,29 +23,35 @@
     <table class='table has-sort-head table-fixed' id='storyList'>
       <thead>
       <tr>
-        <?php $vars = "productID=$productID&orderBy=%s";?>
+        <?php
+        $this->app->rawModule = 'story';
+        $vars = "productID=$productID&branchID=$branchID&orderBy=%s";
+        ?>
         <th class='c-id'>
           <div class="checkbox-primary check-all" title="<?php echo $lang->selectAll?>">
             <label></label>
           </div>
           <?php common::printOrderLink('id', $orderBy, $vars, $lang->idAB);?>
         </th>
-        <th class='w-pri'>  <?php common::printOrderLink('pri',        $orderBy, $vars, $lang->priAB);?></th>
-        <th class='w-p30'>  <?php common::printOrderLink('title',      $orderBy, $vars, $lang->story->title);?></th>
-        <th>                <?php common::printOrderLink('plan',       $orderBy, $vars, $lang->story->planAB);?></th>
-        <th class='thWidth'><?php common::printOrderLink('source',     $orderBy, $vars, $lang->story->source);?></th>
-        <th class='w-100px'><?php common::printOrderLink('openedBy',   $orderBy, $vars, $lang->openedByAB);?></th>
-        <th class='w-100px'><?php common::printOrderLink('assignedTo', $orderBy, $vars, $lang->assignedToAB);?></th>
-        <th class='w-70px'> <?php common::printOrderLink('estimate',   $orderBy, $vars, $lang->story->estimateAB);?></th>
-        <th class='w-80px'> <?php common::printOrderLink('status',     $orderBy, $vars, $lang->statusAB);?></th>
-        <th class='w-80px'> <?php common::printOrderLink('stage',      $orderBy, $vars, $lang->story->stageAB);?></th>
-        <th class='c-actions-5'><?php echo $lang->actions;?></th>
+        <th class='c-pri'>     <?php common::printOrderLink('pri',        $orderBy, $vars, $lang->priAB);?></th>
+        <th class='w-p30'>     <?php common::printOrderLink('title',      $orderBy, $vars, $lang->story->title);?></th>
+        <th>                   <?php common::printOrderLink('plan',       $orderBy, $vars, $lang->story->planAB);?></th>
+        <th class='thWidth'>   <?php common::printOrderLink('source',     $orderBy, $vars, $lang->story->source);?></th>
+        <th class='c-user'>    <?php common::printOrderLink('openedBy',   $orderBy, $vars, $lang->openedByAB);?></th>
+        <th class='c-user'>    <?php common::printOrderLink('assignedTo', $orderBy, $vars, $lang->assignedToAB);?></th>
+        <th class='c-estiamte'><?php common::printOrderLink('estimate',   $orderBy, $vars, $lang->story->estimateAB);?></th>
+        <th class='c-status'>  <?php common::printOrderLink('status',     $orderBy, $vars, $lang->statusAB);?></th>
+        <th class='c-stage'>   <?php common::printOrderLink('stage',      $orderBy, $vars, $lang->story->stageAB);?></th>
+        <th class='c-actions-5 text-center'><?php echo $lang->actions;?></th>
       </tr>
       </thead>
       <tbody>
       <?php foreach($stories as $key => $story):?>
       <?php
-      $viewLink = $this->createLink('story', 'view', "storyID=$story->id");
+      $param = 0;
+      if($this->app->tab == 'project')   $param = $this->session->project;
+      if($this->app->tab == 'execution') $param = $this->session->execution;
+      $viewLink = $this->createLink('story', 'view', "storyID=$story->id&version=0&param=$param");
       $canView  = common::hasPriv('story', 'view');
       ?>
       <tr>
@@ -56,7 +63,7 @@
           <?php printf('%03d', $story->id);?>
         </td>
         <td><span class='label-pri <?php echo 'label-pri-' . $story->pri;?>' title='<?php echo zget($lang->story->priList, $story->pri);?>'><?php echo zget($lang->story->priList, $story->pri)?></span></td>
-        <td class='text-left' title="<?php echo $story->title?>"><nobr><?php echo html::a($viewLink, $story->title);?></nobr></td>
+        <td class='text-left' title="<?php echo $story->title?>"><nobr><?php echo html::a($viewLink, $story->title, '', "data-app='product'");?></nobr></td>
         <td title="<?php echo $story->planTitle?>"><?php echo $story->planTitle;?></td>
         <td><?php echo $lang->story->sourceList[$story->source];?></td>
         <td><?php echo zget($users, $story->openedBy);?></td>
@@ -66,12 +73,14 @@
         <td><?php echo zget($lang->story->stageList, $story->stage);?></td>
         <td class='c-actions'>
           <?php
-          $vars = "story={$story->id}";
-          common::printIcon('story', 'change',     $vars, $story, 'list', 'fork');
-          common::printIcon('story', 'review',     $vars, $story, 'list', 'glasses');
-          common::printIcon('story', 'close',      $vars, $story, 'list', 'off');
-          common::printIcon('story', 'edit',       $vars, $story, 'list', 'pencil');
-          common::printIcon('story', 'createCase', "productID=$story->product&module=0&from=&param=0&$vars", $story, 'list', 'sitemap');
+          $vars = "storyID={$story->id}";
+          $this->app->tab = 'product';
+          common::printIcon('story', 'change', $vars, $story, 'list', 'fork');
+          common::printIcon('story', 'review', $vars, $story, 'list', 'glasses');
+          common::printIcon('story', 'close',  $vars, $story, 'list', 'off', '', 'iframe', 'yes');
+          common::printIcon('story', 'edit',   $vars, $story, 'list');
+          $this->app->tab = 'qa';
+          common::printIcon('story', 'createCase', "productID=$story->product&branch=0&module=0&from=&param=0&$vars", $story, 'list', 'sitemap');
           ?>
         </td>
       </tr>
@@ -84,7 +93,7 @@
         <?php
         $canBatchEdit  = common::hasPriv('story', 'batchEdit');
         $disabled   = $canBatchEdit ? '' : "disabled='disabled'";
-        $actionLink = $this->createLink('story', 'batchEdit', "productID=$productID&projectID=0&branch=$branch");
+        $actionLink = $this->createLink('story', 'batchEdit', "productID=$productID&projectID=$projectID&branch=$branch");
         ?>
         <?php echo html::commonButton($lang->edit, "data-form-action='$actionLink' $disabled");?>
         <?php

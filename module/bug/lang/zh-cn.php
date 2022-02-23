@@ -14,12 +14,14 @@ $lang->bug->common           = 'Bug';
 $lang->bug->id               = 'Bug编号';
 $lang->bug->product          = '所属' . $lang->productCommon;
 $lang->bug->branch           = '分支/平台';
-$lang->bug->productplan      = '所属计划';
+$lang->bug->productplan      = '所属' . '计划';
 $lang->bug->module           = '所属模块';
 $lang->bug->moduleAB         = '模块';
-$lang->bug->project          = '所属' . $lang->projectCommon;
-$lang->bug->story            = "相关{$lang->storyCommon}";
-$lang->bug->storyVersion     = "{$lang->storyCommon}版本";
+$lang->bug->project          = '所属项目';
+$lang->bug->execution        = '所属' . $lang->execution->common;
+$lang->bug->kanban           = '所属看板';
+$lang->bug->story            = "相关需求";
+$lang->bug->storyVersion     = "{$lang->SRCommon}版本";
 $lang->bug->color            = '标题颜色';
 $lang->bug->task             = '相关任务';
 $lang->bug->title            = 'Bug标题';
@@ -29,6 +31,13 @@ $lang->bug->pri              = '优先级';
 $lang->bug->type             = 'Bug类型';
 $lang->bug->os               = '操作系统';
 $lang->bug->browser          = '浏览器';
+$lang->bug->hardware         = '硬件';
+$lang->bug->result           = '结果';
+$lang->bug->repo             = '所属版本库';
+$lang->bug->lines            = '代码行';
+$lang->bug->v1               = '版本1';
+$lang->bug->v2               = '版本2';
+$lang->bug->repoType         = '版本库类型';
 $lang->bug->steps            = '重现步骤';
 $lang->bug->status           = 'Bug状态';
 $lang->bug->statusAB         = '状态';
@@ -39,7 +48,9 @@ $lang->bug->activatedDate    = '激活日期';
 $lang->bug->confirmed        = '是否确认';
 $lang->bug->confirmedAB      = '确认';
 $lang->bug->toTask           = '转任务';
-$lang->bug->toStory          = "转{$lang->storyCommon}";
+$lang->bug->toStory          = "转{$lang->SRCommon}";
+$lang->bug->feedbackBy       = '反馈者';
+$lang->bug->notifyEmail      = '通知邮箱';
 $lang->bug->mailto           = '抄送给';
 $lang->bug->openedBy         = '由谁创建';
 $lang->bug->openedByAB       = '创建者';
@@ -58,7 +69,8 @@ $lang->bug->resolvedBuild    = '解决版本';
 $lang->bug->resolvedDate     = '解决日期';
 $lang->bug->resolvedDateAB   = '解决日期';
 $lang->bug->deadline         = '截止日期';
-$lang->bug->plan             = '所属计划';
+$lang->bug->deadlineAB       = '截止';
+$lang->bug->plan             = '所属' . '计划';
 $lang->bug->closedBy         = '由谁关闭';
 $lang->bug->closedDate       = '关闭日期';
 $lang->bug->duplicateBug     = '重复ID';
@@ -77,6 +89,7 @@ $lang->bug->lastEditedDate   = '修改日期';
 $lang->bug->fromCase         = '来源用例';
 $lang->bug->toCase           = '生成用例';
 $lang->bug->colorTag         = '颜色标签';
+$lang->bug->fixedRate        = '修复率';
 
 /* 方法列表。*/
 $lang->bug->index              = '首页';
@@ -89,6 +102,7 @@ $lang->bug->edit               = '编辑Bug';
 $lang->bug->batchEdit          = '批量编辑';
 $lang->bug->batchChangeModule  = '批量修改模块';
 $lang->bug->batchChangeBranch  = '批量修改分支';
+$lang->bug->batchChangePlan    = '批量修改计划';
 $lang->bug->batchClose         = '批量关闭';
 $lang->bug->assignTo           = '指派';
 $lang->bug->assignAction       = '指派Bug';
@@ -110,7 +124,7 @@ $lang->bug->exportAction       = '导出Bug';
 $lang->bug->delete             = '删除';
 $lang->bug->deleteAction       = '删除Bug';
 $lang->bug->deleted            = '已删除';
-$lang->bug->confirmStoryChange = "确认{$lang->storyCommon}变动";
+$lang->bug->confirmStoryChange = "确认{$lang->SRCommon}变动";
 $lang->bug->copy               = '复制Bug';
 $lang->bug->search             = '搜索';
 
@@ -129,7 +143,8 @@ $lang->bug->postponedBugs      = '被延期';
 $lang->bug->overdueBugs        = '过期Bug';
 $lang->bug->allBugs            = '所有';
 $lang->bug->byQuery            = '搜索';
-$lang->bug->needConfirm        = "{$lang->storyCommon}变动";
+$lang->bug->needConfirm        = "{$lang->SRCommon}变动";
+$lang->bug->allProject         = '所有项目';
 $lang->bug->allProduct         = '所有' . $lang->productCommon;
 $lang->bug->my                 = '我的';
 $lang->bug->yesterdayResolved  = '昨天解决Bug数';
@@ -140,12 +155,17 @@ $lang->bug->assignToMeAB   = '指派给我';
 $lang->bug->openedByMeAB   = '由我创建';
 $lang->bug->resolvedByMeAB = '由我解决';
 
-$lang->bug->ditto         = '同上';
-$lang->bug->dittoNotice   = '该bug与上一bug不属于同一产品！';
-$lang->bug->noAssigned    = '未指派';
-$lang->bug->noBug         = '暂时没有Bug。';
-$lang->bug->noModule      = '<div>您现在还没有模块信息</div><div>请维护测试模块</div>';
-$lang->bug->delayWarning  = " <strong class='text-danger'> 延期%s天 </strong>";
+$lang->bug->ditto          = '同上';
+$lang->bug->dittoNotice    = '该bug与上一bug不属于同一产品！';
+$lang->bug->noAssigned     = '未指派';
+$lang->bug->noBug          = '暂时没有Bug。';
+$lang->bug->noModule       = '<div>您现在还没有模块信息</div><div>请维护测试模块</div>';
+$lang->bug->delayWarning   = " <strong class='text-danger'> 延期%s天 </strong>";
+$lang->bug->labelConfirmed = '已确认';
+$lang->bug->labelPostponed = '被延期';
+$lang->bug->changed        = '已变动';
+$lang->bug->storyChanged   = '需求变动';
+$lang->bug->linkMR         = '相关合并请求';
 
 /* 页面标签。*/
 $lang->bug->lblAssignedTo = '当前指派';
@@ -154,12 +174,13 @@ $lang->bug->lblLastEdited = '最后修改';
 $lang->bug->lblResolved   = '由谁解决';
 $lang->bug->allUsers      = '加载所有用户';
 $lang->bug->allBuilds     = '所有';
-$lang->bug->createBuild   = '新建';
+$lang->bug->createBuild   = '创建';
 
 /* legend列表。*/
 $lang->bug->legendBasicInfo             = '基本信息';
 $lang->bug->legendAttatch               = '附件';
-$lang->bug->legendPrjStoryTask          = $lang->projectCommon . "/{$lang->storyCommon}/任务";
+$lang->bug->legendPRJExecStoryTask      = "项目/" . $lang->executionCommon . "/{$lang->SRCommon}/任务";
+$lang->bug->legendExecStoryTask         = $lang->executionCommon . "/{$lang->SRCommon}/任务";
 $lang->bug->lblTypeAndSeverity          = '类型/严重程度';
 $lang->bug->lblSystemBrowserAndHardware = '系统/浏览器';
 $lang->bug->legendSteps                 = '重现步骤';
@@ -167,17 +188,21 @@ $lang->bug->legendComment               = '备注';
 $lang->bug->legendLife                  = 'Bug的一生';
 $lang->bug->legendMisc                  = '其他相关';
 $lang->bug->legendRelated               = '其他信息';
+$lang->bug->legendThisWeekCreated       = '本周新增';
 
 /* 功能按钮。*/
 $lang->bug->buttonConfirm = '确认';
 
 /* 交互提示。*/
 $lang->bug->summary               = "本页共 <strong>%s</strong> 个Bug，未解决 <strong>%s</strong>。";
-$lang->bug->confirmChangeProduct  = "修改{$lang->productCommon}会导致相应的{$lang->projectCommon}、{$lang->storyCommon}和任务发生变化，确定吗？";
+$lang->bug->confirmChangeProduct  = "修改{$lang->productCommon}会导致相应的{$lang->executionCommon}、{$lang->SRCommon}和任务发生变化，确定吗？";
 $lang->bug->confirmDelete         = '您确认要删除该Bug吗？';
 $lang->bug->remindTask            = '该Bug已经转化为任务，是否更新任务(编号:%s)状态 ?';
 $lang->bug->skipClose             = 'Bug %s 不是已解决状态，不能关闭。';
-$lang->bug->projectAccessDenied   = "您无权访问该Bug所属的{$lang->projectCommon}！";
+$lang->bug->executionAccessDenied = "您无权访问该Bug所属的{$lang->executionCommon}！";
+$lang->bug->stepsNotEmpty         = "重现步骤不能为空。";
+$lang->bug->confirmUnlinkBuild    = "更换解决版本将取消与旧版本的关联，您确定取消该bug与%s的关联吗？";
+$lang->bug->noSwitchBranch        = 'Bug%s所属模块不在当前分支下，将自动忽略。';
 
 /* 模板。*/
 $lang->bug->tplStep   = "<p>[步骤]</p><br/>";
@@ -258,8 +283,9 @@ $lang->bug->statusList['active']   = '激活';
 $lang->bug->statusList['resolved'] = '已解决';
 $lang->bug->statusList['closed']   = '已关闭';
 
-$lang->bug->confirmedList[1] = '是';
-$lang->bug->confirmedList[0] = '否';
+$lang->bug->confirmedList[''] = '';
+$lang->bug->confirmedList[1]  = '是';
+$lang->bug->confirmedList[0]  = '否';
 
 $lang->bug->resolutionList['']           = '';
 $lang->bug->resolutionList['bydesign']   = '设计如此';
@@ -269,7 +295,7 @@ $lang->bug->resolutionList['fixed']      = '已解决';
 $lang->bug->resolutionList['notrepro']   = '无法重现';
 $lang->bug->resolutionList['postponed']  = '延期处理';
 $lang->bug->resolutionList['willnotfix'] = "不予解决";
-$lang->bug->resolutionList['tostory']    = "转为{$lang->storyCommon}";
+$lang->bug->resolutionList['tostory']    = "转为{$lang->SRCommon}";
 
 /* 统计报表。*/
 $lang->bug->report = new stdclass();
@@ -277,7 +303,7 @@ $lang->bug->report->common = '报表';
 $lang->bug->report->select = '请选择报表类型';
 $lang->bug->report->create = '生成报表';
 
-$lang->bug->report->charts['bugsPerProject']        = $lang->projectCommon . 'Bug数量';
+$lang->bug->report->charts['bugsPerExecution']      = $lang->executionCommon . 'Bug数量';
 $lang->bug->report->charts['bugsPerBuild']          = '版本Bug数量';
 $lang->bug->report->charts['bugsPerModule']         = '模块Bug数量';
 $lang->bug->report->charts['openedBugsPerDay']      = '每天新增Bug数';
@@ -302,7 +328,7 @@ $lang->bug->report->options->type   = 'pie';
 $lang->bug->report->options->width  = 500;
 $lang->bug->report->options->height = 140;
 
-$lang->bug->report->bugsPerProject        = new stdclass();
+$lang->bug->report->bugsPerExecution      = new stdclass();
 $lang->bug->report->bugsPerBuild          = new stdclass();
 $lang->bug->report->bugsPerModule         = new stdclass();
 $lang->bug->report->openedBugsPerDay      = new stdclass();
@@ -321,7 +347,7 @@ $lang->bug->report->bugsPerAssignedTo     = new stdclass();
 $lang->bug->report->bugLiveDays           = new stdclass();
 $lang->bug->report->bugHistories          = new stdclass();
 
-$lang->bug->report->bugsPerProject->graph        = new stdclass();
+$lang->bug->report->bugsPerExecution->graph      = new stdclass();
 $lang->bug->report->bugsPerBuild->graph          = new stdclass();
 $lang->bug->report->bugsPerModule->graph         = new stdclass();
 $lang->bug->report->openedBugsPerDay->graph      = new stdclass();
@@ -335,23 +361,23 @@ $lang->bug->report->bugsPerResolution->graph     = new stdclass();
 $lang->bug->report->bugsPerStatus->graph         = new stdclass();
 $lang->bug->report->bugsPerActivatedCount->graph = new stdclass();
 $lang->bug->report->bugsPerType->graph           = new stdclass();
-$lang->bug->report->bugsPerPri->graph           = new stdclass();
+$lang->bug->report->bugsPerPri->graph            = new stdclass();
 $lang->bug->report->bugsPerAssignedTo->graph     = new stdclass();
 $lang->bug->report->bugLiveDays->graph           = new stdclass();
 $lang->bug->report->bugHistories->graph          = new stdclass();
 
-$lang->bug->report->bugsPerProject->graph->xAxisName     = $lang->projectCommon;
-$lang->bug->report->bugsPerBuild->graph->xAxisName       = '版本';
-$lang->bug->report->bugsPerModule->graph->xAxisName      = '模块';
+$lang->bug->report->bugsPerExecution->graph->xAxisName = $lang->executionCommon;
+$lang->bug->report->bugsPerBuild->graph->xAxisName     = '版本';
+$lang->bug->report->bugsPerModule->graph->xAxisName    = '模块';
 
-$lang->bug->report->openedBugsPerDay->type               = 'bar';
-$lang->bug->report->openedBugsPerDay->graph->xAxisName   = '日期';
+$lang->bug->report->openedBugsPerDay->type             = 'bar';
+$lang->bug->report->openedBugsPerDay->graph->xAxisName = '日期';
 
 $lang->bug->report->resolvedBugsPerDay->type             = 'bar';
 $lang->bug->report->resolvedBugsPerDay->graph->xAxisName = '日期';
 
-$lang->bug->report->closedBugsPerDay->type               = 'bar';
-$lang->bug->report->closedBugsPerDay->graph->xAxisName   = '日期';
+$lang->bug->report->closedBugsPerDay->type             = 'bar';
+$lang->bug->report->closedBugsPerDay->graph->xAxisName = '日期';
 
 $lang->bug->report->openedBugsPerUser->graph->xAxisName   = '用户';
 $lang->bug->report->resolvedBugsPerUser->graph->xAxisName = '用户';
@@ -370,7 +396,7 @@ $lang->bug->report->bugHistories->graph->xAxisName          = '处理步骤';
 /* 操作记录。*/
 $lang->bug->action = new stdclass();
 $lang->bug->action->resolved            = array('main' => '$date, 由 <strong>$actor</strong> 解决，方案为 <strong>$extra</strong> $appendLink。', 'extra' => 'resolutionList');
-$lang->bug->action->tostory             = array('main' => '$date, 由 <strong>$actor</strong> 转为<strong>{$lang->storyCommon}</strong>，编号为 <strong>$extra</strong>。');
+$lang->bug->action->tostory             = array('main' => '$date, 由 <strong>$actor</strong> 转为<strong> ' . $lang->SRCommon . '</strong>，编号为 <strong>$extra</strong>。');
 $lang->bug->action->totask              = array('main' => '$date, 由 <strong>$actor</strong> 导入为<strong>任务</strong>，编号为 <strong>$extra</strong>。');
 $lang->bug->action->linked2plan         = array('main' => '$date, 由 <strong>$actor</strong> 关联到计划 <strong>$extra</strong>。');
 $lang->bug->action->unlinkedfromplan    = array('main' => '$date, 由 <strong>$actor</strong> 从计划 <strong>$extra</strong> 移除。');
@@ -393,8 +419,6 @@ $lang->bug->featureBar['browse']['resolvedbyme'] = $lang->bug->resolvedByMe;
 $lang->bug->featureBar['browse']['toclosed']     = $lang->bug->toClosed;
 $lang->bug->featureBar['browse']['unresolved']   = $lang->bug->unResolved;
 $lang->bug->featureBar['browse']['more']         = $lang->more;
-
-
 
 $lang->bug->moreSelects['unconfirmed']   = $lang->bug->unconfirmed;
 $lang->bug->moreSelects['assigntonull']  = $lang->bug->assignToNull;

@@ -41,5 +41,7 @@ include '../../common/view/chosen.html.php';
   </div>
 </form>
 <?php js::set('blockID', $blockID);?>
+<?php js::set('of', $lang->block->of);?>
+<?php js::set('title', isset($block->title) ? $block->title : '');?>
 <?php if(!empty($module)) js::set('module', $module);?>
 <?php if(isset($pageJS)) js::execute($pageJS);?>

@@ -13,8 +13,16 @@
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
 <?php js::set('sysurl', common::getSysUrl());?>
-<?php $browseLink = $app->session->bugList != false ? $app->session->bugList : inlink('browse', "productID=$bug->product");?>
+<?php $browseLink = $app->session->bugList ? $app->session->bugList : inlink('browse', "productID=$bug->product");?>
+<?php if(strpos($_SERVER["QUERY_STRING"], 'isNotice=1') === false):?>
 <div id="mainMenu" class="clearfix">
+<?php if($this->app->getViewType() == 'xhtml'):?>
+<div class="linkButton" onclick="handleLinkButtonClick()">
+  <span title="<?php echo $lang->viewDetails;?>">
+    <i class="icon icon-import icon-rotate-270"></i>
+  </span>
+</div>
+<?php endif;?>
   <div class="btn-toolbar pull-left">
     <?php if(!isonlybody()):?>
     <?php echo html::a($browseLink, '<i class="icon icon-back icon-sm"></i> ' . $lang->goback, '', "class='btn btn-secondary'");?>
@@ -26,14 +34,24 @@
       <?php if($bug->deleted):?>
       <span class='label label-danger'><?php echo $lang->bug->deleted;?></span>
       <?php endif; ?>
-	</div>
+      <?php if($bug->case):?>
+      <small><?php echo html::a(helper::createLink('testcase', 'view', "caseID=$bug->case&version=$bug->caseVersion", '', true), "<i class='icon icon-sitemap'></i> {$lang->bug->fromCase}$lang->colon$bug->case", '', isonlybody() ? '' : "data-toggle='modal' data-type='iframe' data-width='80%'");?></small>
+      <?php endif;?>
+    </div>
   </div>
   <?php if(!isonlybody()):?>
   <div class="btn-toolbar pull-right">
-    <?php common::printLink('bug', 'create', "productID={$bug->product}&branch={$bug->branch}&extra=moduleID={$bug->module}", "<i class='icon icon-plus'></i>" . $lang->bug->create, '', "class='btn btn-primary'"); ?>
+    <?php if(common::canModify('product', $product)):?>
+    <?php $tab = strpos('|execution|project|qa|', $this->app->tab) !== false ? $this->app->tab : 'qa';?>
+    <?php if($this->app->tab != 'product') common::printLink('bug', 'create', "productID={$bug->product}&branch={$bug->branch}&extra=moduleID={$bug->module},projectID={$bug->project},executionID={$bug->execution}", "<i class='icon icon-plus'></i> " . $lang->bug->create, '', "class='btn btn-primary' data-app='$tab'"); ?>
+    <?php endif;?>
   </div>
   <?php endif;?>
 </div>
+<?php if($this->app->getViewType() == 'xhtml'):?>
+<div id="scrollContent">
+<?php endif;?>
+<?php endif;?>
 <div id="mainContent" class="main-row">
   <div class="main-col col-8">
     <div class="cell">
@@ -55,14 +73,22 @@
           ?>
         </div>
       </div>
-      <?php echo $this->fetch('file', 'printFiles', array('files' => $bug->files, 'fieldset' => 'true'));?>
-      <?php $actionFormLink = $this->createLink('action', 'comment', "objectType=bug&objectID=$bug->id");?>
+      <?php echo $this->fetch('file', 'printFiles', array('files' => $bug->files, 'fieldset' => 'true', 'object' => $bug));?>
+      <?php
+      $canBeChanged = common::canBeChanged('bug', $bug);
+      if($canBeChanged) $actionFormLink = $this->createLink('action', 'comment', "objectType=bug&objectID=$bug->id");
+      ?>
     </div>
     <?php $this->printExtendFields($bug, 'div', "position=left&inForm=0&inCell=1");?>
-    <div class='cell'><?php include '../../common/view/action.html.php';?></div>
+    <?php if($this->app->getViewType() != 'xhtml'):?>
+    <div class="cell"><?php include '../../common/view/action.html.php';?></div>
+    <?php endif;?>
     <?php
     $params        = "bugID=$bug->id";
-    $copyParams    = "productID=$productID&branch=$bug->branch&extras=bugID=$bug->id";
+    $extraParams   = "extras=bugID=$bug->id";
+    if($this->app->tab == 'project')   $extraParams .= ",projectID={$bug->project}";
+    if($this->app->tab == 'execution') $extraParams .= ",executionID={$bug->execution}";
+    $copyParams    = "productID=$productID&branch=$bug->branch&$extraParams";
     $convertParams = "productID=$productID&branch=$bug->branch&moduleID=0&from=bug&bugID=$bug->id";
     ?>
     <div class='main-actions'>
@@ -71,20 +97,26 @@
         <?php if(!$bug->deleted):?>
         <div class='divider'></div>
         <?php
-        common::printIcon('bug', 'confirmBug', $params, $bug, 'button', 'search', '', 'iframe', true);
+        common::printIcon('bug', 'confirmBug', $params, $bug, 'button', 'ok', '', 'iframe', true);
         common::printIcon('bug', 'assignTo',   $params, $bug, 'button', '', '', 'iframe', true);
         common::printIcon('bug', 'resolve',    $params, $bug, 'button', 'checked', '', 'iframe showinonlybody', true);
         common::printIcon('bug', 'close',      $params, $bug, 'button', '', '', 'text-danger iframe showinonlybody', true);
         common::printIcon('bug', 'activate',   $params, $bug, 'button', '', '', 'text-success iframe showinonlybody', true);
 
-        if($config->global->flow != 'onlyTest') common::printIcon('bug', 'toStory', "product=$bug->product&branch=$bug->branch&module=0&story=0&project=0&bugID=$bug->id", $bug, 'button', $lang->icons['story']);
-        common::printIcon('bug', 'createCase', $convertParams, $bug, 'button', 'sitemap');
+        if($this->app->tab != 'product')
+        {
+            common::printIcon('bug', 'toStory', "product=$bug->product&branch=$bug->branch&module=0&story=0&execution=0&bugID=$bug->id", $bug, 'button', $lang->icons['story'], '', '', '', "data-app='product'", $lang->bug->toStory);
+            common::printIcon('bug', 'createCase', $convertParams, $bug, 'button', 'sitemap');
+        }
 
         echo $this->buildOperateMenu($bug, 'view');
 
         echo "<div class='divider'></div>";
         common::printIcon('bug', 'edit', $params, $bug);
-        common::printIcon('bug', 'create', $copyParams, $bug, 'button', 'copy');
+        if($this->app->tab != 'product')
+        {
+            common::printIcon('bug', 'create', $copyParams, $bug, 'button', 'copy');
+        }
         common::printIcon('bug', 'delete', $params, $bug, 'button', 'trash', 'hiddenwin');
         ?>
         <?php endif;?>
@@ -96,9 +128,7 @@
       <div class='tabs'>
         <ul class='nav nav-tabs'>
           <li class='active'><a href='#legendBasicInfo' data-toggle='tab'><?php echo $lang->bug->legendBasicInfo;?></a></li>
-          <?php if($config->global->flow != 'onlyTest'):?>
-          <li><a href='#legendPrjStoryTask' data-toggle='tab'><?php echo $lang->bug->legendPrjStoryTask;?></a></li>
-          <?php endif;?>
+          <li><a href='#legendExecStoryTask' data-toggle='tab'><?php echo $config->systemMode == 'new' ? $lang->bug->legendPRJExecStoryTask : $lang->bug->legendExecStoryTask;?></a></li>
         </ul>
         <div class='tab-content'>
           <div class='tab-pane active' id='legendBasicInfo'>
@@ -106,11 +136,11 @@
               <tbody>
                 <tr valign='middle'>
                   <th class='thWidth'><?php echo $lang->bug->product;?></th>
-                  <td><?php if(!common::printLink('bug', 'browse', "productID=$bug->product", $productName)) echo $productName;?></td>
+                  <td><?php if(!common::printLink('product', 'view', "productID=$bug->product", $product->name, '', "data-app='product'")) echo $product->name;?></td>
                 </tr>
-                <?php if($this->session->currentProductType != 'normal'):?>
+                <?php if($product->type != 'normal'):?>
                 <tr>
-                  <th><?php echo $lang->product->branch;?></th>
+                  <th><?php echo sprintf($lang->product->branch, $lang->product->branchName[$product->type]);?></th>
                   <td><?php if(!common::printLink('bug', 'browse', "productID=$bug->product&branch=$bug->branch", $branchName)) echo $branchName;?></td>
                 </tr>
                 <?php endif;?>
@@ -135,7 +165,7 @@
                       foreach($modulePath as $key => $module)
                       {
                           $moduleTitle .= $module->name;
-                          if(!common::printLink('bug', 'browse', "productID=$bug->product&branch=$module->branch&browseType=byModule&param=$module->id", $module->name)) echo $module->name;
+                          if(!common::printLink('bug', 'browse', "productID=$bug->product&branch=$module->branch&browseType=byModule&param=$module->id", $module->name, '', "data-app='qa'")) echo $module->name;
                           if(isset($modulePath[$key + 1]))
                           {
                               $moduleTitle .= '/';
@@ -147,6 +177,10 @@
                   ob_end_clean();
                   ?>
                   <td title='<?php echo $moduleTitle?>'><?php echo $printModule?></td>
+                </tr>
+                <tr>
+                  <th><?php echo $lang->bug->fromCase;?></th>
+                  <td><?php if($bug->case) echo html::a(helper::createLink('testcase', 'view', "caseID=$bug->case&version=$bug->caseVersion", '', true), "<i class='icon icon-sitemap'></i> {$lang->bug->fromCase}$lang->colon$bug->case", '', isonlybody() ? '' : "data-toggle='modal' data-type='iframe' data-width='80%'");?></td>
                 </tr>
                 <tr valign='middle'>
                   <th><?php echo $lang->bug->productplan;?></th>
@@ -204,11 +238,19 @@
                 <tr>
                   <th><?php echo $lang->bug->deadline;?></th>
                   <td>
-                    <?php 
+                    <?php
                     if($bug->deadline) echo  $bug->deadline;
                     if(isset($bug->delay)) printf($lang->bug->delayWarning, $bug->delay);
                     ?>
                   </td>
+                </tr>
+                <tr>
+                  <th><?php echo $lang->bug->feedbackBy;?></th>
+                  <td><?php echo $bug->feedbackBy;?></td>
+                </tr>
+                <tr>
+                  <th><?php echo $lang->bug->notifyEmail;?></th>
+                  <td><?php echo $bug->notifyEmail;?></td>
                 </tr>
                 <tr>
                   <th><?php echo $lang->bug->os;?></th>
@@ -229,20 +271,25 @@
               </tbody>
             </table>
           </div>
-          <?php if($config->global->flow != 'onlyTest'):?>
-          <div class='tab-pane' id='legendPrjStoryTask'>
+          <div class='tab-pane' id='legendExecStoryTask'>
             <table class='table table-data'>
               <tbody>
+                <?php if($config->systemMode == 'new'):?>
                 <tr>
-                  <th class='w-60px'><?php echo $lang->bug->project;?></th>
-                  <td><?php if($bug->project) echo html::a($this->createLink('project', 'browse', "projectid=$bug->project"), $bug->projectName);?></td>
+                  <th class='w-70px'><?php echo $lang->bug->project;?></th>
+                  <td><?php if($bug->project) echo html::a($this->createLink('project', 'view', "projectID=$bug->project"), $bug->projectName);?></td>
+                </tr>
+                <?php endif;?>
+                <tr>
+                  <th class='w-70px'><?php echo (isset($project->model) and $project->model == 'kanban') ? $lang->bug->kanban : $lang->bug->execution;?></th>
+                  <td><?php if($bug->execution) echo html::a($this->createLink('execution', 'browse', "executionID=$bug->execution"), $bug->executionName);?></td>
                 </tr>
                 <tr class='nofixed'>
                   <th><?php echo $lang->bug->story;?></th>
                   <td>
                     <?php
                     if($bug->story) echo html::a($this->createLink('story', 'view', "storyID=$bug->story", '', true), "#$bug->story $bug->storyTitle", '', "class='iframe' data-width='80%'");
-                    if($bug->storyStatus == 'active' and $bug->latestStoryVersion > $bug->storyVersion)
+                    if($bug->storyStatus == 'active' and $bug->latestStoryVersion > $bug->storyVersion and common::hasPriv('bug', 'confirmStoryChange'))
                     {
                         echo "(<span class='warning'>{$lang->story->changed}</span> ";
                         echo html::a($this->createLink('bug', 'confirmStoryChange', "bugID=$bug->id"), $lang->confirm, 'hiddenwin');
@@ -258,7 +305,6 @@
               </tbody>
             </table>
           </div>
-          <?php endif;?>
         </div>
       </div>
     </div>
@@ -283,7 +329,11 @@
                     if($bug->openedBuild)
                     {
                         $openedBuilds = explode(',', $bug->openedBuild);
-                        foreach($openedBuilds as $openedBuild) isset($builds[$openedBuild]) ? print($builds[$openedBuild] . '<br />') : print($openedBuild . '<br />');
+                        foreach($openedBuilds as $openedBuild)
+                        {
+                            if(!$openedBuild) continue;
+                            isset($builds[$openedBuild]) ? print($builds[$openedBuild] . '<br />') : print($openedBuild . '<br />');
+                        }
                     }
                     else
                     {
@@ -324,7 +374,7 @@
             <table class="table table-data">
               <tbody>
                 <tr class='text-top'>
-                  <th class='w-80px'><?php echo $lang->bug->linkBug;?></th>
+                  <th class='w-90px'><?php echo $lang->bug->linkBug;?></th>
                   <td>
                     <?php
                     if(isset($bug->linkBugTitles))
@@ -339,8 +389,8 @@
                 </tr>
                 <?php if($bug->case):?>
                 <tr>
-                  <th class='w-60px'><?php echo $lang->bug->fromCase;?></th>
-                  <td><?php echo html::a($this->createLink('testcase', 'view', "caseID=$bug->case", '', true), "#$bug->case $bug->caseTitle", '', "class='iframe' data-width='80%'");?></td>
+                  <th><?php echo $lang->bug->fromCase;?></th>
+                  <td><?php echo html::a($this->createLink('testcase', 'view', "caseID=$bug->case&caseVersion=" . ($bug->testtask ? "&from=testtask&taskID={$bug->testtask}" : ''), '', true), "#$bug->case $bug->caseTitle", '', "class='iframe' data-width='80%'");?></td>
                 </tr>
                 <?php endif;?>
                 <?php if($bug->toCases):?>
@@ -356,7 +406,6 @@
                   </td>
                 </tr>
                 <?php endif;?>
-                <?php if($config->global->flow != 'onlyTest'):?>
                 <?php if($bug->toStory != 0):?>
                 <tr>
                   <th><?php echo $lang->bug->toStory;?></th>
@@ -369,7 +418,18 @@
                   <td><?php echo html::a($this->createLink('task', 'view', "taskID=$bug->toTask", '', true), "#$bug->toTask $bug->toTaskTitle", '', "class='iframe' data-width='80%'");?></td>
                 </tr>
                 <?php endif;?>
-                <?php endif;?>
+                <tr>
+                  <th><?php echo $lang->bug->linkMR;?></th>
+                  <td>
+                    <?php
+                    $canViewMR = common::hasPriv('mr', 'view');
+                    foreach($bug->linkMRTitles as $MRID => $linkMRTitle)
+                    {
+                        echo ($canViewMR ? html::a($this->createLink('mr', 'view', "MRID=$MRID"), "#$MRID $linkMRTitle") : "#$MRID $linkMRTitle") . '<br />';
+                    }
+                    ?>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -379,9 +439,19 @@
     <?php $this->printExtendFields($bug, 'div', "position=right&inForm=0&inCell=1");?>
   </div>
 </div>
+<?php if($this->app->getViewType() == 'xhtml'):?>
+</div>
+<?php endif;?>
 
 <div id="mainActions" class='main-actions'>
   <?php common::printPreAndNext($preAndNext);?>
 </div>
+<script>
+function handleLinkButtonClick()
+{
+  var xxcUrl = "xxc:openInApp/zentao-integrated/" + encodeURIComponent(window.location.href.replace(/.display=card/, '').replace(/\.xhtml/, '.html'));
+  window.open(xxcUrl);
+}
+</script>
 <?php include '../../common/view/syntaxhighlighter.html.php';?>
 <?php include '../../common/view/footer.html.php';?>

@@ -24,6 +24,7 @@
 <?php $team = array_keys($task->team);?>
 <?php js::set('confirmRecord',    (!empty($team) && $task->assignedTo != end($team)) ? $lang->task->confirmTransfer : $lang->task->confirmRecord);?>
 <?php js::set('noticeSaveRecord', $lang->task->noticeSaveRecord);?>
+<?php js::set('today', helper::today());?>
 <div id='mainContent' class='main-content'>
   <div class='center-block'>
     <div class='main-header'>
@@ -53,13 +54,13 @@
           <tr class="text-center">
             <td><?php echo $estimate->id;?></td>
             <td><?php echo $estimate->date;?></td>
-            <td><?php echo $estimate->consumed;?></td>
-            <td><?php echo $estimate->left;?></td>
+            <td title="<?php echo $estimate->consumed . ' ' . $lang->execution->workHour;?>"><?php echo $estimate->consumed . ' ' . $lang->execution->workHourUnit;?></td>
+            <td title="<?php echo $estimate->left     . ' ' . $lang->execution->workHour;?>"><?php echo $estimate->left     . ' ' . $lang->execution->workHourUnit;?></td>
             <td class="text-left" title="<?php echo $estimate->work;?>"><?php echo $estimate->work;?></td>
             <?php if(empty($task->team) or $task->assignedTo == $this->app->user->account):?>
             <td align='center' class='c-actions'>
               <?php
-              if($task->status == 'wait' or $task->status == 'pause' or $task->status == 'doing')
+              if(($task->status == 'wait' or $task->status == 'pause' or $task->status == 'doing') and ($this->app->user->admin or $this->app->user->account == $estimate->account))
               {
                   common::printIcon('task', 'editEstimate', "estimateID=$estimate->id", '', 'list', 'pencil', '', 'showinonlybody', true);
                   common::printIcon('task', 'deleteEstimate', "estimateID=$estimate->id", '', 'list', 'close', 'hiddenwin', 'showinonlybody');

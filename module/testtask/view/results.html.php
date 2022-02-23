@@ -11,6 +11,7 @@
  */
 ?>
 <?php include '../../common/view/header.lite.html.php';?>
+<?php js::set('tab', $app->tab);?>
 <div id='mainContent' class='main-content'>
   <div class='main-header'>
     <h2>
@@ -20,16 +21,20 @@
   </div>
 
   <div class='main' style='word-break:break-all'>
+    <?php if($case->auto != 'unit'):?>
     <div class='detail'>
       <div class='detail-title'><?php echo $lang->testcase->precondition;?></div>
       <div class='detail-content'><?php echo $case->precondition;?></div>
     </div>
+    <?php endif;?>
     <div class='detail' id='casesResults'>
       <table class='table table-condensed table-hover' style='border: 1px solid #ddd; word-break:break-all'>
+        <?php if($case->auto != 'unit'):?>
         <?php $count = count($results);?>
         <caption class='text-left'>
           <strong><?php echo $lang->testcase->result?> &nbsp;<span> <?php printf($lang->testtask->showResult, $count)?></span> <span class='result-tip'></span></strong>
         </caption>
+        <?php endif;?>
         <?php $failCount = 0; $trCount=1?>
         <?php foreach($results as $result):?>
         <?php
@@ -46,14 +51,19 @@
           <td class='w-60px'><?php if(!empty($result->files)) echo html::a("#caseResult{$result->id}", $lang->files . $fileCount, '', "data-toggle='modal' data-type='iframe'")?></td>
           <td class='w-50px text-center'><i class='collapse-handle icon-angle-down text-muted'></i></td>
         </tr>
-        <?php $params = isset($testtask) ? ",testtask=$testtask->id,projectID=$testtask->project,buildID=$testtask->build" : '';?>
+        <?php $executionParam = $this->app->tab == 'execution' ? "executionID={$this->session->execution}" : "";?>
+        <?php $executionParam = isset($testtask) ? "executionID=$testtask->execution" : $executionParam;?>
+        <?php $params = isset($testtask) ? ",testtask=$testtask->id" : "";?>
+        <?php $params = $params . ",buildID=" . (isset($testtask->build) ? $testtask->build : $result->build);?>
+        <?php if($executionParam) $params .= ',' . $executionParam;?>
         <tr class='result-detail hide' id='tr-detail_<?php echo $trCount++; ?>'>
           <td colspan='7' class='pd-0'>
-            <form data-params='<?php echo "product=$case->product&branch=$case->branch&extras=caseID=$case->id,version=$case->version,resultID=$result->id,runID=$runID" . $params?>' method='post'>
+            <?php $projectParam = $this->app->tab == 'project' ? "projectID={$this->session->project}," : ''?>
+            <form data-params='<?php echo "product=$case->product&branch=$case->branch&extras={$projectParam}caseID=$case->id,version=$case->version,resultID=$result->id,runID=$result->run" . $params?>' method='post'>
               <table class='table table-condensed resultSteps'>
                 <thead>
                   <tr>
-                    <th class='w-50px'><?php echo $lang->testcase->stepID;?></th>
+                    <th class='w-60px'><?php echo $lang->testcase->stepID;?></th>
                     <th class='text-left'><?php echo $lang->testcase->stepDesc;?></th>
                     <th class='w-p25 text-left'><?php echo $lang->testcase->stepExpect;?></th>
                     <th class='w-p5 text-left'><?php echo $lang->testcase->stepVersion;?></th>
@@ -63,7 +73,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <?php 
+                  <?php
                   $stepId = $childId = 0;
                   foreach($result->stepResults as $key => $stepResult):
                   ?>
@@ -85,7 +95,7 @@
                       <?php $inputName = $stepResult['type'] != 'group' ? 'stepIdList[]' : '';?>
                       <div class='checkbox-primary'>
                         <input type='checkbox' id='<?php echo $inputName;?>' name='<?php echo $inputName;?>'  value='<?php echo $key;?>'/>
-                        <label><?php echo $stepId;?></label>
+                        <label><?php if($stepClass == 'step-group') echo $stepId;?></label>
                       </div>
                       <?php else:?>
                       <?php echo $stepId;?>
@@ -102,7 +112,7 @@
                     <td><?php if(isset($result->version)) echo nl2br($result->version);?></td>
                     <?php if(!empty($stepResult['result'])):?>
                     <td class='<?php echo $stepResult['result'];?> text-center'><?php echo $lang->testcase->resultList[$stepResult['result']];?></td>
-                    <td><?php echo $stepResult['real'];?></td>
+                    <td><?php echo nl2br($stepResult['real']);?></td>
                     <td class='text-center'><?php if(!empty($stepResult['files'])) echo html::a("#stepResult{$modalID}", $lang->files . $fileCount, '', "data-toggle='modal' data-type='iframe'")?></td>
                     <?php else:?>
                     <td></td>
@@ -110,7 +120,7 @@
                     <?php endif; endif; $childId++;?>
                   </tr>
                   <?php endforeach;?>
-                  <?php if($result->caseResult == 'fail'):?>
+                  <?php if($result->caseResult == 'fail' and common::hasPriv('testcase', 'createBug')):?>
                   <tr>
                     <td></td><td></td><td></td><td></td><td></td><td></td>
                     <td><?php echo html::commonButton($lang->testcase->createBug, "onclick='createBug(this)'", "btn btn-primary createBtn");?></td>

@@ -9,11 +9,7 @@
  * @version     $Id: deny.html.php 4129 2013-01-18 01:58:14Z wwccss $
  */
 ?>
-<?php if(isset($this->config->conceptSetted)):?>
 <?php include 'header.html.php';?>
-<?php else:?>
-<?php include '../../common/view/header.lite.html.php';?>
-<?php endif;?>
 <?php if(isset($this->config->conceptSetted)):?>
 <div id='mainContent' class='main-content'>
   <div class='main-header'>
@@ -28,22 +24,22 @@
       <strong><?php echo $lang->custom->flow?></strong>
     </div>
 <?php endif;?>
-  <form id='ajaxForm' method='post'>
+  <form class='form-ajax' method='post'>
     <div class='modal-body'>
       <div class="form-group">
         <label><?php echo $lang->custom->conceptQuestions['overview']?></label>
-        <div class="checkbox"> <?php echo html::radio('productProject', $lang->custom->productProject->relation, zget($this->config->custom, 'productProject', '0_0'))?> </div>
+        <div class="checkbox"> <?php echo html::radio('sprintConcept', $lang->custom->sprintConceptList, zget($this->config->custom, 'sprintConcept', '0'))?> </div>
       </div>
-      <?php if(!common::checkNotCN()):?>
       <div class="form-group">
-        <label><?php echo $lang->custom->conceptQuestions['story']?></label>
-        <div class="checkbox"> <?php echo html::radio('storyRequirement', $lang->custom->conceptOptions->story, zget($this->config->custom, 'storyRequirement', '0'));?></div>
+        <label><?php echo $lang->custom->conceptQuestions['URAndSR']?></label>
+        <div class="checkbox"> <?php echo html::radio('URAndSR', $lang->custom->conceptOptions->URAndSR, zget($this->config->custom, 'URAndSR', '0'));?></div>
       </div>
-      <?php endif;?>
+      <?php if(!isset($config->maxVersion)):?>
       <div class="form-group">
-        <label><?php echo $lang->custom->conceptQuestions['storypoint'];?></label>
+        <label id='storypoint'><?php echo $lang->custom->conceptQuestions['storypoint'];?></label>
         <div class="checkbox"> <?php echo html::radio('hourPoint', $lang->custom->conceptOptions->hourPoint, zget($this->config->custom, 'hourPoint'))?> </div>
       </div>
+      <?php endif;?>
       <div class="form-group">
         <label></label>
         <div><?php echo html::submitButton();?></div>

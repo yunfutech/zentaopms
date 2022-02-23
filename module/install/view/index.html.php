@@ -31,13 +31,14 @@
       <table>
         <tr><td colspan='2'><?php echo nl2br($lang->install->desc);?></td></tr>
         <tr>
-          <td class=''><?php echo nl2br(sprintf($lang->install->links, $config->version));?></td>
+          <td class=''><?php echo nl2br(sprintf($lang->install->links, $versionName));?></td>
           <td class='w-p25'>
             <?php if($this->app->clientLang != 'en'):?>
             <img src="<?php echo $this->app->getWebRoot() . 'theme/default/images/main/weixin.jpg'?>" width='200' height='200'>
             <?php endif;?>
           </td>
         </tr> 
+<!--
         <tr>
           <td colspan='2'>
             <h5><?php echo $lang->install->promotion?></h5>
@@ -56,6 +57,7 @@
             </div>
           </td>
         </tr>
+-->
       </table>
     </div>
     <div class='modal-footer'>

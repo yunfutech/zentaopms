@@ -23,10 +23,10 @@
       <tr>
         <th class='text-bottom thWidth'><?php echo $lang->group->viewList;?></th>
         <td class='text-bottom'>
-          <?php foreach($lang->menu as $menuKey => $menu):?>
+          <?php foreach($lang->mainNav as $menuKey => $menu):?>
           <?php if(!is_string($menu)) continue;?>
           <?php list($moduleName, $module) = explode('|', $menu);?>
-          <?php if($module == 'my') continue;?>
+          <?php if($menuKey == 'my') continue;?>
           <?php $moduleName = strip_tags($moduleName);?>
           <div class='group-item'>
             <div class='checkbox-primary'>
@@ -47,6 +47,19 @@
           </div>
         </td>
       </tr>
+      <tr id='programBox' style='display:none'>
+        <th class='text-right'><?php echo $lang->group->programList?></th>
+        <td>
+          <?php if($programs):?>
+          <div class='input-group'>
+            <?php echo html::select("actions[programs][]", $programs, isset($group->acl['programs']) ? join(',', $group->acl['programs']) : '', "class='form-control chosen' multiple")?>
+            <span class='input-group-addon strong'><?php echo $lang->group->noticeVisit?></span>
+          </div>
+          <?php else:?>
+          <?php echo $lang->group->noneProgram;?>
+          <?php endif;?>
+        </td>
+      </tr>
       <tr id='productBox' style='display:none'>
         <th class='text-right'><?php echo $lang->group->productList?></th>
         <td>
@@ -63,9 +76,9 @@
       <tr id='projectBox' style='display:none'>
         <th class='text-right'><?php echo $lang->group->projectList?></th>
         <td>
-          <?php if($products):?>
+          <?php if($projects):?>
           <div class='input-group'>
-            <?php echo html::select("actions[projects][]", $projects, isset($group->acl['projects']) ? join(',', $group->acl['projects']) : '', "class='form-control chosen' multiple")?>
+            <?php echo html::select("actions[projects][]", $projects, isset($group->acl['projects']) ? join(',', $group->acl['projects']) : '', "class='form-control chosen' drop_direction='down' multiple")?>
             <span class='input-group-addon strong'><?php echo $lang->group->noticeVisit?></span>
           </div>
           <?php else:?>
@@ -73,13 +86,42 @@
           <?php endif;?>
         </td>
       </tr>
-     <tr>
+      <tr id='executionBox' style='display:none'>
+        <th class='text-right'><?php echo $lang->group->executionList;?></th>
+        <td>
+          <?php if($executions):?>
+          <div class='input-group'>
+            <?php echo html::select("actions[sprints][]", $executions, isset($group->acl['sprints']) ? join(',', $group->acl['sprints']) : '', "class='form-control chosen' drop_direction='down' multiple")?>
+            <span class='input-group-addon strong'><?php echo $lang->group->noticeVisit?></span>
+          </div>
+          <?php else:?>
+          <?php echo $lang->group->noneExecution;?>
+          <?php endif;?>
+        </td>
+      </tr>
+      <tr>
         <th class='text-right text-top'><?php echo $lang->group->dynamic?></th>
         <td class='pl-0px pt-0px'>
           <table class='table table-form'>
-            <?php foreach($lang->menu as $module => $title):?>
+            <?php foreach($lang->mainNav as $module => $title):?>
             <?php if(!is_string($title)) continue;?>
-            <?php if(!isset($lang->action->dynamicAction->$module) and !isset($menugroup[$module])) continue;?>
+            <?php
+            /* Ignore null actions menus. */
+            $isNullActions = true;
+            if(isset($lang->action->dynamicAction->$module)) $isNullActions = false;
+            if(isset($navGroup[$module]) and $isNullActions)
+            {
+                foreach($navGroup[$module] as $subModule)
+                {
+                    if(isset($lang->action->dynamicAction->$subModule))
+                    {
+                        $isNullActions = false;
+                        break;
+                    }
+                }
+            }
+            if($isNullActions) continue;
+            ?>
             <tr id='<?php echo "{$module}ActionBox";?>'>
               <th class='w-100px text-left text-top'>
                 <div class='action-item'>
@@ -102,8 +144,8 @@
                   <?php endforeach;?>
                 </div>
                 <?php endif;?>
-                <?php if(isset($menugroup[$module])):?>
-                <?php foreach($menugroup[$module] as $subModule):?>
+                <?php if(isset($navGroup[$module])):?>
+                <?php foreach($navGroup[$module] as $subModule):?>
                 <?php if(isset($lang->action->dynamicAction->$subModule)):?>
                 <div class='clearfix'>
                   <?php foreach($lang->action->dynamicAction->$subModule as $action => $actionTitle):?>
@@ -123,7 +165,7 @@
             <?php endforeach;?>
           </table>
         </td>
-     </tr>
+      </tr>
       <tr>
         <td colspan='2' class='form-actions text-center'>
           <?php echo html::submitButton();?>

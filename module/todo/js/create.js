@@ -16,6 +16,7 @@ $(function()
             $('.cycleConfig').removeClass('hidden');
             $('#switchDate').closest('.input-group-addon').addClass('hidden');
             $('#type').closest('tr').addClass('hidden');
+            loadList('custom'); //Fix bug 3278.
         }
         else
         {
@@ -27,5 +28,13 @@ $(function()
     $('ul.nav-tabs a').click(function()
     {
         if($(this).data('type'))$('input[id*=type][id*=config]').val($(this).data('type'));
+    });
+
+    $('#pri').on('change', function()
+    {   
+        var $select = $(this);
+        var $selector = $select.closest('.pri-selector');
+        var value = $select.val();
+        $selector.find('.pri-text').html('<span class="label-pri label-pri-' + value + '" title="' + value + '">' + value + '</span>');
     });
 })

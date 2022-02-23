@@ -38,7 +38,7 @@
         <th class='text-right'></th>
         <td class='form-actions'>
           <?php echo html::submitButton('', "onclick='setNoChecked()'");?>
-          <?php echo html::backButton();?>
+          <?php echo html::a($this->inlink('browse'), $lang->goback, '', "class='btn btn-back btn-wide'");?>
           <?php echo html::hidden('noChecked'); // Save the value of no checked.?>
         </td>
       </tr>
@@ -48,22 +48,22 @@
 <?php else:?>
 <div id='mainMenu' class='clearfix'>
   <div class='btn-toolbar pull-left'>
-  <span id='groupName'><i class='icon-lock'></i> <?php echo $group->name;?> <i class="icon icon-chevron-right"></i></span>
+    <span id='groupName'><i class='icon-lock'></i> <?php echo $group->name;?> <i class="icon icon-chevron-right"></i></span>
     <?php $params = "type=byGroup&param=$groupID&menu=%s&version=$version";?>
     <?php $active = empty($menu) ? 'btn-active-text' : '';?>
     <?php echo html::a(inlink('managePriv', sprintf($params, '')), "<span class='text'>{$lang->group->all}</span>", '', "class='btn btn-link $active'")?>
 
-    <?php foreach($lang->menu as $module => $title):?>
+    <?php foreach($lang->mainNav as $module => $title):?>
     <?php if(!is_string($title)) continue;?>
     <?php $active = $menu == $module ? 'btn-active-text' : '';?>
-    <?php echo html::a(inlink('managePriv', sprintf($params, $module)), "<span class='text'>" . substr($title, 0, strpos($title, '|')) . '</span>', '', "class='btn btn-link $active'")?>
+    <?php echo html::a(inlink('managePriv', sprintf($params, $module)), "<span class='text'>" . strip_tags(substr($title, 0, strpos($title, '|'))) . '</span>', '', "class='btn btn-link $active'")?>
     <?php endforeach;?>
 
     <?php $active = $menu == 'other' ? 'btn-active-text' : '';?>
     <?php echo html::a(inlink('managePriv', sprintf($params, 'other')), "<span class='text'>{$lang->group->other}</span>", '', "class='btn btn-link $active'");?>
 
     <div class='input-control space w-150px'>
-    <?php echo html::select('version', $this->lang->group->versions, $version, "onchange=showPriv(this.value) class='form-control chosen'");?>
+      <?php echo html::select('version', $this->lang->group->versions, $version, "onchange=showPriv(this.value) class='form-control chosen'");?>
     </div>
   </div>
 </div>
@@ -115,7 +115,7 @@
           <?php if(!empty($lang->$moduleName->menus) and $action == 'browse') continue;;?>
           <?php if(!empty($version) and strpos($changelogs, ",$moduleName-$actionLabel,") === false) continue;?>
           <div class='group-item'>
-            <?php echo html::checkbox("actions[{$moduleName}]", array($action => $lang->$moduleName->$actionLabel), isset($groupPrivs[$moduleName][$action]) ? $action : '', '', 'inline');?>
+            <?php echo html::checkbox("actions[{$moduleName}]", array($action => $lang->$moduleName->$actionLabel), isset($groupPrivs[$moduleName][$action]) ? $action : '', "title='{$lang->$moduleName->$actionLabel}'", 'inline');?>
           </div>
           <?php endforeach;?>
         </td>
@@ -130,7 +130,7 @@
         </th>
         <td class='form-actions' colspan='2'>
           <?php echo html::submitButton('', "onclick='setNoChecked()'", 'btn btn-wide btn-primary');?>
-          <?php echo html::backButton();?>
+          <?php echo html::a($this->inlink('browse'), $lang->goback, '', "class='btn btn-back btn-wide'");?>
           <?php echo html::hidden('noChecked'); // Save the value of no checked.?>
         </td>
       </tr>
@@ -160,7 +160,7 @@ $(document).ready(function()
     })
 
     /**
-     * 勾选浏览列表标签时，自动勾选下面的所有标签。 
+     * 勾选浏览列表标签时，自动勾选下面的所有标签。
      * Check all tabs when the Browse list tab is selected.
      */
     $('.menus input[value=browse]').change(function()

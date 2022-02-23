@@ -10,6 +10,7 @@
  * @link        http://www.zentao.net
  */
 $lang->extension->common           = '插件管理';
+$lang->extension->id               = '編號';
 $lang->extension->browse           = '瀏覽插件';
 $lang->extension->install          = '安裝插件';
 $lang->extension->installAuto      = '自動安裝';
@@ -29,31 +30,34 @@ $lang->extension->eraseAction      = '清除插件';
 $lang->extension->upgrade          = '升級插件';
 $lang->extension->agreeLicense     = '我同意該授權';
 
+$lang->extension->browseAction = '插件列表';
+
 $lang->extension->structure       = '目錄結構';
 $lang->extension->structureAction = '目錄結構';
 $lang->extension->installed       = '已安裝';
-$lang->extension->deactivated  = '被禁用';
-$lang->extension->available    = '已下載';
+$lang->extension->deactivated     = '被禁用';
+$lang->extension->available       = '已下載';
 
-$lang->extension->name        = '插件名稱';
-$lang->extension->code        = '代號';
-$lang->extension->desc        = '描述';
-$lang->extension->type        = '類型';
-$lang->extension->dirs        = '安裝目錄';
-$lang->extension->files       = '安裝檔案';
-$lang->extension->status      = '狀態';
-$lang->extension->version     = '版本';
-$lang->extension->latest      = '<small>最新版本<strong><a href="%s" target="_blank" class="extension">%s</a></strong>，兼容禪道<a href="https://api.zentao.net/goto.php?item=latest" target="_blank" class="alert-link"><strong>%s</strong></a></small>';
-$lang->extension->author      = '作者';
-$lang->extension->license     = '授權';
-$lang->extension->site        = '官網';
-$lang->extension->downloads   = '下載量';
-$lang->extension->compatible  = '兼容性';
-$lang->extension->grade       = '評分';
-$lang->extension->depends     = '依賴';
-$lang->extension->expireDate  = '到期日期';
-$lang->extension->zentaoCompatible  = '適用版本';
-$lang->extension->installedTime     = '安裝時間';
+$lang->extension->name             = '插件名稱';
+$lang->extension->code             = '代號';
+$lang->extension->desc             = '描述';
+$lang->extension->type             = '類型';
+$lang->extension->dirs             = '安裝目錄';
+$lang->extension->files            = '安裝檔案';
+$lang->extension->status           = '狀態';
+$lang->extension->version          = '版本';
+$lang->extension->latest           = '<small>最新版本<strong><a href="%s" target="_blank" class="extension">%s</a></strong>，兼容禪道<a href="https://api.zentao.net/goto.php?item=latest" target="_blank" class="alert-link"><strong>%s</strong></a></small>';
+$lang->extension->author           = '作者';
+$lang->extension->license          = '授權';
+$lang->extension->site             = '官網';
+$lang->extension->downloads        = '下載量';
+$lang->extension->compatible       = '兼容性';
+$lang->extension->grade            = '評分';
+$lang->extension->depends          = '依賴';
+$lang->extension->expiredDate      = '到期日期';
+$lang->extension->zentaoCompatible = '適用版本';
+$lang->extension->installedTime    = '安裝時間';
+$lang->extension->life             = '終身';
 
 $lang->extension->publicList[0] = '手工下載';
 $lang->extension->publicList[1] = '直接下載';
@@ -94,7 +98,7 @@ $lang->extension->noticeOkFile             = '<h5>為了安全起見，系統需
     <ol>
     <li>檔案內容為空。</li>
     <li>如果之前檔案存在，刪除之後重新創建。</li>
-    </ol>'; 
+    </ol>';
 
 $lang->extension->upgradeExt     = '升級';
 $lang->extension->installExt     = '安裝';
@@ -120,3 +124,5 @@ $lang->extension->errorConflicts               = '與插件“%s”衝突！';
 $lang->extension->errorDepends                 = '以下依賴插件沒有安裝或版本不正確：<br /><br /> %s';
 $lang->extension->errorIncompatible            = '該插件與您的禪道版本不兼容';
 $lang->extension->errorUninstallDepends        = '插件“%s”依賴該插件，不能卸載';
+$lang->extension->errorExtracted               = '包檔案 %s 解壓縮失敗，可能不是一個有效的zip檔案。錯誤信息如下：<br />%s';
+$lang->extension->errorFileNotEmpty            = '上傳檔案不能為空';

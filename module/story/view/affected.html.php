@@ -1,27 +1,31 @@
 <div class='tabs'>
   <ul class='nav nav-tabs'>
-    <li class='active'><a data-toggle='tab' href='#affectedProjects'><?php echo $lang->story->affectedProjects;?> <?php $count = count($story->projects); if($count > 0) echo "<span class='label label-danger label-badge label-circle'>" . $count . "</span>" ?></a></li>
+    <li class='active'><a data-toggle='tab' href='#affectedProjects'><?php echo $lang->story->affectedProjects;?> <?php $count = count($story->executions); if($count > 0) echo "<span class='label label-danger label-badge label-circle'>" . $count . "</span>" ?></a></li>
     <li><a data-toggle='tab' href='#affectedBugs'><?php echo $lang->story->affectedBugs;?> <?php $count = count($story->bugs); if($count > 0) echo "<span class='label label-danger label-badge label-circle'>" . $count . "</span>" ?></a></li>
     <li><a data-toggle='tab' href='#affectedCases'><?php echo $lang->story->affectedCases;?> <?php $count = count($story->cases); if($count > 0) echo "<span class='label label-danger label-badge label-circle'>" . $count . "</span>" ?></a></li>
   </ul>
   <div class='tab-content'>
     <div class='tab-pane active' id='affectedProjects'>
-      <?php foreach($story->projects as $projectID => $project):?>
-        <h6><?php echo $project->name ?> &nbsp; <small><i class='icon-group'></i> <?php foreach($story->teams[$projectID] as $member) echo zget($users, $member->account) . ' ';?></small></h6>
+      <?php foreach($story->executions as $executionID => $execution):?>
+        <h6><?php echo $execution->name ?> &nbsp;
+            <?php if(!empty($story->teams[$executionID])):?>
+            <small><i class='icon-group'></i> <?php foreach($story->teams[$executionID] as $member) echo zget($users, $member->account) . ' ';?></small>
+            <?php endif;?>
+        </h6>
           <table class='table'>
             <thead>
               <tr class='text-center'>
                 <th class='c-id'><?php echo $lang->task->id;?></th>
                 <th class='text-left'><?php echo $lang->task->name;?></th>
-                <th class='w-100px'><?php echo $lang->task->assignedTo;?></th>
+                <th class='c-user'><?php echo $lang->task->assignedTo;?></th>
                 <th class='c-status'><?php echo $lang->task->status;?></th>
-                <th class='w-100px'><?php echo $lang->task->consumed;?></th>
-                <th class='w-90px'><?php echo $lang->task->left;?></th>
+                <th class='c-consumed'><?php echo $lang->task->consumed;?></th>
+                <th class='c-left'><?php echo $lang->task->left;?></th>
               </tr>
             </thead>
-            <?php if(isset($story->tasks[$projectID])):?>
-            <tbody class='<?php if(count($story->tasks[$projectID]) > $config->story->affectedFixedNum)  echo "linkbox";?>'>
-            <?php foreach($story->tasks[$projectID] as $task):?>
+            <?php if(isset($story->tasks[$executionID])):?>
+            <tbody class='<?php if(count($story->tasks[$executionID]) > $config->story->affectedFixedNum)  echo "linkbox";?>'>
+            <?php foreach($story->tasks[$executionID] as $task):?>
               <tr class='text-center'>
                 <td><?php echo $task->id;?></td>
                 <td class='text-left'><?php echo html::a($this->createLink('task', 'view', "taskID=$task->id"), $task->name, '_blank');?></td>
@@ -45,10 +49,10 @@
             <th class='c-id'><?php echo $lang->idAB;?></th>
             <th class='text-left'><?php echo $lang->bug->title;?></th>
             <th class='c-status'><?php echo $lang->statusAB;?></th>
-            <th class='w-100px'><?php echo $lang->bug->openedBy;?></th>
-            <th class='w-100px'><?php echo $lang->bug->resolvedBy;?></th>
+            <th class='c-user'><?php echo $lang->bug->openedBy;?></th>
+            <th class='c-user'><?php echo $lang->bug->resolvedBy;?></th>
             <th class='text-left'><?php echo $lang->bug->resolution;?></th>
-            <th class='w-100px'><?php echo $lang->bug->lastEditedBy;?></th>
+            <th class='c-user'><?php echo $lang->bug->lastEditedBy;?></th>
           </tr>
         </thead>
         <tbody class= '<?php if(count($story->bugs) > $config->story->affectedFixedNum) echo "linkbox";?>'>
@@ -75,8 +79,8 @@
             <th class='c-id'><?php echo $lang->idAB;?></th>
             <th class='text-left'><?php echo $lang->testcase->title;?></th>
             <th class='c-status'><?php echo $lang->statusAB;?></th>
-            <th class='w-100px'><?php echo $lang->testcase->openedBy;?></th>
-            <th class='w-100px'><?php echo $lang->testcase->lastEditedBy;?></th>
+            <th class='c-user'><?php echo $lang->testcase->openedBy;?></th>
+            <th class='c-user'><?php echo $lang->testcase->lastEditedBy;?></th>
           </tr>
         </thead>
         <tbody class='<?php if(count($story->cases) > $config->story->affectedFixedNum)  echo "linkbox";?>'>

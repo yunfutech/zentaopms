@@ -18,11 +18,12 @@
     <div class='modal-body'>
       <div class='row'>
         <div class='col-md-6'>
-          <div class='message mgb-10'>
+          <div class='message mgb-10 text-center'>
             <strong><?php echo $lang->upgrade->success?></strong>
             <div><?php echo html::a('index.php', $lang->upgrade->tohome, '', "class='btn btn-primary btn-wide' id='tohome'")?></div>
           </div>
         </div>
+<!--
         <div class='divider'></div>
         <div class='col-md-6'>
           <div class='panel adbox'>
@@ -39,6 +40,7 @@
             </div>
           </div>
         </div>
+-->
       </div>
     </div>
   </div>
@@ -62,16 +64,8 @@ function updateFile(link)
             $('#resultBox li span.' + response.type + '-num').html(num + response.count);
             updateFileFinish = true;
             $('#resultBox').append("<li class='text-success'>" + response.message + "</li>");
-            <?php
-            $condition = array();
-            foreach($needProcess as $processKey => $value) $condition[] = $processKey . 'Finish == true';
-            $condition = join(' && ', $condition);
-            ?>
-            if(<?php echo $condition?>)
-            {
-                $.get('<?php echo inlink('afterExec', "fromVersion=$fromVersion&processed=yes")?>');
-                $('a#tohome').closest('.message').show();
-            }
+            $.get('<?php echo inlink('afterExec', "fromVersion=$fromVersion&processed=yes")?>');
+            $('a#tohome').closest('.message').show();
         }
         else
         {
@@ -87,4 +81,22 @@ function updateFile(link)
 }
 <?php endif;?>
 </script>
+<?php if(isset($needProcess['search'])):?>
+<script>
+$(function()
+{
+    $('.col-md-6:first').append("<div class='alert alert-info'><p><?php echo $lang->upgrade->needBuild4Add;?></p></div>");
+    searchFinish = true;
+    <?php
+    $condition = array();
+    foreach($needProcess as $processKey => $value) $condition[] = $processKey . 'Finish == true';
+    $condition = join(' && ', $condition);
+    ?>
+    if(<?php echo $condition?>)
+    {
+        $.get('<?php echo inlink('afterExec', "fromVersion=$fromVersion&processed=yes")?>');
+    }
+})
+</script>
+<?php endif;?>
 <?php include '../../common/view/footer.lite.html.php';?>

@@ -10,6 +10,7 @@
  * @link        http://www.zentao.net
  */
 $lang->extension->common           = '插件管理';
+$lang->extension->id               = '编号';
 $lang->extension->browse           = '浏览插件';
 $lang->extension->install          = '安装插件';
 $lang->extension->installAuto      = '自动安装';
@@ -29,31 +30,34 @@ $lang->extension->eraseAction      = '清除插件';
 $lang->extension->upgrade          = '升级插件';
 $lang->extension->agreeLicense     = '我同意该授权';
 
+$lang->extension->browseAction = '插件列表';
+
 $lang->extension->structure       = '目录结构';
 $lang->extension->structureAction = '目录结构';
 $lang->extension->installed       = '已安装';
-$lang->extension->deactivated  = '被禁用';
-$lang->extension->available    = '已下载';
+$lang->extension->deactivated     = '被禁用';
+$lang->extension->available       = '已下载';
 
-$lang->extension->name        = '插件名称';
-$lang->extension->code        = '代号';
-$lang->extension->desc        = '描述';
-$lang->extension->type        = '类型';
-$lang->extension->dirs        = '安装目录';
-$lang->extension->files       = '安装文件';
-$lang->extension->status      = '状态';
-$lang->extension->version     = '版本';
-$lang->extension->latest      = '<small>最新版本<strong><a href="%s" target="_blank" class="extension">%s</a></strong>，兼容禅道<a href="https://api.zentao.net/goto.php?item=latest" target="_blank" class="alert-link"><strong>%s</strong></a></small>';
-$lang->extension->author      = '作者';
-$lang->extension->license     = '授权';
-$lang->extension->site        = '官网';
-$lang->extension->downloads   = '下载量';
-$lang->extension->compatible  = '兼容性';
-$lang->extension->grade       = '评分';
-$lang->extension->depends     = '依赖';
-$lang->extension->expireDate  = '到期日期';
-$lang->extension->zentaoCompatible  = '适用版本';
-$lang->extension->installedTime     = '安装时间';
+$lang->extension->name             = '插件名称';
+$lang->extension->code             = '代号';
+$lang->extension->desc             = '描述';
+$lang->extension->type             = '类型';
+$lang->extension->dirs             = '安装目录';
+$lang->extension->files            = '安装文件';
+$lang->extension->status           = '状态';
+$lang->extension->version          = '版本';
+$lang->extension->latest           = '<small>最新版本<strong><a href="%s" target="_blank" class="extension">%s</a></strong>，兼容禅道<a href="https://api.zentao.net/goto.php?item=latest" target="_blank" class="alert-link"><strong>%s</strong></a></small>';
+$lang->extension->author           = '作者';
+$lang->extension->license          = '授权';
+$lang->extension->site             = '官网';
+$lang->extension->downloads        = '下载量';
+$lang->extension->compatible       = '兼容性';
+$lang->extension->grade            = '评分';
+$lang->extension->depends          = '依赖';
+$lang->extension->expiredDate      = '到期日期';
+$lang->extension->zentaoCompatible = '适用版本';
+$lang->extension->installedTime    = '安装时间';
+$lang->extension->life             = '终身';
 
 $lang->extension->publicList[0] = '手工下载';
 $lang->extension->publicList[1] = '直接下载';
@@ -94,7 +98,7 @@ $lang->extension->noticeOkFile             = '<h5>为了安全起见，系统需
     <ol>
     <li>文件内容为空。</li>
     <li>如果之前文件存在，删除之后重新创建。</li>
-    </ol>'; 
+    </ol>';
 
 $lang->extension->upgradeExt     = '升级';
 $lang->extension->installExt     = '安装';
@@ -120,3 +124,5 @@ $lang->extension->errorConflicts               = '与插件“%s”冲突！';
 $lang->extension->errorDepends                 = '以下依赖插件没有安装或版本不正确：<br /><br /> %s';
 $lang->extension->errorIncompatible            = '该插件与您的禅道版本不兼容';
 $lang->extension->errorUninstallDepends        = '插件“%s”依赖该插件，不能卸载';
+$lang->extension->errorExtracted               = '包文件 %s 解压缩失败，可能不是一个有效的zip文件。错误信息如下：<br />%s';
+$lang->extension->errorFileNotEmpty            = '上传文件不能为空';

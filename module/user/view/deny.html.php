@@ -48,12 +48,30 @@ include '../../common/view/header.lite.html.php';
     <?php
     $isOnlybody = helper::inOnlyBodyMode();
     unset($_GET['onlybody']);
-    echo html::a($this->createLink($config->default->module), $lang->my->common, ($isOnlybody ? '_parent' : ''), "class='btn'");
+    echo html::a('javascript:void(0)', $lang->my->common, ($isOnlybody ? '_parent' : ''), 'class="btn show-in-app" onclick="changeLeftNavigation()"');
     if($refererBeforeDeny) echo html::a(helper::safe64Decode($refererBeforeDeny), $lang->user->goback, ($isOnlybody ? '_parent' : ''), "class='btn'");
     echo html::a($this->createLink('user', 'logout', "referer=" . helper::safe64Encode($denyPage)), $lang->user->relogin, ($isOnlybody ? '_parent' : ''), "class='btn btn-primary'");
     ?>
     </div>
   </div>
 </div>
+<?php js::set('isOnlybody', $isOnlybody);?>
+<?php js::set('indexLink', helper::createLink('my', 'index'));?>
 </body>
+<script>
+/* Click my site to modify the left navigation. */
+function changeLeftNavigation()
+{
+    if(window.parent && window.parent.$.apps && isOnlybody)
+    {
+        $.closeModal();
+        window.parent.$.apps.open('my');
+    }
+    else
+    {
+        $.apps.close();
+        $.apps.open('my');
+    }
+}
+</script>
 </html>

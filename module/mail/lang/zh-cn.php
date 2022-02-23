@@ -59,7 +59,7 @@ $lang->mail->statusList['wait']   = '待发送';
 $lang->mail->statusList['sended'] = '成功';
 $lang->mail->statusList['fail']   = '失败';
 
-$lang->mail->turnonList[1]  = '打开';
+$lang->mail->turnonList[1] = '打开';
 $lang->mail->turnonList[0] = '关闭';
 
 $lang->mail->asyncList[1] = '是';
@@ -69,7 +69,7 @@ $lang->mail->debugList[0] = '关闭';
 $lang->mail->debugList[1] = '一般';
 $lang->mail->debugList[2] = '较高';
 
-$lang->mail->authList[1]  = '需要';
+$lang->mail->authList[1] = '需要';
 $lang->mail->authList[0] = '不需要';
 
 $lang->mail->secureList['']    = '不加密';
@@ -81,6 +81,7 @@ $lang->mail->noticeResend   = '已经重新发信！';
 $lang->mail->inputFromEmail = '请输入发信邮箱：';
 $lang->mail->nextStep       = '下一步';
 $lang->mail->successSaved   = '配置信息已经成功保存。';
+$lang->mail->setForUser     = '系统内用户都没有维护可用邮箱，无法测试发信，请先为用户维护邮箱。';
 $lang->mail->testSubject    = '测试邮件';
 $lang->mail->testContent    = '邮箱设置成功';
 $lang->mail->successSended  = '成功发送！';

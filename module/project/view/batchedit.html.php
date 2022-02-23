@@ -1,97 +1,97 @@
 <?php
 /**
- * The html template file of index method of index module of ZenTaoPMS.
+ * The prjbatchedit view file of project module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @copyright   Copyright 2009-2021 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
  * @license     ZPL (http://zpl.pub/page/zplv12.html)
- * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
- * @package     ZenTaoPMS
- * @version     $Id: index.html.php 4129 2013-01-18 01:58:14Z wwccss $
+ * @author      Shujie Tian <tianshujie@easycorp.ltd>
+ * @package     project
+ * @version     $Id: prjbatchedit.html.php 4769 2021-02-020 11:13:21Z $
+ * @link        https://www.zentao.net
  */
 ?>
 <?php include '../../common/view/header.html.php';?>
-<?php include '../../common/view/datepicker.html.php';?>
-<div id='mainContent' class='main-content'>
-  <div class='main-header'>
+<?php js::set('weekend', $config->execution->weekend);?>
+<?php js::set('linkedProjectsTip', $lang->project->linkedProjectsTip);?>
+<?php js::set('changeProgram', $lang->project->changeProgram);?>
+<?php $requiredFields = $config->project->edit->requiredFields;?>
+<div id="mainContent" class="main-content">
+  <div class="main-header">
     <h2><?php echo $lang->project->batchEdit;?></h2>
-    <div class='btn-toolbar pull-right'>
-      <?php $customLink = $this->createLink('custom', 'ajaxSaveCustomFields', 'module=project&section=custom&key=batchEditFields')?>
-      <?php include '../../common/view/customfield.html.php';?>
+  </div>
+  <form method='post' class='load-indicator main-form' enctype='multipart/form-data' target='hiddenwin' id="batchEditForm">
+    <table class="table table-form">
+      <thead>
+        <tr>
+          <th class='c-id'><?php echo $lang->idAB;?></th>
+          <th class='c-parent'><?php echo $lang->project->parent;?></th>
+          <th class='c-name required'><?php echo $lang->project->name;?></th>
+          <th class="c-user-box <?php echo strpos($requiredFields, 'PM') !== false ?  'required' : '';?>"> <?php echo $lang->project->PM;?></th>
+          <th class='c-date required'><?php echo $lang->project->begin;?></th>
+          <th class='c-date required'><?php echo $lang->project->end;?></th>
+          <th class='c-acl'><?php echo $lang->project->acl;?></th>
+          <?php
+          $extendFields = $this->project->getFlowExtendFields();
+          foreach($extendFields as $extendField) echo "<th class='c-extend'>{$extendField->name}</th>";
+          ?>
+        </tr>
+      </thead>
+      <tbody>
+        <?php foreach($projects as $projectID => $project):?>
+        <?php $aclList = $project->parent ? $lang->program->subAcls : $lang->project->acls;?>
+        <tr>
+          <td><?php echo sprintf('%03d', $projectID) . html::hidden("projectIdList[$projectID]", $projectID);?></td>
+          <?php if(isset($unauthorizedPrograms[$project->parent])):?>
+          <td><?php echo html::select("parents[$projectID]", $unauthorizedPrograms, $project->parent, "class='form-control chosen' data-id='$projectID' data-name='{$project->name}' data-parent='{$project->parent}' disabled");?></td>
+          <?php else:?>
+          <td><?php echo html::select("parents[$projectID]", $programs, $project->parent, "class='form-control chosen' data-id='$projectID' data-name='{$project->name}' data-parent='{$project->parent}'");?></td>
+          <?php endif;?>
+          <td title='<?php echo $project->name;?>'><?php echo html::input("names[$projectID]", $project->name, "class='form-control'");?></td>
+          <td><?php echo html::select("PMs[$projectID]", $PMUsers, $project->PM, "class='form-control chosen'");?></td>
+          <td>
+            <?php echo html::input("begins[$projectID]", $project->begin, "class='form-control form-date' onchange='computeWorkDays(this.id);' placeholder='" . $lang->project->begin . "'");?>
+          </td>
+          <td>
+            <?php
+              $disabledEnd = $project->end == LONG_TIME ? 'disabled' : '';
+              $end         = $project->end == LONG_TIME ? $lang->project->longTime : $project->end;
+              echo html::input("ends[$projectID]", $end, "class='form-control form-date' $disabledEnd onchange='computeWorkDays(this.id);' placeholder='" . $lang->project->end . "'");
+              echo html::hidden("dayses[$projectID]", $project->days);
+            ?>
+          </td>
+          <td><?php echo nl2br(html::radio("acls[$projectID]", $aclList, $project->acl));?></td>
+          <?php foreach($extendFields as $extendField) echo "<td" . (($extendField->control == 'select' or $extendField->control == 'multi-select') ? " style='overflow:visible'" : '') . ">" . $this->loadModel('flow')->getFieldControl($extendField, $project, $extendField->field . "[{$projectID}]") . "</td>";?>
+        </tr>
+        <?php endforeach;?>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="7" class="text-center form-actions">
+            <?php echo html::submitButton();?>
+            <?php echo html::backButton();?>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+</div>
+<div class="modal fade" id="promptBox">
+  <div class="modal-dialog mw-600px">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="icon icon-close"></i></button>
+        <h4 class="modal-title"></h4>
+      </div>
+      <div class="modal-body">
+        <table class='table table-form' id='promptTable'>
+          <thead>
+            <tr>
+              <th class='text-left'><?php echo $lang->project->multiLinkedProductsTip;?></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
   </div>
-  <?php
-  $visibleFields  = array();
-  $requiredFields = array();
-  foreach(explode(',', $showFields) as $field)
-  {
-      if($field)$visibleFields[$field] = '';
-  }
-  foreach(explode(',', $config->project->edit->requiredFields) as $field)
-  {
-      if($field)
-      {
-          $requiredFields[$field] = '';
-          if(strpos(",{$config->project->customBatchEditFields},", ",{$field},") !== false) $visibleFields[$field] = '';
-      }
-  }
-  $minWidth = (count($visibleFields) > 5) ? 'w-150px' : '';
-  ?>
-  <form class='main-form' method='post' target='hiddenwin' action='<?php echo inLink('batchEdit');?>'>
-    <div class="table-responsive">
-      <table class='table table-form'>
-        <thead>
-          <tr>
-            <th class='w-50px'><?php echo $lang->idAB;?></th>
-            <th class='required <?php echo $minWidth?>'><?php echo $lang->project->name;?></th>
-            <th class='w-150px required'><?php echo $lang->project->code;?></th>
-            <th class='w-100px<?php echo zget($visibleFields, 'pri',   ' hidden') . zget($requiredFields, 'pri',   '', ' required');?>'><?php echo $lang->project->pri;?></th>
-            <th class='w-150px<?php echo zget($visibleFields, 'PO',     ' hidden') . zget($requiredFields, 'PO',     '', ' required');?>'><?php echo $lang->project->PO;?></th>
-            <th class='w-150px<?php echo zget($visibleFields, 'PM',     ' hidden') . zget($requiredFields, 'PM',     '', ' required');?>'><?php echo $lang->project->PM;?></th>
-            <th class='w-150px<?php echo zget($visibleFields, 'QD',     ' hidden') . zget($requiredFields, 'QD',     '', ' required');?>'><?php echo $lang->project->QD;?></th>
-            <th class='w-150px<?php echo zget($visibleFields, 'RD',     ' hidden') . zget($requiredFields, 'RD',     '', ' required');?>'><?php echo $lang->project->RD;?></th>
-            <th class='w-100px<?php echo zget($visibleFields, 'type',   ' hidden') . zget($requiredFields, 'type',   '', ' required');?>'><?php echo $lang->project->type;?></th>
-            <th class='w-100px<?php echo zget($visibleFields, 'status', ' hidden') . zget($requiredFields, 'status', '', ' required');?>'><?php echo $lang->project->status;?></th>
-            <th class='w-110px required'><?php echo $lang->project->begin;?></th>
-            <th class='w-110px required'><?php echo $lang->project->end;?></th>
-            <th class='w-150px<?php echo zget($visibleFields, 'desc', ' hidden') . zget($requiredFields, 'desc', '', ' required');?>'>    <?php echo $lang->project->desc;?></th>
-            <th class='w-150px<?php echo zget($visibleFields, 'teamname', ' hidden') . zget($requiredFields, 'teamname', '', ' required');?>'><?php echo $lang->project->teamname;?></th>
-            <th class='w-150px<?php echo zget($visibleFields, 'days',     ' hidden') . zget($requiredFields, 'days',     '', ' required');?>'><?php echo $lang->project->days;?></th>
-            <th class='w-80px'><?php echo $lang->project->order;?></th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php foreach($projectIDList as $projectID):?>
-          <tr>
-            <td><?php echo sprintf('%03d', $projectID) . html::hidden("projectIDList[$projectID]", $projectID);?></td>
-            <td title='<?php echo $projects[$projectID]->name?>'><?php echo html::input("names[$projectID]", $projects[$projectID]->name, "class='form-control'");?></td>
-            <td><?php echo html::input("codes[$projectID]",     $projects[$projectID]->code, "class='form-control'");?></td>
-            <td class='<?php echo zget($visibleFields, 'pri',   'hidden')?>'><?php echo html::select("pris[$projectID]",    $lang->project->priList,   $projects[$projectID]->pri,   'class=form-control');?></td>
-            <td class='text-left<?php echo zget($visibleFields, 'PO', ' hidden')?>' style='overflow:visible'><?php echo html::select("POs[$projectID]", $poUsers, $projects[$projectID]->PO, "class='form-control chosen'");?></td>
-            <td class='text-left<?php echo zget($visibleFields, 'PM', ' hidden')?>' style='overflow:visible'><?php echo html::select("PMs[$projectID]", $pmUsers, $projects[$projectID]->PM, "class='form-control chosen'");?></td>
-            <td class='text-left<?php echo zget($visibleFields, 'QD', ' hidden')?>' style='overflow:visible'><?php echo html::select("QDs[$projectID]", $qdUsers, $projects[$projectID]->QD, "class='form-control chosen'");?></td>
-            <td class='text-left<?php echo zget($visibleFields, 'RD', ' hidden')?>' style='overflow:visible'><?php echo html::select("RDs[$projectID]", $rdUsers, $projects[$projectID]->RD, "class='form-control chosen'");?></td>
-            <td class='<?php echo zget($visibleFields, 'type',   'hidden')?>'><?php echo html::select("types[$projectID]",    $lang->project->typeList,   $projects[$projectID]->type,   'class=form-control');?></td>
-            <td class='<?php echo zget($visibleFields, 'status', 'hidden')?>'><?php echo html::select("statuses[$projectID]", $lang->project->statusList, $projects[$projectID]->status, 'class=form-control');?></td>
-            <td><?php echo html::input("begins[$projectID]", $projects[$projectID]->begin, "class='form-control form-date' onchange='computeWorkDays(this.id)'");?></td>
-            <td><?php echo html::input("ends[$projectID]",   $projects[$projectID]->end,   "class='form-control form-date' onchange='computeWorkDays(this.id)'");?></td>
-            <td class='<?php echo zget($visibleFields, 'desc', 'hidden')?>'>    <?php echo html::textarea("descs[$projectID]",  $projects[$projectID]->desc,  "rows='1' class='form-control autosize'");?></td>
-            <td class='<?php echo zget($visibleFields, 'teamname', 'hidden')?>'><?php echo html::input("teams[$projectID]",  $projects[$projectID]->team,  "class='form-control'");?></td>
-            <td class='<?php echo zget($visibleFields, 'days',     'hidden')?>'>
-              <div class='input-group'>
-                <?php echo html::input("dayses[$projectID]",    $projects[$projectID]->days, "class='form-control'");?>
-                <span class='input-group-addon'><?php echo $lang->project->day;?></span>
-              </div>
-            </td>
-            <td><?php echo html::input("orders[$projectID]", $projects[$projectID]->order, "class='form-control'")?></td>
-          </tr>
-          <?php endforeach;?>
-        </tbody>
-        <tfoot>
-          <tr><td colspan='<?php echo count($visibleFields) + 6?>' class='text-center form-actions'><?php echo html::submitButton();?></td></tr>
-        </tfoot>
-      </table>
-    </div>
-  </form>
 </div>
-<?php js::set('weekend', $config->project->weekend);?>
 <?php include '../../common/view/footer.html.php';?>

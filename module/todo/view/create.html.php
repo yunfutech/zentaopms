@@ -14,13 +14,15 @@
 <?php include '../../common/view/datepicker.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
 <?php js::set('noTodo', $lang->todo->noTodo);?>
+<?php js::set('moduleList', $config->todo->moduleList)?>
+<?php js::set('objectsMethod', $config->todo->getUserObjectsMethod)?>
 <div id='mainContent' class='main-content'>
   <div class='center-block'>
     <div class='main-header'>
       <h2><?php echo $lang->todo->create;?></h2>
     </div>
     <form method='post' target='hiddenwin' id='dataform'>
-      <table class='table table-form'> 
+      <table class='table table-form'>
         <tr>
           <th class='thWidth'><?php echo $lang->todo->date;?></th>
           <td class='w-400px'>
@@ -34,7 +36,7 @@
               </span>
               <span class='input-group-addon'>
                 <div class='checkbox-primary'>
-                  <input type='checkbox' id='cycle' name='cycle' value='1' />
+                  <input type='checkbox' id='cycle' name='cycle' value='1' onclick='switchDateTodo(this);' />
                   <label for='cycle'><?php echo $lang->todo->cycle;?></label>
                 </div>
               </span>
@@ -51,10 +53,34 @@
             </ul>
             <div class="tab-content">
               <div class="tab-pane active" id="day">
-                <div class='input-group w-150px'>
+                <div class='input-group every w-250px'>
                   <span class='input-group-addon'><?php echo $lang->todo->every;?></span>
-                  <?php echo html::input('config[day]', 1, "class='form-control'")?>
+                  <?php echo html::input('config[day]', '', "class='form-control' id='everyInput'");?>
                   <span class='input-group-addon'><?php echo $lang->todo->cycleDay;?></span>
+                  <span class='input-group-addon'>
+                    <div class='checkbox-primary w-50px'>
+                      <input type='checkbox' name='config[specifiedDate]' id='configSpecify' value='1' onclick='showSpecifiedDate(this);' />
+                      <label for='config[specifiedDate]'><?php echo $lang->todo->specify;?></label>
+                    </div>
+                  </span>
+                </div>
+                <div class='input-group specify hidden'>
+                  <span class='input-group-addon'><?php echo $lang->todo->specify;?></span>
+                  <?php echo html::select('config[specify][month]', $lang->datepicker->monthNames, 0, "class='form-control w-80px' onchange='setDays(this.value);'");?>
+                  <?php echo html::select('config[specify][day]', $lang->todo->specifiedDay, 1, "class='form-control w-60px' id='specifiedDay'");?>
+                  <span class='input-group-addon <?php echo strpos($this->app->getClientLang(), 'zh') !== false ? '' : 'hidden';?>'><?php echo $lang->todo->day;?></span>
+                  <span class='input-group-addon'>
+                    <div class='checkbox-primary w-50px'>
+                      <input type='checkbox' name='config[cycleYear]' id='cycleYear' value='1' />
+                      <label for='config[cycleYear]'><?php echo $lang->todo->everyYear;?></label>
+                    </div>
+                  </span>
+                  <span class='input-group-addon'>
+                    <div class='checkbox-primary w-50px'>
+                      <input type='checkbox' name='configEvery' id='configEvery' value='1' onclick='showEvery(this);' />
+                      <label for='configEvery'><?php echo $lang->todo->every;?></label>
+                    </div>
+                  </span>
                 </div>
               </div>
               <div class="tab-pane clearfix" id="week">
@@ -79,7 +105,7 @@
             <?php printf($lang->todo->beforeDays, html::input('config[beforeDays]', 0, "class='form-control'"));?>
             </div>
           </td>
-        </tr>  
+        </tr>
         <tr class='cycleConfig hidden'>
           <th><?php echo $lang->todo->deadline;?></th>
           <td><?php echo html::input("config[end]", '', "class='form-control form-date'");?></td>
@@ -87,40 +113,50 @@
         <tr>
           <th><?php echo $lang->todo->type;?></th>
           <td><?php echo html::select('type', $lang->todo->typeList, '', 'onchange="loadList(this.value);" class="form-control"');?></td>
-        </tr>  
-        <tr>
-          <th><?php echo $lang->todo->pri;?></th>
-          <td><?php echo html::select('pri', $lang->todo->priList, '', "class='form-control'");?></td>
-        </tr>  
+        </tr>
         <tr>
           <th><?php echo $lang->todo->name;?></th>
           <td colspan='2'>
             <div id='nameBox' class='hidden'><?php echo html::input('name', '', "class='form-control'");?></div>
-            <div class='nameBox required'><?php echo html::input('name', isset($name) ? $name : '', "class='form-control'");?></div>
+            <div class='input-group title-group required'>
+              <div class='nameBox'><?php echo html::input('name', isset($name) ? $name : '', "class='form-control'");?></div>
+              <span class="input-group-addon fix-border br-0" style="border-radius: 0px;"><?php echo $lang->todo->pri;?></span>
+              <div class="input-group-btn pri-selector" data-type="pri">
+                <button type="button" class="btn dropdown-toggle br-0" data-toggle="dropdown">
+                  <span class="pri-text"><span class="label-pri label-pri-3">3</span></span> &nbsp;<span class="caret"></span>
+                </button>
+                <div class='dropdown-menu pull-right'>
+                  <?php echo html::select('pri', $lang->todo->priList, 3, "class='form-control' data-provide='labelSelector' data-label-class='label-pri'");?>
+                </div>
+              </div>
+            </div>
           </td>
-        </tr>  
+        </tr>
         <tr>
           <th><?php echo $lang->todo->desc;?></th>
           <td colspan='2'><?php echo html::textarea('desc', isset($desc) ? $desc : '', "rows='8' class='form-control'");?></td>
-        </tr>  
+        </tr>
         <tr>
           <th><?php echo $lang->todo->status;?></th>
           <td><?php echo html::select('status', $lang->todo->statusList, '', "class='form-control chosen'");?></td>
-        </tr>  
+        </tr>
         <tr>
           <th><?php echo $lang->todo->beginAndEnd;?></th>
           <td>
             <div class='input-group'>
-              <?php echo html::select('begin', $times, date('Y-m-d') != $date ? key($times) : $time, 'onchange=selectNext(); class="form-control chosen" style="width: 50%;"') . html::select('end', $times, '', 'class="form-control chosen" style="width: 50%; margin-left:-1px"');?>
+            <?php
+              echo html::select('begin', $times, date('Y-m-d') != $date ? key($times) : $time, 'onchange=selectNext(); class="form-control chosen" style="width: 50%;"');
+              echo html::select('end', $times, '', 'class="form-control chosen" style="width: 50%; margin-left:-1px"');
+            ?>
             </div>
           </td>
           <td>
             <div class='checkbox-primary'>
-              <input type='checkbox' id='switchDate' onclick='switchDateFeature(this);' />
-              <label for='switchDate'><?php echo $lang->todo->lblDisableDate;?></label>
+              <input type='checkbox' id='switchTime' onclick='switchDateFeature(this);' />
+              <label for='switchTime'><?php echo $lang->todo->lblDisableDate;?></label>
             </div>
           </td>
-        </tr>  
+        </tr>
         <tr>
           <th><?php echo $lang->todo->private;?></th>
           <td>
@@ -129,10 +165,11 @@
               <label for='private'></label>
             </div>
           </td>
-        </tr>  
+        </tr>
         <tr>
           <td colspan='3' class='text-center form-actions'>
-            <?php echo html::submitButton() . html::backButton();?>
+            <?php echo html::submitButton();?>
+            <?php if(!isonlybody()) echo html::a($this->createLink('my', 'todo', 'type=all'), $lang->goback, '', "class='btn btn-back btn-wide'");?>
           </td>
         </tr>
       </table>

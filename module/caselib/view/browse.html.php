@@ -19,7 +19,11 @@ js::set('confirmDelete', $lang->testcase->confirmDelete);
 js::set('batchDelete',   $lang->testcase->confirmBatchDelete);
 js::set('flow',          $config->global->flow);
 ?>
-<?php if($config->global->flow != 'onlyTest'):?>
+<style>
+.btn-group a i.icon-plus {font-size: 16px;}
+.btn-group a.btn-primary {border-right: 1px solid rgba(255,255,255,0.2);}
+.btn-group button.dropdown-toggle.btn-primary {padding:6px;}
+</style>
 <div id='mainMenu' class='clearfix'>
   <div id="sidebarHeader">
     <div class="title">
@@ -47,21 +51,30 @@ js::set('flow',          $config->global->flow);
     if(common::hasPriv('caselib', 'view'))
     {
         $link = helper::createLink('caselib', 'view', "libID=$libID");
-        echo html::a($link, "<i class='icon icon-list-alt muted'> </i>" . $this->lang->caselib->view, '', "class='btn btn-link'");
+        echo html::a($link, "<i class='icon icon-list-alt muted'> </i> " . $this->lang->caselib->view, '', "class='btn btn-link'");
     }
     ?>
   </div>
   <div class='btn-toolbar pull-right'>
     <div class='btn-group'>
-     <?php common::printLink('caselib', 'exportTemplet', "libID=$libID", "<i class='icon icon-export muted'> </i>" . $lang->caselib->exportTemplet, '', "class='btn btn-link export' data-width='35%'");?>
-     <?php common::printLink('caselib', 'import', "libID=$libID", "<i class='icon muted icon-import'> </i>" . $lang->testcase->importFile, '', "class='btn btn-link export'");?>
+     <?php common::printLink('caselib', 'exportTemplet', "libID=$libID", "<i class='icon icon-export muted'> </i> " . $lang->caselib->exportTemplet, '', "class='btn btn-link export' data-width='40%'");?>
+     <?php common::printLink('caselib', 'import', "libID=$libID", "<i class='icon muted icon-import'> </i> " . $lang->testcase->fileImport, '', "class='btn btn-link export'");?>
     </div>
-    <?php $params = "libID=$libID&moduleID=" . (isset($moduleID) ? $moduleID : 0);?>
-    <?php common::printLink('caselib', 'batchCreateCase', $params, "<i class='icon-plus'></i>" . $lang->testcase->batchCreate, '', "class='btn btn-secondary'");?>
-    <?php common::printLink('caselib', 'createCase', $params, "<i class='icon-plus'></i>" . $lang->testcase->create, '', "class='btn btn-primary'");?>
+    <?php echo html::a($this->createLink('caselib', 'create'), "<i class='icon icon-plus'> </i> " . $lang->caselib->create, '', 'class="btn btn-secondary"');?>
+    <div class='btn-group dropdown'>
+      <?php
+      $params = "libID=$libID&moduleID=" . (isset($moduleID) ? $moduleID : 0);
+      $actionLink = $this->createLink('caselib', 'createCase', $params);
+      echo html::a($actionLink, "<i class='icon icon-plus'></i> {$lang->testcase->create}", '', "class='btn btn-primary'");
+      ?>
+      <button type='button' class='btn btn-primary dropdown-toggle' data-toggle='dropdown'><span class='caret'></span></button>
+      <ul class='dropdown-menu'>
+        <li><?php echo html::a($actionLink, $lang->testcase->create);?></li>
+        <li><?php echo html::a($this->createLink('caselib', 'batchCreateCase', $params), $lang->testcase->batchCreate);?></li>
+      </ul>
+    </div>
   </div>
 </div>
-<?php endif;?>
 <div id="mainContent" class="main-row fade">
   <div class="side-col" id="sidebar">
     <div class="sidebar-toggle"><i class="icon icon-angle-left"></i></div>
@@ -75,7 +88,7 @@ js::set('flow',          $config->global->flow);
       <?php endif;?>
       <?php echo $moduleTree;?>
       <div class="text-center">
-        <?php common::printLink('tree', 'browse', "libID=$libID&view=caselib", $lang->tree->manage, '', "class='btn btn-info btn-wide'");?>
+        <?php common::printLink('tree', 'browse', "libID=$libID&view=caselib&currentModuleID=0&branch=0&from={$this->lang->navGroup->caselib}", $lang->tree->manage, '', "class='btn btn-info btn-wide'");?>
         <hr class="space-sm" />
       </div>
     </div>
@@ -97,7 +110,7 @@ js::set('flow',          $config->global->flow);
       <?php $canBatchDelete       = common::hasPriv('testcase', 'batchDelete');?>
       <?php $canBatchReview       = common::hasPriv('testcase', 'batchReview') and ($config->testcase->needReview or !empty($config->testcase->forceReview));?>
       <?php $canBatchChangeModule = common::hasPriv('testcase', 'batchChangeModule');?>
-      <?php $canBatchAction       = $canBatchEdit or $canBatchDelete or $canBatchReview or $canBatchChangeModule;?>
+      <?php $canBatchAction       = ($canBatchEdit or $canBatchDelete or $canBatchReview or $canBatchChangeModule);?>
       <?php $vars = "libID=$libID&browseType=$browseType&param=$param&orderBy=%s&recTotal={$pager->recTotal}&recPerPage={$pager->recPerPage}";?>
       <div class="table-responsive">
         <table class='table has-sort-head' id='caseList'>
@@ -116,6 +129,10 @@ js::set('flow',          $config->global->flow);
               <th class='c-type'>  <?php common::printOrderLink('type',     $orderBy, $vars, $lang->typeAB);?></th>
               <th class='c-user'>  <?php common::printOrderLink('openedBy', $orderBy, $vars, $lang->openedByAB);?></th>
               <th class='c-status'><?php common::printOrderLink('status',   $orderBy, $vars, $lang->statusAB);?></th>
+              <?php
+              $extendFields = $this->caselib->getFlowExtendFields();
+              foreach($extendFields as $extendField) echo "<th>{$extendField->name}</th>";
+              ?>
               <th class='c-actions-3 text-center'><?php echo $lang->actions;?></th>
             </tr>
           </thead>
@@ -138,6 +155,7 @@ js::set('flow',          $config->global->flow);
               <td><?php echo $lang->testcase->typeList[$case->type];?></td>
               <td><?php echo zget($users, $case->openedBy);?></td>
               <td class='<?php if(isset($run)) echo $run->status;?> testcase-<?php echo $case->status?>'> <?php echo $this->processStatus('testcase', $case);?></td>
+              <?php foreach($extendFields as $extendField) echo "<td>" . $this->loadModel('flow')->getFieldValue($extendField, $case) . "</td>";?>
               <td class='c-actions'>
                 <?php
                 if($config->testcase->needReview or !empty($config->testcase->forceReview)) common::printIcon('testcase', 'review',  "caseID=$case->id", $case, 'list', 'glasses', '', 'iframe');
@@ -155,7 +173,9 @@ js::set('flow',          $config->global->flow);
         </table>
       </div>
       <div class='table-footer'>
+        <?php if($canBatchAction):?>
         <div class="checkbox-primary check-all"><label><?php echo $lang->selectAll?></label></div>
+        <?php endif;?>
         <div class="table-actions btn-toolbar">
           <div class='btn-group dropup'>
             <?php $actionLink = $this->createLink('testcase', 'batchEdit', "libID=$libID&branch=0&type=lib");?>
@@ -207,6 +227,7 @@ js::set('flow',          $config->global->flow);
             <?php endif;?>
           </div>
         </div>
+        <div class='table-statistic'></div>
         <?php $pager->show('right', 'pagerjs');?>
       </div>
     </form>
@@ -215,13 +236,6 @@ js::set('flow',          $config->global->flow);
 </div>
 <script>
 $('#module' + moduleID).addClass('active');
-<?php if($config->global->flow == 'full'):?>
 $('#<?php echo $this->session->libBrowseType?>Tab').addClass('btn-active-text').append(" <span class='label label-light label-badge'><?php echo $pager->recTotal;?></span>");
-<?php endif;?>
-if(flow == 'onlyTest')
-{
-    $('#subNavbar > .nav > li').removeClass('active');
-    $('#subNavbar > .nav > li[data-id=' + browseType + ']').addClass('active');
-}
 </script>
 <?php include '../../common/view/footer.html.php';?>

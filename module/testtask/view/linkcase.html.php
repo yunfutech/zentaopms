@@ -14,7 +14,7 @@
 <?php include '../../common/view/tablesorter.html.php';?>
 <div id='mainMenu' class='clearfix'>
   <div class='btn-toolbar pull-left'>
-    <?php common::printBack($this->session->testtaskList, 'btn btn-link');?>
+    <?php echo html::backButton('<i class="icon icon-back icon-sm"></i> ' . $lang->goback, '', 'btn btn-secondary');?>
     <div class='divider'></div>
     <?php
     $lang->testtask->linkCase = $lang->testtask->linkByStory;
@@ -63,7 +63,7 @@
     echo "</ul></div>";
     ?>
     <?php common::printLink('testtask', 'linkCase', "taskID=$taskID&type=bybug", "<span class='text'>" . $lang->testtask->linkByBug . '</span>', '', "class='btn btn-link {$bugActive}'");?>
-    <?php if($type == 'all') echo "<a class='btn btn-link querybox-toggle' id='bysearchTab'><i class='icon icon-search muted'></i>{$lang->testcase->bySearch}</a>";?>
+    <?php if($type == 'all') echo "<a class='btn btn-link querybox-toggle' id='bysearchTab'><i class='icon icon-search muted'></i> {$lang->testcase->bySearch}</a>";?>
   </div>
 </div>
 <div class="cell show" id="queryBox" data-module='testcase'></div>
@@ -83,14 +83,14 @@
             <?php endif;?>
             <?php echo $lang->idAB;?>
           </th>
-          <th class='w-80px text-center'><nobr><?php echo $lang->testtask->linkVersion;?></nobr></th>
+          <th class='c-version text-center'><nobr><?php echo $lang->testtask->linkVersion;?></nobr></th>
           <th class='c-pri'><?php echo $lang->priAB;?></th>
           <th><?php echo $lang->testcase->title;?></th>
           <th class='c-type'><?php echo $lang->testcase->type;?></th>
           <th class='c-user'><?php echo $lang->openedByAB;?></th>
-          <th class='w-80px'><?php echo $lang->testtask->lastRunAccount;?></th>
-          <th class='w-120px'><?php echo $lang->testtask->lastRunTime;?></th>
-          <th class='w-80px'><?php echo $lang->testtask->lastRunResult;?></th>
+          <th class='c-user'><?php echo $lang->testtask->lastRunAccount;?></th>
+          <th class='c-date'><?php echo $lang->testtask->lastRunTime;?></th>
+          <th class='c-result'><?php echo $lang->testtask->lastRunResult;?></th>
           <th class='c-status'><?php echo $lang->statusAB;?></th>
         </tr>
       </thead>
@@ -125,7 +125,7 @@
     <?php if($cases):?>
     <div class='table-footer'>
       <div class="checkbox-primary check-all"><label><?php echo $lang->selectAll?></label></div>
-      <div class="table-actions btn-toolbar show-always"><?php echo html::submitButton('', '', 'btn btn-secondary');?></div>
+      <div class="table-actions btn-toolbar show-always"><?php echo html::submitButton('', '', 'btn');?></div>
       <div class="table-statistic"></div>
       <?php $pager->show('right', 'pagerjs');?>
     </div>

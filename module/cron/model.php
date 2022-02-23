@@ -13,8 +13,8 @@ class cronModel extends model
 {
     /**
      * Get by Id.
-     * 
-     * @param  int    $cronID 
+     *
+     * @param  int    $cronID
      * @access public
      * @return object
      */
@@ -25,8 +25,8 @@ class cronModel extends model
 
     /**
      * Get crons.
-     * 
-     * @param  string $params 
+     *
+     * @param  string $params
      * @access public
      * @return array
      */
@@ -40,8 +40,8 @@ class cronModel extends model
 
     /**
      * Parse crons.
-     * 
-     * @param  array    $crons 
+     *
+     * @param  array    $crons
      * @access public
      * @return array
      */
@@ -64,12 +64,12 @@ class cronModel extends model
                     $parsedCron['cron']     = CronExpression::factory($parsedCron['schema']);
                     $parsedCron['time']     = $parsedCron['cron']->getNextRunDate();
                     $parsedCrons[$cron->id] = $parsedCron;
-                }   
-                catch(InvalidArgumentException $e) 
+                }
+                catch(InvalidArgumentException $e)
                 {
                     $this->dao->update(TABLE_CRON)->set('status')->eq('stop')->where('id')->eq($cron->id)->exec();
                     continue;
-                }   
+                }
             }
         }
         $this->dao->update(TABLE_CRON)->set('lastTime')->eq(date(DT_DATETIME1))->where('lastTime')->eq('0000-00-00 00:00:00')->andWhere('status')->ne('stop')->exec();
@@ -78,10 +78,10 @@ class cronModel extends model
 
     /**
      * Change cron status.
-     * 
-     * @param  int    $cronID 
-     * @param  string $status 
-     * @param  bool   $changeTime 
+     *
+     * @param  int    $cronID
+     * @param  string $status
+     * @param  bool   $changeTime
      * @access public
      * @return bool
      */
@@ -95,9 +95,30 @@ class cronModel extends model
     }
 
     /**
+     * Change cron status to running
+     *
+     * @param int    $cronID
+     * @param string $lastTime
+     * @access public
+     * @return bool|int
+     */
+    public function changeStatusRunning($cronID, $lastTime)
+    {
+        $data = new stdclass();
+        $data->status = 'running';
+        $data->lastTime = date(DT_DATETIME1);
+        $rows = $this->dao->update(TABLE_CRON)->data($data)
+                                              ->where('id')->eq($cronID)
+                                              ->andWhere('status')->ne('running')
+                                              ->andWhere('lastTime')->eq($lastTime)
+                                              ->exec();
+        return dao::isError() ? false : $rows;
+    }
+
+    /**
      * Log cron.
-     * 
-     * @param  string    $log 
+     *
+     * @param  string    $log
      * @access public
      * @return void
      */
@@ -115,7 +136,7 @@ class cronModel extends model
 
     /**
      * Get last execed time.
-     * 
+     *
      * @access public
      * @return string
      */
@@ -127,7 +148,7 @@ class cronModel extends model
 
     /**
      * Runable cron.
-     * 
+     *
      * @access public
      * @return bool
      */
@@ -136,7 +157,7 @@ class cronModel extends model
         if(empty($this->config->global->cron)) return false;
 
         $lastTime = $this->getLastTime();
-        if($lastTime == '0000-00-00 00:00:00' or ((time() - strtotime($lastTime)) > $this->config->cron->maxRunTime)) return true;
+        if(helper::isZeroDate($lastTime) or ((time() - strtotime($lastTime)) > $this->config->cron->maxRunTime)) return true;
         if(!isset($this->config->cron->run->status)) return true;
         if($this->config->cron->run->status == 'stop') return true;
 
@@ -145,7 +166,7 @@ class cronModel extends model
 
     /**
      * Check change cron.
-     * 
+     *
      * @access public
      * @return bool
      */
@@ -156,8 +177,8 @@ class cronModel extends model
     }
 
     /**
-     * Create cron. 
-     * 
+     * Create cron.
+     *
      * @access public
      * @return int
      */
@@ -168,6 +189,12 @@ class cronModel extends model
             ->add('lastTime', '0000-00-00 00:00:00')
             ->skipSpecial('m,h,dom,mon,dow,command')
             ->get();
+
+        if(!$this->config->features->cronSystemCall and $cron->type == 'system')
+        {
+            dao::$errors[] = $this->lang->cron->notice->errorType;
+            return false;
+        }
 
         $result = $this->checkRule($cron);
         if(!empty($result))
@@ -182,9 +209,9 @@ class cronModel extends model
     }
 
     /**
-     * Update cron. 
-     * 
-     * @param  int    $cronID 
+     * Update cron.
+     *
+     * @param  int    $cronID
      * @access public
      * @return bool
      */
@@ -194,6 +221,12 @@ class cronModel extends model
             ->add('lastTime', '0000-00-00 00:00:00')
             ->skipSpecial('m,h,dom,mon,dow,command')
             ->get();
+
+        if(!$this->config->features->cronSystemCall and $cron->type == 'system')
+        {
+            dao::$errors[] = $this->lang->cron->notice->errorType;
+            return false;
+        }
 
         $result = $this->checkRule($cron);
         if(!empty($result))
@@ -208,8 +241,8 @@ class cronModel extends model
 
     /**
      * Check cron rule.
-     * 
-     * @param  object $cron 
+     *
+     * @param  object $cron
      * @access public
      * @return string
      */
@@ -256,7 +289,7 @@ class cronModel extends model
 
     /**
      * Get current cron status.
-     * 
+     *
      * @access public
      * @return int
      */

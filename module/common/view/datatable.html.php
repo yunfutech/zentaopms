@@ -4,7 +4,7 @@
 <?php if(!empty($lang->datatable)):?>
 <style>
 .datatable {margin-bottom: 0;}
-.datatable .table>tbody>tr>td, .datatable .table>thead>tr>th {line-height: 30px; padding-top: 2px; padding-bottom: 2px; height: 36px; vertical-align: middle; white-space: nowrap;}
+.datatable .table>tbody>tr>td, .datatable .table>thead>tr>th {line-height: 29px; padding-top: 2px; padding-bottom: 2px; height: 36px; vertical-align: middle; white-space: nowrap;}
 .datatable .table>tbody>tr.hover {box-shadow: none!important;}
 .datatable .flexarea .table-children,
 .datatable .fixed-left .table-children {border-right: none;}
@@ -22,7 +22,7 @@
 .datatable .flexarea tbody>tr.checked>td:first-child:before,
 .datatable .fixed-right tbody>tr.checked>td:first-child:before {display: none}
 .datatable>.scroll-wrapper {z-index: 10;}
-.has-fixed-footer .scroll-wrapper {bottom: 89px; position: fixed;}
+.has-fixed-footer .scroll-wrapper {bottom: 49px; position: fixed;}
 .has-fixed-footer .scroll-wrapper .scroll-slide.scroll-pos-out{height:8px;bottom: -8px;}
 .has-fixed-footer .scroll-wrapper .scroll-slide.scroll-pos-out .bar{height:8px;}
 .datatable .flexarea thead>tr>th:first-child,
@@ -35,52 +35,59 @@
 </style>
 <script>
 <?php $datatableId = $this->moduleName . ucfirst($this->methodName);?>
+var datatableOptions =
+{
+    customizable  : false,
+    sortable      : false,
+    scrollPos     : 'out',
+    tableClass    : 'tablesorter',
+    storage       : false,
+    fixCellHeight : false,
+    selectable    : false,
+    fixedHeader: true,
+    ready: function()
+    {
+        this.$table.addClass('datatable-origin');
+        if (this.$table.hasClass('has-sort-head'))
+        {
+            this.$datatable.find('.table').addClass('has-sort-head');
+        }
+        this.$datatable.find('.sparkline').sparkline();
+        $('.progress-pie').progressPie();
+    }
+};
+
+/**
+ * Init datatable.
+ *
+ * @param  int    $datatable
+ * @access public
+ * @return void
+ */
+function initDatatable($datatable)
+{
+    $datatable = $datatable || $('table.datatable').first();
+    if(!$datatable.length || $datatable.data('zui.datatable')) return null;
+    var $datatable  = $('table.datatable').first();
+    var datatableId = $datatable.attr('id');
+    var dtSetting   = $.cookie('datatable.<?php echo $datatableId?>' + '.cols') || {};
+    if(dtSetting === 'null') dtSetting = {};
+    if(typeof dtSetting === 'string') dtSetting = $.parseJSON(dtSetting);
+
+    $datatable.datatable(datatableOptions);
+
+    $datatable.find('thead>tr>th').each(function(idx)
+    {
+        var $th = $(this);
+        idx = $th.data('index') || idx;
+        var colSetting = dtSetting[idx];
+        $th.toggleClass('ignore', !!(colSetting && colSetting.ignore));
+    });
+    return $datatable;
+};
+
 $(document).ready(function()
 {
-    var datatableOptions =
-    {
-        customizable  : false,
-        sortable      : false,
-        scrollPos     : 'out',
-        tableClass    : 'tablesorter',
-        storage       : false,
-        fixCellHeight : false,
-        selectable     : false,
-        fixedHeader: true,
-        ready: function()
-        {
-            this.$table.addClass('datatable-origin');
-            if (this.$table.hasClass('has-sort-head'))
-            {
-                this.$datatable.find('.table').addClass('has-sort-head');
-            }
-            this.$datatable.find('.sparkline').sparkline();
-        }
-    };
-
-    window.initDatatable = function($datatable)
-    {
-        $datatable = $datatable || $('table.datatable').first();
-        if(!$datatable.length) return null;
-        var $datatable  = $('table.datatable').first();
-        var datatableId = $datatable.attr('id');
-        var dtSetting   = $.cookie('datatable.<?php echo $datatableId?>' + '.cols') || {};
-        if(dtSetting === 'null') dtSetting = {};
-        if(typeof dtSetting === 'string') dtSetting = $.parseJSON(dtSetting);
-
-        $datatable.datatable(datatableOptions);
-
-
-        $datatable.find('thead>tr>th').each(function(idx)
-        {
-            var $th = $(this);
-            idx = $th.data('index') || idx;
-            var colSetting = dtSetting[idx];
-            $th.toggleClass('ignore', !!(colSetting && colSetting.ignore));
-        });
-        return $datatable;
-    };
-
     var $datatable = initDatatable();
     if($datatable && $datatable.length)
     {
@@ -122,4 +129,3 @@ $(document).ready(function()
 });
 </script>
 <?php endif;?>
-

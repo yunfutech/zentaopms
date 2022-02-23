@@ -10,20 +10,24 @@
  * @link        http://www.zentao.net
  */
 ?>
+<style>
+#assigntomeBlock .nav>li>a {padding: 8px 12px;}
+</style>
 <div id='assigntomeBlock'>
   <ul class="nav nav-secondary">
     <?php $isFirstTab = true; ?>
     <?php foreach($hasViewPriv as $type => $bool):?>
-    <?php if($config->global->flow != 'full' && $config->global->flow != 'onlyTask' && $type == 'task') continue;?>
-    <?php if($config->global->flow != 'full' && $config->global->flow != 'onlyTest' && $type == 'bug') continue;?>
-    <li<?php if($isFirstTab) {echo ' class="active"'; $isFirstTab = false;}?>><a data-tab href='#assigntomeTab-<?php echo $type;?>'><?php echo $lang->block->availableBlocks->$type;?></a></li>
+    <li<?php if($isFirstTab) {echo ' class="active"';}?>>
+        <a data-tab href='#assigntomeTab-<?php echo $type;?>' onClick="changeLabel('<?php echo $type;?>')">
+        <?php echo $lang->block->availableBlocks->$type;?>
+        <span class='label label-light label-badge label-assignto <?php echo $type . "-count "; echo $isFirstTab ? '' : 'hidden'; $isFirstTab = false ?>'><?php echo $count[$type];?></span>
+      </a>
+    </li>
     <?php endforeach;?>
   </ul>
   <div class="tab-content">
     <?php $isFirstTab = true; ?>
     <?php foreach($hasViewPriv as $type => $bool):?>
-    <?php if($config->global->flow != 'full' && $config->global->flow != 'onlyTask' && $type == 'task') continue;?>
-    <?php if($config->global->flow != 'full' && $config->global->flow != 'onlyTest' && $type == 'bug') continue;?>
     <div class="tab-pane<?php if($isFirstTab) {echo ' active'; $isFirstTab = false;}?>" id="assigntomeTab-<?php echo $type?>">
       <?php include "{$type}block.html.php";?>
     </div>
@@ -36,3 +40,11 @@
 #assigntomeBlock > .nav {position: absolute; top: -41px; left: 120px;}
 #assigntomeBlock .block-todoes .todoes-form{top: -50px;}
 </style>
+<script>
+function changeLabel(type)
+{
+  $('.label-assignto').addClass('hidden');
+  $('.' + type + '-count').removeClass('hidden');
+}
+$('#assigntomeBlock').closest('.panel').attr('data-fixed', 'main');
+</script>

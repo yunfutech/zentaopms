@@ -12,19 +12,19 @@
 $lang->testcase->id               = 'ID';
 $lang->testcase->product          = $lang->productCommon;
 $lang->testcase->module           = 'Module';
-$lang->testcase->lib              = "Case Library";
-$lang->testcase->branch           = "Branche/Platforme";
+$lang->testcase->lib              = "Library de cas";
+$lang->testcase->branch           = "Branche/Plateforme";
 $lang->testcase->moduleAB         = 'Module';
 $lang->testcase->story            = 'Story';
-$lang->testcase->storyVersion     = 'Story Version';
-$lang->testcase->color            = 'Color';
-$lang->testcase->order            = 'Order';
+$lang->testcase->storyVersion     = 'Version Story';
+$lang->testcase->color            = 'Couleur';
+$lang->testcase->order            = 'Ordre';
 $lang->testcase->title            = 'Titre';
 $lang->testcase->precondition     = 'Prérequis';
 $lang->testcase->pri              = 'Priorité';
 $lang->testcase->type             = 'Type';
-$lang->testcase->status           = 'Statur';
-$lang->testcase->subStatus        = 'Sub Status';
+$lang->testcase->status           = 'Statut';
+$lang->testcase->subStatus        = 'Sous-statut';
 $lang->testcase->steps            = 'Etape';
 $lang->testcase->openedBy         = 'Créé par';
 $lang->testcase->openedDate       = 'Créé le';
@@ -54,6 +54,7 @@ $lang->testcase->assignedTo       = 'Affecté à';
 $lang->testcase->colorTag         = 'Couleur';
 $lang->testcase->lastRunResult    = 'Résultat';
 $lang->testcase->desc             = 'Etape';
+$lang->testcase->xml              = 'XML';
 $lang->testcase->expect           = 'Résultat Attendu';
 $lang->testcase->allProduct       = "Tous {$lang->productCommon}s";
 $lang->testcase->fromBug          = 'Depuis Bug';
@@ -73,6 +74,8 @@ $lang->testcase->ignore           = 'Ignorer';
 $lang->testcase->fromTesttask     = 'De Campagne';
 $lang->testcase->fromCaselib      = 'De Library';
 $lang->testcase->deleted          = 'Deleted';
+$lang->testcase->browseUnits      = 'Unit Test';
+
 $lang->case = $lang->testcase;  // For dao checking using. Because 'case' is a php keywords, so the module name is testcase, table name is still case.
 
 $lang->testcase->stepID      = 'ID';
@@ -104,7 +107,7 @@ $lang->testcase->browse                  = "Liste CasTests";
 $lang->testcase->groupCase               = "Vue par Groupe";
 $lang->testcase->import                  = "Importer";
 $lang->testcase->importAction            = "Importer CasTest";
-$lang->testcase->importFile              = "Importer CSV";
+$lang->testcase->fileImport              = "Importer CSV";
 $lang->testcase->importFromLib           = "Importer de la Library";
 $lang->testcase->showImport              = "Voir Import";
 $lang->testcase->exportTemplet           = "Exporter Modèle";
@@ -149,11 +152,11 @@ $lang->testcase->legendLinkBugs     = 'Bugs';
 $lang->testcase->legendOpenAndEdit  = 'Créer/Editer';
 $lang->testcase->legendComment      = 'Commentaire';
 
-$lang->testcase->summary            = "Total <strong>%s</strong> castests sur cette page, et <strong>%s</strong> castests ont été joués.";
+$lang->testcase->summary            = "Total <strong>%s</strong> CasTests sur cette page, et <strong>%s</strong> castests ont été joués.";
 $lang->testcase->confirmDelete      = 'Voulez-vous supprimer ce CasTest ?';
 $lang->testcase->confirmBatchDelete = 'Voulez-vous supprimer des Castests par Lot ?';
 $lang->testcase->ditto              = 'Idem';
-$lang->testcase->dittoNotice        = "Ce CasTest n'est pas associé au Product alors quele précédent l'était !";
+$lang->testcase->dittoNotice        = "Ce CasTest n'est pas associé au Product alors que le précédent l'était !";
 
 $lang->testcase->reviewList[0] = 'NON';
 $lang->testcase->reviewList[1] = 'OUI';
@@ -172,6 +175,7 @@ $lang->testcase->typeList['config']      = 'Configuration';
 $lang->testcase->typeList['install']     = 'Installation';
 $lang->testcase->typeList['security']    = 'Sécurité';
 $lang->testcase->typeList['interface']   = 'Interface';
+$lang->testcase->typeList['unit']        = 'Unit';
 $lang->testcase->typeList['other']       = 'Autre';
 
 $lang->testcase->stageList['']           = '';
@@ -199,9 +203,9 @@ $lang->testcase->resultList['blocked'] = 'Bloqué';
 
 $lang->testcase->buttonToList = 'Retour';
 
-$lang->testcase->errorEncode      = 'No data. Please select right encoding and upload again!';
-$lang->testcase->noFunction       = 'Iconv and mb_convert_encoding are not found. You cannot convert the data to the encoding you want!';
-$lang->testcase->noRequire        = "Row %s has“%s ”which is a required field and it should not be blank.";
+$lang->testcase->errorEncode      = 'Pas de données. Veuillez sélectionner le bon encodage et télécharger à nouveau !';
+$lang->testcase->noFunction       = "Iconv et mb_convert_encoding non trouvés. Vous ne pouvez pas convertir les données dans l'encodage souhaité !";
+$lang->testcase->noRequire        = "Ligne %s a“%s ”qui est un champ obligatoire et ne doit pas être vide.";
 $lang->testcase->noLibrary        = "Aucune library n'existe. Créez-en une pour commencer.";
 $lang->testcase->mustChooseResult = 'La Validation du résultat est nécessaire.';
 $lang->testcase->noModule         = "<div>Vous n'avez aucun modules.</div><div>Gérer les modules maintenant.</div>";
@@ -211,13 +215,18 @@ $lang->testcase->searchStories = 'Rechercher des stories';
 $lang->testcase->selectLib     = 'Sélectionner Library';
 
 $lang->testcase->action = new stdclass();
-$lang->testcase->action->fromlib  = array('main' => '$date, importé par <strong>$actor</strong> depuis <strong>$extra</strong>.');
-$lang->testcase->action->reviewed = array('main' => '$date, enregistré par <strong>$actor</strong> et le résultat de validation est <strong>$extra</strong>.', 'extra' => 'reviewResultList');
+$lang->testcase->action->fromlib               = array('main' => '$date, importé par <strong>$actor</strong> depuis <strong>$extra</strong>.');
+$lang->testcase->action->reviewed              = array('main' => '$date, enregistré par <strong>$actor</strong> et le résultat de validation est <strong>$extra</strong>.', 'extra' => 'reviewResultList');
+$lang->testcase->action->linked2project        = array('main' => '$date, 由 <strong>$actor</strong> 关联到项目 <strong>$extra</strong>。');
+$lang->testcase->action->unlinkedfromproject   = array('main' => '$date, 由 <strong>$actor</strong> 从项目 <strong>$extra</strong> 移除。');
+$lang->testcase->action->linked2execution      = array('main' => '$date, 由 <strong>$actor</strong> 关联到' . $lang->executionCommon . ' <strong>$extra</strong>。');
+$lang->testcase->action->unlinkedfromexecution = array('main' => '$date, 由 <strong>$actor</strong> 从' . $lang->executionCommon . ' <strong>$extra</strong> 移除。');
 
 $lang->testcase->featureBar['browse']['all']         = $lang->testcase->allCases;
 $lang->testcase->featureBar['browse']['wait']        = 'En Attente';
 $lang->testcase->featureBar['browse']['needconfirm'] = $lang->testcase->needConfirm;
-$lang->testcase->featureBar['browse']['group']       = '';
-$lang->testcase->featureBar['browse']['suite']       = 'Cahier Recette';
-$lang->testcase->featureBar['browse']['zerocase']    = '';
+$lang->testcase->featureBar['browse']['group']       = 'Group View';
+$lang->testcase->featureBar['browse']['suite']       = 'Suite';
+$lang->testcase->featureBar['browse']['zerocase']    = 'Zero Case Story';
+$lang->testcase->featureBar['browse']['browseunits'] = 'Unit Test';
 $lang->testcase->featureBar['groupcase']             = $lang->testcase->featureBar['browse'];

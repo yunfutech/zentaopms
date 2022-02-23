@@ -9,7 +9,6 @@
  * @version     $Id: en.php 4460 2013-02-26 02:28:02Z chencongzhi520@gmail.com $
  * @link        https://www.zentao.pm
  */
-$lang->admin->common        = 'Admin';
 $lang->admin->index         = 'Admin Home';
 $lang->admin->checkDB       = 'Check Database';
 $lang->admin->sso           = 'Zdoo';
@@ -21,6 +20,7 @@ $lang->admin->certifyEmail  = 'Vérifier votre Email';
 $lang->admin->ztCompany     = 'Vérifier votre entreprise';
 $lang->admin->captcha       = 'Code de vérification';
 $lang->admin->getCaptcha    = 'Obtenir le Code de vérification';
+$lang->admin->register      = 'Register';
 
 $lang->admin->api     = 'API';
 $lang->admin->log     = 'Log';
@@ -38,15 +38,15 @@ $lang->admin->notice->register = "Note: Vous n'êtes pas enregistré sur le site
 $lang->admin->notice->ignore   = "Ignorer";
 $lang->admin->notice->int      = "『 %s 』 devrait être un entier positif.";
 
-$lang->admin->register = new stdclass();
-$lang->admin->register->common     = 'Connectez-vous avec votre nouveau compte';
-$lang->admin->register->caption    = "S'enregistrer sur la communauté Zentao";
-$lang->admin->register->click      = "S'enregistrer ici";
-$lang->admin->register->lblAccount = '>= 3 lettres et chiffres';
-$lang->admin->register->lblPasswd  = '>= 6 lettres et chiffres';
-$lang->admin->register->submit     = "S'enregistrer";
-$lang->admin->register->bind       = "S'associer à un compte existant";
-$lang->admin->register->success    = "Vous êtes enregistré !";
+$lang->admin->registerNotice = new stdclass();
+$lang->admin->registerNotice->common     = 'Connectez-vous avec votre nouveau compte';
+$lang->admin->registerNotice->caption    = "S'enregistrer sur la communauté Zentao";
+$lang->admin->registerNotice->click      = "S'enregistrer ici";
+$lang->admin->registerNotice->lblAccount = '>= 3 lettres et chiffres';
+$lang->admin->registerNotice->lblPasswd  = '>= 6 lettres et chiffres';
+$lang->admin->registerNotice->submit     = "S'enregistrer";
+$lang->admin->registerNotice->bind       = "S'associer à un compte existant";
+$lang->admin->registerNotice->success    = "Vous êtes enregistré !";
 
 $lang->admin->bind = new stdclass();
 $lang->admin->bind->caption = 'Lier au compte';
@@ -60,6 +60,7 @@ $lang->admin->safe->weak       = 'Mots de passes non sécurisés courrants';
 $lang->admin->safe->reason     = 'Type';
 $lang->admin->safe->checkWeak  = 'Balayage des mots de passe faibles';
 $lang->admin->safe->changeWeak = 'Forcer le changement des mots de passe faibles';
+$lang->admin->safe->loginCaptcha = 'Login using CAPTCHA';
 $lang->admin->safe->modifyPasswordFirstLogin = 'Forcer le changement du mot de passe après la première connexion';
 
 $lang->admin->safe->modeList[0] = "Contrôle Modéré";
@@ -77,6 +78,9 @@ $lang->admin->safe->reasonList['birthday'] = 'Identique à la date de naissance'
 
 $lang->admin->safe->modifyPasswordList[1] = 'Oui';
 $lang->admin->safe->modifyPasswordList[0] = 'Non';
+
+$lang->admin->safe->loginCaptchaList[1] = 'Oui'
+$lang->admin->safe->loginCaptchaList[0] = 'Non';
 
 $lang->admin->safe->noticeMode   = "Le mot de passe sera vérifié quand un utilisateur se connectera ou qu'un utilisateur sera créé ou modifier.";
 $lang->admin->safe->noticeStrong = '';

@@ -12,12 +12,17 @@
 ?>
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
+<?php js::set('systemMode', $config->systemMode);?>
 <?php if(!$todo->private or ($todo->private and $todo->account == $app->user->account)):?>
+<style>.chosen-container .chosen-results{max-height: 170px; overflow-y: initial;}</style>
 <div id="mainMenu" class="clearfix">
   <div class="btn-toolbar pull-left">
     <div class="page-title">
       <span class="label label-id"><?php echo $todo->id?></span>
       <span class='text' title='<?php echo $todo->name;?>'><?php echo $todo->name;?></span>
+      <?php if($todo->deleted):?>
+      <span class='label label-danger'><?php echo $lang->todo->deleted;?></span>
+      <?php endif;?>
     </div>
   </div>
 </div>
@@ -33,22 +38,18 @@
           if($todo->type == 'story') common::printLink('story', 'view', "id={$todo->idvalue}", '  STORY#' . $todo->idvalue);
           ?>
         </div>
-        <div class='detail-content'><?php echo $todo->desc;?></div>
+        <div class='detail-content article-content'><?php echo $todo->desc;?></div>
       </div>
       <?php $actionFormLink = $this->createLink('action', 'comment', "objectType=todo&objectID=$todo->id");?>
       <?php include '../../common/view/action.html.php';?>
     </div>
+
     <div class='main-actions'>
       <div class="btn-toolbar">
         <?php
-        if($todo->status == 'done' || $todo->status == 'closed') common::printLink('todo', 'activate', "todoID=$todo->id", "<i class='icon icon-magic'></i>", 'hiddenwin', "title='{$lang->todo->activate}' class='btn showinonlybody'");
-        if($todo->status == 'done') common::printLink('todo', 'close', "todoID=$todo->id", "<i class='icon icon-off'></i>", 'hiddenwin', "title='{$lang->todo->close}' class='btn showinonlybody'");
-        common::printLink('todo', 'edit', "todoID=$todo->id", "<i class='icon icon-edit'></i>", '', "title='{$lang->todo->edit}' class='btn showinonlybody'");
-        common::printLink('todo', 'delete', "todoID=$todo->id", "<i class='icon icon-trash'></i>", 'hiddenwin', "title='{$lang->todo->delete}' class='btn showinonlybody'");
-
         if($this->session->todoList)
         {
-            $browseLink = $this->session->todoList;
+            $browseLink = empty($todo->deleted) ? $this->session->todoList : $this->createLink('action', 'trash');
         }
         elseif($todo->account == $app->user->account)
         {
@@ -56,31 +57,42 @@
         }
         else
         {
-            $browseLink = $this->createLink('user', 'todo', "account=$todo->account");
+            $browseLink = $this->createLink('user', 'todo', "userID=$user->id");
         }
 
-        if($todo->status != 'done' && $todo->status != 'closed')
+        if(!$todo->deleted)
         {
-            echo "<div class='btn-group dropup'>";
-            echo html::a($this->createLink('todo', 'finish', "id=$todo->id", 'html', true), "<i class='icon icon-checked'></i>", 'hiddenwin', "title='{$lang->todo->finish}' class='btn showinonlybody btn-success'");
-            $createStoryPriv = common::hasPriv('story', 'create');
-            $createTaskPriv  = common::hasPriv('task', 'create');
-            $createBugPriv   = common::hasPriv('bug', 'create');
-            if($createStoryPriv or $createTaskPriv or $createBugPriv)
+            if($this->app->user->admin or ($this->app->user->account == $todo->account) or ($this->app->user->account == $todo->assignedTo))
             {
-                $isonlybody = isonlybody();
-                unset($_GET['onlybody']);
-                echo "<button type='button' class='btn btn-success dropdown-toggle' data-toggle='dropdown'><span class='caret'></span></button>";
-                echo "<ul class='dropdown-menu pull-right' role='menu'>";
-                if($createStoryPriv) echo '<li>' . html::a('###', $lang->todo->reasonList['story'], '', "data-toggle='modal' data-target='#productModal' data-backdrop='false' data-moveable='true' data-position='center' id='toStoryLink'") . '</li>';
-                if($createTaskPriv)  echo '<li>' . html::a('###', $lang->todo->reasonList['task'], '', "data-toggle='modal' data-target='#projectModal' data-backdrop='false' data-moveable='true' data-position='center' id='toTaskLink'") . '</li>';
-                if($createBugPriv)   echo '<li>' . html::a('###', $lang->todo->reasonList['bug'], '', "data-toggle='modal' data-target='#productModal' data-backdrop='false' data-moveable='true' data-position='center' id='toBugLink'") . '</li>';
-                echo "</ul>";
-                if($isonlybody) $_GET['onlybody'] = 'yes';
-            }
-            echo "</div>";
-        }
+                if($todo->status == 'wait') common::printLink('todo', 'start', "todoID=$todo->id", "<i class='icon icon-play'></i>", 'hiddenwin', "title='{$lang->todo->start}' class='btn showinonlybody'");
+                if($todo->status == 'done' or $todo->status == 'closed') common::printLink('todo', 'activate', "todoID=$todo->id", "<i class='icon icon-magic'></i>", 'hiddenwin', "title='{$lang->todo->activate}' class='btn showinonlybody'");
+                if($todo->status == 'done') common::printLink('todo', 'close', "todoID=$todo->id", "<i class='icon icon-off'></i>", 'hiddenwin', "title='{$lang->todo->close}' class='btn showinonlybody'");
+                common::printLink('todo', 'edit', "todoID=$todo->id", "<i class='icon icon-edit'></i>", '', "title='{$lang->todo->edit}' class='btn showinonlybody'");
+                common::printLink('todo', 'delete', "todoID=$todo->id", "<i class='icon icon-trash'></i>", 'hiddenwin', "title='{$lang->todo->delete}' class='btn showinonlybody'");
 
+                if($todo->status != 'done' && $todo->status != 'closed')
+                {
+                    echo "<div class='btn-group dropup'>";
+                    echo html::a($this->createLink('todo', 'finish', "id=$todo->id", 'html', true), "<i class='icon icon-checked'></i>", 'hiddenwin', "title='{$lang->todo->finish}' class='btn showinonlybody btn-success'");
+                    $createStoryPriv = common::hasPriv('story', 'create');
+                    $createTaskPriv  = common::hasPriv('task', 'create');
+                    $createBugPriv   = common::hasPriv('bug', 'create');
+                    if($createStoryPriv or $createTaskPriv or $createBugPriv)
+                    {
+                        $isonlybody = isonlybody();
+                        unset($_GET['onlybody']);
+                        echo "<button type='button' class='btn btn-success dropdown-toggle' data-toggle='dropdown'>{$this->lang->more}<span class='caret'></span></button>";
+                        echo "<ul class='dropdown-menu pull-right' role='menu'>";
+                        if($createStoryPriv) echo '<li>' . html::a('###', $lang->todo->reasonList['story'], '', "data-toggle='modal' data-target='#productModal' data-backdrop='false' data-moveable='true' data-position='center' id='toStoryLink'") . '</li>';
+                        if($createTaskPriv)  echo '<li>' . html::a('###', $lang->todo->reasonList['task'], '', "data-toggle='modal' data-target='#executionModal' data-backdrop='false' data-moveable='true' data-position='center' id='toTaskLink'") . '</li>';
+                        if($createBugPriv)   echo '<li>' . html::a('###', $lang->todo->reasonList['bug'], '', "data-toggle='modal' data-target='#projectProductModal' data-backdrop='false' data-moveable='true' data-position='center' id='toBugLink'") . '</li>';
+                        echo "</ul>";
+                        if($isonlybody) $_GET['onlybody'] = 'yes';
+                    }
+                    echo "</div>";
+                }
+            }
+        }
         common::printRPN($browseLink);
         ?>
       </div>
@@ -118,8 +130,12 @@
             </tr>
             <?php if(isset($todo->assignedTo)):?>
             <tr>
-              <th><?php echo $lang->todo->assignTo;?></th>
+              <th><?php echo $lang->todo->assignedTo;?></th>
               <td><?php echo zget($users, $todo->assignedTo);?></td>
+            </tr>
+            <tr>
+              <th><?php echo $lang->todo->assignedBy;?></th>
+              <td><?php echo zget($users, $todo->assignedBy);?></td>
             </tr>
             <tr>
               <th><?php echo $lang->todo->assignedDate;?></th>
@@ -137,7 +153,7 @@
           <table class='table table-data'>
             <tr>
               <th class='thWidth'><?php echo $lang->todo->beginAndEnd?></th>
-              <td><?php echo $todo->config->begin . " ~ " . $todo->config->end;?></td>
+              <td class='w-160px'><?php echo $todo->config->begin . " ~ " . $todo->config->end;?></td>
             </tr>
             <tr>
               <th class='thWidth text-top'><?php echo $lang->todo->cycleConfig?></th>
@@ -145,7 +161,15 @@
                 <?php
                 if($todo->config->type == 'day')
                 {
-                    echo $lang->todo->every . $todo->config->day . $lang->day;
+                    if(isset($todo->config->day)) echo $lang->todo->every . $todo->config->day . $lang->day;
+
+                    if(isset($todo->config->specifiedDate))
+                    {
+                        $specifiedNotes = $lang->todo->specify;
+                        if(isset($todo->config->cycleYear)) $specifiedNotes .= $lang->todo->everyYear;
+                        $specifiedNotes .= zget($lang->datepicker->monthNames, $todo->config->specify->month) . $todo->config->specify->day . $lang->todo->day;
+                        echo $specifiedNotes;
+                    }
                 }
                 elseif($todo->config->type == 'week')
                 {
@@ -170,26 +194,37 @@
 <div id="mainActions" class='main-actions'>
   <div class="container"></div>
 </div>
-<div class="modal fade" id="projectModal">
+<div class="modal fade" id="executionModal">
   <div class="modal-dialog mw-500px">
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="icon icon-close"></i></button>
-        <h4 class="modal-title"><?php echo $lang->project->selectProject;?></h4>
+        <h4 class="modal-title"><?php echo $lang->execution->selectExecution;?></h4>
       </div>
       <div class="modal-body">
-        <?php if(empty($projects)):?>
+        <?php if((empty($projects) and $config->systemMode == 'new') or (empty($executions) and $config->systemMode == 'classic')):?>
         <div class="table-empty-tip">
           <p>
-            <span class="text-muted"><?php echo $lang->project->noProject;?></span>
-            <?php echo html::a("javascript:createProject()", "<i class='icon icon-plus'></i> " . $lang->project->create, '', "class='btn btn-info'");?>
+            <span class="text-muted"><?php echo $lang->project->empty;?></span>
+            <?php echo html::a("javascript:" . ($config->systemMode == 'new' ? "createProject()" : "createExecution()"), "<i class='icon icon-plus'></i> " . $lang->project->create, '', "class='btn btn-info'");?>
           </p>
         </div>
         <?php else:?>
-        <div class='input-group'>
-          <?php echo html::select('project', $projects, '', "class='form-control chosen'");?>
-          <span class='input-group-btn'><?php echo html::commonButton($lang->todo->reasonList['task'], "id='toTaskButton'", 'btn btn-primary');?></span>
-        </div>
+        <table align='center' class='table table-form'>
+          <?php if($config->systemMode == 'new'):?>
+          <tr>
+            <th><?php echo $lang->todo->project;?></th>
+            <td><?php echo html::select('project', $projects, '', "class='form-control chosen' onchange=getExecutionByProject(this.value);");?></td>
+          </tr>
+          <?php endif;?>
+          <tr>
+            <th><?php echo $config->systemMode == 'new' ? $lang->todo->execution : $lang->todo->project;?></th>
+            <td id='executionIdBox'><?php echo html::select('execution', $executions, '', "class='form-control chosen'");?></td>
+          </tr>
+          <tr>
+            <td colspan='2' class='text-center'><?php echo html::commonButton($lang->todo->reasonList['task'], "id='toTaskButton'", 'btn btn-primary');?></td>
+          </tr>
+        </table>
         <?php endif;?>
       </div>
     </div>
@@ -212,16 +247,53 @@
         </div>
         <?php else:?>
         <div class='input-group'>
-          <?php echo html::select('product', $products, '', "class='form-control chosen'");?>
+          <?php echo html::select('product', $products, '', "class='form-control chosen' onchange=getProgramByProduct(this.value);");?>
           <span class='input-group-btn'><?php echo html::commonButton($lang->todo->reasonList['story'], "id='toStoryButton'", 'btn btn-primary');?></span>
-          <span class='input-group-btn'><?php echo html::commonButton($lang->todo->reasonList['bug'], "id='toBugButton'", 'btn btn-primary');?></span>
+          <?php echo html::hidden('productProgram', 0);?>
         </div>
         <?php endif;?>
       </div>
     </div>
   </div>
 </div>
+<div class="modal fade" id="projectProductModal">
+  <div class="modal-dialog mw-500px">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="icon icon-close"></i></button>
+        <h4 class="modal-title"><?php echo $lang->product->select;?></h4>
+      </div>
+      <div class="modal-body">
+        <?php if(empty($projects) and $config->systemMode == 'new'):?>
+        <div class="table-empty-tip">
+          <p>
+            <span class="text-muted"><?php echo $lang->project->empty;?></span>
+            <?php echo html::a("javascript:createProject()", "<i class='icon icon-plus'></i> " . $lang->project->create, '', "class='btn btn-info'");?>
+          </p>
+        </div>
+        <?php else:?>
+        <table align='center' class='table table-form'>
+          <?php if($config->systemMode == 'new'):?>
+          <tr>
+            <th><?php echo $lang->todo->project;?></th>
+            <td><?php echo html::select('bugProject', $projects, '', "class='form-control chosen' onchange=getProductByProject(this.value);");?></td>
+          </tr>
+          <?php endif;?>
+          <tr>
+            <th><?php echo $lang->todo->product;?></th>
+            <td id='productIdBox'><?php echo html::select('bugProduct', $projectProducts, '', "class='form-control chosen'");?></td>
+          </tr>
+          <tr>
+            <td colspan='2' class='text-center'><?php echo html::commonButton($lang->todo->reasonList['bug'], "id='toBugButton'", 'btn btn-primary');?></td>
+          </tr>
+        </table>
+        <?php endif;?>
+      </div>
+    </div>
+  </div>
+</div>
 <?php js::set('todoID', $todo->id);?>
+<?php js::set('selectExecution', $lang->execution->selectExecution);?>
 <?php else:?>
 <?php echo $lang->todo->thisIsPrivate;?>
 <?php endif;?>

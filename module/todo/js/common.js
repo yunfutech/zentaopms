@@ -23,28 +23,21 @@ function loadList(type, id)
         divID      = '#nameBox';
     }
 
-    var param = 'account=' + account;
+    var param = 'userID=' + userID;
     if(id) param += '&id=' + id;
-    if(type == 'bug')
+    if(moduleList.indexOf(type) !== -1)
     {
-        link = createLink('bug', 'ajaxGetUserBugs', param);
-    }
-    else if(type == 'task')
-    {
-        link = createLink('task', 'ajaxGetUserTasks', param);
-    }
-    else if(type == 'story')
-    {
-        link = createLink('story', 'ajaxGetUserStorys', param);
+        link = createLink(type, objectsMethod[type], param);
     }
 
-    if(type == 'bug' || type == 'task' || type == 'story')
+    if(moduleList.indexOf(type) !== -1)
     {
         $.get(link, function(data, status)
         {
             if(data.length != 0)
             {
                 $(divClass).html(data).find('select').chosen();
+                if(config.currentMethod == 'edit') $(divClass).html(data).find('select').val(idvalue).trigger('chosen:updated');
             }
             else
             {
@@ -97,9 +90,9 @@ function setBeginsAndEnds(i, beginOrEnd)
     }
 }
 
-function switchDateList(number)
+function switchTimeList(number)
 {
-    if($('#switchDate' + number).prop('checked'))
+    if($('#switchTime' + number).prop('checked'))
     {
         $('#begins' + number).attr('disabled', 'disabled').trigger('chosen:updated');
         $('#ends' + number).attr('disabled', 'disabled').trigger('chosen:updated');
@@ -113,7 +106,7 @@ function switchDateList(number)
 
 function switchDateFeature(switcher)
 {
-    if(switcher.checked) 
+    if(switcher.checked)
     {
         $('#begin').attr('disabled','disabled').trigger('chosen:updated');
         $('#end').attr('disabled','disabled').trigger('chosen:updated');
@@ -122,5 +115,69 @@ function switchDateFeature(switcher)
     {
         $('#begin').removeAttr('disabled').trigger('chosen:updated');
         $('#end').removeAttr('disabled').trigger('chosen:updated');
+    }
+}
+
+/**
+ * Show specified date.
+ *
+ * @param  switcher $switcher
+ * @access public
+ * @return void
+ */
+function showSpecifiedDate(switcher)
+{
+    if(switcher.checked)
+    {
+        $('#everyInput').attr('disabled','disabled');
+        $('.specify').removeClass('hidden');
+        $('.every').addClass('hidden')
+        $('#configEvery').removeAttr('checked');
+    }
+}
+
+/**
+ * Show every.
+ *
+ * @param  switcher $switcher
+ * @access public
+ * @return void
+ */
+function showEvery(switcher)
+{
+    if(switcher.checked)
+    {
+        $('#everyInput').removeAttr('disabled');
+        $('.specify').addClass('hidden');
+        $('.every').removeClass('hidden');
+        $('#configSpecify').removeAttr('checked');
+        $('#cycleYear').removeAttr('checked');
+        $('#configEvery').removeAttr('checked');
+    }
+}
+
+/**
+ * Set days by specified month.
+ *
+ * @param  int $specifiedMonth
+ * @access public
+ * @return void
+ */
+function setDays(specifiedMonth)
+{
+    /* Get last day in specified month. */
+    var date = new Date();
+    date.setMonth(specifiedMonth);
+    var month = date.getMonth() + 1;
+    date.setMonth(month);
+    date.setDate(0);
+    var specifiedMonthLastDay = date.getDate();
+
+    $('#specifiedDay').empty('');
+    for(var i = 1; i <= specifiedMonthLastDay; i++)
+    {
+        html = "<option value='" + i + "' title='" + i + "' data-keys='" + i + "'>" + i + "</option>";
+
+        $('#specifiedDay').append(html);
     }
 }

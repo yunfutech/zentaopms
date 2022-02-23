@@ -12,8 +12,8 @@
 class tutorialModel extends model
 {
     /**
-     * Check novice. 
-     * 
+     * Check novice.
+     *
      * @access public
      * @return bool
      */
@@ -33,7 +33,7 @@ class tutorialModel extends model
 
     /**
      * Get tutorial product pairs.
-     * 
+     *
      * @access public
      * @return array
      */
@@ -43,8 +43,19 @@ class tutorialModel extends model
     }
 
     /**
+     * Get module pairs for tutorial.
+     *
+     * @access public
+     * @return array
+     */
+    public function getModulePairs()
+    {
+        return array(1 => 'Test module');
+    }
+
+    /**
      * Get tutorial product.
-     * 
+     *
      * @access public
      * @return object
      */
@@ -52,6 +63,9 @@ class tutorialModel extends model
     {
         $product = new stdclass();
         $product->id             = 1;
+        $product->program        = 0;
+        $product->line           = 0;
+        $product->plan           = 0;
         $product->name           = 'Test product';
         $product->code           = 'test';
         $product->type           = 'normal';
@@ -66,13 +80,124 @@ class tutorialModel extends model
         $product->createdVersion = '8.1.3';
         $product->order          = 10;
         $product->deleted        = '0';
+        $product->branch         = '';
+        $product->reviewer       = $this->app->user->account;
+        $product->branches       = array('1' => 'Test branch');
+        $product->plans          = array('1' => 'Test plan');
 
         return $product;
     }
 
     /**
+     * Get product stats for tutorial.
+     *
+     * @access public
+     * @return array
+     */
+    public function getProductStats()
+    {
+        $product = $this->getProduct();
+        $product->stories = array();
+        $product->stories[0]         = '';
+        $product->stories[1]         = 'draft';
+        $product->stories[2]         = 'active';
+        $product->stories[3]         = 'closed';
+        $product->stories[4]         = 'changed';
+        $product->stories['']        = 0;
+        $product->stories['draft']   = 0;
+        $product->stories['active']  = 0;
+        $product->stories['closed']  = 0;
+        $product->stories['changed'] = 0;
+        $product->requirements       = $product->stories;
+        $product->plans              = 0;
+        $product->releases           = 0;
+        $product->bugs               = 0;
+        $product->unResolved         = 0;
+        $product->closedBugs         = 0;
+        $product->fixedBugs          = 0;
+        $product->assignToNull       = 0;
+
+        $productStat[$product->program][$product->line]['products'][$product->id] = $product;
+        return $productStat;
+    }
+
+    /**
+     * Get project for tutorial;
+     *
+     * @access public
+     * @return object
+     */
+    public function getProject()
+    {
+        $project = new stdclass();
+        $project->id           = 2;
+        $project->project      = 0;
+        $project->model        = 'scrum';
+        $project->type         = 'project';
+        $project->name         = 'Test Project';
+        $project->code         = '';
+        $project->lifetime     = '';
+        $project->begin        = date('Y-m-d', strtotime('-7 days'));
+        $project->end          = date('Y-m-d', strtotime('+7 days'));
+        $project->realBegan    = '';
+        $project->realEnd      = '';
+        $project->days         = 10;
+        $project->status       = 'wait';
+        $project->pri          = '1';
+        $project->desc         = '';
+        $project->goal         = '';
+        $project->acl          = 'open';
+        $project->parent       = 0;
+        $project->path         = ',2,';
+        $project->grade        = 1;
+        $project->PM           = $this->app->user->account;
+        $project->PO           = $this->app->user->account;
+        $project->QD           = $this->app->user->account;
+        $project->RD           = $this->app->user->account;
+        $project->openedBy     = $this->app->user->account;
+        $project->whitelist    = '';
+        $project->budget       = 0;
+        $project->displayCards = 0;
+        $project->fluidBoard   = 0;
+        $project->deleted      = '0';
+
+        return $project;
+    }
+
+    /**
+     * Get tutorial project pairs.
+     *
+     * @access public
+     * @return array
+     */
+    public function getProjectPairs()
+    {
+        return array(2 => 'Test Project');
+    }
+
+    /**
+     * Get project stats for tutorial
+     *
+     * @access public
+     * @return array
+     */
+    public function getProjectStats()
+    {
+        $project   = $this->getProject();
+        $emptyHour = array('totalEstimate' => 0, 'totalConsumed' => 0, 'totalLeft' => 0, 'progress' => 0);
+
+        $project->hours       = (object)$emptyHour;
+        $project->leftTasks   = '—';
+        $project->teamMembers = array_keys($this->getTeamMembers());
+        $project->teamCount   = count($project->teamMembers);
+
+        $projectStat[$project->id] = $project;
+        return $projectStat;
+    }
+
+    /**
      * Get tutorial stories.
-     * 
+     *
      * @access public
      * @return array
      */
@@ -82,6 +207,8 @@ class tutorialModel extends model
         $story->id             = 1;
         $story->product        = 1;
         $story->branch         = 0;
+        $story->parent         = 0;
+        $story->category       = 0;
         $story->module         = 0;
         $story->plan           = '';
         $story->planTitle      = '';
@@ -111,6 +238,7 @@ class tutorialModel extends model
         $story->version        = 1;
         $story->deleted        = '0';
         $story->order          = '0';
+        $story->URChanged      = false;
 
         $stories = array();
         $stories[] = $story;
@@ -122,59 +250,75 @@ class tutorialModel extends model
     }
 
     /**
-     * Get tutorial project pairs.
-     * 
+     * Get tutorial Execution pairs.
+     *
      * @access public
      * @return array
      */
-    public function getProjectPairs()
+    public function getExecutionPairs()
     {
-        return array(1 => 'Test project');
+        return array(3 => 'Test execution');
     }
 
     /**
-     * Get tutorial project.
-     * 
+     * Get tutorial execution.
+     *
      * @access public
      * @return object
      */
-    public function getProject()
+    public function getExecution()
     {
-        $project = new stdclass();
-        $project->id = 1;
-        $project->type = 'sprint';
-        $project->name = 'Test project';
-        $project->code = 'test';
-        $project->begin = date('Y-m-d', strtotime('-7 days'));
-        $project->end   = date('Y-m-d', strtotime('+7 days'));
-        $project->days  = 10;
-        $project->status  = 'wait';
-        $project->pri   = '1';
-        $project->desc   = '';
-        $project->goal   = '';
-        $project->acl   = 'open';
-        return $project;
+        $execution = new stdclass();
+        $execution->id            = 3;
+        $execution->project       = 2;
+        $execution->type          = 'sprint';
+        $execution->name          = 'Test execution';
+        $execution->code          = 'test';
+        $execution->lifetime      = '';
+        $execution->begin         = date('Y-m-d', strtotime('-7 days'));
+        $execution->end           = date('Y-m-d', strtotime('+7 days'));
+        $execution->days          = 10;
+        $execution->status        = 'wait';
+        $execution->pri           = '1';
+        $execution->desc          = '';
+        $execution->goal          = '';
+        $execution->acl           = 'open';
+        $execution->parent        = 2;
+        $execution->path          = ',2,3,';
+        $execution->grade         = 1;
+        $execution->PM            = $this->app->user->account;
+        $execution->PO            = $this->app->user->account;
+        $execution->QD            = $this->app->user->account;
+        $execution->RD            = $this->app->user->account;
+        $execution->deleted       = '0';
+        $execution->totalConsumed = 0;
+        $execution->totalLeft     = 0;
+        $execution->totalHours    = 0;
+        $execution->totalEstimate = 0;
+        $execution->displayCards  = 0;
+        $execution->fluidBoard    = 0;
+        return $execution;
     }
 
     /**
-     * Get tutorial project products.
-     * 
+     * Get tutorial execution products.
+     *
      * @access public
      * @return array
      */
-    public function getProjectProducts()
+    public function getExecutionProducts()
     {
         $product = $this->getProduct();
         return array($product->id => $product);
     }
 
     /**
-     * Get tutorial project stories.
-     * 
+     * Get tutorial execution stories.
+     *
      * @access public
      * @return array
      */
-    public function getProjectStories()
+    public function getExecutionStories()
     {
         $stories = $this->getStories();
         $story   = $stories[0];
@@ -182,12 +326,12 @@ class tutorialModel extends model
     }
 
     /**
-     * Get tutorial project story pairs.
-     * 
+     * Get tutorial execution story pairs.
+     *
      * @access public
      * @return array
      */
-    public function getProjectStoryPairs()
+    public function getExecutionStoryPairs()
     {
         $stories = $this->getStories();
         $story   = $stories[0];
@@ -196,7 +340,7 @@ class tutorialModel extends model
 
     /**
      * Get tutorial team members.
-     * 
+     *
      * @access public
      * @return array
      */
@@ -212,12 +356,13 @@ class tutorialModel extends model
         $member->totalHours  = 70.0;
         $member->realname    = $this->app->user->realname;
         $member->limited     = 'no';
+        $member->userID      = $this->app->user->id;
         return array($member->account => $member);
     }
 
     /**
-     * Get team members pairs. 
-     * 
+     * Get team members pairs.
+     *
      * @access public
      * @return array
      */
@@ -229,7 +374,7 @@ class tutorialModel extends model
 
     /**
      * Get tutorial user pairs.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -245,7 +390,7 @@ class tutorialModel extends model
 
     /**
      * Get tutorialed.
-     * 
+     *
      * @access public
      * @return string
      */

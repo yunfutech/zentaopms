@@ -11,6 +11,7 @@
  */
 $lang->company->common   = 'Entreprise';
 $lang->company->index    = "Accueil Entreprise";
+$lang->company->create   = "Add Company";
 $lang->company->edit     = "Edit Entreprise";
 $lang->company->view     = "Informations Entreprise";
 $lang->company->browse   = "Liste Utilisateurs";
@@ -27,9 +28,10 @@ $lang->company->backyard = 'Intranet';
 $lang->company->guest    = 'Connexion Invités';
 $lang->company->admins   = 'Administrateur';
 
-$lang->company->product = $lang->productCommon;
-$lang->company->project = $lang->projectCommon;
-$lang->company->user    = 'Utilisateurs';
+$lang->company->product   = $lang->productCommon;
+$lang->company->project   = 'Project';
+$lang->company->execution = 'Execution';
+$lang->company->user      = 'Utilisateurs';
 
 $lang->company->guestOptions[0] = 'Refusée';
 $lang->company->guestOptions[1] = 'Autorisée';

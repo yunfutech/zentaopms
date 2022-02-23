@@ -11,38 +11,35 @@
  */
 ?>
 <?php include '../../common/view/header.html.php';?>
+<?php js::set('mode', $mode);?>
+<?php js::set('total', $pager->recTotal);?>
+<?php js::set('rawMethod', $app->rawMethod);?>
 <?php js::set('confirmDelete', $lang->testtask->confirmDelete)?>
 <div id="mainMenu" class="clearfix">
   <div class="btn-toolbar pull-left">
     <?php
     $recTotalLabel = " <span class='label label-light label-badge'>{$pager->recTotal}</span>";
-    echo "<span class='nav-title'>{$lang->testtask->common}: </span>";
-    echo html::a(inlink('testtask', "type=wait"),       "<span class='text'>{$lang->testtask->wait}</span>" . ($type == 'wait' ? $recTotalLabel : ''), '', "class='btn btn-link" . ($type == 'wait' ? ' btn-active-text' : '') . "'");
-    echo html::a(inlink('testtask', "type=done"),       "<span class='text'>{$lang->testtask->done}</span>" . ($type == 'done' ? $recTotalLabel : ''), '', "class='btn btn-link" . ($type == 'done' ? ' btn-active-text' : '') . "'");
-    echo "<span class='divider'></span>";
-    echo "<span class='nav-title'>{$lang->testcase->common}: </span>";
-    echo html::a(inlink('testcase', "type=assigntome"), "<span class='text'>{$lang->testcase->assignToMe}</span>", '', "class='btn btn-link'");
-    echo html::a(inlink('testcase', "type=openedbyme"), "<span class='text'>{$lang->testcase->openedByMe}</span>", '', "class='btn btn-link'");
+    if($app->rawMethod == 'contribute') echo html::a(inlink($app->rawMethod, "mode=$mode&type=done"), "<span class='text'>{$lang->testtask->done}</span>" . ($type == 'done' ? $recTotalLabel : ''), '', "class='btn btn-link" . ($type == 'done' ? ' btn-active-text' : '') . "'");
     ?>
   </div>
 </div>
-<div id="mainContent" class='main-table'>
+<div id="mainContent" class='main-table' data-ride='table'>
   <?php if(empty($tasks)):?>
   <div class="table-empty-tip">
     <p><span class="text-muted"><?php echo $lang->testtask->noTesttask;?></span></p>
   </div>
   <?php else:?>
   <table class="table has-sort-head table-fixed" id='taskList'>
-    <?php $vars = "type=$type&orderBy=%s&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID"; ?>
+    <?php $vars = "mode=$mode&type=$type&orderBy=%s&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID"; ?>
     <thead>
       <tr>
-        <th class='w-id'>   <?php common::printOrderLink('id',      $orderBy, $vars, $lang->idAB);?></th>
-        <th>                <?php common::printOrderLink('name',    $orderBy, $vars, $lang->testtask->name);?></th>
-        <th>                <?php common::printOrderLink('project', $orderBy, $vars, $lang->testtask->project);?></th>
-        <th>                <?php common::printOrderLink('build',   $orderBy, $vars, $lang->testtask->build);?></th>
-        <th class='w-90px'> <?php common::printOrderLink('begin',   $orderBy, $vars, $lang->testtask->begin);?></th>
-        <th class='w-90px'> <?php common::printOrderLink('end',     $orderBy, $vars, $lang->testtask->end);?></th>
-        <th class='w-80px'> <?php common::printOrderLink('status',  $orderBy, $vars, $lang->statusAB);?></th>
+        <th class='c-id'>       <?php common::printOrderLink('id',        $orderBy, $vars, $lang->idAB);?></th>
+        <th>                    <?php common::printOrderLink('name',      $orderBy, $vars, $lang->testtask->name);?></th>
+        <th class='c-execution'><?php common::printOrderLink('execution', $orderBy, $vars, $lang->testtask->execution);?></th>
+        <th class='c-build'>    <?php common::printOrderLink('build',     $orderBy, $vars, $lang->testtask->build);?></th>
+        <th class='c-date'>     <?php common::printOrderLink('begin',     $orderBy, $vars, $lang->testtask->begin);?></th>
+        <th class='c-date'>     <?php common::printOrderLink('end',       $orderBy, $vars, $lang->testtask->end);?></th>
+        <th class='c-status'>   <?php common::printOrderLink('status',    $orderBy, $vars, $lang->statusAB);?></th>
         <th class='c-actions-6'><?php echo $lang->actions;?></th>
       </tr>
     </thead>
@@ -51,18 +48,18 @@
       <tr>
         <td class="c-id"><?php printf('%03d', $task->id);?></td>
         <td class='text-left nobr'><?php echo html::a($this->createLink('testtask', 'view', "taskID=$task->id"), $task->name);?></td>
-        <td class='nobr'><?php echo $task->projectName?></td>
-        <td class='nobr'><?php $task->build == 'trunk' ? print($lang->trunk) : print(html::a($this->createLink('build', 'view', "buildID=$task->build"), $task->buildName));?></td>
+        <td class='nobr'><?php echo $task->executionName?></td>
+        <td class='nobr' title='<?php echo $task->buildName;?>'><?php $task->build == 'trunk' ? print($lang->trunk) : print(html::a($this->createLink('build', 'view', "buildID=$task->build"), $task->buildName));?></td>
         <td><?php echo $task->begin?></td>
         <td><?php echo $task->end?></td>
-        <td class='status-testtask status-<?php echo $task->status?>'><?php echo $this->processStatus('testtask', $task);?></td>
+        <td title='<?php echo $task->status?>'><span class="status-task status-<?php echo $task->status?>"><?php echo $this->processStatus('testtask', $task);?></span></td>
         <td class='c-actions'>
           <?php
-          common::printIcon('testtask',   'cases',    "taskID=$task->id", $task, 'list', 'sitemap');
-          common::printIcon('testtask',   'view',     "taskID=$task->id", '', 'list', 'list-alt','','iframe',true, 'data-width=800px');
-          common::printIcon('testtask',   'linkCase', "taskID=$task->id", $task, 'list', 'link');
-          common::printIcon('testreport', 'browse',   "objectID=$task->product&objectType=product&extra=$task->id", $task, 'list','flag');
-          common::printIcon('testtask',   'edit',     "taskID=$task->id", $task, 'list','','','',true);
+          common::printIcon('testtask',   'cases',    "taskID=$task->id", $task, 'list', 'sitemap', '', '', '', "data-app='qa'");
+          common::printIcon('testtask',   'view',     "taskID=$task->id", '', 'list', 'list-alt', '', 'iframe', true, "data-width='90%'");
+          common::printIcon('testtask',   'linkCase', "taskID=$task->id", $task, 'list', 'link', '', '', false, "data-app='qa'");
+          common::printIcon('testreport', 'browse',   "objectID=$task->product&objectType=product&extra=$task->id", $task, 'list', 'flag', '', '', false, "data-app='qa'");
+          common::printIcon('testtask',   'edit',     "taskID=$task->id", $task, 'list', '', '', 'iframe', true, "data-width='90%'");
           if(common::hasPriv('testtask', 'delete', $task))
           {
               $deleteURL = $this->createLink('testtask', 'delete', "taskID=$task->id&confirm=yes");

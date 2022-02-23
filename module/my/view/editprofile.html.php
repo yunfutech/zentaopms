@@ -32,13 +32,6 @@
         <th><?php echo $lang->user->birthyear;?></th>
         <td><?php echo html::input('birthday', $user->birthday,"class='form-date form-control'");?></td>
       </tr>
-      <tr>
-        <th><?php echo $lang->user->join;?></th>
-        <td class='text-middle'>
-          <?php echo formatTime($user->join);?>
-          <?php echo html::hidden('join',$user->join);?>
-        </td>
-      </tr>
     </table>
     <table class='table table-form'>
       <caption><?php echo $lang->my->form->lblAccount;?></caption>
@@ -88,8 +81,6 @@
           <div class="required required-wrapper"></div>
           <?php echo html::password('verifyPassword', '', "class='form-control disabled-ie-placeholder' placeholder='{$lang->user->placeholder->verify}'");?>
         </td>
-        <th class='w-140px'></th>
-        <td></td>
       </tr>
     </table>
     <div class='text-center form-actions'><?php echo html::submitButton() . html::backButton();?></div>

@@ -22,8 +22,6 @@ var newRowID = 0;
 function loadAll(productID)
 {
     loadProductBranches(productID)
-    loadProductModules(productID);
-    setStories();
 }
 
 /**
@@ -49,14 +47,21 @@ function loadBranch()
  */
 function loadProductBranches(productID)
 {
+    var param = '';
+    if(page == 'create') param = 'active';
     $('#branch').remove();
-    $.get(createLink('branch', 'ajaxGetBranches', "productID=" + productID), function(data)
+    var param = "productID=" + productID + "&oldBranch=0&param=" + param;
+    if(typeof(tab) != 'undefined' && (tab == 'execution' || tab == 'project')) param += "&projectID=" + objectID;
+    $.get(createLink('branch', 'ajaxGetBranches', param), function(data)
     {
         if(data)
         {
             $('#product').closest('.input-group').append(data);
-            $('#branch').css('width', config.currentMethod == 'create' ? '120px' : '65px');
+            $('#branch').css('width', config.currentMethod == 'create' ? '120px' : '95px');
         }
+
+        loadProductModules(productID);
+        setStories();
     })
 }
 
@@ -80,9 +85,10 @@ function loadModuleRelated()
  */
 function loadProductModules(productID, branch)
 {
-    if(typeof(branch) == 'undefined') branch = 0;
+    if(typeof(branch) == 'undefined') branch = $('#branch').val();
     if(!branch) branch = 0;
-    link = createLink('tree', 'ajaxGetOptionMenu', 'productID=' + productID + '&viewtype=case&branch=' + branch + '&rootModuleID=0&returnType=html&fieldID=&needManage=true');
+    var currentModuleID = config.currentMethod == 'edit' ? $('#module').val() : 0;
+    link = createLink('tree', 'ajaxGetOptionMenu', 'productID=' + productID + '&viewtype=case&branch=' + branch + '&rootModuleID=0&returnType=html&fieldID=&needManage=true&extra=&currentModuleID=' + currentModuleID);
     $('#moduleIdBox').load(link, function()
     {
         var $inputGroup = $(this);
@@ -124,7 +130,8 @@ function setStories()
     productID = $('#product').val();
     branch    = $('#branch').val();
     if(typeof(branch) == 'undefined') branch = 0;
-    link = createLink('story', 'ajaxGetProductStories', 'productID=' + productID + '&branch=' + branch + '&moduleID=' + moduleID + '&storyID=0&onlyOption=false&status=&limit=50');
+    link = createLink('story', 'ajaxGetProductStories', 'productID=' + productID + '&branch=' + branch + '&moduleID=' + moduleID + '&storyID=0&onlyOption=false&status=noclosed&limit=50&type=full&hasParent=1&executionID=' + executionID);
+
     $.get(link, function(stories)
     {
         var value = $('#story').val();
@@ -132,6 +139,7 @@ function setStories()
         $('#story').replaceWith(stories);
         $('#story').val(value);
         $('#story_chosen').remove();
+        $('#story').next('.picker').remove();
         $("#story").chosen();
     });
 }
@@ -146,7 +154,8 @@ function setStories()
 function initSteps(selector)
 {
     /* Fix task #4832. Auto adjust textarea height. */
-    $('textarea.autosize').each(function() {
+    $('textarea.autosize').each(function()
+    {
         $.autoResizeTextarea(this);
     });
 
@@ -176,7 +185,7 @@ function initSteps(selector)
     {
         return $steps.children('.step:not(.drag-shadow)');
     };
-    var refreshSteps = function()
+    var refreshSteps = function(skipAutoAddStep)
     {
         var parentId = 1, childId = 0;
         getStepsElements().each(function(idx)
@@ -186,14 +195,14 @@ function initSteps(selector)
             var stepID;
             if(type == 'group')
             {
-                $step.removeClass('step-item step-step').addClass('step-group');
+                $step.removeClass('step-item').removeClass('step-step').addClass('step-group');
                 stepID = parentId++;
                 $step.find('.step-id').text(stepID);
                 childId = 1;
             }
             else if(type == 'step')
             {
-                $step.removeClass('step-item step-group').addClass('step-step');
+                $step.removeClass('step-item').removeClass('step-group').addClass('step-step');
                 stepID = parentId++;
                 $step.find('.step-id').text(stepID);
                 childId = 0;
@@ -203,11 +212,11 @@ function initSteps(selector)
                 if(childId) // type as child
                 {
                     stepID = (parentId - 1) + '.' + (childId++);
-                    $step.removeClass('step-step step-group').addClass('step-item').find('.step-item-id').text(stepID);
+                    $step.removeClass('step-step').removeClass('step-group').addClass('step-item').find('.step-item-id').text(stepID);
                 }
                 else // type as step
                 {
-                    $step.removeClass('step-item step-group').addClass('step-step');
+                    $step.removeClass('step-item').removeClass('step-group').addClass('step-step');
                     stepID = parentId++;
                     $step.find('.step-id').text(stepID);
                 }
@@ -218,6 +227,25 @@ function initSteps(selector)
 
             updateStepType($step, type);
         });
+
+        /* Auto insert step to group without any steps */
+        if(!skipAutoAddStep)
+        {
+            var needRefresh = false;
+            getStepsElements().each(function(idx)
+            {
+                var $step = $(this).attr('data-index', idx + 1);
+                if($step.attr('data-type') !== 'group') return;
+                var $nextStep = $step.next('.step:not(.drag-shadow)');
+                if(!$nextStep.length || $nextStep.attr('data-type') !== 'item')
+                {
+                    insertStepRow($step, 1, 'item', true);
+                    needRefresh = true;
+                }
+            });
+
+            if(needRefresh) refreshSteps(true);
+        }
     };
     var initSortable = function()
     {
@@ -280,6 +308,17 @@ function initSteps(selector)
             suggestType = suggestChild ? 'item' : 'step';
         }
         $step.find('.step-type').val(suggestType);
+
+        /* Auto insert step to group without any steps */
+        if(suggestType === 'group')
+        {
+            var $nextStep = $step.next('.step:not(.drag-shadow)');
+            if(!$nextStep.length || $nextStep.find('.step-type').val() !== 'item')
+            {
+                insertStepRow($step, 1, 'item', true);
+            }
+        }
+
         refreshSteps();
     }).on('change', '.form-control', function()
     {
@@ -309,4 +348,29 @@ function updateStepID()
 {
     var i = 1;
     $('.stepID').each(function(){$(this).html(i ++)});
+}
+
+/**
+ * Set stories.
+ *
+ * @param  int     productID
+ * @param  int     moduleID
+ * @param  int     num
+ * @access public
+ * @return void
+ */
+function loadStories(productID, moduleID, num)
+{
+    var branchIDName = config.currentMethod == 'batchcreate' ? '#branch' : '#branches';
+    var branchID     = $(branchIDName + num).val();
+    var storyLink    = createLink('story', 'ajaxGetProductStories', 'productID=' + productID + '&branch=' + branchID + '&moduleID=' + moduleID + '&storyID=0&onlyOption=false&status=noclosed&limit=50&type=full&hasParent=1&executionID=0&number=' + num);
+    $.get(storyLink, function(stories)
+    {
+        if(!stories) modules = '<select id="story' + num + '" name="story[' + num + ']" class="form-control"></select>';
+        $('#story' + num).replaceWith(stories);
+        $('#story' + num + "_chosen").remove();
+        $('#story' + num).next('.picker').remove();
+        $('#story' + num).attr('name', 'story[' + num + ']');
+        $('#story' + num).chosen();
+    });
 }
