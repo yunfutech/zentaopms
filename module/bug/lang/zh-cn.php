@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The bug module zh-cn file of ZenTaoPMS.
  *
@@ -269,6 +270,7 @@ $lang->bug->resolutionList['fixed']      = '已解决';
 $lang->bug->resolutionList['notrepro']   = '无法重现';
 $lang->bug->resolutionList['postponed']  = '延期处理';
 $lang->bug->resolutionList['willnotfix'] = "不予解决";
+$lang->bug->resolutionList['unableresolve'] = "无法解决";
 $lang->bug->resolutionList['tostory']    = "转为{$lang->storyCommon}";
 
 /* 统计报表。*/
