@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The control file of report module of ZenTaoPMS.
  *
@@ -28,7 +29,7 @@ class report extends control
      * @access public
      * @return void
      */
-    public function projectDeviation($begin = 0, $end = 0, $status='noclosed')
+    public function projectDeviation($begin = 0, $end = 0, $status = 'noclosed')
     {
         $begin = $begin ? date('Y-m-d', strtotime($begin)) : '';
         $end = $end ? date('Y-m-d', strtotime($end)) : '';
@@ -158,7 +159,6 @@ class report extends control
                 if (($this->config->project->weekend == 2 and $weekDay == 6) or $weekDay == 0) {
                     $days--;
                 }
-
             }
         }
 
@@ -281,7 +281,7 @@ class report extends control
 
     // 任务看板
 
-    public function taskboard($date = 0, $dept = -1, $director='', $product=0)
+    public function taskboard($date = 0, $dept = -1, $director = '', $product = 0)
     {
         global $app;
         if ($_POST) {
@@ -294,7 +294,7 @@ class report extends control
         } else {
             $dept = $app->user->dept;
         }
-        if($date == '' || $date == 0 || $date == 'today' || !$date) {
+        if ($date == '' || $date == 0 || $date == 'today' || !$date) {
             $date = date('Y-m-d');
         } else {
             $date = date('Y-m-d', strtotime($date));
@@ -355,7 +355,7 @@ class report extends control
     }
 
     // 迭代看板
-    public function projectboard($begin = '', $end = '', $projectType='', $status='noclosed', $orderBy='pri')
+    public function projectboard($begin = '', $end = '', $projectType = '', $status = 'noclosed', $orderBy = 'pri')
     {
         $this->app->loadLang('project');
         $this->lang->project->projectTypeList = array_merge(['' => '全部'], $this->lang->project->projectTypeList);
@@ -367,12 +367,12 @@ class report extends control
         }
         [$week_start, $week_end] = $this->getWeekStartEnd();
 
-        if($begin == '' || $begin == 0 ) {
+        if ($begin == '' || $begin == 0) {
             $begin = $week_start;
         } else {
             $begin = date('Y-m-d', strtotime($begin));
         }
-        if($end == '' || $end == 0 ) {
+        if ($end == '' || $end == 0) {
             $end = $week_end;
         } else {
             $end = date('Y-m-d', strtotime($end));
@@ -398,7 +398,8 @@ class report extends control
     /**
      * 项目看板
      */
-    public function productboard($begin = '', $end = '', $selectLines = 'yfmt,yfnlp,yfc,yfkg,yfbot,yfdoc,yfweb,yflabel,yfbid', $status='noclosed') {
+    public function productboard($begin = '', $end = '', $selectLines = 'yfmt,yfnlp,yfc,yfkg,yfbot,yfdoc,yfweb,yflabel,yfbid', $status = 'noclosed')
+    {
         if ($_POST) {
             $data = fixer::input('post')->get();
             $begin = $data->begin;
@@ -406,12 +407,12 @@ class report extends control
         }
 
         [$week_start, $week_end] = $this->getWeekStartEnd();
-        if($begin == '' || $begin == 0 ) {
+        if ($begin == '' || $begin == 0) {
             $begin = $week_start;
         } else {
             $begin = date('Y-m-d', strtotime($begin));
         }
-        if($end == '' || $end == 0 ) {
+        if ($end == '' || $end == 0) {
             $end = $week_end;
         } else {
             $end = date('Y-m-d', strtotime($end));
@@ -434,11 +435,12 @@ class report extends control
         $this->display();
     }
 
-    private function getWeekStartEnd() {
+    private function getWeekStartEnd()
+    {
         $date = date('Y-m-d');
         $w = date('w', strtotime($date));
-        $week_start=date('Y-m-d',strtotime("$date -".($w ? $w - 1 : 6).' days'));
-        $week_end = date('Y-m-d',strtotime("$week_start +6 days"));
+        $week_start = date('Y-m-d', strtotime("$date -" . ($w ? $w - 1 : 6) . ' days'));
+        $week_end = date('Y-m-d', strtotime("$week_start +6 days"));
         return [$week_start, $week_end];
     }
 
@@ -453,12 +455,12 @@ class report extends control
             $dept = $data->dept;
         }
         [$week_start, $week_end] = $this->getWeekStartEnd();
-        if($begin == '' || $begin == 0 ) {
+        if ($begin == '' || $begin == 0) {
             $begin = $week_start;
         } else {
             $begin = date('Y-m-d', strtotime($begin));
         }
-        if($end == '' || $end == 0 ) {
+        if ($end == '' || $end == 0) {
             $end = $week_end;
         } else {
             $end = date('Y-m-d', strtotime($end));
@@ -483,8 +485,8 @@ class report extends control
     private function getCurWeek($week_start, $week_end)
     {
         $cur = [
-            "start"=> date("Ymd", strtotime($week_start)),
-            "end"=> date("Ymd", strtotime($week_end))
+            "start" => date("Ymd", strtotime($week_start)),
+            "end" => date("Ymd", strtotime($week_end))
         ];
         return $cur;
     }
@@ -493,11 +495,11 @@ class report extends control
     {
 
         $pre_date = date("Ymd", strtotime("-7 days", strtotime($begin)));
-        $pre_start = date('Ymd',strtotime("$pre_date -".($begin_w ? $begin_w - 1 : 6).' days'));
-        $pre_end = date('Ymd',strtotime("$pre_start +6 days"));
+        $pre_start = date('Ymd', strtotime("$pre_date -" . ($begin_w ? $begin_w - 1 : 6) . ' days'));
+        $pre_end = date('Ymd', strtotime("$pre_start +6 days"));
         $pre = [
-            "start"=> $pre_start,
-            "end"=> $pre_end
+            "start" => $pre_start,
+            "end" => $pre_end
         ];
         return $pre;
     }
@@ -505,11 +507,11 @@ class report extends control
     private function getNextWeek($begin, $begin_w)
     {
         $next_date = date("Ymd", strtotime("+7 days", strtotime($begin)));
-        $next_start = date('Ymd',strtotime("$next_date -".($begin_w ? $begin_w - 1 : 6).' days'));
-        $next_end = date('Ymd',strtotime("$next_start +6 days"));
+        $next_start = date('Ymd', strtotime("$next_date -" . ($begin_w ? $begin_w - 1 : 6) . ' days'));
+        $next_end = date('Ymd', strtotime("$next_start +6 days"));
         $next = [
-            "start"=> $next_start,
-            "end"=> $next_end
+            "start" => $next_start,
+            "end" => $next_end
         ];
         return $next;
     }
@@ -556,17 +558,15 @@ class report extends control
 
         /* Get years for use zentao. */
         $years = array();
-        for($thisYear = $firstYear; $thisYear <= $currentYear; $thisYear ++) $years[$thisYear] = $thisYear;
+        for ($thisYear = $firstYear; $thisYear <= $currentYear; $thisYear++) $years[$thisYear] = $thisYear;
 
         /* Init year when year is empty. */
-        if(empty($year))
-        {
+        if (empty($year)) {
             $year  = date('Y');
             $month = date('n');
-            if($month <= $this->config->report->annualData['minMonth'])
-            {
+            if ($month <= $this->config->report->annualData['minMonth']) {
                 $year -= 1;
-                if(!isset($years[$year])) $year += 1;
+                if (!isset($years[$year])) $year += 1;
             }
         }
 
@@ -576,18 +576,17 @@ class report extends control
 
         /* Set role. */
         $role = 'po';
-        if($this->app->user->role == 'dev' or $this->app->user->role == 'td' or $this->app->user->role == 'pm') $role = 'dev';
-        if($this->app->user->role == 'qd' or $this->app->user->role == 'qa') $role = 'qa';
+        if ($this->app->user->role == 'dev' or $this->app->user->role == 'td' or $this->app->user->role == 'pm') $role = 'dev';
+        if ($this->app->user->role == 'qd' or $this->app->user->role == 'qa') $role = 'qa';
 
         /* Get annual data by role. */
-        if($role == 'po')
-        {
+        if ($role == 'po') {
             $products = $this->report->getUserYearProducts($account, $year);
             $data['involvedProducts'] = count($products);
 
             $planGroups = $this->report->getPlansByProducts($products, $account, $year);
             $planCount  = 0;
-            foreach($planGroups as $plans) $planCount += $plans;
+            foreach ($planGroups as $plans) $planCount += $plans;
             $data['createdPlans'] = $planCount;
             $data['productStat']  = $this->report->getStatByProducts($products, $account, $year);
 
@@ -598,15 +597,12 @@ class report extends control
             $data['storyMonth']     = $storyInfo['month'];
 
             $storyGroups = $this->report->getStoriesByProducts($products, $account, $year);
-            foreach($products as $productID => $product)
-            {
+            foreach ($products as $productID => $product) {
                 $product->plans   = zget($planGroups, $productID, 0);
                 $product->stories = zget($storyGroups, $productID, 0);
             }
             $data['products'] = $products;
-        }
-        elseif($role == 'dev')
-        {
+        } elseif ($role == 'dev') {
             $data['actions'] = $this->report->getUserYearActions($account, $year);
 
             $efforts = $this->report->getUserYearEfforts($account, $year);
@@ -627,8 +623,7 @@ class report extends control
             $stories = $this->report->getFinishedStoryByProjects($projects, $account, $year);
             $tasks   = $this->report->getFinishedTaskByProjects($projects, $account, $year);
             $bugs    = $this->report->getResolvedBugByProjects($projects, $account, $year);
-            foreach($projects as $projectID => $project)
-            {
+            foreach ($projects as $projectID => $project) {
                 $project->stories = zget($stories, $projectID, 0);
                 $project->tasks   = zget($tasks, $projectID, 0);
                 $project->bugs    = zget($bugs, $projectID, 0);
@@ -636,9 +631,7 @@ class report extends control
 
             $data['projects']    = $projects;
             $data['projectStat'] = $projectStat;
-        }
-        elseif($role == 'qa')
-        {
+        } elseif ($role == 'qa') {
             $data['actions'] = $this->report->getUserYearActions($account, $year);
             $bugInfo = $this->report->getUserYearCreatedBugs($account, $year);
             $data['foundBugs'] = $bugInfo['count'];
@@ -654,7 +647,7 @@ class report extends control
             $productStat = $this->report->getBugStatByProducts($products, $account, $year);
 
             $bugs = $this->report->getCreatedBugByProducts($products, $account, $year);
-            foreach($products as $productID => $product) $product->bugs = zget($bugs, $productID, 0);
+            foreach ($products as $productID => $product) $product->bugs = zget($bugs, $productID, 0);
 
             $data['products']    = $products;
             $data['productStat'] = $productStat;
@@ -671,7 +664,7 @@ class report extends control
     public function userlogboard($type = 'weekly', $orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
 
-        $this->app->loadClass('pager', $static=true);
+        $this->app->loadClass('pager', $static = true);
         $pager = pager::init($recTotal, $recPerPage, $pageID);
         $sort = $this->loadModel('common')->appendOrder($orderBy);
         $userlogs = $this->loadModel('userlog')->getUserlog($type, $pager, $sort);
@@ -689,9 +682,9 @@ class report extends control
         $this->display();
     }
 
-    public function weeklyboard($week=0, $product=0, $orderBy='id_desc', $recTotal=0, $recPerPage=20, $pageID=1)
+    public function weeklyboard($week = 0, $product = 0, $orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
-        $this->app->loadClass('pager', $static=true);
+        $this->app->loadClass('pager', $static = true);
         $pager = pager::init($recTotal, $recPerPage, $pageID);
         $sort = $this->loadModel('common')->appendOrder($orderBy);
         $weeklies = $this->loadModel('productweekly')->getWeekly($pager, $sort, $week, $product);
@@ -699,11 +692,11 @@ class report extends control
 
         $this->view->title      = $this->lang->report->weeklyboard;
         $this->view->position[] = $this->lang->report->weeklyboard;
-        if ($week == 0) $week = date('W');
+        if ($week == 0) $week = date('YW');
         $this->view->week       = $week;
-        $this->view->thisWeek   = date('W');
-        $this->view->lastWeek   = $week - 1;
-        $this->view->nextWeek   = $week + 1;
+        $this->view->thisWeek   = date('YW');
+        $this->view->lastWeek   = $this->getPreYearWeek($week);
+        $this->view->nextWeek   = $this->getNextYearWeek($week);
         $this->view->weeks      = $this->getWeeksRange();
         $this->view->weeklies   = $weeklies;
         $this->view->recTotal   = $recTotal;
@@ -716,46 +709,81 @@ class report extends control
         $this->display();
     }
 
+    private function getPreYearWeek($yearWeek)
+    {
+        $year = substr($yearWeek, 0, 4);
+        $week = substr($yearWeek, 5, 2);
+        if ($week != '01') {
+            $preWeek = $yearWeek - 1;
+        } else {
+            $year = $year - 1;
+            $weekCount = date("W", mktime(0, 0, 0, 12, 31, $year));
+            $preWeek = $year . $weekCount;
+        }
+        return $preWeek;
+    }
+
+    private function getNextYearWeek($yearWeek)
+    {
+        $year = substr($yearWeek, 0, 4);
+        $week = substr($yearWeek, 4, 2);
+        $weekCount = date("W", mktime(0, 0, 0, 12, 31, $year));
+        if ($week != $weekCount) {
+            $nextWeek = $yearWeek + 1;
+        } else {
+            $nextWeek = ($year + 1) . '01';
+        }
+        return $nextWeek;
+    }
+
     private function getWeeksRange()
     {
         $year = date('Y');
-        $weeks = date("W", mktime(0, 0, 0, 12, 31, $year));
-        $weeks = range(1, $weeks);
         $weekRange = [];
-        foreach($weeks as $week) {
-            $weekday = $this->weekday($week);
-            $start = date('m.d', ($weekday['start']));
-            $end = date('m.d', ($weekday['end']));
-            array_push($weekRange, '第' . $week . '周(' . $start . '-' . $end . ')');
+        foreach (range(2021, date('Y')) as $year) {
+            $weekCount = date("W", mktime(0, 0, 0, 12, 31, $year));
+            $weeks = range(1, $weekCount);
+            foreach ($weeks as $week) {
+                $weekday = $this->weekday($week, $year);
+                $start = date('m.d', ($weekday['start']));
+                $end = date('m.d', ($weekday['end']));
+                $weekKey = $this->weekIntToStr($week);
+                $weekRange[$year . $weekKey] = $year . '年第' . $week . '周(' . $start . '-' . $end . ')';
+            }
         }
         return $weekRange;
     }
 
-    public function weekday($week=1){
-        $year = date('Y');
-        $year_start = mktime(0,0,0,1,1,$year);
-        $year_end = mktime(0,0,0,12,31,$year);
-        if (intval(date('W', $year_start))===1){
+    private function weekIntToStr($weekInt)
+    {
+        return str_pad($weekInt, 2, '0', STR_PAD_LEFT);
+    }
+
+    public function weekday($week = 1, $year)
+    {
+        $year_start = mktime(0, 0, 0, 1, 1, $year);
+        $year_end = mktime(0, 0, 0, 12, 31, $year);
+        if (intval(date('W', $year_start)) === 1) {
             $start = $year_start;
         } else {
             $week++;
             $start = strtotime('+1 monday', $year_start);
         }
-        if ($week == 1){
+        if ($week == 1) {
             $weekday['start'] = $start;
-        }else{
-            $weekday['start'] = strtotime('+'.($week-1).' monday', $start);
+        } else {
+            $weekday['start'] = strtotime('+' . ($week - 1) . ' monday', $start);
         }
         $weekday['end'] = strtotime('+1 sunday', $weekday['start']);
-        if (date('Y', $weekday['end']) != $year){
+        if (date('Y', $weekday['end']) != $year) {
             $weekday['end'] = $year_end;
         }
         return $weekday;
     }
 
-    public function milestoneboard($orderBy = 'date_asc', $recTotal = 0, $recPerPage = 20, $pageID = 1, $productID=0, $line=0, $begin='', $isContract='', $completed='')
+    public function milestoneboard($orderBy = 'date_asc', $recTotal = 0, $recPerPage = 20, $pageID = 1, $productID = 0, $line = 0, $begin = '', $isContract = '', $completed = '')
     {
-        if($begin == '' || $begin == 0 ) {
+        if ($begin == '' || $begin == 0) {
             $begin = date('Y-m-d', strtotime('-1 month'));
         } else {
             $begin = date('Y-m-d', strtotime($begin));
@@ -766,12 +794,12 @@ class report extends control
         $this->view->monthLater = date('Y-m-d', strtotime('+1 month'));
         $this->view->seasonLater = date('Y-m-d', strtotime('+3 month'));
 
-        $this->app->loadClass('pager', $static=true);
+        $this->app->loadClass('pager', $static = true);
         $pager = pager::init($recTotal, $recPerPage, $pageID);
         $sort = $this->loadModel('common')->appendOrder($orderBy);
 
         $data = $this->loadModel('milestone')->getReport($pager, $sort, $begin, $productID, $line, $isContract, $completed);
-        $this->view->data=  $data;
+        $this->view->data =  $data;
         $this->view->rowspanArr = $this->countMilestoneRowspan($data);
 
         $this->view->products = array(0 => '') + $this->loadModel('product')->getPairs();
@@ -805,7 +833,7 @@ class report extends control
         return $rowspanArr;
     }
 
-    public function producttargetboard($productID=0, $line=0, $month='', $director='')
+    public function producttargetboard($productID = 0, $line = 0, $month = '', $director = '')
     {
         $thisMonth = date('Ym');
         if ($month == '' || $month == 0) {
@@ -859,7 +887,7 @@ class report extends control
     /**
      * 导出月目标
      */
-    public function exportTarget($productID=0, $line=0, $month='')
+    public function exportTarget($productID = 0, $line = 0, $month = '')
     {
         $thisMonth = date('Ym');
         if ($month == '' || $month == 0) {

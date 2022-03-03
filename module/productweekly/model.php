@@ -13,14 +13,13 @@ class productweeklyModel extends model
             ->fetchAll();
     }
 
-    public function getWeekly($pager, $sort, $week=0, $product=0)
+    public function getWeekly($pager, $sort, $week = 0, $product = 0)
     {
-        $year = date('Y');
         return $this->dao->select('t1.*, t2.realname')
             ->from(TABLE_PRODUCTWEEKLY)->alias('t1')
             ->leftJoin(TABLE_USER)->alias('t2')->on('t1.account= t2.account')
             ->beginIF($week != 0)
-            ->where('YEARWEEK(t1.date, 1)')->eq($year . $week)
+            ->where('YEARWEEK(t1.date, 1)')->eq($week)
             ->fi()
             ->beginIF($product != 0)
             ->andWhere('t1.product')->eq($product)
@@ -36,7 +35,7 @@ class productweeklyModel extends model
             ->from(TABLE_PRODUCTWEEKLY)->alias('t1')
             ->leftJoin(TABLE_PRODUCT)->alias('t2')->on('t1.product=t2.id')
             ->fetchAll();
-        $result = [0 => '项目'];
+        $result = [0 => '全部'];
         foreach ($products as $product) {
             $result[$product->id] = $product->name;
         }
