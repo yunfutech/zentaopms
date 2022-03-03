@@ -1,15 +1,18 @@
 <?php include '../../common/view/header.html.php'; ?>
 <div id="mainMenu" class="clearfix">
   <div class="btn-toolbar pull-left">
-    <?php echo html::a($this->createLink('report', 'weeklyboard', "week=0&product=0"), $lang->report->all, '', "class='btn btn-primary next'"); ?>
-    <?php echo html::a($this->createLink('report', 'weeklyboard', "week={$lastWeek}&product={$product}"), $lang->report->lastWeek, '', "class='btn btn-primary next'"); ?>
-    <?php echo html::a($this->createLink('report', 'weeklyboard', "week={$thisWeek}&product={$product}"), $lang->report->thisWeek, '', "class='btn btn-primary next'"); ?>
-    <?php echo html::a($this->createLink('report', 'weeklyboard', "week={$nextWeek}&product={$product}"), $lang->report->nextWeek, '', "class='btn btn-primary next'"); ?>
+    <?php echo html::a($this->createLink('report', 'weeklyboard', "week=0&product=0&user=0"), $lang->report->all, '', "class='btn btn-primary next'"); ?>
+    <?php echo html::a($this->createLink('report', 'weeklyboard', "week={$lastWeek}&product={$product}&user={$user}"), $lang->report->lastWeek, '', "class='btn btn-primary next'"); ?>
+    <?php echo html::a($this->createLink('report', 'weeklyboard', "week={$thisWeek}&product={$product}&user={$user}"), $lang->report->thisWeek, '', "class='btn btn-primary next'"); ?>
+    <?php echo html::a($this->createLink('report', 'weeklyboard', "week={$nextWeek}&product={$product}&user={$user}"), $lang->report->nextWeek, '', "class='btn btn-primary next'"); ?>
     <div class="input-control space w-250px">
-      <?php echo html::select('week', $weeks, $week, "onchange=changeWeek(this.value) class='form-control chosen'"); ?>
+      <?php echo html::select('week', $weeks, $week, "onchange=changeParams() class='form-control chosen'"); ?>
     </div>
     <div class="input-control space w-150px">
-      <?php echo html::select('product', $products, $product, 'onchange=changeProduct(this.value) class="form-control chosen"'); ?>
+      <?php echo html::select('product', $products, $product, 'onchange=changeParams() class="form-control chosen"'); ?>
+    </div>
+    <div class="input-control space w-150px">
+      <?php echo html::select('user', $users, $user, 'onchange=changeParams() class="form-control chosen"'); ?>
     </div>
   </div>
 </div>
@@ -21,7 +24,7 @@
   <?php else : ?>
     <form class="main-table table-task">
       <table class="table has-sort-head table-fixed">
-        <?php $vars = "week=$week&product=$product&orderBy=%s&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID"; ?>
+        <?php $vars = "week=$week&product=$product&user={$user}&orderBy=%s&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID"; ?>
         <thead>
           <tr>
             <th class="c-id">

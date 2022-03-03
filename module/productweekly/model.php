@@ -13,13 +13,18 @@ class productweeklyModel extends model
             ->fetchAll();
     }
 
-    public function getWeekly($pager, $sort, $week = 0, $product = 0)
+    public function getWeekly($pager, $sort, $week = 0, $product = 0, $user = 0)
     {
-        return $this->dao->select('t1.*, t2.realname')
+        $sql =  $this->dao->select('t1.*, t2.realname')
             ->from(TABLE_PRODUCTWEEKLY)->alias('t1')
             ->leftJoin(TABLE_USER)->alias('t2')->on('t1.account= t2.account')
+            ->leftJoin(TABLE_PRODUCT)->alias('t3')->on('t1.product=t3.id')
+            ->where(1)
+            ->beginIF(is_string($user) && $user != '' && $user != '0')
+            ->andWhere('t3.director')->eq($user)
+            ->fi()
             ->beginIF($week != 0)
-            ->where('YEARWEEK(t1.date, 1)')->eq($week)
+            ->andWhere('YEARWEEK(t1.date, 1)')->eq($week)
             ->fi()
             ->beginIF($product != 0)
             ->andWhere('t1.product')->eq($product)
@@ -27,6 +32,7 @@ class productweeklyModel extends model
             ->orderBy($sort)
             ->page($pager)
             ->fetchAll();
+        return $sql;
     }
 
     public function getWeeklyProducts()
@@ -40,6 +46,20 @@ class productweeklyModel extends model
             $result[$product->id] = $product->name;
         }
         $result = array_unique($result);
+        return $result;
+    }
+
+    public function getWeeklyDirectors()
+    {
+        $directors = $this->dao->select('t3.account, t3.realname')
+            ->from(TABLE_PRODUCTWEEKLY)->alias('t1')
+            ->leftJoin(TABLE_PRODUCT)->alias('t2')->on('t1.product=t2.id')
+            ->leftJoin(TABLE_USER)->alias('t3')->on('t2.director=t3.account')
+            ->fetchAll();
+        $result = [0 => '全部'];
+        foreach ($directors as $director) {
+            $result[$director->account] = $director->realname;
+        }
         return $result;
     }
 

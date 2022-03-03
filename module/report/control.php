@@ -682,21 +682,24 @@ class report extends control
         $this->display();
     }
 
-    public function weeklyboard($week = 0, $product = 0, $orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
+    public function weeklyboard($week = 0, $product = 0, $user = 0, $orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
         $this->app->loadClass('pager', $static = true);
         $pager = pager::init($recTotal, $recPerPage, $pageID);
         $sort = $this->loadModel('common')->appendOrder($orderBy);
-        $weeklies = $this->loadModel('productweekly')->getWeekly($pager, $sort, $week, $product);
-        $products = $this->loadModel('productweekly')->getWeeklyProducts();
+        $weeklies = $this->loadModel('productweekly')->getWeekly($pager, $sort, $week, $product, $user);
 
         $this->view->title      = $this->lang->report->weeklyboard;
         $this->view->position[] = $this->lang->report->weeklyboard;
-        if ($week == 0) $week = date('YW');
         $this->view->week       = $week;
         $this->view->thisWeek   = date('YW');
-        $this->view->lastWeek   = $this->getPreYearWeek($week);
-        $this->view->nextWeek   = $this->getNextYearWeek($week);
+        if ($week == 0) {
+            $yearWeek = date('YW');
+        } else {
+            $yearWeek = $week;
+        }
+        $this->view->lastWeek   = $this->getPreYearWeek($yearWeek);
+        $this->view->nextWeek   = $this->getNextYearWeek($yearWeek);
         $this->view->weeks      = $this->getWeeksRange();
         $this->view->weeklies   = $weeklies;
         $this->view->recTotal   = $recTotal;
@@ -705,14 +708,16 @@ class report extends control
         $this->view->orderBy    = $orderBy;
         $this->view->pager      = $pager;
         $this->view->product = $product;
-        $this->view->products = $products;
+        $this->view->products = $this->loadModel('productweekly')->getWeeklyProducts();
+        $this->view->user = $user;
+        $this->view->users = $this->loadModel('productweekly')->getWeeklyDirectors();
         $this->display();
     }
 
     private function getPreYearWeek($yearWeek)
     {
         $year = substr($yearWeek, 0, 4);
-        $week = substr($yearWeek, 5, 2);
+        $week = substr($yearWeek, 4, 2);
         if ($week != '01') {
             $preWeek = $yearWeek - 1;
         } else {
@@ -739,7 +744,7 @@ class report extends control
     private function getWeeksRange()
     {
         $year = date('Y');
-        $weekRange = [];
+        $weekRange = [0 => '全部'];
         foreach (range(2021, date('Y')) as $year) {
             $weekCount = date("W", mktime(0, 0, 0, 12, 31, $year));
             $weeks = range(1, $weekCount);

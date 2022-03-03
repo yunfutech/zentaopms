@@ -1,19 +1,7 @@
-function changeWeek (week) {
-    var product = $('#product').val()
-    if (week !== 0) {
-        var link = createLink('report', 'weeklyboard', 'week=' + week + '&product=' + product);
-    } else {
-        var link = createLink('report', 'weeklyboard');
-    }
-    location.href = link;
-}
-
-function changeProduct (product) {
+function changeParams () {
     var week = $('#week').val()
-    if (product !== 0) {
-        var link = createLink('report', 'weeklyboard', 'week=' + week + '&product=' + product);
-    } else {
-        var link = createLink('report', 'weeklyboard');
-    }
+    var product = $('#product').val()
+    var user = $('#user').val()
+    var link = createLink('report', 'weeklyboard', 'week=' + week + '&product=' + product + '&user=' + user);
     location.href = link;
 }
