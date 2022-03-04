@@ -5,13 +5,16 @@
     <?php echo html::a($this->createLink('report', 'weeklyboard', "week={$lastWeek}&product={$product}&user={$user}"), $lang->report->lastWeek, '', "class='btn btn-primary next'"); ?>
     <?php echo html::a($this->createLink('report', 'weeklyboard', "week={$thisWeek}&product={$product}&user={$user}"), $lang->report->thisWeek, '', "class='btn btn-primary next'"); ?>
     <?php echo html::a($this->createLink('report', 'weeklyboard', "week={$nextWeek}&product={$product}&user={$user}"), $lang->report->nextWeek, '', "class='btn btn-primary next'"); ?>
-    <div class="input-control space w-250px">
+    <div class="input-group space w-250px">
+      <span class='input-group-addon'><?php echo $lang->report->week; ?></span>
       <?php echo html::select('week', $weeks, $week, "onchange=changeParams() class='form-control chosen'"); ?>
     </div>
-    <div class="input-control space w-150px">
+    <div class="input-group space w-150px">
+      <span class='input-group-addon'><?php echo $lang->report->product; ?></span>
       <?php echo html::select('product', $products, $product, 'onchange=changeParams() class="form-control chosen"'); ?>
     </div>
-    <div class="input-control space w-150px">
+    <div class="input-group space w-150px">
+      <span class='input-group-addon'><?php echo $lang->report->productDirector; ?></span>
       <?php echo html::select('user', $users, $user, 'onchange=changeParams() class="form-control chosen"'); ?>
     </div>
   </div>
