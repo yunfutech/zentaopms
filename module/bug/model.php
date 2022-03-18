@@ -2676,7 +2676,6 @@ class bugModel extends model
             ->leftJoin(TABLE_PRODUCT)->alias('t4')->on('t1.product = t4.id')
             ->where("t1.status = 'active'")
             ->andWhere('t1.deleted')->eq(0)
-            ->andWhere('t3.deleted')->eq(0)
             ->orderBy('dateDiff desc')
             ->fetchAll();
     }
@@ -2687,7 +2686,6 @@ class bugModel extends model
             ->leftJoin(TABLE_USER)->alias('t2')->on('t1.assignedTo = t2.account')
             ->where("t1.status = 'active'")
             ->andWhere('t1.deleted')->eq(0)
-            ->andWhere('t2.deleted')->eq(0)
             ->groupBy('t1.assignedTo')
             ->orderBy('bugNum desc')
             ->fetchAll();
