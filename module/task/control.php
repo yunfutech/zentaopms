@@ -1443,7 +1443,7 @@ class task extends control
     /**
      * 发送邮件提醒，每日工时不足八小时员工
      */
-    public function remind($mail = 'all@yunfutech.com', $send_wx = 1)
+    public function remind($sendWx = 1)
     {
         $depts = $this->dao->select('id,name')->from(TABLE_DEPT)->fetchall();
         $today = date('Y-m-d');
@@ -1555,7 +1555,7 @@ class task extends control
         $this->loadModel('mail');
         // $this->display();
 
-        if (intval($send_wx) == 1) {
+        if (intval($sendWx) == 1) {
             $wxParams = $this->getWxMsgParams($user2cnt, $mentionedUsers);
             $this->sendQywx($wxParams['text'], $wxParams['markdown'], $wxParams['mentionedUsers']);
         }
