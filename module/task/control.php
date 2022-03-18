@@ -1443,7 +1443,7 @@ class task extends control
     /**
      * 发送邮件提醒，每日工时不足八小时员工
      */
-    public function remind($sendWx = 1)
+    public function remind($sendWx = 1, $sendMail=1)
     {
         $depts = $this->dao->select('id,name')->from(TABLE_DEPT)->fetchall();
         $today = date('Y-m-d');
@@ -1553,28 +1553,30 @@ class task extends control
         $this->view->delayProjectsNum = $delayProjectsNum;
         // $this->view->uncommittedUsers = $uncommittedUsers;
         $this->loadModel('mail');
-        // $this->display();
+        $this->display();
 
         if (intval($sendWx) == 1) {
             $wxParams = $this->getWxMsgParams($user2cnt, $mentionedUsers);
             $this->sendQywx($wxParams['text'], $wxParams['markdown'], $wxParams['mentionedUsers']);
         }
 
-        $subject = '禅道日报';
-        $modulePath = $this->app->getModulePath($appName = '', 'task');
-        $viewFile   = $modulePath . 'view/remind.html.php';
-        ob_start();
-        include $viewFile;
-        $mailContent = ob_get_contents();
-        ob_end_clean();
+        if (intval($sendMail) == 1) {
+            $subject = '禅道日报';
+            $modulePath = $this->app->getModulePath($appName = '', 'task');
+            $viewFile   = $modulePath . 'view/remind.html.php';
+            ob_start();
+            include $viewFile;
+            $mailContent = ob_get_contents();
+            ob_end_clean();
 
-        $this->mail->sendToEmail('all@yunfutech.com', $subject, $mailContent);
+            $this->mail->sendToEmail('all@yunfutech.com', $subject, $mailContent);
 
-        if ($this->mail->isError()) {
-            echo "发送失败: \n";
-            a($this->mail->getError());
+            if ($this->mail->isError()) {
+                echo "发送失败: \n";
+                a($this->mail->getError());
+            }
+            echo "发送成功\n";
         }
-        echo "发送成功\n";
     }
 
     private function getWxMsgParams($user2cnt, $mentionedUsers)
