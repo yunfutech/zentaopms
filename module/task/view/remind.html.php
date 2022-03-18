@@ -93,11 +93,13 @@
             <th width="80">待处理个数</th>
           </tr>
           <?php foreach ($countUserBugs as $key => $user) : ?>
-            <tr>
-              <td class="text-center"><?php echo $key + 1; ?></td>
-              <td><?php echo $user->userName; ?></td>
-              <td><?php echo $user->bugNum; ?></td>
-            </tr>
+            <?php if (trim($user->userName != '')) : ?>
+              <tr>
+                <td class="text-center"><?php echo $key + 1; ?></td>
+                <td><?php echo $user->userName; ?></td>
+                <td><?php echo $user->bugNum; ?></td>
+              </tr>
+            <?php endif; ?>
           <?php endforeach; ?>
         </table>
       </div>
@@ -119,16 +121,14 @@
             <th width="100">激活时长(天)</th>
           </tr>
           <?php foreach ($unresolvedBugs as $key => $bug) : ?>
-            <?php if (trim($bug->userName != '')) : ?>
-              <tr>
-                <td class="text-center"><?php echo $key + 1; ?></td>
-                <td><?php echo $bug->productNname; ?></td>
-                <td><?php echo $bug->projectNname; ?></td>
-                <td><?php echo $bug->title; ?></td>
-                <td><?php echo $bug->userName; ?></td>
-                <td><?php echo $bug->dateDiff; ?></td>
-              </tr>
-            <?php endif; ?>
+            <tr>
+              <td class="text-center"><?php echo $key + 1; ?></td>
+              <td><?php echo $bug->productNname; ?></td>
+              <td><?php echo $bug->projectNname; ?></td>
+              <td><?php echo $bug->title; ?></td>
+              <td><?php echo $bug->userName; ?></td>
+              <td><?php echo $bug->dateDiff; ?></td>
+            </tr>
           <?php endforeach; ?>
         </table>
       </div>
