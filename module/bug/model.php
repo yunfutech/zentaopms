@@ -2670,7 +2670,7 @@ class bugModel extends model
 
     public function getUnresolvedBugs()
     {
-        return $this->dao->select('t1.title, t2.name as projectNname, t3.realname as userName, TIMESTAMPDIFF(DAY, t1.assignedDate, NOW()) as dateDiff, t4.name as productNname')->from(TABLE_BUG)->alias('t1')
+        return $this->dao->select('t1.title, t1.assignedTo, t2.name as projectNname, t3.realname as userName, TIMESTAMPDIFF(DAY, t1.assignedDate, NOW()) as dateDiff, t4.name as productNname')->from(TABLE_BUG)->alias('t1')
             ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
             ->leftJoin(TABLE_USER)->alias('t3')->on('t1.assignedTo = t3.account')
             ->leftJoin(TABLE_PRODUCT)->alias('t4')->on('t1.product = t4.id')

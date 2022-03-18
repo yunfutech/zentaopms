@@ -124,7 +124,7 @@
               <td><?php echo $bug->productNname; ?></td>
               <td><?php echo $bug->projectNname; ?></td>
               <td><?php echo $bug->title; ?></td>
-              <td><?php echo $bug->userName; ?></td>
+              <td><?php echo $bug->userName ? $bug->userName : $bug->assignedTo; ?></td>
               <td><?php echo $bug->dateDiff; ?></td>
             </tr>
           <?php endforeach; ?>
