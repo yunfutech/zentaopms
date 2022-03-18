@@ -112,19 +112,19 @@
         <table class="count">
           <tr>
             <th width="50">序号</th>
+            <th width="200">项目</th>
+            <th width="200">迭代</th>
             <th width="300">bug标题</th>
             <th width="100">指派给</th>
-            <th width="200">迭代</th>
-            <th width="200">项目</th>
             <th width="100">激活时长(天)</th>
           </tr>
           <?php foreach ($unresolvedBugs as $key => $bug) : ?>
             <tr>
               <td class="text-center"><?php echo $key + 1; ?></td>
+              <td><?php echo $bug->productNname; ?></td>
+              <td><?php echo $bug->projectNname; ?></td>
               <td><?php echo $bug->title; ?></td>
               <td><?php echo $bug->userName; ?></td>
-              <td><?php echo $bug->projectNname; ?></td>
-              <td><?php echo $bug->productNname; ?></td>
               <td><?php echo $bug->dateDiff; ?></td>
             </tr>
           <?php endforeach; ?>
