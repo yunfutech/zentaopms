@@ -24,6 +24,7 @@ class task extends control
         $this->loadModel('project');
         $this->loadModel('story');
         $this->loadModel('tree');
+        $this->loadModel('bug');
 
         if ($this->config->global->flow == 'onlyTask') {
             $this->config->task->customCreateFields        = str_replace(array('story,'), '', $this->config->task->customCreateFields);
@@ -1442,7 +1443,7 @@ class task extends control
     /**
      * 发送邮件提醒，每日工时不足八小时员工
      */
-    public function remind()
+    public function remind($mail = 'all@yunfutech.com', $send_wx = 1)
     {
         $depts = $this->dao->select('id,name')->from(TABLE_DEPT)->fetchall();
         $today = date('Y-m-d');
@@ -1510,6 +1511,10 @@ class task extends control
 
         // $uncommittedUsers = $this->dao->query('SELECT realname FROM zt_user WHERE account in (\'' . join('\',\'', $uncommittedAccounts) . '\')')->fetchAll();
 
+
+        $unresolvedBugs = $this->bug->getUnresolvedBugs();
+        $countUserBugs = $this->bug->countUserBugs();
+
         // 节假日
         if ($less_count / $users_count >= 0.5) {
             echo '节假日\n';
@@ -1541,6 +1546,8 @@ class task extends control
             }
         }
         $this->view->summary = $summary;
+        $this->view->countUserBugs = $countUserBugs;
+        $this->view->unresolvedBugs = $unresolvedBugs;
         $this->view->deleyTasksRank = $deleyTasksRank;
         $this->view->delayProjects = $delayProjects;
         $this->view->delayProjectsNum = $delayProjectsNum;
@@ -1548,8 +1555,10 @@ class task extends control
         $this->loadModel('mail');
         // $this->display();
 
-        $wxParams = $this->getWxMsgParams($user2cnt, $mentionedUsers);
-        $this->sendQywx($wxParams['text'], $wxParams['markdown'], $wxParams['mentionedUsers']);
+        if (intval($send_wx) == 1) {
+            $wxParams = $this->getWxMsgParams($user2cnt, $mentionedUsers);
+            $this->sendQywx($wxParams['text'], $wxParams['markdown'], $wxParams['mentionedUsers']);
+        }
 
         $subject = '禅道日报';
         $modulePath = $this->app->getModulePath($appName = '', 'task');
@@ -1559,7 +1568,7 @@ class task extends control
         $mailContent = ob_get_contents();
         ob_end_clean();
 
-        $this->mail->sendToEmail('all@yunfutech.com', $subject, $mailContent);
+        $this->mail->sendToEmail($mail, $subject, $mailContent);
 
         if ($this->mail->isError()) {
             echo "发送失败: \n";
