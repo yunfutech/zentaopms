@@ -1,1 +1,0 @@
-ALTER TABLE `zt_milestone` ADD `deleted` ENUM('0','1') NOT NULL DEFAULT '0' COMMENT '是否删除' AFTER `createdBy`;

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The report module zh-cn file of ZenTaoPMS.
  *
@@ -164,8 +165,7 @@ $lang->report->annualData->executionFields['bug']   = "解决Bug数";
 $lang->report->annualData->productFields['name'] = "{$lang->productCommon}名称";
 $lang->report->annualData->productFields['plan'] = "计划数";
 global $config;
-if(!empty($config->URAndSR))
-{
+if (!empty($config->URAndSR)) {
     $lang->report->annualData->productFields['requirement'] = "创建{$lang->URCommon}数";
 }
 $lang->report->annualData->productFields['story']  = "创建{$lang->SRCommon}数";
@@ -231,3 +231,6 @@ $lang->report->executionProgress   = "执行进展";
 $lang->report->projectProgress     = "项目进展";
 $lang->report->yearProjectOverview = "年度项目总览";
 $lang->report->projectOverview     = "截止目前项目总览";
+
+$lang->report->taskboard = new stdClass();
+$lang->report->taskboard->detail = '详情';

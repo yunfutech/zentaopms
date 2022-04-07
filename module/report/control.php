@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The control file of report module of ZenTaoPMS.
  *
@@ -31,9 +32,9 @@ class report extends control
 
         /* Set report menu group. */
         $this->projectID = isset($_GET['project']) ? $_GET['project'] : 0;
-        if(!$this->projectID) $this->lang->navGroup->report = 'report';
+        if (!$this->projectID) $this->lang->navGroup->report = 'report';
 
-        if((isset($this->config->proVersion) || isset($this->config->bizVersion)) && $this->lang->navGroup->report == 'report' && common::hasPriv('report', 'custom')) $this->lang->report->mainMenuAction = html::a(helper::createLink('report', 'custom'), $this->lang->crystal->custom, '', "class='btn btn-link'");
+        if ((isset($this->config->proVersion) || isset($this->config->bizVersion)) && $this->lang->navGroup->report == 'report' && common::hasPriv('report', 'custom')) $this->lang->report->mainMenuAction = html::a(helper::createLink('report', 'custom'), $this->lang->crystal->custom, '', "class='btn btn-link'");
     }
 
     /**
@@ -106,7 +107,7 @@ class report extends control
     public function bugCreate($begin = 0, $end = 0, $product = 0, $execution = 0)
     {
         $this->app->loadLang('bug');
-        $begin = $begin == 0 ? date('Y-m-d', strtotime('last month', strtotime(date('Y-m',time()) . '-01 00:00:01'))) : date('Y-m-d', strtotime($begin));
+        $begin = $begin == 0 ? date('Y-m-d', strtotime('last month', strtotime(date('Y-m', time()) . '-01 00:00:01'))) : date('Y-m-d', strtotime($begin));
         $end   = $end == 0   ? date('Y-m-d', strtotime('now')) : $end = date('Y-m-d', strtotime($end));
 
         $this->view->title      = $this->lang->report->bugCreate;
@@ -156,8 +157,7 @@ class report extends control
      */
     public function workload($begin = '', $end = '', $days = 0, $workday = 0, $dept = 0, $assign = 'assign')
     {
-        if($_POST)
-        {
+        if ($_POST) {
             $data    = fixer::input('post')->get();
             $begin   = $data->begin;
             $end     = $data->end;
@@ -177,17 +177,15 @@ class report extends control
         $begin  = date('Y-m-d', $begin);
         $end    = date('Y-m-d', $end);
 
-        if(empty($workday))$workday = $this->config->execution->defaultWorkhours;
+        if (empty($workday)) $workday = $this->config->execution->defaultWorkhours;
         $diffDays = helper::diffDate($end, $begin);
-        if($days > $diffDays) $days = $diffDays;
-        if(empty($days))
-        {
+        if ($days > $diffDays) $days = $diffDays;
+        if (empty($days)) {
             $weekDay = $beginWeekDay;
             $days    = $diffDays;
-            for($i = 0; $i < $diffDays; $i++,$weekDay++)
-            {
+            for ($i = 0; $i < $diffDays; $i++, $weekDay++) {
                 $weekDay = $weekDay % 7;
-                if(($this->config->execution->weekend == 2 and $weekDay == 6) or $weekDay == 0) $days --;
+                if (($this->config->execution->weekend == 2 and $weekDay == 6) or $weekDay == 0) $days--;
             }
         }
 
@@ -217,32 +215,30 @@ class report extends control
     public function remind()
     {
         $bugs = $tasks = $todos = $testTasks = array();
-        if($this->config->report->dailyreminder->bug)      $bugs  = $this->report->getUserBugs();
-        if($this->config->report->dailyreminder->task)     $tasks = $this->report->getUserTasks();
-        if($this->config->report->dailyreminder->todo)     $todos = $this->report->getUserTodos();
-        if($this->config->report->dailyreminder->testTask) $testTasks = $this->report->getUserTestTasks();
+        if ($this->config->report->dailyreminder->bug)      $bugs  = $this->report->getUserBugs();
+        if ($this->config->report->dailyreminder->task)     $tasks = $this->report->getUserTasks();
+        if ($this->config->report->dailyreminder->todo)     $todos = $this->report->getUserTodos();
+        if ($this->config->report->dailyreminder->testTask) $testTasks = $this->report->getUserTestTasks();
 
         $reminder = array();
 
         $users = array_unique(array_merge(array_keys($bugs), array_keys($tasks), array_keys($todos), array_keys($testTasks)));
-        if(!empty($users)) foreach($users as $user) $reminder[$user] = new stdclass();
+        if (!empty($users)) foreach ($users as $user) $reminder[$user] = new stdclass();
 
-        if(!empty($bugs))  foreach($bugs as $user => $bug)   $reminder[$user]->bugs  = $bug;
-        if(!empty($tasks)) foreach($tasks as $user => $task) $reminder[$user]->tasks = $task;
-        if(!empty($todos)) foreach($todos as $user => $todo) $reminder[$user]->todos = $todo;
-        if(!empty($testTasks)) foreach($testTasks as $user => $testTask) $reminder[$user]->testTasks = $testTask;
+        if (!empty($bugs))  foreach ($bugs as $user => $bug)   $reminder[$user]->bugs  = $bug;
+        if (!empty($tasks)) foreach ($tasks as $user => $task) $reminder[$user]->tasks = $task;
+        if (!empty($todos)) foreach ($todos as $user => $todo) $reminder[$user]->todos = $todo;
+        if (!empty($testTasks)) foreach ($testTasks as $user => $testTask) $reminder[$user]->testTasks = $testTask;
 
         $this->loadModel('mail');
 
         /* Check mail turnon.*/
-        if(!$this->config->mail->turnon)
-        {
+        if (!$this->config->mail->turnon) {
             echo "You should turn on the Email feature first.\n";
             return false;
         }
 
-        foreach($reminder as $user => $mail)
-        {
+        foreach ($reminder as $user => $mail) {
             /* Reset $this->output. */
             $this->clear();
 
@@ -258,16 +254,15 @@ class report extends control
             $this->view->mailTitle = $mailTitle;
 
             $oldViewType = $this->viewType;
-            if($oldViewType == 'json') $this->viewType = 'html';
+            if ($oldViewType == 'json') $this->viewType = 'html';
             $mailContent = $this->parse('report', 'dailyreminder');
             $this->viewType == $oldViewType;
 
             /* Send email.*/
             echo date('Y-m-d H:i:s') . " sending to $user, ";
             $this->mail->send($user, $mailTitle, $mailContent, '', true);
-            if($this->mail->isError())
-            {
-                echo "fail: \n" ;
+            if ($this->mail->isError()) {
+                echo "fail: \n";
                 a($this->mail->getError());
             }
             echo "ok\n";
@@ -296,17 +291,15 @@ class report extends control
 
         /* Get years for use zentao. */
         $years = array();
-        for($thisYear = $firstYear; $thisYear <= $currentYear; $thisYear ++) $years[$thisYear] = $thisYear;
+        for ($thisYear = $firstYear; $thisYear <= $currentYear; $thisYear++) $years[$thisYear] = $thisYear;
 
         /* Init year when year is empty. */
-        if(empty($year))
-        {
+        if (empty($year)) {
             $year  = date('Y');
             $month = date('n');
-            if($month <= $this->config->report->annualData['minMonth'])
-            {
+            if ($month <= $this->config->report->annualData['minMonth']) {
                 $year -= 1;
-                if(!isset($years[$year])) $year += 1;
+                if (!isset($years[$year])) $year += 1;
             }
         }
 
@@ -316,33 +309,28 @@ class report extends control
 
         $depts = $this->loadModel('dept')->getOptionMenu();
         $depts = array('' => $this->lang->report->annualData->allDept) + $depts;
-        if(empty($userID)) unset($depts[0]);
+        if (empty($userID)) unset($depts[0]);
 
         $accounts = array();
-        if($dept) $accounts = $this->loadModel('dept')->getDeptUserPairs($dept);
-        if($userID)
-        {
+        if ($dept) $accounts = $this->loadModel('dept')->getDeptUserPairs($dept);
+        if ($userID) {
             $user = $this->loadModel('user')->getById($userID, 'id');
             $dept = $user->dept;
             $accounts = array($user->account => ($user->realname ? $user->realname : $user->account));
         }
-        if(empty($accounts)) $accounts = $this->user->getPairs('noletter|noclosed');
-        if($accounts) $accounts = array_keys($accounts);
+        if (empty($accounts)) $accounts = $this->user->getPairs('noletter|noclosed');
+        if ($accounts) $accounts = array_keys($accounts);
 
-        if($dept)
-        {
+        if ($dept) {
             $users = $this->loadModel('dept')->getDeptUserPairs($dept, 'id');
             $users = array('' => $this->lang->report->annualData->allUser) + $users;
         }
 
         /* Get annual data. */
         $data = array();
-        if(!$userID)
-        {
-            $data['users'] = $dept ? count($accounts) :  (count($users) - 1);
-        }
-        else
-        {
+        if (!$userID) {
+            $data['users'] = $dept ? count($accounts) : (count($users) - 1);
+        } else {
             $data['logins'] = $this->report->getUserYearLogins($accounts, $year);
         }
         $data['actions']       = $this->report->getUserYearActions($accounts, $year);
@@ -358,7 +346,7 @@ class report extends control
         $yearEfforts = $this->report->getUserYearEfforts($accounts, $year);
         $data['consumed'] = $yearEfforts->consumed;
 
-        if(empty($dept) and empty($userID)) $data['statusStat'] = $this->report->getAllTimeStatusStat();
+        if (empty($dept) and empty($userID)) $data['statusStat'] = $this->report->getAllTimeStatusStat();
 
         $this->view->title  = sprintf($this->lang->report->annualData->title, ($userID ? zget($users, $userID, '') : ($dept ? substr($depts[$dept], strrpos($depts[$dept], '/') + 1) : $depts[''])), $year);
         $this->view->data   = $data;
@@ -370,5 +358,66 @@ class report extends control
         $this->view->userID = $userID;
         $this->view->months = $this->report->getYearMonths($year);
         die($this->display());
+    }
+
+    public function taskboard($date = 0, $dept = -1, $director = '', $project = 0)
+    {
+        $this->app->loadLang('task');
+        if ($_POST) {
+            $data = fixer::input('post')->get();
+            $dept = $data->dept;
+            $date = $data->date;
+        }
+        if ($dept > -1) {
+            $dept = $dept;
+        } else {
+            $dept = $this->app->user->dept;
+        }
+        if ($date == '' || $date == 0 || $date == 'today' || !$date) {
+            $date = date('Y-m-d');
+        } else {
+            $date = date('Y-m-d', strtotime($date));
+        }
+
+        # TODO: 项目负责人
+        // $directors = ['' => '全部'] + $this->loadModel('product')->getDirectors();
+
+        $projects = [0 => '全部'] + $this->loadModel('project')->getAll();
+
+        // if ($director == '' && $product == 0) {
+        //     $independentProjects = $this->loadModel('project')->getIndependentProjects();
+        // } else {
+        //     $independentProjects = [];
+        // }
+        $independentProjects = [];
+
+        $projectIDs = array_keys($projects);
+
+
+        $result = $this->report->getTaskStatistics($dept, $date, $projectIDs, $project, $independentProjects);
+        $this->view->user2detail = $result['tasks'];
+        $this->view->short = $result['short'];
+        $this->view->exceed = $result['exceed'];
+
+        $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
+
+        $this->view->date = $date;
+        $this->view->toady = date('Ymd');
+        $this->view->prev_day = date("Ymd", strtotime("-1 days", strtotime($date)));
+        $this->view->next_day = date("Ymd", strtotime("+1 days", strtotime($date)));
+
+        $this->view->depts = $this->loadModel('dept')->getOptionMenu();
+        $this->view->projects = $projects;
+        // $this->view->directors = $directors;
+
+        $this->view->dept = $dept;
+        $this->view->project = $project;
+        $this->view->director = $director;
+
+        $this->app->loadConfig('project');
+        $this->app->session->set('taskList',  $this->app->getURI(true));
+        $this->view->title = $this->lang->report->taskboard;
+        $this->view->position[] = $this->lang->report->taskboard;
+        $this->display();
     }
 }

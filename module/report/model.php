@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The model file of report module of ZenTaoPMS.
  *
@@ -23,15 +24,14 @@ class reportModel extends model
     public function computePercent($datas)
     {
         $sum = 0;
-        foreach($datas as $data) $sum += $data->value;
+        foreach ($datas as $data) $sum += $data->value;
 
         $totalPercent = 0;
-        foreach($datas as $i => $data)
-        {
+        foreach ($datas as $i => $data) {
             $data->percent = round($data->value / $sum, 4);
             $totalPercent += $data->percent;
         }
-        if(isset($i)) $datas[$i]->percent = round(1 - $totalPercent + $datas[$i]->percent, 4);
+        if (isset($i)) $datas[$i]->percent = round(1 - $totalPercent + $datas[$i]->percent, 4);
         return $datas;
     }
 
@@ -47,12 +47,10 @@ class reportModel extends model
         $now  = date('Y-m-d');
         $preValue = 0;
         $setsDate = array_keys($sets);
-        foreach($dateList as $i => $date)
-        {
+        foreach ($dateList as $i => $date) {
             $date  = date('Y-m-d', strtotime($date));
-            if($date > $now) break;
-            if(!isset($sets[$date]) and $sets)
-            {
+            if ($date > $now) break;
+            if (!isset($sets[$date]) and $sets) {
                 $tmpDate = $setsDate;
                 $tmpDate[] = $date;
                 sort($tmpDate);
@@ -60,8 +58,7 @@ class reportModel extends model
                 $preDate = rtrim(substr($tmpDateStr, 0, strpos($tmpDateStr, $date)), ',');
                 $preDate = substr($preDate, strrpos($preDate, ',') + 1);
 
-                if($preDate)
-                {
+                if ($preDate) {
                     $preValue = $sets[$preDate];
                     $preValue = $preValue->value;
                 }
@@ -84,7 +81,7 @@ class reportModel extends model
      */
     public function convertFormat($dateList, $format = 'Y-m-d')
     {
-        foreach($dateList as $i => $date) $dateList[$i] = date($format, strtotime($date));
+        foreach ($dateList as $i => $date) $dateList[$i] = date($format, strtotime($date));
         return $dateList;
     }
 
@@ -113,11 +110,9 @@ class reportModel extends model
             ->fetchAll();
 
         $executions = array();
-        foreach($tasks as $task)
-        {
+        foreach ($tasks as $task) {
             $executionID = $task->execution;
-            if(!isset($executions[$executionID]))
-            {
+            if (!isset($executions[$executionID])) {
                 $executions[$executionID] = new stdclass();
                 $executions[$executionID]->estimate = 0;
                 $executions[$executionID]->consumed = 0;
@@ -152,13 +147,10 @@ class reportModel extends model
             ->beginIF(strpos($conditions, 'overduePlan') === false)->andWhere('end')->gt(date('Y-m-d'))->fi()
             ->orderBy('product,parent_desc,begin')
             ->fetchAll('id');
-        foreach($plans as $plan)
-        {
-            if($plan->parent > 0)
-            {
+        foreach ($plans as $plan) {
+            if ($plan->parent > 0) {
                 $parentPlan = zget($plans, $plan->parent, null);
-                if($parentPlan)
-                {
+                if ($parentPlan) {
                     $products[$plan->product]->plans[$parentPlan->id] = $parentPlan;
                     unset($plans[$parentPlan->id]);
                 }
@@ -174,47 +166,38 @@ class reportModel extends model
             ->where('deleted')->eq(0)
             ->beginIF($storyType)->andWhere('type')->eq($storyType)->fi()
             ->query();
-        while($story = $stmt->fetch())
-        {
-            if(empty($story->plan))
-            {
+        while ($story = $stmt->fetch()) {
+            if (empty($story->plan)) {
                 $unplannedStories[$story->id] = $story;
                 continue;
             }
 
             $storyPlans   = array();
             $storyPlans[] = $story->plan;
-            if(strpos($story->plan, ',') !== false) $storyPlans = explode(',', trim($story->plan, ','));
-            foreach($storyPlans as $planID)
-            {
-                if(isset($plans[$planID]))
-                {
+            if (strpos($story->plan, ',') !== false) $storyPlans = explode(',', trim($story->plan, ','));
+            foreach ($storyPlans as $planID) {
+                if (isset($plans[$planID])) {
                     $planStories[$story->id] = $story;
                     break;
                 }
             }
         }
 
-        foreach($planStories as $story)
-        {
+        foreach ($planStories as $story) {
             $storyPlans = array();
             $storyPlans[] = $story->plan;
-            if(strpos($story->plan, ',') !== false) $storyPlans = explode(',', trim($story->plan, ','));
-            foreach($storyPlans as $planID)
-            {
-                if(!isset($plans[$planID])) continue;
+            if (strpos($story->plan, ',') !== false) $storyPlans = explode(',', trim($story->plan, ','));
+            foreach ($storyPlans as $planID) {
+                if (!isset($plans[$planID])) continue;
                 $plan = $plans[$planID];
                 $products[$plan->product]->plans[$planID]->status[$story->status] = isset($products[$plan->product]->plans[$planID]->status[$story->status]) ? $products[$plan->product]->plans[$planID]->status[$story->status] + 1 : 1;
             }
         }
 
-        foreach($unplannedStories as $story)
-        {
+        foreach ($unplannedStories as $story) {
             $product = $story->product;
-            if(isset($products[$product]))
-            {
-                if(!isset($products[$product]->plans[0]))
-                {
+            if (isset($products[$product])) {
+                if (!isset($products[$product]->plans[0])) {
                     $products[$product]->plans[0] = new stdClass();
                     $products[$product]->plans[0]->title = $this->lang->report->unplanned;
                     $products[$product]->plans[0]->begin = '';
@@ -250,21 +233,18 @@ class reportModel extends model
             ->fetchAll();
 
         $bugCreate = array();
-        foreach($bugs as $bug)
-        {
+        foreach ($bugs as $bug) {
             $bugCreate[$bug->openedBy][$bug->resolution] = empty($bugCreate[$bug->openedBy][$bug->resolution]) ? 1 : $bugCreate[$bug->openedBy][$bug->resolution] + 1;
             $bugCreate[$bug->openedBy]['all']            = empty($bugCreate[$bug->openedBy]['all']) ? 1 : $bugCreate[$bug->openedBy]['all'] + 1;
-            if($bug->status == 'resolved' or $bug->status == 'closed')
-            {
+            if ($bug->status == 'resolved' or $bug->status == 'closed') {
                 $bugCreate[$bug->openedBy]['resolved'] = empty($bugCreate[$bug->openedBy]['resolved']) ? 1 : $bugCreate[$bug->openedBy]['resolved'] + 1;
             }
         }
 
-        foreach($bugCreate as $account => $bug)
-        {
+        foreach ($bugCreate as $account => $bug) {
             $validRate = 0;
-            if(isset($bug['fixed']))     $validRate += $bug['fixed'];
-            if(isset($bug['postponed'])) $validRate += $bug['postponed'];
+            if (isset($bug['fixed']))     $validRate += $bug['fixed'];
+            if (isset($bug['postponed'])) $validRate += $bug['postponed'];
             $bugCreate[$account]['validRate'] = (isset($bug['resolved']) and $bug['resolved']) ? ($validRate / $bug['resolved']) : "0";
         }
         uasort($bugCreate, 'sortSummary');
@@ -283,10 +263,9 @@ class reportModel extends model
     public function getWorkload($dept = 0, $assign = 'assign')
     {
         $deptUsers = array();
-        if($dept) $deptUsers = $this->loadModel('dept')->getDeptUserPairs($dept);
+        if ($dept) $deptUsers = $this->loadModel('dept')->getDeptUserPairs($dept);
 
-        if($assign == 'noassign')
-        {
+        if ($assign == 'noassign') {
             $members = $this->dao->select('t1.account,t2.name,t1.root,t3.id as project,t3.name as projectname')->from(TABLE_TEAM)->alias('t1')
                 ->leftJoin(TABLE_EXECUTION)->alias('t2')->on('t2.id = t1.root')
                 ->leftJoin(TABLE_PROJECT)->alias('t3')->on('t3.id = t2.project')
@@ -297,15 +276,11 @@ class reportModel extends model
                 ->fetchGroup('account', 'name');
 
             $workload = array();
-            if(!empty($members))
-            {
-                foreach($members as $member => $executions)
-                {
+            if (!empty($members)) {
+                foreach ($members as $member => $executions) {
                     $project = array();
-                    if(!empty($executions))
-                    {
-                        foreach($executions as $name => $execution)
-                        {
+                    if (!empty($executions)) {
+                        foreach ($executions as $name => $execution) {
                             $project[$execution->projectname]['projectID'] = $execution->project;
                             $project[$execution->projectname]['execution'][$name]['executionID'] = $execution->root;
                             $project[$execution->projectname]['execution'][$name]['count']       = 0;
@@ -331,18 +306,14 @@ class reportModel extends model
             ->andWhere('assignedTo')->ne('');
 
         $allTasks = $stmt->fetchAll('id');
-        if(empty($allTasks)) return array();
+        if (empty($allTasks)) return array();
 
         $tasks = array();
-        if(empty($dept))
-        {
+        if (empty($dept)) {
             $tasks = $allTasks;
-        }
-        else
-        {
-            foreach($allTasks as $taskID => $task)
-            {
-                if(isset($deptUsers[$task->assignedTo])) $tasks[$taskID] = $task;
+        } else {
+            foreach ($allTasks as $taskID => $task) {
+                if (isset($deptUsers[$task->assignedTo])) $tasks[$taskID] = $task;
             }
         }
 
@@ -350,9 +321,8 @@ class reportModel extends model
         $parents       = array();
         $taskIdList    = array();
         $taskGroups    = array();
-        foreach($tasks as $task)
-        {
-            if($task->parent > 0) $parents[$task->parent] = $task->parent;
+        foreach ($tasks as $task) {
+            if ($task->parent > 0) $parents[$task->parent] = $task->parent;
             $taskGroups[$task->assignedTo][$task->id] = $task;
         }
 
@@ -360,10 +330,8 @@ class reportModel extends model
             ->andWhere('root')->in(array_keys($allTasks))
             ->beginIF($dept)->andWhere('account')->in(array_keys($deptUsers))->fi()
             ->fetchGroup('account', 'root');
-        foreach($multiTaskTeams as $assignedTo => $multiTasks)
-        {
-            foreach($multiTasks as $task)
-            {
+        foreach ($multiTaskTeams as $assignedTo => $multiTasks) {
+            foreach ($multiTasks as $task) {
                 $userTask = clone $allTasks[$task->root];
                 $userTask->estimate = $task->estimate;
                 $userTask->consumed = $task->consumed;
@@ -373,14 +341,11 @@ class reportModel extends model
         }
 
         $workload = array();
-        foreach($taskGroups as $user => $userTasks)
-        {
-            if($user)
-            {
+        foreach ($taskGroups as $user => $userTasks) {
+            if ($user) {
                 $project = array();
-                foreach($userTasks as $task)
-                {
-                    if(isset($parents[$task->id])) continue;
+                foreach ($userTasks as $task) {
+                    if (isset($parents[$task->id])) continue;
 
                     $project[$task->projectname]['projectID'] = isset($project[$task->projectname]['projectID']) ? $project[$task->projectname]['projectID'] : $task->project;
                     $project[$task->projectname]['execution'][$task->executionName]['executionID'] = isset($project[$task->projectname]['execution'][$task->executionName]['executionID']) ? $project[$task->projectname]['execution'][$task->executionName]['executionID'] : $task->execution;
@@ -412,12 +377,9 @@ class reportModel extends model
             ->andWhere('t2.deleted')->eq(0)
             ->fetchGroup('assignedTo');
         $assign = array();
-        foreach($bugs as $user => $userBugs)
-        {
-            if($user)
-            {
-                foreach($userBugs as $bug)
-                {
+        foreach ($bugs as $user => $userBugs) {
+            if ($user) {
+                foreach ($userBugs as $bug) {
                     $assign[$user]['bug'][$bug->productName]['count']     = isset($assign[$user]['bug'][$bug->productName]['count']) ? $assign[$user]['bug'][$bug->productName]['count'] + 1 : 1;
                     $assign[$user]['bug'][$bug->productName]['productID'] = $bug->product;
                     $assign[$user]['total']['count']   = isset($assign[$user]['total']['count']) ? $assign[$user]['total']['count'] + 1 : 1;
@@ -436,18 +398,15 @@ class reportModel extends model
      */
     public function getSysURL()
     {
-        if(isset($this->config->mail->domain)) return $this->config->mail->domain;
+        if (isset($this->config->mail->domain)) return $this->config->mail->domain;
 
         /* Ger URL when run in shell. */
-        if(PHP_SAPI == 'cli')
-        {
+        if (PHP_SAPI == 'cli') {
             $url = parse_url(trim($this->server->argv[1]));
             $port = (empty($url['port']) or $url['port'] == 80) ? '' : $url['port'];
             $host = empty($port) ? $url['host'] : $url['host'] . ':' . $port;
             return $url['scheme'] . '://' . $host;
-        }
-        else
-        {
+        } else {
             return common::getSysURL();
         }
     }
@@ -514,10 +473,9 @@ class reportModel extends model
             ->query();
 
         $todos = array();
-        while($todo = $stmt->fetch())
-        {
-            if($todo->type == 'task') $todo->name = $this->dao->findById($todo->idvalue)->from(TABLE_TASK)->fetch('name');
-            if($todo->type == 'bug')  $todo->name = $this->dao->findById($todo->idvalue)->from(TABLE_BUG)->fetch('title');
+        while ($todo = $stmt->fetch()) {
+            if ($todo->type == 'task') $todo->name = $this->dao->findById($todo->idvalue)->from(TABLE_TASK)->fetch('name');
+            if ($todo->type == 'bug')  $todo->name = $this->dao->findById($todo->idvalue)->from(TABLE_BUG)->fetch('title');
             $todos[$todo->user][] = $todo;
         }
         return $todos;
@@ -587,42 +545,36 @@ class reportModel extends model
 
         $filterActions = array();
         $objectIdList  = array();
-        while($action = $stmt->fetch())
-        {
+        while ($action = $stmt->fetch()) {
             $objectType  = $action->objectType;
             $objectID    = $action->objectID;
             $lowerAction = strtolower($action->action);
-            if(!isset($this->config->report->annualData['contributions'][$objectType][$lowerAction])) continue;
+            if (!isset($this->config->report->annualData['contributions'][$objectType][$lowerAction])) continue;
 
             $objectIdList[$objectType][$objectID] = $objectID;
             $filterActions[$objectType][$objectID][$action->id] = $action;
         }
 
-        foreach($objectIdList as $objectType => $idList)
-        {
+        foreach ($objectIdList as $objectType => $idList) {
             $deletedIdList = $this->dao->select('id')->from($this->config->objectTables[$objectType])->where('deleted')->eq(1)->andWhere('id')->in($idList)->fetchPairs('id', 'id');
-            foreach($deletedIdList as $id) unset($filterActions[$objectType][$id]);
+            foreach ($deletedIdList as $id) unset($filterActions[$objectType][$id]);
         }
 
         $actionGroups = array();
-        foreach($filterActions as $objectType => $objectActions)
-        {
-            foreach($objectActions as $objectID => $actions)
-            {
-                foreach($actions as $action) $actionGroups[$objectType][$action->id] = $action;
+        foreach ($filterActions as $objectType => $objectActions) {
+            foreach ($objectActions as $objectID => $actions) {
+                foreach ($actions as $action) $actionGroups[$objectType][$action->id] = $action;
             }
         }
 
         $contributions = array();
-        foreach($actionGroups as $objectType => $actions)
-        {
-            foreach($actions as $action)
-            {
+        foreach ($actionGroups as $objectType => $actions) {
+            foreach ($actions as $action) {
                 $lowerAction = strtolower($action->action);
                 $actionName  = $this->config->report->annualData['contributions'][$objectType][$lowerAction];
 
                 $type = ($actionName == 'svnCommit' or $actionName == 'gitCommit') ? 'repo' : $objectType;
-                if(!isset($contributions[$type][$actionName])) $contributions[$type][$actionName] = 0;
+                if (!isset($contributions[$type][$actionName])) $contributions[$type][$actionName] = 0;
                 $contributions[$type][$actionName] += 1;
             }
         }
@@ -709,8 +661,7 @@ class reportModel extends model
 
         $planProducts = array();
         $planGroups   = array();
-        foreach($plans as $plan)
-        {
+        foreach ($plans as $plan) {
             $planProducts[$plan->product] = $plan->product;
             $planGroups[$plan->product][$plan->id] = $plan->id;
         }
@@ -725,8 +676,7 @@ class reportModel extends model
             ->andWhere('deleted')->eq(0)
             ->beginIF($accounts)->andWhere('closedBy')->in($accounts)->fi()
             ->fetchPairs('product', 'product');
-        if($createStoryProducts or $closeStoryProducts)
-        {
+        if ($createStoryProducts or $closeStoryProducts) {
             $products += $this->dao->select('id,name')->from(TABLE_PRODUCT)
                 ->where('id')->in($createStoryProducts + $closeStoryProducts + $planProducts)
                 ->andWhere('deleted')->eq(0)
@@ -750,25 +700,23 @@ class reportModel extends model
             ->fetchAll('product');
 
         /* Merge created plan, created story and closed story in every product. */
-        foreach($products as $productID => $product)
-        {
+        foreach ($products as $productID => $product) {
             $product->plan        = 0;
             $product->requirement = 0;
             $product->story       = 0;
             $product->closed      = 0;
 
             $plans = zget($planGroups, $productID, array());
-            if($plans) $product->plan = count($plans);
+            if ($plans) $product->plan = count($plans);
 
             $createdStoryStat = zget($createdStoryStats, $productID, '');
-            if($createdStoryStat)
-            {
+            if ($createdStoryStat) {
                 $product->requirement = $createdStoryStat->requirement;
                 $product->story       = $createdStoryStat->story;
             }
 
             $closedStoryStat = zget($closedStoryStats, $productID, '');
-            if($closedStoryStat) $product->closed = $closedStoryStat->closed;
+            if ($closedStoryStat) $product->closed = $closedStoryStat->closed;
         }
 
         return $products;
@@ -811,8 +759,7 @@ class reportModel extends model
             ->andWhere('deleted')->eq(0)
             ->beginIF($accounts)->andWhere('finishedBy')->in($accounts)->fi()
             ->fetchPairs('execution', 'execution');
-        if($teamExecutions or $taskExecutions)
-        {
+        if ($teamExecutions or $taskExecutions) {
             $executions += $this->dao->select('id,name')->from(TABLE_EXECUTION)
                 ->where('id')->in($teamExecutions + $taskExecutions)
                 ->andWhere('deleted')->eq(0)
@@ -840,21 +787,19 @@ class reportModel extends model
             ->groupBy('t2.execution')
             ->fetchAll('execution');
 
-        foreach($executions as $executionID => $execution)
-        {
+        foreach ($executions as $executionID => $execution) {
             $execution->task  = 0;
             $execution->story = 0;
             $execution->bug   = 0;
 
             $taskStat = zget($taskStats, $executionID, '');
-            if($taskStat)
-            {
+            if ($taskStat) {
                 $execution->task  = $taskStat->finishedTask;
                 $execution->story = $taskStat->finishedStory;
             }
 
             $resolvedBug = zget($resolvedBugs, $executionID, '');
-            if($resolvedBug) $execution->bug = $resolvedBug->count;
+            if ($resolvedBug) $execution->bug = $resolvedBug->count;
         }
 
         return $executions;
@@ -888,10 +833,10 @@ class reportModel extends model
     public function getYearObjectStat($accounts, $year, $objectType)
     {
         $table = '';
-        if($objectType == 'story') $table = TABLE_STORY;
-        if($objectType == 'task')  $table = TABLE_TASK;
-        if($objectType == 'bug')   $table = TABLE_BUG;
-        if(empty($table)) return array();
+        if ($objectType == 'story') $table = TABLE_STORY;
+        if ($objectType == 'task')  $table = TABLE_TASK;
+        if ($objectType == 'bug')   $table = TABLE_BUG;
+        if (empty($table)) return array();
 
         $months = $this->getYearMonths($year);
         $stmt   = $this->dao->select('t1.*, t2.status')->from(TABLE_ACTION)->alias('t1')
@@ -906,14 +851,12 @@ class reportModel extends model
         /* Build object action stat and get status group. */
         $statuses   = array();
         $actionStat = array();
-        while($action = $stmt->fetch())
-        {
+        while ($action = $stmt->fetch()) {
             $statuses[$action->objectID] = $action->status;
 
             $lowerAction = strtolower($action->action);
-            if(!isset($actionStat[$lowerAction]))
-            {
-                foreach($months as $month) $actionStat[$lowerAction][$month] = 0;
+            if (!isset($actionStat[$lowerAction])) {
+                foreach ($months as $month) $actionStat[$lowerAction][$month] = 0;
             }
 
             $month = substr($action->date, 0, 7);
@@ -922,9 +865,8 @@ class reportModel extends model
 
         /* Build status stat. */
         $statusStat = array();
-        foreach($statuses as $storyID => $status)
-        {
-            if(!isset($statusStat[$status])) $statusStat[$status] = 0;
+        foreach ($statuses as $storyID => $status) {
+            if (!isset($statusStat[$status])) $statusStat[$status] = 0;
             $statusStat[$status] += 1;
         }
 
@@ -954,15 +896,13 @@ class reportModel extends model
         /* Build create case stat. */
         $resultStat = array();
         $actionStat = array();
-        foreach($months as $month)
-        {
+        foreach ($months as $month) {
             $actionStat['opened'][$month]    = 0;
             $actionStat['run'][$month]       = 0;
             $actionStat['createBug'][$month] = 0;
         }
 
-        while($action = $stmt->fetch())
-        {
+        while ($action = $stmt->fetch()) {
             $month = substr($action->date, 0, 7);
             $actionStat['opened'][$month] += 1;
         }
@@ -974,9 +914,8 @@ class reportModel extends model
             ->andWhere('t2.deleted')->eq(0)
             ->beginIF($accounts)->andWhere('t1.lastRunner')->in($accounts)->fi()
             ->query();
-        while($testResult = $stmt->fetch())
-        {
-            if(!isset($resultStat[$testResult->caseResult])) $resultStat[$testResult->caseResult] = 0;
+        while ($testResult = $stmt->fetch()) {
+            if (!isset($resultStat[$testResult->caseResult])) $resultStat[$testResult->caseResult] = 0;
             $resultStat[$testResult->caseResult] += 1;
 
             $month = substr($testResult->date, 0, 7);
@@ -993,8 +932,7 @@ class reportModel extends model
             ->andWhere('t2.case')->ne('0')
             ->beginIF($accounts)->andWhere('t1.actor')->in($accounts)->fi()
             ->query();
-        while($action = $stmt->fetch())
-        {
+        while ($action = $stmt->fetch()) {
             $month = substr($action->date, 0, 7);
             $actionStat['createBug'][$month] += 1;
         }
@@ -1012,7 +950,7 @@ class reportModel extends model
     public function getYearMonths($year)
     {
         $months = array();
-        for($i = 1; $i <= 12; $i ++) $months[] = $year . '-' . sprintf('%02d', $i);
+        for ($i = 1; $i <= 12; $i++) $months[] = $year . '-' . sprintf('%02d', $i);
 
         return $months;
     }
@@ -1029,18 +967,17 @@ class reportModel extends model
     {
         $allCount    = 0;
         $undoneCount = 0;
-        foreach($statusStat as $status => $count)
-        {
+        foreach ($statusStat as $status => $count) {
             $allCount += $count;
-            if($objectType == 'story' and $status != 'closed') $undoneCount += $count;
-            if($objectType == 'task' and $status != 'done' and $status != 'closed' and $status != 'cancel') $undoneCount += $count;
-            if($objectType == 'bug' and $status == 'active') $undoneCount += $count;
+            if ($objectType == 'story' and $status != 'closed') $undoneCount += $count;
+            if ($objectType == 'task' and $status != 'done' and $status != 'closed' and $status != 'cancel') $undoneCount += $count;
+            if ($objectType == 'bug' and $status == 'active') $undoneCount += $count;
         }
 
         $overview = '';
-        if($objectType == 'story') $overview .= $this->lang->report->annualData->allStory;
-        if($objectType == 'task')  $overview .= $this->lang->report->annualData->allTask;
-        if($objectType == 'bug')   $overview .= $this->lang->report->annualData->allBug;
+        if ($objectType == 'story') $overview .= $this->lang->report->annualData->allStory;
+        if ($objectType == 'task')  $overview .= $this->lang->report->annualData->allTask;
+        if ($objectType == 'bug')   $overview .= $this->lang->report->annualData->allBug;
         $overview .= ' &nbsp; ' . $allCount;
         $overview .= '<br />';
         $overview .= $objectType == 'bug' ? $this->lang->report->annualData->unresolve : $this->lang->report->annualData->undone;
@@ -1067,10 +1004,9 @@ class reportModel extends model
             ->fetchPairs('id', 'status');
 
         $statusOverview = array();
-        foreach($projectStatus as $projectID => $status)
-        {
-            if(!isset($statusOverview[$status])) $statusOverview[$status] = 0;
-            $statusOverview[$status] ++;
+        foreach ($projectStatus as $projectID => $status) {
+            if (!isset($statusOverview[$status])) $statusOverview[$status] = 0;
+            $statusOverview[$status]++;
         }
 
         return $statusOverview;
@@ -1095,29 +1031,25 @@ class reportModel extends model
         $outputData   = array();
         $actionGroup  = array();
         $objectIdList = array();
-        while($action = $stmt->fetch())
-        {
-            if($action->objectType == 'release' and $action->action == 'changestatus')
-            {
-                if($action->extra == 'terminate') $action->action = 'stoped';
-                if($action->extra == 'normal')    $action->action = 'activated';
+        while ($action = $stmt->fetch()) {
+            if ($action->objectType == 'release' and $action->action == 'changestatus') {
+                if ($action->extra == 'terminate') $action->action = 'stoped';
+                if ($action->extra == 'normal')    $action->action = 'activated';
             }
             unset($action->extra);
 
-            if(!isset($this->config->report->outputData[$action->objectType][$action->action])) continue;
+            if (!isset($this->config->report->outputData[$action->objectType][$action->action])) continue;
 
-            if(!isset($outputData[$action->objectType][$action->action])) $outputData[$action->objectType][$action->action] = 0;
+            if (!isset($outputData[$action->objectType][$action->action])) $outputData[$action->objectType][$action->action] = 0;
             $objectIdList[$action->objectType][$action->objectID] = $action->objectID;
             $actionGroup[$action->objectType][$action->id] = $action;
         }
 
-        foreach($actionGroup as $objectType => $actions)
-        {
+        foreach ($actionGroup as $objectType => $actions) {
             $deletedIdList = $this->dao->select('id')->from($this->config->objectTables[$objectType])->where('deleted')->eq(1)->andWhere('id')->in($objectIdList[$objectType])->fetchPairs('id', 'id');
 
-            foreach($actions as $action)
-            {
-                if(isset($deletedIdList[$action->objectID])) continue;
+            foreach ($actions as $action) {
+                if (isset($deletedIdList[$action->objectID])) continue;
                 $outputData[$action->objectType][$action->action] += 1;
             }
         }
@@ -1131,9 +1063,8 @@ class reportModel extends model
             ->andWhere('t2.case')->ne('0')
             ->beginIF($accounts)->andWhere('t1.actor')->in($accounts)->fi()
             ->query();
-        while($action = $stmt->fetch())
-        {
-            if(!isset($outputData['case']['createBug'])) $outputData['case']['createBug'] = 0;
+        while ($action = $stmt->fetch()) {
+            if (!isset($outputData['case']['createBug'])) $outputData['case']['createBug'] = 0;
             $outputData['case']['createBug'] += 1;
         }
 
@@ -1145,16 +1076,14 @@ class reportModel extends model
             ->fetch('count');
 
         $processedOutput = array();
-        foreach($this->config->report->outputData as $objectType => $actions)
-        {
-            if(!isset($outputData[$objectType])) continue;
+        foreach ($this->config->report->outputData as $objectType => $actions) {
+            if (!isset($outputData[$objectType])) continue;
 
             $objectActions = $outputData[$objectType];
             $processedOutput[$objectType]['total'] = array_sum($objectActions);
 
-            foreach($actions as $action => $langCode)
-            {
-                if(empty($objectActions[$action])) continue;
+            foreach ($actions as $action => $langCode) {
+                if (empty($objectActions[$action])) continue;
 
                 $processedOutput[$objectType]['actions'][$langCode]['code']  = $langCode;
                 $processedOutput[$objectType]['actions'][$langCode]['name']  = $this->lang->report->annualData->actionList[$langCode];
@@ -1181,12 +1110,153 @@ class reportModel extends model
             ->fetchAll();
 
         $pairs = array();
-        foreach($executions as $execution)
-        {
-            $pairs[$execution->id] = $this->config->systemMode == 'new' ? $execution->projectname . '/' .$execution->name : $execution->name;
+        foreach ($executions as $execution) {
+            $pairs[$execution->id] = $this->config->systemMode == 'new' ? $execution->projectname . '/' . $execution->name : $execution->name;
         }
 
         return $pairs;
+    }
+
+    /**
+     * 任务看板
+     */
+    public function getTaskStatistics($dept = 0, $date, $projectIDs = [], $project = 0, $independentProjects = [])
+    {
+        $childDeptIds = $this->loadModel('dept')->getAllChildID($dept);
+        $deptUsers = $this->dept->getUsers('all', $childDeptIds);
+        $usernames = array();
+        $tasks = array();
+        foreach ($deptUsers as $user) {
+            if ($user) {
+                $username = $user->account;
+                $usernames[] = $username;
+                $tasks[$username] = [
+                    "tasks" => [],
+                    "all" => 0,
+                    "complete" => 0,
+                    "consumed" => 0
+                ];
+            }
+        }
+
+        $finishedTasks = $this->getFinishedTasks($usernames, $date, $projectIDs, $project);
+        $todoTasks = $this->getTodoTasks($usernames, $date, $projectIDs, $project);
+
+        $status_dict = array(
+            'doing' => 1,
+            'done' => 2,
+            'wait' => 3
+        );
+
+        foreach ($finishedTasks as $task) {
+            if (in_array($task->finishedBy, $usernames)) {
+                $task->status_sort = $status_dict[$task->status];
+                $tasks[$task->finishedBy]['tasks'][]  = $task;
+                $tasks[$task->finishedBy]['all'] += $task->estimate;
+                $tasks[$task->finishedBy]['complete'] += $task->estimate;
+                $tasks[$task->finishedBy]['consumed'] += $task->consumed;
+            }
+        }
+        foreach ($todoTasks as $task) {
+            if (in_array($task->assignedTo, $usernames)) {
+                $task->status_sort = $status_dict[$task->status];
+                $tasks[$task->assignedTo]['tasks'][]  = $task;
+                $tasks[$task->assignedTo]['all'] += $task->estimate;
+                $tasks[$task->assignedTo]['complete'] += $task->consumed;
+                $tasks[$task->assignedTo]['consumed'] += $task->consumed;
+            }
+        }
+        $short = array();
+        $exceed = array();
+        foreach ($tasks as $user => $task) {
+            if (in_array($user, $usernames)) {
+                if ($dept == 3) {
+                    if ($task['all'] - 8 < 0) {
+                        $short[$user] = $task['all'];
+                    } elseif ($task['all'] - 8 > 2) {
+                        $exceed[$user] = $task['all'];
+                    }
+                } elseif ($dept == 1) {
+                    if ($task['all'] < 6) {
+                        $short[$user] = $task['all'];
+                    } elseif ($task['all'] - 8 > 2) {
+                        $exceed[$user] = $task['all'];
+                    }
+                }
+                $tasks[$user]['process'] = $task['complete'] / $task['all'] * 100;
+                $taskpri = array_column($task['tasks'], 'taskpri');
+                $pri = array_column($task['tasks'], 'pri');
+                $status_pri = array_column($task['tasks'], 'status_sort');
+                array_multisort($status_pri, SORT_ASC, $taskpri, SORT_ASC, $pri, SORT_ASC, $task['tasks']);
+                $tasks[$user]['tasks'] = $task['tasks'];
+            }
+        }
+        // $process = array_column($tasks, 'process');
+        asort($short);
+        arsort($exceed);
+        $complete = array_column($tasks, 'consumed');
+        $all = array_column($tasks, 'all');
+        array_multisort($complete, SORT_DESC, $all, SORT_DESC,  $tasks);
+        return  [
+            "tasks" => $tasks,
+            "short" => $short,
+            "exceed" => $exceed
+        ];
+    }
+
+    public function getFinishedTasks($usernames = [], $date = '', $projectIDs = [], $project = 0)
+    {
+        $finishedTasks = $this->dao->select('distinct t1.id, t1.left, t1.status, t1.pri as taskpri, t1.parent, t1.name, t1.project, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy,t2.pri, t2.name as executionName, t3.name as moduleName, t3.id as moduleId, t4.id as storyID, t4.title as storyTitle')->from(TABLE_TASK)->alias('t1')
+            ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.execution = t2.id')
+            ->leftJoin(TABLE_MODULE)->alias('t3')->on('t1.module = t3.id')
+            ->leftJoin(TABLE_STORY)->alias('t4')->on('t1.story = t4.id')
+            ->leftJoin(TABLE_PROJECT)->alias('t6')->on('t1.project = t6.id')
+            ->where('t1.deleted')->eq(0)
+            ->beginIF(!empty($usernames))
+            ->andWhere('t1.finishedBy')->in($usernames)
+            ->fi()
+            ->beginIF($date != '')
+            ->andWhere('t1.deadline')->eq($date)
+            ->fi()
+            ->andWhere('t1.finishedBy')->ne('')
+            ->beginIF(!empty($projectIDs))
+            ->andWhere('t6.id')->in($projectIDs)
+            ->fi()
+            ->beginIF($project != 0)
+            ->andWhere('t6.id')->eq($project)
+            ->fi()
+            ->andWhere('t1.assignedTo')->ne('')
+            ->orderBy('t1.id')
+            ->fetchAll('id');
+        return $finishedTasks;
+    }
+
+    public function getTodoTasks($usernames = [], $date = '', $projectIDs = [], $project = 0)
+    {
+        $todoTasks = $this->dao->select('distinct t1.id, t1.name, t1.project, t1.status, t1.pri as taskpri, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy, t2.pri, t2.name as executionName, t3.name as moduleName, t3.id as moduleId, t4.id as storyID, t4.title as storyTitle')->from(TABLE_TASK)->alias('t1')
+            ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.execution = t2.id')
+            ->leftJoin(TABLE_MODULE)->alias('t3')->on('t1.module = t3.id')
+            ->leftJoin(TABLE_STORY)->alias('t4')->on('t1.story = t4.id')
+            ->leftJoin(TABLE_PROJECT)->alias('t6')->on('t1.project = t6.id')
+            ->where('t1.deleted')->eq(0)
+            ->beginIF(!empty($usernames))
+            ->andWhere('t1.assignedTo')->in($usernames)
+            ->fi()
+            ->beginIF($date != '')
+            ->andWhere('t1.deadline')->eq($date)
+            ->fi()
+            ->andWhere('t1.status')->notin('cancel, closed')
+            ->andWhere('t1.finishedBy')->eq('')
+            ->beginIF(!empty($projectIDs))
+            ->andWhere('t6.id')->in($projectIDs)
+            ->fi()
+            ->beginIF($project != 0)
+            ->andWhere('t6.id')->eq($project)
+            ->fi()
+            ->andWhere('t1.assignedTo')->ne('')
+            ->orderBy('t1.id')
+            ->fetchAll('id');
+        return $todoTasks;
     }
 }
 
@@ -1198,6 +1268,6 @@ class reportModel extends model
  */
 function sortSummary($pre, $next)
 {
-    if($pre['validRate'] == $next['validRate']) return 0;
+    if ($pre['validRate'] == $next['validRate']) return 0;
     return $pre['validRate'] > $next['validRate'] ? -1 : 1;
 }

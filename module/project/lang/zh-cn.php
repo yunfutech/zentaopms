@@ -62,8 +62,12 @@ $lang->project->id                 = '项目编号';
 $lang->project->project            = '所属项目';
 $lang->project->stage              = '阶段';
 $lang->project->model              = '项目管理方式';
-$lang->project->PM                 = '负责人';
-$lang->project->PO                 = '项目负责人';
+
+$lang->project->director           = '项目负责人';
+$lang->project->counselor          = '项目顾问';
+$lang->project->PM                 = '研发经理';
+$lang->project->PO                 = '项目经理';
+
 $lang->project->QD                 = '测试负责人';
 $lang->project->RD                 = '发布负责人';
 $lang->project->name               = '项目名称';
