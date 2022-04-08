@@ -75,7 +75,7 @@
                   <tr class='colhead text-center'>
                     <th class="w-60px"><?php echo $lang->report->user; ?></th>
                     <th class="w-120px">完成度<a href="javascript:;" title="实际消耗/预计消耗/全部任务"><i class="icon-question-sign"></i></a></th>
-                    <th><?php echo $lang->report->taskboard->detail; ?></th>
+                    <th>详情</th>
                   </tr>
                 </thead>
                 <tbody>

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The all avaliabe actions in ZenTaoPMS.
  *
@@ -162,8 +163,7 @@ $lang->personnel->methodOrder[20] = 'addWhitelist';
 $lang->personnel->methodOrder[25] = 'unbindWhitelist';
 
 global $config;
-if($config->systemMode == 'new')
-{
+if ($config->systemMode == 'new') {
     $lang->resource->my->project = 'project';
 
     /* Design. */
@@ -1471,7 +1471,7 @@ $lang->resource->company->index  = 'index';
 $lang->resource->company->browse = 'browse';
 $lang->resource->company->edit   = 'edit';
 $lang->resource->company->view   = 'view';
-$lang->resource->company->dynamic= 'dynamic';
+$lang->resource->company->dynamic = 'dynamic';
 
 $lang->company->methodOrder[0]  = 'index';
 $lang->company->methodOrder[5]  = 'browse';
@@ -1578,6 +1578,7 @@ $lang->resource->report->bugCreate        = 'bugCreate';
 $lang->resource->report->bugAssign        = 'bugAssign';
 $lang->resource->report->workload         = 'workload';
 $lang->resource->report->annualData       = 'annual';
+$lang->resource->report->taskboard       = 'taskboard';
 
 $lang->report->methodOrder[0]  = 'index';
 $lang->report->methodOrder[5]  = 'projectDeviation';
@@ -1585,6 +1586,7 @@ $lang->report->methodOrder[10] = 'productSummary';
 $lang->report->methodOrder[15] = 'bugCreate';
 $lang->report->methodOrder[20] = 'workload';
 $lang->report->methodOrder[25] = 'annual';
+$lang->report->methodOrder[30] = 'taskboard';
 
 /* Search. */
 $lang->resource->search = new stdclass();
@@ -1789,4 +1791,4 @@ $lang->dev->methodOrder[10] = 'db';
 $lang->dev->methodOrder[15] = 'editor';
 $lang->dev->methodOrder[20] = 'translate';
 
-include (dirname(__FILE__) . '/changelog.php');
+include(dirname(__FILE__) . '/changelog.php');
