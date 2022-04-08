@@ -15,7 +15,7 @@
 <?php $browseLink = $this->session->testtaskList ? $this->session->testtaskList : $this->createLink('testtask', 'browse', "productID=$task->product");?>
 <div id='mainMenu' class='clearfix'>
   <div class='btn-toolbar pull-left'>
-    <?php common::printBack($browseLink, 'btn btn-link');?>
+    <?php echo html::backButton('<i class="icon icon-back icon-sm"></i> ' . $lang->goback, '', 'btn btn-secondary');?>
     <div class='divider'></div>
     <div class='page-title'>
       <span class='label label-id'><?php echo $task->id;?></span>
@@ -33,19 +33,23 @@
         <div class="detail-title"><?php echo $lang->testtask->desc;?></div>
         <div class="detail-content article-content"><?php echo !empty($task->desc) ? $task->desc : $lang->noData;?></div>
       </div>
+      <?php echo $this->fetch('file', 'printFiles', array('files' => $task->files, 'fieldset' => 'true', 'object' => $task));?>
       <?php if($task->report):?>
       <div class="detail">
         <div class="detail-title"><?php echo $lang->testtask->report;?></div>
         <div class="detail-content article-content"><?php echo $task->report;?></div>
       </div>
       <?php endif;?>
-      <?php $actionFormLink = $this->createLink('action', 'comment', "objectType=testtask&objectID=$task->id");?>
+      <?php
+      $canBeChanged = common::canBeChanged('testtask', $task);
+      if($canBeChanged) $actionFormLink = $this->createLink('action', 'comment', "objectType=testtask&objectID=$task->id");
+      ?>
     </div>
     <?php $this->printExtendFields($task, 'div', "position=left&inForm=0&inCell=1");?>
     <div class='cell'><?php include '../../common/view/action.html.php';?></div>
     <div class='main-actions'>
       <div class="btn-toolbar">
-        <?php common::printBack($browseLink);?>
+        <?php echo html::backButton('<i class="icon icon-back icon-sm"></i> ' . $lang->goback, '', 'btn btn-secondary');?>
         <?php if(!$task->deleted):?>
         <div class='divider'></div>
         <?php
@@ -75,12 +79,10 @@
         <div class="detail-content">
           <table class="table table-data table-fixed">
             <?php $isOnlybody = helper::inOnlyBodyMode(); ?>
-            <?php if($config->global->flow != 'onlyTest'):?>
             <tr>
-              <th class='w-60px'><?php echo $lang->testtask->project;?></th>
-              <td><?php echo $isOnlybody ? $task->projectName : html::a($this->createLink('project', 'story', "projectID=$task->project"), $task->projectName, '', "title='{$task->projectName}'");?></td>
+              <th class='w-90px'><?php echo $lang->testtask->execution;?></th>
+              <td><?php echo $isOnlybody ? $task->executionName : html::a($this->createLink('execution', 'story', "executionID=$task->execution"), $task->executionName, '', "title='{$task->executionName}'");?></td>
             </tr>
-            <?php endif;?>
             <tr>
               <th><?php echo $lang->testtask->build;?></th>
               <td>
@@ -95,6 +97,12 @@
                 }
                 ?>
               </td>
+            </tr>
+            <tr>
+              <th><?php echo $lang->testtask->type;?></th>
+              <?php $testType = '';?>
+              <?php foreach(explode(',', $task->type) as $type) $testType .= zget($lang->testtask->typeList, $type) . ' ';?>
+              <td class="c-name" title="<?php echo $testType;?>"><?php echo $testType;?></td>
             </tr>
             <tr>
               <th><?php echo $lang->testtask->owner;?></th>
@@ -117,8 +125,16 @@
               <td><?php echo $task->end;?></td>
             </tr>
             <tr>
+              <th><?php echo $lang->testtask->realFinishedDate;?></th>
+              <td><?php if(!helper::isZeroDate($task->realFinishedDate)) echo $task->realFinishedDate;?></td>
+            </tr>
+            <tr>
               <th><?php echo $lang->testtask->status;?></th>
               <td class='task-<?php echo $task->status?>'><?php echo $this->processStatus('testtask', $task);?></td>
+            </tr>
+            <tr>
+              <th><?php echo $lang->testtask->testreport;?></th>
+              <td class="c-name" title="<?php echo $testreportTitle;?>"><?php echo empty($task->testreport) ? '' : html::a($this->createLink('testreport', 'view', "reportID=$task->testreport"), $testreportTitle);?></td>
             </tr>
           </table>
         </div>

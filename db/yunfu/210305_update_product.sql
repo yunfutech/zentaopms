@@ -1,1 +1,0 @@
-ALTER TABLE `zt_product` ADD `director` VARCHAR(30) NOT NULL AFTER `pri`;

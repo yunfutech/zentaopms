@@ -12,38 +12,55 @@
 class action extends control
 {
     /**
-     * Trash 
-     * 
-     * @param  string $type all|hidden 
-     * @param  string $orderBy 
-     * @param  int    $recTotal 
-     * @param  int    $recPerPage 
-     * @param  int    $pageID 
+     * Trash.
+     *
+     * @param  string $type all|hidden
+     * @param  string $orderBy
+     * @param  int    $recTotal
+     * @param  int    $recPerPage
+     * @param  int    $pageID
      * @access public
      * @return void
      */
     public function trash($type = 'all', $orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
+        $this->loadModel('backup');
+
         /* Save session. */
         $uri = $this->app->getURI(true);
-        $this->session->set('productList',     $uri);
-        $this->session->set('productPlanList', $uri);
-        $this->session->set('releaseList',     $uri);
-        $this->session->set('storyList',       $uri);
-        $this->session->set('projectList',     $uri);
-        $this->session->set('taskList',        $uri);
-        $this->session->set('buildList',       $uri);
-        $this->session->set('bugList',         $uri);
-        $this->session->set('caseList',        $uri);
-        $this->session->set('testtaskList',    $uri);
-        $this->session->set('docList',         $uri);
+        $this->session->set('productList',        $uri, 'product');
+        $this->session->set('productPlanList',    $uri, 'product');
+        $this->session->set('storyList',          $uri, 'product');
+        $this->session->set('releaseList',        $uri, 'product');
+        $this->session->set('programList',        $uri, 'program');
+        $this->session->set('projectList',        $uri, 'project');
+        $this->session->set('executionList',      $uri, 'execution');
+        $this->session->set('taskList',           $uri, 'execution');
+        $this->session->set('buildList',          $uri, 'execution');
+        $this->session->set('bugList',            $uri, 'qa');
+        $this->session->set('caseList',           $uri, 'qa');
+        $this->session->set('testtaskList',       $uri, 'qa');
+        $this->session->set('docList',            $uri, 'doc');
+        $this->session->set('opportunityList',    $uri, 'project');
+        $this->session->set('riskList',           $uri, 'project');
+        $this->session->set('trainplanList',      $uri, 'project');
+        $this->session->set('roomList',           $uri, 'admin');
+        $this->session->set('researchplanList',   $uri, 'project');
+        $this->session->set('researchreportList', $uri, 'project');
+        $this->session->set('meetingList',        $uri, 'project');
+        $this->session->set('storyLibList',       $uri, 'assetlib');
+        $this->session->set('issueLibList',       $uri, 'assetlib');
+        $this->session->set('riskLibList',        $uri, 'assetlib');
+        $this->session->set('opportunityLibList', $uri, 'assetlib');
+        $this->session->set('practiceLibList',    $uri, 'assetlib');
+        $this->session->set('componentLibList',   $uri, 'assetlib');
 
         /* Get deleted objects. */
         $this->app->loadClass('pager', $static = true);
         $pager = pager::init($recTotal, $recPerPage, $pageID);
 
         /* Append id for secend sort. */
-        $sort    = $this->loadModel('common')->appendOrder($orderBy);
+        $sort    = common::appendOrder($orderBy);
         $trashes = $this->action->getTrashes($type, $sort, $pager);
 
         /* Title and position. */
@@ -60,34 +77,34 @@ class action extends control
 
     /**
      * Undelete an object.
-     * 
-     * @param  int    $actionID 
+     *
+     * @param  int    $actionID
      * @access public
      * @return void
      */
     public function undelete($actionID)
     {
         $this->action->undelete($actionID);
-        die(js::reload('parent'));
+        echo js::reload('parent');
     }
 
     /**
-     * Hide an deleted object. 
-     * 
-     * @param  int    $actionID 
+     * Hide an deleted object.
+     *
+     * @param  int    $actionID
      * @access public
      * @return void
      */
     public function hideOne($actionID)
     {
         $this->action->hideOne($actionID);
-        die(js::reload('parent'));
+        echo js::reload('parent');
     }
 
     /**
      * Hide all deleted objects.
-     * 
-     * @param  string $confirm 
+     *
+     * @param  string $confirm yes|no
      * @access public
      * @return void
      */
@@ -95,20 +112,20 @@ class action extends control
     {
         if($confirm == 'no')
         {
-            die(js::confirm($this->lang->action->confirmHideAll, inlink('hideAll', "confirm=yes")));
+            echo js::confirm($this->lang->action->confirmHideAll, inlink('hideAll', "confirm=yes"));
         }
         else
         {
             $this->action->hideAll();
-            die(js::reload('parent'));
+            echo js::reload('parent');
         }
     }
 
     /**
-     * Comment. 
-     * 
-     * @param  string $objectType 
-     * @param  int    $objectID 
+     * Comment.
+     *
+     * @param  string $objectType
+     * @param  int    $objectID
      * @access public
      * @return void
      */
@@ -117,18 +134,18 @@ class action extends control
         $actionID = $this->action->create($objectType, $objectID, 'Commented', $this->post->comment);
         if(defined('RUN_MODE') && RUN_MODE == 'api')
         {
-            die(array('status' => 'success', 'data' => $actionID));
+            return $this->send(array('status' => 'success', 'data' => $actionID));
         }
         else
         {
-            die(js::reload('parent'));
+            echo js::reload('parent');
         }
     }
 
     /**
      * Edit comment of a action.
-     * 
-     * @param  int    $actionID 
+     *
+     * @param  int    $actionID
      * @access public
      * @return void
      */
@@ -141,8 +158,8 @@ class action extends control
         else
         {
             dao::$errors['submit'][] = $this->lang->action->historyEdit;
-            $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            return $this->send(array('result' => 'fail', 'message' => dao::getError()));
         }
-        $this->send(array('result' => 'success', 'locate' => 'reload'));
+        return $this->send(array('result' => 'success', 'locate' => 'reload'));
     }
 }

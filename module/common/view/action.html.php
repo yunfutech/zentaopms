@@ -47,11 +47,11 @@
     <ol class='histories-list'>
       <?php $i = 1; ?>
       <?php foreach($actions as $action):?>
-      <?php $canEditComment = ($action->comment and $this->methodName == 'view' and $action->actor == $this->app->user->account and common::hasPriv('action', 'editComment'));?>
+      <?php $canEditComment = ((!isset($canBeChanged) or !empty($canBeChanged)) and end($actions) == $action and trim($action->comment) != '' and $this->methodName == 'view' and $action->actor == $this->app->user->account and common::hasPriv('action', 'editComment'));?>
       <li value='<?php echo $i ++;?>'>
         <?php
         $action->actor = zget($users, $action->actor);
-        if($action->action == 'assigned') $action->extra = zget($users, $action->extra);
+        if($action->action == 'assigned' or $action->action == 'toaudit') $action->extra = zget($users, $action->extra);
         if(strpos($action->actor, ':') !== false) $action->actor = substr($action->actor, strpos($action->actor, ':') + 1);
         ?>
         <?php $this->action->printAction($action);?>
@@ -72,7 +72,7 @@
         <?php if($canEditComment):?>
         <form method='post' class='comment-edit-form' action='<?php echo $this->createLink('action', 'editComment', "actionID=$action->id")?>'>
           <div class="form-group">
-          <?php echo html::textarea('lastComment', htmlspecialchars($action->comment), "rows='8' autofocus='autofocus'");?>
+          <?php echo html::textarea('lastComment', htmlSpecialString($action->comment), "rows='8' autofocus='autofocus'");?>
           </div>
           <div class="form-group form-actions">
           <?php echo html::submitButton($lang->save);?>

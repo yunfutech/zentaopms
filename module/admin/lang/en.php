@@ -9,7 +9,6 @@
  * @version     $Id: en.php 4460 2013-02-26 02:28:02Z chencongzhi520@gmail.com $
  * @link        http://www.zentao.net
  */
-$lang->admin->common        = 'Admin';
 $lang->admin->index         = 'Admin Home';
 $lang->admin->checkDB       = 'Check Database';
 $lang->admin->sso           = 'Zdoo';
@@ -20,7 +19,8 @@ $lang->admin->certifyMobile = 'Verify your cellphone';
 $lang->admin->certifyEmail  = 'Verify your Email';
 $lang->admin->ztCompany     = 'Verify your company';
 $lang->admin->captcha       = 'Verification Code';
-$lang->admin->getCaptcha    = 'Get Verification Code';
+$lang->admin->getCaptcha    = 'Send Verification Code';
+$lang->admin->register      = 'Register';
 
 $lang->admin->api     = 'API';
 $lang->admin->log     = 'Log';
@@ -38,28 +38,29 @@ $lang->admin->notice->register = "Note: You haven't registered in ZenTao officia
 $lang->admin->notice->ignore   = "Ignore";
 $lang->admin->notice->int      = "『%s』should be a positive integer.";
 
-$lang->admin->register = new stdclass();
-$lang->admin->register->common     = 'Bind Account';
-$lang->admin->register->caption    = 'Register in ZenTao Community';
-$lang->admin->register->click      = 'Register here';
-$lang->admin->register->lblAccount = '>= 3 letters and numbers';
-$lang->admin->register->lblPasswd  = '>= 6 letters and numbers';
-$lang->admin->register->submit     = 'Register';
-$lang->admin->register->bind       = "Bind Exsiting Account";
-$lang->admin->register->success    = "You have registered!";
+$lang->admin->registerNotice = new stdclass();
+$lang->admin->registerNotice->common     = 'Bind Account';
+$lang->admin->registerNotice->caption    = 'ZenTao Community Signup';
+$lang->admin->registerNotice->click      = 'Sign Up';
+$lang->admin->registerNotice->lblAccount = '>= 3 letters and numbers';
+$lang->admin->registerNotice->lblPasswd  = '>= 6 letters and numbers';
+$lang->admin->registerNotice->submit     = 'Submit';
+$lang->admin->registerNotice->bind       = "Bind Exsiting Account";
+$lang->admin->registerNotice->success    = "You have signed up!";
 
 $lang->admin->bind = new stdclass();
 $lang->admin->bind->caption = 'Link Account';
 $lang->admin->bind->success = "Account is linked!";
 
 $lang->admin->safe = new stdclass();
-$lang->admin->safe->common     = 'Security Policy';
-$lang->admin->safe->set        = 'Password Settings';
-$lang->admin->safe->password   = 'Password Strength';
-$lang->admin->safe->weak       = 'Common Weak Passwords';
-$lang->admin->safe->reason     = 'Type';
-$lang->admin->safe->checkWeak  = 'Weak Password Scan';
-$lang->admin->safe->changeWeak = 'Force to change weak password';
+$lang->admin->safe->common       = 'Security Policy';
+$lang->admin->safe->set          = 'Password Settings';
+$lang->admin->safe->password     = 'Password Strength';
+$lang->admin->safe->weak         = 'Common Weak Passwords';
+$lang->admin->safe->reason       = 'Type';
+$lang->admin->safe->checkWeak    = 'Weak Password Scan';
+$lang->admin->safe->changeWeak   = 'Force to change weak password';
+$lang->admin->safe->loginCaptcha = 'Login using CAPTCHA';
 $lang->admin->safe->modifyPasswordFirstLogin = 'Force to change password after first login';
 
 $lang->admin->safe->modeList[0] = 'I don\'t care.';
@@ -77,6 +78,9 @@ $lang->admin->safe->reasonList['birthday'] = 'Same as DOB';
 
 $lang->admin->safe->modifyPasswordList[1] = 'Yes';
 $lang->admin->safe->modifyPasswordList[0] = 'No';
+
+$lang->admin->safe->loginCaptchaList[1] = 'Yes';
+$lang->admin->safe->loginCaptchaList[0] = 'No';
 
 $lang->admin->safe->noticeMode   = 'Password will be checked when a user logs in, or a user is added or edited.';
 $lang->admin->safe->noticeStrong = '';

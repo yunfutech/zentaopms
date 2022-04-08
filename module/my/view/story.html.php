@@ -1,44 +1,57 @@
 <?php
 /**
- * The story view file of dashboard module of ZenTaoPMS.
+ * The story view file of my module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2020 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (https://zpl.pub/page/zplv12.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
- * @package     dashboard
- * @version     $Id: story.html.php 5116 2013-07-12 06:37:48Z chencongzhi520@gmail.com $
- * @link        http://www.zentao.net
+ * @package     my
+ * @version     $Id
+ * @link        https://www.zentao.net
  */
 ?>
 <?php include '../../common/view/header.html.php';?>
+<?php js::set('mode', $mode);?>
+<?php js::set('total', $pager->recTotal);?>
+<?php js::set('rawMethod', $app->rawMethod);?>
 <div id="mainMenu" class="clearfix">
   <div class="btn-toolbar pull-left">
     <?php
     $recTotalLabel = " <span class='label label-light label-badge'>{$pager->recTotal}</span>";
-    echo html::a(inlink('story', "type=assignedTo"),  "<span class='text'>{$lang->my->storyMenu->assignedToMe}</span>" . ($type == 'assignedTo' ? $recTotalLabel : ''), '', "class='btn btn-link" . ($type == 'assignedTo' ? ' btn-active-text' : '') . "'");
-    echo html::a(inlink('story', "type=openedBy"),    "<span class='text'>{$lang->my->storyMenu->openedByMe}</span>"   . ($type == 'openedBy'   ? $recTotalLabel : ''),   '', "class='btn btn-link" . ($type == 'openedBy'   ? ' btn-active-text' : '') . "'");
-    echo html::a(inlink('story', "type=reviewedBy"),  "<span class='text'>{$lang->my->storyMenu->reviewedByMe}</span>" . ($type == 'reviewedBy' ? $recTotalLabel : ''), '', "class='btn btn-link" . ($type == 'reviewedBy' ? ' btn-active-text' : '') . "'");
-    echo html::a(inlink('story', "type=closedBy"),    "<span class='text'>{$lang->my->storyMenu->closedByMe}</span>"   . ($type == 'closedBy'   ? $recTotalLabel : ''),   '', "class='btn btn-link" . ($type == 'closedBy'   ? ' btn-active-text' : '') . "'");
+    if($app->rawMethod == 'contribute')
+    {
+        echo html::a(inlink($app->rawMethod, "mode=story&type=openedBy&orderBy=$orderBy&recTotal=$recTotal&recPerPage=$recPerPage&pagerID=$pageID"),   "<span class='text'>{$lang->my->storyMenu->openedByMe}</span>"   . ($type == 'openedBy'   ? $recTotalLabel : ''), '', "class='btn btn-link" . ($type == 'openedBy'   ? ' btn-active-text' : '') . "'");
+        echo html::a(inlink($app->rawMethod, "mode=story&type=reviewedBy&orderBy=$orderBy&recTotal=$recTotal&recPerPage=$recPerPage&pagerID=$pageID"), "<span class='text'>{$lang->my->storyMenu->reviewedByMe}</span>" . ($type == 'reviewedBy' ? $recTotalLabel : ''), '', "class='btn btn-link" . ($type == 'reviewedBy' ? ' btn-active-text' : '') . "'");
+        echo html::a(inlink($app->rawMethod, "mode=story&type=closedBy&orderBy=$orderBy&recTotal=$recTotal&recPerPage=$recPerPage&pagerID=$pageID"),   "<span class='text'>{$lang->my->storyMenu->closedByMe}</span>"   . ($type == 'closedBy'   ? $recTotalLabel : ''), '', "class='btn btn-link" . ($type == 'closedBy'   ? ' btn-active-text' : '') . "'");
+    }
+    else
+    {
+        echo html::a(inlink($app->rawMethod, "mode=story&type=assignedTo&orderBy=$orderBy&recTotal=$recTotal&recPerPage=$recPerPage&pagerID=$pageID"), "<span class='text'>{$lang->my->storyMenu->assignedToMe}</span>" . ($type == 'assignedTo' ? $recTotalLabel : ''), '', "class='btn btn-link" . ($type == 'assignedTo' ? ' btn-active-text' : '') . "'");
+        echo html::a(inlink($app->rawMethod, "mode=story&type=reviewBy&orderBy=$orderBy&recTotal=$recTotal&recPerPage=$recPerPage&pagerID=$pageID"),   "<span class='text'>{$lang->my->storyMenu->reviewByMe}</span>"   . ($type == 'reviewBy' ? $recTotalLabel : ''),   '', "class='btn btn-link" . ($type == 'reviewBy'   ? ' btn-active-text' : '') . "'");
+    }
     ?>
   </div>
 </div>
 <div id="mainContent">
   <?php if(!$stories):?>
   <div class="table-empty-tip">
-    <p><span class="text-muted"><?php echo $lang->story->noStory;?></span></p>
+    <p><span class="text-muted"><?php echo sprintf($lang->my->noData, $lang->SRCommon);?></span></p>
   </div>
   <?php else:?>
   <form id='myStoryForm' class="main-table table-story" data-ride="table" method="post">
-    <table class="table has-sort-head table-fixed">
-      <?php $vars = "type=$type&orderBy=%s&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID"; ?>
+    <table id='storyList' class="table has-sort-head table-fixed">
+      <?php $vars = "mode=$mode&type=$type&orderBy=%s&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID"; ?>
       <?php
-      $canBatchEdit  = common::hasPriv('story', 'batchEdit');
-      $canBatchClose = (common::hasPriv('story', 'batchClose') && strtolower($type) != 'closedbyme');
+      $canBatchEdit     = common::hasPriv('story', 'batchEdit');
+      $canBatchClose    = (common::hasPriv('story', 'batchClose') and strtolower($type) != 'closedby');
+      $canBatchReview   = common::hasPriv('story', 'batchReview');
+      $canBatchAssignTo = common::hasPriv('story', 'batchAssignTo');
+      $canBatchAction   = ($canBatchEdit or $canBatchClose or $canBatchReview or $canBatchAssignTo);
       ?>
       <thead>
         <tr>
           <th class="c-id">
-            <?php if($canBatchEdit or $canBatchClose):?>
+            <?php if($canBatchAction):?>
             <div class="checkbox-primary check-all" title="<?php echo $lang->selectAll?>">
               <label></label>
             </div>
@@ -46,65 +59,118 @@
             <?php common::printOrderLink('id', $orderBy, $vars, $lang->idAB);?>
           </th>
           <th class='c-pri'>      <?php common::printOrderLink('pri',          $orderBy, $vars, $lang->priAB);?></th>
+          <th class='c-name'>     <?php common::printOrderLink('title',        $orderBy, $vars, $lang->my->name);?></th>
           <th class='c-product'>  <?php common::printOrderLink('productTitle', $orderBy, $vars, $lang->story->product);?></th>
-          <th class='c-name'>     <?php common::printOrderLink('title',        $orderBy, $vars, $lang->story->title);?></th>
           <th class='c-plan'>     <?php common::printOrderLink('plan',         $orderBy, $vars, $lang->story->plan);?></th>
           <th class='c-user'>     <?php common::printOrderLink('openedBy',     $orderBy, $vars, $lang->openedByAB);?></th>
           <th class='c-hours'>    <?php common::printOrderLink('estimate',     $orderBy, $vars, $lang->story->estimateAB);?></th>
           <th class='c-status'>   <?php common::printOrderLink('status',       $orderBy, $vars, $lang->statusAB);?></th>
           <th class='c-stage'>    <?php common::printOrderLink('stage',        $orderBy, $vars, $lang->story->stageAB);?></th>
-          <th class='c-actions-5'><?php echo $lang->actions;?></th>
+          <th class='c-actions-6'><?php echo $lang->actions;?></th>
         </tr>
       </thead>
       <tbody>
         <?php foreach($stories as $story):?>
-        <?php $storyLink = $this->createLink('story', 'view', "id=$story->id");?>
+        <?php
+        $storyLink    = $this->createLink('story', 'view', "id=$story->id");
+        $canBeChanged = common::canBeChanged('story', $story);
+        ?>
         <tr>
           <td class="c-id">
-            <?php if($canBatchEdit or $canBatchClose):?>
+            <?php if($canBatchAction):?>
             <div class="checkbox-primary">
-              <input type='checkbox' name='storyIdList[<?php echo $story->id;?>]' value='<?php echo $story->id;?>' />
+              <input type='checkbox' name='storyIdList[<?php echo $story->id;?>]' value='<?php echo $story->id;?>' <?php if(!$canBeChanged) echo 'disabled';?>/>
               <label></label>
             </div>
             <?php endif;?>
             <?php printf('%03d', $story->id);?>
           </td>
           <td class='c-pri'><span class='label-pri <?php echo 'label-pri-' . $story->pri;?>' title='<?php echo zget($lang->story->priList, $story->pri, $story->pri);?>'><?php echo zget($lang->story->priList, $story->pri, $story->pri);?></span></td>
+          <td class='c-name nobr <?php if(!empty($story->children)) echo "has-child" ?>'>
+            <?php echo html::a($storyLink, $story->title, null, "style='color: $story->color' data-group='product'");?>
+            <?php if(!empty($story->children)) echo '<a class="story-toggle" data-id="' . $story->id . '"><i class="icon icon-angle-double-right"></i></a>';;?>
+          </td>
           <td class='c-product'><?php echo $story->productTitle;?></td>
-          <td class='c-name nobr'><?php echo html::a($storyLink, $story->title, null, "style='color: $story->color'");?></td>
           <td class='c-plan'><?php echo $story->planTitle;?></td>
           <td class='c-user'><?php echo zget($users, $story->openedBy);?></td>
-          <td class='c-hours'><?php echo $story->estimate;?></td>
+          <td class='c-hours' title="<?php echo $story->estimate . ' ' . $lang->hourCommon;?>"><?php echo $story->estimate . $config->hourUnit;?></td>
           <td class='c-status'><span class='status-story status-<?php echo $story->status;?>'> <?php echo $this->processStatus('story', $story);?></span></td>
           <td class='c-stage'><?php echo zget($lang->story->stageList, $story->stage);?></td>
           <td class='c-actions'>
             <?php
-            $vars = "story={$story->id}";
-            common::printIcon('story', 'change',     $vars, $story, 'list', 'fork');
-            common::printIcon('story', 'review',     $vars, $story, 'list', 'glasses');
-            common::printIcon('story', 'close',      $vars, $story, 'list', '', '', 'iframe', true);
-            common::printIcon('story', 'edit',       $vars, $story, 'list');
-            if($config->global->flow != 'onlyStory') common::printIcon('story', 'createCase', "productID=$story->product&branch=$story->branch&module=0&from=&param=0&$vars", $story, 'list', 'sitemap');
+            if($canBeChanged)
+            {
+                $vars = "story={$story->id}";
+                echo common::buildIconButton('story', 'change', $vars, $story, 'list', 'alter', '', 'iframe', true);
+                echo common::buildIconButton('story', 'review', $vars, $story, 'list', 'search', '', 'iframe', true);
+                echo common::buildIconButton('story', 'recall', $vars, $story, 'list', 'back', 'hiddenwin', '', '', '', $lang->story->recall);
+                echo common::buildIconButton('story', 'close',  $vars, $story, 'list', '', '', 'iframe', true);
+                echo common::buildIconButton('story', 'edit',   $vars, $story, 'list', '', '', 'iframe', true, "data-width='95%'");
+                echo common::buildIconButton('story', 'createCase', "productID=$story->product&branch=$story->branch&module=0&from=&param=0&$vars", $story, 'list', 'sitemap', '', 'iframe', true, "data-width='95%'");
+            }
             ?>
           </td>
         </tr>
+        <?php if(!empty($story->children)):?>
+        <?php $i = 0;?>
+        <?php foreach($story->children as $key => $child):?>
+        <?php $storyLink = $this->createLink('story', 'view', "id=$child->id");?>
+        <?php $class  = $i == 0 ? ' table-child-top' : '';?>
+        <?php $class .= ($i + 1 == count($story->children)) ? ' table-child-bottom' : '';?>
+        <tr class='table-children<?php echo $class;?> parent-<?php echo $story->id;?>' data-id='<?php echo $child->id?>' data-status='<?php echo $child->status?>' data-estimate='<?php echo $child->estimate?>'>
+          <td class="c-id">
+            <?php if($canBatchAction):?>
+            <div class="checkbox-primary">
+              <input type='checkbox' name='storyIdList[<?php echo $child->id;?>]' value='<?php echo $child->id;?>' />
+              <label></label>
+            </div>
+            <?php endif;?>
+            <?php printf('%03d', $child->id);?>
+          </td>
+          <td class='c-pri'><span class='label-pri <?php echo 'label-pri-' . $child->pri;?>' title='<?php echo zget($lang->story->priList, $child->pri, $child->pri);?>'><?php echo zget($lang->story->priList, $child->pri, $child->pri);?></span></td>
+          <td class='c-name nobr'>
+            <?php echo '<span class="label label-badge label-light" title="' . $this->lang->story->children .'">' . $this->lang->story->childrenAB . '</span> ' . html::a($storyLink, $child->title, null, "style='color: $child->color' data-group='product'");?>
+          </td>
+          <td class='c-product'><?php echo $child->productTitle;?></td>
+          <td class='c-plan'><?php echo $child->planTitle;?></td>
+          <td class='c-user'><?php echo zget($users, $child->openedBy);?></td>
+          <td class='c-hours'><?php echo $child->estimate . $config->hourUnit;?></td>
+          <td class='c-status'><span class='status-story status-<?php echo $child->status;?>'> <?php echo $this->processStatus('story', $child);?></span></td>
+          <td class='c-stage'><?php echo zget($lang->story->stageList, $child->stage);?></td>
+          <td class='c-actions'>
+            <?php
+            if($canBeChanged)
+            {
+                $vars = "story={$child->id}";
+                common::printIcon('story', 'change',     $vars, $child, 'list', 'alter', '', 'iframe', true);
+                common::printIcon('story', 'review',     $vars, $child, 'list', 'search', '', 'iframe', true);
+                common::printIcon('story', 'close',      $vars, $child, 'list', '', '', 'iframe', true);
+                common::printIcon('story', 'edit',       $vars, $child, 'list', '', '', 'iframe', true, "data-width='95%'");
+                common::printIcon('story', 'createCase', "productID=$child->product&branch=$child->branch&module=0&from=&param=0&$vars", $child, 'list', 'sitemap', '', 'iframe', true, "data-width='95%'");
+            }
+            ?>
+          </td>
+        </tr>
+        <?php $i ++;?>
+        <?php endforeach;?>
+        <?php endif;?>
         <?php endforeach;?>
       </tbody>
     </table>
     <div class="table-footer">
-      <?php if($canBatchEdit or $canBatchClose):?>
+      <?php if($canBatchAction):?>
       <div class="checkbox-primary check-all"><label><?php echo $lang->selectAll?></label></div>
       <?php endif;?>
       <div class="table-actions btn-toolbar">
         <?php
         if($canBatchEdit)
         {
-            $actionLink = $this->createLink('story', 'batchEdit');
+            $actionLink = $this->createLink('story', 'batchEdit', "productID=0&executionID=0&branch=0&storyType=story&from={$app->rawMethod}");
             $misc       = "data-form-action='$actionLink'";
             echo html::commonButton($lang->edit, $misc);
         }
         ?>
-        <?php if(common::hasPriv('story', 'batchReview')):?>
+        <?php if($canBatchReview):?>
         <div class="btn-group dropup">
           <button type='button' class='btn' data-toggle='dropdown'><?php echo $lang->story->review;?> <span class='caret'></span></button>
           <ul class='dropdown-menu'>
@@ -141,7 +207,7 @@
           </ul>
         </div>
         <?php endif;?>
-        <?php if(common::hasPriv('story', 'batchAssignTo')):?>
+        <?php if($canBatchAssignTo):?>
         <div class="btn-group dropup">
           <button data-toggle="dropdown" type="button" class="btn"><?php echo $lang->story->assignedTo?> <span class="caret"></span></button>
           <?php
@@ -174,9 +240,9 @@
           ?>
         </div>
         <?php endif;?>
-        <?php if($canBatchClose and $type != 'closedBy'):?>
+        <?php if($canBatchClose):?>
         <?php
-        $actionLink = $this->createLink('story', 'batchClose');
+        $actionLink = $this->createLink('story', 'batchClose', "productID=0&executionID=0&storyType=story&from={$app->rawMethod}");
         $misc = "data-form-action=\"$actionLink\"";
         echo html::commonButton($lang->close, $misc);
         ?>

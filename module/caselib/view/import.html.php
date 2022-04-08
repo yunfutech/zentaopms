@@ -3,7 +3,7 @@
   <div class="container">
     <div id="mainContent" class='main-content'>
       <div class='main-header'>
-        <h2><?php echo $lang->testcase->importFile;?></h2>
+        <h2><?php echo $lang->testcase->fileImport;?></h2>
       </div>
       <form method='post' enctype='multipart/form-data' target='hiddenwin' style="padding:30px">
         <table class='table table-form'>
@@ -11,7 +11,7 @@
             <td align='center'>
               <input type='file' name='file' class='form-control'/>
             </td>
-            <td>
+            <td class="w-150px">
               <?php echo html::select('encode', $config->charsets[$this->cookie->lang], 'utf-8', "class='form-control'");?>
             </td>
             <td class="w-150px">

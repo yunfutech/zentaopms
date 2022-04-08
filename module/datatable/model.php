@@ -3,9 +3,9 @@
  * The view file of datatable module of ZenTaoPMS.
  *
  * @copyright   Copyright 2014-2014 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @license     business(商业软件) 
+ * @license     business(商业软件)
  * @author      Hao sun <sunhao@cnezsoft.com>
- * @package     datatable 
+ * @package     datatable
  * @version     $Id$
  * @link        http://www.zentao.net
  */
@@ -15,8 +15,8 @@ class datatableModel extends model
 {
     /**
      * Get field list.
-     * 
-     * @param  string $module 
+     *
+     * @param  string $module
      * @access public
      * @return array
      */
@@ -41,7 +41,7 @@ class datatableModel extends model
             $fields = $this->loadModel('workflowfield')->getList($module);
             foreach($fields as $field)
             {
-                if($field->buildin) continue;    
+                if($field->buildin) continue;
                 $this->config->$module->datatable->fieldList[$field->field]['title']    = $field->name;
                 $this->config->$module->datatable->fieldList[$field->field]['width']    = '120';
                 $this->config->$module->datatable->fieldList[$field->field]['fixed']    = 'no';
@@ -88,6 +88,11 @@ class datatableModel extends model
                 $set->title = $fieldList[$id]['title'];
                 $set->sort  = isset($fieldList[$id]['sort']) ? $fieldList[$id]['sort'] : 'yes';
                 $set->name  = isset($fieldList[$id]['name']) ? $fieldList[$id]['name'] : '';
+
+                if(isset($fieldList[$id]['minWidth'])) $set->minWidth = $fieldList[$id]['minWidth'];
+                if(isset($fieldList[$id]['maxWidth'])) $set->maxWidth = $fieldList[$id]['maxWidth'];
+                if(isset($fieldList[$id]['pri']))      $set->pri = $fieldList[$id]['pri'];
+
                 $setting[$key] = $set;
             }
         }
@@ -119,12 +124,12 @@ class datatableModel extends model
 
     /**
      * Sort cols.
-     * 
-     * @param  int    $a 
-     * @param  int    $b 
+     *
+     * @param  int    $a
+     * @param  int    $b
      * @static
      * @access public
-     * @return void
+     * @return int
      */
     public static function sortCols($a, $b)
     {
@@ -134,10 +139,11 @@ class datatableModel extends model
 
     /**
      * Print table head.
-     * 
-     * @param  object $col 
-     * @param  string $orderBy 
-     * @param  string $vars 
+     *
+     * @param  object $col
+     * @param  string $orderBy
+     * @param  string $vars
+     * @param  bool   $checkBox
      * @access public
      * @return void
      */
@@ -146,15 +152,31 @@ class datatableModel extends model
         $id = $col->id;
         if($col->show)
         {
-            $fixed = $col->fixed == 'no' ? 'true': 'false';
+            $fixed = $col->fixed == 'no' ? 'true' : 'false';
             $width = is_numeric($col->width) ? "{$col->width}px" : $col->width;
             $title = isset($col->title) ? "title='$col->title'" : '';
             $title = (isset($col->name) and $col->name) ? "title='$col->name'" : $title;
             if($id == 'id' and (int)$width < 90) $width = '90px';
-            $width = "data-width='$width' style='width:$width'";
-            $align = ($id == 'actions' || $id == 'progress') ? 'text-center' : '';
+            $align = $id == 'actions' ? 'text-center' : '';
+            $align = in_array($id, array('budget', 'teamCount', 'estimate', 'consume')) ? 'text-right' : $align;
 
-            echo "<th data-flex='$fixed' $width class='c-$id $align' $title>";
+            $style  = '';
+            $data   = '';
+            $data  .= "data-width='$width'";
+            $style .= "width:$width;";
+            if(isset($col->minWidth))
+            {
+                $data  .= "data-minWidth='{$col->minWidth}px'";
+                $style .= "min-width:{$col->minWidth}px;";
+            }
+            if(isset($col->maxWidth))
+            {
+                $data  .= "data-maxWidth='{$col->maxWidth}px'";
+                $style .= "max-width:{$col->maxWidth}px;";
+            }
+            if(isset($col->pri)) $data .= "data-pri='{$col->pri}'";
+
+            echo "<th data-flex='$fixed' $data style='$style' class='c-$id $align' $title>";
             if($id == 'actions')
             {
                 echo $this->lang->actions;
@@ -173,11 +195,11 @@ class datatableModel extends model
     }
 
     /**
-     * Set fixed field width 
-     * 
-     * @param  object $setting 
-     * @param  int    $minLeftWidth 
-     * @param  int    $minRightWidth 
+     * Set fixed field width
+     *
+     * @param  object $setting
+     * @param  int    $minLeftWidth
+     * @param  int    $minRightWidth
      * @access public
      * @return array
      */

@@ -1,26 +1,27 @@
 <?php
 /**
- * The bug module English file of ZenTaoPMS.
+ * The bug module french file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @copyright   Copyright 2009-2021 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
  * @license     ZPL (http://zpl.pub/page/zplv12.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     bug
- * @version     $Id: en.php 4536 2013-03-02 13:39:37Z wwccss $
+ * @version     $Id: fr.php 4536 2013-03-02 13:39:37Z wwccss $
  * @link        https://www.zentao.pm
  */
 /* Fieldlist. */
 $lang->bug->common           = 'Bug';
 $lang->bug->id               = 'ID';
 $lang->bug->product          = $lang->productCommon;
-$lang->bug->branch           = 'Branche/Platforme';
+$lang->bug->branch           = 'Branche/Plateforme';
 $lang->bug->productplan      = 'Plan';
 $lang->bug->module           = 'Module';
 $lang->bug->moduleAB         = 'Module';
-$lang->bug->project          = $lang->projectCommon;
+$lang->bug->project          = 'Project';
+$lang->bug->execution        = $lang->execution->common;
 $lang->bug->story            = 'Story';
-$lang->bug->storyVersion     = 'Story Version';
-$lang->bug->color            = 'Color';
+$lang->bug->storyVersion     = 'Version Story';
+$lang->bug->color            = 'Couleur';
 $lang->bug->task             = 'Tâche';
 $lang->bug->title            = 'Titre';
 $lang->bug->severity         = 'Sévérité';
@@ -32,7 +33,7 @@ $lang->bug->browser          = 'Browser';
 $lang->bug->steps            = 'Repro Steps';
 $lang->bug->status           = 'Statut';
 $lang->bug->statusAB         = 'Statut';
-$lang->bug->subStatus        = 'Sub Statut';
+$lang->bug->subStatus        = 'Sous-Statut';
 $lang->bug->activatedCount   = 'Heures Activation';
 $lang->bug->activatedCountAB = 'Actif';
 $lang->bug->activatedDate    = 'Date Activation';
@@ -45,7 +46,7 @@ $lang->bug->openedBy         = 'Signalé par';
 $lang->bug->openedByAB       = 'Détecteur';
 $lang->bug->openedDate       = 'Date signalement';
 $lang->bug->openedDateAB     = 'Signalé';
-$lang->bug->openedBuild      = 'Open Build';
+$lang->bug->openedBuild      = 'Build ouverts';
 $lang->bug->assignedTo       = 'Bugs qui me sont affectés';
 $lang->bug->assignBug        = 'Affecter à';
 $lang->bug->assignedToAB     = 'Affecté à';
@@ -58,6 +59,7 @@ $lang->bug->resolvedBuild    = 'Build';
 $lang->bug->resolvedDate     = 'Date Correction';
 $lang->bug->resolvedDateAB   = 'Date Correction';
 $lang->bug->deadline         = 'Date Butoir';
+$lang->bug->deadlineAB       = 'Butoir';
 $lang->bug->plan             = 'Plan';
 $lang->bug->closedBy         = 'Fermé par';
 $lang->bug->closedDate       = 'Date Fermeture';
@@ -67,8 +69,8 @@ $lang->bug->linkBug          = 'Bugs Liés';
 $lang->bug->linkBugs         = 'Associer Bug';
 $lang->bug->unlinkBug        = 'Dissocier';
 $lang->bug->case             = 'CasTests';
-$lang->bug->caseVersion      = 'Case Version';
-$lang->bug->testtask         = 'Request';
+$lang->bug->caseVersion      = 'Version CasTest';
+$lang->bug->testtask         = 'Campagne';
 $lang->bug->files            = 'Fichiers';
 $lang->bug->keywords         = 'Tags';
 $lang->bug->lastEditedByAB   = 'Edité par';
@@ -77,6 +79,7 @@ $lang->bug->lastEditedDate   = 'Date Modif';
 $lang->bug->fromCase         = 'du CasTest';
 $lang->bug->toCase           = 'vers CasTest';
 $lang->bug->colorTag         = 'Couleur';
+$lang->bug->fixedRate        = 'Repair Rate';
 
 /* 方法列表。*/
 $lang->bug->index              = 'Accueil Bug';
@@ -130,6 +133,7 @@ $lang->bug->overdueBugs        = 'Retard';
 $lang->bug->allBugs            = 'Tous';
 $lang->bug->byQuery            = 'Rechercher';
 $lang->bug->needConfirm        = 'Story Changée';
+$lang->bug->allProject         = 'All Projects';
 $lang->bug->allProduct         = 'Tous les ' . $lang->productCommon . 's';
 $lang->bug->my                 = 'Mes';
 $lang->bug->yesterdayResolved  = 'Bugs Résolus Hier ';
@@ -148,7 +152,7 @@ $lang->bug->noModule     = "<div>Vous n'avez pas de modules.</div><div>Gérer Mo
 $lang->bug->delayWarning = " <strong class='text-danger'> Retard %s jours </strong>";
 
 /* 页面标签。*/
-$lang->bug->lblAssignedTo = 'Affecté à4';
+$lang->bug->lblAssignedTo = 'Affecté à';
 $lang->bug->lblMailto     = 'Mailto';
 $lang->bug->lblLastEdited = 'Edité par';
 $lang->bug->lblResolved   = 'Résolu par';
@@ -159,7 +163,8 @@ $lang->bug->createBuild   = 'Nouveau';
 /* legend列表。*/
 $lang->bug->legendBasicInfo             = 'Infos de Base';
 $lang->bug->legendAttatch               = 'Fichiers';
-$lang->bug->legendPrjStoryTask          = $lang->projectCommon . '/Story/Tâche';
+$lang->bug->legendPRJExecStoryTask      = 'Project/' . $lang->executionCommon . '/Story/Task';
+$lang->bug->legendExecStoryTask         = $lang->executionCommon . '/Story/Tâche';
 $lang->bug->lblTypeAndSeverity          = 'Type/Severité';
 $lang->bug->lblSystemBrowserAndHardware = 'Système/Browser';
 $lang->bug->legendSteps                 = 'Etapes Repro';
@@ -173,11 +178,13 @@ $lang->bug->buttonConfirm = 'Confirmer';
 
 /* 交互提示。*/
 $lang->bug->summary               = "Total de <strong>%s</strong> bugs sur cette page, et <strong>%s</strong> sont Actifs.";
-$lang->bug->confirmChangeProduct  = "Tout changement aux {$lang->productCommon} fera que les {$lang->projectCommon}s, stories et tâches associées vont changer. Voulez-vous faire cela ?";
+$lang->bug->confirmChangeProduct  = "Tout changement aux {$lang->productCommon} fera que les {$lang->executionCommon}s, stories et tâches associées vont changer. Voulez-vous faire cela ?";
 $lang->bug->confirmDelete         = 'Voulez-vous supprimer ce bug ?';
 $lang->bug->remindTask            = 'Ce bug a été converti en tâche. Voulez-vous mettre à jour le statut de la Tâche(ID %s) ?';
 $lang->bug->skipClose             = 'Bug %s est actif. Vous ne pouvez pas le fermer.';
-$lang->bug->projectAccessDenied   = "You access to the {$lang->projectCommon} to which this bug belongs is denied!";
+$lang->bug->executionAccessDenied = "Votre accès à {$lang->executionCommon} auquel ce bug appartient est refusé !";
+$lang->bug->stepsNotEmpty         = "The reproduction step cannot be empty.";
+$lang->bug->confirmUnlinkBuild    = "Replacing the solution version will disassociate the bug from the old version. Are you sure you want to disassociate the bug from %s?";
 
 /* 模板。*/
 $lang->bug->tplStep   = "<p>[Etape]</p><br/>";
@@ -277,7 +284,7 @@ $lang->bug->report->common = 'Rapport';
 $lang->bug->report->select = 'Sélect Type de Rapport';
 $lang->bug->report->create = 'Créer Rapport';
 
-$lang->bug->report->charts['bugsPerProject']        = 'Bugs ' . $lang->projectCommon;
+$lang->bug->report->charts['bugsPerExecution']      = 'Bugs ' . $lang->executionCommon;
 $lang->bug->report->charts['bugsPerBuild']          = 'Bugs Par Build';
 $lang->bug->report->charts['bugsPerModule']         = 'Bugs Par Module';
 $lang->bug->report->charts['openedBugsPerDay']      = 'Bugs Détectés Par Jour';
@@ -293,8 +300,8 @@ $lang->bug->report->charts['bugsPerActivatedCount'] = 'Heure Activation';
 $lang->bug->report->charts['bugsPerPri']            = 'Priorité Bug';
 $lang->bug->report->charts['bugsPerType']           = 'Type de Bug';
 $lang->bug->report->charts['bugsPerAssignedTo']     = 'Bug Affecté à';
-//$lang->bug->report->charts['bugLiveDays']        = 'Bug Handling Time Report';
-//$lang->bug->report->charts['bugHistories']       = 'Bug Handling Steps Report';
+//$lang->bug->report->charts['bugLiveDays']        = 'Rapport sur le temps de travail des bugs';
+//$lang->bug->report->charts['bugHistories']       = 'Rapport sur les étapes de gestion des bugs';
 
 $lang->bug->report->options = new stdclass();
 $lang->bug->report->options->graph  = new stdclass();
@@ -302,7 +309,7 @@ $lang->bug->report->options->type   = 'pie';
 $lang->bug->report->options->width  = 500;
 $lang->bug->report->options->height = 140;
 
-$lang->bug->report->bugsPerProject        = new stdclass();
+$lang->bug->report->bugsPerExecution      = new stdclass();
 $lang->bug->report->bugsPerBuild          = new stdclass();
 $lang->bug->report->bugsPerModule         = new stdclass();
 $lang->bug->report->openedBugsPerDay      = new stdclass();
@@ -321,7 +328,7 @@ $lang->bug->report->bugsPerAssignedTo     = new stdclass();
 $lang->bug->report->bugLiveDays           = new stdclass();
 $lang->bug->report->bugHistories          = new stdclass();
 
-$lang->bug->report->bugsPerProject->graph        = new stdclass();
+$lang->bug->report->bugsPerExecution->graph      = new stdclass();
 $lang->bug->report->bugsPerBuild->graph          = new stdclass();
 $lang->bug->report->bugsPerModule->graph         = new stdclass();
 $lang->bug->report->openedBugsPerDay->graph      = new stdclass();
@@ -340,18 +347,18 @@ $lang->bug->report->bugsPerAssignedTo->graph     = new stdclass();
 $lang->bug->report->bugLiveDays->graph           = new stdclass();
 $lang->bug->report->bugHistories->graph          = new stdclass();
 
-$lang->bug->report->bugsPerProject->graph->xAxisName     = $lang->projectCommon;
-$lang->bug->report->bugsPerBuild->graph->xAxisName       = 'Build';
-$lang->bug->report->bugsPerModule->graph->xAxisName      = 'Module';
+$lang->bug->report->bugsPerExecution->graph->xAxisName = $lang->executionCommon;
+$lang->bug->report->bugsPerBuild->graph->xAxisName     = 'Build';
+$lang->bug->report->bugsPerModule->graph->xAxisName    = 'Module';
 
-$lang->bug->report->openedBugsPerDay->type               = 'bar';
-$lang->bug->report->openedBugsPerDay->graph->xAxisName   = 'Date';
+$lang->bug->report->openedBugsPerDay->type             = 'bar';
+$lang->bug->report->openedBugsPerDay->graph->xAxisName = 'Date';
 
 $lang->bug->report->resolvedBugsPerDay->type             = 'bar';
 $lang->bug->report->resolvedBugsPerDay->graph->xAxisName = 'Date';
 
-$lang->bug->report->closedBugsPerDay->type               = 'bar';
-$lang->bug->report->closedBugsPerDay->graph->xAxisName   = 'Date';
+$lang->bug->report->closedBugsPerDay->type             = 'bar';
+$lang->bug->report->closedBugsPerDay->graph->xAxisName = 'Date';
 
 $lang->bug->report->openedBugsPerUser->graph->xAxisName   = 'User';
 $lang->bug->report->resolvedBugsPerUser->graph->xAxisName = 'User';
@@ -364,8 +371,8 @@ $lang->bug->report->bugsPerActivatedCount->graph->xAxisName = 'Heure Activation'
 $lang->bug->report->bugsPerPri->graph->xAxisName            = 'Priorité';
 $lang->bug->report->bugsPerType->graph->xAxisName           = 'Type';
 $lang->bug->report->bugsPerAssignedTo->graph->xAxisName     = 'Affecté à';
-$lang->bug->report->bugLiveDays->graph->xAxisName           = 'Handling Time';
-$lang->bug->report->bugHistories->graph->xAxisName          = 'Handling Steps';
+$lang->bug->report->bugLiveDays->graph->xAxisName           = 'Temps résolution';
+$lang->bug->report->bugHistories->graph->xAxisName          = 'Etapes résolution';
 
 /* 操作记录。*/
 $lang->bug->action = new stdclass();
@@ -390,12 +397,10 @@ $lang->bug->featureBar['browse']['unclosed']     = $lang->bug->unclosed;
 $lang->bug->featureBar['browse']['openedbyme']   = $lang->bug->openedByMe;
 $lang->bug->featureBar['browse']['assigntome']   = $lang->bug->assignToMe;
 $lang->bug->featureBar['browse']['resolvedbyme'] = $lang->bug->resolvedByMe;
-
-
+$lang->bug->featureBar['browse']['toclosed']     = $lang->bug->toClosed;
+$lang->bug->featureBar['browse']['unresolved']   = $lang->bug->unResolved;
 $lang->bug->featureBar['browse']['more']         = $lang->more;
 
-$lang->bug->moreSelects['toclosed']      = $lang->bug->toClosed;
-$lang->bug->moreSelects['unresolved']    = $lang->bug->unResolved;
 $lang->bug->moreSelects['unconfirmed']   = $lang->bug->unconfirmed;
 $lang->bug->moreSelects['assigntonull']  = $lang->bug->assignToNull;
 $lang->bug->moreSelects['longlifebugs']  = $lang->bug->longLifeBugs;

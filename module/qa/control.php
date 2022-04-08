@@ -13,24 +13,23 @@ class qa extends control
 {
     /**
      * The index of qa, go to bug's browse page.
-     * 
+     *
      * @access public
      * @return void
      */
-    public function index($locate = 'auto', $productID = 0)
+    public function index($locate = 'auto', $productID = 0, $projectID = 0)
     {
-        $this->products = $this->loadModel('product')->getPairs('nocode');
-        if(empty($this->products)) die($this->locate($this->createLink('product', 'showErrorNone', "fromModule=qa")));
+        $products = $this->loadModel('product')->getProductPairsByProject($projectID, 'noclosed');
+        if(empty($products)) die($this->locate($this->createLink('product', 'showErrorNone', "moduleName=qa&activeMenu=index")));
         if($locate == 'yes') $this->locate($this->createLink('bug', 'browse'));
 
-        if($this->app->viewType != 'mhtml') unset($this->lang->qa->menu->index);
-        $productID = $this->product->saveState($productID, $this->products);
+        $productID = $this->product->saveState($productID, $products);
         $branch    = (int)$this->cookie->preBranch;
-        $this->qa->setMenu($this->products, $productID, $branch);
+        $this->qa->setMenu($products, $productID, $branch);
 
         $this->view->title      = $this->lang->qa->index;
         $this->view->position[] = $this->lang->qa->index;
-        $this->view->products   = $this->products;
+        $this->view->products   = $products;
         $this->display();
     }
 }

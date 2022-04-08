@@ -5,17 +5,18 @@
  *
  * The author disclaims copyright to this source code.  In place of
  * a legal notice, here is a blessing:
- * 
+ *
  *  May you do good and not evil.
  *  May you find forgiveness for yourself and forgive others.
  *  May you share freely, never taking more than you give.
  */
 
 helper::import(dirname(dirname(__FILE__)) . '/base/front/front.class.php');
+
 /**
  * html类，生成html标签。
  * The html class, to build html tags.
- * 
+ *
  * @package framework
  */
 class html extends baseHTML
@@ -35,7 +36,8 @@ class html extends baseHTML
     static public function a($href = '', $title = '', $target = "_self", $misc = '', $newline = true)
     {
         if(empty($target)) $target = '_self';
-        if($target != '_self') $misc .= " target='$target'";
+        if($target != '_self')  $misc .= " target='$target'";
+        if($target == '_blank') $misc .= " rel='noopener noreferrer'";
         return parent::a($href, $title, $misc, $newline);
     }
 
@@ -84,7 +86,6 @@ class html extends baseHTML
 
         foreach($options as $key => $value)
         {
-            $key = str_replace('item', '', $key);
             if($isBlock) $string .= "<div class='checkbox-primary'>";
             else $string .= "<div class='checkbox-primary checkbox-inline'>";
             $string .= "<input type='checkbox' name='{$name}[]' value='$key' ";
@@ -99,7 +100,7 @@ class html extends baseHTML
     /**
      * 创建提交按钮。
      * Create submit button.
-     * 
+     *
      * @param  string $label    the label of the button
      * @param  string $class    the class of the button
      * @param  string $misc     other params
@@ -125,10 +126,10 @@ class html extends baseHTML
     /**
      * 创建全选checkbox。
      * Create select buttons include 'selectAll' and 'selectReverse'.
-     * 
+     *
      * @param  string $scope  the scope of select reverse.
-     * @param  bool   $asGroup 
-     * @param  string $appendClass 
+     * @param  bool   $asGroup
+     * @param  string $appendClass
      * @static
      * @access public
      * @return string
@@ -156,7 +157,6 @@ class html extends baseHTML
     {
         $options = (array)($options);
         if($append and !isset($options[$selectedItems])) $options[$selectedItems] = $selectedItems;
-        if(!is_array($options) or empty($options)) return false;
 
         /* The begin. */
         $id = $name;
@@ -164,17 +164,26 @@ class html extends baseHTML
         $id = "id='{$id}'";
         if(strpos($attrib, 'id=') !== false) $id = '';
 
+        global $config;
+        $convertedPinYin = (empty($config->isINT) and class_exists('common')) ? common::convert2Pinyin($options) : array();
+        if(count($options) >= $config->maxCount or isset($config->moreLinks[$name]))
+        {
+            if(strpos($attrib, 'chosen') !== false) $attrib = str_replace('chosen', 'picker-select', $attrib);
+            if(isset($config->moreLinks[$name]))
+            {
+                $link = $config->moreLinks[$name];
+                $attrib .= " data-pickertype='remote' data-pickerremote='" . $link . "'";
+            }
+        }
+
         $string = "<select name='$name' {$id} $attrib>\n";
 
         /* The options. */
-        global $config;
         if(is_array($selectedItems)) $selectedItems = implode(',', $selectedItems);
         $selectedItems   = ",$selectedItems,";
-        $convertedPinYin = (empty($config->isINT) and class_exists('common')) ? common::convert2Pinyin($options) : array();
         foreach($options as $key => $value)
         {
             $optionPinyin = zget($convertedPinYin, $value, '');
-            $key      = str_replace('item', '', $key);
             $selected = strpos($selectedItems, ",$key,") !== false ? " selected='selected'" : '';
             $string  .= "<option value='$key'$selected title='{$value}' data-keys='{$optionPinyin}'>$value</option>\n";
         }
@@ -185,10 +194,10 @@ class html extends baseHTML
 
     /**
      * Create input tag that type is number.
-     * 
-     * @param  string $name 
-     * @param  string $value 
-     * @param  string $attrib 
+     *
+     * @param  string $name
+     * @param  string $value
+     * @param  string $attrib
      * @static
      * @access public
      * @return string
@@ -200,12 +209,133 @@ class html extends baseHTML
         $value = str_replace("'", '&#039;', $value);
         return "<input type='number' name='$name' {$id} value='$value' $attrib />\n";
     }
+
+    /**
+     * Convert a string to a uni code
+     *
+     * @param string $string
+     * @return int
+     */
+    static public function stringToCode($string)
+    {
+        $stringLength = strlen($string);
+        if($stringLength == 0) return 0;
+
+        $code = 0;
+        for($i = 0; $i < $stringLength; ++ $i) $code += ($i + 1) * ord($string[$i]);
+        return $code;
+    }
+
+    /**
+     * Create user avatar.
+     *
+     * @param  string|object|array  $user        User object or user account
+     * @param  string|int           $size        Avatar size, can be a number or preset sizes: "xs", "sm", "", "lg", "xl", default is ""
+     * @param  string               $className   Avatar element class name, default is "avatar-circle"
+     * @param  string               $attrib      Extra attributes on avatar element
+     * @param  string               $tag         Avatar element tag name, default is "div"
+     * @param  string               $hueDistance Hue distance used as background color for default avatar
+     * @param  string               $saturation  Saturation used as background color for default avatar
+     * @param  string               $lightness   Lightness used as background color for default avatar
+     * @static
+     * @access public
+     * @return string
+     */
+    static public function avatar($user, $size = '', $className = 'avatar-circle', $attrib = '', $tag = 'div', $hueDistance = 43, $saturation = '40%', $lightness = '60%')
+    {
+        $userObj = new stdClass();
+
+        if(is_string($user))
+        {
+            $userObj->account = $user;
+            $user = $userObj;
+        }
+        elseif(is_array($user))
+        {
+            $userObj->avatar  = $user['avatar'];
+            $userObj->account = $user['account'];
+            $user = $userObj;
+        }
+
+        $hasImage = !empty($user->avatar);
+
+        $extraClassName = $hasImage ? ' has-img' : ' has-text';
+        $style = '';
+
+        if($size)
+        {
+            if(is_numeric($size)) $style .= "width: $size" . "px; height: $size" . "px; line-height: $size" . 'px;';
+            $extraClassName .= " avatar-$size";
+        }
+
+        if(!$hasImage)
+        {
+            $colorHue = (html::stringToCode($user->account) * $hueDistance) % 360;
+            $style   .= "background: hsl($colorHue, $saturation, $lightness);";
+            if(is_numeric($size)) $style .= 'font-size: ' . round($size * 2 / 3) . 'px;';
+        }
+
+        if(!empty($style)) $style = "style='$style'";
+
+        $html  = "<$tag class='avatar$extraClassName $className' $attrib $style>";
+        $html .= $hasImage ? html::image($user->avatar) : '<span>' . strtoupper($user->account[0]) . '</span>';
+        $html .= "</$tag>";
+
+        return $html;
+    }
+
+    /**
+     * Create a small user avatar.
+     *
+     * @param  string|object $user      User object or user avatar url or user account
+     * @param  string        $className Avatar element class name, default is "avatar-circle"
+     * @param  string        $attrib    Extra attributes on avatar element
+     * @param  string        $tag       Avatar element tag name, default is "div"
+     * @static
+     * @access public
+     * @return string
+     */
+    static public function smallAvatar($user, $className = 'avatar-circle', $attrib = '', $tag = 'div')
+    {
+        return html::avatar($user, 'sm', $className, $attrib, $tag);
+    }
+
+    /**
+     * Create a large user avatar.
+     *
+     * @param  string|object $user      User object or user avatar url or user account
+     * @param  string        $className Avatar element class name, default is "avatar-circle"
+     * @param  string        $attrib    Extra attributes on avatar element
+     * @param  string        $tag       Avatar element tag name, default is "div"
+     * @static
+     * @access public
+     * @return string
+     */
+    static public function largeAvatar($user, $className = 'avatar-circle', $attrib = '', $tag = 'div')
+    {
+        return html::avatar($user, 'lg', $className, $attrib, $tag);
+    }
+
+    /**
+     * Create a progress ring.
+     *
+     * @param  int    progress  Progress value, 0 ~ 100
+     * @static
+     * @access public
+     * @return string
+     */
+    static public function ring($progress)
+    {
+        $progressVal = max(0, min(100, round($progress)));
+        $ringPosition = ceil($progressVal / 2) * 24;
+        return "<div class='ring' style='background-position-x: -{$ringPosition}px'><span>{$progressVal}</span></div>";
+    }
 }
 
 /**
  * JS类。
  * JS class.
- * 
+ *
  * @package front
  */
 class js extends baseJS

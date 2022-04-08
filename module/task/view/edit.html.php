@@ -16,9 +16,9 @@
 <?php include '../../common/view/sortable.html.php';?>
 <?php js::set('oldStoryID', $task->story);?>
 <?php js::set('oldAssignedTo', $task->assignedTo);?>
-<?php js::set('oldProjectID', $task->project);?>
-<?php js::set('confirmChangeProject', $lang->task->confirmChangeProject);?>
-<?php js::set('changeProjectConfirmed', false);?>
+<?php js::set('oldExecutionID', $task->execution);?>
+<?php js::set('confirmChangeExecution', $lang->task->confirmChangeExecution);?>
+<?php js::set('changeExecutionConfirmed', false);?>
 <?php js::set('newRowCount', count($task->team) < 6 ? 6 - count($task->team) : 1);?>
 <div class='main-content' id='mainContent'>
   <form method='post' enctype='multipart/form-data' target='hiddenwin' id='dataform'>
@@ -62,7 +62,7 @@
           <div class='detail'>
             <div class='detail-title'><?php echo $lang->task->desc;?></div>
             <div class='detail-content'>
-              <?php echo html::textarea('desc', htmlspecialchars($task->desc), "rows='8' class='form-control'");?>
+              <?php echo html::textarea('desc', htmlSpecialString($task->desc), "rows='8' class='form-control'");?>
             </div>
           </div>
           <div class='detail'>
@@ -90,9 +90,11 @@
             <table class='table table-form'>
               <?php if($task->parent <= 0):?>
               <tr>
-                <th class='thWidth'><?php echo $lang->task->project;?></th>
-                <td><?php echo html::select('project', $projects, $task->project, 'class="form-control chosen" onchange="loadAll(this.value)"');?></td>
+                <th class='thWidth'><?php echo $lang->task->execution;?></th>
+                <td><?php echo html::select('execution', $executions, $task->execution, 'class="form-control chosen" onchange="loadAll(this.value)"');?></td>
               </tr>
+              <?php else:?>
+              <?php echo html::hidden('execution', $task->execution);?>
               <?php endif;?>
               <tr>
                 <th class='thWidth'><?php echo $lang->task->module;?></th>
@@ -107,10 +109,10 @@
                   </div>
                 </td>
               </tr>
-              <?php if($config->global->flow != 'onlyTask' and $project->type != 'ops'):?>
+              <?php if($execution->type != 'ops'):?>
               <tr>
                 <th><?php echo $lang->task->story;?></th>
-                <td><span id="storyIdBox"><?php echo html::select('story', $stories, $task->story, "class='form-control chosen'");?></span></td>
+                <td><span id="storyIdBox"><?php echo html::select('story', $stories, $task->story, "class='form-control chosen' data-drop_direction='down'");?></span></td>
               </tr>
               <?php endif;?>
               <?php if($task->parent >= 0 and empty($task->team)):?>
@@ -121,7 +123,24 @@
               <?php endif;?>
               <tr>
                 <th><?php echo $lang->task->assignedTo;?></th>
-                <td><span id="assignedToIdBox"><?php echo html::select('assignedTo', $members, $task->assignedTo, "class='form-control chosen'");?></span></td>
+                <?php $disableAssignedTo = (!empty($task->team) and $task->assignedTo != $this->app->user->account) ? "disabled='disabled'" :'';?>
+                <?php
+                $taskMembers = array();
+                if(!empty($task->team))
+                {
+                    $teamAccounts = array_keys($task->team);
+                    foreach($teamAccounts as $teamAccount)
+                    {
+                        if(!isset($members[$teamAccount])) continue;
+                        $taskMembers[$teamAccount] = $members[$teamAccount];
+                    }
+                }
+                else
+                {
+                    $taskMembers = $members;
+                }
+                ?>
+                <td><span id="assignedToIdBox"><?php echo html::select('assignedTo', $taskMembers, $task->assignedTo, "class='form-control chosen' {$disableAssignedTo}");?></span></td>
               </tr>
               <tr class='<?php echo empty($task->team) ? 'hidden' : ''?>' id='teamTr'>
                 <th><?php echo $lang->task->team;?></th>
@@ -145,7 +164,7 @@
                 <th><?php echo $lang->task->mailto;?></th>
                 <td>
                   <div class='input-group'>
-                    <?php echo html::select('mailto[]', $project->acl == 'private' ? $members : $users, str_replace(' ' , '', $task->mailto), 'class="form-control" multiple');?>
+                    <?php echo html::select('mailto[]', $execution->acl == 'private' ? $members : $users, str_replace(' ' , '', $task->mailto), 'class="form-control chosen" multiple');?>
                     <?php echo $this->fetch('my', 'buildContactLists');?>
                   </div>
                 </td>
@@ -166,7 +185,7 @@
               <tr>
                 <th><?php echo $lang->task->estimate;?></th>
                 <td>
-                  <?php $disabled = !empty($task->team) ? "disabled='disabled'" : '';?>
+                  <?php $disabled = (!empty($task->team) or $task->parent < 0) ? "disabled='disabled'" : '';?>
                   <?php echo html::input('estimate', $task->estimate, "class='form-control' {$disabled}");?>
                 </td>
               </tr>
@@ -177,7 +196,7 @@
               <tr>
                 <th><?php echo $lang->task->left;?></th>
                 <td>
-                  <?php $disabled = !empty($task->team) ? "disabled='disabled'" : '';?>
+                  <?php $disabled = (!empty($task->team)  or $task->parent < 0) ? "disabled='disabled'" : '';?>
                   <?php echo html::input('left', $task->left, "class='form-control' {$disabled}");?>
                 </td>
               </tr>
@@ -192,7 +211,7 @@
               </tr>
               <tr>
                 <th><?php echo $lang->task->realStarted;?></th>
-                <td><?php echo html::input('realStarted', $task->realStarted, "class='form-control form-date'");?></td>
+                <td><?php echo html::input('realStarted', helper::isZeroDate($task->realStarted) ? '' : $task->realStarted, "class='form-control form-datetime'");?></td>
               </tr>
               <tr>
                 <th><?php echo $lang->task->finishedBy;?></th>
@@ -200,7 +219,7 @@
               </tr>
               <tr>
                 <th><?php echo $lang->task->finishedDate;?></th>
-                <td><?php echo html::input('finishedDate', $task->finishedDate, 'class="form-control form-date"');?></td>
+                <td><?php echo html::input('finishedDate', $task->finishedDate, 'class="form-control form-datetime"');?></td>
               </tr>
               <tr>
                 <th><?php echo $lang->task->canceledBy;?></th>
@@ -208,7 +227,7 @@
               </tr>
               <tr>
                 <th><?php echo $lang->task->canceledDate;?></th>
-                <td><?php echo html::input('canceledDate', $task->canceledDate, 'class="form-control form-date"');?></td>
+                <td><?php echo html::input('canceledDate', $task->canceledDate, 'class="form-control form-datetime"');?></td>
               </tr>
               <tr>
                 <th><?php echo $lang->task->closedBy;?></th>
@@ -220,7 +239,7 @@
               </tr>
               <tr>
                 <th><?php echo $lang->task->closedDate;?></th>
-                <td><?php echo html::input('closedDate', $task->closedDate, 'class="form-control form-date"');?></td>
+                <td><?php echo html::input('closedDate', $task->closedDate, 'class="form-control form-datetime"');?></td>
               </tr>
             </table>
           </div>
@@ -228,7 +247,7 @@
         </div>
       </div>
     </div>
-    <div class="modal fade modal-team" id="modalTeam">
+    <div class="modal fade modal-team" id="modalTeam"  data-scroll-inside='false'>
       <div class="modal-dialog">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal">
@@ -287,5 +306,5 @@
     </div>
   </form>
 </div>
-<?php js::set('projectID', $project->id);?>
+<?php js::set('executionID', $execution->id);?>
 <?php include '../../common/view/footer.html.php';?>

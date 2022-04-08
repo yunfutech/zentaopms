@@ -1,12 +1,12 @@
 <?php
 /**
- * The bug module English file of ZenTaoPMS.
+ * The bug module german file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @copyright   Copyright 2009-2021 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
  * @license     ZPL (http://zpl.pub/page/zplv12.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     bug
- * @version     $Id: en.php 4536 2013-03-02 13:39:37Z wwccss $
+ * @version     $Id: de.php 4536 2013-03-02 13:39:37Z wwccss $
  * @link        http://www.zentao.net
  */
 /* Fieldlist. */
@@ -17,7 +17,8 @@ $lang->bug->branch           = 'Branch/Platform';
 $lang->bug->productplan      = 'Plan';
 $lang->bug->module           = 'Modul';
 $lang->bug->moduleAB         = 'Modul';
-$lang->bug->project          = $lang->projectCommon;
+$lang->bug->project          = 'Project';
+$lang->bug->execution        = $lang->execution->common;
 $lang->bug->story            = 'Story';
 $lang->bug->storyVersion     = 'Story Version';
 $lang->bug->color            = 'Farbe des Titels';
@@ -58,6 +59,7 @@ $lang->bug->resolvedBuild    = 'Lösungs Build';
 $lang->bug->resolvedDate     = 'Gelöst am';
 $lang->bug->resolvedDateAB   = 'Gelöst';
 $lang->bug->deadline         = 'Fällig am';
+$lang->bug->deadlineAB       = 'Fällig';
 $lang->bug->plan             = 'Plan';
 $lang->bug->closedBy         = 'Geschlossen von';
 $lang->bug->closedDate       = 'Geschlossen am';
@@ -77,6 +79,7 @@ $lang->bug->lastEditedDate   = 'Bearbeitet am';
 $lang->bug->fromCase         = 'Von Fall';
 $lang->bug->toCase           = 'Zu Fall';
 $lang->bug->colorTag         = 'Farb Tag';
+$lang->bug->fixedRate        = 'Fixed Rate';
 
 /* 方法列表。*/
 $lang->bug->index              = 'Home';
@@ -130,6 +133,7 @@ $lang->bug->overdueBugs        = 'Überfällig';
 $lang->bug->allBugs            = 'Alle';
 $lang->bug->byQuery            = 'Suche';
 $lang->bug->needConfirm        = 'Story geändert';
+$lang->bug->allProject         = 'All Projects';
 $lang->bug->allProduct         = 'Alle' . $lang->productCommon;
 $lang->bug->my                 = 'Meine';
 $lang->bug->yesterdayResolved  = 'Gestern gelöst ';
@@ -159,7 +163,8 @@ $lang->bug->createBuild   = 'Neu';
 /* legend列表。*/
 $lang->bug->legendBasicInfo             = 'Basis Info';
 $lang->bug->legendAttatch               = 'Anlagen';
-$lang->bug->legendPrjStoryTask          = $lang->projectCommon . '/Story/Task';
+$lang->bug->legendPRJExecStoryTask      = 'Project/' . $lang->executionCommon . '/Story/Task';
+$lang->bug->legendExecStoryTask         = $lang->executionCommon . '/Story/Task';
 $lang->bug->lblTypeAndSeverity          = 'Typ/Schwere';
 $lang->bug->lblSystemBrowserAndHardware = 'System/Browser';
 $lang->bug->legendSteps                 = 'Reproduktionsschritte';
@@ -173,11 +178,13 @@ $lang->bug->buttonConfirm = 'Confirm';
 
 /* 交互提示。*/
 $lang->bug->summary               = "Bugs on this page : <strong>%s</strong> Total, <strong>%s</strong> Unresolved.";
-$lang->bug->confirmChangeProduct  = "Change {$lang->productCommon} will cause linked {$lang->projectCommon},Story and Task change. Do you want to do this?";
+$lang->bug->confirmChangeProduct  = "Change {$lang->productCommon} will cause linked {$lang->executionCommon},Story and Task change. Do you want to do this?";
 $lang->bug->confirmDelete         = 'Do you want to delete this bug?';
 $lang->bug->remindTask            = 'This Bug has been converted to Task. Do you want to update Status of Task(ID %s)?';
 $lang->bug->skipClose             = 'Bug %s is not resolved. You cannot close it.';
-$lang->bug->projectAccessDenied   = "You access to the {$lang->projectCommon} to which this bug belongs is denied!";
+$lang->bug->executionAccessDenied = "You access to the {$lang->executionCommon} to which this bug belongs is denied!";
+$lang->bug->stepsNotEmpty         = "The reproduction step cannot be empty.";
+$lang->bug->confirmUnlinkBuild    = "Replacing the solution version will disassociate the bug from the old version. Are you sure you want to disassociate the bug from %s?";
 
 /* 模板。*/
 $lang->bug->tplStep   = "<p>[Steps]</p><br/>";
@@ -277,7 +284,7 @@ $lang->bug->report->common = 'Berichte';
 $lang->bug->report->select = 'Typ selektieren ';
 $lang->bug->report->create = 'Bericht erstellen';
 
-$lang->bug->report->charts['bugsPerProject']        = $lang->projectCommon . ' Bugs';
+$lang->bug->report->charts['bugsPerExecution']      = $lang->executionCommon . ' Bugs';
 $lang->bug->report->charts['bugsPerBuild']          = 'Bugs pro Build';
 $lang->bug->report->charts['bugsPerModule']         = 'Bugs pro Modul';
 $lang->bug->report->charts['openedBugsPerDay']      = 'Erstellte Bugs pro Tag';
@@ -302,7 +309,7 @@ $lang->bug->report->options->type   = 'pie';
 $lang->bug->report->options->width  = 500;
 $lang->bug->report->options->height = 140;
 
-$lang->bug->report->bugsPerProject        = new stdclass();
+$lang->bug->report->bugsPerExecution      = new stdclass();
 $lang->bug->report->bugsPerBuild          = new stdclass();
 $lang->bug->report->bugsPerModule         = new stdclass();
 $lang->bug->report->openedBugsPerDay      = new stdclass();
@@ -321,7 +328,7 @@ $lang->bug->report->bugsPerAssignedTo     = new stdclass();
 $lang->bug->report->bugLiveDays           = new stdclass();
 $lang->bug->report->bugHistories          = new stdclass();
 
-$lang->bug->report->bugsPerProject->graph        = new stdclass();
+$lang->bug->report->bugsPerExecution->graph      = new stdclass();
 $lang->bug->report->bugsPerBuild->graph          = new stdclass();
 $lang->bug->report->bugsPerModule->graph         = new stdclass();
 $lang->bug->report->openedBugsPerDay->graph      = new stdclass();
@@ -340,18 +347,18 @@ $lang->bug->report->bugsPerAssignedTo->graph     = new stdclass();
 $lang->bug->report->bugLiveDays->graph           = new stdclass();
 $lang->bug->report->bugHistories->graph          = new stdclass();
 
-$lang->bug->report->bugsPerProject->graph->xAxisName     = $lang->projectCommon;
-$lang->bug->report->bugsPerBuild->graph->xAxisName       = 'Build';
-$lang->bug->report->bugsPerModule->graph->xAxisName      = 'Modul';
+$lang->bug->report->bugsPerExecution->graph->xAxisName = $lang->executionCommon;
+$lang->bug->report->bugsPerBuild->graph->xAxisName     = 'Build';
+$lang->bug->report->bugsPerModule->graph->xAxisName    = 'Modul';
 
-$lang->bug->report->openedBugsPerDay->type               = 'bar';
-$lang->bug->report->openedBugsPerDay->graph->xAxisName   = 'Datum';
+$lang->bug->report->openedBugsPerDay->type             = 'bar';
+$lang->bug->report->openedBugsPerDay->graph->xAxisName = 'Datum';
 
 $lang->bug->report->resolvedBugsPerDay->type             = 'bar';
 $lang->bug->report->resolvedBugsPerDay->graph->xAxisName = 'Datum';
 
-$lang->bug->report->closedBugsPerDay->type               = 'bar';
-$lang->bug->report->closedBugsPerDay->graph->xAxisName   = 'Datum';
+$lang->bug->report->closedBugsPerDay->type             = 'bar';
+$lang->bug->report->closedBugsPerDay->graph->xAxisName = 'Datum';
 
 $lang->bug->report->openedBugsPerUser->graph->xAxisName   = 'Benutzer';
 $lang->bug->report->resolvedBugsPerUser->graph->xAxisName = 'Benutzer';
@@ -390,12 +397,10 @@ $lang->bug->featureBar['browse']['unclosed']     = $lang->bug->unclosed;
 $lang->bug->featureBar['browse']['openedbyme']   = $lang->bug->openedByMe;
 $lang->bug->featureBar['browse']['assigntome']   = $lang->bug->assignToMe;
 $lang->bug->featureBar['browse']['resolvedbyme'] = $lang->bug->resolvedByMe;
-
-
+$lang->bug->featureBar['browse']['toclosed']     = $lang->bug->toClosed;
+$lang->bug->featureBar['browse']['unresolved']   = $lang->bug->unResolved;
 $lang->bug->featureBar['browse']['more']         = $lang->more;
 
-$lang->bug->moreSelects['toclosed']      = $lang->bug->toClosed;
-$lang->bug->moreSelects['unresolved']    = $lang->bug->unResolved;
 $lang->bug->moreSelects['unconfirmed']   = $lang->bug->unconfirmed;
 $lang->bug->moreSelects['assigntonull']  = $lang->bug->assignToNull;
 $lang->bug->moreSelects['longlifebugs']  = $lang->bug->longLifeBugs;

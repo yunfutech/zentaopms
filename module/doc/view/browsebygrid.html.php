@@ -16,13 +16,13 @@
             <?php echo html::a('javascript:setBrowseType("bygrid")', "<i class='icon icon-cards-view'></i>", '', "title='{$lang->doc->browseTypeList['grid']}' class='btn btn-icon text-primary'");?>
             <?php echo html::a('javascript:setBrowseType("bylist")', "<i class='icon icon-bars'></i>", '', "title='{$lang->doc->browseTypeList['list']}' class='btn btn-icon'");?>
           </div>
-          <?php if($libID):?>
+          <?php if($libID and common::canBeChanged('doc', $currentLib)):?>
           <div class="dropdown">
             <button class="btn" type="button" data-toggle="dropdown"><i class='icon-cog'></i> <span class="caret"></span></button>
             <ul class='dropdown-menu'>
-              <li><?php common::printLink('tree', 'browse', "libID=$libID&viewType=doc", "<i class='icon icon-cog'></i>" . $lang->doc->manageType);?></li>
-              <li><?php common::printLink('doc', 'editLib', "libID=$libID", "<i class='icon icon-edit'></i>" . $lang->doc->editLib, '', "class='iframe'");?></li>
-              <li><?php common::printLink('doc', 'deleteLib', "libID=$libID", "<i class='icon icon-trash'></i>" . $lang->doc->deleteLib, 'hiddenwin');?></li>
+              <li><?php common::printLink('tree', 'browse', "libID=$libID&viewType=doc&currentModuleID=0&branch=0&from=$from", "<i class='icon icon-cog'></i> " . $lang->doc->manageType);?></li>
+              <li><?php common::printLink('doc', 'editLib', "libID=$libID", "<i class='icon icon-edit'></i> " . $lang->doc->editlib, '', "class='iframe'");?></li>
+              <li><?php common::printLink('doc', 'deleteLib', "libID=$libID", "<i class='icon icon-trash'></i> " . $lang->doc->deleteLib, 'hiddenwin');?></li>
             </ul>
           </div>
           <?php if(common::hasPriv('doc', 'create')):?>
@@ -31,7 +31,7 @@
             <ul class='dropdown-menu'>
               <?php foreach($lang->doc->typeList as $typeKey => $typeName):?>
               <?php $class = strpos($config->doc->officeTypes, $typeKey) !== false ? 'iframe' : '';?>
-              <li><?php echo html::a($this->createLink('doc', 'create', "libID=$libID&moduleID=$moduleID&type=$typeKey"), $typeName, '', "class='$class'");?></li>
+              <li><?php echo html::a($this->createLink('doc', 'create', "libID=$libID&moduleID=$moduleID&type=$typeKey&from={$lang->navGroup->doc}"), $typeName, '', "class='$class'");?></li>
               <?php endforeach;?>
             </ul>
           </div>
@@ -50,7 +50,7 @@
         <?php if($libID):?>
         <span class="text-muted"><?php echo $lang->doc->noDoc;?></span>
         <?php if(common::hasPriv('doc', 'create')):?>
-        <?php echo html::a($this->createLink('doc', 'create', "libID={$libID}&moduleID=$moduleID"), "<i class='icon icon-plus'></i> " . $lang->doc->create, '', "class='btn btn-info'");?>
+        <?php echo html::a($this->createLink('doc', 'create', "libID={$libID}&moduleID=$moduleID&type=&from={$lang->navGroup->doc}"), "<i class='icon icon-plus'></i> " . $lang->doc->create, '', "class='btn btn-info'");?>
         <?php endif;?>
         <?php elseif($browseType == 'byediteddate'):?>
         <span class="text-muted"><?php echo $lang->doc->noEditedDoc;?></span>
@@ -68,7 +68,7 @@
         <?php foreach($libs as $lib):?>
         <?php $star = strpos($lib->collector, ',' . $this->app->user->account . ',') !== false ? 'icon-star text-yellow' : 'icon-star-empty';?>
         <div class="col">
-          <a class="file" href="<?php echo inlink('browse', "libID=$lib->id&browseType=all&param=0&orderBy=$orderBy&from=$from");?>">
+          <a class="file" href="<?php echo inlink('browse', "browseType=all");?>">
             <i class="file-icon icon icon-folder text-yellow"></i>
             <div class="file-name"><?php echo (strpos($lib->collector, $this->app->user->account) !== false ? "<i class='icon icon-star text-yellow'></i> " : '') . $lib->name;?></div>
             <div class="text-primary file-info"><?php echo zget($itemCounts, $lib->id, 0) . $lang->doc->item;?></div>
@@ -87,13 +87,13 @@
         <div class="col">
           <?php
           $browseLink = '';
-          if($libType == 'project')
+          if($libType == 'execution')
           {
-              $browseLink = inlink('allLibs', "type=project&product={$currentLib->product}");
+              $browseLink = inlink('allLibs', "type=execution&product={$currentLib->product}");
           }
           elseif($libType == 'files')
           {
-              $browseLink = inlink('showFiles', "type=$type&objectID={$currentLib->$type}");
+              $browseLink = inlink('showFiles', "type=$type&objectID={$currentLib->$type}&from=$from");
           }
           ?>
           <a class="file" href="<?php echo $browseLink;?>">
@@ -109,7 +109,7 @@
         <?php foreach($modules as $module):?>
         <?php $star = strpos($module->collector, ',' . $this->app->user->account . ',') !== false ? 'icon-star text-yellow' : 'icon-star-empty';?>
         <div class="col">
-          <?php $browseLink = inlink('browse', "libID=$libID&browseType=bymodule&param=$module->id&orderBy=$orderBy&from=$from");?>
+          <?php $browseLink = inlink('browse', "browseType=all");?>
           <a class="file" href="<?php echo $browseLink;?>">
             <i class="file-icon icon icon-folder text-yellow"></i>
             <div class="file-name"><?php echo (strpos($module->collector, $this->app->user->account) !== false ? "<i class='icon icon-star text-yellow'></i> " : '') . $module->name;?></div>
@@ -127,17 +127,19 @@
         <?php $star = strpos($doc->collector, ',' . $this->app->user->account . ',') !== false ? 'icon-star text-yellow' : 'icon-star-empty';?>
         <?php $collectTitle = strpos($doc->collector, ',' . $this->app->user->account . ',') !== false ? $lang->doc->cancelCollection : $lang->doc->collect;?>
         <div class="col">
-          <a class="file" href="<?php echo inlink('view', "docID=$doc->id");?>">
+          <a class="file" href="<?php echo inlink('view', "docID=$doc->id&version=0&from={$lang->navGroup->doc}");?>">
             <i class="file-icon icon icon-file-text text-muted"></i>
             <div class="file-name"><?php echo (strpos($doc->collector, $this->app->user->account) !== false ? "<i class='icon icon-star text-yellow'></i> " : '') . $doc->title;?></div>
             <div class="text-primary file-info"><?php echo zget($users, $doc->addedBy);?></div>
           </a>
           <div class="actions">
+            <?php if(common::canBeChanged('doc', $doc)):?>
             <?php if(common::hasPriv('doc', 'collect')):?>
             <a data-url="<?php echo $this->createLink('doc', 'collect', "objectID={$doc->id}&objectType=doc");?>" title="<?php echo $collectTitle;?>" class='btn btn-link ajaxCollect'><i class='icon <?php echo $star;?>'></i></a>
             <?php endif;?>
-            <?php common::printLink('doc', 'edit', "docID={$doc->id}", "<i class='icon icon-edit'></i>", '', "title='{$lang->edit}' class='btn btn-link'")?>
-            <?php common::printLink('doc', 'delete', "docID={$doc->id}", "<i class='icon icon-trash'></i>", 'hiddenwin', "title='{$lang->delete}' class='btn btn-link'")?>
+            <?php common::printLink('doc', 'edit', "docID={$doc->id}&comment=false", "<i class='icon icon-edit'></i>", '', "title='{$lang->edit}' class='btn btn-link'")?>
+            <?php common::printLink('doc', 'delete', "docID={$doc->id}&confirm=no", "<i class='icon icon-trash'></i>", 'hiddenwin', "title='{$lang->delete}' class='btn btn-link'")?>
+            <?php endif;?>
           </div>
         </div>
         <?php endforeach;?>

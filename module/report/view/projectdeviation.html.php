@@ -1,27 +1,33 @@
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/datepicker.html.php';?>
 <?php include '../../common/view/chart.html.php';?>
+<?php if(isset($config->maxVersion) or isset($config->proVersion) or isset($config->bizVersion)):?>
+<style>#mainContent > .side-col.col-lg{width: 235px}</style>
+<style>.hide-sidebar #sidebar{width: 0 !important}</style>
+<?php endif;?>
+<?php $chartData = array('labels' => array(), 'data' => array());?>
 <div id='mainContent' class='main-row'>
-  <div class='side-col col-lg'>
+  <div class='side-col col-lg' id='sidebar'>
     <?php include 'blockreportlist.html.php';?>
-    <div class='panel panel-body' style='padding: 10px 6px'>
-      <div class='text proversion'>
-        <strong class='text-danger small text-latin'>PRO</strong> &nbsp;<span class='text-important'><?php echo (isset($config->isINT) and $config->isINT) ? $lang->report->proVersionEn : $lang->report->proVersion; ?></span>
-      </div>
-    </div>
   </div>
   <div class='main-col'>
     <div class='cell'>
-      <div class="table-row" id='conditions'>
-        <div class='input-group w-400px input-group-sm'>
-          <span class='input-group-addon'><?php echo $lang->projectCommon . $lang->report->beginAndEnd;?></span>
-          <div class='datepicker-wrapper datepicker-date'><?php echo html::input('date', $begin, "class='form-control form-date' onchange='changeDate(this.value, \"$end\")'");?></div>
-          <span class='input-group-addon'><?php echo $lang->report->to;?></span>
-          <div class='datepicker-wrapper datepicker-date'><?php echo html::input('date', $end, "class='form-control form-date' onchange='changeDate(\"$begin\", this.value)'");?></div>
+      <div class="row" id='conditions'>
+        <div class='w-220px col-md-3 col-sm-6'>
+          <div class='input-group'>
+            <span class='input-group-addon'><?php echo $lang->report->execution . $lang->report->begin;?></span>
+            <div class='datepicker-wrapper datepicker-date'><?php echo html::input('date', $begin, "class='form-control form-date' onchange='changeDate(this.value, \"$end\")'");?></div>
+          </div>
+        </div>
+        <div class='w-220px col-md-3 col-sm-6'>
+          <div class='input-group'>
+            <span class='input-group-addon'><?php echo $lang->report->execution . $lang->report->end;?></span>
+            <div class='datepicker-wrapper datepicker-date'><?php echo html::input('date', $end, "class='form-control form-date' onchange='changeDate(\"$begin\", this.value)'");?></div>
+          </div>
         </div>
       </div>
     </div>
-    <?php if(empty($projects)):?>
+    <?php if(empty($executions)):?>
     <div class="cell">
       <div class="table-empty-tip">
         <p><span class="text-muted"><?php echo $lang->error->noData;?></span></p>
@@ -32,46 +38,34 @@
       <div class='panel'>
         <div class="panel-heading">
           <div class="panel-title">
-            <div class="table-row" id='status'>
-              <div class="col-xs"><?php echo $title;?></div>
-              <div class="col-xs text-right text-gray text-middle"><?php echo $lang->report->proj->status . '：'?></div>
-              <div class='col'>
-                <?php
-                    $active = $status == 'noclosed' ? 'btn-active-text' : '';
-                    $label = $status == 'noclosed' ? "<span class='label label-light label-badge'>" . count($projects) . "</span>" : '';
-                    echo html::a($this->inlink('projectdeviation', "begin=$begin&end=$end&status=noclosed"), "<span class='text'>{$lang->report->proj->statusList['noclosed']}</span>" . $label, '', "class='btn btn-link $active'") . '</li>';
-                ?>
-                <?php
-                    $allActive = $status == 'all' ? 'btn-active-text' : '';
-                    $label = $status == 'all' ? "<span class='label label-light label-badge'>" . count($projects) . "</span>" : '';
-                    echo html::a($this->inlink('projectdeviation', "begin=$begin&end=$end&status=all"), "<span class='text'>{$lang->report->proj->statusList['all']}</span>" . $label, '', "class='btn btn-link $allActive'") . '</li>';
-                ?>
-              </div>
-            </div>
+            <?php echo $title;?>
+            <i class="icon icon-exclamation-sign icon-rotate-180"></i>
+            <span class="hidden" id="desc"><?php echo $lang->report->deviationDesc;?></span>
           </div>
           <nav class="panel-actions btn-toolbar"></nav>
         </div>
         <div data-ride='table'>
-          <table class='table table-condensed table-striped table-bordered table-fixed no-margin' id='projectList'>
+          <table class='table table-condensed table-striped table-bordered table-fixed no-margin' id='executionList'>
             <thead>
               <tr class='colhead'>
-                <th class='w-id'><?php echo $lang->report->id;?></th>
+                <th class='c-id'><?php echo $lang->report->id;?></th>
                 <th><?php echo $lang->report->project;?></th>
-                <th class="w-100px"><?php echo $lang->report->estimate;?></th>
-                <th class="w-100px"><?php echo $lang->report->consumed;?></th>
-                <th class="w-100px"><?php echo $lang->report->deviation;?></th>
-                <th class="w-100px"><?php echo $lang->report->deviationRate;?></th>
+                <th><?php echo $lang->report->execution;?></th>
+                <th class="c-hours"><?php echo $lang->report->estimate;?></th>
+                <th class="c-hours"><?php echo $lang->report->consumed;?></th>
+                <th class="c-deviation"><?php echo $lang->report->deviation;?></th>
+                <th class="c-deviation-rate"><?php echo $lang->report->deviationRate;?></th>
               </tr>
             </thead>
             <tbody>
-              <?php $chartData = array();?>
-              <?php foreach($projects as $id  =>$project):?>
+              <?php foreach($executions as $id  =>$execution):?>
               <tr class="text-center">
                 <td><?php echo $id;?></td>
-                <td class="text-left" title="<?php echo $project->name;?>"><?php echo html::a($this->createLink('project', 'view', "projectID=$id"), $project->name);?></td>
-                <td><?php echo $project->estimate;?></td>
-                <td><?php echo $project->consumed;?></td>
-                <?php $deviation = $project->consumed - $project->estimate;?>
+                <td class="text-left" title="<?php echo $execution->projectName;?>"><?php echo $execution->projectName;?></td>
+                <td class="text-left" title="<?php echo $execution->name;?>"><?php echo html::a($this->createLink('execution', 'view', "executionID=$id"), $execution->name);?></td>
+                <td><?php echo round($execution->estimate, 2);?></td>
+                <td><?php echo round($execution->consumed, 2);?></td>
+                <?php $deviation = round($execution->consumed - $execution->estimate, 2);?>
                 <td class="deviation">
                 <?php
                     if($deviation > 0)
@@ -90,7 +84,7 @@
                 </td>
                 <td class="deviation">
                   <?php
-                  $num = $project->estimate ? round($deviation / $project->estimate * 100, 2) : 'n/a';
+                  $num = $execution->estimate ? round($deviation / $execution->estimate * 100, 2) : 'n/a';
                   if($num >= 50)
                   {
                       echo '<span class="u50">' . $num . '%</span>';
@@ -124,7 +118,7 @@
                       echo '<span class="zero">' . abs($num) . '%</span>';
                   }
 
-                  $chartData['labels'][] = $project->name;
+                  $chartData['labels'][] = $execution->name;
                   $chartData['data'][]   = $deviation;
                   ?>
                 </td>

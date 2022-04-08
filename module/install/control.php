@@ -13,7 +13,7 @@ class install extends control
 {
     /**
      * Construct function.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -28,7 +28,7 @@ class install extends control
 
     /**
      * Index page of install module.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -37,12 +37,13 @@ class install extends control
         if(!isset($this->config->installed) or !$this->config->installed) $this->session->set('installing', true);
 
         $this->view->title = $this->lang->install->welcome;
+        if(!isset($this->view->versionName)) $this->view->versionName = $this->config->version; // If the versionName variable has been defined in the max version, it cannot be defined here to avoid being overwritten.
         $this->display();
     }
 
     /**
-     * Checking agree license. 
-     * 
+     * Checking agree license.
+     *
      * @access public
      * @return void
      */
@@ -55,7 +56,7 @@ class install extends control
 
     /**
      * Check the system.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -84,8 +85,12 @@ class install extends control
         $this->view->checkSession  = $checkSession;
         if($checkSession)
         {
-            $this->view->sessionResult  = $this->install->checkSessionSavePath();
-            $this->view->sessionInfo    = $this->install->getSessionSavePath();
+            $sessionResult = $this->install->checkSessionSavePath();
+            $sessionInfo   = $this->install->getSessionSavePath();
+            if($sessionInfo['path'] == '') $sessionResult = 'ok';
+
+            $this->view->sessionResult = $sessionResult;
+            $this->view->sessionInfo   = $sessionInfo;
         }
 
         $this->display();
@@ -93,7 +98,7 @@ class install extends control
 
     /**
      * Set configs.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -105,7 +110,7 @@ class install extends control
 
     /**
      * Create the config file.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -116,11 +121,37 @@ class install extends control
             $return = $this->install->checkConfig();
             if($return->result == 'ok')
             {
+                /* Set the session save path when the session save path is null. */
+                $customSession = false;
+                $checkSession  = ini_get('session.save_handler') == 'files';
+                if($checkSession)
+                {
+                    if(!session_save_path())
+                    {
+                        /* Restart the session because the session save path is null when start the session last time. */
+                        session_write_close();
+
+                        $tmpRootInfo     = $this->install->getTmpRoot();
+                        $sessionSavePath = $tmpRootInfo['path'] . 'session';
+                        if(!is_dir($sessionSavePath)) mkdir($sessionSavePath, 0777, true);
+
+                        session_save_path($sessionSavePath);
+                        $customSession = true;
+
+                        $sessionResult = $this->install->checkSessionSavePath();
+                        if($sessionResult == 'fail') chmod($sessionSavePath, 0777);
+
+                        session_start();
+                        $this->session->set('installing', true);
+                    }
+                }
+
                 $this->view = (object)$_POST;
-                $this->view->app       = $this->app;
-                $this->view->lang      = $this->lang;
-                $this->view->config    = $this->config;
-                $this->view->title     = $this->lang->install->saveConfig;
+                $this->view->app           = $this->app;
+                $this->view->lang          = $this->lang;
+                $this->view->config        = $this->config;
+                $this->view->title         = $this->lang->install->saveConfig;
+                $this->view->customSession = $customSession;
                 $this->display();
             }
             else
@@ -137,8 +168,8 @@ class install extends control
     }
 
     /**
-     * Create company, admin.
-     * 
+     * Set system mode.
+     *
      * @access public
      * @return void
      */
@@ -146,7 +177,30 @@ class install extends control
     {
         if(!empty($_POST))
         {
+            $this->loadModel('setting')->setItem('system.common.global.mode', $this->post->mode); // Update mode.
+            die(js::locate(inlink('step5'), 'parent'));
+        }
+
+        $this->app->loadLang('upgrade');
+
+        $this->view->title = $this->lang->install->introduction;
+        $this->display();
+    }
+
+    /**
+     * Create company, admin.
+     *
+     * @access public
+     * @return void
+     */
+    public function step5()
+    {
+        if(!empty($_POST))
+        {
             $this->install->grantPriv();
+            if(dao::isError()) die(js::error(dao::getError()));
+
+            $this->install->updateLang();
             if(dao::isError()) die(js::error(dao::getError()));
 
             if($this->post->importDemoData) $this->install->importDemoData();
@@ -157,8 +211,11 @@ class install extends control
             $this->loadModel('setting')->setItem('system.common.safe.mode', '1');
             $this->loadModel('setting')->setItem('system.common.safe.changeWeak', '1');
             $this->loadModel('setting')->setItem('system.common.global.cron', 1);
-            die(js::locate(inlink('step5'), 'parent'));
+            $this->loadModel('api')->createDemoData($this->lang->api->zentaoAPI, 'http://' . $_SERVER['HTTP_HOST'] . $this->app->config->webRoot . 'api.php/v1', '16.0');
+            die(js::locate(inlink('step6'), 'parent'));
         }
+
+        $this->app->loadLang('upgrade');
 
         $this->view->title = $this->lang->install->getPriv;
         if(!isset($this->config->installed) or !$this->config->installed)
@@ -174,16 +231,17 @@ class install extends control
 
     /**
      * Join zentao community or login pms.
-     * 
+     *
      * @access public
      * @return void
      */
-    public function step5()
+    public function step6()
     {
-        $this->view->title = $this->lang->install->success;
+        $installFileDeleted = unlink($this->app->getAppRoot() . 'www/install.php');
+        $this->view->installFileDeleted = $installFileDeleted;
+        $this->view->title              = $this->lang->install->success;
         $this->display();
 
-        unlink($this->app->getAppRoot() . 'www/install.php');
         unlink($this->app->getAppRoot() . 'www/upgrade.php');
         unset($_SESSION['installing']);
         session_destroy();

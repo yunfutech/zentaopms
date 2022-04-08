@@ -15,7 +15,7 @@ class index extends control
 {
     /**
      * Construct function, load project, product.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -26,23 +26,106 @@ class index extends control
 
     /**
      * The index page of whole zentao system.
-     * 
+     *
+     * @param  string $open
      * @access public
      * @return void
      */
-    public function index()
+    public function index($open = '')
     {
-        $this->locate($this->createLink('my', 'index'));
+        if($this->app->getViewType() == 'mhtml') $this->locate($this->createLink('my', 'index'));
+
+        $latestVersionList = array();
+        if(isset($this->config->global->latestVersionList)) $latestVersionList = json_decode($this->config->global->latestVersionList);
+
+        $showFeatures = false;
+        foreach($this->config->newFeatures as $feature)
+        {
+            $accounts = zget($this->config->global, 'skip' . ucfirst($feature), '');
+            if(strpos(",$accounts,", $this->app->user->account) === false) $showFeatures = true;
+        }
+
+        $this->view->title             = $this->lang->index->common;
+        $this->view->open              = helper::safe64Decode($open);
+        $this->view->showFeatures      = $showFeatures;
+        $this->view->latestVersionList = $latestVersionList;
+
+        $this->display();
+    }
+
+    /**
+     * Get the log record according to the version.
+     *
+     * @param  string $version
+     * @access public
+     * @return void
+     */
+    public function changeLog($version = '')
+    {
+        $latestVersionList = json_decode($this->config->global->latestVersionList);
+        $version           = $latestVersionList->$version;
+
+        $this->view->version = $version;
+        $this->display();
     }
 
     /**
      * Just test the extension engine.
-     * 
+     *
      * @access public
      * @return void
      */
     public function testext()
     {
         echo $this->fetch('misc', 'getsid');
+    }
+
+    /**
+     * ajaxClearObjectSession
+     *
+     * @access public
+     * @return void
+     */
+    public function ajaxClearObjectSession()
+    {
+        $objectType = $this->post->objectType;
+        $appGroup   = zget($this->config->index->appGroup, $objectType, '');
+        if($objectType == 'testcase')    $objectType = 'case';
+        if($objectType == 'testreport')  $objectType = 'report';
+        if($objectType == 'productplan') $objectType = 'productPlan';
+
+        $this->session->set($objectType . 'List', '', $appGroup);
+    }
+
+    /**
+     * Ajax get view method.
+     *
+     * @param  int    $objectID
+     * @param  string $objectType
+     * @access public
+     * @return string
+     */
+    public function ajaxGetViewMethod($objectID, $objectType)
+    {
+        $method = '';
+        if(isset($this->config->maxVersion))
+        {
+            $table     = $this->config->objectTables[$objectType];
+            $field     = $objectType == 'doc' ? 'assetLibType' : 'lib';
+            $objectLib = $this->dao->select($field)->from($table) ->where('id')->eq($objectID)->fetch($field);
+            if(!empty($objectLib))
+            {
+                if($objectType == 'doc')
+                {
+                    $method = $objectLib == 'practice' ? 'practiceView' : 'componentView';
+                }
+                else
+                {
+                    $this->app->loadConfig('action');
+                    $method = $this->config->action->assetViewMethod[$objectType];
+                }
+            }
+        }
+        die($method);
     }
 }

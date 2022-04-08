@@ -27,9 +27,9 @@
     <?php endforeach;?>
     <div class="btn-group">
       <?php
-      $withSearch = count($users) > 8;
+      $withSearch = count($accountPairs) > 8;
       $active     = $param ? 'btn-active-text' : '';
-      $current    = $param ? zget($users, $param, $param) : $lang->product->viewByUser;
+      $current    = $param ? zget($accountPairs, $account) : $lang->product->viewByUser;
       $current    = "<span class='text'>" . $current . '</span>' . ' <span class="caret"></span>';
       ?>
       <?php echo html::a('###', $current, '', "class='btn btn-link $active' data-toggle='dropdown'");?>
@@ -43,12 +43,12 @@
         <?php endif;?>
         <div class='list-group'>
           <?php
-          $usersPinYin = common::convert2Pinyin($users);
-          foreach($users as $account => $name)
+          $usersPinYin = common::convert2Pinyin($userIdPairs);
+          foreach($userIdPairs as $userID => $name)
           {
-              if(!$account) continue;
-              $searchKey = $withSearch ? ('data-key="' . zget($usersPinYin, $account, '') . '"') : '';
-              echo html::a($this->createLink('product', 'dynamic', "productID=$productID&type=account&param=$account"), $name, '', $searchKey);
+              if(!$userID) continue;
+              $searchKey = $withSearch ? ('data-key="' . zget($usersPinYin, $name, '') . '"') : '';
+              echo html::a($this->createLink('product', 'dynamic', "productID=$productID&type=account&param=$userID"), $name, '', $searchKey);
           }
           ?>
         </div>
@@ -67,14 +67,14 @@
     <?php foreach($dateGroups as $date => $actions):?>
     <?php $isToday = date(DT_DATE4) == $date;?>
     <div class="dynamic <?php if($isToday) echo 'active';?>">
-      <div class="dynamic-date">
+      <div class="dynamic-date <?php if($type == 'all') echo 'w-200px';?>">
         <?php if($isToday):?>
         <span class="date-label"><?php echo $lang->action->dynamic->today;?></span>
         <?php endif;?>
         <span class="date-text"><?php echo $date;?></span>
         <button type="button" class="btn btn-info btn-icon btn-sm dynamic-btn"><i class="icon icon-caret-down"></i></button>
       </div>
-      <ul class="timeline timeline-tag-left">
+      <ul class="timeline timeline-tag-left <?php if($type == 'all') echo 'margin-l-50px';?>">
         <?php if($direction == 'next') $actions = array_reverse($actions);?>
         <?php foreach($actions as $i => $action):?>
         <?php if(empty($firstAction)) $firstAction = $action;?>
@@ -82,11 +82,11 @@
           <div>
             <span class="timeline-tag"><?php echo $action->time?></span>
             <span class="timeline-text">
-              <?php echo zget($users, $action->actor);?>
+              <?php echo zget($accountPairs, $action->actor);?>
               <span class='label-action'><?php echo ' ' . $action->actionLabel;?></span>
               <span class="text"><?php echo $action->objectLabel;?></span>
               <span class="label label-id"><?php echo $action->objectID;?></span>
-              <?php echo html::a($action->objectLink, $action->objectName);?>
+              <?php if($action->objectName) echo html::a($action->objectLink, $action->objectName);?>
             </span>
           </div>
         </li>

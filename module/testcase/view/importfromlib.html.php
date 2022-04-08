@@ -33,18 +33,17 @@
             </div>
             <?php common::printOrderLink('id', $orderBy, $vars, $lang->idAB);?>
           </th>
-          <?php if($branches):?>
-          <th class='w-110px'><?php echo $lang->testcase->branch ?></th>
+          <?php if($product->type != 'normal'):?>
+          <th class='c-branch'><?php echo $lang->testcase->branch ?></th>
           <?php endif;?>
-          <th class='w-pri'>  <?php common::printOrderLink('pri',   $orderBy, $vars, $lang->priAB);?></th>
+          <th class='c-pri'>  <?php common::printOrderLink('pri',   $orderBy, $vars, $lang->priAB);?></th>
           <th>                <?php common::printOrderLink('title', $orderBy, $vars, $lang->testcase->title);?></th>
-          <th class='w-200px'><?php echo $lang->testcase->fromModule ?></th>
-          <th class='w-200px'><?php echo $lang->testcase->module ?></th>
-          <th class='w-100px'><?php common::printOrderLink('type',  $orderBy, $vars, $lang->testcase->type)?></th>
+          <th class='c-module'><?php echo $lang->testcase->fromModule ?></th>
+          <th class='c-module'><?php echo $lang->testcase->module ?></th>
+          <th class='c-type'><?php common::printOrderLink('type',  $orderBy, $vars, $lang->testcase->type)?></th>
         </tr>
       </thead>
       <tbody>
-        <?php $modules['ditto'] = $lang->testcase->ditto;?>
         <?php $i = 0;?>
         <?php foreach($cases as $case):?>
         <tr>
@@ -55,14 +54,15 @@
             </div>
             <?php printf('%03d', $case->id);?>
           </td>
-          <?php if($branches):?>
-          <td><?php echo html::select("branch[{$case->id}]", $branches, $branch, "class='form-control'")?></td>
+          <?php if($product->type != 'normal'):?>
+          <td><?php echo html::select("branch[{$case->id}]", $branches, $branch, "class='form-control' onchange='loadModules($productID, this.value, $case->id)'")?></td>
           <?php endif;?>
           <td><span class='label-pri <?php echo 'label-pri-' . $case->pri;?>' title='<?php echo zget($lang->testcase->priList, $case->pri, $case->pri);?>'><?php echo $case->pri == '0' ? '' : zget($lang->testcase->priList, $case->pri, $case->pri);?></span></td>
           <td class='text-left nobr'><?php if(!common::printLink('testcase', 'view', "caseID=$case->id", $case->title)) echo $case->title;?></td>
           <?php $libModule = zget($libModules, $case->module, '');?>
           <td class='text-left' title='<?php echo $libModule?>'><?php echo $libModule;?></td>
           <td class='text-left' data-module='<?php echo $case->module?>' style='overflow:visible'>
+            <?php if($i > 0) $modules['ditto'] = $lang->testcase->ditto;?>
             <?php echo html::select("module[{$case->id}]", $modules, $i == 0 ? 0 : 'ditto', "class='form-control chosen'");?>
           </td>
           <td><?php echo zget($lang->testcase->typeList, $case->type);?></td>

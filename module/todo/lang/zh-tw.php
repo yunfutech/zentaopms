@@ -16,6 +16,7 @@ $lang->todo->createCycle  = "創建周期待辦";
 $lang->todo->assignTo     = "指派給";
 $lang->todo->assignedDate = "指派日期";
 $lang->todo->assignAction = "指派待辦";
+$lang->todo->start        = "開始待辦";
 $lang->todo->activate     = "激活待辦";
 $lang->todo->batchCreate  = "批量添加";
 $lang->todo->edit         = "編輯待辦";
@@ -32,8 +33,11 @@ $lang->todo->import       = "導入";
 $lang->todo->legendBasic  = "基本信息";
 $lang->todo->cycle        = "周期";
 $lang->todo->cycleConfig  = "周期設置";
+$lang->todo->project      = "所屬項目";
+$lang->todo->product      = "所屬產品";
+$lang->todo->execution    = "所屬{$lang->execution->common}";
 
-$lang->todo->reasonList['story'] = "轉{$lang->storyCommon}";
+$lang->todo->reasonList['story'] = "轉{$lang->SRCommon}";
 $lang->todo->reasonList['task']  = "轉任務";
 $lang->todo->reasonList['bug']   = "轉Bug";
 $lang->todo->reasonList['done']  = "完成";
@@ -52,10 +56,12 @@ $lang->todo->pri          = '優先順序';
 $lang->todo->name         = '待辦名稱';
 $lang->todo->status       = '狀態';
 $lang->todo->desc         = '描述';
+$lang->todo->config       = '配置';
 $lang->todo->private      = '私人事務';
 $lang->todo->cycleDay     = '天';
 $lang->todo->cycleWeek    = '周';
 $lang->todo->cycleMonth   = '月';
+$lang->todo->day          = '日';
 $lang->todo->assignedTo   = '指派給';
 $lang->todo->assignedBy   = '由誰指派';
 $lang->todo->finishedBy   = '由誰完成';
@@ -63,14 +69,21 @@ $lang->todo->finishedDate = '完成時間';
 $lang->todo->closedBy     = '由誰關閉';
 $lang->todo->closedDate   = '關閉時間';
 $lang->todo->deadline     = '過期時間';
+$lang->todo->deleted      = '已刪除';
 
-$lang->todo->every      = '間隔';
-$lang->todo->beforeDays = "<span class='input-group-addon'>提前</span>%s<span class='input-group-addon'>天生成待辦</span>";
-$lang->todo->dayNames   = array(1 => '星期一', 2 => '星期二', 3 => '星期三', 4 => '星期四', 5 => '星期五', 6 => '星期六', 0 => '星期日');
+$lang->todo->cycleDaysLabel  = '間隔天數';
+$lang->todo->beforeDaysLabel = '提前天數';
 
-$lang->todo->confirmBug   = '該Todo關聯的是Bug #%s，需要修改它嗎？';
-$lang->todo->confirmTask  = '該Todo關聯的是Task #%s，需要修改它嗎？';
-$lang->todo->confirmStory = '該Todo關聯的是Story #%s，需要修改它嗎？';
+$lang->todo->every        = '間隔';
+$lang->todo->specify      = '指定';
+$lang->todo->everyYear    = '每年';
+$lang->todo->beforeDays   = "<span class='input-group-addon'>提前</span>%s<span class='input-group-addon'>天生成待辦</span>";
+$lang->todo->dayNames     = array(1 => '星期一', 2 => '星期二', 3 => '星期三', 4 => '星期四', 5 => '星期五', 6 => '星期六', 0 => '星期日');
+$lang->todo->specifiedDay = array(1 => 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31);
+
+$lang->todo->confirmBug   = '該待辦關聯的是Bug #%s，需要修改它嗎？';
+$lang->todo->confirmTask  = '該待辦關聯的是Task #%s，需要修改它嗎？';
+$lang->todo->confirmStory = '該待辦關聯的是Story #%s，需要修改它嗎？';
 
 $lang->todo->statusList['wait']   = '未開始';
 $lang->todo->statusList['doing']  = '進行中';
@@ -79,21 +92,17 @@ $lang->todo->statusList['closed'] = '已關閉';
 //$lang->todo->statusList['cancel']   = '已取消';
 //$lang->todo->statusList['postpone'] = '已延期';
 
-$lang->todo->priList[0] = '';
-$lang->todo->priList[3] = '一般';
-$lang->todo->priList[1] = '最高';
-$lang->todo->priList[2] = '較高';
-$lang->todo->priList[4] = '最低';
+$lang->todo->priList[1] = 1;
+$lang->todo->priList[2] = 2;
+$lang->todo->priList[3] = 3;
+$lang->todo->priList[4] = 4;
 
 $lang->todo->typeList['custom']   = '自定義';
 $lang->todo->typeList['cycle']    = '周期';
 $lang->todo->typeList['bug']      = 'Bug';
-$lang->todo->typeList['task']     = $lang->projectCommon . '任務';
-$lang->todo->typeList['story']    = $lang->projectCommon . $lang->storyCommon;
-
-global $config;
-if($config->global->flow == 'onlyTest' or $config->global->flow == 'onlyStory') unset($lang->todo->typeList['task']);
-if($config->global->flow == 'onlyTask' or $config->global->flow == 'onlyStory') unset($lang->todo->typeList['bug']);
+$lang->todo->typeList['task']     = '任務';
+$lang->todo->typeList['story']    = $lang->SRCommon;
+$lang->todo->typeList['testtask'] = '測試單';
 
 $lang->todo->confirmDelete  = "您確定要刪除這條待辦嗎？";
 $lang->todo->thisIsPrivate  = '這是一條私人事務。:)';
@@ -102,12 +111,17 @@ $lang->todo->lblBeforeDays  = "提前%s天生成待辦";
 $lang->todo->lblClickCreate = "點擊添加待辦";
 $lang->todo->noTodo         = '該類型沒有待辦事務';
 $lang->todo->noAssignedTo   = '被指派人不能為空';
+$lang->todo->unfinishedTodo = '待辦ID %s 不是完成狀態，不能關閉。';
+$lang->todo->today          = '今日待辦';
 
-$lang->todo->periods['all']        = '所有待辦';
-$lang->todo->periods['thisYear']   = '本年';
-$lang->todo->periods['future']     = '待定';
-$lang->todo->periods['before']     = '未完';
-$lang->todo->periods['cycle']      = '周期';
+$lang->todo->periods['all']             = '所有';
+$lang->todo->periods['before']          = '未完';
+$lang->todo->periods['future']          = '待定';
+$lang->todo->periods['thisWeek']        = '本週';
+$lang->todo->periods['thisMonth']       = '本月';
+$lang->todo->periods['thisYear']        = '本年';
+$lang->todo->periods['assignedToOther'] = '指派他人';
+$lang->todo->periods['cycle']           = '周期';
 
 $lang->todo->action = new stdclass();
 $lang->todo->action->finished = array('main' => '$date, 由 <strong>$actor</strong> $extra。$appendLink', 'extra' => 'reasonList');

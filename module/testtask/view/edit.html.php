@@ -22,21 +22,26 @@
         <small class='text-muted'><?php echo $lang->arrow . $lang->testtask->edit;?></small>
       </h2>
     </div>
-    <form method='post' target='hiddenwin' id='dataform'>
-      <table class='table table-form'> 
-        <?php if($config->global->flow != 'onlyTest'):?>
+    <form method='post' class="main-form form-ajax" enctype="multipart/form-data" id='dataform'>
+      <table class='table table-form'>
         <tr>
-          <th class='w-80px'><?php echo $lang->testtask->project;?></th>
+          <th class='w-100px'><?php echo $lang->testtask->execution;?></th>
           <td class='w-p35-f'>
-            <?php echo html::select('project', $projects, $task->project, "class='form-control chosen' onchange='loadProjectRelated(this.value)'");?>
+          <?php
+          echo html::select('execution', $executions, $task->execution, "class='form-control chosen' onchange='loadExecutionRelated(this.value)'");
+          echo html::hidden('product', $task->product);
+          ?>
           </td>
           <td></td>
         </tr>
-        <?php endif;?>
         <tr>
-          <th class='w-80px'><?php echo $lang->testtask->build;?></th>
+          <th><?php echo $lang->testtask->build;?></th>
           <td class='w-p35-f'><span id='buildBox'><?php echo html::select('build', $builds, $task->build, "class='form-control chosen'");?></span></td>
           <td></td>
+        </tr>
+        <tr>
+          <th><?php echo $lang->testtask->type;?></th>
+          <td><?php echo html::select('type[]', $lang->testtask->typeList, $task->type, "class='form-control chosen' multiple");?></td>
         </tr>
         <tr>
           <th><?php echo $lang->testtask->owner;?></th>
@@ -63,23 +68,31 @@
           <td><?php echo html::select('status', $lang->testtask->statusList, $task->status,  "class='form-control chosen'");?></td>
         </tr>
         <tr>
+          <th><?php echo $lang->testtask->testreport;?></th>
+          <td><?php echo html::select('testreport', array('') + $testreports, $task->testreport,  "class='form-control chosen'");?></td>
+        </tr>
+        <tr>
           <th><?php echo $lang->testtask->name;?></th>
           <td colspan='2'><?php echo html::input('name', $task->name, "class='form-control'");?></td>
         </tr>
         <tr>
           <th><?php echo $lang->testtask->desc;?></th>
-          <td colspan='2'><?php echo html::textarea('desc', htmlspecialchars($task->desc), "rows=10 class='form-control'");?></td>
+          <td colspan='2'><?php echo html::textarea('desc', htmlSpecialString($task->desc), "rows=10 class='form-control'");?></td>
         </tr>
         <tr>
           <th><?php echo $lang->comment;?></th>
           <td colspan='2'><?php echo html::textarea('comment', '',  "rows='5' class='form-control'");?></td>
         </tr>
         <tr>
+          <th><?php echo $lang->files;?></th>
+          <td colspan='3'><?php echo $this->fetch('file', 'buildform');?></td>
+        </tr>
+        <tr>
           <th><?php echo $lang->testtask->mailto;?></th>
           <td colspan='2'>
             <div class='input-group'>
-              <?php echo html::select('mailto[]', $users, str_replace(' ' , '', $task->mailto), "multiple class='form-control'");?>
-              <?php if($contactLists) echo html::select('', $contactLists, '', "class='form-control chosen' onchange=\"setMailto('mailto', this.value)\"");?>
+              <?php echo html::select('mailto[]', $users, str_replace(' ' , '', $task->mailto), "multiple class='form-control chosen'");?>
+              <?php echo $this->fetch('my', 'buildContactLists');?>
             </div>
           </td>
         </tr>

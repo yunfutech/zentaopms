@@ -1,13 +1,13 @@
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/datepicker.html.php';?>
+<?php if(isset($config->maxVersion) or isset($config->proVersion) or isset($config->bizVersion)):?>
+<style>#mainContent > .side-col.col-lg{width: 210px}</style>
+<style>.hide-sidebar #sidebar{width: 0 !important}</style>
+<?php endif;?>
+<?php js::set('weekend', $config->execution->weekend);?>
 <div id='mainContent' class='main-row'>
-  <div class='side-col col-lg'>
+  <div class='side-col col-lg' id='sidebar'>
     <?php include 'blockreportlist.html.php';?>
-    <div class='panel panel-body' style='padding: 10px 6px'>
-      <div class='text proversion'>
-        <strong class='text-danger small text-latin'>PRO</strong> &nbsp;<span class='text-important'><?php echo (isset($config->isINT) and $config->isINT) ? $lang->report->proVersionEn : $lang->report->proVersion; ?></span>
-      </div>
-    </div>
   </div>
   <div class='main-col'>
     <div class='cell'>
@@ -62,20 +62,25 @@
     <div class='cell'>
       <div class='panel'>
         <div class="panel-heading">
-          <div class="panel-title"><?php echo $title;?></div>
+          <div class="panel-title"><?php echo $title;?>
+            <a data-toggle='tooltip' title='<?php echo $lang->report->workloadDesc;?>'><i class='icon-help'></i></a>
+          </div>
           <nav class="panel-actions btn-toolbar"></nav>
         </div>
         <div data-ride='table'>
           <table class='table table-condensed table-striped table-bordered table-fixed no-margin' id="workload">
             <thead>
               <tr class='colhead text-center'>
-                <th class="w-100px"><?php echo $lang->report->user;?></th>
-                <th><?php echo $lang->report->project;?></th>
-                <th class="w-100px"><?php echo $lang->report->task;?></th>
-                <th class="w-100px"><?php echo $lang->report->remain;?></th>
-                <th class="w-100px"><?php echo $lang->report->taskTotal;?></th>
-                <th class="w-100px"><?php echo $lang->report->manhourTotal;?></th>
-                <th class="w-100px"><?php echo $lang->report->workloadAB;?></th>
+                <th class="c-user"><?php echo $lang->report->user;?></th>
+                <?php if($this->config->systemMode == 'new'):?>
+                <th class="c-project"><?php echo $lang->report->project ;?>
+                <?php endif;?>
+                <th><?php echo $lang->report->execution;?></th>
+                <th class="c-count"><?php echo $lang->report->task;?></th>
+                <th class="c-hours"><?php echo $lang->report->remain;?></th>
+                <th class="c-count"><?php echo $lang->report->taskTotal;?></th>
+                <th class="c-hours"><?php echo $lang->report->manhourTotal;?></th>
+                <th class="c-workload"><?php echo $lang->report->workloadAB;?></th>
               </tr>
             </thead>
             <tbody>
@@ -83,24 +88,32 @@
               <?php foreach($workload as $account => $load):?>
               <?php if(!isset($users[$account])) continue;?>
               <tr class="text-center">
-                <td rowspan="<?php echo count($load['task']);?>"><?php echo $users[$account];?></td>
-                <?php $id = 1;?>
-                <?php foreach($load['task'] as $project => $info):?>
-                <?php $class = $color ? 'rowcolor' : '';?>
-                <?php if($id != 1) echo '<tr class="text-center">';?>
-                <td title='<?php echo $project?>' class="<?php echo $class;?> text-left"><?php echo html::a($this->createLink('project', 'view', "projectID={$info['projectID']}"), $project);?></td>
-                <td class="<?php echo $class;?>"><?php echo $info['count'];?></td>
-                <td class="<?php echo $class;?>"><?php echo $info['manhour'];?></td>
-                <?php if($id == 1):?>
-                <td rowspan="<?php echo count($load['task']);?>"><?php echo $load['total']['count'];?></td>
-                <td rowspan="<?php echo count($load['task']);?>"><?php echo $load['total']['manhour'];?></td>
-                <td rowspan="<?php echo count($load['task']);?>"><?php echo round($load['total']['manhour'] / $allHour * 100, 2) . '%';?></td>
+                <?php $userTimes = 1; $userCount = 0;?>
+                <?php foreach($load['task']['project'] as $projectName => $info) foreach($info['execution'] as $executionName => $executionInfo) $userCount ++;?> 
+                <td class="<?php echo $class;?>" rowspan="<?php echo $userCount;?>"><?php echo $users[$account];?></td>
+                <?php foreach($load['task']['project'] as $projectName => $info):?>
+                <?php $projectTimes = 1; $projectCount = 0;?>
+                <?php foreach($info['execution'] as $executionName => $executionInfo) $projectCount ++ ;?>
+                <?php foreach($info['execution'] as $executionName => $executionInfo):?>
+                <?php if($projectTimes != 1 || $userTimes != 1) echo "<tr>";?>
+                <?php if($projectTimes == 1 && $this->config->systemMode == 'new'):?>
+		<td class="text-center" rowspan="<?php echo $projectCount;?>" title="<?php echo $projectName;?>"><?php echo html::a($this->createLink('project', 'view', "projectID={$info['projectID']}"), $projectName);?></td>
                 <?php endif;?>
-                <?php if($id != 1) echo '</tr>'; $id ++;?>
+		<td class="text-center" title="<?php echo $executionName;?>"><?php echo html::a($this->createLink('execution', 'view', "executionID={$executionInfo['executionID']}"), $executionName);?></td>
+                <td class="text-center"><?php echo $executionInfo['count'];?></td>
+                <td class="text-center"><?php echo $executionInfo['manhour'];?></td>
+                <?php if($userTimes == 1):?>
+                <td rowspan="<?php echo $userCount;?>"><?php echo $load['total']['count'];?></td>
+                <td rowspan="<?php echo $userCount;?>"><?php echo $load['total']['manhour'];?></td>
+                <td rowspan="<?php echo $userCount;?>"><?php echo round($load['total']['manhour'] / $allHour * 100, 2) . '%';?></td>
+                <?php endif;?>
+                <?php if($projectTimes != 1 || $userTimes != 1) echo "</tr>";?>
+                <?php $projectTimes ++; $userTimes ++;?>
                 <?php $color = !$color;?>
                 <?php endforeach;?>
+                <?php endforeach;?>
               </tr>
-            <?php endforeach;?>
+              <?php endforeach;?>
             </tbody>
           </table>
         </div>

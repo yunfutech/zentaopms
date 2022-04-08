@@ -1,1 +1,0 @@
-ALTER TABLE `zt_product` ADD `counselor` VARCHAR(32) NULL COMMENT '项目顾问' AFTER `director`;

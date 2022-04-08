@@ -12,6 +12,29 @@
 class extension extends control
 {
     /**
+     * Construct function.
+     *
+     * @param  string $moduleName
+     * @param  string $methodName
+     * @access public
+     * @return void
+     */
+    public function __construct($moduleName = '', $methodName = '')
+    {
+        parent::__construct($moduleName, $methodName);
+
+        $statusFile = $this->loadModel('common')->checkSafeFile();
+        if($statusFile)
+        {
+            $this->view->title      = $this->lang->extension->browse;
+            $this->view->position[] = $this->lang->extension->browse;
+
+            $this->view->error = sprintf($this->lang->extension->noticeOkFile, str_replace('\\', '/', $statusFile));
+            die($this->display('extension', 'safe'));
+        }
+    }
+
+    /**
      * Browse extensions.
      *
      * @param  string   $status
@@ -38,7 +61,7 @@ class extension extends control
                     $extension->viewLink = $release->viewLink;
                     if(isset($release->latestRelease) and $extension->version != $release->latestRelease->releaseVersion and $this->extension->checkVersion($release->latestRelease->zentaoCompatible))
                     {
-                        $upgradeLink = inlink('upgrade', "extension=$release->code&downLink=" . helper::safe64Encode($release->latestRelease->downLink) . "&md5={$release->latestRelease->md5}&type=$release->type");
+                        $upgradeLink = inlink('upgrade', "extension=$release->code&downLink=&md5=&type=$release->type");
                         $upgradeLink = ($release->latestRelease->charge or !$release->latestRelease->public) ? $release->latestRelease->downLink : $upgradeLink;
                         $extension->upgradeLink = $upgradeLink;
                     }
@@ -56,9 +79,9 @@ class extension extends control
 
     /**
      * Obtain extensions from the community.
-     * 
-     * @param  string $type 
-     * @param  string $param 
+     *
+     * @param  string $type
+     * @param  string $param
      * @access public
      * @return void
      */
@@ -66,7 +89,7 @@ class extension extends control
     {
         /* Init vars. */
         $type       = strtolower($type);
-        $moduleID   = $type == 'bymodule' ? (int)$param : 0;
+        $moduleID   = $type == 'bymodule' ? (int)base64_decode($param) : 0;
         $extensions = array();
         $pager      = null;
 
@@ -96,16 +119,16 @@ class extension extends control
 
     /**
      * Install a extension
-     * 
-     * @param  string $extension 
-     * @param  string $downLink 
-     * @param  string $md5 
-     * @param  string $type 
-     * @param  string $overridePackage 
-     * @param  string $ignoreCompatible 
-     * @param  string $overrideFile 
-     * @param  string $agreeLicense 
-     * @param  int    $upgrade 
+     *
+     * @param  string $extension
+     * @param  string $downLink
+     * @param  string $md5
+     * @param  string $type
+     * @param  string $overridePackage
+     * @param  string $ignoreCompatible
+     * @param  string $overrideFile
+     * @param  string $agreeLicense
+     * @param  int    $upgrade
      * @access public
      * @return void
      */
@@ -115,13 +138,13 @@ class extension extends control
 
         $this->view->error = '';
         $installTitle      = $upgrade == 'no' ? $this->lang->extension->install : $this->lang->extension->upgrade;
-        $installType       = $upgrade == 'no' ? $this->lang->extension->installExt : $this->lang->extension->upgradeExt; 
+        $installType       = $upgrade == 'no' ? $this->lang->extension->installExt : $this->lang->extension->upgradeExt;
         $this->view->installType = $installType;
         $this->view->upgrade     = $upgrade;
         $this->view->title       = $installTitle . $extension;
 
-        
-        $statusFile = $this->loadModel('upgrade')->checkSafeFile();
+
+        $statusFile = $this->loadModel('common')->checkSafeFile();
         if($statusFile)
         {
             $this->view->error = sprintf($this->lang->extension->noticeOkFile, $statusFile);
@@ -130,49 +153,16 @@ class extension extends control
         /* Get the package file name. */
         $packageFile = $this->extension->getPackageFile($extension);
 
-        if($downLink)
-        {
-            /* Checking download path. */
-            $return = $this->extension->checkDownloadPath();
-            if($return->result != 'ok')
-            {
-                $this->view->error = $return->error;
-                die($this->display());
-            }
-
-            /* Check file exists or not. */
-            if(file_exists($packageFile) and $overridePackage == 'no')
-            {
-                $overrideLink = inlink('install', "extension=$extension&downLink=$downLink&md5=$md5&type=$type&overridePackage=yes&ignoreCompatible=$ignoreCompatible&overrideFile=$overrideFile&agreeLicense=$agreeLicense&upgrade=$upgrade");
-                $this->view->error = sprintf($this->lang->extension->errorPackageFileExists, $packageFile, $installType, $overrideLink);
-                die($this->display());
-            }
-
-            /* Download the package file. */
-            if(!file_exists($packageFile) or ($md5 != '' and md5_file($packageFile) != $md5)) $this->extension->downloadPackage($extension, helper::safe64Decode($downLink));
-            if(!file_exists($packageFile))
-            {
-                $this->view->error = sprintf($this->lang->extension->errorDownloadFailed, $packageFile);
-                die($this->display());
-            }
-            elseif($md5 != '' and md5_file($packageFile) != $md5)
-            {
-                unlink($packageFile);
-                $this->view->error = sprintf($this->lang->extension->errorMd5Checking, $packageFile);
-                die($this->display());
-            }
-        }
-
         /* Check the package file exists or not. */
-        if(!file_exists($packageFile)) 
+        if(!file_exists($packageFile))
         {
             $this->view->error = sprintf($this->lang->extension->errorPackageNotFound, $packageFile);
             die($this->display());
         }
 
-        /* Checking the extension pathes. */
-        $return = $this->extension->checkExtensionPathes($extension);
-        if($this->session->dirs2Created == false) $this->session->set('dirs2Created', $return->dirs2Created);    // Save the dirs to be created.
+        /* Checking the extension paths. */
+        $return = $this->extension->checkExtensionPaths($extension);
+        if($this->session->dirs2Created == false) $this->session->set('dirs2Created', $return->dirs2Created, 'admin');    // Save the dirs to be created.
         if($return->result != 'ok')
         {
             $this->view->error = $return->errors;
@@ -257,7 +247,7 @@ class extension extends control
         $zentaoCompatible = $condition->zentao['compatible'];
         if(!$this->extension->checkVersion($zentaoCompatible) and $ignoreCompatible == 'no')
         {
-            $ignoreLink = inlink('install', "extension=$extension&downLink=$downLink&md5=$md5&type=$type&overridePackage=$overridePackage&ignoreCompatible=yes&overrideFile=$overrideFile&agreeLicense=$agreeLicense&upgrade=$upgrade");
+            $ignoreLink = inlink('install', "extension=$extension&downLink=&md5=$md5&type=$type&overridePackage=$overridePackage&ignoreCompatible=yes&overrideFile=$overrideFile&agreeLicense=$agreeLicense&upgrade=$upgrade");
             $returnLink = inlink('obtain');
             $this->view->error = sprintf($this->lang->extension->errorCheckIncompatible, $installType, $ignoreLink, $installType, $returnLink);
             die($this->display());
@@ -269,7 +259,7 @@ class extension extends control
             $return = $this->extension->checkFile($extension);
             if($return->result != 'ok')
             {
-                $overrideLink = inlink('install', "extension=$extension&downLink=$downLink&md5=$md5&type=$type&overridePackage=$overridePackage&ignoreCompatible=$ignoreCompatible&overrideFile=yes&agreeLicense=$agreeLicense&upgrade=$upgrade");
+                $overrideLink = inlink('install', "extension=$extension&downLink=&md5=$md5&type=$type&overridePackage=$overridePackage&ignoreCompatible=$ignoreCompatible&overrideFile=yes&agreeLicense=$agreeLicense&upgrade=$upgrade");
                 $returnLink   = inlink('obtain');
                 $this->view->error = sprintf($this->lang->extension->errorFileConflicted, $return->error, $overrideLink, $returnLink);
                 die($this->display());
@@ -289,7 +279,7 @@ class extension extends control
         {
             $extensionInfo = $this->extension->getInfoFromPackage($extension);
             $license       = $this->extension->processLicense($extensionInfo->license);
-            $agreeLink     = inlink('install', "extension=$extension&downLink=$downLink&md5=$md5&type=$type&overridePackage=$overridePackage&ignoreCompatible=$ignoreCompatible&overrideFile=$overrideFile&agreeLicense=yes&upgrade=$upgrade");
+            $agreeLink     = inlink('install', "extension=$extension&downLink=&md5=$md5&type=$type&overridePackage=$overridePackage&ignoreCompatible=$ignoreCompatible&overrideFile=$overrideFile&agreeLicense=yes&upgrade=$upgrade");
             $this->view->license   = $license;
             $this->view->author    = $extensionInfo->author;
             $this->view->agreeLink = $agreeLink;
@@ -312,7 +302,7 @@ class extension extends control
         $data->dirs   = $this->session->dirs2Created;
         $data->files  = $this->view->files;
         $data->installedTime = helper::now();
-        $this->session->set('dirs2Created', array());   // clean the session.
+        $this->session->set('dirs2Created', array(), 'admin');   // clean the session.
 
         /* Execute the install.sql. */
         if($upgrade == 'no' and $this->extension->needExecuteDB($extension, 'install'))
@@ -327,7 +317,7 @@ class extension extends control
 
         /* Update status, dirs, files and installed time. */
         $this->extension->updateExtension($extension, $data);
-        $this->view->downloadedPackage = !empty($downLink);
+        $this->view->downloadedPackage = false;
 
         /* The postInstall hook file. */
         $hook = $upgrade == 'yes' ? 'postupgrade' : 'postinstall';
@@ -338,8 +328,8 @@ class extension extends control
 
     /**
      * Uninstall an extension.
-     * 
-     * @param  string    $extension 
+     *
+     * @param  string    $extension
      * @access public
      * @return void
      */
@@ -377,8 +367,8 @@ class extension extends control
 
     /**
      * Activate an extension;
-     * 
-     * @param  string    $extension 
+     *
+     * @param  string    $extension
      * @access public
      * @return void
      */
@@ -405,8 +395,8 @@ class extension extends control
 
     /**
      * Deactivate an extension
-     * 
-     * @param  string    $extension 
+     *
+     * @param  string    $extension
      * @access public
      * @return void
      */
@@ -421,13 +411,13 @@ class extension extends control
 
     /**
      * Upload an extension
-     * 
+     *
      * @access public
      * @return void
      */
     public function upload()
     {
-        $statusFile = $this->loadModel('upgrade')->checkSafeFile();
+        $statusFile = $this->loadModel('common')->checkSafeFile();
         if($statusFile)
         {
             $this->view->error = sprintf($this->lang->extension->noticeOkFile, $statusFile);
@@ -436,12 +426,25 @@ class extension extends control
 
         if($_FILES)
         {
+            if($_FILES['file']['size'] == 0) die(js::alert(str_replace("'", "\'", sprintf($this->lang->extension->errorFileNotEmpty, $fileName, $return->error))));
+
             $tmpName   = $_FILES['file']['tmp_name'];
             $fileName  = $_FILES['file']['name'];
-            move_uploaded_file($tmpName, $this->app->getTmpRoot() . "/extension/$fileName");
+            $dest      = $this->app->getTmpRoot() . "extension/$fileName";
+            if(!move_uploaded_file($tmpName, $dest))
+            {
+                $downloadPath = $this->app->getTmpRoot() . 'extension/';
+                $errorMessage = strip_tags(sprintf($this->lang->extension->errorDownloadPathNotWritable, $downloadPath, $downloadPath));
+                die(js::alert($errorMessage));
+            }
+
             $extension = basename($fileName, '.zip');
             $return    = $this->extension->extractPackage($extension);
-            if($return->result != 'ok') die(js::alert(str_replace("'", "\'", sprintf($this->lang->extension->errorExtracted, $fileName, $return->error))));
+            if($return->result != 'ok')
+            {
+                unlink($dest);
+                die(js::alert(str_replace("'", "\'", sprintf($this->lang->extension->errorExtracted, $fileName, $return->error))));
+            }
 
             $info = $this->extension->parseExtensionCFG($extension);
             if(isset($info->code) and $info->code != $extension)
@@ -457,13 +460,14 @@ class extension extends control
             $link = $type == 'install' ? inlink('install', "extension=$extension") : inlink('upgrade', "extension=$extension");
             die(js::locate($link, 'parent'));
         }
+
         $this->display();
     }
 
     /**
      * Erase an extension.
-     * 
-     * @param  string    $extension 
+     *
+     * @param  string    $extension
      * @access public
      * @return void
      */
@@ -477,24 +481,24 @@ class extension extends control
 
     /**
      * Update extension.
-     * 
-     * @param  string $extension 
-     * @param  string $downLink 
-     * @param  string $md5 
-     * @param  string $type 
+     *
+     * @param  string $extension
+     * @param  string $downLink
+     * @param  string $md5
+     * @param  string $type
      * @access public
      * @return void
      */
     public function upgrade($extension, $downLink = '', $md5 = '', $type = '')
     {
         $this->extension->removePackage($extension);
-        $this->locate(inlink('install', "extension=$extension&downLink=$downLink&md5=$md5&type=$type&overridePackage=no&ignoreCompatible=yes&overrideFile=no&agreeLicense=no&upgrade=yes"));
+        $this->locate(inlink('install', "extension=$extension&downLink=&md5=$md5&type=$type&overridePackage=no&ignoreCompatible=yes&overrideFile=no&agreeLicense=no&upgrade=yes"));
     }
 
     /**
      * Browse the structure of extension.
-     * 
-     * @param  int    $extension 
+     *
+     * @param  int    $extension
      * @access public
      * @return void
      */

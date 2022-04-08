@@ -29,7 +29,7 @@ $lang->convert->convertBugFree = 'Konvertiere BugFree';
 $lang->convert->selectSource     = 'Quellsystem und Version wählen';
 $lang->convert->mustSelectSource = "Sie müssen eine Quellsystem wählen.";
 
-$lang->convert->direction             = "{$lang->projectCommon} konvertieren nach";
+$lang->convert->direction             = "{$lang->executionCommon} konvertieren nach";
 $lang->convert->questionTypeOfRedmine = 'Typ in Redmine';
 $lang->convert->aimTypeOfZentao       = 'Konvertieren nach Typ in Zentao';
 
@@ -65,20 +65,20 @@ $lang->convert->count      = 'Zähler';
 $lang->convert->info       = 'Info';
 
 $lang->convert->bugfree = new stdclass();
-$lang->convert->bugfree->users    = 'Benutzer';
-$lang->convert->bugfree->projects = $lang->projectCommon;
-$lang->convert->bugfree->modules  = 'Modul';
-$lang->convert->bugfree->bugs     = 'Bug';
-$lang->convert->bugfree->cases    = 'Testfälle';
-$lang->convert->bugfree->results  = 'Ergebnis';
-$lang->convert->bugfree->actions  = 'Verlauf';
-$lang->convert->bugfree->files    = 'Datei';
+$lang->convert->bugfree->users      = 'Benutzer';
+$lang->convert->bugfree->executions = $lang->executionCommon;
+$lang->convert->bugfree->modules    = 'Modul';
+$lang->convert->bugfree->bugs       = 'Bug';
+$lang->convert->bugfree->cases      = 'Testfälle';
+$lang->convert->bugfree->results    = 'Ergebnis';
+$lang->convert->bugfree->actions    = 'Verlauf';
+$lang->convert->bugfree->files      = 'Datei';
 
 $lang->convert->redmine = new stdclass();
 $lang->convert->redmine->users        = 'Benutzer';
 $lang->convert->redmine->groups       = 'Gruppe';
 $lang->convert->redmine->products     = $lang->productCommon;
-$lang->convert->redmine->projects     = $lang->projectCommon;
+$lang->convert->redmine->executions   = $lang->executionCommon;
 $lang->convert->redmine->stories      = 'Story';
 $lang->convert->redmine->tasks        = 'Aufgabe';
 $lang->convert->redmine->bugs         = 'Bug';

@@ -13,6 +13,31 @@
 class report extends control
 {
     /**
+     * The projectID.
+     *
+     * @var float
+     * @access public
+     */
+    public $projectID = 0;
+
+    /**
+     * Construct.
+     *
+     * @access public
+     * @return void
+     */
+    public function __construct()
+    {
+        parent::__construct();
+
+        /* Set report menu group. */
+        $this->projectID = isset($_GET['project']) ? $_GET['project'] : 0;
+        if (!$this->projectID) $this->lang->navGroup->report = 'report';
+
+        if ((isset($this->config->proVersion) || isset($this->config->bizVersion)) && $this->lang->navGroup->report == 'report' && common::hasPriv('report', 'custom')) $this->lang->report->mainMenuAction = html::a(helper::createLink('report', 'custom'), $this->lang->crystal->custom, '', "class='btn btn-link'");
+    }
+
+    /**
      * The index of report, goto project deviation.
      *
      * @access public
@@ -29,38 +54,42 @@ class report extends control
      * @access public
      * @return void
      */
-    public function projectDeviation($begin = 0, $end = 0, $status = 'noclosed')
+    public function projectDeviation($begin = 0, $end = 0)
     {
-        $begin = $begin ? date('Y-m-d', strtotime($begin)) : '';
-        $end = $end ? date('Y-m-d', strtotime($end)) : '';
+        $this->session->set('executionList', $this->app->getURI(true), 'execution');
 
-        $this->view->title = $this->lang->report->projectDeviation;
+        $begin = $begin ? date('Y-m-d', strtotime($begin)) : '';
+        $end   = $end   ? date('Y-m-d', strtotime($end))   : '';
+
+        $this->view->title      = $this->lang->report->projectDeviation;
         $this->view->position[] = $this->lang->report->projectDeviation;
 
-        $this->view->projects = $this->report->getProjects($begin, $end, $status);
-        $this->view->begin = $begin;
-        $this->view->end = $end;
-        $this->view->submenu = 'project';
-        $this->view->status = $status;
+        $this->view->executions = $this->report->getExecutions($begin, $end);
+        $this->view->begin      = $begin;
+        $this->view->end        = $end;
+        $this->view->submenu    = 'project';
         $this->display();
     }
 
     /**
      * Product information report.
      *
+     * @params string $conditions
      * @access public
      * @return void
      */
     public function productSummary($conditions = '')
     {
+        $this->app->loadLang('story');
         $this->app->loadLang('product');
         $this->app->loadLang('productplan');
-        $this->app->loadLang('story');
-        $this->view->title = $this->lang->report->productSummary;
+        $this->session->set('productList', $this->app->getURI(true), 'product');
+
+        $this->view->title      = $this->lang->report->productSummary;
         $this->view->position[] = $this->lang->report->productSummary;
-        $this->view->products = $this->report->getProducts($conditions);
-        $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed');
-        $this->view->submenu = 'product';
+        $this->view->products   = $this->report->getProducts($conditions);
+        $this->view->users      = $this->loadModel('user')->getPairs('noletter|noclosed');
+        $this->view->submenu    = 'product';
         $this->view->conditions = $conditions;
         $this->display();
     }
@@ -70,26 +99,28 @@ class report extends control
      *
      * @param  int    $begin
      * @param  int    $end
+     * @param  int    $product
+     * @param  int    $execution
      * @access public
      * @return void
      */
-    public function bugCreate($begin = 0, $end = 0, $product = 0, $project = 0)
+    public function bugCreate($begin = 0, $end = 0, $product = 0, $execution = 0)
     {
         $this->app->loadLang('bug');
         $begin = $begin == 0 ? date('Y-m-d', strtotime('last month', strtotime(date('Y-m', time()) . '-01 00:00:01'))) : date('Y-m-d', strtotime($begin));
-        $end = $end == 0 ? date('Y-m-d', strtotime('now')) : $end = date('Y-m-d', strtotime($end));
+        $end   = $end == 0   ? date('Y-m-d', strtotime('now')) : $end = date('Y-m-d', strtotime($end));
 
-        $this->view->title = $this->lang->report->bugCreate;
+        $this->view->title      = $this->lang->report->bugCreate;
         $this->view->position[] = $this->lang->report->bugCreate;
-        $this->view->begin = $begin;
-        $this->view->end = $end;
-        $this->view->bugs = $this->report->getBugs($begin, $end, $product, $project);
-        $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
-        $this->view->projects = array('' => '') + $this->loadModel('project')->getPairs();
-        $this->view->products = array('' => '') + $this->loadModel('product')->getPairs();
-        $this->view->project = $project;
-        $this->view->product = $product;
-        $this->view->submenu = 'test';
+        $this->view->begin      = $begin;
+        $this->view->end        = $end;
+        $this->view->bugs       = $this->report->getBugs($begin, $end, $product, $execution);
+        $this->view->users      = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
+        $this->view->executions = array('' => '') + $this->report->getProjectExecutions();
+        $this->view->products   = array('' => '') + $this->loadModel('product')->getPairs();
+        $this->view->execution  = $execution;
+        $this->view->product    = $product;
+        $this->view->submenu    = 'test';
         $this->display();
     }
 
@@ -101,11 +132,13 @@ class report extends control
      */
     public function bugAssign()
     {
-        $this->view->title = $this->lang->report->bugAssign;
+        $this->session->set('productList', $this->app->getURI(true), 'product');
+
+        $this->view->title      = $this->lang->report->bugAssign;
         $this->view->position[] = $this->lang->report->bugAssign;
-        $this->view->submenu = 'test';
-        $this->view->assigns = $this->report->getBugAssign();
-        $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
+        $this->view->submenu    = 'test';
+        $this->view->assigns    = $this->report->getBugAssign();
+        $this->view->users      = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
         $this->display();
     }
 
@@ -125,57 +158,51 @@ class report extends control
     public function workload($begin = '', $end = '', $days = 0, $workday = 0, $dept = 0, $assign = 'assign')
     {
         if ($_POST) {
-            $data = fixer::input('post')->get();
-            $begin = $data->begin;
-            $end = $data->end;
-            $dept = $data->dept;
-            $days = $data->days;
-            $assign = $data->assign;
+            $data    = fixer::input('post')->get();
+            $begin   = $data->begin;
+            $end     = $data->end;
+            $dept    = $data->dept;
+            $days    = $data->days;
+            $assign  = $data->assign;
             $workday = $data->workday;
         }
 
-        $this->app->loadConfig('project');
-        $begin = $begin ? strtotime($begin) : time();
-        $end = $end ? strtotime($end) : time() + (7 * 24 * 3600);
-        $end += 24 * 3600;
+        $this->app->loadConfig('execution');
+        $this->session->set('executionList', $this->app->getURI(true), 'execution');
+
+        $begin  = $begin ? strtotime($begin) : time();
+        $end    = $end   ? strtotime($end)   : time() + (7 * 24 * 3600);
+        $end   += 24 * 3600;
         $beginWeekDay = date('w', $begin);
-        $begin = date('Y-m-d', $begin);
-        $end = date('Y-m-d', $end);
+        $begin  = date('Y-m-d', $begin);
+        $end    = date('Y-m-d', $end);
 
-        if (empty($workday)) {
-            $workday = $this->config->project->defaultWorkhours;
-        }
-
+        if (empty($workday)) $workday = $this->config->execution->defaultWorkhours;
         $diffDays = helper::diffDate($end, $begin);
-        if ($days > $diffDays) {
-            $days = $diffDays;
-        }
-
+        if ($days > $diffDays) $days = $diffDays;
         if (empty($days)) {
             $weekDay = $beginWeekDay;
-            $days = $diffDays;
+            $days    = $diffDays;
             for ($i = 0; $i < $diffDays; $i++, $weekDay++) {
                 $weekDay = $weekDay % 7;
-                if (($this->config->project->weekend == 2 and $weekDay == 6) or $weekDay == 0) {
-                    $days--;
-                }
+                if (($this->config->execution->weekend == 2 and $weekDay == 6) or $weekDay == 0) $days--;
             }
         }
 
-        $this->view->title = $this->lang->report->workload;
+        $this->view->title      = $this->lang->report->workload;
         $this->view->position[] = $this->lang->report->workload;
 
         $this->view->workload = $this->report->getWorkload($dept, $assign);
-        $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
-        $this->view->depts = $this->loadModel('dept')->getOptionMenu();
-        $this->view->begin = $begin;
-        $this->view->end = date('Y-m-d', strtotime($end) - 24 * 3600);
-        $this->view->days = $days;
-        $this->view->workday = $workday;
-        $this->view->dept = $dept;
-        $this->view->assign = $assign;
-        $this->view->allHour = $days * $workday;
-        $this->view->submenu = 'staff';
+        $this->view->users    = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
+        $this->view->depts    = $this->loadModel('dept')->getOptionMenu();
+        $this->view->begin    = $begin;
+        $this->view->end      = date('Y-m-d', strtotime($end) - 24 * 3600);
+        $this->view->days     = $days;
+        $this->view->workday  = $workday;
+        $this->view->dept     = $dept;
+        $this->view->assign   = $assign;
+        $this->view->allHour  = $days * $workday;
+        $this->view->submenu  = 'staff';
         $this->display();
     }
 
@@ -188,54 +215,20 @@ class report extends control
     public function remind()
     {
         $bugs = $tasks = $todos = $testTasks = array();
-        if ($this->config->report->dailyreminder->bug) {
-            $bugs = $this->report->getUserBugs();
-        }
-
-        if ($this->config->report->dailyreminder->task) {
-            $tasks = $this->report->getUserTasks();
-        }
-
-        if ($this->config->report->dailyreminder->todo) {
-            $todos = $this->report->getUserTodos();
-        }
-
-        if ($this->config->report->dailyreminder->testTask) {
-            $testTasks = $this->report->getUserTestTasks();
-        }
+        if ($this->config->report->dailyreminder->bug)      $bugs  = $this->report->getUserBugs();
+        if ($this->config->report->dailyreminder->task)     $tasks = $this->report->getUserTasks();
+        if ($this->config->report->dailyreminder->todo)     $todos = $this->report->getUserTodos();
+        if ($this->config->report->dailyreminder->testTask) $testTasks = $this->report->getUserTestTasks();
 
         $reminder = array();
 
         $users = array_unique(array_merge(array_keys($bugs), array_keys($tasks), array_keys($todos), array_keys($testTasks)));
-        if (!empty($users)) {
-            foreach ($users as $user) {
-                $reminder[$user] = new stdclass();
-            }
-        }
+        if (!empty($users)) foreach ($users as $user) $reminder[$user] = new stdclass();
 
-        if (!empty($bugs)) {
-            foreach ($bugs as $user => $bug) {
-                $reminder[$user]->bugs = $bug;
-            }
-        }
-
-        if (!empty($tasks)) {
-            foreach ($tasks as $user => $task) {
-                $reminder[$user]->tasks = $task;
-            }
-        }
-
-        if (!empty($todos)) {
-            foreach ($todos as $user => $todo) {
-                $reminder[$user]->todos = $todo;
-            }
-        }
-
-        if (!empty($testTasks)) {
-            foreach ($testTasks as $user => $testTask) {
-                $reminder[$user]->testTasks = $testTask;
-            }
-        }
+        if (!empty($bugs))  foreach ($bugs as $user => $bug)   $reminder[$user]->bugs  = $bug;
+        if (!empty($tasks)) foreach ($tasks as $user => $task) $reminder[$user]->tasks = $task;
+        if (!empty($todos)) foreach ($todos as $user => $todo) $reminder[$user]->todos = $todo;
+        if (!empty($testTasks)) foreach ($testTasks as $user => $testTask) $reminder[$user]->testTasks = $testTask;
 
         $this->loadModel('mail');
 
@@ -249,22 +242,19 @@ class report extends control
             /* Reset $this->output. */
             $this->clear();
 
-            $mailTitle = $this->lang->report->mailTitle->begin;
-            $mailTitle .= isset($mail->bugs) ? sprintf($this->lang->report->mailTitle->bug, count($mail->bugs)) : '';
+            $mailTitle  = $this->lang->report->mailTitle->begin;
+            $mailTitle .= isset($mail->bugs)  ? sprintf($this->lang->report->mailTitle->bug,  count($mail->bugs))  : '';
             $mailTitle .= isset($mail->tasks) ? sprintf($this->lang->report->mailTitle->task, count($mail->tasks)) : '';
             $mailTitle .= isset($mail->todos) ? sprintf($this->lang->report->mailTitle->todo, count($mail->todos)) : '';
             $mailTitle .= isset($mail->testTasks) ? sprintf($this->lang->report->mailTitle->testTask, count($mail->testTasks)) : '';
-            $mailTitle = rtrim($mailTitle, ',');
+            $mailTitle  = rtrim($mailTitle, ',');
 
             /* Get email content and title.*/
-            $this->view->mail = $mail;
+            $this->view->mail      = $mail;
             $this->view->mailTitle = $mailTitle;
 
             $oldViewType = $this->viewType;
-            if ($oldViewType == 'json') {
-                $this->viewType = 'html';
-            }
-
+            if ($oldViewType == 'json') $this->viewType = 'html';
             $mailContent = $this->parse('report', 'dailyreminder');
             $this->viewType == $oldViewType;
 
@@ -279,279 +269,22 @@ class report extends control
         }
     }
 
-    // 任务看板
-
-    public function taskboard($date = 0, $dept = -1, $director = '', $product = 0)
-    {
-        global $app;
-        if ($_POST) {
-            $data = fixer::input('post')->get();
-            $dept = $data->dept;
-            $date = $data->date;
-        }
-        if ($dept > -1) {
-            $dept = $dept;
-        } else {
-            $dept = $app->user->dept;
-        }
-        if ($date == '' || $date == 0 || $date == 'today' || !$date) {
-            $date = date('Y-m-d');
-        } else {
-            $date = date('Y-m-d', strtotime($date));
-        }
-
-
-        $directors = ['' => '全部'] + $this->loadModel('product')->getDirectors();
-
-        $products = [0 => '全部'] + $this->loadModel('product')->getAllPairs('noclosed', $director);
-
-        if ($director == '' && $product == 0) {
-            $independentProjects = $this->loadModel('project')->getIndependentProjects();
-        } else {
-            $independentProjects = [];
-        }
-
-        $productIDs = array_keys($products);
-
-
-        $this->app->session->set('taskList',  $this->app->getURI(true));
-        $this->app->loadConfig('project');
-        $this->view->title = $this->lang->report->taskboard;
-        $this->view->position[] = $this->lang->report->taskboard;
-        $tasks = $this->report->getTaskStatistics($dept, $date, $productIDs, $product, $independentProjects);
-        $this->view->workload = $tasks['tasks'];
-        $this->view->short = $tasks['short'];
-        $this->view->exceed = $tasks['exceed'];
-        $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
-        $this->view->depts = $this->loadModel('dept')->getOptionMenu();
-        $this->view->date = $date;
-        $this->view->toady = date('Ymd');
-        $this->view->prev_day = date("Ymd", strtotime("-1 days", strtotime($date)));
-        $this->view->next_day = date("Ymd", strtotime("+1 days", strtotime($date)));
-        $this->view->dept = $dept;
-        $this->view->products = $products;
-        $this->view->product = $product;
-        $this->view->directors = $directors;
-        $this->view->director = $director;
-        $this->display();
-    }
-
-    // 未完成
-
-    public function undonetask($dept = 3)
-    {
-        if ($_POST) {
-            $data = fixer::input('post')->get();
-            $dept = $data->dept;
-        }
-        $this->app->loadConfig('project');
-        $this->view->title = $this->lang->report->undonetask;
-        $this->view->position[] = $this->lang->report->undonetask;
-        $this->view->tasks = $this->report->getUndoneTask($dept);
-        $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
-        $this->view->depts = $this->loadModel('dept')->getOptionMenu();
-        $this->view->dept = $dept;
-        $this->display();
-    }
-
-    // 迭代看板
-    public function projectboard($begin = '', $end = '', $projectType = '', $status = 'noclosed', $orderBy = 'pri')
-    {
-        $this->app->loadLang('project');
-        $this->lang->project->projectTypeList = array_merge(['' => '全部'], $this->lang->project->projectTypeList);
-        if ($_POST) {
-            $data = fixer::input('post')->get();
-            $begin = $data->begin;
-            $end = $data->end;
-            $projectType = intval($data->projectType);
-        }
-        [$week_start, $week_end] = $this->getWeekStartEnd();
-
-        if ($begin == '' || $begin == 0) {
-            $begin = $week_start;
-        } else {
-            $begin = date('Y-m-d', strtotime($begin));
-        }
-        if ($end == '' || $end == 0) {
-            $end = $week_end;
-        } else {
-            $end = date('Y-m-d', strtotime($end));
-        }
-        $begin_w = date('w', strtotime($begin));
-
-        $this->app->loadConfig('project');
-        $this->view->begin = $begin;
-        $this->view->end = $end;
-        $this->view->next = $this->getNextWeek($begin, $begin_w);
-        $this->view->pre = $this->getPreWeekDate($begin, $begin_w);
-        $this->view->cur = $this->getCurWeek($week_start, $week_end);
-        $this->view->title = $this->lang->report->projectboard;
-        $this->view->position[] = $this->lang->report->projectboard;
-        $this->view->projects = $this->report->getProjectStatistics($begin, $end, $projectType, $status, $orderBy);
-        $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
-        $this->view->projectType = $projectType;
-        $this->view->status = $status;
-        $this->view->orderBy = $orderBy;
-        $this->display();
-    }
-
     /**
-     * 项目看板
-     */
-    public function productboard($begin = '', $end = '', $selectLines = 'yfmt,yfnlp,yfc,yfkg,yfbot,yfdoc,yfweb,yflabel,yfbid', $status = 'noclosed')
-    {
-        if ($_POST) {
-            $data = fixer::input('post')->get();
-            $begin = $data->begin;
-            $end = $data->end;
-        }
-
-        [$week_start, $week_end] = $this->getWeekStartEnd();
-        if ($begin == '' || $begin == 0) {
-            $begin = $week_start;
-        } else {
-            $begin = date('Y-m-d', strtotime($begin));
-        }
-        if ($end == '' || $end == 0) {
-            $end = $week_end;
-        } else {
-            $end = date('Y-m-d', strtotime($end));
-        }
-        $begin_w = date('w', strtotime($begin));
-        $this->view->begin = $begin;
-        $this->view->end = $end;
-        $this->view->next = $this->getNextWeek($begin, $begin_w);
-        $this->view->pre = $this->getPreWeekDate($begin, $begin_w);
-        $this->view->cur = $this->getCurWeek($week_start, $week_end);
-        $this->view->products = $this->loadModel('product')->getBoardProducts($begin, $end, $selectLines, $status);
-        $this->view->lines = $this->loadModel('tree')->getLinePairs() + array('其他');
-        $this->app->loadConfig('product');
-        $this->view->title = $this->lang->report->productboard;
-        $this->view->position[] = $this->lang->report->productboard;
-        $this->view->selectLines = $selectLines;
-        $this->view->status = $status;
-        krsort($this->view->lines);
-        $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
-        $this->display();
-    }
-
-    private function getWeekStartEnd()
-    {
-        $date = date('Y-m-d');
-        $w = date('w', strtotime($date));
-        $week_start = date('Y-m-d', strtotime("$date -" . ($w ? $w - 1 : 6) . ' days'));
-        $week_end = date('Y-m-d', strtotime("$week_start +6 days"));
-        return [$week_start, $week_end];
-    }
-
-    // 用户看板
-
-    public function usertaskdoneboard($begin = '', $end = '', $dept = 3)
-    {
-        if ($_POST) {
-            $data = fixer::input('post')->get();
-            $begin = $data->begin;
-            $end = $data->end;
-            $dept = $data->dept;
-        }
-        [$week_start, $week_end] = $this->getWeekStartEnd();
-        if ($begin == '' || $begin == 0) {
-            $begin = $week_start;
-        } else {
-            $begin = date('Y-m-d', strtotime($begin));
-        }
-        if ($end == '' || $end == 0) {
-            $end = $week_end;
-        } else {
-            $end = date('Y-m-d', strtotime($end));
-        }
-        $begin_w = date('w', strtotime($begin));
-
-        $this->app->loadConfig('project');
-        $this->view->begin = $begin;
-        $this->view->end = $end;
-        $this->view->next = $this->getNextWeek($begin, $begin_w);
-        $this->view->pre = $this->getPreWeekDate($begin, $begin_w);
-        $this->view->cur = $this->getCurWeek($week_start, $week_end);
-        $this->view->title = $this->lang->report->usertaskdoneboard;
-        $this->view->position[] = $this->lang->report->usertaskdoneboard;
-        $this->view->depts = $this->loadModel('dept')->getOptionMenu();
-        $this->view->tasks = $this->report->getUserWorkHour($begin, $end, $dept);
-        $this->view->dept = $dept;
-        $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
-        $this->display();
-    }
-
-    private function getCurWeek($week_start, $week_end)
-    {
-        $cur = [
-            "start" => date("Ymd", strtotime($week_start)),
-            "end" => date("Ymd", strtotime($week_end))
-        ];
-        return $cur;
-    }
-
-    private function getPreWeekDate($begin, $begin_w)
-    {
-
-        $pre_date = date("Ymd", strtotime("-7 days", strtotime($begin)));
-        $pre_start = date('Ymd', strtotime("$pre_date -" . ($begin_w ? $begin_w - 1 : 6) . ' days'));
-        $pre_end = date('Ymd', strtotime("$pre_start +6 days"));
-        $pre = [
-            "start" => $pre_start,
-            "end" => $pre_end
-        ];
-        return $pre;
-    }
-
-    private function getNextWeek($begin, $begin_w)
-    {
-        $next_date = date("Ymd", strtotime("+7 days", strtotime($begin)));
-        $next_start = date('Ymd', strtotime("$next_date -" . ($begin_w ? $begin_w - 1 : 6) . ' days'));
-        $next_end = date('Ymd', strtotime("$next_start +6 days"));
-        $next = [
-            "start" => $next_start,
-            "end" => $next_end
-        ];
-        return $next;
-    }
-
-    // 导出
-    public function export($dept = 3)
-    {
-        $this->loadModel('file');
-        $this->loadModel('branch');
-        /* Create field lists. */
-        $today = date('Y-m-d');
-        $date = date('Y_m_d');
-        $users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
-        $tasks = $this->report->getTaskStatistics($dept, $today)['tasks'];
-        $rows = [];
-        foreach ($tasks as $user => $task) {
-            $rows[] = json_decode(json_encode([
-                "姓名" => $users[$user],
-                "任务" => '(' . $task['consumed'] . "/" . $task['complete'] . "/" . $task['all'] . ')',
-            ]));
-        }
-        $fields = [
-            "姓名" => '姓名',
-            "任务" => '任务',
-        ];
-        $this->post->set('fields', $fields);
-        $this->post->set('fileName', '' . $date);
-        $this->post->set('rows', $rows);
-        $this->post->set('encode', 'gbk');
-        $this->fetch('file', 'export2' . 'csv', $_POST);
-    }
-    /**
-     * Show personal annual data
+     * Show annual data.
      *
+     * @param  string $year
+     * @param  string $dept
+     * @param  string $userID
      * @access public
      * @return void
      */
-    public function annualData($year = '')
+    public function annualData($year = '', $dept = '', $userID = '')
     {
-        $account     = $this->app->user->account;
+        $this->app->loadLang('story');
+        $this->app->loadLang('task');
+        $this->app->loadLang('bug');
+        $this->app->loadLang('testcase');
+
         $firstAction = $this->dao->select('*')->from(TABLE_ACTION)->orderBy('id')->limit(1)->fetch();
         $currentYear = date('Y');
         $firstYear   = empty($firstAction) ? $currentYear : substr($firstAction->date, 0, 4);
@@ -570,372 +303,121 @@ class report extends control
             }
         }
 
-        /* Get common annual data. */
-        $data = array();
-        $data['logins'] = $this->report->getUserYearLogins($account, $year);
+        /* Get users and depts. */
+        $users     = $this->loadModel('user')->getPairs('noletter|useid|noclosed');
+        $users[''] = $this->lang->report->annualData->allUser;
 
-        /* Set role. */
-        $role = 'po';
-        if ($this->app->user->role == 'dev' or $this->app->user->role == 'td' or $this->app->user->role == 'pm') $role = 'dev';
-        if ($this->app->user->role == 'qd' or $this->app->user->role == 'qa') $role = 'qa';
+        $depts = $this->loadModel('dept')->getOptionMenu();
+        $depts = array('' => $this->lang->report->annualData->allDept) + $depts;
+        if (empty($userID)) unset($depts[0]);
 
-        /* Get annual data by role. */
-        if ($role == 'po') {
-            $products = $this->report->getUserYearProducts($account, $year);
-            $data['involvedProducts'] = count($products);
+        $accounts = array();
+        if ($dept) $accounts = $this->loadModel('dept')->getDeptUserPairs($dept);
+        if ($userID) {
+            $user = $this->loadModel('user')->getById($userID, 'id');
+            $dept = $user->dept;
+            $accounts = array($user->account => ($user->realname ? $user->realname : $user->account));
+        }
+        if (empty($accounts)) $accounts = $this->user->getPairs('noletter|noclosed');
+        if ($accounts) $accounts = array_keys($accounts);
 
-            $planGroups = $this->report->getPlansByProducts($products, $account, $year);
-            $planCount  = 0;
-            foreach ($planGroups as $plans) $planCount += $plans;
-            $data['createdPlans'] = $planCount;
-            $data['productStat']  = $this->report->getStatByProducts($products, $account, $year);
-
-            $storyInfo = $this->report->getUserYearStory($products, $account, $year);
-            $data['createdStories'] = $storyInfo['count'];
-            $data['storyPri']       = $storyInfo['pri'];
-            $data['storyStage']     = $storyInfo['stage'];
-            $data['storyMonth']     = $storyInfo['month'];
-
-            $storyGroups = $this->report->getStoriesByProducts($products, $account, $year);
-            foreach ($products as $productID => $product) {
-                $product->plans   = zget($planGroups, $productID, 0);
-                $product->stories = zget($storyGroups, $productID, 0);
-            }
-            $data['products'] = $products;
-        } elseif ($role == 'dev') {
-            $data['actions'] = $this->report->getUserYearActions($account, $year);
-
-            $efforts = $this->report->getUserYearEfforts($account, $year);
-            $data['efforts']  = $efforts->count;
-            $data['consumed'] = round($efforts->consumed, 2);
-
-            $projects    = $this->report->getUserYearProjects($account, $year);
-            $projectStat = $this->report->getStatByProjects($projects);
-
-            $tasks = $this->report->getUserYearFinishedTasks($account, $year);
-            $bugs  = $this->report->getUserYearResolvedBugs($account, $year);
-            $data['finishedTaskPri'] = $tasks['pri'];
-            $data['resolvedBugPri']  = $bugs['pri'];
-            $data['taskMonth']       = $tasks['month'];
-            $data['bugMonth']        = $bugs['month'];
-            $data['effortMonth']     = $this->report->getEffort4Month($account, $year);;
-
-            $stories = $this->report->getFinishedStoryByProjects($projects, $account, $year);
-            $tasks   = $this->report->getFinishedTaskByProjects($projects, $account, $year);
-            $bugs    = $this->report->getResolvedBugByProjects($projects, $account, $year);
-            foreach ($projects as $projectID => $project) {
-                $project->stories = zget($stories, $projectID, 0);
-                $project->tasks   = zget($tasks, $projectID, 0);
-                $project->bugs    = zget($bugs, $projectID, 0);
-            }
-
-            $data['projects']    = $projects;
-            $data['projectStat'] = $projectStat;
-        } elseif ($role == 'qa') {
-            $data['actions'] = $this->report->getUserYearActions($account, $year);
-            $bugInfo = $this->report->getUserYearCreatedBugs($account, $year);
-            $data['foundBugs'] = $bugInfo['count'];
-            $data['bugPri']    = $bugInfo['pri'];
-            $data['bugMonth']  = $bugInfo['month'];
-
-            $caseInfo = $this->report->getUserYearCreatedCases($account, $year);
-            $data['createdCases'] = $caseInfo['count'];
-            $data['casePri']      = $caseInfo['pri'];
-            $data['caseMonth']    = $caseInfo['month'];
-
-            $products    = $this->report->getUserYearProducts4QA($account, $year);
-            $productStat = $this->report->getBugStatByProducts($products, $account, $year);
-
-            $bugs = $this->report->getCreatedBugByProducts($products, $account, $year);
-            foreach ($products as $productID => $product) $product->bugs = zget($bugs, $productID, 0);
-
-            $data['products']    = $products;
-            $data['productStat'] = $productStat;
+        if ($dept) {
+            $users = $this->loadModel('dept')->getDeptUserPairs($dept, 'id');
+            $users = array('' => $this->lang->report->annualData->allUser) + $users;
         }
 
-        $this->view->title = sprintf($this->lang->report->annualData->title, $year, $this->app->user->realname);
-        $this->view->data  = $data;
-        $this->view->role  = $role;
-        $this->view->year  = $year;
-        $this->view->years = $years;
+        /* Get annual data. */
+        $data = array();
+        if (!$userID) {
+            $data['users'] = $dept ? count($accounts) : (count($users) - 1);
+        } else {
+            $data['logins'] = $this->report->getUserYearLogins($accounts, $year);
+        }
+        $data['actions']       = $this->report->getUserYearActions($accounts, $year);
+        $data['todos']         = $this->report->getUserYearTodos($accounts, $year);
+        $data['contributions'] = $this->report->getUserYearContributions($accounts, $year);
+        $data['executionStat'] = $this->report->getUserYearExecutions($accounts, $year);
+        $data['productStat']   = $this->report->getUserYearProducts($accounts, $year);
+        $data['storyStat']     = $this->report->getYearObjectStat($accounts, $year, 'story');
+        $data['taskStat']      = $this->report->getYearObjectStat($accounts, $year, 'task');
+        $data['bugStat']       = $this->report->getYearObjectStat($accounts, $year, 'bug');
+        $data['caseStat']      = $this->report->getYearCaseStat($accounts, $year);
+
+        $yearEfforts = $this->report->getUserYearEfforts($accounts, $year);
+        $data['consumed'] = $yearEfforts->consumed;
+
+        if (empty($dept) and empty($userID)) $data['statusStat'] = $this->report->getAllTimeStatusStat();
+
+        $this->view->title  = sprintf($this->lang->report->annualData->title, ($userID ? zget($users, $userID, '') : ($dept ? substr($depts[$dept], strrpos($depts[$dept], '/') + 1) : $depts[''])), $year);
+        $this->view->data   = $data;
+        $this->view->year   = $year;
+        $this->view->users  = $users;
+        $this->view->depts  = $depts;
+        $this->view->years  = $years;
+        $this->view->dept   = $dept;
+        $this->view->userID = $userID;
+        $this->view->months = $this->report->getYearMonths($year);
         die($this->display());
     }
 
-    public function userlogboard($type = 'weekly', $orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
+    public function taskboard($date = 0, $dept = -1, $director = '', $project = 0)
     {
-
-        $this->app->loadClass('pager', $static = true);
-        $pager = pager::init($recTotal, $recPerPage, $pageID);
-        $sort = $this->loadModel('common')->appendOrder($orderBy);
-        $userlogs = $this->loadModel('userlog')->getUserlog($type, $pager, $sort);
-
-        $this->view->title      = $this->lang->report->userlogboard;
-        $this->view->position[] = $this->lang->report->userlogboard;
-
-        $this->view->userlogs   = $userlogs;
-        $this->view->recTotal   = $recTotal;
-        $this->view->recPerPage = $recPerPage;
-        $this->view->pageID     = $pageID;
-        $this->view->type       = $type;
-        $this->view->orderBy    = $orderBy;
-        $this->view->pager      = $pager;
-        $this->display();
-    }
-
-    public function weeklyboard($week = 0, $product = 0, $user = 0, $orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
-    {
-        $this->app->loadClass('pager', $static = true);
-        $pager = pager::init($recTotal, $recPerPage, $pageID);
-        $sort = $this->loadModel('common')->appendOrder($orderBy);
-        $weeklies = $this->loadModel('productweekly')->getWeekly($pager, $sort, $week, $product, $user);
-
-        $this->view->title      = $this->lang->report->weeklyboard;
-        $this->view->position[] = $this->lang->report->weeklyboard;
-        $this->view->week       = $week;
-        $this->view->thisWeek   = date('YW');
-        if ($week == 0) {
-            $yearWeek = date('YW');
+        $this->app->loadLang('task');
+        if ($_POST) {
+            $data = fixer::input('post')->get();
+            $dept = $data->dept;
+            $date = $data->date;
+        }
+        if ($dept > -1) {
+            $dept = $dept;
         } else {
-            $yearWeek = $week;
+            $dept = $this->app->user->dept;
         }
-        $this->view->lastWeek   = $this->getPreYearWeek($yearWeek);
-        $this->view->nextWeek   = $this->getNextYearWeek($yearWeek);
-        $this->view->weeks      = $this->getWeeksRange();
-        $this->view->weeklies   = $weeklies;
-        $this->view->recTotal   = $recTotal;
-        $this->view->recPerPage = $recPerPage;
-        $this->view->pageID     = $pageID;
-        $this->view->orderBy    = $orderBy;
-        $this->view->pager      = $pager;
-        $this->view->product = $product;
-        $this->view->products = $this->loadModel('productweekly')->getWeeklyProducts();
-        $this->view->user = $user;
-        $this->view->users = $this->loadModel('productweekly')->getWeeklyDirectors();
-        $this->display();
-    }
-
-    private function getPreYearWeek($yearWeek)
-    {
-        $year = substr($yearWeek, 0, 4);
-        $week = substr($yearWeek, 4, 2);
-        if ($week != '01') {
-            $preWeek = $yearWeek - 1;
+        if ($date == '' || $date == 0 || $date == 'today' || !$date) {
+            $date = date('Y-m-d');
         } else {
-            $year = $year - 1;
-            $weekCount = date("W", mktime(0, 0, 0, 12, 31, $year));
-            $preWeek = $year . $weekCount;
-        }
-        return $preWeek;
-    }
-
-    private function getNextYearWeek($yearWeek)
-    {
-        $year = substr($yearWeek, 0, 4);
-        $week = substr($yearWeek, 4, 2);
-        $weekCount = date("W", mktime(0, 0, 0, 12, 31, $year));
-        if ($week != $weekCount) {
-            $nextWeek = $yearWeek + 1;
-        } else {
-            $nextWeek = ($year + 1) . '01';
-        }
-        return $nextWeek;
-    }
-
-    private function getWeeksRange()
-    {
-        $year = date('Y');
-        $weekRange = [0 => '全部'];
-        foreach (range(2021, date('Y')) as $year) {
-            $weekCount = date("W", mktime(0, 0, 0, 12, 31, $year));
-            $weeks = range(1, $weekCount);
-            foreach ($weeks as $week) {
-                $weekday = $this->weekday($week, $year);
-                $start = date('m.d', ($weekday['start']));
-                $end = date('m.d', ($weekday['end']));
-                $weekKey = $this->weekIntToStr($week);
-                $weekRange[$year . $weekKey] = $year . '年第' . $week . '周(' . $start . '-' . $end . ')';
-            }
-        }
-        return $weekRange;
-    }
-
-    private function weekIntToStr($weekInt)
-    {
-        return str_pad($weekInt, 2, '0', STR_PAD_LEFT);
-    }
-
-    public function weekday($week = 1, $year)
-    {
-        $year_start = mktime(0, 0, 0, 1, 1, $year);
-        $year_end = mktime(0, 0, 0, 12, 31, $year);
-        if (intval(date('W', $year_start)) === 1) {
-            $start = $year_start;
-        } else {
-            $week++;
-            $start = strtotime('+1 monday', $year_start);
-        }
-        if ($week == 1) {
-            $weekday['start'] = $start;
-        } else {
-            $weekday['start'] = strtotime('+' . ($week - 1) . ' monday', $start);
-        }
-        $weekday['end'] = strtotime('+1 sunday', $weekday['start']);
-        if (date('Y', $weekday['end']) != $year) {
-            $weekday['end'] = $year_end;
-        }
-        return $weekday;
-    }
-
-    public function milestoneboard($orderBy = 'date_asc', $recTotal = 0, $recPerPage = 20, $pageID = 1, $productID = 0, $line = 0, $begin = '', $isContract = '', $completed = '')
-    {
-        if ($begin == '' || $begin == 0) {
-            $begin = date('Y-m-d', strtotime('-1 month'));
-        } else {
-            $begin = date('Y-m-d', strtotime($begin));
+            $date = date('Y-m-d', strtotime($date));
         }
 
-        $this->view->today = date('Y-m-d');
-        $this->view->weekLater = date('Y-m-d', strtotime('+1 week'));
-        $this->view->monthLater = date('Y-m-d', strtotime('+1 month'));
-        $this->view->seasonLater = date('Y-m-d', strtotime('+3 month'));
+        # TODO: 项目负责人
+        // $directors = ['' => '全部'] + $this->loadModel('product')->getDirectors();
 
-        $this->app->loadClass('pager', $static = true);
-        $pager = pager::init($recTotal, $recPerPage, $pageID);
-        $sort = $this->loadModel('common')->appendOrder($orderBy);
+        $projects = [0 => '全部'] + $this->loadModel('project')->getAll();
 
-        $data = $this->loadModel('milestone')->getReport($pager, $sort, $begin, $productID, $line, $isContract, $completed);
-        $this->view->data =  $data;
-        $this->view->rowspanArr = $this->countMilestoneRowspan($data);
+        // if ($director == '' && $product == 0) {
+        //     $independentProjects = $this->loadModel('project')->getIndependentProjects();
+        // } else {
+        //     $independentProjects = [];
+        // }
+        $independentProjects = [];
 
-        $this->view->products = array(0 => '') + $this->loadModel('product')->getPairs();
-        $this->view->lines    = array(0 => '') + $this->loadModel('tree')->getLinePairs();
+        $projectIDs = array_keys($projects);
 
-        $this->view->title      = $this->lang->report->milestoneboard;
-        $this->view->position[] = $this->lang->report->milestoneboard;
-        $this->view->recTotal   = $recTotal;
-        $this->view->recPerPage = $recPerPage;
-        $this->view->pageID     = $pageID;
-        $this->view->orderBy    = $orderBy;
-        $this->view->pager      = $pager;
-        $this->view->begin      = $begin;
-        $this->view->productID  = $productID;
-        $this->view->line       = $line;
-        $this->view->isContract = $isContract;
-        $this->view->completed  = $completed;
-        $this->display();
-    }
 
-    public function countMilestoneRowspan($data)
-    {
-        $rowspanArr = [];
-        foreach ($data as $line => $products) {
-            $rowspanArr['line' . $line] = 0;
-            foreach ($products as $name => $milestones) {
-                $rowspanArr['product' . $name] = count($milestones);
-                $rowspanArr['line' . $line] += count($milestones);
-            }
-        }
-        return $rowspanArr;
-    }
+        $result = $this->report->getTaskStatistics($dept, $date, $projectIDs, $project, $independentProjects);
+        $this->view->user2detail = $result['tasks'];
+        $this->view->short = $result['short'];
+        $this->view->exceed = $result['exceed'];
 
-    public function producttargetboard($productID = 0, $line = 0, $month = '', $director = '')
-    {
-        $thisMonth = date('Ym');
-        if ($month == '' || $month == 0) {
-            $month = $thisMonth;
-        }
-        $preMonth = strval($month - 1);
-        $nextMonth = strval($month + 1);
-
-        $this->view->month = $month;
-        $this->view->thisMonth = $thisMonth;
-        $this->view->preMonth = $preMonth;
-        $this->view->nextMonth = $nextMonth;
-
-        $month = DateTime::createFromFormat('Ym', $month)->format('Y-m');;
-        $result = $this->loadModel('producttarget')->getReport($month, $productID, $line, $director);
-        $this->view->data = $result['data'];
-        $this->view->id2hour = $result['id2hour'];
-        $this->view->rowspanArr = $this->countTargetRowspan($result['data']);
-
-        $this->view->products = array(0 => '') + $this->loadModel('product')->getPairs();
-        $this->view->lines    = array(0 => '') + $this->loadModel('tree')->getLinePairs();
-        $this->view->directors = array(0 => '') + $this->loadModel('product')->getDirectors();
-        $this->view->productID  = $productID;
-        $this->view->line       = $line;
-        $this->view->director   = $director;
         $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
 
-        $this->view->title = $this->lang->report->producttargetboard;
-        $this->view->position[] = $this->lang->report->producttargetboard;
+        $this->view->date = $date;
+        $this->view->toady = date('Ymd');
+        $this->view->prev_day = date("Ymd", strtotime("-1 days", strtotime($date)));
+        $this->view->next_day = date("Ymd", strtotime("+1 days", strtotime($date)));
+
+        $this->view->depts = $this->loadModel('dept')->getOptionMenu();
+        $this->view->projects = $projects;
+        // $this->view->directors = $directors;
+
+        $this->view->dept = $dept;
+        $this->view->project = $project;
+        $this->view->director = $director;
+
+        $this->app->loadConfig('project');
+        $this->app->session->set('taskList',  $this->app->getURI(true));
+        $this->view->title = $this->lang->report->taskboard;
+        $this->view->position[] = $this->lang->report->taskboard;
         $this->display();
-    }
-
-    private function countTargetRowspan($data)
-    {
-        $rowspanArr = [];
-        foreach ($data as $line => $products) {
-            $rowspanArr['line' . $line] = 0;
-            foreach ($products as $name => $target) {
-                if (count($target->items) == 0) {
-                    $rowspanArr['product' . $name] = 1;
-                    $rowspanArr['line' . $line] += 1;
-                } else {
-                    $rowspanArr['product' . $name] = count($target->items);
-                    $rowspanArr['line' . $line] += count($target->items);
-                }
-            }
-        }
-        return $rowspanArr;
-    }
-
-    /**
-     * 导出月目标
-     */
-    public function exportTarget($productID = 0, $line = 0, $month = '')
-    {
-        $thisMonth = date('Ym');
-        if ($month == '' || $month == 0) {
-            $month = $thisMonth;
-        }
-
-        $result = $this->loadModel('producttarget')->getReport($month, $productID, $line);
-        $data = $result['data'];
-        $id2hour = $result['id2hour'];
-        $users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
-
-        $rows = [];
-        foreach ($data as $line => $products) {
-            foreach ($products as $name => $target) {
-                $rows[] = json_decode(json_encode([
-                    $this->lang->producttarget->productLine => $line,
-                    $this->lang->producttarget->productName => $name,
-                    $this->lang->product->director =>  zget($users, $target->director),
-                    $this->lang->report->boardProduct->manHour => $id2hour[$target->productID]['manHour'],
-                    $this->lang->report->boardProduct->doneManHour => $id2hour[$target->productID]['doneManHour'],
-                    $this->lang->report->boardProduct->accuracy => $id2hour[$target->productID]['accuracy'],
-                    $this->lang->producttarget->lastTarget => $target->lastTarget . '%',
-                    $this->lang->producttarget->target => $target->target . '%',
-                    $this->lang->producttarget->performance => $target->performance . '%',
-                    $this->lang->producttarget->deviation => ($target->performance - $target->target) . '%',
-                ]));
-            }
-        }
-
-        $this->loadModel('file');
-        $this->loadModel('branch');
-
-        if (!empty($rows)) {
-            $row = json_decode(json_encode($rows[0]), true);
-            $keys = array_keys($row);
-            $fields = array_combine($keys, $keys);
-        } else {
-            $fields = [];
-        }
-        $this->post->set('fields', $fields);
-        $this->post->set('fileName', '' . $month . '月目标报告');
-        $this->post->set('rows', $rows);
-        $this->post->set('encode', 'gbk');
-        $this->fetch('file', 'export2' . 'csv', $_POST);
     }
 }

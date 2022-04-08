@@ -14,6 +14,7 @@
 <?php include '../../common/view/kindeditor.html.php';?>
 <?php include '../../common/view/datepicker.html.php';?>
 <?php js::set('confirmFinish', $lang->task->confirmFinish);?>
+<?php js::set('noticeTaskStart', $lang->task->noticeTaskStart);?>
 <div id='mainContent' class='main-content'>
   <?php
   /* IF it is multi-task, the suspened can only be restarted by the current user who it is assigned to. */
@@ -36,13 +37,20 @@
         <?php endif;?>
       </h2>
     </div>
-    <form method='post' target='hiddenwin' onsubmit='return checkLeft();'>
+    <form method='post' target='hiddenwin' <?php if($app->rawMethod == 'start') echo "onsubmit='return checkLeft();'"?>>
       <table class='table table-form'>
         <tr>
-          <th class='w-90px'><?php echo $lang->task->realStarted;?></th>
-          <td class='w-p25-f'><div class='datepicker-wrapper datepicker-date'><?php echo html::input('realStarted', $task->realStarted == '0000-00-00' ? helper::today() : $task->realStarted, "class='form-control form-date' data-picker-position='bottom-right'");?></div></td>
+          <th class='w-90px'><?php echo $lang->task->assignedTo;?></th>
+          <td class='w-p25-f'>
+            <?php echo html::select('assignedTo', $members, $assignedTo, "class='form-control chosen'");?>
+          </td>
           <td></td>
-        </tr>  
+        </tr>
+        <tr>
+          <th class='w-90px'><?php echo $lang->task->realStarted;?></th>
+          <td class='w-p25-f'><div class='datepicker-wrapper datepicker-date'><?php echo html::input('realStarted', helper::isZeroDate($task->realStarted) ? helper::now() : $task->realStarted, "class='form-control form-datetime' data-picker-position='bottom-right'");?></div></td>
+          <td></td>
+        </tr>
         <tr>
           <th><?php echo $lang->task->consumed;?></th>
           <td>

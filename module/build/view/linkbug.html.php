@@ -21,24 +21,22 @@
         <tr class='text-center'>
           <th class='c-id text-left'>
             <?php if($allBugs):?>
-            <div class="checkbox-primary check-all" title="<?php echo $lang->selectAll?>">
+            <div class="checkbox-primary check-all tablesorter-noSort" title="<?php echo $lang->selectAll?>">
               <label></label>
             </div>
             <?php endif;?>
             <?php echo $lang->idAB;?>
           </th>
-          <th class='w-100px'>  <?php echo $lang->priAB;?></th>
+          <th class='c-status'> <?php echo $lang->priAB;?></th>
           <th class='text-left'><?php echo $lang->bug->title;?></th>
-          <th class='w-user'> <?php echo $lang->openedByAB;?></th>
-          <th class='w-150px'><?php echo $lang->bug->resolvedBy;?></th>
-          <th class='w-80px'> <?php echo $lang->statusAB;?></th>
+          <th class='c-user'>   <?php echo $lang->openedByAB;?></th>
+          <th class='c-user'>   <?php echo $lang->bug->resolvedBy;?></th>
+          <th class='c-status'> <?php echo $lang->statusAB;?></th>
         </tr>
       </thead>
       <tbody class='text-center'>
         <?php $unlinkedCount = 0;?>
         <?php foreach($allBugs as $bug):?>
-        <?php if(strpos(",{$build->bugs},", ",$bug->id,") !== false) continue;?>
-        <?php if($build->product != $bug->product) continue; ?>
         <tr>
           <td class='c-id text-left'>
             <?php echo html::checkbox('bugs', array($bug->id => sprintf('%03d', $bug->id)), ($bug->status == 'resolved' or $bug->status == 'closed') ? $bug->id : '');?>
@@ -67,10 +65,15 @@
         <?php echo html::a(inlink('view', "buildID={$build->id}&type=bug"), $lang->goback, '', "class='btn'");?>
       </div>
       <div class='table-statistic'></div>
+      <?php $pager->show('right', 'pagerjs');?>
     </div>
     <?php endif;?>
   </form>
 </div>
 <script>
-$(function(){$('#unlinkBugList .tablesorter').sortTable();});
+$(function()
+{
+    $('#unlinkBugList .tablesorter').sortTable();
+    setForm();
+});
 </script>

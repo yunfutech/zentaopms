@@ -23,7 +23,7 @@ function switchAccount(account, method)
 {
     if(method == 'dynamic')
     {
-        link = createLink('user', method, 'period=' + period + '&account=' + account);
+        link = createLink('user', method, 'account=' + account + '&period=' + period);
     }
     else if(method == 'todo')
     {

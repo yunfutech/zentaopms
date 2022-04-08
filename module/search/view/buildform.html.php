@@ -38,9 +38,10 @@ $formId = 'searchForm-' . uniqid('');
 
 #queryBox select[id^="operator"] {padding-right:2px; padding-left:5px;}
 #queryBox select#groupAndOr {padding-right:2px; padding-left:5px;}
-#queryBox .chosen-container-single .chosen-single>span {margin-right:5px;}
+#queryBox .chosen-container-single .chosen-single > span {margin-right:5px;}
 
 #queryBox .form-actions .btn {margin-right: 5px;}
+@media screen and (max-width: 1366px) { #userQueries {width: 130px!important;} }
 #userQueries {border-left: 1px solid #eee; vertical-align: top;}
 #userQueries > h4 {margin: 0 0 6px;}
 #userQueries ul {list-style: none; padding-left: 0; margin: 0; max-height:75px; overflow:auto;}
@@ -50,18 +51,18 @@ $formId = 'searchForm-' . uniqid('');
 #userQueries .label:hover {background-color: #aaa; color: #fff;}
 #userQueries .label > .icon-close {position: absolute; top: 2px; right: 2px; border-radius: 9px; font-size: 12px; line-height: 18px; width: 18px; display: inline-block;}
 #userQueries .label > .icon-close:hover {background-color: #ff5d5d; color: #fff;}
-@media (max-width: 1150px) {#userQueries {display: none}}
+@media (max-width: 1050px) {#userQueries {display: none}}
 <?php if($style == 'simple'):?>
 #<?php echo $formId;?> .form-actions {text-align: left; padding: 0!important; max-width: 200px; vertical-align: middle; width: 100px;}
 #queryBox.show {min-height: 66px;}
 <?php endif;?>
-#toggle-queries{position: absolute; right: 0px; top: 40px; width: 13px; background: #79cdfb; border-radius: 6px; height: 30px;cursor: pointer}
-#toggle-queries .icon{ position: absolute; top: 6px; right: -2px; color: #fff;}
+#toggle-queries {position: absolute; right: 0px; top: 40px; width: 13px; background: #79cdfb; border-radius: 6px; height: 30px;cursor: pointer}
+#toggle-queries .icon {position: absolute; top: 6px; right: -2px; color: #fff;}
 
-.fieldWidth{width:130px !important;}
-.operatorWidth{width:110px !important;}
-html[lang^='zh-'] .fieldWidth{width:110px !important;}
-html[lang^='zh-'] .operatorWidth{width:90px !important;}
+.fieldWidth {width: 130px !important;}
+.operatorWidth {width: 110px !important;}
+html[lang^='zh-'] .fieldWidth {width: 110px !important;}
+html[lang^='zh-'] .operatorWidth {width: 90px !important;}
 </style>
 <?php if($style != 'simple'):?>
   <div id='toggle-queries'>
@@ -123,6 +124,7 @@ foreach($fieldParams as $fieldName => $param)
 
                 /* Print value. */
                 echo "<td id='valueBox$fieldNO' style='overflow:visible'>";
+                if(isset($config->moreLinks["field{$currentField}"])) $config->moreLinks["value$fieldNO"] = $config->moreLinks["field{$currentField}"];
                 if($param['control'] == 'select') echo html::select("value$fieldNO", $param['values'], $formSession["value$fieldNO"], "class='form-control searchSelect chosen'");
                 if($param['control'] == 'input')
                 {
@@ -183,6 +185,11 @@ foreach($fieldParams as $fieldName => $param)
 
                 /* Print value. */
                 echo "<td id='valueBox$fieldNO'>";
+                if(isset($config->moreLinks["field{$currentField}"]))
+                {
+                    $selected = $formSession["value$fieldNO"];
+                    if(!isset($param['values'][$selected])) $config->moreLinks["value$fieldNO"] = $config->moreLinks["field{$currentField}"];
+                }
                 if($param['control'] == 'select') echo html::select("value$fieldNO", $param['values'], $formSession["value$fieldNO"], "class='form-control searchSelect chosen'");
 
                 if($param['control'] == 'input')
@@ -230,7 +237,7 @@ foreach($fieldParams as $fieldName => $param)
         echo html::submitButton($lang->search->common, '', 'btn btn-primary') . " &nbsp; ";
         if($style != 'simple')
         {
-            if(common::hasPriv('search', 'saveQuery')) echo html::a($this->createLink('search', 'saveQuery', "module=$module&onMenuBar=$onMenuBar"), $lang->save, '', "class='btn-save-form btn btn-secondary'") . "&nbsp;";
+            if(common::hasPriv('search', 'saveQuery')) echo html::a($this->createLink('search', 'saveQuery', "module=$module&onMenuBar=$onMenuBar"), $lang->save, '', "class='btn-save-form btn btn-secondary iframe'") . "&nbsp;";
             echo html::commonButton($lang->search->reset, '', 'btn-reset-form btn');
         }
         echo html::commonButton('<i class="icon icon-chevron-double-down"></i>', '', 'btn-expand-form btn btn-info pull-right');
@@ -282,7 +289,7 @@ $(function()
     $('#toggle-queries').click(function()
     {
         $('#userQueries').toggleClass('hidden');
-        if(!$('#userQueries').hasClass('hidden')) 
+        if(!$('#userQueries').hasClass('hidden'))
         {
             $('#toggle-queries .icon').removeClass('icon-angle-left');
             $('#toggle-queries .icon').addClass('icon-angle-right');
@@ -447,13 +454,19 @@ $(function()
         }
         else if(params[fieldName]['control'] == 'select')
         {
-            $searchForm.find("#value" + fieldNO).chosen().on('chosen:showing_dropdown', function()
+            $searchForm.find(".picker#value" + fieldNO).remove();
+            if($searchForm.find("#value" + fieldNO).attr('data-pickertype') == 'remote')
             {
-                var $this = $(this);
-                var $chosen = $this.next('.chosen-container').removeClass('chosen-up');
-                var $drop = $chosen.find('.chosen-drop');
-                $chosen.toggleClass('chosen-up', $drop.height() + $drop.offset().top - $(document).scrollTop() > $(window).height());
-            });
+                $searchForm.find("#value" + fieldNO).picker(
+                {
+                    chosenMode: true,
+                    remote: $searchForm.find("#value" + fieldNO).attr('data-pickerremote')
+                });
+            }
+            else
+            {
+                $searchForm.find("#value" + fieldNO).picker({chosenMode: true});
+            }
         }
     };
 

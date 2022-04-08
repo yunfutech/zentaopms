@@ -9,9 +9,33 @@ $(function()
         var title = $titleInput.val();
         var value = $(this).find('option:selected').text();
 
-        var preIndex = blockTitle.indexOf(' - ' + preValue);
-        if(preIndex >= 0) blockTitle = blockTitle.substring(0, preIndex);
-        $titleInput.val(blockTitle + ' - ' + value);
+        if($blocksList.find('#moduleBlock').val() == 'scrumtest' && $('#paramstype').val() != 'all')
+        {
+            $titleInput.val(value);
+        }
+        else
+        {
+            var lang   = config.clientLang;
+            blockTitle = $blockParams.find('#title').val();
+            if(lang.indexOf('zh') >= 0)
+            {
+                if(blockTitle.indexOf(preValue) >= 0)
+                {
+                    blockTitle = blockTitle.replace(preValue, value);
+                }
+                else
+                {
+                    if(blockTitle.indexOf(preValue) < 0)  blockTitle = value + of + title;;
+                }
+                $titleInput.val(blockTitle);
+            }
+            else
+            {
+                var preIndex = blockTitle.indexOf(of + preValue);
+                if(preIndex >= 0) blockTitle = blockTitle.substring(0, preIndex);
+                $titleInput.val(blockTitle + of + value);
+            }
+        }
 
         preValue = value;
     });
@@ -34,13 +58,23 @@ $(function()
         if($blockParams.find('#actionLink').size() > 0) $form.attr('action', $blockParams.find('#actionLink').val());
 
         $titleInput = $blockParams.find('#title');
-        if($titleInput.length && $('#blockParams #paramstype').length)
+        if($titleInput.length && $('#paramstype').length)
         {
-            blockTitle = $titleInput.val();
-            preValue = $('#blockParams #paramstype').find('option:selected').text();
+            blockTitle   = $titleInput.val();
+            preValue     = $('#paramstype').find('option:selected').text();
+
             var preIndex = blockTitle.indexOf(' - ' + preValue);
             if(preIndex >= 0) blockTitle = blockTitle.substring(0, preIndex);
-            $titleInput.val(blockTitle + ' - ' + preValue);
+
+            if($blocksList.find('#moduleBlock').val() == 'scrumtest')
+            {
+                $titleInput.val(preValue);
+            }
+            else
+            {
+                var lang = config.clientLang;
+                if(!title && blockTitle.indexOf(of) < 0) lang.indexOf('zh') >= 0 ? $titleInput.val(preValue + of + blockTitle) : $titleInput.val(blockTitle + of + preValue);
+            }
         }
     };
 
@@ -92,7 +126,7 @@ $(function()
             return true;
         }
 
-        if(moduleID == 'html' || moduleID == 'dynamic' || moduleID == 'flowchart' || moduleID == 'assigntome' || moduleID == 'welcome')
+        if(moduleID == 'html' || moduleID == 'dynamic' || moduleID == 'flowchart' || moduleID == 'assigntome' || moduleID == 'welcome' || moduleID == 'contribute')
         {
             getNotSourceParams(moduleID, blockID, onFinish);
             return true;

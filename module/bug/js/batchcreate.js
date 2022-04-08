@@ -7,40 +7,6 @@ $(function()
 })
 
 /**
- * Set branch related.
- *
- * @param  int     $branchID
- * @param  int     $productID
- * @param  int     $num
- * @access public
- * @return void
- */
-function setBranchRelated(branchID, productID, num)
-{
-    moduleLink = createLink('tree', 'ajaxGetModules', 'productID=' + productID + '&viewType=bug&branch=' + branchID + '&num=' + num);
-    $.get(moduleLink, function(modules)
-    {
-        if(!modules) modules = '<select id="modules' + num + '" name="modules[' + num + ']" class="form-control"></select>';
-        $('#modules' + num).replaceWith(modules);
-        $("#modules" + num + "_chosen").remove();
-        $("#modules" + num).chosen();
-    });
-
-    projectLink = createLink('product', 'ajaxGetProjects', 'productID=' + productID + '&projectID=0&branch=' + branchID + '&num=' + num);
-    $.get(projectLink, function(projects)
-    {
-        if(!projects) projects = '<select id="projects' + num + '" name="projects[' + num + ']" class="form-control"></select>';
-        $('#projects' + num).replaceWith(projects);
-        $("#projects" + num + "_chosen").remove();
-        $("#projects" + num).chosen();
-    });
-
-    buildLink = createLink('build', 'ajaxGetProductBuilds', 'productID=' + productID + "&varName=openedBuilds&build=&branch=" + branchID + "&index=" + num);
-
-    setOpenedBuilds(buildLink, num);
-}
-
-/**
  * Set opened builds.
  *
  * @param  string  $link
@@ -59,6 +25,7 @@ function setOpenedBuilds(link, index)
             $('#buildBox' + index).html(builds);
             $('#buildBox' + index).find('select').val(selected);
             $('#openedBuilds' + index + '_chosen').remove();
+            $('#openedBuilds' + index).next('.picker').remove();
             $('#buildBox' + index + ' select').removeClass('select-3');
             $('#buildBox' + index + ' select').addClass('select-1');
             $('#buildBox' + index + ' select').attr('name','openedBuilds[' + index + '][]');
@@ -66,26 +33,26 @@ function setOpenedBuilds(link, index)
             $('#buildBox' + index + ' select').chosen();
 
             index++;
-            if($('#projects' + index).val() != 'ditto') break;
+            if($('#executions' + index).val() != 'ditto') break;
         }while(index < row)
     });
 }
 
 /**
- * Load project builds
+ * Load execution builds
  *
  * @param  int $productID
- * @param  int $projectID
+ * @param  int $executionID
  * @param  int $index
  * @access public
  * @return void
  */
-function loadProjectBuilds(productID, projectID, index)
+function loadExecutionBuilds(productID, executionID, index)
 {
     branch = $('#branches' + index).val();
-    if(projectID)
+    if(executionID)
     {
-        link = createLink('build', 'ajaxGetProjectBuilds', 'projectID=' + projectID + '&productID=' + productID + "&varName=openedBuilds&build=&branch=" + branch + "&index=" + index);
+        link = createLink('build', 'ajaxGetExecutionBuilds', 'executionID=' + executionID + '&productID=' + productID + "&varName=openedBuilds&build=&branch=" + branch + "&index=" + index);
     }
     else
     {

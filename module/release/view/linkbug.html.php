@@ -25,7 +25,7 @@ $formID      = $type == 'leftBug' ? 'unlinkedLeftBugsForm' : 'unlinkedBugsForm';
         <tr class='text-center'>
           <th class='c-id text-left'>
             <?php if($allBugs):?>
-            <div class="checkbox-primary check-all" title="<?php echo $lang->selectAll?>">
+            <div class="checkbox-primary check-all tablesorter-noSort" title="<?php echo $lang->selectAll?>">
               <label></label>
             </div>
             <?php endif;?>
@@ -35,13 +35,12 @@ $formID      = $type == 'leftBug' ? 'unlinkedLeftBugsForm' : 'unlinkedBugsForm';
           <th class='text-left'><?php echo $lang->bug->title;?></th>
           <th class='c-user'><?php echo $lang->openedByAB;?></th>
           <th class='c-user'><?php echo $lang->bug->resolvedBy;?></th>
-          <th class='w-80px'><?php echo $lang->statusAB;?></th>
+          <th class='c-status'><?php echo $lang->statusAB;?></th>
         </tr>
       </thead>
       <tbody class='text-center'>
         <?php $unlinkedCount = 0;?>
         <?php foreach($allBugs as $bug):?>
-        <?php if(strpos(",{$releaseBugs},", ",$bug->id,") !== false) continue;?>
         <tr>
           <td class='c-id text-left'>
             <?php echo html::checkbox('bugs', array($bug->id => sprintf('%03d', $bug->id)), ($type == 'leftBug' or $bug->status == 'resolved' or $bug->status == 'closed') ? $bug->id : '');?>
@@ -69,9 +68,14 @@ $formID      = $type == 'leftBug' ? 'unlinkedLeftBugsForm' : 'unlinkedBugsForm';
         <?php echo html::a(inlink('view', "releaseID=$release->id&type=$type"), $lang->goback, '', "class='btn'");?>
       </div>
       <div class='table-statistic'></div>
+      <?php $pager->show('right', 'pagerjs');?>
     </div>
   </form>
 </div>
 <script>
-$(function(){$('#<?php echo $formID;?> .tablesorter').sortTable();});
+$(function()
+{
+    $('#<?php echo $formID;?> .tablesorter').sortTable();
+    setForm()
+});
 </script>

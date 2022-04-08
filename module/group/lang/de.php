@@ -21,16 +21,23 @@ $lang->group->managePrivByGroup  = 'Rechte';
 $lang->group->managePrivByModule = 'Modul Rechte';
 $lang->group->byModuleTips       = '<span class="tips">(SHIFT/STRG für Multi-Select)</span>';
 $lang->group->manageMember       = 'Mitglieder';
+$lang->group->manageProjectAdmin = 'Manage Program Admins';
 $lang->group->confirmDelete      = 'Möchten Sie die Gruppe löschen?';
 $lang->group->successSaved       = 'Gespeichert!';
 $lang->group->errorNotSaved      = 'Fehlgeschlagen. Bitte aktion und Gruppe wählen.';
 $lang->group->viewList           = 'Anzeige ist zulässig.';
+$lang->group->manageProject      = 'Manage Project';
+$lang->group->programList        = 'Access Program';
 $lang->group->productList        = 'Produkte sind zugänglich.';
 $lang->group->projectList        = 'Projekte sind zugänglich.';
 $lang->group->dynamic            = 'Access Dynamics';
 $lang->group->noticeVisit        = 'Leer bedeutet Zugriff verweigert.';
+$lang->group->noneProgram        = "No Program";
 $lang->group->noneProduct        = "No {$lang->productCommon}";
-$lang->group->noneProject        = "No {$lang->projectCommon}";
+
+global $config;
+if($config->systemMode == 'new') $lang->group->noneProject = 'No Project';
+if($config->systemMode == 'classic') $lang->group->noneProject = "No {$lang->executionCommon}";
 
 $lang->group->id       = 'ID';
 $lang->group->name     = 'Name';
@@ -44,6 +51,7 @@ $lang->group->priv     = 'Gruppe';
 $lang->group->option   = 'Option';
 $lang->group->inside   = 'Gruppenbenutzer';
 $lang->group->outside  = 'Andere Benutzer';
+$lang->group->limited  = 'Limited Users';
 $lang->group->other    = 'Andere';
 $lang->group->all      = 'Alle';
 
@@ -51,6 +59,9 @@ $lang->group->copyOptions['copyPriv'] = 'Rechte kopieren';
 $lang->group->copyOptions['copyUser'] = 'Benutzer kopieren';
 
 $lang->group->versions['']          = 'Verlauf';
+$lang->group->versions['15_0_rc1']  = 'ZenTao15.0.rc1';
+$lang->group->versions['12_5']      = 'ZenTao12.5';
+$lang->group->versions['12_3']      = 'ZenTao12.3';
 $lang->group->versions['11_6_2']    = 'ZenTao11.6.2';
 $lang->group->versions['10_6']      = 'ZenTao10.6';
 $lang->group->versions['10_1']      = 'ZenTao10.1';

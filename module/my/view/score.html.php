@@ -24,12 +24,12 @@
   <table class="table table-fixed">
     <thead>
       <tr>
-        <th class="w-200px"><?php echo $lang->score->time; ?></th>
-        <th class="w-150px"><?php echo $lang->score->module; ?></th>
-        <th class="w-150px"><?php echo $lang->score->method; ?></th>
-        <th class="w-100px"><?php echo $lang->score->before; ?></th>
-        <th class="w-100px"><?php echo $lang->score->score; ?></th>
-        <th class="w-100px"><?php echo $lang->score->after; ?></th>
+        <th class="c-time"><?php echo $lang->score->time; ?></th>
+        <th class="c-module"><?php echo $lang->score->module; ?></th>
+        <th class="c-method"><?php echo $lang->score->method; ?></th>
+        <th class="c-before"><?php echo $lang->score->before; ?></th>
+        <th class="c-score"><?php echo $lang->score->score; ?></th>
+        <th class="c-after"><?php echo $lang->score->after; ?></th>
         <th><?php echo $lang->score->desc; ?></th>
       </tr>
     </thead>
@@ -42,7 +42,7 @@
         <td><?php echo $score->before; ?></td>
         <td><?php echo $score->score; ?></td>
         <td><?php echo $score->after; ?></td>
-        <td><?php echo $score->desc; ?></td>
+        <td class="text-ellipsis" title="<?php echo $score->desc;?>"><?php echo $score->desc;?></td>
       </tr>
       <?php endforeach;?>
     </tbody>

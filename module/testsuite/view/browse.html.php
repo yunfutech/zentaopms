@@ -13,7 +13,6 @@
 <?php include '../../common/view/header.html.php';?>
 <?php js::set('confirmDelete', $lang->testsuite->confirmDelete)?>
 <?php js::set('flow', $config->global->flow);?>
-<?php if($config->global->flow != 'onlyTest'):?>
 <div id="mainMenu" class='clearfix'>
   <div class="btn-toolbar pull-left">
     <a href class='btn btn-link btn-active-text'>
@@ -21,17 +20,18 @@
       <span class='label label-light label-badge'><?php echo $pager->recTotal;?></span>
     </a>
   </div>
+  <?php if(common::canModify('product', $product)):?>
   <div class="btn-toolbar pull-right">
     <?php common::printLink('testsuite', 'create', "product=$productID", "<i class='icon icon-plus'></i> " . $lang->testsuite->create, '', "class='btn btn-primary'");?>
   </div>
+  <?php endif;?>
 </div>
-<?php endif;?>
-<div id='mainContent' class='main-table'>
+<div id='mainContent' class='main-table' data-ride='table'>
   <?php if(empty($suites)):?>
   <div class="table-empty-tip">
     <p>
       <span class="text-muted"><?php echo $lang->testsuite->noTestsuite;?></span>
-      <?php if(common::hasPriv('testsuite', 'create')):?>
+      <?php if(common::canModify('product', $product) and common::hasPriv('testsuite', 'create')):?>
       <?php echo html::a($this->createLink('testsuite', 'create', "product=$productID"), "<i class='icon icon-plus'></i> " . $lang->testsuite->create, '', "class='btn btn-info'");?>
       <?php endif;?>
     </p>
@@ -41,11 +41,15 @@
     <thead>
     <?php $vars = "productID=$productID&orderBy=%s&recTotal={$pager->recTotal}&recPerPage={$pager->recPerPage}"; ?>
       <tr>
-        <th class='w-id text-left'>   <?php common::printOrderLink('id',   $orderBy, $vars, $lang->idAB);?></th>
-        <th class='w-200px text-left'><?php common::printOrderLink('name', $orderBy, $vars, $lang->testsuite->name);?></th>
+        <th class='c-id text-left'><?php common::printOrderLink('id', $orderBy, $vars, $lang->idAB);?></th>
+        <th class='c-name text-left'><?php common::printOrderLink('name', $orderBy, $vars, $lang->testsuite->name);?></th>
         <th><?php echo $lang->testsuite->desc;?></th>
-        <th class='w-90px'><?php common::printOrderLink('addedBy',   $orderBy, $vars, $lang->testsuite->addedBy);?></th>
-        <th class='w-150px'><?php common::printOrderLink('addedDate', $orderBy, $vars, $lang->testsuite->addedDate);?></th>
+        <th class='c-user'><?php common::printOrderLink('addedBy', $orderBy, $vars, $lang->testsuite->addedBy);?></th>
+        <th class='c-full-date'><?php common::printOrderLink('addedDate', $orderBy, $vars, $lang->testsuite->addedDate);?></th>
+        <?php
+        $extendFields = $this->testsuite->getFlowExtendFields();
+        foreach($extendFields as $extendField) echo "<th>{$extendField->name}</th>";
+        ?>
         <th class='c-actions-3 text-center'><?php echo $lang->actions;?></th>
       </tr>
     </thead>
@@ -58,19 +62,18 @@
         <?php if($suite->type == 'private') echo "<span class='label label-info label-badge'>{$lang->testsuite->authorList['private']}</span> ";?>
         <?php echo html::a(inlink('view', "suiteID=$suite->id"), $suite->name);?>
       </td>
-      <td><?php echo $suite->desc;?></td>
+      <td class='c-desc'>
+        <?php $desc = trim(strip_tags(str_replace(array('</p>', '<br />', '<br>', '<br/>'), "\n", str_replace(array("\n", "\r"), '', $suite->desc)), '<img>'));?>
+        <div title='<?php echo $desc;?>'><?php echo nl2br($desc);?></div>
+      </td>
       <td><?php echo zget($users, $suite->addedBy);?></td>
       <td><?php echo $suite->addedDate;?></td>
+      <?php foreach($extendFields as $extendField) echo "<td>" . $this->loadModel('flow')->getFieldValue($extendField, $suite) . "</td>";?>
       <td class='c-actions'>
         <?php
         common::printIcon('testsuite', 'linkCase', "suiteID=$suite->id", $suite, 'list', 'link');
         common::printIcon('testsuite', 'edit',     "suiteID=$suite->id", $suite, 'list');
-
-        if(common::hasPriv('testsuite', 'delete', $suite))
-        {
-            $deleteURL = $this->createLink('testsuite', 'delete', "suiteID=$suite->id&confirm=yes");
-            echo html::a("javascript:ajaxDelete(\"$deleteURL\", \"suiteList\", confirmDelete)", '<i class="icon icon-trash"></i>', '', "title='{$lang->testsuite->delete}' class='btn'");
-        }
+        common::printIcon('testsuite', 'delete',   "suiteID=$suite->id", $suite, 'list', 'trash', 'hiddenwin');
         ?>
       </td>
     </tr>

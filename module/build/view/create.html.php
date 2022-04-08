@@ -18,26 +18,35 @@
       <h2><?php echo $lang->build->create;?></h2>
     </div>
     <form class='load-indicator main-form form-ajax' id='dataform' method='post' enctype='multipart/form-data'>
-      <table class='table table-form'> 
+      <table class='table table-form'>
+        <?php if($app->tab == 'project'):?>
+        <tr>
+          <th><?php echo $lang->executionCommon;?></th>
+          <td><?php echo html::select('execution', $executions, $executionID, "onchange='loadProducts(this.value);' class='form-control chosen' required");?></td>
+        </tr>
+        <?php endif;?>
         <tr>
           <th><?php echo $lang->build->product;?></th>
           <?php if(!empty($products)):?>
           <td>
-            <div class='input-group'>
-              <?php echo html::select('product', $products, $product->id, "onchange='loadBranches(this.value);' class='form-control chosen' required");?>
+            <div class='input-group' id='productBox'>
+              <?php echo html::select('product', $products, empty($product) ? '' : $product->id, "onchange='loadBranches(this.value);' class='form-control chosen' required");?>
               <?php
-              if($product->type != 'normal' and isset($branches[$product->branch]))
+              if(!empty($product) and $product->type != 'normal')
               {
-                  if($product->branch) $branches = array($product->branch => $branches[$product->branch]);
-                  echo "<span class='input-group-addon fix-padding fix-border'></span>" . html::select('branch', $branches, $product->branch, "class='form-control chosen'");
+                  echo "<span class='input-group-addon fix-padding fix-border'></span>" . html::select('branch', $branches, key($product->branches), "class='form-control chosen'");
               }
               ?>
             </div>
           </td>
-          <td></td>
           <?php else:?>
-          <td class='text-muted' colspan='2'><?php if(empty($products)) printf($lang->build->noProduct, $this->createLink('project', 'manageproducts', "projectID=$projectID&from=buildCreate"));?></td>
+          <td>
+            <div class='input-group' id='productBox'>
+              <?php printf($lang->build->noProduct, $this->createLink('execution', 'manageproducts', "executionID=$executionID&from=buildCreate", '', 'true'), $app->tab);?>
+            </div>
+          </td>
           <?php endif;?>
+          <td></td>
         </tr>
         <tr>
           <th><?php echo $lang->build->name;?></th>
@@ -51,19 +60,19 @@
         <tr>
           <th><?php echo $lang->build->builder;?></th>
           <td><?php echo html::select('builder', $users, $app->user->account, 'class="form-control chosen" required');?></td>
-        </tr>  
+        </tr>
         <tr>
           <th><?php echo $lang->build->date;?></th>
           <td><?php echo html::input('date', helper::today(), "class='form-control form-date' required");?></td>
-        </tr>  
+        </tr>
         <tr>
           <th><?php echo $lang->build->scmPath;?></th>
           <td colspan='2'><?php echo html::input('scmPath', '', "class='form-control' placeholder='{$lang->build->placeholder->scmPath}'");?></td>
-        </tr>  
+        </tr>
         <tr>
           <th><?php echo $lang->build->filePath;?></th>
           <td colspan='2'><?php echo html::input('filePath', '', "class='form-control' placeholder='{$lang->build->placeholder->filePath}'");?></td>
-        </tr>  
+        </tr>
         <?php $this->printExtendFields('', 'table', 'columns=2');?>
         <tr>
           <th><?php echo $lang->build->files;?></th>
@@ -72,7 +81,7 @@
         <tr>
           <th><?php echo $lang->build->desc;?></th>
           <td colspan='2'><?php echo html::textarea('desc', '', "rows='10' class='form-control kindeditor' hidefocus='true'");?></td>
-        </tr>  
+        </tr>
         <tr>
           <td colspan="3" class="text-center form-actions">
             <?php echo html::submitButton();?>
@@ -83,5 +92,7 @@
     </form>
   </div>
 </div>
-<?php js::set('productGroups', $productGroups)?>
+<?php js::set('productGroups', $productGroups);?>
+<?php js::set('executionID', $executionID);?>
+<?php js::set('currentTab', $this->app->tab);?>
 <?php include '../../common/view/footer.html.php';?>

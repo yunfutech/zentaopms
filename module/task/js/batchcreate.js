@@ -1,22 +1,52 @@
-/* Remove 'ditto' in first row. */
+/* Remove 'ditto' in first row and control task name width and tips for tasks that consume. */
 $(function()
 {
     removeDitto();
-    if($('#batchCreateForm table thead tr th.c-name').width() < 200) $('#batchCreateForm table thead tr th.c-name').width(200);
+    if($('th.c-name').width() < 200) $('th.c-name').width(200);
+    if(taskConsumed > 0) alert(addChildTask);
 });
 
-/* Get select of stories.*/
-function setStories(moduleID, projectID, num)
+$(document).on('change', "[name^='estStarted'], [name^='deadline']", function()
 {
-    link = createLink('story', 'ajaxGetProjectStories', 'projectID=' + projectID + '&productID=0&branch=0&moduleID=' + moduleID + '&storyID=0&num=' + num + '&type=short');
+    toggleCheck($(this));
+})
+
+/**
+ * Toggle checkbox.
+ *
+ * @param  object $obj
+ * @access public
+ * @return void
+ */
+function toggleCheck(obj)
+{
+    var $this  = $(obj);
+    var date   = $this.val();
+    var $ditto = $this.closest('div').find("input[type='checkBox']");
+    if(date == '')
+    {
+        $ditto.attr('checked', true);
+        $ditto.closest('.input-group-addon').show();
+    }
+    else
+    {
+        $ditto.removeAttr('checked');
+        $ditto.closest('.input-group-addon').hide();
+    }
+}
+
+/* Get select of stories.*/
+function setStories(moduleID, executionID, num)
+{
+    link = createLink('story', 'ajaxGetExecutionStories', 'executionID=' + executionID + '&productID=0&branch=all&moduleID=' + moduleID + '&storyID=0&num=' + num + '&type=short');
     $.get(link, function(stories)
     {
         var storyID = $('#story' + num).val();
         if(!stories) stories = '<select id="story' + num + '" name="story[' + num + ']" class="form-control"></select>';
         $('#story' + num).replaceWith(stories);
-        if(moduleID == 0 || moduleID == 'ditto') $('#story' + num).append("<option value='ditto'>" + ditto + "</option>");
+        if(num != 0 && (moduleID == 0 || moduleID == 'ditto')) $('#story' + num).append("<option value='ditto'>" + ditto + "</option>");
         $('#story' + num).val(storyID);
-        if($('#zeroTaskStory').hasClass('zeroTask'))
+        if($('#zeroTaskStory').hasClass('checked'))
         {
             $('#story' + num).find('option').each(function()
             {
@@ -30,6 +60,7 @@ function setStories(moduleID, projectID, num)
         }
         var chosenWidth = $("#story" + num + "_chosen").css('max-width');
         $("#story" + num + "_chosen").remove();
+        $("#story" + num).next('.picker').remove();
         $("#story" + num).chosen();
         $("#story" + num + "_chosen").width(chosenWidth).css('max-width', chosenWidth);
     });
@@ -191,8 +222,6 @@ $(document).on('mousedown', 'select', function()
 
 $(function()
 {
-    /* Adjust width for ie chosen width. */
-    var chosenWidth = $('#module1_chosen').width();
     $('.chosen-container[id^=module]').width(chosenWidth);
     $('.chosen-container[id^=module]').css('max-width', chosenWidth);
 

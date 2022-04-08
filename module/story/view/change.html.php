@@ -16,7 +16,7 @@
     <div class='main-header'>
       <h2>
         <span class='label label-id'><?php echo $story->id;?></span>
-        <?php echo html::a($this->createLink('story', 'view', "storyID=$story->id"), $story->title);?>
+        <?php echo html::a($this->createLink('story', 'view', "storyID=$story->id"), $story->title, '', 'class="story-title"');?>
         <small><?php echo $lang->arrow . ' ' . $lang->story->change;?></small>
       </h2>
     </div>
@@ -24,9 +24,9 @@
       <table class='table table-form'>
         <tr>
           <th class='w-80px'><?php echo $lang->story->reviewedBy;?></th>
-          <td class='w-p35-f'>
+          <td colspan="2">
             <div class="input-group">
-              <?php echo html::select('assignedTo', $users, $product->director, 'class="form-control chosen" disabled');?>
+              <?php echo html::select('reviewer[]', $productReviewers, $reviewer, 'class="form-control chosen" multiple');?>
               <?php if(!$this->story->checkForceReview()):?>
               <span class="input-group-addon">
               <?php echo html::checkbox('needNotReview', $lang->story->needNotReview, '', "id='needNotReview' {$needReview}");?>
@@ -34,11 +34,6 @@
               <?php endif;?>
             </div>
           </td>
-          <td></td>
-        </tr>
-        <tr>
-          <th><?php echo $lang->story->estimate;?></th>
-          <td><?php echo html::input('estimate', $story->estimate, 'class="form-control"');?></td>
         </tr>
         <tr class='hide'>
           <th><?php echo $lang->story->status;?></th>
@@ -47,19 +42,24 @@
         <?php $this->printExtendFields($story, 'table');?>
         <tr>
           <th><?php echo $lang->story->title;?></th>
-          <td colspan='2'><?php echo html::input('title', $story->title, 'class="form-control"');?></td>
+          <td colspan='2'>
+            <div class="colorpicker">
+              <button type="button" class="btn btn-link dropdown-toggle" data-toggle="dropdown" title="<?php echo $lang->task->colorTag ?>"><span class="cp-title"></span><span class="color-bar"></span><i class="ic"></i></button>
+              <ul class="dropdown-menu clearfix">
+                <li class="heading"><?php echo $lang->story->colorTag; ?><i class="icon icon-close"></i></li>
+              </ul>
+              <input type="hidden" class="colorpicker" id="color" name="color" value="<?php echo $story->color ?>" data-icon="color" data-wrapper="input-control-icon-right" data-update-color=".story-title"  data-provide="colorpicker">
+            </div>
+            <?php echo html::input('title', $story->title, 'class="form-control story-title"');?>
+          </td>
         </tr>
         <tr>
           <th><?php echo $lang->story->spec;?></th>
-          <td colspan='2'><?php echo html::textarea('spec', htmlspecialchars($story->spec), 'rows=8 class="form-control"');?><span class='help-block'><?php echo $lang->story->specTemplate;?></span></td>
-        </tr>
-        <tr>
-          <th><?php echo $lang->story->solution;?></th>
-          <td colspan='2'><?php echo html::textarea('solution', htmlspecialchars($story->solution), 'rows=8 class="form-control"');?>
+          <td colspan='2'><?php echo html::textarea('spec', htmlSpecialString($story->spec), 'rows=8 class="form-control"');?><span class='help-block'><?php echo $lang->story->specTemplate;?></span></td>
         </tr>
         <tr>
           <th><?php echo $lang->story->verify;?></th>
-          <td colspan='2'><?php echo html::textarea('verify', htmlspecialchars($story->verify), 'rows=6 class="form-control"');?></td>
+          <td colspan='2'><?php echo html::textarea('verify', htmlSpecialString($story->verify), 'rows=6 class="form-control"');?></td>
         </tr>
         <tr>
           <th><?php echo $lang->story->comment;?></th>
@@ -79,7 +79,7 @@
             <?php
             echo html::hidden('lastEditedDate', $story->lastEditedDate);
             echo html::submitButton();
-            echo html::linkButton($lang->goback, $app->session->storyList ? $app->session->storyList : inlink('view', "storyID=$story->id"), 'self', '', 'btn btn-wide');
+            if(!isonlybody()) echo html::backButton();
             ?>
           </td>
         </tr>
@@ -96,4 +96,6 @@
 <?php js::set('oldStorySpec', $story->spec);?>
 <?php js::set('oldStoryVerify', $story->verify);?>
 <?php js::set('changed', 0);?>
+<?php js::set('storyType', $story->type);?>
+<?php js::set('rawModule', $this->app->rawModule);?>
 <?php include '../../common/view/footer.html.php';?>

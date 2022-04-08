@@ -50,12 +50,22 @@ class fileModel extends model
             ->beginIF($extra)->andWhere('extra')->eq($extra)
             ->orderBy('id')
             ->fetchAll('id');
+
         foreach($files as $file)
         {
-            $realPathName   = $this->getRealPathName($file->pathname);
-            $file->realPath = $this->savePath . $realPathName;
-            $file->webPath  = $this->webPath . $realPathName;
+            if($objectType != 'traincourse' and $objectType != 'traincontents')
+            {
+                $realPathName   = $this->getRealPathName($file->pathname);
+                $file->realPath = $this->savePath . $realPathName;
+                $file->webPath  = $this->webPath . $realPathName;
+            }
+            else
+            {
+                $file->realPath = $this->app->getWwwRoot() . 'data/course/' . $file->pathname;
+                $file->webPath  = '/data/course/' . $file->pathname;
+            }
         }
+
         return $files;
     }
 
@@ -69,6 +79,7 @@ class fileModel extends model
     public function getById($fileID)
     {
         $file = $this->dao->findById($fileID)->from(TABLE_FILE)->fetch();
+        if(empty($file)) return false;
 
         $realPathName   = $this->getRealPathName($file->pathname);
         $file->realPath = $this->savePath . $realPathName;
@@ -153,7 +164,7 @@ class fileModel extends model
                 $title             = isset($_POST[$labelsName][$id]) ? $_POST[$labelsName][$id] : '';
                 $file['extension'] = $this->getExtension($filename);
                 $file['pathname']  = $this->setPathName($id, $file['extension']);
-                $file['title']     = (!empty($title) and $title != $filename) ? htmlspecialchars($title) : $filename;
+                $file['title']     = (!empty($title) and $title != $filename) ? htmlSpecialString($title) : $filename;
                 $file['title']     = $purifier->purify($file['title']);
                 $file['size']      = $size[$id];
                 $file['tmpname']   = $tmp_name[$id];
@@ -168,7 +179,7 @@ class fileModel extends model
             $title             = isset($_POST[$labelsName][0]) ? $_POST[$labelsName][0] : '';
             $file['extension'] = $this->getExtension($name);
             $file['pathname']  = $this->setPathName(0, $file['extension']);
-            $file['title']     = (!empty($title) and $title != $name) ? htmlspecialchars($title) : $name;
+            $file['title']     = (!empty($title) and $title != $name) ? htmlSpecialString($title) : $name;
             $file['title']     = $purifier->purify($file['title']);
             $file['size']      = $size;
             $file['tmpname']   = $tmp_name;
@@ -200,7 +211,7 @@ class fileModel extends model
         $file = array();
         $file['id'] = 0;
         $file['extension'] = $this->getExtension($name);
-        $file['title']     = !empty($_POST['label']) ? htmlspecialchars($_POST['label']) : substr($name, 0, strpos($name, $file['extension']) - 1);
+        $file['title']     = !empty($_POST['label']) ? htmlSpecialString($_POST['label']) : substr($name, 0, strpos($name, $file['extension']) - 1);
         $file['title']     = $purifier->purify($file['title']);
         $file['size']      = $_POST['size'];
         $file['tmpname']   = $tmp_name;
@@ -209,6 +220,9 @@ class fileModel extends model
         $file['chunkpath'] = 'chunks' . DS .'f_' . $file['uuid'] . '.' . $file['extension'] . '.part';
         $file['chunks']    = isset($_POST['chunks']) ? intval($_POST['chunks']) : 0;
         $file['chunk']     = isset($_POST['chunk'])  ? intval($_POST['chunk'])  : 0;
+
+        /* Fix for build uuid like '../../'. */
+        if(!preg_match('/[a-z0-9_]/i', $file['uuid'])) return false;
 
         if(stripos($this->config->file->allowed, ',' . $file['extension'] . ',') === false)
         {
@@ -296,6 +310,8 @@ class fileModel extends model
     public function getExtension($filename)
     {
         $extension = trim(strtolower(pathinfo($filename, PATHINFO_EXTENSION)));
+        if($extension and strpos($extension, '::') !== false) $extension = substr($extension, 0, strpos($extension, '::'));
+
         if(empty($extension) or stripos(",{$this->config->file->dangers},", ",{$extension},") !== false) return 'txt';
         if(empty($extension) or stripos(",{$this->config->file->allowed},", ",{$extension},") === false) return 'txt';
         if($extension == 'php') return 'txt';
@@ -346,6 +362,20 @@ class fileModel extends model
             ->markRight(1)
             ->orderBy('id')
             ->fetchAll();
+    }
+
+    /**
+     * Get tmp import path.
+     *
+     * @access public
+     * @return string
+     */
+    public function getPathOfImportedFile()
+    {
+        $path = $this->app->getTmpRoot() . 'import';
+        if(!is_dir($path)) mkdir($path, 0755, true);
+
+        return $path;
     }
 
     /**
@@ -450,7 +480,7 @@ class fileModel extends model
             $filePath = $this->dao->select('pathname')->from(TABLE_FILE)->where('id')->eq($fileID)->fetch();
             $pathName = $filePath->pathname;
             $realPathName = $this->savePath . $this->getRealPathName($pathName);
-            if(!is_dir(dirname($realPathName)))mkdir(dirname($realPathName));
+            if(!is_dir(dirname($realPathName))) mkdir(dirname($realPathName));
             move_uploaded_file($file['tmpname'], $realPathName);
 
             $file['pathname'] = $pathName;
@@ -469,6 +499,32 @@ class fileModel extends model
         }
     }
 
+	/**
+     * Compress image to config configured size.
+     *
+     * @param  string  $rawImage
+     * @param  string  $target
+     * @param  int     $x
+     * @param  int     $y
+     * @param  int     $width
+     * @param  int     $height
+     * @param  int     $resizeWidth
+     * @param  int     $resizeHeight
+     * @access public
+     * @return void
+     */
+    public function cropImage($rawImage, $target, $x, $y, $width, $height, $resizeWidth = 0, $resizeHeight = 0)
+    {
+        $this->app->loadClass('phpthumb', true);
+
+        if(!extension_loaded('gd')) return false;
+
+        $croper = phpThumbFactory::create($rawImage);
+        if($resizeWidth > 0) $croper->resize($resizeWidth, $resizeHeight);
+        $croper->crop($x, $y, $width, $height);
+        $croper->save($target);
+    }
+
     /**
      * Paste image in kindeditor at firefox and chrome.
      *
@@ -484,25 +540,32 @@ class fileModel extends model
         $dataLength = strlen($data);
         if(ini_get('pcre.backtrack_limit') < $dataLength) ini_set('pcre.backtrack_limit', $dataLength);
         preg_match_all('/<img src="(data:image\/(\S+);base64,(\S+))".*\/>/U', $data, $out);
-        foreach($out[3] as $key => $base64Image)
+        if($out[3])
         {
-            $extension = strtolower($out[2][$key]);
-            if(!in_array($extension, $this->config->file->imageExtensions)) die();
-            $imageData = base64_decode($base64Image);
+            foreach($out[3] as $key => $base64Image)
+            {
+                $extension = strtolower($out[2][$key]);
+                if(!in_array($extension, $this->config->file->imageExtensions)) die();
+                $imageData = base64_decode($base64Image);
 
-            $file['extension'] = $extension;
-            $file['pathname']  = $this->setPathName($key, $file['extension']);
-            $file['size']      = strlen($imageData);
-            $file['addedBy']   = $this->app->user->account;
-            $file['addedDate'] = helper::today();
-            $file['title']     = str_replace(".$extension", '', basename($file['pathname']));
+                $file['extension'] = $extension;
+                $file['pathname']  = $this->setPathName($key, $file['extension']);
+                $file['size']      = strlen($imageData);
+                $file['addedBy']   = $this->app->user->account;
+                $file['addedDate'] = helper::today();
+                $file['title']     = str_replace(".$extension", '', basename($file['pathname']));
 
-            file_put_contents($this->savePath . $this->getSaveName($file['pathname']), $imageData);
-            $this->dao->insert(TABLE_FILE)->data($file)->exec();
-            $fileID = $this->dao->lastInsertID();
-            if($uid) $_SESSION['album'][$uid][] = $fileID;
+                file_put_contents($this->savePath . $this->getSaveName($file['pathname']), $imageData);
+                $this->dao->insert(TABLE_FILE)->data($file)->exec();
+                $fileID = $this->dao->lastInsertID();
+                if($uid) $_SESSION['album'][$uid][] = $fileID;
 
-            $data = str_replace($out[1][$key], helper::createLink('file', 'read', "fileID=$fileID", $file['extension']), $data);
+                $data = str_replace($out[1][$key], helper::createLink('file', 'read', "fileID=$fileID", $file['extension']), $data);
+            }
+        }
+        else
+        {
+            $data = fixer::stripDataTags(rawurldecode($data));
         }
 
         return $data;
@@ -518,11 +581,11 @@ class fileModel extends model
     public function parseCSV($fileName)
     {
         /* Parse file only in zentao. */
-        if(strpos(realpath($fileName), $this->app->getBasePath()) !== 0) return array();
+        if(strpos($fileName, $this->app->getBasePath()) !== 0) return array();
 
         $content = file_get_contents($fileName);
         /* Fix bug #890. */
-        $content = str_replace("\x82\x32", "\x10", $content);
+        $content = str_replace(array("\r\n", "\r"), "\n", $content);
         $lines   = explode("\n", $content);
 
         $col  = -1;
@@ -530,7 +593,6 @@ class fileModel extends model
         $data = array();
         foreach($lines as $line)
         {
-            $line    = trim($line);
             $markNum = substr_count($line, '"') - substr_count($line, '\"');
             if(substr($line, -1) != ',' and (($markNum % 2 == 1 and $col != -1) or ($markNum % 2 == 0 and substr($line, -2) != ',"' and $col == -1))) $line .= ',';
             $line = str_replace(',"",', ',,', $line);
@@ -569,7 +631,7 @@ class fileModel extends model
                 while($line)
                 {
                     /* the cell has '"', the delimiter is '",'. */
-                    if($line{0} == '"')
+                    if($line[0] == '"')
                     {
                         $pos  = strpos($line, '",');
                         if($pos === false)
@@ -652,7 +714,7 @@ class fileModel extends model
             $content = $this->pasteImage($data->$editorID, $uid);
             if($content) $data->$editorID = $content;
             $data->$editorID = preg_replace("/ src=\"$readLinkReg\" /", ' src="' . $imgURL . '" ', $data->$editorID);
-            $data->$editorID = preg_replace("/ src=\"" . htmlspecialchars($readLinkReg) . "\" /", ' src="' . $imgURL . '" ', $data->$editorID);
+            $data->$editorID = preg_replace("/ src=\"" . htmlSpecialString($readLinkReg) . "\" /", ' src="' . $imgURL . '" ', $data->$editorID);
 
             preg_match_all('/ src="{([0-9]+)\.\w+}"/', $data->$editorID, $matchs);
             if($matchs[1])
@@ -714,7 +776,8 @@ class fileModel extends model
      * @access public
      * @return resource
      */
-    public function imagecreatefrombmp($filename) {
+    public function imagecreatefrombmp($filename)
+    {
         $f = fopen($filename, "rb");
 
         //read header
@@ -737,7 +800,8 @@ class fileModel extends model
         $img = imagecreatetruecolor($header['width'], $header['height']);
 
         //read pixels
-        for ($y = $hei - 1; $y >= 0; $y--) {
+        for($y = $hei - 1; $y >= 0; $y--)
+        {
             $row = fread($f, $wid2);
             $pixels = str_split($row, 3);
 
@@ -780,7 +844,7 @@ class fileModel extends model
         $data = new stdclass();
         $data->objectID   = $objectID;
         $data->objectType = $objectType;
-        $data->extra      = 'editor';
+        if(!defined('RUN_MODE') OR RUN_MODE != 'api') $data->extra = 'editor';
         if(isset($_SESSION['album']['used'][$uid]) and $_SESSION['album']['used'][$uid])
         {
             $this->dao->update(TABLE_FILE)->data($data)->where('id')->in($_SESSION['album']['used'][$uid])->exec();
@@ -814,19 +878,22 @@ class fileModel extends model
             if(isset($this->config->file->convertURL['common'][$methodName]) or isset($this->config->file->convertURL[$moduleName][$methodName]))
             {
                 $fieldData = $data->$field;
-                preg_match_all('/(<a[^>]*>[^<]*<\/a>)/i', $fieldData, $aTags);
+                preg_match_all('/(<a[^>]*>.*<\/a>)/Ui', $fieldData, $aTags);
                 preg_match_all('/(<img[^>]*>)/i', $fieldData, $imgTags);
                 preg_match_all('/(<iframe[^>]*>[^<]*<\/iframe>)/i', $fieldData, $iframeTags);
+                preg_match_all('/(<pre[^>]*>.*<\/pre>)/sUi', $fieldData, $preTags);
 
                 foreach($aTags[0] as $i => $aTag) $fieldData = str_replace($aTag, "<A_{$i}>", $fieldData);
                 foreach($imgTags[0] as $i => $imgTag) $fieldData = str_replace($imgTag, "<IMG_{$i}>", $fieldData);
                 foreach($iframeTags[0] as $i => $iframeTag) $fieldData = str_replace($iframeTag, "<IFRAME_{$i}>", $fieldData);
+                foreach($preTags[0] as $i => $preTag) $fieldData = str_replace($preTag, "<PRE_{$i}>", $fieldData);
 
                 $fieldData = preg_replace('/(http:\/\/|https:\/\/)((\w|=|\?|\.|\/|\&|-|%|;)+)/i', "<a href='\\0' target='_blank'>\\0</a>", $fieldData);
 
                 foreach($aTags[0] as $i => $aTag) $fieldData = str_replace("<A_{$i}>", $aTag, $fieldData);
                 foreach($imgTags[0] as $i => $imgTag) $fieldData = str_replace("<IMG_{$i}>", $imgTag, $fieldData);
                 foreach($iframeTags[0] as $i => $iframeTag) $fieldData = str_replace("<IFRAME_{$i}>", $iframeTag, $fieldData);
+                foreach($preTags[0] as $i => $preTag) $fieldData = str_replace("<PRE_{$i}>", $preTag, $fieldData);
 
                 $data->$field = $fieldData;
             }
@@ -862,21 +929,24 @@ class fileModel extends model
 
     /**
      * Send the download header to the client.
-     * 
-     * @param  string    $fileName 
-     * @param  string    $fileType 
-     * @param  string    $content 
+     *
+     * @param  string    $fileName
+     * @param  string    $fileType
+     * @param  string    $content
      * @access public
      * @return void
      */
-    public function sendDownHeader($fileName, $fileType, $content)
+    public function sendDownHeader($fileName, $fileType, $content, $type = 'content')
     {
         /* Clean the ob content to make sure no space or utf-8 bom output. */
         $obLevel = ob_get_level();
         for($i = 0; $i < $obLevel; $i++) ob_end_clean();
 
         /* Set the downloading cookie, thus the export form page can use it to judge whether to close the window or not. */
-        setcookie('downloading', 1, 0, $this->config->webRoot, '', false, false);
+        setcookie('downloading', 1, 0, $this->config->webRoot, '', $this->config->cookieSecure, false);
+
+        /* Only download upload file that is in zentao. */
+        if($type == 'file' and stripos($content, $this->savePath) !== 0) die();
 
         /* Append the extension name auto. */
         $extension = '.' . $fileType;
@@ -893,6 +963,42 @@ class fileModel extends model
         header("Content-Disposition: attachment; filename=\"$fileName\"");
         header("Pragma: no-cache");
         header("Expires: 0");
-        die($content);
+        if($type == 'content') die($content);
+        if($type == 'file' and file_exists($content))
+        {
+            if(stripos($content, $this->app->getBasePath()) !== 0) die();
+
+            set_time_limit(0);
+            $chunkSize = 10 * 1024 * 1024;
+            $handle    = fopen($content, "r");
+            while(!feof($handle)) echo fread($handle, $chunkSize);
+            fclose($handle);
+            die();
+        }
+    }
+
+    /**
+     * Get image size.
+     *
+     * @access public
+     * @param  object $file
+     * @return array
+     */
+    public function getImageSize($file)
+    {
+        if($this->config->file->storageType == 'fs')
+        {
+            return getimagesize($file->realPath);
+        }
+        else if($this->config->file->storageType == 's3')
+        {
+            $this->app->loadClass('ossclient', true);
+
+            $config    = $this->config->file;
+            $ossClient = new ossclient($config->accessKeyId, $config->accessKeySecret, $config->endpoint, $config->bucket);
+            $info      = $ossClient->getImageInfo($file->pathname);
+
+            return array($info->ImageWidth->value, $info->ImageHeight->value, 'img');
+        }
     }
 }

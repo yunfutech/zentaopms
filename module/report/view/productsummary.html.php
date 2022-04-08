@@ -2,14 +2,13 @@
 <?php if(common::checkNotCN()):?>
 <style>#conditions .col-xs { width: 126px; }</style>
 <?php endif;?>
+<?php if(isset($config->maxVersion) or isset($config->proVersion) or isset($config->bizVersion)):?>
+<style>#mainContent > .side-col.col-lg{width: 235px}</style>
+<style>.hide-sidebar #sidebar{width: 0 !important}</style>
+<?php endif;?>
 <div id='mainContent' class='main-row'>
-  <div class='side-col col-lg'>
+  <div class='side-col col-lg' id='sidebar'>
     <?php include 'blockreportlist.html.php';?>
-    <div class='panel panel-body' style='padding: 10px 6px'>
-      <div class='text proversion'>
-        <strong class='text-danger small text-latin'>PRO</strong> &nbsp;<span class='text-important'><?php echo (isset($config->isINT) and $config->isINT) ? $lang->report->proVersionEn : $lang->report->proVersion;?></span>
-      </div>
-    </div>
   </div>
   <div class='main-col'>
     <?php if(empty($products)):?>
@@ -44,16 +43,16 @@
           <table class='table table-condensed table-striped table-bordered table-fixed no-margin' id='productList'>
             <thead>
               <tr>
-                <th class='w-200px'><?php echo $lang->product->name;?></th>
-                <th class='w-120px'><?php echo $lang->product->PO;?></th>
+                <th class='c-name'><?php echo $lang->product->name;?></th>
+                <th class='c-user'><?php echo $lang->report->PO;?></th>
                 <th><?php echo $lang->productplan->common;?></th>
-                <th class="w-100px"><?php echo $lang->productplan->begin;?></th>
-                <th class="w-100px"><?php echo $lang->productplan->end;?></th>
-                <th class="w-70px"><?php echo $lang->story->statusList['draft'];?></th>
-                <th class="w-70px"><?php echo $lang->story->statusList['active'];?></th>
-                <th class="w-70px"><?php echo $lang->story->statusList['changed'];?></th>
-                <th class="w-70px"><?php echo $lang->story->statusList['closed'];?></th>
-                <th class="w-70px"><?php echo $lang->report->total;?></th>
+                <th class="c-date"><?php echo $lang->productplan->begin;?></th>
+                <th class="c-date"><?php echo $lang->productplan->end;?></th>
+                <th class="c-count"><?php echo $lang->story->statusList['draft'];?></th>
+                <th class="c-count"><?php echo $lang->story->statusList['active'];?></th>
+                <th class="c-count"><?php echo $lang->story->statusList['changed'];?></th>
+                <th class="c-count"><?php echo $lang->story->statusList['closed'];?></th>
+                <th class="c-count"><?php echo $lang->report->total;?></th>
               </tr>
             </thead>
             <tbody>
@@ -69,7 +68,7 @@
                   <?php $class = $color ? 'rowcolor' : '';?>
                   <?php if($id != 1) echo "<tr class='text-center'>"?>
                     <?php $child = (isset($plan->parent) and $plan->parent > 0 and isset($product->plans[$plan->parent])) ? ' child' : '';?>
-                    <td align='left' class="text-left <?php echo $class . $child;?>"><?php echo $plan->title;?></td>
+                    <td align='left' class="text-left <?php echo $class . $child;?>" title="<?php echo $plan->title;?>"><?php echo $plan->title;?></td>
                     <td class="<?php echo $class;?>"><?php echo $plan->begin == '2030-01-01' ? $lang->productplan->future : $plan->begin;?></td>
                     <td class="<?php echo $class;?>"><?php echo $plan->end == '2030-01-01' ? $lang->productplan->future : $plan->end;?></td>
                     <?php
@@ -102,7 +101,7 @@
               </tr>
               <?php endforeach;?>
             </tbody>
-          </table> 
+          </table>
         </div>
       </div>
     </div>

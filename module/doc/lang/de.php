@@ -13,9 +13,10 @@
 $lang->doc->common         = 'Dok';
 $lang->doc->id             = 'ID';
 $lang->doc->product        = $lang->productCommon;
-$lang->doc->project        = $lang->projectCommon;
+$lang->doc->execution      = $lang->executionCommon;
 $lang->doc->lib            = 'Bibliothek';
 $lang->doc->module         = 'Modul';
+$lang->doc->object         = 'Object';
 $lang->doc->title          = 'Titel';
 $lang->doc->digest         = 'Zusammenfassung';
 $lang->doc->comment        = 'Bemerkung';
@@ -38,7 +39,8 @@ $lang->doc->separator      = "<i class='icon-angle-right'></i>";
 $lang->doc->fileTitle      = 'Dateiname';
 $lang->doc->filePath       = 'Dateipfad';
 $lang->doc->extension      = 'Erweiterung';
-$lang->doc->size           = 'Größe';
+$lang->doc->size           = 'Größe der Anlage';
+$lang->doc->source         = 'Source';
 $lang->doc->download       = 'Download';
 $lang->doc->acl            = 'Rechte';
 $lang->doc->fileName       = 'Files';
@@ -47,14 +49,16 @@ $lang->doc->users          = 'Benutzer';
 $lang->doc->item           = ' Einträge';
 $lang->doc->num            = 'Doks';
 $lang->doc->searchResult   = 'Suchergebnis';
-$lang->doc->fullscreen     = 'Fullscreen';
-$lang->doc->retrack        = 'Retrack';
+$lang->doc->mailto         = 'Mailto';
+$lang->doc->noModule       = 'No document in this lib, please create it';
+$lang->doc->noChapter      = 'No chapters or articles in this book. Please add chapters and articles.';
 
 $lang->doc->moduleDoc      = 'Nach Modulen';
 $lang->doc->searchDoc      = 'Suche';
 $lang->doc->fast           = 'Schnelleintrag';
 $lang->doc->allDoc         = 'Alle Doks';
 $lang->doc->openedByMe     = 'Meine';
+$lang->doc->editedByMe     = 'Edited By Me';
 $lang->doc->orderByOpen    = 'Zuletzt hinzugefügt';
 $lang->doc->orderByEdit    = 'Zuletzt bearbeitet';
 $lang->doc->orderByVisit   = 'Zuletzt angesehen';
@@ -62,12 +66,15 @@ $lang->doc->todayEdited    = 'Heute aktualisiert';
 $lang->doc->pastEdited     = 'Aktualisiert';
 $lang->doc->myDoc          = 'Meine Dokumente';
 $lang->doc->myCollection   = 'Meine Favoriten';
+$lang->doc->tableContents  = 'Catalog';
 
 /* 方法列表。*/
 $lang->doc->index            = 'Home';
+$lang->doc->createAB         = 'Create';
 $lang->doc->create           = 'Dokument hinzufügen';
 $lang->doc->edit             = 'Bearbeiten';
 $lang->doc->delete           = 'Löschen';
+$lang->doc->createBook       = 'Create Book';
 $lang->doc->browse           = 'Liste';
 $lang->doc->view             = 'Details';
 $lang->doc->diff             = 'Diff';
@@ -78,44 +85,42 @@ $lang->doc->editType         = 'Bearbeiten';
 $lang->doc->deleteType       = 'Löschen';
 $lang->doc->addType          = 'Hinzufügen';
 $lang->doc->childType        = 'Child';
+$lang->doc->catalogName      = 'Catalog Name';
 $lang->doc->collect          = 'Favorit hinzufügen';
 $lang->doc->cancelCollection = 'Favorit entfernen';
 $lang->doc->deleteFile       = 'Delete File';
+$lang->doc->menuTitle        = 'Menu';
 
 $lang->doc->libName        = 'Name';
 $lang->doc->libType        = 'Kategorie';
 $lang->doc->custom         = 'Eigene Dok Bibliothek';
 $lang->doc->customAB       = 'Eigene Bibliothek';
-$lang->doc->createLib      = 'Bibliothek erstellen';
+$lang->doc->createlib      = 'Bibliothek erstellen';
 $lang->doc->allLibs        = 'Bibliothek';
-$lang->doc->objectLibs     = "{$lang->productCommon}/{$lang->projectCommon} Bibliothek Liste";
+$lang->doc->objectLibs     = "{$lang->productCommon}/{$lang->executionCommon} Bibliothek Liste";
 $lang->doc->showFiles      = 'Dok Bibliothek';
-$lang->doc->editLib        = 'Bibliothek bearbeiten';
+$lang->doc->editlib        = 'Bibliothek bearbeiten';
 $lang->doc->deleteLib      = 'Bibliothek löschen';
 $lang->doc->fixedMenu      = 'Im Menü fixieren';
 $lang->doc->removeMenu     = 'Vom Menü entfernen';
 $lang->doc->search         = 'Suche';
+$lang->doc->allCollections = 'All Collections';
+$lang->doc->keywordsTips   = 'Please use commas to separate multiple keywords.';
 
 /* 查询条件列表 */
-$lang->doc->allProduct     = 'Alle' . $lang->productCommon;
-$lang->doc->allProject     = 'Alle' . $lang->projectCommon;
+$lang->doc->allProduct    = 'Alle' . $lang->productCommon;
+$lang->doc->allExecutions = 'Alle' . $lang->executionCommon;
 
-$lang->doc->libTypeList['product'] = $lang->productCommon . ' Bibliothek';
-$lang->doc->libTypeList['project'] = $lang->projectCommon . ' Bibliothek';
-$lang->doc->libTypeList['custom']  = 'Eigene Bibliothek';
+$lang->doc->libTypeList['product']   = $lang->productCommon . ' Bibliothek';
+$lang->doc->libTypeList['execution'] = $lang->executionCommon . ' Bibliothek';
+$lang->doc->libTypeList['custom']    = 'Eigene Bibliothek';
 
-$lang->doc->libIconList['product'] = 'icon-cube';
-$lang->doc->libIconList['project'] = 'icon-stack';
-$lang->doc->libIconList['custom']  = 'icon-folder-o';
+$lang->doc->libIconList['product']   = 'icon-product';
+$lang->doc->libIconList['execution'] = 'icon-stack';
+$lang->doc->libIconList['custom']    = 'icon-folder-o';
 
-$lang->doc->systemLibs['product'] = $lang->productCommon . 'Dok Bibliothek';
-$lang->doc->systemLibs['project'] = $lang->projectCommon . 'Dok Bibliothek';
-
-global $config;
-if($config->global->flow == 'onlyStory' or $config->global->flow == 'onlyTest') unset($lang->doc->systemLibs['project']);
-if($config->global->flow == 'onlyStory' or $config->global->flow == 'onlyTest') unset($lang->doc->libTypeList['project']);
-if($config->global->flow == 'onlyTask')  unset($lang->doc->systemLibs['product']);
-if($config->global->flow == 'onlyTask')  unset($lang->doc->libTypeList['product']);
+$lang->doc->systemLibs['product']   = $lang->productCommon . 'Dok Bibliothek';
+$lang->doc->systemLibs['execution'] = $lang->executionCommon . 'Dok Bibliothek';
 
 $lang->doc->aclList['open']    = 'Öffentlich';
 $lang->doc->aclList['custom']  = 'Eigene';
@@ -155,30 +160,46 @@ $lang->doc->orderLib = 'Rank Settings';
 $lang->doc->customShowLibs = 'Display Settings';
 $lang->doc->customShowLibsList['zero']     = 'Display Empty Library';
 $lang->doc->customShowLibsList['children'] = 'Display Child-category Documents';
-$lang->doc->customShowLibsList['unclosed'] = "Display Active {$lang->projectCommon}s Only";
+$lang->doc->customShowLibsList['unclosed'] = "Display Active {$lang->executionCommon}s Only";
 
-$lang->doc->confirmDelete      = "Möchten Sie dieses Dokument löschen?";
-$lang->doc->confirmDeleteLib   = "Möchten Sie diese Bibliothek löschen?";
-$lang->doc->errorEditSystemDoc = "System Dokumentenbibliothek darf nicht geändert werden.";
-$lang->doc->errorEmptyProduct  = "Kein {$lang->productCommon}. Kann nicht erstellt werden.";
-$lang->doc->errorEmptyProject  = "Kein {$lang->projectCommon}. Kann nicht erstellt werden.";
-$lang->doc->errorMainSysLib    = "Diese Bibliothek kann nicht gelöscht werden.";
-$lang->doc->accessDenied       = "Zugriff verweigert!";
-$lang->doc->versionNotFount    = 'Existiert nicht in diesem Build.';
-$lang->doc->noDoc              = 'Keine Dokumente. ';
-$lang->doc->cannotCreateOffice = 'Sorry, %s can only be created in ZenTao Enterprise. Contact us at renee@easysoft.ltd to try ZenTao Enterprise.';
-$lang->doc->noSearchedDoc      = 'Nichts gesucht.';
-$lang->doc->noEditedDoc        = 'Sie haben kein Dokument bearbeitet.';
-$lang->doc->noOpenedDoc        = 'Sie haben kein Dokument erstellt.';
-$lang->doc->noCollectedDoc     = 'Sie haben kein Dokument gesammelt.';
+$lang->doc->mail = new stdclass();
+$lang->doc->mail->create = new stdclass();
+$lang->doc->mail->edit   = new stdclass();
+$lang->doc->mail->create->title = "%s created document #%s:%s";
+$lang->doc->mail->edit->title   = "%s edited document #%s:%s";
 
-$lang->doc->noticeAcl['lib']['product']['default'] = 'Users who can access the selected product can access it.';
-$lang->doc->noticeAcl['lib']['product']['custom']  = 'Users who can access the selected product or users in the whiltelist can access it.';
-$lang->doc->noticeAcl['lib']['project']['default'] = 'Users who can access the selected project can access it.';
-$lang->doc->noticeAcl['lib']['project']['custom']  = 'Users who can access the selected project or users in the whiltelist can access it.';
-$lang->doc->noticeAcl['lib']['custom']['open']     = 'All users can access it.';
-$lang->doc->noticeAcl['lib']['custom']['custom']   = 'Users in the whitelist can access it.';
-$lang->doc->noticeAcl['lib']['custom']['private']  = 'Only the one who created it can access it.';
+$lang->doc->confirmDelete        = "Möchten Sie dieses Dokument löschen?";
+$lang->doc->confirmDeleteLib     = "Möchten Sie diese Bibliothek löschen?";
+$lang->doc->confirmDeleteBook    = "Do you want to delete this book?";
+$lang->doc->confirmDeleteChapter = "Do you want to delete this chapter?";
+$lang->doc->errorEditSystemDoc   = "System Dokumentenbibliothek darf nicht geändert werden.";
+$lang->doc->errorEmptyProduct    = "Kein {$lang->productCommon}. Kann nicht erstellt werden.";
+$lang->doc->errorEmptyProject    = "Kein {$lang->executionCommon}. Kann nicht erstellt werden.";
+$lang->doc->errorMainSysLib      = "Diese Bibliothek kann nicht gelöscht werden.";
+$lang->doc->accessDenied         = "Zugriff verweigert!";
+$lang->doc->versionNotFount      = 'Existiert nicht in diesem Build.';
+$lang->doc->noDoc                = 'Keine Dokumente. ';
+$lang->doc->noArticle            = 'No articles.';
+$lang->doc->noLib                = 'No libraries. ';
+$lang->doc->noBook               = 'The WIKI library has not created a manual, please create a new one :)';
+$lang->doc->cannotCreateOffice   = 'Sorry, %s can only be created in ZenTao Enterprise. Contact us at renee@easysoft.ltd to try ZenTao Enterprise.';
+$lang->doc->notSetOffice         = "<p>To create a %s document, you need to configure <a href='%s' target='_parent'>office convert</a>.<p>";
+$lang->doc->noSearchedDoc        = 'Nichts gesucht.';
+$lang->doc->noEditedDoc          = 'Sie haben kein Dokument bearbeitet.';
+$lang->doc->noOpenedDoc          = 'Sie haben kein Dokument erstellt.';
+$lang->doc->noCollectedDoc       = 'Sie haben kein Dokument gesammelt.';
+$lang->doc->errorEmptyLib        = 'No data in document library.';
+$lang->doc->confirmUpdateContent = 'You have a document that is not saved from last time. Do you want to continue editing it?';
+
+$lang->doc->noticeAcl['lib']['product']['default']   = 'Users who can access the selected product can access it.';
+$lang->doc->noticeAcl['lib']['product']['custom']    = 'Users who can access the selected product or users in the whiltelist can access it.';
+$lang->doc->noticeAcl['lib']['project']['default']   = 'Users who can access the selected project can access it.';
+$lang->doc->noticeAcl['lib']['project']['custom']    = 'Users who can access the selected project or users in the whiltelist can access it.';
+$lang->doc->noticeAcl['lib']['execution']['default'] = "Users who can access the selected {$lang->executionCommon} can access it.";
+$lang->doc->noticeAcl['lib']['execution']['custom']  = "Users who can access the selected {$lang->executionCommon} or users in the whiltelist can access it.";
+$lang->doc->noticeAcl['lib']['custom']['open']       = 'All users can access it.';
+$lang->doc->noticeAcl['lib']['custom']['custom']     = 'Users in the whitelist can access it.';
+$lang->doc->noticeAcl['lib']['custom']['private']    = 'Only the one who created it can access it.';
 
 $lang->doc->noticeAcl['doc']['open']    = 'Users who can access the document library which the document belongs can access it.';
 $lang->doc->noticeAcl['doc']['custom']  = 'Users in the whiltelist can access it.';
@@ -187,16 +208,20 @@ $lang->doc->noticeAcl['doc']['private'] = 'Only the one who created it can acces
 $lang->doc->placeholder = new stdclass();
 $lang->doc->placeholder->url = 'Url';
 
+$lang->doc->summary = "Total files on this page: <strong>%s</strong> , total size: <strong>%s</strong>, <strong>%s</strong>.";
+$lang->doc->ge      = ':';
+$lang->doc->point   = '.';
+
 $lang->doclib = new stdclass();
-$lang->doclib->name    = 'Name';
-$lang->doclib->control = 'Zugriffskontrolle';
-$lang->doclib->group   = 'Gruppe';
-$lang->doclib->user    = 'Benutzer';
-$lang->doclib->files   = 'Dateien';
-$lang->doclib->all     = 'Alle Bibliotheken';
-$lang->doclib->select  = 'Auswahl';
-$lang->doclib->project = $lang->projectCommon . ' Bibliothek';
-$lang->doclib->product = $lang->productCommon . ' Bibliothek';
+$lang->doclib->name      = 'Name';
+$lang->doclib->control   = 'Zugriffskontrolle';
+$lang->doclib->group     = 'Gruppe';
+$lang->doclib->user      = 'Benutzer';
+$lang->doclib->files     = 'Dateien';
+$lang->doclib->all       = 'Alle Bibliotheken';
+$lang->doclib->select    = 'Auswahl';
+$lang->doclib->execution = $lang->executionCommon . ' Bibliothek';
+$lang->doclib->product   = $lang->productCommon . ' Bibliothek';
 
 $lang->doclib->aclListA['default'] = 'Default';
 $lang->doclib->aclListA['custom']  = 'Custom';
@@ -205,15 +230,15 @@ $lang->doclib->aclListB['open']    = 'Public';
 $lang->doclib->aclListB['custom']  = 'Custom';
 $lang->doclib->aclListB['private'] = 'Private';
 
-$lang->doclib->create['product'] = 'Create ' . $lang->productCommon . ' Library';
-$lang->doclib->create['project'] = 'Create ' . $lang->projectCommon . ' Library';
-$lang->doclib->create['custom']  = 'Create Custom Library';
+$lang->doclib->create['product']   = 'Create ' . $lang->productCommon . ' Library';
+$lang->doclib->create['execution'] = 'Create ' . $lang->executionCommon . ' Library';
+$lang->doclib->create['custom']    = 'Create Custom Library';
 
-$lang->doclib->main['product'] =  'Primary Library';
-$lang->doclib->main['project'] =  'Primary Library';
+$lang->doclib->main['product']   = 'Primary Library';
+$lang->doclib->main['execution'] = 'Primary Library';
 
-$lang->doclib->tabList['product'] = $lang->productCommon;
-$lang->doclib->tabList['project'] = $lang->projectCommon;
-$lang->doclib->tabList['custom']  = 'Custom';
+$lang->doclib->tabList['product']   = $lang->productCommon;
+$lang->doclib->tabList['execution'] = $lang->executionCommon;
+$lang->doclib->tabList['custom']    = 'Custom';
 
 $lang->doclib->nameList['custom'] = 'Custom Name';

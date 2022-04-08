@@ -32,7 +32,7 @@ class admin extends control
             $this->view->ignore  = false;
         }
 
-        $this->app->loadLang('misc');
+        $this->loadModel('misc');
 
         $this->view->title      = $this->lang->admin->common;
         $this->view->position[] = $this->lang->admin->index;
@@ -51,12 +51,13 @@ class admin extends control
         $this->setting->deleteItems('owner=system&module=common&section=global&key=community');
         $this->setting->deleteItems('owner=system&module=common&section=global&key=ztPrivateKey');
         $this->setting->setItem('system.common.global.community', 'na');
-        die(js::locate(inlink('index'), 'parent'));
+        echo js::locate(inlink('index'), 'parent');
     }
 
     /**
      * Register zentao.
-     * 
+     *
+     * @param  string $from
      * @access public
      * @return void
      */
@@ -69,7 +70,7 @@ class admin extends control
             if($response->result == 'success')
             {
                 $user = $response->data;
-                $data['community'] = $user->account;
+                $data['community']    = $user->account;
                 $data['ztPrivateKey'] = $user->private;
 
                 $this->loadModel('setting');
@@ -77,9 +78,9 @@ class admin extends control
                 $this->setting->deleteItems('owner=system&module=common&section=global&key=ztPrivateKey');
                 $this->setting->setItems('system.common.global', $data);
 
-                echo js::alert($this->lang->admin->register->success);
-                if($from == 'admin') die(js::locate(inlink('index'), 'parent'));
-                if($from == 'mail') die(js::locate($this->createLink('mail', 'ztcloud'), 'parent'));
+                echo js::alert($this->lang->admin->registerNotice->success);
+                if($from == 'admin') return print(js::locate(inlink('index'), 'parent'));
+                if($from == 'mail') return print(js::locate($this->createLink('mail', 'ztcloud'), 'parent'));
             }
 
             $alertMessage = '';
@@ -92,11 +93,11 @@ class admin extends control
                 foreach($response->message as $item) $alertMessage .= is_array($item) ? join('\n', $item) . '\n' : $item . '\n';
             }
             $alertMessage = str_replace(array('<strong>', '</strong>'), '', $alertMessage);
-            die(js::alert($alertMessage));
+            return print(js::alert($alertMessage));
         }
 
-        $this->view->title      = $this->lang->admin->register->caption;
-        $this->view->position[] = $this->lang->admin->register->caption;
+        $this->view->title      = $this->lang->admin->registerNotice->caption;
+        $this->view->position[] = $this->lang->admin->registerNotice->caption;
         $this->view->register   = $this->admin->getRegisterInfo();
         $this->view->sn         = $this->config->global->sn;
         $this->view->from       = $from;
@@ -105,7 +106,8 @@ class admin extends control
 
     /**
      * Bind zentao.
-     * 
+     *
+     * @param  string $from
      * @access public
      * @return void
      */
@@ -118,7 +120,7 @@ class admin extends control
             if($response->result == 'success')
             {
                 $user = $response->data;
-                $data['community'] = $user->account;
+                $data['community']    = $user->account;
                 $data['ztPrivateKey'] = $user->private;
 
                 $this->loadModel('setting');
@@ -127,12 +129,12 @@ class admin extends control
                 $this->setting->setItems('system.common.global', $data);
 
                 echo js::alert($this->lang->admin->bind->success);
-                if($from == 'admin') die(js::locate(inlink('index'), 'parent'));
-                if($from == 'mail') die(js::locate($this->createLink('mail', 'ztcloud'), 'parent'));
+                if($from == 'admin') return print(js::locate(inlink('index'), 'parent'));
+                if($from == 'mail') return print(js::locate($this->createLink('mail', 'ztcloud'), 'parent'));
             }
             else
             {
-                if($response->result == 'fail') die(js::alert($response->message));
+                if($response->result == 'fail') return print(js::alert($response->message));
             }
         }
 
@@ -145,7 +147,7 @@ class admin extends control
 
     /**
      * Check all tables.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -162,7 +164,7 @@ class admin extends control
 
     /**
      * Account safe.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -172,7 +174,7 @@ class admin extends control
         {
             $data = fixer::input('post')->get();
             $this->loadModel('setting')->setItems('system.common.safe', $data);
-            $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'reload'));
+            return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'reload'));
         }
         $this->view->title      = $this->lang->admin->safe->common . $this->lang->colon . $this->lang->admin->safe->set;
         $this->view->position[] = $this->lang->admin->safe->common;
@@ -181,7 +183,7 @@ class admin extends control
 
     /**
      * Check weak user.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -196,7 +198,7 @@ class admin extends control
 
     /**
      * Config sso for ranzhi.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -213,8 +215,8 @@ class admin extends control
 
             if(!$ssoConfig->turnon) $ssoConfig->redirect = $ssoConfig->turnon;
             $this->loadModel('setting')->setItems('system.sso', $ssoConfig);
-            if(dao::isError()) die(js::error(dao::getError()));
-            die($this->locate(inlink('sso')));
+            if(dao::isError()) return print(js::error(dao::getError()));
+            return print($this->locate(inlink('sso')));
         }
 
         $this->loadModel('sso');
@@ -223,18 +225,18 @@ class admin extends control
         $this->view->title      = $this->lang->admin->sso;
         $this->view->position[] = $this->lang->admin->sso;
 
-        $this->view->turnon   = isset($this->config->sso->turnon) ? $this->config->sso->turnon : 1;
+        $this->view->turnon   = isset($this->config->sso->turnon)   ? $this->config->sso->turnon   : 1;
         $this->view->redirect = isset($this->config->sso->redirect) ? $this->config->sso->redirect : 0;
-        $this->view->addr     = isset($this->config->sso->addr) ? $this->config->sso->addr : '';
-        $this->view->key      = isset($this->config->sso->key) ? $this->config->sso->key : '';
-        $this->view->code     = isset($this->config->sso->code) ? $this->config->sso->code : '';
+        $this->view->addr     = isset($this->config->sso->addr)     ? $this->config->sso->addr     : '';
+        $this->view->key      = isset($this->config->sso->key)      ? $this->config->sso->key      : '';
+        $this->view->code     = isset($this->config->sso->code)     ? $this->config->sso->code     : '';
         $this->display();
     }
 
     /**
      * Certify ztEmail.
-     * 
-     * @param  string $email 
+     *
+     * @param  string $email
      * @access public
      * @return void
      */
@@ -244,8 +246,8 @@ class admin extends control
         {
             $response = $this->admin->certifyByAPI('mail');
             $response = json_decode($response);
-            if($response->result == 'fail') die(js::alert($response->message));
-            die(js::locate($this->createLink('mail', 'ztCloud'), 'parent'));
+            if($response->result == 'fail') return print(js::alert($response->message));
+            return print(js::locate($this->createLink('mail', 'ztCloud'), 'parent'));
         }
 
         $this->view->title      = $this->lang->admin->certifyEmail;
@@ -256,9 +258,9 @@ class admin extends control
     }
 
     /**
-     * Certify ztMobile 
-     * 
-     * @param  string $mobile 
+     * Certify ztMobile.
+     *
+     * @param  string $mobile
      * @access public
      * @return void
      */
@@ -268,8 +270,8 @@ class admin extends control
         {
             $response = $this->admin->certifyByAPI('mobile');
             $response = json_decode($response);
-            if($response->result == 'fail') die(js::alert($response->message));
-            die(js::locate($this->createLink('mail', 'ztCloud'), 'parent'));
+            if($response->result == 'fail') return print(js::alert($response->message));
+            return print(js::locate($this->createLink('mail', 'ztCloud'), 'parent'));
         }
 
         $this->view->title      = $this->lang->admin->certifyMobile;
@@ -281,7 +283,7 @@ class admin extends control
 
     /**
      * Set ztCompany.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -291,8 +293,8 @@ class admin extends control
         {
             $response = $this->admin->setCompanyByAPI();
             $response = json_decode($response);
-            if($response->result == 'fail') die(js::alert($response->message));
-            die(js::locate($this->createLink('mail', 'ztCloud'), 'parent'));
+            if($response->result == 'fail') return print(js::alert($response->message));
+            return print(js::locate($this->createLink('mail', 'ztCloud'), 'parent'));
         }
 
         $this->view->title      = $this->lang->admin->ztCompany;
@@ -304,19 +306,19 @@ class admin extends control
 
     /**
      * Ajax send code.
-     * 
-     * @param  int    $type 
+     *
+     * @param  string $type
      * @access public
      * @return void
      */
     public function ajaxSendCode($type)
     {
-        die($this->admin->sendCodeByAPI($type));
+        return print($this->admin->sendCodeByAPI($type));
     }
 
     /**
-     * Set save days of log. 
-     * 
+     * Set save days of log.
+     *
      * @access public
      * @return void
      */
@@ -324,11 +326,11 @@ class admin extends control
     {
         if($_POST)
         {
-            if(!validater::checkInt($this->post->days)) $this->send(array('result' => 'fail', 'message' => array('days' => sprintf($this->lang->admin->notice->int, $this->lang->admin->days))));
+            if(!validater::checkInt($this->post->days)) return $this->send(array('result' => 'fail', 'message' => array('days' => sprintf($this->lang->admin->notice->int, $this->lang->admin->days))));
 
             $this->loadModel('setting')->setItem('system.admin.log.saveDays', $this->post->days);
-            if(dao::isError()) $this->send(array('result' => 'fail', 'message' => dao::getError()));
-            $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'reload'));
+            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'parent'));
         }
 
         $this->loadModel('message');
@@ -343,9 +345,9 @@ class admin extends control
 
     /**
      * Delete logs older than save days.
-     * 
+     *
      * @access public
-     * @return bool 
+     * @return bool
      */
     public function deleteLog()
     {

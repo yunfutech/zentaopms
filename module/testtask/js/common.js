@@ -1,5 +1,5 @@
 $(document).ready(function()
-{    
+{
     $('#startForm, #closeForm, #activateForm, #blockForm').ajaxForm(
     {
         finish:function(response)
@@ -21,6 +21,12 @@ $(document).ready(function()
     });
 })
 
+/**
+ * Adjust priBox width.
+ *
+ * @access public
+ * @return void
+ */
 function adjustPriBoxWidth()
 {
     var boxWidth   = $('#ownerAndPriBox').width();
@@ -29,6 +35,13 @@ function adjustPriBoxWidth()
     $('#pri,#pri_chosen .chosen-single').css('width', boxWidth - beginWidth -addonWidth);
 }
 
+/**
+ * Create bug from fail case.
+ *
+ * @param  object $obj
+ * @access public
+ * @return void
+ */
 function createBug(obj)
 {
     var $form  = $(obj).closest('form');
@@ -41,6 +54,103 @@ function createBug(obj)
 
     var onlybody    = config.onlybody;
     config.onlybody = 'no';
-    window.open(createLink('bug', 'create', params + ',stepIdList=' + stepIdList), '_blank');
+
+    var link = createLink('bug', 'create', params + ',stepIdList=' + stepIdList);
+    if(onlybody = 'yes') link += '#app=qa';
+    if(tab == 'my')
+    {
+        window.parent.$.apps.open(link, 'qa');
+    }
+    else
+    {
+        window.open(link, '_parent');
+    }
+
     config.onlybody = onlybody;
+}
+
+/**
+ * Load execution related
+ *
+ * @param  int $executionID
+ * @access public
+ * @return void
+ */
+function loadExecutionRelated(executionID)
+{
+    loadExecutionBuilds(executionID);
+}
+
+/**
+ * Load execution builds.
+ *
+ * @param  int $executionID
+ * @param  int $selected
+ * @access public
+ * @return void
+ */
+function loadExecutionBuilds(executionID, selected)
+{
+    selectedBuild = $('#build').val();
+    if(!selectedBuild) selectedBuild = 0;
+    link = createLink('build', 'ajaxGetExecutionBuilds', 'executionID=' + executionID + '&productID=' + $('#product').val() + '&varName=testTaskBuild&build=' + selectedBuild, '', '', executionID);
+    if(executionID == 0) link = createLink('build', 'ajaxGetProductBuilds', 'productID=' + $('#product').val() + '&varName=resolvedBuild&build=' + selectedBuild);
+    $('#buildBox').load(link, function()
+    {
+        $('#resolvedBuild').attr('id', 'build').attr('name', 'build').find('option[value=trunk]').remove();
+        if(selected) $('#build').val(selected);
+        $('#build').chosen();
+    });
+}
+
+/**
+ * Load test report.
+ *
+ * @param  int    productID
+ * @access public
+ * @return void
+ */
+function loadTestReports(productID)
+{
+    link = createLink('testtask', 'ajaxGetTestReports', 'productID=' + productID);
+    $.get(link, function(data)
+    {
+        if(!data) data = '<select id="testreport" name="testreport" class="form-control"></select>';
+        $('#testreport').replaceWith(data);
+        $('#testreport_chosen').remove();
+        $("#testreport").chosen();
+    });
+}
+
+/**
+ * when begin date input change and end date input is null
+ * change end date input to begin's after day
+ *
+ * @access public
+ * @return void
+ */
+function suitEndDate()
+{
+    beginDate = $('#begin').val();
+    if(!beginDate) return;
+    endDate = $('#end').val();
+    if(endDate) return;
+
+    endDate = $.zui.formatDate(convertStringToDate(beginDate).addDays(1), 'yyyy-MM-dd');
+    $('#end').val(endDate);
+}
+
+/**
+ * Convert a date string like 2011-11-11 to date object in js.
+ *
+ * @param  string $date
+ * @access public
+ * @return date
+ */
+function convertStringToDate(dateString)
+{
+    dateString = dateString.split('-');
+    dateString = dateString[1] + '/' + dateString[2] + '/' + dateString[0];
+
+    return Date.parse(dateString);
 }

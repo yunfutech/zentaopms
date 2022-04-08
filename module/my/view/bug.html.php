@@ -11,14 +11,19 @@
  */
 ?>
 <?php include '../../common/view/header.html.php';?>
+<?php js::set('mode', $mode);?>
+<?php js::set('total', $pager->recTotal);?>
+<?php js::set('rawMethod', $app->rawMethod);?>
 <div id="mainMenu" class="clearfix">
   <div class="btn-toolbar pull-left">
     <?php
     $recTotalLabel = " <span class='label label-light label-badge'>{$pager->recTotal}</span>";
-    echo html::a(inlink('bug', "type=assignedTo"), "<span class='text'>{$lang->bug->assignedTo}</span>" . ($type == 'assignedTo' ? $recTotalLabel : ''), '', "class='btn btn-link" . ($type == 'assignedTo' ? ' btn-active-text' : '') . "'");
-    echo html::a(inlink('bug', "type=openedBy"),   "<span class='text'>{$lang->bug->openedByMe}</span>" . ($type == 'openedBy'   ? $recTotalLabel : ''),   '', "class='btn btn-link" . ($type == 'openedBy'   ? ' btn-active-text' : '') . "'");
-    echo html::a(inlink('bug', "type=resolvedBy"), "<span class='text'>{$lang->bug->resolvedBy}</span>" . ($type == 'resolvedBy' ? $recTotalLabel : ''), '', "class='btn btn-link" . ($type == 'resolvedBy' ? ' btn-active-text' : '') . "'");
-    echo html::a(inlink('bug', "type=closedBy"),   "<span class='text'>{$lang->bug->closedByMe}</span>" . ($type == 'closedBy'   ? $recTotalLabel : ''),   '', "class='btn btn-link" . ($type == 'closedBy'   ? ' btn-active-text' : '') . "'");
+    if($app->rawMethod == 'contribute')
+    {
+        echo html::a(inlink($app->rawMethod, "mode=$mode&type=openedBy"),   "<span class='text'>{$lang->bug->openedByMe}</span>" . ($type == 'openedBy'   ? $recTotalLabel : ''),   '', "class='btn btn-link" . ($type == 'openedBy'   ? ' btn-active-text' : '') . "'");
+        echo html::a(inlink($app->rawMethod, "mode=$mode&type=resolvedBy"), "<span class='text'>{$lang->bug->resolvedByMe}</span>" . ($type == 'resolvedBy' ? $recTotalLabel : ''), '', "class='btn btn-link" . ($type == 'resolvedBy' ? ' btn-active-text' : '') . "'");
+        echo html::a(inlink($app->rawMethod, "mode=$mode&type=closedBy"),   "<span class='text'>{$lang->bug->closedByMe}</span>" . ($type == 'closedBy'   ? $recTotalLabel : ''),   '', "class='btn btn-link" . ($type == 'closedBy'   ? ' btn-active-text' : '') . "'");
+    }
     ?>
   </div>
 </div>
@@ -29,28 +34,46 @@
   </div>
   <?php else:?>
   <form id='myBugForm' class="main-table table-bug" data-ride="table" method="post" action='<?php echo $this->createLink('bug', 'batchEdit', "productID=0");?>'>
-    <?php $canBatchEdit  = common::hasPriv('bug', 'batchEdit');?>
+    <?php
+    $canBatchEdit     = (common::hasPriv('bug', 'batchEdit') and $type == 'assignedTo');
+    $canBatchConfirm  = common::hasPriv('bug', 'batchConfirm');
+    $canBatchClose    = (common::hasPriv('bug', 'batchClose') and strtolower($type) != 'closedby');
+    $canBatchAssignTo = common::hasPriv('bug', 'batchAssignTo');
+    $canBatchAction   = ($canBatchEdit or $canBatchConfirm or $canBatchClose or $canBatchAssignTo);
+    ?>
     <table class="table has-sort-head table-fixed" id='bugList'>
-      <?php $vars = "type=$type&orderBy=%s&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID"; ?>
+      <?php $vars = "mode=$mode&type=$type&orderBy=%s&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID"; ?>
       <thead>
         <tr>
-          <th class="w-100px">
-            <?php if($canBatchEdit):?>
+          <th class="c-id">
+            <?php if($canBatchAction):?>
             <div class="checkbox-primary check-all" title="<?php echo $lang->selectAll?>">
               <label></label>
             </div>
             <?php endif;?>
             <?php common::printOrderLink('id', $orderBy, $vars, $lang->idAB);?>
           </th>
-          <th class='w-50px' title='<?php echo $lang->bug->severity;?>'> <?php common::printOrderLink('severity',   $orderBy, $vars, $lang->bug->severityAB);?></th>
-          <th class='w-50px' title='<?php echo $lang->bug->pri;?>'> <?php common::printOrderLink('pri',        $orderBy, $vars, $lang->priAB);?></th>
-          <th class='w-type'>      <?php common::printOrderLink('type',       $orderBy, $vars, $lang->typeAB);?></th>
-          <th>                     <?php common::printOrderLink('title',      $orderBy, $vars, $lang->bug->title);?></th>
-          <th class='w-90px'>      <?php common::printOrderLink('openedBy',   $orderBy, $vars, $lang->openedByAB);?></th>
-          <th class='w-110px'><?php common::printOrderLink('assignedTo', $orderBy, $vars, $lang->bug->assignedTo);?></th>
-          <th class='w-100px'>      <?php common::printOrderLink('resolvedBy', $orderBy, $vars, $lang->bug->resolvedByAB);?></th>
-          <th class='w-100px'><?php common::printOrderLink('resolution', $orderBy, $vars, $lang->bug->resolutionAB);?></th>
-          <th class='c-actions-5'> <?php echo $lang->actions;?></th>
+          <th class='c-severity' title='<?php echo $lang->bug->severity;?>'><?php common::printOrderLink('severity', $orderBy, $vars, $lang->bug->severityAB);?></th>
+          <th class='c-pri' title='<?php echo $lang->bug->pri;?>'><?php common::printOrderLink('pri', $orderBy, $vars, $lang->priAB);?></th>
+          <th class='c-confirm' title='<?php echo $lang->bug->confirmedAB;?>'><?php common::printOrderLink('confirmed', $orderBy, $vars, $lang->bug->confirmedAB);?></th>
+
+          <th><?php common::printOrderLink('title', $orderBy, $vars, $lang->bug->title);?></th>
+          <th class='c-product'><?php common::printOrderLink('productName', $orderBy, $vars, $lang->bug->product);?></th>
+          <th class='c-type'><?php common::printOrderLink('type', $orderBy, $vars, $lang->typeAB);?></th>
+          <?php if($type != 'openedBy'): ?>
+          <th class='c-user'><?php common::printOrderLink('openedBy', $orderBy, $vars, $lang->openedByAB);?></th>
+          <?php endif;?>
+          <?php if($app->rawMethod == 'work'):?>
+          <th class='c-date text-center'><?php common::printOrderLink('deadline', $orderBy, $vars, $lang->bug->deadlineAB);?></th>
+          <?php endif;?>
+          <?php if($type != 'assignedTo'): ?>
+          <th class='c-user c-assignedTo'><?php common::printOrderLink('assignedTo', $orderBy, $vars, $lang->bug->assignedTo);?></th>
+          <?php endif;?>
+          <?php if($type != 'resolvedBy'): ?>
+          <th class='c-user'><?php common::printOrderLink('resolvedBy', $orderBy, $vars, $lang->bug->resolvedByAB);?></th>
+          <?php endif;?>
+          <th class='c-resolution'><?php common::printOrderLink('resolution', $orderBy, $vars, $lang->bug->resolutionAB);?></th>
+          <th class='c-actions-5'><?php echo $lang->actions;?></th>
         </tr>
       </thead>
       <?php
@@ -66,11 +89,12 @@
       ?>
       <tbody>
         <?php foreach($bugs as $bug):?>
+        <?php $canBeChanged = common::canBeChanged('bug', $bug);?>
         <tr>
           <td class="c-id">
-            <?php if($canBatchEdit):?>
+            <?php if($canBatchAction):?>
             <div class="checkbox-primary">
-              <input type='checkbox' name='bugIDList[]' value='<?php echo $bug->id;?>' />
+              <input type='checkbox' name='bugIDList[]' value='<?php echo $bug->id;?>' <?php if(!$canBeChanged) echo 'disabled';?> />
               <label></label>
             </div>
             <?php endif;?>
@@ -84,20 +108,40 @@
             <?php endif;?>
           </td>
           <td><span class='label-pri <?php echo 'label-pri-' . $bug->pri?>' title='<?php echo zget($lang->bug->priList, $bug->pri);?>'><?php echo zget($lang->bug->priList, $bug->pri)?></span></td>
+          <td class="text-center"><span class='<?php echo $bug->confirmed == '1' ? 'confirmed' : 'unconfirmed';?>' title='<?php echo zget($lang->bug->confirmedList, $bug->confirmed);?>'><?php echo zget($lang->bug->confirmedList, $bug->confirmed)?></span></td>
+          <td class='text-left nobr'><?php echo html::a($this->createLink('bug', 'view', "bugID=$bug->id"), $bug->title, null, "style='color: $bug->color' title='{$bug->title}'");?></td>
+          <?php $param = $config->productLink == 'product-all' ? '' : "productID=$bug->product";?>
+          <td class='text-left nobr'>
+            <?php
+            $productLink = explode('-', $config->productLink);
+            echo html::a($this->createLink('product', $productLink[1], $param), $bug->productName, null, "title={$bug->productName}");
+            ?>
+          </td>
           <td title="<?php echo zget($lang->bug->typeList, $bug->type, '');?>"><?php echo zget($lang->bug->typeList, $bug->type, '');?></td>
-          <td class='text-left nobr'><?php echo html::a($this->createLink('bug', 'view', "bugID=$bug->id"), $bug->title, null, "style='color: $bug->color' title={$bug->title}");?></td>
+          <?php if($type != 'openedBy'): ?>
           <td><?php echo zget($users, $bug->openedBy);?></td>
+          <?php endif;?>
+          <?php if($app->rawMethod == 'work'):?>
+          <td class="text-center <?php echo (isset($bug->delay) and $bug->status == 'active') ? 'delayed' : '';?>"><?php if(substr($bug->deadline, 0, 4) > 0) echo substr($bug->deadline, 5, 6);?></td>
+          <?php endif;?>
+          <?php if($type != 'assignedTo'): ?>
           <td class='c-assignedTo has-btn'><?php $this->bug->printAssignedHtml($bug, $users);?></td>
+          <?php endif;?>
+          <?php if($type != 'resolvedBy'): ?>
           <td><?php echo zget($users, $bug->resolvedBy);?></td>
+          <?php endif;?>
           <td><?php echo zget($lang->bug->resolutionList, $bug->resolution);?></td>
           <td class='c-actions'>
             <?php
-            $params = "bugID=$bug->id";
-            common::printIcon('bug', 'confirmBug', $params, $bug, 'list', 'confirm', '', 'iframe', true);
-            common::printIcon('bug', 'resolve',    $params, $bug, 'list', 'checked', '', 'iframe', true);
-            common::printIcon('bug', 'close',      $params, $bug, 'list', '', '', 'iframe', true);
-            common::printIcon('bug', 'edit',       $params, $bug, 'list');
-            common::printIcon('bug', 'create',     "product=$bug->product&branch=$bug->branch&extra=$params", $bug, 'list', 'copy');
+            if($canBeChanged)
+            {
+                $params = "bugID=$bug->id";
+                common::printIcon('bug', 'confirmBug', $params, $bug, 'list', 'ok',      '', 'iframe', true, '', '', $bug->project);
+                common::printIcon('bug', 'resolve',    $params, $bug, 'list', 'checked', '', 'iframe', true, '', '', $bug->project);
+                common::printIcon('bug', 'close',      $params, $bug, 'list', '',        '', 'iframe', true, '', '', $bug->project);
+                common::printIcon('bug', 'edit',       $params, $bug, 'list', '',        '', 'iframe', true, "data-width='95%'", '', $bug->project);
+                common::printIcon('bug', 'create',     "product=$bug->product&branch=$bug->branch&extra=$params", $bug, 'list', 'copy', '', 'iframe', true, "data-width='95%'", '', $bug->project);
+            }
             ?>
           </td>
         </tr>
@@ -105,37 +149,37 @@
       </tbody>
     </table>
     <div class="table-footer">
-      <?php if($canBatchEdit):?>
+      <?php if($canBatchAction):?>
       <div class="checkbox-primary check-all"><label><?php echo $lang->selectAll?></label></div>
       <?php endif;?>
       <div class="table-actions btn-toolbar">
         <?php
-        $actionLink = $this->createLink('bug', 'batchEdit');
-        $misc       = common::hasPriv('bug', 'batchEdit') ? "onclick=\"setFormAction('$actionLink')\"" : "disabled='disabled'";
-        echo html::commonButton($lang->edit, $misc);
-        ?>
-        <?php
-        if(common::hasPriv('bug', 'batchConfirm'))
+        if($canBatchEdit)
         {
-          $actionLink = $this->createLink('bug', 'batchConfirm');
+            $actionLink = $this->createLink('bug', 'batchEdit');
+            $misc       = "data-form-action='$actionLink'";
+            echo html::commonButton($lang->edit, $misc);
+        }
+        if($canBatchConfirm)
+        {
+          $actionLink = $this->createLink('bug', 'batchConfirm', '', '', '', $bug->project);
           $misc = "onclick=\"setFormAction('$actionLink', 'hiddenwin')\"";
           echo html::commonButton($lang->bug->confirmBug, $misc);
         }
-        if(common::hasPriv('bug', 'batchClose'))
+        if($canBatchClose)
         {
-          $actionLink = $this->createLink('bug', 'batchClose');
+          $actionLink = $this->createLink('bug', 'batchClose', '', '', '', $bug->project);
           $misc = "onclick=\"setFormAction('$actionLink', 'hiddenwin')\"";
           echo html::commonButton($lang->bug->close, $misc);
         }
         ?>
         <?php
-        $canBatchAssignTo = common::hasPriv('bug', 'batchAssignTo');
         if($canBatchAssignTo && count($bugs)):?>
         <div class="btn-group dropup">
           <button data-toggle="dropdown" type="button" class="btn"><?php echo $lang->bug->assignedTo?> <span class="caret"></span></button>
           <?php
           $withSearch = count($memberPairs) > 10;
-          $actionLink = $this->createLink('bug', 'batchAssignTo', "productID=0&type=my");
+          $actionLink = $this->createLink('bug', 'batchAssignTo', "productID=0&type=my", '', '', $bug->project);
           echo html::select('assignedTo', $memberPairs, '', 'class="hidden"');
           if($withSearch)
           {

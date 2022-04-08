@@ -136,25 +136,42 @@ function showMoreImage(obj)
  */
 function setMailto(mailto, contactListID)
 {
-    link = createLink('user', 'ajaxGetContactUsers', 'listID=' + contactListID);
+    link = createLink('user', 'ajaxGetContactUsers', 'listID=' + contactListID + '&dropdownName=' + mailto);
     $.get(link, function(users)
     {
         $('#' + mailto).replaceWith(users);
         $('#' + mailto + '_chosen').remove();
-        $('#' + mailto).chosen();
+        $('.picker').remove();
+
+        if($("[data-pickertype='remote']").length == 0 && $('.picker-select').length == 0)
+        {
+            $('#' + mailto).chosen();
+        }
+        else
+        {
+            $('#' + mailto + "[data-pickertype!='remote']").picker({chosenMode: true});
+            $("[data-pickertype='remote']").each(function()
+            {
+                var pickerremote = $(this).attr('data-pickerremote');
+                $(this).picker({chosenMode: true, remote: pickerremote});
+            });
+        }
     });
 }
 
 /**
  * Ajax get contacts.
  *
- * @param  obj $obj
+ * @param  object $obj
+ * @param  string $dropdownName mailto|whitelist
  * @access public
  * @return void
  */
-function ajaxGetContacts(obj)
+function ajaxGetContacts(obj, dropdownName)
 {
-    link = createLink('user', 'ajaxGetContactList');
+    if(typeof(dropdownName) == 'undefined') dropdownName = 'mailto';
+
+    link = createLink('user', 'ajaxGetContactList', 'dropdownName=' + dropdownName);
     $.get(link, function(contacts)
     {
         if(!contacts) return false;
@@ -315,9 +332,19 @@ function ajaxDelete(url, replaceID, notice)
             {
                 if(data.result == 'success')
                 {
+                    var $table = $('#' + replaceID).closest('[data-ride="table"]');
+                    if($table.length)
+                    {
+                        var table = $table.data('zui.table');
+                        if(table)
+                        {
+                            table.options.replaceId = replaceID;
+                            return table.reload();
+                        }
+                    }
                     $.get(document.location.href, function(data)
                     {
-                        if(!($(data).find('#' + replaceID).length))location.reload();
+                        if(!($(data).find('#' + replaceID).length)) location.reload();
                         $('#' + replaceID).html($(data).find('#' + replaceID).html());
                         if(typeof sortTable == 'function') sortTable();
                         $('#' + replaceID).find('[data-toggle=modal], a.iframe').modalTrigger();
@@ -486,64 +513,6 @@ function applyCssStyle(css, tag)
 }
 
 /**
- * Show browser notice
- *
- * @access public
- * @return void
- */
-function showBrowserNotice()
-{
-    userAgent = navigator.userAgent.toLowerCase();
-    $browser  = new Object();
-    $browser.msie   = /msie/.test(userAgent);
-    $browser.chrome = /chrome/.test(userAgent);
-
-    //if($browser.msie)
-    //{
-    //    match = /(msie) ([\w.]+)/.exec(userAgent);
-    //    $browser.version = match[2] || '0';
-    //}
-
-    var show = false;
-
-    /* IE 6,7. */
-    //if($browser.msie && $browser.version <= 7) show = true;
-
-    /* Souhu */
-    if(navigator.userAgent.indexOf('MetaSr') >= 0)
-    {
-        show = true;
-    }
-    else if(navigator.userAgent.indexOf('LBBROWSER') >= 0)
-    {
-        show = true;
-    }
-    else if(navigator.userAgent.indexOf('QQBrowser') >= 0)
-    {
-        show = true;
-    }
-    else if(navigator.userAgent.indexOf('TheWorld') >= 0)
-    {
-        show = true;
-    }
-    else if(navigator.userAgent.indexOf('BIDUBrowser') >= 0)
-    {
-        show = true;
-    }
-    else if(navigator.userAgent.indexOf('Maxthon') >= 0)
-    {
-        show = true;
-    }
-    /* 360. */
-    //else if($browser.chrome && !(window.clientInformation && window.clientInformation.mediaDevices))
-    //{
-    //    show = true;
-    //}
-
-    if(show) $('body').prepend('<div class="alert alert-info alert-dismissable" style="margin:0px;"><button type=button" onclick="ajaxIgnoreBrowser()" class="close" data-dismiss="alert" aria-hidden="true"><i class="icon-remove"></i></button><p>' + browserNotice + '</p></div>');
-}
-
-/**
  * Remove cookie by key
  *
  * @param  cookieKey $cookieKey
@@ -585,6 +554,10 @@ function checkTutorial()
             {
                 window.location.reload();
             }).error(function(){alert(lang.timeout)});
+        }
+        else
+        {
+            window.location.href = createLink('tutorial', 'index');
         }
     }
 }
@@ -704,7 +677,7 @@ function notifyMessage(data)
         }
         else if(Notification.permission != "denied")
         {
-            Notification.requestPermission(function(permission)
+            Notification.requestPermission().then(function(permission)
             {
                 notify = new Notification("", {body:message, tag:'zentao', data:data});
             });
@@ -757,6 +730,139 @@ function bootAlert(message)
     return false;
 }
 
+/**
+ * Toggle fold or unfold for parent.
+ *
+ * @param  string $form
+ * @param  array  $unfoldIdList
+ * @param  int    $objectID
+ * @param  string $objectType
+ * @access public
+ * @return void
+ */
+function toggleFold(form, unfoldIdList, objectID, objectType)
+{
+    $form     = $(form);
+    $parentTd = $form.find('td.has-child');
+    if($parentTd.length == 0) return false;
+
+    var toggleClass = objectType == 'product' ? 'story-toggle' : 'task-toggle';
+    var nameClass   = objectType == 'product' ? 'c-title'      : 'c-name';
+    $form.find('th.' + nameClass).append("<button type='button' id='toggleFold' class='btn btn-mini collapsed'>" + unfoldAll + "</button>");
+
+    var allUnfold = true;
+    $parentTd.each(function()
+    {
+        var dataID = $(this).closest('tr').attr('data-id');
+        if(typeof(unfoldIdList[dataID]) != 'undefined') return true;
+
+        allUnfold = false;
+        $form.find('tr.parent-' + dataID).hide();
+        $(this).find('a.' + toggleClass).addClass('collapsed')
+    })
+
+    $form.find('th.' + nameClass + ' #toggleFold').html(allUnfold ? foldAll : unfoldAll).toggleClass('collapsed', !allUnfold);
+
+    $(document).on('click', '#toggleFold', function()
+    {
+        var newUnfoldID = [];
+        var url         = '';
+        var collapsed   = $(this).hasClass('collapsed');
+        $parentTd.each(function()
+        {
+            var dataID = $(this).closest('tr').attr('data-id');
+            $form.find('tr.parent-' + dataID).toggle(collapsed);
+            $(this).find('a.' + toggleClass).toggleClass('collapsed', !collapsed)
+            newUnfoldID.push(dataID);
+        })
+
+        $(this).html(collapsed ? foldAll : unfoldAll).toggleClass('collapsed', !collapsed);
+        url = createLink('misc', 'ajaxSetUnfoldID', 'objectID=' + objectID + '&objectType=' + objectType + '&action=' + (collapsed ? 'add' : 'delete'));
+        $.post(url, {'newUnfoldID': JSON.stringify(newUnfoldID)});
+    });
+
+    $parentTd.find('a.' + toggleClass).click(function()
+    {
+        var newUnfoldID = [];
+        var url         = '';
+        var collapsed   = $(this).hasClass('collapsed');
+        var dataID      = $(this).closest('tr').attr('data-id');
+
+        $form.find('tr.parent-' + dataID).toggle(!collapsed);
+        newUnfoldID.push(dataID);
+        url = createLink('misc', 'ajaxSetUnfoldID', 'objectID=' + objectID + '&objectType=' + objectType + '&action=' + (collapsed ? 'add' : 'delete'));
+
+        $table = $(this).closest('table');
+        setTimeout(function()
+        {
+            hasCollapsed = $table.find('td.has-child a.' + toggleClass + '.collapsed').length != 0;
+            $('#toggleFold').html(hasCollapsed ? unfoldAll : foldAll).toggleClass('collapsed', hasCollapsed);
+        }, 100);
+
+        $.post(url, {'newUnfoldID': JSON.stringify(newUnfoldID)});
+    });
+}
+
+/**
+ * Adjust menu width.
+ *
+ * @access public
+ * @return void
+ */
+function adjustMenuWidth()
+{
+    if(window.navigator.userAgent.indexOf('xuanxuan') > 0) return;
+
+    var $mainHeader = $('#mainHeader .container');
+    if($mainHeader.length == 0) return false;
+
+    var $navbar = $mainHeader.find('#navbar .nav');
+
+    var mainHeaderWidth = $mainHeader.width() - 10;
+    var headingWidth    = $mainHeader.find('#heading').width() + 30;
+    var navbarWidth     = $navbar.width();
+    var toolbarWidth    = $mainHeader.find('#toolbar').width() + 20;
+
+    if(mainHeaderWidth < headingWidth + navbarWidth + toolbarWidth)
+    {
+        var delta = (headingWidth + navbarWidth + toolbarWidth) - mainHeaderWidth;
+        delta = Math.ceil(delta / $navbar.children('li').length / 2);
+
+        var aTagPadding   = $navbar.find('a:first').css('padding-left').replace('px', '');
+        var dividerMargin = $navbar.find('.divider').css('margin-left').replace('px', '');
+
+        var newPadding = aTagPadding - delta;
+        var newMargin  = dividerMargin - delta - 1;
+        if(newPadding < 0) newPadding = 0;
+        if(newMargin < 0)  newMargin  = 0;
+
+        $navbar.children('li').find('a').css('padding-left', newPadding).css('padding-right', newPadding);
+        $navbar.find('.divider').css('margin-left', newMargin).css('margin-right', newMargin);
+    }
+}
+
+/**
+ * Scroll to selected item in drop menu.
+ *
+ * @param  string $id
+ * @access public
+ * @return void
+ */
+function scrollToSelected(id)
+{
+    if(typeof(id) == 'undefined') id = '#dropMenu .table-col .list-group'
+
+    $id = $(id);
+    $selected = $id.find('.selected');
+
+    $id.mouseout(function(){$(this).find('a.active:not(.not-list-item)').removeClass('active')});
+    if($selected.length > 0)
+    {
+        var offsetHeight = 75;
+        $id.scrollTop($selected.position().top - offsetHeight);
+    }
+}
+
 /* Ping the server every some minutes to keep the session. */
 needPing = true;
 
@@ -769,4 +875,30 @@ $(document).ready(function()
     revertModuleCookie();
 
     $(document).on('click', '#helpMenuItem .close-help-tab', function(){$('#helpMenuItem').prev().remove();$('#helpMenuItem').remove();});
+
+    /* Open link in new tab when pressed ctrl key in windows */
+    if(window.navigator.userAgent.match(/Windows/i))
+    {
+        $(document).on('mousedown', 'a', function(e)
+        {
+            var $a = $(this);
+            if(!e.ctrlKey || $a.attr('target')) return;
+            $a.attr('target', '_blank');
+            clearTimeout($a.data('ctrlTimer'));
+            $a.data('ctrlTimer', setTimeout(function(){$a.attr('target', null).data('ctrlTimer', 0)}, 100));
+            e.preventDefault();
+        });
+    }
+
+    /* Hide the global create drop-down when hovering over the avatar. */
+    $('.has-avatar').hover(function()
+    {
+        $(this).next().removeClass('open');
+    });
+
+    /* Hide the avatar drop-down when hovering over the global create button. */
+    $('#globalCreate').hover(function()
+    {
+        $(this).prev().removeClass('open');
+    });
 });

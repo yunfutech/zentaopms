@@ -16,7 +16,7 @@ include '../../common/view/datepicker.html.php';
 include '../../common/view/kindeditor.html.php';
 js::set('page'                   , 'edit');
 js::set('changeProductConfirmed' , false);
-js::set('changeProjectConfirmed' , false);
+js::set('changeExecutionConfirmed' , false);
 js::set('confirmChangeProduct'   , $lang->bug->confirmChangeProduct);
 js::set('planID'                 , $bug->plan);
 js::set('oldProjectID'           , $bug->project);
@@ -24,6 +24,11 @@ js::set('oldStoryID'             , $bug->story);
 js::set('oldTaskID'              , $bug->task);
 js::set('oldOpenedBuild'         , $bug->openedBuild);
 js::set('oldResolvedBuild'       , $bug->resolvedBuild);
+js::set('systemMode'             , $config->systemMode);
+js::set('confirmUnlinkBuild'     , sprintf($lang->bug->confirmUnlinkBuild, zget($resolvedBuilds, $bug->resolvedBuild)));
+js::set('tab'                    , $this->app->tab);
+if($this->app->tab == 'execution') js::set('objectID', $bug->execution);
+if($this->app->tab == 'project')   js::set('objectID', $bug->project);
 ?>
 
 <div class='main-content' id='mainContent'>
@@ -52,8 +57,8 @@ js::set('oldResolvedBuild'       , $bug->resolvedBuild);
           </div>
           <div class='detail'>
             <div class='detail-title'><?php echo $lang->bug->legendSteps;?></div>
-            <div class='detail-content article-content'>
-              <?php echo html::textarea('steps', htmlspecialchars($bug->steps), "rows='12' class='form-control kindeditor' hidefocus='true'");?>
+            <div class='detail-content'>
+              <?php echo html::textarea('steps', htmlSpecialString($bug->steps), "rows='12' class='form-control kindeditor' hidefocus='true'");?>
             </div>
           </div>
           <div class='detail'>
@@ -90,7 +95,7 @@ js::set('oldResolvedBuild'       , $bug->resolvedBuild);
                   <td>
                     <div class='input-group'>
                       <?php echo html::select('product', $products, $productID, "onchange='loadAll(this.value)' class='form-control chosen'");?>
-                      <?php if($this->session->currentProductType != 'normal') echo html::select('branch', $branches, $bug->branch, "onchange='loadBranch();' class='form-control' style='width:65px'");?>
+                      <?php if($product->type != 'normal') echo html::select('branch', $branchTagOption, $bug->branch, "onchange='loadBranch();' class='form-control'");?>
                     </div>
                   </td>
                 </tr>
@@ -112,14 +117,12 @@ js::set('oldResolvedBuild'       , $bug->resolvedBuild);
                     </div>
                   </td>
                 </tr>
-                <?php if($config->global->flow != 'onlyTest'):?>
                 <tr>
                   <th><?php echo $lang->bug->productplan;?></th>
                   <td>
                     <span id="planIdBox"><?php echo html::select('plan', $plans, $bug->plan, "class='form-control chosen'");?></span>
                   </td>
                 </tr>
-                <?php endif;?>
                 <tr>
                   <th><?php echo $lang->bug->type;?></th>
                   <td><?php echo html::select('type', $lang->bug->typeList, $bug->type, "class='form-control chosen'"); ?></td>
@@ -134,7 +137,7 @@ js::set('oldResolvedBuild'       , $bug->resolvedBuild);
                 </tr>
                 <tr>
                   <th><?php echo $lang->bug->status;?></th>
-                  <td><?php echo html::select('status', $lang->bug->statusList, $bug->status, "class='form-control chosen'");?></td>
+                  <td><?php echo zget($lang->bug->statusList, $bug->status);?></td>
                 </tr>
                 <tr>
                   <th><?php echo $lang->bug->confirmed;?></th>
@@ -147,6 +150,14 @@ js::set('oldResolvedBuild'       , $bug->resolvedBuild);
                 <tr>
                   <th><?php echo $lang->bug->deadline;?></th>
                   <td><?php echo html::input('deadline', $bug->deadline, "class='form-control form-date'");?></td>
+                </tr>
+                <tr>
+                  <th><?php echo $lang->bug->feedbackBy;?></th>
+                  <td><?php echo html::input('feedbackBy', $bug->feedbackBy, "class='form-control'");?></td>
+                </tr>
+                <tr>
+                  <th><?php echo $lang->bug->notifyEmail;?></th>
+                  <td><?php echo html::input('notifyEmail', $bug->notifyEmail, "class='form-control'");?></td>
                 </tr>
                 <tr>
                   <th><?php echo $lang->bug->os;?></th>
@@ -172,14 +183,19 @@ js::set('oldResolvedBuild'       , $bug->resolvedBuild);
               </tbody>
             </table>
           </div>
-          <?php if($config->global->flow != 'onlyTest'):?>
           <div class='detail'>
-            <div class='detail-title'><?php echo $lang->bug->legendPrjStoryTask;?></div>
+            <div class='detail-title'><?php echo $config->systemMode == 'class' ? $lang->bug->legendExecStoryTask : $lang->bug->legendPRJExecStoryTask;?></div>
             <table class='table table-form'>
               <tbody>
+                <?php if($config->systemMode == 'new'):?>
                 <tr>
-                  <th class='w-80px'><?php echo $lang->bug->project;?></th>
-                  <td><span id='projectIdBox'><?php echo html::select('project', $projects, $bug->project, "class='form-control chosen' onchange='loadProjectRelated(this.value)'");?></span></td>
+                  <th class='w-85px'><?php echo $lang->bug->project;?></th>
+                  <td><span id='projectBox'><?php echo html::select('project', $projects, $bug->project, "class='form-control chosen' onchange='loadProductExecutions($bug->product, this.value)'");?></span></td>
+                </tr>
+                <?php endif;?>
+                <tr>
+                  <th class='w-85px' id='executionBox'><?php echo $lang->bug->execution;?></th>
+                  <td><span id='executionIdBox'><?php echo html::select('execution', $executions, $bug->execution, "class='form-control chosen' onchange='loadExecutionRelated(this.value)'");?></span></td>
                 </tr>
                 <tr>
                   <th><?php echo $lang->bug->story;?></th>
@@ -193,7 +209,6 @@ js::set('oldResolvedBuild'       , $bug->resolvedBuild);
               </tbody>
             </table>
           </div>
-          <?php endif;?>
           <div class='detail'>
             <div class='detail-title'><?php echo $lang->bug->legendLife;?></div>
             <table class='table table-form'>
@@ -253,7 +268,7 @@ js::set('oldResolvedBuild'       , $bug->resolvedBuild);
               <tbody>
                 <tr class='text-top'>
                   <th class='thWidth'><?php echo $lang->bug->linkBug;?></th>
-                  <td><?php echo html::a($this->createLink('bug', 'linkBugs', "bugID=$bug->id", '', true), $lang->bug->linkBugs, '', "class='text-primary' data-toggle='modal' data-type='iframe' data-width='95%'");?></td>
+                  <td><?php if(common::hasPriv('bug', 'linkBugs')) echo html::a($this->createLink('bug', 'linkBugs', "bugID=$bug->id", '', true), $lang->bug->linkBugs, '', "class='text-primary' data-toggle='modal' data-type='iframe' data-width='95%'");?></td>
                 </tr>
                 <tr>
                   <th></th>
@@ -274,6 +289,10 @@ js::set('oldResolvedBuild'       , $bug->resolvedBuild);
                       <span id='linkBugsBox'></span>
                     </ul>
                   </td>
+                </tr>
+                <tr>
+                  <th><?php echo $lang->bug->testtask;?></th>
+                  <td id='testtaskBox'><?php echo html::select('testtask', $testtasks, $bug->testtask, 'class="form-control chosen"');?></td>
                 </tr>
                 <?php if($bug->case):?>
                 <tr>

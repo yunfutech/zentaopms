@@ -14,6 +14,26 @@ function convertStringToDate(dateString)
 }
 
 /**
+ * Get conflict stories.
+ *
+ * @param  int    $planID
+ * @param  int    $branch
+ * @access public
+ * @return void
+ */
+function getConflictStories(planID, branch)
+{
+    $.get(createLink('productplan', 'ajaxGetConflictStory', 'planID=' + planID + '&newBranch=' + branch), function(conflictStories)
+    {
+        if(conflictStories != '' && !confirm(conflictStories))
+        {
+            $('#branch').val(oldBranch[planID]);
+            $('#branch').trigger("chosen:updated");
+        }
+    });
+}
+
+/**
  * Compute the end date for productplan.
  *
  * @param  int    $delta
@@ -32,8 +52,8 @@ function computeEndDate(delta)
         delta = (weekend == 2) ? (delta - 2) : (delta - 1);
     }
 
-    currentBeginDate = beginDate.toString('yyyy-MM-dd');
-    endDate = beginDate.addDays(delta - 1).toString('yyyy-MM-dd');
+    currentBeginDate = $.zui.formatDate(beginDate, 'yyyy-MM-dd');
+    endDate = $.zui.formatDate(beginDate.addDays(delta - 1), 'yyyy-MM-dd');
 
     $('#begin').val(currentBeginDate);
     $('#end').val(endDate).datetimepicker('update');
@@ -43,8 +63,8 @@ $('#future').on('change', function()
 {
     if($(this).prop('checked'))
     {
-        $('#begin').val('').attr('disabled', 'disabled');
-        $('#end').val('').parents('tr').hide();
+        $('#begin').attr('disabled', 'disabled');
+        $('#end').parents('tr').hide();
     }
     else
     {

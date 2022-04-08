@@ -20,10 +20,11 @@
     </span>
   </div>
   <div class='pull-right btn-toolbar'>
-    <?php if($objectType == 'product') common::printLink('testreport', 'create', "objectID=0&objectType=testtask&productID=$objectID", "<i class='icon icon-plus'></i>" . $lang->testreport->create, '', "class='btn btn-primary'");?>
+    <?php if($objectType == 'product' and $canBeChanged) common::printLink('testreport', 'create', "objectID=0&objectType=testtask&productID=$objectID", "<i class='icon icon-plus'></i> " . $lang->testreport->create, '', "class='btn btn-primary'");?>
   </div>
 </div>
 <?php endif;?>
+
 <div id='mainContent' class='main-table'>
   <?php if(empty($reports)):?>
   <div class="table-empty-tip">
@@ -34,29 +35,25 @@
     <?php $vars = "objectID=$objectID&objectType=$objectType&extra=$extra&orderBy=%s&recTotal={$pager->recTotal}&recPerPage={$pager->recPerPage}";?>
     <thead>
       <tr class='text-center'>
-        <th class='w-id'>   <?php common::printOrderLink('id',          $orderBy, $vars, $lang->idAB);?></th>
+        <th class='c-id'><?php common::printOrderLink('id',          $orderBy, $vars, $lang->idAB);?></th>
         <th class='text-left'><?php common::printOrderLink('title',     $orderBy, $vars, $lang->testreport->title);?></th>
-        <th class='w-90px'> <?php common::printOrderLink('createdBy',   $orderBy, $vars, $lang->openedByAB);?></th>
-        <th class='w-150px'><?php common::printOrderLink('createdDate', $orderBy, $vars, $lang->testreport->createdDate);?></th>
-        <?php if($config->global->flow != 'onlyTest'):?>
-        <th class='w-250px text-left'><?php common::printOrderLink('project', $orderBy, $vars, $lang->testreport->project);?></th>
-        <?php endif;?>
-        <th class='w-250px text-left'><?php echo $lang->testreport->testtask;?></th>
-        <th class='c-actions-2'> <?php echo $lang->actions;?></th>
+        <th class='c-user'><?php common::printOrderLink('createdBy',   $orderBy, $vars, $lang->openedByAB);?></th>
+        <th class='c-full-date'><?php common::printOrderLink('createdDate', $orderBy, $vars, $lang->testreport->createdDate);?></th>
+        <th class='c-object text-left'><?php common::printOrderLink('project', $orderBy, $vars, $lang->testreport->execution);?></th>
+        <th class='c-object text-left'><?php echo $lang->testreport->testtask;?></th>
+        <th class='c-actions-2'><?php echo $lang->actions;?></th>
       </tr>
     </thead>
-    <?php if($reports):?>
     <tbody class='text-center'>
       <?php foreach($reports as $report):?>
       <tr>
-        <td><?php echo html::a(helper::createLink('testreport', 'view', "reportID=$report->id"), sprintf('%03d', $report->id));?></td>
-        <td class='text-left' title='<?php $report->title?>'><?php echo html::a(inlink('view', "reportID=$report->id&from=$objectType"), $report->title)?></td>
+        <?php $viewLink = helper::createLink('testreport', 'view', "reportID=$report->id");?>
+        <td><?php echo html::a($viewLink, sprintf('%03d', $report->id), '', "data-app='{$app->tab}'");?></td>
+        <td class='c-name'><?php echo html::a($viewLink, $report->title, '', "data-app='{$app->tab}' title='{$report->title}'")?></td>
         <td><?php echo zget($users, $report->createdBy);?></td>
         <td><?php echo substr($report->createdDate, 2);?></td>
-        <?php if($config->global->flow != 'onlyTest'):?>
-        <?php $projectName = $report->project ? '#' . $report->project . $projects[$report->project] : '';?>
-        <td class='text-left' title='<?php echo $projectName?>'><?php echo $projectName;?></td>
-        <?php endif;?>
+        <?php $executionName = $report->execution ? '#' . $report->execution . zget($executions, $report->execution, '') : '';?>
+        <td class='text-left' title='<?php echo $executionName?>'><?php echo $executionName;?></td>
         <?php
         $taskName = '';
         foreach(explode(',', $report->tasks) as $taskID) $taskName .= '#' . $taskID . $tasks[$taskID] . ' ';
@@ -64,16 +61,16 @@
         <td class='text-left' title='<?php echo $taskName?>'><?php echo $taskName;?></td>
         <td class='c-actions'>
           <?php
-          common::printIcon('testreport', 'edit', "id=$report->id", '', 'list');
-          common::printIcon('testreport', 'delete', "id=$report->id", '', 'list', 'trash', 'hiddenwin');
+          if(common::canBeChanged('report', $report))
+          {
+              common::printIcon('testreport', 'edit', "id=$report->id", '', 'list');
+              common::printIcon('testreport', 'delete', "id=$report->id", '', 'list', 'trash', 'hiddenwin');
+          }
           ?>
         </td>
       </tr>
       <?php endforeach;?>
     </tbody>
-    <?php else:?>
-    <tbody><tr><td colspan='7'><?php echo $lang->testreport->noReport;?></td></tr></tbody>
-    <?php endif;?>
   </table>
   <div class='table-footer'><?php $pager->show('right', 'pagerjs');?></div>
   <?php endif;?>

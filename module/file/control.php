@@ -78,8 +78,9 @@ class file extends control
                 if($uid) $_SESSION['album'][$uid][] = $fileID;
                 if(defined('RUN_MODE') && RUN_MODE == 'api')
                 {
+                    if($uid) $_SESSION['album']['used'][$uid][$fileID] = $fileID;
                     $_SERVER['SCRIPT_NAME'] = 'index.php';
-                    die(json_encode(array('status' => 'success', 'data' => commonModel::getSysURL() . $this->config->webRoot . $url)));
+                    return $this->send(array('status' => 'success', 'id' => $fileID, 'data' => commonModel::getSysURL() . $this->config->webRoot . $url));
                 }
                 else
                 {
@@ -91,7 +92,7 @@ class file extends control
                 $error = strip_tags(sprintf($this->lang->file->errorCanNotWrite, $this->file->savePath, $this->file->savePath));
                 if(defined('RUN_MODE') && RUN_MODE == 'api')
                 {
-                    die(json_encode(array('status' => 'error', 'message' => $error)));
+                    return $this->send(array('status' => 'error', 'message' => $error));
                 }
                 else
                 {
@@ -99,7 +100,7 @@ class file extends control
                 }
             }
         }
-        die(json_encode(array('status' => 'error', 'message' => $this->lang->file->uploadImagesExplain)));
+        return $this->send(array('status' => 'error', 'message' => $this->lang->file->uploadImagesExplain));
     }
 
     /**
@@ -114,6 +115,11 @@ class file extends control
     {
         if(session_id() != $this->app->sessionID) helper::restartSession($this->app->sessionID);
         $file = $this->file->getById($fileID);
+        if(empty($file))
+        {
+            if(defined('RUN_MODE') && RUN_MODE == 'api') return $this->send(array('status' => 'fail', 'code' => 404, 'message' => $this->lang->file->fileNotFound));
+            die("<html><head><meta charset='utf-8'></head><body>{$this->lang->file->fileNotFound}</body></html>");
+        }
 
         /* Judge the mode, down or open. */
         $mode      = 'down';
@@ -149,13 +155,13 @@ class file extends control
                 /* Down the file. */
                 $fileName = $file->title;
                 if(!preg_match("/\.{$file->extension}$/", $fileName)) $fileName .= '.' . $file->extension;
-                $fileData = file_get_contents($file->realPath);
-                $this->sendDownHeader($fileName, $file->extension, $fileData);
+                $this->sendDownHeader($fileName, $file->extension, $file->realPath, 'file');
             }
         }
         else
         {
-            die($this->lang->file->fileNotFound);
+            if(defined('RUN_MODE') && RUN_MODE == 'api') return $this->send(array('status' => 'fail', 'code' => 404, 'message' => $this->lang->file->fileNotFound));
+            die("<html><head><meta charset='utf-8'></head><body>{$this->lang->file->fileNotFound}</body></html>");
         }
     }
 
@@ -244,9 +250,9 @@ class file extends control
      * @access public
      * @return void
      */
-    public function sendDownHeader($fileName, $fileType, $content)
+    public function sendDownHeader($fileName, $fileType, $content, $type = 'content')
     {
-        $this->file->sendDownHeader($fileName, $fileType, $content);
+        $this->file->sendDownHeader($fileName, $fileType, $content, $type);
     }
 
     /**
@@ -280,13 +286,15 @@ class file extends control
      *
      * @param  array  $files
      * @param  string $fieldset
+     * @param  object $object
      * @access public
      * @return void
      */
-    public function printFiles($files, $fieldset)
+    public function printFiles($files, $fieldset, $object = null)
     {
         $this->view->files    = $files;
         $this->view->fieldset = $fieldset;
+        $this->view->object   = $object;
         $this->display();
     }
 
@@ -330,12 +338,9 @@ class file extends control
      * @access public
      * @return void
      */
-    public function ajaxPasteImage($uid = '')
+    public function ajaxPasteImg($uid = '')
     {
-        if($_POST)
-        {
-            echo $this->file->pasteImage($this->post->editor, $uid);
-        }
+        if($_POST) die($this->file->pasteImage($this->post->editor, $uid));
     }
 
     /**
@@ -458,7 +463,7 @@ class file extends control
         $obLevel = ob_get_level();
         for($i = 0; $i < $obLevel; $i++) ob_end_clean();
 
-        $mime = in_array($file->extension, $this->config->file->imageExtensions) ? "image/{$file->extension}" : $this->config->file->mimes['default'];
+        $mime = (isset($file->extension) and in_array($file->extension, $this->config->file->imageExtensions)) ? "image/{$file->extension}" : $this->config->file->mimes['default'];
         header("Content-type: $mime");
 
         $cacheMaxAge = 10 * 365 * 24 * 3600;

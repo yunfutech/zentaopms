@@ -64,6 +64,7 @@ class baseHelper
     {
         /* 设置$appName和$moduleName。Set appName and moduleName. */
         global $app, $config;
+
         if(strpos($moduleName, '.') !== false)
         {
             list($appName, $moduleName) = explode('.', $moduleName);
@@ -93,6 +94,7 @@ class baseHelper
             $link .= "?{$config->moduleVar}=$moduleName&{$config->methodVar}=$methodName";
             if($viewType != 'html') $link .= "&{$config->viewVar}=" . $viewType;
             foreach($vars as $key => $value) $link .= "&$key=$value";
+
             return self::processOnlyBodyParam($link, $onlyBody);
         }
 
@@ -159,7 +161,7 @@ class baseHelper
     {
         global $config;
         if(!$onlyBody and !self::inOnlyBodyMode()) return $link;
-        $onlybodyString = $config->requestType != 'GET' ? "?onlybody=yes" : "&onlybody=yes";
+        $onlybodyString = strpos($link, '?') === false ? "?onlybody=yes" : "&onlybody=yes";
         return $link . $onlybodyString;
     }
 
@@ -213,14 +215,12 @@ class baseHelper
     {
         if(is_array($idList))
         {
-            if(!function_exists('get_magic_quotes_gpc') or !get_magic_quotes_gpc())
-            {
-                foreach($idList as $key=>$value) $idList[$key] = addslashes($value);
-            }
+            foreach($idList as $key=>$value) $idList[$key] = addslashes($value);
             return "IN ('" . join("','", $idList) . "')";
         }
 
-        if(!function_exists('get_magic_quotes_gpc') or !get_magic_quotes_gpc()) $idList = addslashes($idList);
+        if(!is_string($idList)) $idList = json_encode($idList);
+        $idList = addslashes($idList);
         return "IN ('" . str_replace(',', "','", str_replace(' ', '', $idList)) . "')";
     }
 
@@ -263,7 +263,76 @@ class baseHelper
      */
     static public function jsonEncode($data)
     {
-        return (function_exists('get_magic_quotes_gpc') and get_magic_quotes_gpc()) ? addslashes(json_encode($data)) : json_encode($data);
+        return json_encode($data);
+    }
+
+    /**
+     * Encrypt password.
+     *
+     * @param  string    $password
+     * @static
+     * @access public
+     * @return string
+     */
+    public static function encryptPassword($password)
+    {
+        global $config;
+
+        $encrypted = '';
+        if(!empty($config->encryptSecret) and $password)
+        {
+            $secret = $config->encryptSecret;
+            if(function_exists('mcrypt_encrypt'))
+            {
+                $encrypted = base64_encode(@mcrypt_encrypt(MCRYPT_DES, substr($secret, 0, 8), $password, MCRYPT_MODE_CBC));
+            }
+            elseif(function_exists('openssl_encrypt'))
+            {
+                /* Set password length to multiple of 8. For compatible mcrypt_encrypt function. */
+                $oversize = strlen($password) % 8;
+                if($oversize != 0) $password .= str_repeat("\0", 8 - $oversize);
+
+                $encrypted = @openssl_encrypt($password, 'DES-CBC', substr($secret, 0, 8), OPENSSL_ZERO_PADDING);
+            }
+        }
+        if(empty($encrypted)) $encrypted = $password;
+
+        return $encrypted;
+    }
+
+    /**
+     * Decrypt password.
+     *
+     * @param  string $password
+     * @static
+     * @access public
+     * @return string
+     */
+    public static function decryptPassword($password)
+    {
+        global $config;
+
+        $decryptedPassword = '';
+        if(!empty($config->encryptSecret) and $password)
+        {
+            $secret = $config->encryptSecret;
+            if(function_exists('mcrypt_decrypt'))
+            {
+                $decryptedPassword = @mcrypt_decrypt(MCRYPT_DES, substr($secret, 0, 8), base64_decode($password), MCRYPT_MODE_CBC);
+            }
+            elseif(function_exists('openssl_decrypt'))
+            {
+                $decryptedPassword = openssl_decrypt($password, 'DES-CBC', substr($secret, 0, 8), OPENSSL_ZERO_PADDING);
+            }
+
+            /* Check decrypted password. Judge whether there is garbled code. */
+            $jsoned = json_encode($decryptedPassword);
+            if($jsoned === 'null' or empty($jsoned)) $decryptedPassword = '';
+        }
+        if(empty($decryptedPassword)) $decryptedPassword = $password;
+
+        $decryptedPassword = trim($decryptedPassword);
+        return $decryptedPassword;
     }
 
     /**
@@ -435,7 +504,12 @@ class baseHelper
      */
     static public function diffDate($date1, $date2)
     {
-        return round((strtotime($date1) - strtotime($date2)) / 86400, 0);
+        /* Get the timestamp in the current operating system. */
+        $date1 = new DateTime($date1);
+        $date2 = new DateTime($date2);
+        $date1 = date_format($date1, "U");
+        $date2 = date_format($date2, "U");
+        return round(($date1 - $date2) / 86400, 0);
     }
 
     /**
@@ -443,7 +517,7 @@ class baseHelper
      *  Get now time use the DT_DATETIME1 constant defined in the lang file.
      *
      * @access  public
-     * @return  datetime  now
+     * @return  string  now
      */
     static public function now()
     {
@@ -451,19 +525,11 @@ class baseHelper
     }
 
     /**
-     * 获取本周一
-     */
-    static public function monday()
-    {
-        return date(DT_DATE1, time() - (date('w', time()) - 1) * 60 * 60 * 24);
-    }
-
-    /**
      *  获取当前日期，使用common语言文件定义的DT_DATE1常量。
      *  Get today according to the  DT_DATE1 constant defined in the lang file.
      *
      * @access  public
-     * @return  date  today
+     * @return  string  today
      */
     static public function today()
     {
@@ -471,31 +537,15 @@ class baseHelper
     }
 
     /**
-     * 获取明天
-     */
-    static public function tomorrow()
-    {
-        return date(DT_DATE1, strtotime('+1 day'));
-    }
-
-    /**
      *  获取当前日期，使用common语言文件定义的DT_TIME1常量。
      *  Get now time use the DT_TIME1 constant defined in the lang file.
      *
      * @access  public
-     * @return  date  today
+     * @return  string  today
      */
     static public function time()
     {
         return date(DT_TIME1);
-    }
-
-    /**
-     * 获取当前小时
-     */
-    static public function hour()
-    {
-        return date(DT_TIME3);
     }
 
     /**
@@ -507,7 +557,7 @@ class baseHelper
      */
     static public function isZeroDate($date)
     {
-        return substr($date, 0, 4) == '0000';
+        return (empty($date) or substr($date, 0, 4) == '0000');
     }
 
     /**
@@ -536,7 +586,7 @@ class baseHelper
      * @access public
      * @return void
      */
-    static function cd($path = '')
+    static public function cd($path = '')
     {
         static $cwd = '';
         if($path) $cwd = getcwd();
@@ -620,15 +670,20 @@ class baseHelper
      * 获取远程IP。
      * Get remote ip.
      *
+     * @param  bool  $proxy
      * @access public
      * @return string
      */
-    public static function getRemoteIp()
+    public static function getRemoteIp($proxy = false)
     {
         $ip = '';
-        if(!empty($_SERVER["REMOTE_ADDR"]))          $ip = $_SERVER["REMOTE_ADDR"];
-        if(!empty($_SERVER["HTTP_X_FORWARDED_FOR"])) $ip = $_SERVER["HTTP_X_FORWARDED_FOR"];
-        if(!empty($_SERVER['HTTP_CLIENT_IP']))       $ip = $_SERVER['HTTP_CLIENT_IP'];
+        if(!empty($_SERVER["REMOTE_ADDR"])) $ip = $_SERVER["REMOTE_ADDR"];
+
+        if($proxy)
+        {
+            if(!empty($_SERVER["HTTP_X_FORWARDED_FOR"])) $ip = $_SERVER["HTTP_X_FORWARDED_FOR"];
+            if(!empty($_SERVER['HTTP_CLIENT_IP']))       $ip = $_SERVER['HTTP_CLIENT_IP'];
+        }
 
         return $ip;
     }
@@ -649,6 +704,37 @@ class baseHelper
         session_id($sessionID);
         session_start();
     }
+
+    /**
+     * Check DB to repair table.
+     *
+     * @param  object  $exception
+     * @static
+     * @access public
+     * @return string
+     */
+    public static function checkDB2Repair($exception)
+    {
+        global $config, $lang;
+
+        $repairCode = '|1034|1035|1194|1195|1459|';
+        $errorInfo  = $exception->errorInfo;
+        $errorCode  = $errorInfo[1];
+        $errorMsg   = $errorInfo[2];
+        $message    = $exception->getMessage();
+
+        if(strpos($repairCode, "|$errorCode|") !== false or ($errorCode == '1016' and strpos($errorMsg, 'errno: 145') !== false) or strpos($message, 'repair') !== false)
+        {
+            if(isset($config->framework->autoRepairTable) and $config->framework->autoRepairTable)
+            {
+                header("location: " . $config->webRoot . 'checktable.php');
+                exit;
+            }
+            return $lang->repairTable;
+        }
+
+        return null;
+    }
 }
 
 //------------------------------- 常用函数。Some tool functions.-------------------------------//
@@ -662,10 +748,10 @@ class baseHelper
  * @param  string        $viewType
  * @return string the link string.
  */
-function inLink($methodName = 'index', $vars = '', $viewType = '')
+function inLink($methodName = 'index', $vars = '', $viewType = '', $onlybody = false)
 {
     global $app;
-    return helper::createLink($app->getModuleName(), $methodName, $vars, $viewType);
+    return helper::createLink($app->getModuleName(), $methodName, $vars, $viewType, $onlybody);
 }
 
 /**
@@ -762,14 +848,14 @@ function getWebRoot($full = false)
 
 /**
  * 当数组/对象变量$var存在$key项时，返回存在的对应值或设定值，否则返回$key或不存在的设定值。
- * When the $var has the $key, return it, esle result one default value.
+ * When the $var has the $key, return it, else result one default value.
  *
  * @param  array|object    $var
  * @param  string|int      $key
  * @param  mixed           $valueWhenNone     value when the key not exits.
  * @param  mixed           $valueWhenExists   value when the key exits.
  * @access public
- * @return string
+ * @return mixed
  */
 function zget($var, $key, $valueWhenNone = false, $valueWhenExists = false)
 {
@@ -786,4 +872,69 @@ function zget($var, $key, $valueWhenNone = false, $valueWhenExists = false)
 
     if($valueWhenNone !== false) return $valueWhenNone;
     return $key;
+}
+
+/**
+ * Is https.
+ *
+ * @access public
+ * @return bool
+ */
+function isHttps()
+{
+    if(!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') return true;
+    if(isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') return true;
+    if(!empty($_SERVER['HTTP_FRONT_END_HTTPS']) && strtolower($_SERVER['HTTP_FRONT_END_HTTPS']) !== 'off') return true;
+    return false;
+}
+
+/**
+ * Compatibility for htmlspecialchars.
+ *
+ * @param  string $string
+ * @param  int    $flags
+ * @param  string $encoding
+ * @access public
+ * @return string
+ */
+function htmlSpecialString($string, $flags = '', $encoding = 'UTF-8')
+{
+    if(!$flags) $flags = defined('ENT_SUBSTITUTE') ? ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401 : ENT_QUOTES;
+    return htmlspecialchars($string, $flags, $encoding);
+}
+
+if (!function_exists('array_column'))
+{
+    function array_column(array $input, $columnKey, $indexKey = null)
+    {
+        $output = array();
+
+        foreach ($input as $row) {
+            $key = $value = null;
+            $keySet = $valueSet = false;
+
+            if (null !== $indexKey && array_key_exists($indexKey, $row)) {
+                $keySet = true;
+                $key = (string) $row[$indexKey];
+            }
+
+            if (null === $columnKey) {
+                $valueSet = true;
+                $value = $row;
+            } elseif (\is_array($row) && \array_key_exists($columnKey, $row)) {
+                $valueSet = true;
+                $value = $row[$columnKey];
+            }
+
+            if ($valueSet) {
+                if ($keySet) {
+                    $output[$key] = $value;
+                } else {
+                    $output[] = $value;
+                }
+            }
+        }
+
+        return $output;
+    }
 }

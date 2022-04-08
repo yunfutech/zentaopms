@@ -30,8 +30,8 @@ html[lang="en"] .product-info .type-info {color: #A6AAB8; text-align: center; po
 .product-info .type-value {font-size: 14px;}
 .product-info .type-value > strong {font-size: 20px; color: #3C4353;}
 .product-info .actions {position: absolute; left: 10px; top: 14px;}
-.block-statistic .panel-body {padding-top: 0}
-.block-statistic .panel-body {padding-top: 0}
+.block-statistic .panel-body {padding-top: 0;}
+.block-statistic .panel-body {padding-top: 0;}
 .block-statistic .tile {margin-bottom: 30px;}
 .block-statistic .tile-title {font-size: 18px; color: #A6AAB8;}
 .block-statistic .tile-amount {font-size: 48px; margin-bottom: 10px;}
@@ -46,8 +46,8 @@ html[lang="en"] .product-info .type-info {color: #A6AAB8; text-align: center; po
 .block-statistic .nav-secondary > li > a:first-child:hover {box-shadow: none; border-radius: 4px 0 0 4px;}
 .block-statistic .nav-secondary > li.active > a:first-child:before {content: ' '; display: block; left: -1px; top: 10px; bottom: 10px; width: 4px; background: #006af1; position: absolute;}
 .block-statistic .nav-secondary > li > a.btn-view {position: absolute; top: 0; right: 0; bottom: 0; padding: 8px; width: 36px; text-align: center; opacity: 0; background: rgba(0,0,0,.05)}
-.block-statistic .nav-secondary > li.active > a.btn-view {box-shadow: none}
-.block-statistic .nav-secondary > li:hover > a.btn-view {opacity: 1}
+.block-statistic .nav-secondary > li.active > a.btn-view {box-shadow: none;}
+.block-statistic .nav-secondary > li:hover > a.btn-view {opacity: 1;}
 .block-statistic .nav-secondary > li.switch-icon {display: none;}
 .block-statistic.block-sm .panel-body {padding-bottom: 10px; position: relative; padding-top: 45px;}
 .block-statistic.block-sm .panel-body > .table-row,
@@ -57,7 +57,7 @@ html[lang="en"] .product-info .type-info {color: #A6AAB8; text-align: center; po
 .block-statistic.block-sm .tab-pane > .table-row > .col-5 > .table-row {padding: 5px 0;}
 .block-statistic.block-sm .col-nav {border-left: none; position: absolute; top: 0; left: 15px; right: 15px; background: #f5f5f5; border-radius: 3px;}
 .block-statistic.block-sm .nav-secondary {display: table; width: 100%; padding: 0; table-layout: fixed;}
-.block-statistic.block-sm .nav-secondary > li {display: none}
+.block-statistic.block-sm .nav-secondary > li {display: none;}
 .block-statistic.block-sm .nav-secondary > li.switch-icon,
 .block-statistic.block-sm .nav-secondary > li.active {display: table-cell; width: 100%; text-align: center;}
 .block-statistic.block-sm .nav-secondary > li.active > a:hover {cursor: default; background: none;}
@@ -66,13 +66,13 @@ html[lang="en"] .product-info .type-info {color: #A6AAB8; text-align: center; po
 .block-statistic.block-sm .nav-secondary > li > a:before {display: none;}
 .block-statistic.block-sm .nav-secondary > li.switch-icon {width: 40px;}
 .block-statistic.block-sm .types-line > li > div {padding: 18px 2px 5px;}
-.block-statistic.block-sm .nav-secondary > li.active > a:first-child:before {display: none}
+.block-statistic.block-sm .nav-secondary > li.active > a:first-child:before {display: none;}
 .block-statistic.block-sm .nav-secondary > li.active > a.btn-view {width: auto; left: 0; right: 0;}
 .block-statistic.block-sm .nav-secondary > li.active > a.btn-view > i {display: none;}
-.block-statistic.block-sm .nav-secondary > li.active > a.btn-view:hover {cursor: pointer; background: rgba(0,0,0,.1)}
+.block-statistic.block-sm .nav-secondary > li.active > a.btn-view:hover {cursor: pointer; background: rgba(0,0,0,.1);}
 
-.status-count{margin:auto}
-.status-count tr:first-child td:last-child{color:#000;font-weight:bold}
+.status-count {margin:auto;}
+.status-count tr:first-child td:last-child {color:#000;font-weight:bold;}
 </style>
 <script>
 <?php $blockNavId = 'nav-' . uniqid(); ?>
@@ -108,8 +108,10 @@ $(function()
     <div class="col col-nav">
       <ul class="nav nav-stacked nav-secondary scrollbar-hover" id='<?php echo $blockNavId;?>'>
         <li class='switch-icon prev'><a><i class='icon icon-arrow-left'></i></a></li>
+        <?php $selected = empty($_SESSION['product'])  ? key($products) : $this->session->product;?>
+        <?php $selected = !isset($products[$selected]) ? key($products) : $selected;?>
         <?php foreach($products as $product):?>
-        <li <?php if($product->id == $this->session->product) echo "class='active' id='activeProduct'";?> productID='<?php echo $product->id;?>'>
+        <li <?php if($product->id == $selected) echo "class='active' id='activeProduct'";?> productID='<?php echo $product->id;?>'>
           <a href="javascript:;" data-target="#tabProduct<?php echo $product->id;?>" data-toggle="tab" title='<?php echo $product->name;?>'><?php echo $product->name;?></a>
           <?php echo html::a(helper::createLink('product', 'browse', "productID=$product->id"), "<i class='icon-arrow-right text-primary'></i>", '', "class='btn-view' title={$lang->product->browse}");?></li>
         <?php endforeach;?>
@@ -118,11 +120,11 @@ $(function()
     </div>
     <div class="col tab-content">
       <?php foreach($products as $product):?>
-      <div class="tab-pane fade <?php if($product == reset($products)) echo 'active';?> in" id="tabProduct<?php echo $product->id;?>">
+      <div class="tab-pane fade <?php if($product->id == $selected) echo 'active in';?>" id="tabProduct<?php echo $product->id;?>">
         <div class="table-row">
           <div class="col-6 text-middle">
             <div class="tile">
-              <div class="tile-title"><?php echo $lang->story->total;?></div>
+              <div class="tile-title"><?php echo $lang->SRCommon;?></div>
               <?php if($product->stories):?>
               <div class="tile-amount"><?php echo array_sum($product->stories);?></div>
               <?php common::printLink('product', 'browse', "productID={$product->id}&branch=&type=allstory", $lang->story->viewAll . '<span class="label label-badge label-icon"><i class="icon icon-arrow-right"></i></span>', '', 'class="btn btn-primary btn-circle btn-icon-right btn-sm"');?>
@@ -155,7 +157,7 @@ $(function()
               </div>
               <?php else:?>
               <div class="actions">
-                <?php common::printLink('productplan', 'create', "productID={$product->id}", "<i class='icon icon-plus'></i>" . $lang->productplan->create, '', "class='btn btn-info'");?>
+                <?php common::printLink('productplan', 'create', "productID={$product->id}", "<i class='icon icon-plus'></i> " . $lang->productplan->create, '', "class='btn btn-info'");?>
               </div>
               <?php endif;?>
               <div class="type-info">
@@ -166,42 +168,8 @@ $(function()
                       <td class='text-left'><?php echo empty($totalPlan) ? 0 : html::a($this->createLink('productplan', 'browse', "productID={$product->id}&branch=0&browseType=all"), $totalPlan);?></td>
                     </tr>
                     <tr>
-                      <td class='text-right'><?php echo $lang->productplan->featureBar['browse']['unexpired'];?> :</td>
+                      <td class='text-right'><?php echo $lang->productplan->unexpired;?> :</td>
                       <td class='text-left'><?php echo empty($unexpiredPlan) ? 0 : html::a($this->createLink('productplan', 'browse', "productID={$product->id}&branch=0&browseType=unexpired"), $unexpiredPlan);?></td>
-                    </tr>
-                  </table>
-                </div>
-              </div>
-            </div>
-            <div class="product-info">
-              <?php $totalProject = $product->projects ? zget($product->projects, 'all', 0) : 0;?>
-              <?php $undoneProject = $product->projects ? zget($product->projects, 'undone', 0) : 0;?>
-              <?php $delayProject = $product->projects ? zget($product->projects, 'delay', 0) : 0;?>
-              <?php $undoneRate    = $totalProject ? round($undoneProject / $totalProject * 100, 2) : 0;?>
-              <?php if($totalProject):?>
-              <div class="progress-info">
-                <?php if($delayProject):?>
-                <i class="icon icon-exclamation-sign text-danger icon-sm"></i> <span class="text-muted"><?php echo $lang->project->delayed;?></span> <strong><?php echo $delayProject;?></strong>
-                <?php endif;?>
-              </div>
-              <div class="progress">
-                <div class="progress-bar" role="progressbar" aria-valuenow="<?php echo $undoneRate;?>" aria-valuemin="0" aria-valuemax="100" style="width: <?php echo $undoneRate;?>%"></div>
-              </div>
-              <?php else:?>
-              <div class="actions">
-                <?php common::printLink('project', 'create', '', "<i class='icon icon-plus'></i>" . $lang->project->create, '', "class='btn btn-info'");?>
-              </div>
-              <?php endif;?>
-              <div class="type-info">
-                <div class="type-label">
-                  <table class='status-count'>
-                    <tr>
-                      <td class='text-right'><?php echo $lang->project->allProjects;?> :</td>
-                      <td class='text-left'><?php echo empty($totalProject) ? 0 : html::a($this->createLink('product', 'project', "type=all&product={$product->id}"), $totalProject);?></td>
-                    </tr>
-                    <tr>
-                      <td class='text-right'><?php echo $lang->project->statusList['doing'];?> :</td>
-                      <td class='text-left'><?php echo empty($undoneProject) ? 0 : html::a($this->createLink('product', 'project', "type=undone&product={$product->id}"), $undoneProject);?></td>
                     </tr>
                   </table>
                 </div>
@@ -222,7 +190,7 @@ $(function()
               </div>
               <?php else:?>
               <div class="actions">
-                <?php common::printLink('release', 'create', "productID={$product->id}", "<i class='icon icon-plus'></i>" . $lang->release->create, '', "class='btn btn-info'");?>
+                <?php common::printLink('release', 'create', "productID={$product->id}", "<i class='icon icon-plus'></i> " . $lang->release->create, '', "class='btn btn-info'");?>
               </div>
               <?php endif;?>
               <div class="type-info">

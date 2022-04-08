@@ -13,7 +13,7 @@
 <?php include '../../common/view/header.html.php';?>
 <div id="mainMenu" class="clearfix">
   <div class="btn-toolbar pull-left">
-    <?php echo html::a($this->createLink('bug', 'browse', "productID=$productID&branch=0&browseType=$browseType&moduleID=$moduleID"), "<i class='icon icon-back icon-sm'> </i>" . $lang->goback, '', "class='btn btn-link'");?>
+    <?php echo html::a($this->createLink('bug', 'browse', "productID=$productID&branch=0&browseType=$browseType&moduleID=$moduleID"), "<i class='icon icon-back icon-sm'> </i> " . $lang->goback, '', "class='btn btn-link'");?>
     <div class='divider'></div>
     <div class='page-title'>
       <span class='text'><?php echo $lang->bug->report->common;?></span>
@@ -62,7 +62,7 @@
                 <tr>
                   <th class='chart-label' colspan='2'><?php echo $lang->report->item;?></th>
                   <th class='w-50px text-right'><?php echo $lang->report->value;?></th>
-                  <th class='w-50px'><?php echo $lang->report->percent;?></th>
+                  <th class='w-60px text-right'><?php echo $lang->report->percent;?></th>
                 </tr>
               </thead>
               <?php foreach($datas[$chartType] as $key => $data):?>

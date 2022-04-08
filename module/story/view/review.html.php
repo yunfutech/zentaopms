@@ -12,9 +12,6 @@
 ?>
 <?php include './header.html.php';?>
 <?php include '../../common/view/datepicker.html.php';?>
-<script>
-var assignedTo = '<?php print($product->PO);?>';
-</script>
 <div class='main-content' id='mainContent'>
   <div class='center-block'>
     <div class='main-header'>
@@ -32,7 +29,7 @@ var assignedTo = '<?php print($product->PO);?>';
         </tr>
         <tr>
           <th><?php echo $lang->story->reviewResult;?></th>
-          <td class = 'required'><?php echo html::select('result', $lang->story->reviewResultList, '', 'class=form-control onchange="switchShow(this.value)"');?></td><td></td>
+          <td class = 'required'><?php echo html::select('result', $lang->story->resultList, '', 'class=form-control onchange="switchShow(this.value)"');?></td><td></td>
         </tr>
         <tr id='rejectedReasonBox' class='hide'>
           <th><?php echo $lang->story->rejectedReason;?></th>
@@ -60,19 +57,11 @@ var assignedTo = '<?php print($product->PO);?>';
           <td colspan='2'><?php echo html::radio('preVersion', array_combine(range($story->version - 1, 1), range($story->version - 1, 1)), $story->version - 1);?></td>
         </tr>
         <?php endif;?>
-        <tr>
-          <th><?php echo $lang->story->assignedTo;?></th>
-          <td><?php echo html::select('assignedTo', $users, $product->PO, "class='form-control chosen'");?></td><td></td>
-        </tr>
         <tr class='hide'>
           <th><?php echo $lang->story->status;?></th>
           <td><?php echo html::hidden('status', $story->status);?></td>
         </tr>
         <?php $this->printExtendFields($story, 'table');?>
-        <tr>
-          <th><?php echo $lang->story->reviewedBy;?></th>
-          <td colspan='2'><?php echo html::select('reviewedBy[]', $users, $product->director, "class='form-control' multiple data-placeholder='{$lang->story->chosen->reviewedBy}' disabled");?></td>
-        </tr>
         <tr>
           <th><?php echo $lang->story->comment;?></th>
           <td colspan='2'><?php echo html::textarea('comment', '', "rows='8' class='form-control'");?></td>
@@ -84,7 +73,7 @@ var assignedTo = '<?php print($product->PO);?>';
         <tr>
           <td colspan='3' class='text-center form-actions'>
           <?php echo html::submitButton();?>
-          <?php echo html::linkButton($lang->goback, $app->session->storyList ? $app->session->storyList : inlink('view', "storyID=$story->id"), 'self', '', 'btn btn-wide');?>
+          <?php if(!isonlybody()) echo html::backButton();?>
           </td>
         </tr>
       </table>
@@ -94,4 +83,6 @@ var assignedTo = '<?php print($product->PO);?>';
   </div>
 </div>
 <?php js::set('storyID', $story->id);?>
+<?php js::set('storyType', $story->type);?>
+<?php js::set('rawModule', $this->app->rawModule);?>
 <?php include '../../common/view/footer.html.php';?>

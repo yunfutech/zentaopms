@@ -12,13 +12,13 @@
 class extensionModel extends model
 {
     /**
-     * The extension manager version. Don't change it. 
+     * The extension manager version. Don't change it.
      */
     const EXT_MANAGER_VERSION = '1.3';
 
     /**
      * The api root.
-     * 
+     *
      * @var string
      * @access public
      */
@@ -26,7 +26,7 @@ class extensionModel extends model
 
     /**
      * The construct function.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -39,7 +39,7 @@ class extensionModel extends model
 
     /**
      * Set the apiRoot.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -50,8 +50,8 @@ class extensionModel extends model
 
     /**
      * Fetch data from an api.
-     * 
-     * @param  string    $url 
+     *
+     * @param  string    $url
      * @access public
      * @return mixed
      */
@@ -83,7 +83,7 @@ class extensionModel extends model
 
     /**
      * Get extension modules from the api.
-     * 
+     *
      * @access public
      * @return string|bool
      */
@@ -91,7 +91,7 @@ class extensionModel extends model
     {
         $requestType = $this->config->requestType;
         $webRoot     = helper::safe64Encode($this->config->webRoot, '', false, true);
-        $apiURL      = $this->apiRoot . 'apiGetmodules-' . $requestType . '-' . $webRoot . '.json';
+        $apiURL      = $this->apiRoot . 'apiGetmodules-' . helper::safe64Encode($requestType) . '-' . $webRoot . '.json';
         $data = $this->fetchAPI($apiURL);
         if(isset($data->modules)) return $data->modules;
         return false;
@@ -99,9 +99,9 @@ class extensionModel extends model
 
     /**
      * Get extensions by some condition.
-     * 
-     * @param  string    $type 
-     * @param  mixed     $param 
+     *
+     * @param  string    $type
+     * @param  mixed     $param
      * @access public
      * @return array|bool
      */
@@ -123,8 +123,8 @@ class extensionModel extends model
 
     /**
      * Get versions for some extensions.
-     * 
-     * @param  string    $extensions 
+     *
+     * @param  string    $extensions
      * @access public
      * @return array|bool
      */
@@ -139,8 +139,8 @@ class extensionModel extends model
 
     /**
      * Check incompatible extension
-     * 
-     * @param  array    $versions 
+     *
+     * @param  array    $versions
      * @access public
      * @return array
      */
@@ -154,23 +154,9 @@ class extensionModel extends model
     }
 
     /**
-     * Download an extension.
-     * 
-     * @param  string    $extension 
-     * @param  string    $downLink 
-     * @access public
-     * @return void
-     */
-    public function downloadPackage($extension, $downLink)
-    {
-        $packageFile = $this->getPackageFile($extension);
-        file_put_contents($packageFile, common::http($downLink));
-    }
-
-    /**
      * Get extensions by status.
-     * 
-     * @param  string    $status 
+     *
+     * @param  string    $status
      * @access public
      * @return array
      */
@@ -186,8 +172,8 @@ class extensionModel extends model
 
     /**
      * Get extension info from database.
-     * 
-     * @param  string    $extension 
+     *
+     * @param  string    $extension
      * @access public
      * @return object
      */
@@ -198,8 +184,8 @@ class extensionModel extends model
 
     /**
      * Get info of an extension from the package file.
-     * 
-     * @param  string    $extension 
+     *
+     * @param  string    $extension
      * @access public
      * @return object
      */
@@ -229,8 +215,8 @@ class extensionModel extends model
 
     /**
      * Parse extension's config file.
-     * 
-     * @param  string    $extension 
+     *
+     * @param  string    $extension
      * @access public
      * @return object
      */
@@ -243,7 +229,7 @@ class extensionModel extends model
         if(file_exists($infoFile)) return (object)parse_ini_file($infoFile);
 
         /**
-         * Then try parse yaml file. since 2.5 version.  
+         * Then try parse yaml file. since 2.5 version.
          */
 
         /* Try the yaml of current lang, then try en. */
@@ -269,9 +255,9 @@ class extensionModel extends model
     }
 
     /**
-     * Get the full path of the zip file of a extension. 
-     * 
-     * @param  string    $extension 
+     * Get the full path of the zip file of a extension.
+     *
+     * @param  string    $extension
      * @access public
      * @return string
      */
@@ -281,15 +267,15 @@ class extensionModel extends model
     }
 
     /**
-     * Get pathes from an extension package.
-     * 
-     * @param  string    $extension 
+     * Get paths from an extension package.
+     *
+     * @param  string    $extension
      * @access public
      * @return array
      */
-    public function getPathesFromPackage($extension)
+    public function getPathsFromPackage($extension)
     {
-        $pathes = array();
+        $paths = array();
         $packageFile = $this->getPackageFile($extension);
 
         /* Get files from the package file. */
@@ -303,20 +289,20 @@ class extensionModel extends model
                 $file = (object)$file;
                 if($file->folder) continue;
                 $file->filename = substr($file->filename, strpos($file->filename, '/') + 1);
-                $pathes[] = dirname($file->filename);
+                $paths[] = dirname($file->filename);
             }
         }
 
-        /* Append the pathes to stored the extracted files. */
-        $pathes[] = "module/extension/ext/";
+        /* Append the paths to stored the extracted files. */
+        $paths[] = "module/extension/ext/";
 
-        return array_unique($pathes);
+        return array_unique($paths);
     }
 
     /**
      * Get all files from a package.
-     * 
-     * @param  string    $extension 
+     *
+     * @param  string    $extension
      * @access public
      * @return array
      */
@@ -328,9 +314,9 @@ class extensionModel extends model
     }
 
     /**
-     * Get the extension's condition. 
-     * 
-     * @param  string    $extenstion 
+     * Get the extension's condition.
+     *
+     * @param  string    $extenstion
      * @access public
      * @return object
      */
@@ -355,8 +341,8 @@ class extensionModel extends model
 
     /**
      * Process license. If is opensource return the full text of it.
-     * 
-     * @param  string    $license 
+     *
+     * @param  string    $license
      * @access public
      * @return string
      */
@@ -372,9 +358,9 @@ class extensionModel extends model
 
     /**
      * Get hook file for install or uninstall.
-     * 
-     * @param  string    $extension 
-     * @param  string    $hook      preinstall|postinstall|preuninstall|postuninstall 
+     *
+     * @param  string    $extension
+     * @param  string    $hook      preinstall|postinstall|preuninstall|postuninstall
      * @access public
      * @return string|bool
      */
@@ -387,9 +373,9 @@ class extensionModel extends model
 
     /**
      * Get the install db file.
-     * 
-     * @param  string    $extension 
-     * @param  string    $method 
+     *
+     * @param  string    $extension
+     * @param  string    $method
      * @access public
      * @return string
      */
@@ -400,7 +386,7 @@ class extensionModel extends model
 
     /**
      * Check the download path.
-     * 
+     *
      * @access public
      * @return object   the check result.
      */
@@ -436,12 +422,12 @@ class extensionModel extends model
 
     /**
      * Check extension files.
-     * 
-     * @param  string    $extension 
+     *
+     * @param  string    $extension
      * @access public
      * @return object    the check result.
      */
-    public function checkExtensionPathes($extension)
+    public function checkExtensionPaths($extension)
     {
         $return = new stdclass();
         $return->result        = 'ok';
@@ -451,8 +437,8 @@ class extensionModel extends model
         $return->dirs2Created  = array();
 
         $appRoot = $this->app->getAppRoot();
-        $pathes  = $this->getPathesFromPackage($extension);
-        foreach($pathes as $path)
+        $paths  = $this->getPathsFromPackage($extension);
+        foreach($paths as $path)
         {
             if($path == 'db' or $path == 'doc' or $path == 'hook') continue;
             $path = $appRoot . $path;
@@ -485,8 +471,8 @@ class extensionModel extends model
 
     /**
      * Check the extension's version is compatibility for zentao version
-     * 
-     * @param  string    $version 
+     *
+     * @param  string    $version
      * @access public
      * @return bool
      */
@@ -500,8 +486,8 @@ class extensionModel extends model
 
     /**
      * Check files in the package conflicts with exists files or not.
-     * 
-     * @param  string    $extension 
+     *
+     * @param  string    $extension
      * @param  string    $type
      * @param  bool      $isCheck
      * @access public
@@ -528,12 +514,12 @@ class extensionModel extends model
 
     /**
      * Extract an extension.
-     * 
-     * @param  string    $extension 
+     *
+     * @param  string    $extension
      * @access public
      * @return object
      */
-    public function extractPackage($extension) 
+    public function extractPackage($extension)
     {
         $return = new stdclass();
         $return->result = 'ok';
@@ -559,9 +545,9 @@ class extensionModel extends model
     }
 
     /**
-     * Copy package files. 
-     * 
-     * @param  int    $extension 
+     * Copy package files.
+     *
+     * @param  int    $extension
      * @access public
      * @return array
      */
@@ -569,14 +555,17 @@ class extensionModel extends model
     {
         $appRoot      = $this->app->getAppRoot();
         $extensionDir = "ext/$extension/";
-        $pathes       = scandir($extensionDir);
+        $paths       = scandir($extensionDir);
         $copiedFiles  = array();
 
-        foreach($pathes as $path)
+        foreach($paths as $path)
         {
             if($path == 'db' or $path == 'doc' or $path == 'hook' or $path == '..' or $path == '.') continue;
-            $copiedFiles = $this->classFile->copyDir($extensionDir . $path, $appRoot . $path);
+
+            $result      = $this->classFile->copyDir($extensionDir . $path, $appRoot . $path, true);
+            $copiedFiles = zget($result, 'copiedFiles', array());
         }
+
         foreach($copiedFiles as $key => $copiedFile)
         {
             $copiedFiles[$copiedFile] = md5_file($copiedFile);
@@ -587,8 +576,8 @@ class extensionModel extends model
 
     /**
      * Remove an extension.
-     * 
-     * @param  string    $extension 
+     *
+     * @param  string    $extension
      * @access public
      * @return array     the remove commands need executed manually.
      */
@@ -626,7 +615,8 @@ class extensionModel extends model
             rsort($dirs);    // remove from the lower level directory.
             foreach($dirs as $dir)
             {
-                if(!is_writable($appRoot . $dir) or !rmdir($appRoot . $dir)) $removeCommands[] = "rmdir $appRoot$dir";
+                if(!is_dir($appRoot . $dir)) continue;
+                if(!rmdir($appRoot . $dir)) $removeCommands[] = "rmdir $appRoot$dir"; // fix bug #2965
             }
         }
 
@@ -638,7 +628,7 @@ class extensionModel extends model
 
     /**
      * Clean model cache files.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -650,8 +640,8 @@ class extensionModel extends model
 
     /**
      * Erase an extension's package file.
-     * 
-     * @param  string    $extension 
+     *
+     * @param  string    $extension
      * @access public
      * @return array     the remove commands need executed manually.
      */
@@ -681,9 +671,9 @@ class extensionModel extends model
 
     /**
      * Judge need execute db install or not.
-     * 
-     * @param  string    $extension 
-     * @param  string    $method 
+     *
+     * @param  string    $extension
+     * @param  string    $method
      * @access public
      * @return bool
      */
@@ -694,8 +684,8 @@ class extensionModel extends model
 
     /**
      * Install the db.
-     * 
-     * @param  int    $extension 
+     *
+     * @param  int    $extension
      * @access public
      * @return object
      */
@@ -722,7 +712,7 @@ class extensionModel extends model
             {
                 $this->dbh->query($sql);
             }
-            catch(PDOException $e) 
+            catch(PDOException $e)
             {
                 $errorInfo = $e->errorInfo;
                 $errorCode = $errorInfo[1];
@@ -734,9 +724,9 @@ class extensionModel extends model
     }
 
     /**
-     * Backup db when uninstall extension. 
-     * 
-     * @param  string    $extension 
+     * Backup db when uninstall extension.
+     *
+     * @param  string    $extension
      * @access public
      * @return bool|string
      */
@@ -765,14 +755,14 @@ class extensionModel extends model
             $backupFile = $this->app->getTmpRoot() . $extension . '.' . date('Ymd') . '.sql';
             $result     = $zdb->dump($backupFile, $backupTables);
             if($result->result) return $backupFile;
-            return false; 
+            return false;
         }
-        return false; 
+        return false;
     }
 
     /**
      * Save the extension to database.
-     * 
+     *
      * @param  string    $extension     the extension code
      * @param  string    $type          the extension type
      * @access public
@@ -791,10 +781,10 @@ class extensionModel extends model
 
     /**
      * Update an extension.
-     * 
-     * @param  string    $extension 
-     * @param  string    $status 
-     * @param  array     $files 
+     *
+     * @param  string    $extension
+     * @param  string    $status
+     * @param  array     $files
      * @access public
      * @return void
      */
@@ -830,8 +820,8 @@ class extensionModel extends model
 
     /**
      * Check depends extension.
-     * 
-     * @param  string    $extension 
+     *
+     * @param  string    $extension
      * @access public
      * @return array
      */
@@ -853,10 +843,10 @@ class extensionModel extends model
 
     /**
      * Compare for limit data.
-     * 
-     * @param  string $version 
-     * @param  array  $limit 
-     * @param  string $type 
+     *
+     * @param  string $version
+     * @param  array  $limit
+     * @param  string $type
      * @access public
      * @return void
      */
@@ -882,20 +872,22 @@ class extensionModel extends model
 
     /**
      * Get extension expire date.
-     * 
-     * @param  int    $extension 
+     *
+     * @param  int    $extension
      * @access public
-     * @return void
+     * @return string
      */
     public function getExpireDate($extension)
     {
         $licencePath = $this->app->getConfigRoot() . 'license/';
         $today       = date('Y-m-d');
-        $expireDate  = '';
+        $expiredDate = '';
 
-        $licenceOrderFiles = glob($licencePath . 'order*' . $extension->code . $extension->version . '.txt');
+        $licenceOrderFiles = glob($licencePath . 'order*.txt');
         foreach($licenceOrderFiles as $licenceOrderFile)
         {
+            if(stripos($licenceOrderFile, "{$extension->code}{$extension->version}.txt") === false) continue;
+
             $order = file_get_contents($licenceOrderFile);
             $order = unserialize($order);
             if($order->type != 'life')
@@ -903,11 +895,15 @@ class extensionModel extends model
                 $days = isset($order->days) ? $order->days : 0;
                 if($order->type == 'demo') $days = 31;
                 if($order->type == 'year') $days = 365;
-                $startDate  = $order->paidDate != '0000-00-00 00:00:00' ? $order->paidDate : $order->createdDate;
-                if($days) $expireDate = date('Y-m-d', strtotime($startDate) + $days * 24 * 3600);
+                $startDate  = !helper::isZeroDate($order->paidDate) ? $order->paidDate : $order->createdDate;
+                if($days) $expiredDate = date('Y-m-d', strtotime($startDate) + $days * 24 * 3600);
+            }
+            else
+            {
+                $expiredDate = $order->type;
             }
         }
 
-        return $expireDate;
+        return $expiredDate;
     }
 }

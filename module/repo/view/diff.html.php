@@ -3,7 +3,7 @@
  * The diff view file of repo module of ZenTaoPMS.
  *
  * @copyright   Copyright 2009-2012 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
- * @author      Wang Yidong, Zhu Jinyong 
+ * @author      Wang Yidong, Zhu Jinyong
  * @package     repo
  * @version     $Id: browse.html.php $
  */
@@ -18,30 +18,31 @@
     $backURI = $this->session->repoView ? $this->session->repoView : $this->session->repoList;
     if($backURI)
     {
-        echo html::a($backURI, "<i class='icon icon-back icon-sm'></i>" . $lang->goback, '', "class='btn btn-link'");
+        echo html::a($backURI, "<i class='icon icon-back icon-sm'></i> " . $lang->goback, '', "class='btn btn-link' data-app='{$app->tab}'");
     }
     else
     {
-        echo html::backButton("<i class='icon icon-back icon-sm'></i>" . $lang->goback, '', "btn btn-link");
+        echo html::backButton("<i class='icon icon-back icon-sm'></i> " . $lang->goback, '', "btn btn-link");
     }
     ?>
     <div class="divider"></div>
     <div class="page-title">
       <?php
-      echo html::a($this->repo->createLink('browse', "repoID=$repoID"), $repo->name);
-      $paths= explode('/', $entry);
-      $fileName = array_pop($paths);
-      $postPath = '';
+      echo html::a($this->repo->createLink('browse', "repoID=$repoID&branchID=&objectID=$objectID"), $repo->name, '', "data-app='{$app->tab}'");
+      $paths          = explode('/', $entry);
+      $fileName       = array_pop($paths);
+      $postPath       = '';
+      $base64BranchID = base64_encode($branchID);
       foreach($paths as $pathName)
       {
           $postPath .= $pathName . '/';
-          echo '/' . ' ' . html::a($this->repo->createLink('browse', "repoID=$repoID", "path=" . $this->repo->encodePath($postPath)), trim($pathName, '/'));
+          echo '/' . ' ' . html::a($this->repo->createLink('browse', "repoID=$repoID&branchID=$base64BranchID&objectID=$objectID&path=" . $this->repo->encodePath($postPath)), trim($pathName, '/'), '', "data-app='{$app->tab}'");
       }
       echo '/' . ' ' . $fileName;
-      if($repo->SCM == 'Git')
+      if(strpos($repo->SCM, 'Subversion') === false)
       {
           $oldRevision = $oldRevision == '^' ? "$newRevision" : $oldRevision;
-          echo " <span class='label label-info'>" . substr($oldRevision, 0, 10) . " : " . substr($newRevision, 0, 10) . ' (' . $historys[$oldRevision] . ' : ' . $historys[$newRevision] . ')</span>';
+          echo " <span class='label label-info'>" . substr($oldRevision, 0, 10) . " : " . substr($newRevision, 0, 10) . ' (' . zget($historys, $oldRevision, '') . ' : ' . zget($historys, $newRevision, '') . ')</span>';
       }
       else
       {
@@ -63,7 +64,7 @@
       </div>
       <div class='btn-toolbar'>
         <div class='btn-group'>
-          <?php if(common::hasPriv('repo', 'download')) echo html::a($this->repo->createLink('download', "repoID=$repoID&path=&fromRevison=$oldRevision&toRevision=$newRevision&type=path", "path=" . $this->repo->encodePath($entry)), $lang->repo->downloadDiff, 'hiddenwin', "class='btn btn-sm btn-download'");?>
+          <?php if(common::hasPriv('repo', 'download')) echo html::a($this->repo->createLink('download', "repoID=$repoID&path=" . $this->repo->encodePath($entry) . "&fromRevison=$oldRevision&toRevision=$newRevision&type=path"), $lang->repo->downloadDiff, 'hiddenwin', "class='btn btn-sm btn-download'");?>
           <div class='btn-group'>
             <?php echo html::commonButton(zget($lang->repo->encodingList, $encoding, $lang->repo->encoding) . "<span class='caret'></span>", "data-toggle='dropdown'", 'btn dropdown-toggle btn-sm')?>
             <ul class='dropdown-menu' role='menu'>
@@ -103,7 +104,7 @@
         <th class='w-num text-right'><?php if($line->type != 'new') echo $line->oldlc?></th>
         <th class='w-num text-left'><?php if($line->type != 'old') echo $line->newlc?></th>
         <td class='line-<?php echo $line->type?> code'><?php
-        $line->line = $repo->SCM == 'Subversion' ? htmlspecialchars($line->line) : $line->line;
+        $line->line = $repo->SCM == 'Subversion' ? htmlSpecialString($line->line) : $line->line;
         echo $line->type == 'old' ? preg_replace('/^\-/', '&ndash;', $line->line) : ($line->type == 'new' ? $line->line : ' ' . $line->line);
         ?></td>
       </tr>
@@ -120,7 +121,7 @@
             {
                 $newlc = $line->oldlc;
                 $line->type = 'custom';
-            } 
+            }
         }
         else
         {
@@ -132,13 +133,13 @@
         <th class='w-num text-right'><?php echo $oldlc?></th>
         <td class='w-code line-<?php if($line->type != 'new')echo $line->type?> <?php if($line->type == 'custom') echo "line-old"?> code'><?php
         if(!isset($content->old[$oldlc])) $content->old[$oldlc] = '';
-        $content->old[$oldlc] = $repo->SCM == 'Subversion' ? htmlspecialchars($content->old[$oldlc]) : $content->old[$oldlc];
+        $content->old[$oldlc] = $repo->SCM == 'Subversion' ? htmlSpecialString($content->old[$oldlc]) : $content->old[$oldlc];
         if(!empty($oldlc)) echo $line->type != 'all' ? preg_replace('/^\-/', '&ndash;', $content->old[$oldlc]) : ' ' . $content->old[$oldlc];
         ?></td>
         <th class='w-num text-right'><?php echo $newlc?></th>
         <td class='w-code line-<?php if($line->type != 'old') echo $line->type?> <?php if($line->type == 'custom') echo "line-new"?> code'><?php
         if(!isset($content->new[$newlc])) $content->new[$newlc] = '';
-        $content->new[$newlc] = $repo->SCM == 'Subversion' ? htmlspecialchars($content->new[$newlc]) : $content->new[$newlc];
+        $content->new[$newlc] = $repo->SCM == 'Subversion' ? htmlSpecialString($content->new[$newlc]) : $content->new[$newlc];
         if(!empty($newlc)) echo $line->type != 'all' ? $content->new[$newlc] : ' ' . $content->new[$newlc];
         ?></td>
         <?php
@@ -155,7 +156,7 @@
 </div>
 <div class='revisions hidden'>
   <?php
-  if($repo->SCM == 'Git')
+  if(strpos($repo->SCM, 'Subversion') === false)
   {
       $oldRevision = $oldRevision == '^' ? "$newRevision" : $oldRevision;
       echo " <span class='label label-info'>" . substr($oldRevision, 0, 10) . " : " . substr($newRevision, 0, 10) . ' (' . $historys[$oldRevision] . ' : ' . $historys[$newRevision] . ')</span>';

@@ -1,77 +1,43 @@
 /**
- * Load project related builds
- * 
+ * Load execution related builds
+ *
  * @access public
  * @return void
  */
 function loadProductRelated()
 {
-    loadProjectBuilds(parseInt($('#project').val()));
+    loadExecutions($('#product').val());
+    loadTestReports($('#product').val());
+    buildData = '<select id="build" name="build" class="form-control"></select>';
+    $('#build').replaceWith(buildData);
+    $('#build_chosen').remove();
+    $("#build").chosen();
+    $('#build').trigger("chosen:updated");
 }
 
 /**
- * Load project related builds
- * 
- * @param  int    $projectID 
+ * Load executions.
+ *
+ * @param  int    productID
  * @access public
  * @return void
  */
-function loadProjectRelated(projectID)
+function loadExecutions(productID)
 {
-    loadProjectBuilds(projectID);
-}
-
-/**
- * Load project builds.
- * 
- * @param  int $projectID 
- * @access public
- * @return void
- */
-function loadProjectBuilds(projectID)
-{
-    selectedBuild = $('#build').val();
-    if(!selectedBuild) selectedBuild = 0;
-    link = createLink('build', 'ajaxGetProjectBuilds', 'projectID=' + projectID + '&productID=' + $('#product').val() + '&varName=testTaskBuild&build=' + selectedBuild);
-    $('#buildBox').load(link, function(){$('#build').chosen();});
-}
-
-/**
- * Convert a date string like 2011-11-11 to date object in js.
- * 
- * @param  string $date 
- * @access public
- * @return date
- */
-function convertStringToDate(dateString)
-{
-    dateString = dateString.split('-');
-    dateString = dateString[1] + '/' + dateString[2] + '/' + dateString[0];
-    
-    return Date.parse(dateString);
-}
-
-/**
- * when begin date input change and end date input is null
- * change end date input to begin's after day
- * 
- * @access public
- * @return void
- */
-function suitEndDate()
-{
-    beginDate = $('#begin').val();
-    if(!beginDate) return;
-    endDate = $('#end').val();
-    if(endDate) return;
-    
-    endDate = convertStringToDate(beginDate).addDays(1).toString('yyyy-MM-dd');
-    $('#end').val(endDate);
+    link = createLink('product', 'ajaxGetExecutions', 'productID=' + productID + '&projectID=' + projectID + '&branch=');
+    $.get(link, function(data)
+    {
+        if(!data) data = '<select id="execution" name="execution" class="form-control"></select>';
+        $('#execution').replaceWith(data);
+        $('#execution_chosen').remove();
+        $("#execution").chosen();
+    });
 }
 
 /* If the mouse hover over the manage contacts button, give tip. */
 $(function()
 {
     adjustPriBoxWidth();
-    if($('#project').val()) loadProjectBuilds($('#project').val());
+    loadTestReports($('#product').val());
+    if($('#execution').val() != 0) loadExecutionBuilds($('#execution').val());
 });

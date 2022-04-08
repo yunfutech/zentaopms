@@ -9,7 +9,7 @@
  * @version     $Id: en.php 4129 2013-01-18 01:58:14Z wwccss $
  * @link        http://www.zentao.net
  */
-$lang->release->common           = 'Release';
+$lang->release->common           = 'Product Release';
 $lang->release->create           = "Erstellen";
 $lang->release->edit             = "Bearbeiten";
 $lang->release->linkStory        = "Story verknüpfen";
@@ -35,6 +35,7 @@ $lang->release->basicInfo = 'Basis Info';
 $lang->release->id            = 'ID';
 $lang->release->product       = $lang->productCommon;
 $lang->release->branch        = 'Platform/Branch';
+$lang->release->project       = 'Project';
 $lang->release->build         = 'Build';
 $lang->release->name          = 'Name';
 $lang->release->marker        = 'Meilensteine';
@@ -55,6 +56,9 @@ $lang->release->createdBugs   = 'Erstellte %s Bugs';
 $lang->release->export        = 'Export as HTML';
 $lang->release->yesterday     = 'Gestern veröffentlicht';
 $lang->release->all           = 'All';
+$lang->release->notify        = 'Notify';
+$lang->release->notifyUsers   = 'Notify Users';
+$lang->release->mailto        = 'Mailto';
 
 $lang->release->filePath = 'Download : ';
 $lang->release->scmPath  = 'SCM Pfad : ';
@@ -72,4 +76,11 @@ $lang->release->changeStatusList['normal']    = 'Aktiviert';
 $lang->release->changeStatusList['terminate'] = 'Terminiert';
 
 $lang->release->action = new stdclass();
-$lang->release->action->changestatus = array('main' => '$date, 由 <strong>$actor</strong> $extra。', 'extra' => 'changeStatusList');
+$lang->release->action->changestatus = array('main' => '$date, $extra by  <strong>$actor</strong>.', 'extra' => 'changeStatusList');
+$lang->release->action->notified     = array('main' => '$date, <strong>$actor</strong> send notify.');
+
+$lang->release->notifyList['PO'] = "{$lang->productCommon} Owner";
+$lang->release->notifyList['QD'] = 'QA Manager';
+$lang->release->notifyList['SC'] = 'Story Creator';
+$lang->release->notifyList['ET'] = "{$lang->execution->common} Team Members";
+$lang->release->notifyList['PT'] = "Project Team Members";

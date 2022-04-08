@@ -21,11 +21,11 @@ include dirname(__FILE__) . '/base/control.class.php';
 class control extends baseControl
 {
     /**
-     * Check requiredFields and set exportFields for workflow. 
-     * 
-     * @param  string $moduleName 
-     * @param  string $methodName 
-     * @param  string $appName 
+     * Check requiredFields and set exportFields for workflow.
+     *
+     * @param  string $moduleName
+     * @param  string $methodName
+     * @param  string $appName
      * @access public
      * @return void
      */
@@ -33,11 +33,14 @@ class control extends baseControl
     {
         parent::__construct($moduleName, $methodName, $appName);
 
-        if(!defined('IN_INSTALL') and !defined('IN_UPGRADE')) $this->setConcept();
+        $this->app->setOpenApp();
+
+        if(defined('IN_USE') or (defined('RUN_MODE') and RUN_MODE != 'api')) $this->setPreference();
 
         if(!isset($this->config->bizVersion)) return false;
+
         /* Code for task #9224. Set requiredFields for workflow. */
-        if($this->dbh and $this->moduleName != 'upgrade' and $this->moduleName != 'install')
+        if($this->dbh and (defined('IN_USE') or (defined('RUN_MODE') and RUN_MODE == 'api')))
         {
             $this->checkRequireFlowField();
 
@@ -58,25 +61,65 @@ class control extends baseControl
                     }
                 }
             }
+
+            /* Append editor field to this module config from workflow. */
+            $textareaFields = $this->dao->select('*')->from(TABLE_WORKFLOWFIELD)->where('module')->eq($this->moduleName)->andWhere('control')->eq('richtext')->andWhere('buildin')->eq('0')->fetchAll('field');
+            if($textareaFields)
+            {
+                $editorIdList = array();
+                foreach($textareaFields as $textareaField) $editorIdList[] = $textareaField->field;
+
+                if(!isset($this->config->{$this->moduleName})) $this->config->{$this->moduleName} = new stdclass();
+                if(!isset($this->config->{$this->moduleName}->editor)) $this->config->{$this->moduleName}->editor = new stdclass();
+                if(!isset($this->config->{$this->moduleName}->editor->{$this->methodName})) $this->config->{$this->moduleName}->editor->{$this->methodName} = array('id' => '', 'tools' => 'simpleTools');
+                $this->config->{$this->moduleName}->editor->{$this->methodName}['id'] .= ',' . join(',', $editorIdList);
+                trim($this->config->{$this->moduleName}->editor->{$this->methodName}['id'], ',');
+            }
+
+            /* If workflow is created by a normal user, set priv. */
+            if(isset($this->app->user) and !$this->app->user->admin)
+            {
+                $actions = $this->dao->select('module, action')->from(TABLE_WORKFLOWACTION)->where('createdBy')->eq($this->app->user->account)->andWhere('buildin')->eq('0')->fetchGroup('module');
+                $labels  = $this->dao->select('module, code')->from(TABLE_WORKFLOWLABEL)->where('createdBy')->eq($this->app->user->account)->andWhere('buildin')->eq('0')->fetchGroup('module');
+                if(!empty($actions))
+                {
+                    foreach($actions as $module => $actionObj)
+                    {
+                        foreach($actionObj as $action) $this->app->user->rights['rights'][$module][$action->action] = 1;
+                    }
+                }
+
+                if(!empty($labels))
+                {
+                    foreach($labels as $module => $codeObj)
+                    {
+                        foreach($codeObj as $code)
+                        {
+                            $code = str_replace('browse', '', $code->code);
+                            $this->app->user->rights['rights'][$module][$code] = 1;
+                        }
+                    }
+                }
+            }
         }
     }
 
     /**
-     * Go to concept setting page if concept not setted.
-     * 
+     * Go to preference setting page if preference not setted.
+     *
      * @access public
      * @return void
      */
-    public function setConcept()
+    public function setPreference()
     {
-        if(empty($this->app->user->admin)) return true;
+        if(empty($this->app->user->account)) return true;
         if($this->app->getModuleName() == 'user' and strpos("login,logout", $this->app->getMethodName()) !== false) return true;
         if($this->app->getModuleName() == 'my' and $this->app->getMethodName() == 'changepassword') return true;
+        if($this->app->getModuleName() == 'my' and $this->app->getMethodName() == 'preference') return true;
 
-        if($this->app->getModuleName() == 'custom' and $this->app->getMethodName() == 'flow') return true;
-        if(!isset($this->config->conceptSetted)) 
+        if(!isset($this->config->preferenceSetted))
         {
-            $this->locate(helper::createLink('custom', 'flow'));
+            $this->locate(helper::createLink('my', 'preference'));
         }
     }
 
@@ -187,13 +230,13 @@ class control extends baseControl
 
         /**
          * 切换到视图文件所在的目录，以保证视图文件里面的include语句能够正常运行。
-         * Change the dir to the view file to keep the relative pathes work.
+         * Change the dir to the view file to keep the relative paths work.
          */
         $currentPWD = getcwd();
         chdir(dirname($viewFile));
 
         /**
-         * 使用extract安定ob方法渲染$viewFile里面的代码。
+         * 使用extract和ob方法渲染$viewFile里面的代码。
          * Use extract and ob functions to eval the codes in $viewFile.
          */
         extract((array)$this->view);
@@ -221,9 +264,8 @@ class control extends baseControl
     {
         if(!isset($this->config->bizVersion)) return false;
 
-        $flow   = $this->loadModel('workflow')->getByModule($this->moduleName);
-        $action = $this->loadModel('workflowaction')->getByModuleAndAction($this->moduleName, $this->methodName);
-        if($flow && $action) $this->loadModel('workflowhook')->execute($flow, $action, $objectID);
+        $moduleName = $this->moduleName;
+        return $this->$moduleName->executeHooks($objectID);
     }
 
     /**
@@ -279,7 +321,7 @@ class control extends baseControl
 
     /**
      * Check require with flow field when post data.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -288,27 +330,120 @@ class control extends baseControl
         if(!isset($this->config->bizVersion)) return false;
         if(empty($_POST)) return false;
 
-        $fields       = $this->loadModel('workflowaction')->getFields($this->moduleName, $this->methodName);
-        $layouts      = $this->loadModel('workflowlayout')->getFields($this->moduleName, $this->methodName);
-        $notEmptyRule = $this->loadModel('workflowrule')->getByTypeAndRule('system', 'notempty');
+        $flow    = $this->dao->select('*')->from(TABLE_WORKFLOW)->where('module')->eq($this->moduleName)->fetch();
+        $fields  = $this->loadModel('workflowaction')->getFields($this->moduleName, $this->methodName);
+        $layouts = $this->loadModel('workflowlayout')->getFields($this->moduleName, $this->methodName);
+        $rules   = $this->dao->select('*')->from(TABLE_WORKFLOWRULE)->orderBy('id_desc')->fetchAll('id');
 
         $requiredFields = '';
+        $mustPostFields = '';
+        $numberFields   = '';
+        $message        = array();
         foreach($fields as $field)
         {
-            if($field->buildin or !$field->show or !isset($layouts[$field->field])) continue;
-            if($notEmptyRule && strpos(",$field->rules,", ",$notEmptyRule->id,") !== false) $requiredFields .= ",{$field->field}";
+            if(!empty($field->buildin)) continue;
+            if(empty($field->show)) continue;
+            if(!isset($layouts[$field->field])) continue;
+
+            $fieldRules = explode(',', trim($field->rules, ','));
+            $fieldRules = array_unique($fieldRules);
+            foreach($fieldRules as $ruleID)
+            {
+                if(!isset($rules[$ruleID])) continue;
+                if(!empty($_POST[$field->field]) and !is_string($_POST[$field->field])) continue;
+
+                $rule = $rules[$ruleID];
+                if($rule->type == 'system' and $rule->rule == 'notempty')
+                {
+                    $requiredFields .= ",{$field->field}";
+                    if($field->control == 'radio' or $field->control == 'checkbox') $mustPostFields .= ",{$field->field}";
+                    if(strpos($field->type, 'int') !== false and $field->control == 'select') $numberFields .= ",{$field->field}";
+                }
+                elseif($rule->type == 'system' and isset($_POST[$field->field]))
+                {
+                    $pass = true;
+                    if($rule->rule == 'unique')
+                    {
+                        if(!empty($_POST[$field->field]))
+                        {
+                            $sqlClass = new sql();
+                            $sql      = "SELECT COUNT(*) AS count FROM $flow->table WHERE `$field->field` = " . $sqlClass->quote(fixer::input('post')->get($field->field));
+                            if(isset($_POST['id'])) $sql .= ' AND `id` != ' . (int)$_POST['id'];
+
+                            $row = $this->dbh->query($sql)->fetch();
+                            if($row->count != 0) $pass = false;
+                        }
+                    }
+                    else
+                    {
+                        $checkFunc = 'check' . $rule->rule;
+                        if(validater::$checkFunc($_POST[$field->field]) === false) $pass = false;
+                    }
+
+                    if(!$pass)
+                    {
+                        $error = zget($this->lang->error, $rule->rule, '');
+                        if($rule->rule == 'unique') $error = sprintf($error, $field->name, $_POST[$field->field]);
+                        if($error) $error = sprintf($error, $field->name);
+                        if(empty($error)) $error = sprintf($this->lang->error->reg, $field->name, $rule->rule);
+
+                        $message[$field->field][] = $error;
+                    }
+                }
+                elseif($rule->type == 'regex' and isset($_POST[$field->field]))
+                {
+                    if(validater::checkREG($_POST[$field->field], $rule->rule) === false) $message[$field->field][] = sprintf($this->lang->error->reg, $field->name, $rule->rule);
+                }
+            }
         }
 
         if($requiredFields)
         {
             if(isset($this->config->{$this->moduleName}->{$this->methodName}->requiredFields)) $requiredFields .= ',' . $this->config->{$this->moduleName}->{$this->methodName}->requiredFields;
 
-            $message = array();
             foreach(explode(',', $requiredFields) as $requiredField)
             {
-                if(isset($_POST[$requiredField]) and $_POST[$requiredField] === '')$message[$requiredField] = sprintf($this->lang->error->notempty, $fields[$requiredField]->name);
+                if(empty($requiredField)) continue;
+                if(!isset($fields[$requiredField])) continue;
+                if(isset($_POST[$requiredField]) and $_POST[$requiredField] === '')
+                {
+                    $message[$requiredField][] = sprintf($this->lang->error->notempty, $fields[$requiredField]->name);
+                }
+                elseif(strpos(",{$numberFields},", ",{$requiredField},") !== false and empty($_POST[$requiredField]))
+                {
+                    $message[$requiredField][] = sprintf($this->lang->error->notempty, $fields[$requiredField]->name);
+                }
+                elseif(strpos(",{$mustPostFields},", ",{$requiredField},") !== false and !isset($_POST[$requiredField]))
+                {
+                    $message[$requiredField][] = sprintf($this->lang->error->notempty, $fields[$requiredField]->name);
+                }
             }
-            if($message) $this->send(array('result' => 'fail', 'message' => $message));
         }
+        if($message) $this->send(array('result' => 'fail', 'message' => $message));
+    }
+
+    /**
+     * Print view file.
+     *
+     * @param  string    $viewFile
+     * @access public
+     * @return void
+     */
+    public function printViewFile($viewFile)
+    {
+        if(!file_exists($viewFile)) return false;
+
+        $currentPWD = getcwd();
+        chdir(dirname($viewFile));
+
+        extract((array)$this->view);
+        ob_start();
+        include $viewFile;
+        $output = ob_get_contents();
+        ob_end_clean();
+
+        chdir($currentPWD);
+
+        return $output;
     }
 }

@@ -23,7 +23,7 @@
 <script>
 function setDownloading()
 {
-    if($.browser.opera) return true;   // Opera don't support, omit it.
+    if(navigator.userAgent.toLowerCase().indexOf("opera") > -1) return true;   // Opera don't support, omit it.
 
     var $fileName = $('#fileName');
     if($fileName.val() === '') $fileName.val('<?php echo $lang->file->untitled;?>');
@@ -84,8 +84,16 @@ function setTemplate(templateID)
     var exportFields = $template.size() > 0 ? $template.html() : defaultExportFields;
     exportFields = exportFields.split(',');
     $('#exportFields').val('');
-    for(i in exportFields) $('#exportFields').find('option[value="' + exportFields[i] + '"]').attr('selected', 'selected');
-    $('#exportFields').trigger("chosen:updated");
+
+    var optionHtml = '';
+    for(i in exportFields)
+    {
+        $selectedOption = $('#exportFields').find('option[value="' + exportFields[i] + '"]');
+        optionHtml += $selectedOption.attr('selected', 'selected').prop('outerHTML');
+        $selectedOption.remove();
+    }
+    $('#exportFields option').each(function(){optionHtml += $(this).removeAttr('selected').prop('outerHTML')});
+    $('#exportFields').html(optionHtml).trigger("chosen:updated");
 }
 
 /* Delete template. */
@@ -110,6 +118,78 @@ function setExportTPL()
     $('#customFields').toggleClass('hidden');
 }
 
+/**
+ * Set whether part download.
+ * 
+ * @param  input target
+ * @access public
+ * @return void
+ */
+function setPart(target)
+{
+    if($(target).prop("checked"))
+    {
+        $("#submit").attr("onclick", 'setPartDownloading();');
+    }
+    else
+    {
+        $("#submit").attr("onclick", 'setDownloading();');
+    }
+}
+
+var partQueue = new Array();
+
+/**
+ * Set part down and begin the first part down.
+ * 
+ * @access public
+ * @return void
+ */
+function setPartDownloading()
+{
+    var partNum = 10000;
+    var total   = $('.pager', window.parent.document).data('rec-total');
+    for(var i = 0; i < total; i = i + partNum)
+    {
+        partQueue.push(i + ',' + partNum);
+    }
+    $.cookie('downloading', 0);
+    $('#mainContent').addClass('loading');
+    $("#limit").val(partQueue.shift());
+    $("#submit").attr("onclick", 'startPartDownloading();');
+    time = setInterval(function()
+    {
+        startPartDownloading();
+    }, 1000);
+}
+
+/**
+ * Start follow-up part down.
+ * 
+ * @access public
+ * @return void
+ */
+function startPartDownloading()
+{
+    if($.cookie('downloading') == 1)
+    {
+        var limit = partQueue.shift();
+        if(limit)
+        {
+            $.cookie('downloading', 0);
+            $("#limit").val(limit);
+            $("#submit").attr("disabled", false).click();
+        }
+        else
+        {
+            $('#mainContent').removeClass('loading');
+            parent.$.closeModal();
+            $.cookie('downloading', null);
+            clearInterval(time);
+        }
+    } 
+}
+
 $(document).ready(function()
 {
     $(document).on('change', '#template', function()
@@ -124,6 +204,30 @@ $(document).ready(function()
         $('#exportType').val('selected').trigger('chosen:updated');
     }, 150);
     <?php endif;?>
+
+    if($('#customFields #exportFields').length > 0)
+    {
+        $('#customFields #exportFields').change(function()
+        {
+            setTimeout(function()
+            {
+                var optionHtml = '';
+                var selected   = ',';
+                $('#customFields #exportFields_chosen .chosen-choices li.search-choice').each(function(i)
+                {
+                    index = $(this).find('.search-choice-close').data('option-array-index');
+                    optionHtml += $('#exportFields option').eq(index).attr('selected', 'selected').prop("outerHTML");
+                    $(this).find('.search-choice-close').attr('data-option-array-index', i);
+                    selected += index + ',';
+                })
+                $('#exportFields option').each(function(i)
+                {
+                    if(selected.indexOf(',' + i + ',') < 0) optionHtml += $(this).removeAttr('selected').prop("outerHTML");
+                })
+                $('#exportFields').html(optionHtml).trigger('chosen:updated');
+            }, 100);
+        })
+    }
 });
 </script>
 <?php
@@ -155,7 +259,7 @@ if($isCustomExport)
         <table class="table table-form">
           <tbody>
             <tr>
-              <th class='w-120px'><?php echo $lang->file->fileName;?></th>
+              <th class='w-230px'><?php echo $lang->file->fileName;?></th>
               <td class="w-300px"><?php echo html::input('fileName', isset($fileName) ? $fileName : '', "class='form-control' autofocus placeholder='{$lang->file->untitled}'");?></td>
               <td></td>
             </tr>
@@ -173,6 +277,10 @@ if($isCustomExport)
               <td>
                 <?php if(isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'calendar') !== false) unset($lang->exportTypeList['selected']);?>
                 <?php echo html::select('exportType', $lang->exportTypeList, 'all', "class='form-control'");?>
+              </td>
+              <td class='checkbox part hidden'>
+                <?php echo html::checkbox('part', array( 1 => $lang->file->batchExport), '', "onclick='setPart(this);'");?>
+                <?php echo html::hidden('limit', '');?>
               </td>
             </tr>
             <?php if($isCustomExport):?>
@@ -213,7 +321,7 @@ if($isCustomExport)
             <?php endif?>
             <tr>
               <th></th>
-              <td>
+              <td class='text-center'>
                 <?php echo html::submitButton($lang->export, "onclick='setDownloading();'", 'btn btn-primary');?>
               </td>
             </tr>

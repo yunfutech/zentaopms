@@ -22,11 +22,21 @@
     </div>
   </div>
   <?php
-  $visibleFields = array();
+  $visibleFields  = array();
+  $requiredFields = array();
   foreach(explode(',', $showFields) as $field)
   {
-      if(strpos(",{$config->user->customBatchCreateFields},", ",{$field},") === false) continue;
+      if(strpos(",{$config->user->availableBatchCreateFields},", ",{$field},") === false) continue;
       if($field) $visibleFields[$field] = '';
+  }
+
+  foreach(explode(',', $config->user->create->requiredFields) as $field)
+  {
+      if($field)
+      {
+          $requiredFields[$field] = '';
+          if(strpos(",{$config->user->availableBatchCreateFields},", ",{$field},") !== false) $visibleFields[$field] = '';
+      }
   }
   $minWidth = (count($visibleFields) > 5) ? 'w-150px' : '';
   ?>
@@ -35,27 +45,27 @@
       <table class="table table-form">
         <thead>
           <tr class='text-center'>
-            <th class='w-40px'><?php echo $lang->idAB;?></th> 
-            <th class='w-150px<?php echo zget($visibleFields, 'dept', ' hidden')?>'><?php echo $lang->user->dept;?></th>
+            <th class='c-id'><?php echo $lang->idAB;?></th>
+            <th class='c-dept<?php echo zget($visibleFields, 'dept', ' hidden') . zget($requiredFields, 'dept', '', ' required');?>'>              <?php echo $lang->user->dept;?></th>
             <th class='accountThWidth required'><?php echo $lang->user->account;?></th>
-            <th class='w-130px required'><?php echo $lang->user->realname;?></th>
-            <th class='w-120px'><?php echo $lang->user->role;?></th>
-            <th class='w-120px'><?php echo $lang->user->group;?></th>
-            <th class='<?php echo zget($visibleFields, 'email', "$minWidth hidden", $minWidth)?>'><?php echo $lang->user->email;?></th>
+            <th class='c-realname required'><?php echo $lang->user->realname;?></th>
+            <th class='c-role<?php echo zget($requiredFields, 'role', '', ' required')?>'><?php echo $lang->user->role;?></th>
+            <th class='c-group'><?php echo $lang->user->group;?></th>
+            <th class='<?php echo zget($visibleFields, 'email', "$minWidth hidden", $minWidth) . zget($requiredFields, 'email', '', ' required')?>'><?php echo $lang->user->email;?></th>
             <th class='genderThWidth<?php echo zget($visibleFields, 'gender', ' hidden')?>'><?php echo $lang->user->gender;?></th>
             <th class="<?php echo $minWidth;?> required"><?php echo $lang->user->password;?></th>
-            <th class='w-120px<?php echo zget($visibleFields, 'commiter', ' hidden')?>'><?php echo $lang->user->commiter;?></th>
-            <th class='w-120px<?php echo zget($visibleFields, 'join', ' hidden')?>'>    <?php echo $lang->user->join;?></th>
-            <th class='w-120px<?php echo zget($visibleFields, 'skype', ' hidden')?>'>   <?php echo $lang->user->skype;?></th>
-            <th class='w-120px<?php echo zget($visibleFields, 'qq', ' hidden')?>'>      <?php echo $lang->user->qq;?></th>
-            <th class='w-120px<?php echo zget($visibleFields, 'dingding', ' hidden')?>'><?php echo $lang->user->dingding;?></th>
-            <th class='w-120px<?php echo zget($visibleFields, 'weixin', ' hidden')?>'>  <?php echo $lang->user->weixin;?></th>
-            <th class='w-120px<?php echo zget($visibleFields, 'mobile', ' hidden')?>'>  <?php echo $lang->user->mobile;?></th>
-            <th class='w-120px<?php echo zget($visibleFields, 'slack', ' hidden')?>'>   <?php echo $lang->user->slack;?></th>
-            <th class='w-120px<?php echo zget($visibleFields, 'whatsapp', ' hidden')?>'><?php echo $lang->user->whatsapp;?></th>
-            <th class='w-120px<?php echo zget($visibleFields, 'phone', ' hidden')?>'>   <?php echo $lang->user->phone;?></th>
-            <th class='w-120px<?php echo zget($visibleFields, 'address', ' hidden')?>'> <?php echo $lang->user->address;?></th>
-            <th class='w-120px<?php echo zget($visibleFields, 'zipcode', ' hidden')?>'> <?php echo $lang->user->zipcode;?></th>
+            <th class='c-commiter<?php echo zget($visibleFields, 'commiter', ' hidden') . zget($requiredFields, 'commiter', '', ' required')?>'>       <?php echo $lang->user->commiter;?></th>
+            <th class='c-join<?php echo zget($visibleFields, 'join', ' hidden')?>'>    <?php echo $lang->user->join;?></th>
+            <th class='c-contact<?php echo zget($visibleFields, 'skype', ' hidden')?>'>   <?php echo $lang->user->skype;?></th>
+            <th class='c-contact<?php echo zget($visibleFields, 'qq', ' hidden')?>'>      <?php echo $lang->user->qq;?></th>
+            <th class='c-contact<?php echo zget($visibleFields, 'dingding', ' hidden')?>'><?php echo $lang->user->dingding;?></th>
+            <th class='c-contact<?php echo zget($visibleFields, 'weixin', ' hidden')?>'>  <?php echo $lang->user->weixin;?></th>
+            <th class='c-contact<?php echo zget($visibleFields, 'mobile', ' hidden')?>'>  <?php echo $lang->user->mobile;?></th>
+            <th class='c-contact<?php echo zget($visibleFields, 'slack', ' hidden')?>'>   <?php echo $lang->user->slack;?></th>
+            <th class='c-contact<?php echo zget($visibleFields, 'whatsapp', ' hidden')?>'><?php echo $lang->user->whatsapp;?></th>
+            <th class='c-contact<?php echo zget($visibleFields, 'phone', ' hidden')?>'>   <?php echo $lang->user->phone;?></th>
+            <th class='c-contact<?php echo zget($visibleFields, 'address', ' hidden')?>'> <?php echo $lang->user->address;?></th>
+            <th class='c-contact<?php echo zget($visibleFields, 'zipcode', ' hidden')?>'> <?php echo $lang->user->zipcode;?></th>
           </tr>
         </thead>
         <tbody>
@@ -77,7 +87,7 @@
             <?php
             echo html::input("password[$i]", '', "class='form-control' onkeyup='toggleCheck(this, $i)'");
             echo "<span class='input-group-addon passwordStrength'></span>";
-            if($i != 0) echo "<span class='input-group-addon'><input type='checkbox' name='ditto[$i]' id='ditto$i' " . ($i> 0 ? "checked" : '') . " /> {$lang->user->ditto}</span>";
+            if($i != 0) echo "<span class='input-group-addon passwordBox'><input type='checkbox' name='ditto[$i]' id='ditto$i' " . ($i> 0 ? "checked" : '') . " /> {$lang->user->ditto}</span>";
             ?>
             </div>
           </td>
@@ -95,6 +105,14 @@
           <td class='<?php echo zget($visibleFields, 'zipcode', 'hidden')?>'> <?php echo html::input("zipcode[$i]",  '', "class='form-control'");?></td>
         </tr>
         <?php endfor;?>
+        <tr>
+          <th colspan='2'><?php echo $lang->user->verifyPassword?></th>
+          <td colspan='3'>
+            <div class="required required-wrapper"></div>
+            <input type='password' style="display:none"> <!-- for disable autocomplete all browser -->
+            <?php echo html::password('verifyPassword', '', "class='form-control disabled-ie-placeholder' placeholder='{$lang->user->placeholder->verify}'");?>
+          </td>
+        </tr>
         </tbody>
         <tfoot>
           <tr>

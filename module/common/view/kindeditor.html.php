@@ -38,7 +38,7 @@ $uid = uniqid('');
     'fullscreen', 'source', 'preview', 'about'];
     var editorToolsMap = {fullTools: fullTools, simpleTools: simpleTools, bugTools: bugTools};
 
-    // Kindeditor default options
+    /* Kindeditor default options. */
     var editorDefaults =
     {
         cssPath: [config.themeRoot + 'zui/css/min.css'],
@@ -48,18 +48,19 @@ $uid = uniqid('');
         bodyClass: 'article-content',
         urlType: 'absolute',
         uploadJson: createLink('file', 'ajaxUpload', 'uid=' + kuid),
-        allowFileManager: true,
         langType: '<?php echo $editorLang?>',
         cssData: 'html,body {background: none}.article-content{overflow:visible}.article-content, .article-content table td, .article-content table th {line-height: 1.3846153846; font-size: 13px;}.article-content .table-auto {width: auto!important; max-width: 100%;}',
+        placeholder: <?php echo json_encode($lang->noticePasteImg);?>,
         placeholderStyle: {fontSize: '13px', color: '#888'},
-        pasteImage: {postUrl: createLink('file', 'ajaxPasteImage', 'uid=' + kuid), placeholder: <?php echo json_encode($lang->noticePasteImg);?>},
+        pasteImage: {postUrl: createLink('file', 'ajaxPasteImg', 'uid=' + kuid)},
         syncAfterBlur: true,
+        allowFileManager: false,
         spellcheck: false
     };
 
     window.editor = {};
 
-    // Init kindeditor
+    /* Init kindeditor. */
     var setKindeditor = function(element, options)
     {
         var $editor  = $(element);
@@ -89,7 +90,7 @@ $uid = uniqid('');
         {
             items: editorTool,
             placeholder: $editor.attr('placeholder') || options.placeholder || '',
-            pasteImage: {postUrl: createLink('file', 'ajaxPasteImage', 'uid=' + kuid), placeholder: $editor.attr('placeholder') || <?php echo json_encode($lang->noticePasteImg);?>},
+            pasteImage: {postUrl: createLink('file', 'ajaxPasteImg', 'uid=' + kuid), placeholder: $editor.attr('placeholder') || <?php echo json_encode($lang->noticePasteImg);?>},
         });
 
         try
@@ -102,7 +103,7 @@ $uid = uniqid('');
         catch(e){return false;}
     };
 
-    // Init kindeditor with jquery way
+    /* Init kindeditor with jquery way. */
     $.fn.kindeditor = function(options)
     {
         return this.each(function()
@@ -111,7 +112,7 @@ $uid = uniqid('');
         });
     };
 
-    // Init all kindeditor
+    /* Init all kindeditor. */
     var initKindeditor = function(afterInit)
     {
         var $submitBtn = $('form :input[type=submit]');
@@ -127,7 +128,7 @@ $uid = uniqid('');
         });
     };
 
-    // Init all kindeditors when document is ready
+    /* Init all kindeditors when document is ready. */
     $(initKindeditor);
 }(jQuery));
 </script>

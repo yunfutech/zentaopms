@@ -18,16 +18,16 @@
     $hasGroupPriv = common::hasPriv('testtask', 'groupcase');
     ?>
     <?php
-    if($hasCasesPriv) echo html::a($this->inlink('cases', "taskID=$taskID&browseType=all&param=0"), "<span class='text'>{$lang->testtask->allCases}</span>", '', "id='allTab' class='btn btn-link'");
-    if($hasCasesPriv) echo html::a($this->inlink('cases', "taskID=$taskID&browseType=assignedtome&param=0"), "<span class='text'>{$lang->testtask->assignedToMe}</span>", '', "id='assignedtomeTab' class='btn btn-link'");
+    if($hasCasesPriv) echo html::a($this->inlink('cases', "taskID=$taskID&browseType=all&param=0"), "<span class='text'>{$lang->testtask->allCases}</span>", '', "id='allTab' class='btn btn-link' data-app='{$app->tab}'");
+    if($hasCasesPriv) echo html::a($this->inlink('cases', "taskID=$taskID&browseType=assignedtome&param=0"), "<span class='text'>{$lang->testtask->assignedToMe}</span>", '', "id='assignedtomeTab' class='btn btn-link' data-app='{$app->tab}'");
 
-    if($hasGroupPriv and $config->global->flow != 'onlyTest')
+    if($hasGroupPriv)
     {
         $groupBy  = isset($groupBy)  ? $groupBy : '';
         $active   = !empty($groupBy) ? 'btn-active-text' : '';
 
         echo "<div id='groupTab' class='btn-group'>";
-        echo html::a($this->createLink('testtask', 'groupCase', "taskID=$taskID&groupBy=story"), "<span class='text'>{$lang->testcase->groupByStories}</span>", '', "class='btn btn-link $active'");
+        echo html::a($this->createLink('testtask', 'groupCase', "taskID=$taskID&groupBy=story"), "<span class='text'>{$lang->testcase->groupByStories}</span>", '', "class='btn btn-link $active' data-app='{$app->tab}'");
         echo '</div>';
     }
 
@@ -36,8 +36,8 @@
   </div>
   <div class='btn-toolbar pull-right'>
     <?php
-    common::printIcon('testtask', 'linkCase', "taskID=$task->id", '', 'button', 'link');
-    common::printIcon('testcase', 'export', "productID=$productID&orderBy=`case`_desc&taskID=$task->id", '', 'button', '', '', 'export');
+    common::printIcon('testtask', 'linkCase', "taskID=$task->id", $task, 'button', 'link');
+    common::printIcon('testcase', 'export', "productID=$productID&orderBy=case_desc&taskID=$task->id", '', 'button', '', '', 'export');
     common::printIcon('testtask', 'report', "productID=$productID&taskID=$task->id&browseType=$browseType&branchID=$task->branch&moduleID=" . (empty($moduleID) ? '' : $moduleID));
     common::printIcon('testtask',   'view',     "taskID=$task->id", '', 'button', 'list-alt');
     common::printBack($this->session->testtaskList, 'btn btn-link');

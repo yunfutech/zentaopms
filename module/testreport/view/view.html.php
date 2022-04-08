@@ -15,9 +15,11 @@
 <?php include '../../common/view/chart.html.php';?>
 <div id='mainMenu' class='clearfix'>
   <div class='btn-toolbar pull-left'>
-    <?php $browseLink  = $this->session->reportList != false ? $app->session->reportList : $browseLink;?>
-    <?php echo html::a($browseLink, "<i class='icon icon-back icon-sm'></i>" . $lang->goback, '', "class='btn btn-primary'");?>
+    <?php $browseLink = $this->session->reportList ? $app->session->reportList : $browseLink;?>
+    <?php if(!isonlybody()):?>
+    <?php echo html::a($browseLink, "<i class='icon icon-back icon-sm'></i> " . $lang->goback, '', "class='btn btn-primary'");?>
     <div class='divider'></div>
+    <?php endif;?>
     <div class='page-title'>
       <span class='label label-id'><?php echo $report->id;?></span>
       <span class='text' title='<?php echo $report->title;?>'><?php echo $report->title;?></span>
@@ -30,10 +32,10 @@
 <?php endif;?>
 <div id='mainContent' class='main-content'>
   <ul class='nav nav-tabs'>
-    <li class='active'><?php echo html::a('###', $lang->testreport->legendBasic, '', "data-toggle='tab' data-target='#basic'")?></li>
+    <li <?php if($tab == 'basic') echo "class='active'";?>><?php echo html::a('###', $lang->testreport->legendBasic, '', "data-toggle='tab' data-target='#basic'")?></li>
     <li><?php echo html::a('###', $lang->testreport->legendStoryAndBug, '', "data-toggle='tab' data-target='#storyAndBug'")?></li>
     <li><?php echo html::a('###', $lang->testreport->legendBuild, '', "data-toggle='tab' data-target='#tabBuild'")?></li>
-    <li><?php echo html::a('###', $lang->testreport->legendCase, '', "data-toggle='tab' data-target='#tabCase'")?></li>
+    <li <?php if($tab == 'cases') echo "class='active'";?>><?php echo html::a('###', $lang->testreport->legendCase, '', "data-toggle='tab' data-target='#tabCase'")?></li>
     <li><?php echo html::a('###', $lang->testreport->legendLegacyBugs, '', "data-toggle='tab' data-target='#tabLegacyBugs'")?></li>
     <li><?php echo html::a('###', $lang->testreport->legendReport, '', "data-toggle='tab' data-target='#tabReport'")?></li>
     <li><?php echo html::a('###', $lang->testreport->legendComment, '', "data-toggle='tab' data-target='#tabComment'")?></li>
@@ -44,11 +46,12 @@
     <?php endif;?>
     <?php endif;?>
   </ul>
+  <?php $this->app->rawParams['tab'] = 'cases';?>
   <div class='tab-content'>
     <div class='tab-pane' id='basic'>
       <table class='table table-form'>
         <tr>
-          <th class='w-100px'><?php echo $lang->testreport->startEnd?></th>
+          <th class='c-date'><?php echo $lang->testreport->startEnd?></th>
           <td class='w-p50'> <?php echo $report->begin . ' ~ ' . $report->end;?></td>
           <td></td>
         </tr>
@@ -60,10 +63,13 @@
           <th><?php echo $lang->testreport->members?></th>
           <td colspan='2'><?php foreach(explode(',', $report->members) as $member)echo zget($users, $member) . ' &nbsp; ';?></td>
         </tr>
-        <?php if($config->global->flow != 'onlyTest' && !empty($project)):?>
+        <?php if(!empty($execution->desc)):?>
         <tr>
           <th><?php echo $lang->testreport->goal?></th>
-          <td colspan='2'><?php echo $project->desc?></td>
+          <td colspan='2'>
+            <?php echo $execution->desc?>
+            <a data-toggle='tooltip' class='text-warning' title='<?php echo $lang->testreport->goalTip;?>'><i class='icon-help'></i></a>
+          </td>
         </tr>
         <?php endif;?>
         <tr>
@@ -72,8 +78,7 @@
           <?php
           echo '<p>' . $storySummary . '</p>';
           echo '<p>' . sprintf($lang->testreport->buildSummary, empty($builds) ? 1 : count($builds)) . $caseSummary . '</p>';
-          echo '<p>' . sprintf($lang->testreport->bugSummary, $bugInfo['foundBugs'], count($legacyBugs), $bugInfo['countBugByTask'], $bugInfo['bugConfirmedRate'] . '%', $bugInfo['bugCreateByCaseRate'] . '%') . '</p>';
-          unset($bugInfo['countBugByTask']); unset($bugInfo['bugConfirmedRate']); unset($bugInfo['bugCreateByCaseRate']); unset($bugInfo['foundBugs']);
+          echo '<p>' . sprintf($lang->testreport->bugSummary, $bugSummary['foundBugs'], count($legacyBugs), $bugSummary['activatedBugs'], $bugSummary['countBugByTask'], $bugSummary['bugConfirmedRate'] . '%', $bugSummary['bugCreateByCaseRate'] . '%') . '</p>';
           ?>
           </td>
         </tr>
@@ -102,6 +107,7 @@
     <?php endif;?>
   </div>
 </div>
+<?php echo js::set('activeTab', $tab);?>
 <?php if(!$this->session->notHead):?>
 <div id='mainActions' class='main-actions'>
   <nav class='container'></nav>
@@ -110,9 +116,13 @@
     <?php if(!$report->deleted):?>
     <div class='divider'></div>
     <?php
-    if(common::hasPriv('testreport', 'create')) echo html::a(inLink('create', "objectID=$report->objectID&objectType=$report->objectType"),  "<i class='icon-refresh'></i>", '', "class='btn' title='{$lang->testreport->recreate}'");
-    common::printIcon('testreport', 'edit', "reportID=$report->id", '', 'button');
-    common::printIcon('testreport', 'delete', "reportID=$report->id", '', 'button', 'trash', 'hiddenwin');
+    if(common::canBeChanged('report', $report))
+    {
+        $extra = $report->objectType == 'execution' ? "&extra=$report->tasks" : '';
+        if(common::hasPriv('testreport', 'create')) echo html::a(inLink('create', "objectID=$report->objectID&objectType=$report->objectType" . $extra),  "<i class='icon-refresh'></i>", '', "class='btn' title='{$lang->testreport->recreate}' data-app='{$this->app->tab}'");
+        common::printIcon('testreport', 'edit', "reportID=$report->id", '', 'button');
+        common::printIcon('testreport', 'delete', "reportID=$report->id", '', 'button', 'trash', 'hiddenwin');
+    }
     ?>
     <?php endif;?>
   </div>

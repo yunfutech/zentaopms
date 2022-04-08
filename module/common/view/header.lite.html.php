@@ -46,13 +46,13 @@ $onlybody     = zget($_GET, 'onlybody', 'no');
   }
   if($this->app->getViewType() == 'xhtml') css::import($defaultTheme . 'x.style.css');
 
-  if(!defined('IN_INSTALL') and commonModel::isTutorialMode())
+  if(defined('IN_USE') and commonModel::isTutorialMode())
   {
       $wizardModule    = defined('WIZARD_MODULE') ? WIZARD_MODULE : $this->moduleName;
       $wizardMethod    = defined('WIZARD_METHOD') ? WIZARD_METHOD : $this->methodName;
       $requiredFields  = '';
       if(isset($config->$wizardModule->$wizardMethod->requiredFields)) $requiredFields = str_replace(' ', '', $config->$wizardModule->$wizardMethod->requiredFields);
-      echo "<script>window.TUTORIAL = {'module': '$wizardModule', 'method': '$wizardMethod', tip: '$lang->tutorialConfirm'}; if(config) config.requiredFields = '$requiredFields'; </script>";
+      echo "<script>window.TUTORIAL = {'module': '$wizardModule', 'method': '$wizardMethod', tip: '$lang->tutorialConfirm'}; if(config) config.requiredFields = '$requiredFields'; $(function(){window.top.checkTutorialState && setTimeout(window.top.checkTutorialState, 500);});</script>";
   }
 
   if(isset($pageCSS)) css::internal($pageCSS);
@@ -62,5 +62,18 @@ $onlybody     = zget($_GET, 'onlybody', 'no');
 <!--[if lt IE 10]>
 <?php js::import($jsRoot . 'jquery/placeholder/min.js'); ?>
 <![endif]-->
+<?php
+/* Load hook files for current page. */
+$extPath      = $this->app->getModuleRoot() . '/common/ext/view/';
+$extHookRule  = $extPath . 'header.*.hook.php';
+$extHookFiles = glob($extHookRule);
+if($extHookFiles) foreach($extHookFiles as $extHookFile) include $extHookFile;
+?>
 </head>
-<body>
+<?php $singleClass = $this->app->getViewType() == 'xhtml' ? 'allow-self-open' : '';?>
+<?php if(isset($pageBodyClass)) $singleClass = $singleClass . ' ' . $pageBodyClass; ?>
+<?php if($this->moduleName == 'index' && $this->methodName == 'index'): ?>
+<body class='menu-<?php echo $this->cookie->hideMenu ? 'hide' : 'show'; ?> <?php echo $singleClass;?>'>
+<?php else: ?>
+<body class='<?php echo $singleClass;?>'>
+<?php endif; ?>

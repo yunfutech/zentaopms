@@ -29,6 +29,7 @@ if(!isset($error))
 \$config->webRoot         = getWebRoot();
 \$config->default->lang   = '$defaultLang';
 EOT;
+    if($customSession) $configContent .= "\n\$config->customSession = true;";
 }
 ?>
 <div class='container'>
@@ -52,7 +53,7 @@ EOT;
     </div>
     <div class='modal-body'>
       <div class='form-group'>
-        <?php echo html::textArea('config', $configContent, "rows='15' class='form-control'");?>
+        <?php echo html::textarea('config', $configContent, "rows='15' class='form-control'");?>
       </div>
       <div class='help-block text-center'>
         <?php
@@ -76,7 +77,7 @@ EOT;
         ?>
       </div>
     </div>
-    <div class='modal-footer'><?php echo html::a($this->createLink('install', 'step4'), $lang->install->next, '', "class='btn btn-wide btn-primary'");?></div>
+    <div class='modal-footer'><?php echo html::a($this->createLink('install', isset($this->config->maxVersion) ? 'step5' : 'step4'), $lang->install->next, '', "class='btn btn-wide btn-primary'");?></div>
   <?php endif;?>
   </div>
 </div>

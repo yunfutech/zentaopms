@@ -39,11 +39,12 @@ class devModel extends model
     {
         $module      = substr($table, strpos($table, '_') + 1);
         $aliasModule = $subLang = '';
+        $this->app->loadLang($module);
         try
         {
             if(isset($this->config->dev->tableMap[$module])) $aliasModule = $this->config->dev->tableMap[$module];
             if(strpos($aliasModule, '-') !== false) list($aliasModule, $subLang) = explode('-', $aliasModule);
-            $this->app->loadLang($aliasModule ? $aliasModule : $module);
+            if(!empty($aliasModule) and strpos($module, 'im_') === false) $this->app->loadLang($aliasModule);
         }
         catch(PDOException $e)
         {
@@ -69,7 +70,7 @@ class devModel extends model
             $type     = str_replace(array('big', 'small', 'medium', 'tiny'), '', $type);
             $field    = array();
             $field['name'] = isset($this->lang->$module->{$rawField->field}) ? $this->lang->$module->{$rawField->field} : '';
-            if(empty($field['name']) and $aliasModule) $field['name'] = isset($this->lang->$aliasModule->{$rawField->field}) ? $this->lang->$aliasModule->{$rawField->field} : '';
+            if((empty($field['name']) or !is_string($field['name'])) and $aliasModule) $field['name'] = isset($this->lang->$aliasModule->{$rawField->field}) ? $this->lang->$aliasModule->{$rawField->field} : '';
             if($subLang) $field['name'] = isset($this->lang->$aliasModule->$subLang->{$rawField->field}) ? $this->lang->$aliasModule->$subLang->{$rawField->field} : $field['name'];
             if(!is_string($field['name'])) $field['name'] = '';
             $field['null'] = $rawField->null;
@@ -184,7 +185,9 @@ class devModel extends model
                 {
                     $b++;
                     $blocks[] = array();
-                } else if($b == -1) {
+                }
+                else if($b == -1)
+                {
                     $b = 0;
                     $blocks[] = array();
                 }
@@ -241,6 +244,8 @@ class devModel extends model
         $modules = array();
         foreach($moduleList as $module)
         {
+            if(!file_exists($module . DS . 'control.php')) continue;
+
             $module = basename($module);
             if($module == 'editor' or $module == 'help' or $module == 'setting' or $module == 'common') continue;
             $group  = zget($this->config->dev->group, $module, 'other');

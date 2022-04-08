@@ -10,6 +10,7 @@
  * @link        http://www.zentao.net
  */
 $lang->extension->common           = 'Extension';
+$lang->extension->id               = 'ID';
 $lang->extension->browse           = 'Extensions';
 $lang->extension->install          = 'Install Extension';
 $lang->extension->installAuto      = 'Auto Installation';
@@ -29,31 +30,34 @@ $lang->extension->eraseAction      = 'Erase Extension';
 $lang->extension->upgrade          = 'Upgrade Extension';
 $lang->extension->agreeLicense     = 'I agree to the license.';
 
+$lang->extension->browseAction = 'Extension List';
+
 $lang->extension->structure        = 'Structure';
 $lang->extension->structureAction  = 'Extension Structure';
 $lang->extension->installed        = 'Installed';
 $lang->extension->deactivated      = 'Deactivated';
 $lang->extension->available        = 'Downloaded';
 
-$lang->extension->name        = 'Extension Name';
-$lang->extension->code        = 'Code';
-$lang->extension->desc        = 'Description';
-$lang->extension->type        = 'Type';
-$lang->extension->dirs        = 'Installation Directory';
-$lang->extension->files       = 'Installation Files';
-$lang->extension->status      = 'Status';
-$lang->extension->version     = 'Version';
-$lang->extension->latest      = '<small>Latest:<strong><a href="%s" target="_blank" class="extension">%s</a></strong>，need zentao <a href="https://api.zentao.net/goto.php?item=latest" target="_blank"><strong>%s</strong></small>';
-$lang->extension->author      = 'Author';
-$lang->extension->license     = 'License';
-$lang->extension->site        = 'Website';
-$lang->extension->downloads   = 'Downloads';
-$lang->extension->compatible  = 'Compatibility';
-$lang->extension->grade       = 'Score';
-$lang->extension->depends     = 'Dependency';
-$lang->extension->expireDate  = 'Expire';
-$lang->extension->zentaoCompatible  = 'Compatible Version';
-$lang->extension->installedTime     = 'Installed Time';
+$lang->extension->name             = 'Extension Name';
+$lang->extension->code             = 'Code';
+$lang->extension->desc             = 'Description';
+$lang->extension->type             = 'Type';
+$lang->extension->dirs             = 'Installation Directory';
+$lang->extension->files            = 'Installation Files';
+$lang->extension->status           = 'Status';
+$lang->extension->version          = 'Version';
+$lang->extension->latest           = '<small>Latest:<strong><a href="%s" target="_blank" class="extension">%s</a></strong>，need zentao <a href="https://api.zentao.net/goto.php?item=latest" target="_blank"><strong>%s</strong></small>';
+$lang->extension->author           = 'Author';
+$lang->extension->license          = 'License';
+$lang->extension->site             = 'Website';
+$lang->extension->downloads        = 'Downloads';
+$lang->extension->compatible       = 'Compatibility';
+$lang->extension->grade            = 'Score';
+$lang->extension->depends          = 'Dependency';
+$lang->extension->expiredDate      = 'Expire';
+$lang->extension->zentaoCompatible = 'Compatible Version';
+$lang->extension->installedTime    = 'Installed Time';
+$lang->extension->life             = 'lifetime';
 
 $lang->extension->publicList[0] = 'Manual';
 $lang->extension->publicList[1] = 'Auto';
@@ -120,3 +124,5 @@ $lang->extension->errorConflicts               = 'Conflicted with “%s”!';
 $lang->extension->errorDepends                 = 'Dependent extension has not been installed or the version is incorrect:<br /><br /> %s';
 $lang->extension->errorIncompatible            = 'Incompatible with your ZenTao.';
 $lang->extension->errorUninstallDepends        = '“%s” is dependent on this extension. Please do not uninstall it.';
+$lang->extension->errorExtracted               = 'The package file %s extracted failed. The error is:<br />%s';
+$lang->extension->errorFileNotEmpty            = 'Please upload the file.';
