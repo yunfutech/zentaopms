@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The product module zh-cn file of ZenTaoPMS.
  *
@@ -148,7 +149,7 @@ $lang->product->unclosedProduct       = '未关闭的' . $lang->productCommon;
 $lang->product->unexpiredPlan         = '未过期的计划';
 $lang->product->doing                 = '进行中';
 $lang->product->doingProject          = '进行中的项目';
-$lang->product->doingExecution        = '进行中的执行';
+$lang->product->doingExecution        = '进行中的迭代';
 $lang->product->doingClassicExecution = '进行中的' . $lang->executionCommon;
 $lang->product->normalRelease         = '正常的发布';
 $lang->product->emptyProgram          = '无项目集归属产品';
@@ -174,12 +175,9 @@ $lang->product->statusList['normal'] = '正常';
 $lang->product->statusList['closed'] = '结束';
 
 global $config;
-if($config->systemMode == 'new')
-{
+if ($config->systemMode == 'new') {
     $lang->product->aclList['private'] = "私有({$lang->productCommon}相关负责人、所属项目集的干系人、相关联项目的团队成员和干系人可访问)";
-}
-else
-{
+} else {
     $lang->product->aclList['private'] = "私有({$lang->productCommon}相关负责人、相关联{$lang->executionCommon}的团队成员可访问)";
 }
 $lang->product->aclList['open']    = "公开(有{$lang->productCommon}视图权限，即可访问)";

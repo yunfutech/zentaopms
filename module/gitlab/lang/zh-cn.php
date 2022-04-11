@@ -89,7 +89,7 @@ $lang->gitlab->tokenError         = "当前token非root权限。";
 $lang->gitlab->tokenLimit         = "GitLab Token权限不足。请更换为有root权限的GitLab Token。";
 $lang->gitlab->hostError          = "当前GitLab服务器地址无效或当前GitLab版本与禅道不兼容，请确认当前服务器可被访问或联系管理员升级GitLab至%s及以上版本后重试";
 $lang->gitlab->bindUserError      = "不能重复绑定用户 %s";
-$lang->gitlab->importIssueError   = "未选择该issue所属的执行。";
+$lang->gitlab->importIssueError   = "未选择该issue所属的迭代。";
 $lang->gitlab->importIssueWarn    = "存在导入失败的issue，可再次尝试导入。";
 
 $lang->gitlab->accessLevels[10] = 'Guest';

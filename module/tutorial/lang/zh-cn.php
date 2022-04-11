@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The tutorial lang file of ZenTaoPMS.
  *
@@ -80,7 +81,7 @@ $lang->tutorial->tasks['manageExecutionTeam']['desc'] = "<p>管理{$lang->execut
 $lang->tutorial->tasks['linkStory']         = array('title' => "关联{$lang->SRCommon}");
 $lang->tutorial->tasks['linkStory']['mode'] = 'new';
 $lang->tutorial->tasks['linkStory']['nav']  = array('app' => 'execution', 'module' => 'execution', 'method' => 'linkStory', 'menuModule' => 'story', 'menu' => '#heading>.header-btn:first,#navbar>.nav>li[data-id="all"],#navbar>.nav>li[data-id="story"],#executionTableList>tr:first>.c-name>a,.link-story-btn', 'target' => '.link-story-btn', 'form' => '#linkStoryForm', 'formType' => 'table', 'submit' => '#submit', 'targetPageName' => "关联{$lang->SRCommon}");
-$lang->tutorial->tasks['linkStory']['desc'] = "<p>将{$lang->SRCommon}关联到执行：</p><ul><li data-target='nav'>打开 <span class='task-nav'> 执行 <i class='icon icon-angle-right'></i> {$lang->SRCommon} <i class='icon icon-angle-right'></i> 关联{$lang->SRCommon}</span> 页面；</li><li data-target='form'>在{$lang->SRCommon}列表中勾选要关联的{$lang->SRCommon}；</li><li data-target='submit'>保存关联的{$lang->SRCommon}信息。</li></ul>";
+$lang->tutorial->tasks['linkStory']['desc'] = "<p>将{$lang->SRCommon}关联到迭代：</p><ul><li data-target='nav'>打开 <span class='task-nav'> 迭代 <i class='icon icon-angle-right'></i> {$lang->SRCommon} <i class='icon icon-angle-right'></i> 关联{$lang->SRCommon}</span> 页面；</li><li data-target='form'>在{$lang->SRCommon}列表中勾选要关联的{$lang->SRCommon}；</li><li data-target='submit'>保存关联的{$lang->SRCommon}信息。</li></ul>";
 
 $lang->tutorial->tasks['linkExecutionStory']         = array('title' => "关联{$lang->SRCommon}");
 $lang->tutorial->tasks['linkExecutionStory']['mode'] = 'classic';
@@ -90,7 +91,7 @@ $lang->tutorial->tasks['linkExecutionStory']['desc'] = "<p>将{$lang->SRCommon}�
 $lang->tutorial->tasks['createTask']         = array('title' => '分解任务');
 $lang->tutorial->tasks['createTask']['mode'] = 'new';
 $lang->tutorial->tasks['createTask']['nav']  = array('app' => 'execution', 'module' => 'task', 'method' => 'create', 'menuModule' => 'story', 'menu' => '', 'target' => '.btn-task-create', 'form' => '#dataform', 'submit' => '#submit', 'targetPageName' => '建任务');
-$lang->tutorial->tasks['createTask']['desc'] = "<p>将执行{$lang->SRCommon}分解为任务：</p><ul><li data-target='nav'>打开 <span class='task-nav'> 执行 <i class='icon icon-angle-right'></i> {$lang->SRCommon} <i class='icon icon-angle-right'></i> 分解任务</span> 页面；</li><li data-target='form'>在表单中填写任务信息；</li><li data-target='submit'>保存任务信息。</li></ul>";
+$lang->tutorial->tasks['createTask']['desc'] = "<p>将执行{$lang->SRCommon}分解为任务：</p><ul><li data-target='nav'>打开 <span class='task-nav'> 迭代 <i class='icon icon-angle-right'></i> {$lang->SRCommon} <i class='icon icon-angle-right'></i> 分解任务</span> 页面；</li><li data-target='form'>在表单中填写任务信息；</li><li data-target='submit'>保存任务信息。</li></ul>";
 
 $lang->tutorial->tasks['createExecutionTask']         = array('title' => '分解任务');
 $lang->tutorial->tasks['createExecutionTask']['mode'] = 'classic';

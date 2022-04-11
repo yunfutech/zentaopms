@@ -127,7 +127,7 @@ $lang->program->kanban->openProducts    = '未关闭的产品';
 $lang->program->kanban->unexpiredPlans  = '未过期的计划';
 $lang->program->kanban->waitingProjects = '未开始的项目';
 $lang->program->kanban->doingProjects   = '进行中的项目';
-$lang->program->kanban->doingExecutions = '进行中的执行';
+$lang->program->kanban->doingExecutions = '进行中的迭代';
 $lang->program->kanban->normalReleases  = '正常的发布';
 
 $lang->program->kanban->laneColorList = array('#32C5FF', '#006AF1', '#9D28B2', '#FF8F26', '#FFC20E', '#00A78E', '#7FBB00', '#424BAC', '#C0E9FF', '#EC2761');

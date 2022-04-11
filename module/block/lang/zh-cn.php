@@ -191,18 +191,18 @@ $lang->block->default['product']['4']['params']['count']   = 15;
 $lang->block->default['product']['4']['params']['orderBy'] = 'id_desc';
 $lang->block->default['product']['4']['params']['type']    = 'assignedTo';
 
-$lang->block->default['execution']['1']['title'] = '执行统计';
+$lang->block->default['execution']['1']['title'] = '迭代统计';
 $lang->block->default['execution']['1']['block'] = 'statistic';
 $lang->block->default['execution']['1']['grid']  = 8;
 
 $lang->block->default['execution']['1']['params']['type']  = 'all';
 $lang->block->default['execution']['1']['params']['count'] = '20';
 
-$lang->block->default['execution']['2']['title'] = '执行总览';
+$lang->block->default['execution']['2']['title'] = '迭代总览';
 $lang->block->default['execution']['2']['block'] = 'overview';
 $lang->block->default['execution']['2']['grid']  = 4;
 
-$lang->block->default['execution']['3']['title'] = '未关闭的执行';
+$lang->block->default['execution']['3']['title'] = '未关闭的迭代';
 $lang->block->default['execution']['3']['block'] = 'list';
 $lang->block->default['execution']['3']['grid']  = 8;
 

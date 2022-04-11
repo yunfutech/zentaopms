@@ -50,7 +50,7 @@ $lang->custom->oneUnit              = "一个{$lang->hourCommon}";
 $lang->custom->convertRelationTitle = "请先设置{$lang->hourCommon}转换为%s的换算系数";
 $lang->custom->superReviewers       = "超级评审人";
 
-if ($config->systemMode == 'new') $lang->custom->execution = '执行';
+if ($config->systemMode == 'new') $lang->custom->execution = '迭代';
 if ($config->systemMode == 'classic' || !$config->systemMode) $lang->custom->execution = $lang->executionCommon;
 
 $lang->custom->unitList['efficiency'] = '工时/';

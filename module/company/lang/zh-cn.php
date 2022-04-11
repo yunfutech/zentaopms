@@ -33,7 +33,7 @@ $lang->company->deleted  = '已删除';
 
 $lang->company->product   = $lang->productCommon;
 $lang->company->project   = '项目';
-$lang->company->execution = '执行';
+$lang->company->execution = '迭代';
 $lang->company->user      = '用户';
 $lang->company->empty     = '暂时没有动态';
 
