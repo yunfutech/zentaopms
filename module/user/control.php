@@ -938,7 +938,7 @@ class user extends control
 
         $denyType = 'nopriv';
         if (isset($rights[$module][$method])) {
-            $menu = isset($lang->navGroup->$module) ? $lang->navGroup->$module : $module;
+            $menu = isset($this->lang->navGroup->$module) ? $this->lang->navGroup->$module : $module;
             $menu = strtolower($menu);
 
             if (!isset($acls['views'][$menu])) $denyType = 'noview';
@@ -1194,33 +1194,6 @@ class user extends control
     }
 
     /**
-     * Ajax get more user.
-     *
-     * @access public
-     * @return void
-     */
-    public function ajaxGetMore()
-    {
-        $params = base64_decode($this->get->params);
-        parse_str($params, $parsedParams);
-        $users = $this->user->getPairs($parsedParams['params'], $parsedParams['usersToAppended']);
-
-        $search   = $this->get->search;
-        $limit    = $this->get->limit;
-        $index    = 0;
-        $newUsers = array();
-        if (empty($search)) return array();
-        foreach ($users as $account => $realname) {
-            if ($index >= $limit) break;
-            if (stripos($account, $search) === false and stripos($realname, $search) === false) continue;
-            $index++;
-            $newUsers[$account] = $realname;
-        }
-
-        echo json_encode($newUsers);
-    }
-
-    /**
      * Ajax get group by vision.
      *
      * @param  string  $visions rnd|lite
@@ -1238,18 +1211,6 @@ class user extends control
             return print(html::select("group[$i][]", $groupList, $selected, 'size=3 multiple=multiple class="form-control chosen"'));
         }
         return print(html::select('group[]', $groupList, $selected, 'size=3 multiple=multiple class="form-control chosen"'));
-    }
-
-    /**
-     * Refresh random for login
-     *
-     * @access public
-     * @return void
-     */
-    public function refreshRandom()
-    {
-        $rand = (string)$this->user->updateSessionRandom();
-        echo $rand;
     }
 
     /**

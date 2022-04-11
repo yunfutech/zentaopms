@@ -148,17 +148,12 @@ js::set('foldAll',     $lang->execution->treeLevel['root']);
         <?php if ($canBeChanged and (common::hasPriv('task', 'batchCreate', $checkObject) or common::hasPriv('task', 'create', $checkObject))) : ?>
           <div class='btn-group dropdown'>
             <?php
-            if (commonModel::isTutorialMode()) {
-              $wizardParams   = helper::safe64Encode("executionID=$executionID" . (isset($moduleID) ? "&storyID=0&moduleID=$moduleID" : ""));
-              $taskCreateLink = $this->createLink('tutorial', 'wizard', "module=task&method=create&params=$wizardParams");
-            } else {
-              $taskCreateLink = $this->createLink('task', 'create', "executionID=$executionID" . (isset($moduleID) ? "&storyID=0&moduleID=$moduleID" : ""));
-            }
-            echo html::a($taskCreateLink, "<i class='icon icon-plus'></i> {$lang->task->create}", '', "class='btn btn-primary'");
+            $actionLink = $this->createLink('task', 'create', "executionID=$executionID" . (isset($moduleID) ? "&storyID=0&moduleID=$moduleID" : ""));
+            echo html::a($actionLink, "<i class='icon icon-plus'></i> {$lang->task->create}", '', "class='btn btn-primary'");
             ?>
             <button type='button' class='btn btn-primary dropdown-toggle' data-toggle='dropdown'><span class='caret'></span></button>
             <ul class='dropdown-menu pull-right'>
-              <li><?php echo html::a($taskCreateLink, $lang->task->create); ?></li>
+              <li><?php echo html::a($actionLink, $lang->task->create); ?></li>
               <li><?php echo html::a($this->createLink('task', 'batchCreate', "executionID=$executionID" . (isset($moduleID) ? "&storyID=0&moduleID=$moduleID" : "")), $lang->task->batchCreate); ?></li>
             </ul>
           </div>
@@ -213,8 +208,8 @@ js::set('foldAll',     $lang->execution->treeLevel['root']);
         <p>
           <span class="text-muted"><?php echo $lang->task->noTask; ?></span>
           <?php if ($canBeChanged and common::hasPriv('task', 'create')) : ?>
-            <<<<<<< HEAD <?php echo html::a($this->createLink('task', 'create', "execution=$executionID" . (isset($moduleID) ? "&storyID=0&moduleID=$moduleID" : "")), "<i class='icon icon-plus'></i> " . $lang->task->create, '', "class='btn btn-info'"); ?>=======<?php echo html::a($taskCreateLink, "<i class='icon icon-plus'></i> " . $lang->task->create, '', "class='btn btn-info'"); ?>>>>>>>> 16.5
-            <?php endif; ?>
+            <?php echo html::a($this->createLink('task', 'create', "execution=$executionID" . (isset($moduleID) ? "&storyID=0&moduleID=$moduleID" : "")), "<i class='icon icon-plus'></i> " . $lang->task->create, '', "class='btn btn-info'"); ?>
+          <?php endif; ?>
         </p>
       </div>
     <?php else : ?>
@@ -292,27 +287,21 @@ js::set('foldAll',     $lang->execution->treeLevel['root']);
                 <?php foreach ($task->children as $key => $child) : ?>
                   <?php $class  = $i == 0 ? ' table-child-top' : ''; ?>
                   <?php $class .= ($i + 1 == count($task->children)) ? ' table-child-bottom' : ''; ?>
-                  <<<<<<< HEAD=======<<<<<<<< HEAD:module/project/view/task.html.php <tr style="display:none" class='table-children<?php echo $class; ?> parent-<?php echo $task->id; ?>' data-id='<?php echo $child->id ?>' data-status='<?php echo $child->status ?>' data-estimate='<?php echo $child->estimate ?>' data-consumed='<?php echo $child->consumed ?>' data-left='<?php echo $child->left ?>'>
-                    <?php foreach ($customFields as $field) $this->task->printCell($field, $child, $users, $browseType, $branchGroups, $modulePairs, $useDatatable ? 'datatable' : 'table', true); ?>
-                    ========
-                    >>>>>>> 16.5
-                    <tr class='table-children<?php echo $class; ?> parent-<?php echo $task->id; ?>' data-id='<?php echo $child->id ?>' data-status='<?php echo $child->status ?>' data-estimate='<?php echo $child->estimate ?>' data-consumed='<?php echo $child->consumed ?>' data-left='<?php echo $child->left ?>'>
-                      <?php if ($this->app->getViewType() == 'xhtml') : ?>
-                        <?php
-                        foreach ($customFields as $field) {
-                          if ($field->id == 'name' || $field->id == 'id' || $field->id == 'pri' || $field->id == 'status')
-                            $this->task->printCell($field, $child, $users, $browseType, $branchGroups, $modulePairs, $useDatatable ? 'datatable' : 'table', true);
-                        } ?>
-                      <?php else : ?>
-                        <?php foreach ($customFields as $field) $this->task->printCell($field, $child, $users, $browseType, $branchGroups, $modulePairs, $useDatatable ? 'datatable' : 'table', true, $showBranch); ?>
-                      <?php endif; ?>
-                      <<<<<<< HEAD=======>>>>>>>> 16.5:module/execution/view/task.html.php
-                        >>>>>>> 16.5
-                    </tr>
-                    <?php $i++; ?>
-                  <?php endforeach; ?>
-                <?php endif; ?>
-              <?php endforeach; ?>
+                  <tr class='table-children<?php echo $class; ?> parent-<?php echo $task->id; ?>' data-id='<?php echo $child->id ?>' data-status='<?php echo $child->status ?>' data-estimate='<?php echo $child->estimate ?>' data-consumed='<?php echo $child->consumed ?>' data-left='<?php echo $child->left ?>'>
+                    <?php if ($this->app->getViewType() == 'xhtml') : ?>
+                      <?php
+                      foreach ($customFields as $field) {
+                        if ($field->id == 'name' || $field->id == 'id' || $field->id == 'pri' || $field->id == 'status')
+                          $this->task->printCell($field, $child, $users, $browseType, $branchGroups, $modulePairs, $useDatatable ? 'datatable' : 'table', true);
+                      } ?>
+                    <?php else : ?>
+                      <?php foreach ($customFields as $field) $this->task->printCell($field, $child, $users, $browseType, $branchGroups, $modulePairs, $useDatatable ? 'datatable' : 'table', true, $showBranch); ?>
+                    <?php endif; ?>
+                  </tr>
+                  <?php $i++; ?>
+                <?php endforeach; ?>
+              <?php endif; ?>
+            <?php endforeach; ?>
           </tbody>
         </table>
         <?php if (!$useDatatable) echo '</div>'; ?>

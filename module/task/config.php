@@ -8,7 +8,7 @@ $config->task->start    = new stdclass();
 $config->task->finish   = new stdclass();
 $config->task->activate = new stdclass();
 
-$config->task->create->requiredFields      = 'execution,name,type';
+$config->task->create->requiredFields      = 'execution,name,type,deadline';
 $config->task->edit->requiredFields        = $config->task->create->requiredFields;
 $config->task->finish->requiredFields      = 'realStarted,finishedDate,currentConsumed';
 $config->task->activate->requiredFields    = 'left';
@@ -53,7 +53,7 @@ $config->task->datatable->defaultField = array('id', 'pri', 'name', 'status', 'a
 global $lang;
 $config->task->datatable->fieldList['id']['title']    = 'idAB';
 $config->task->datatable->fieldList['id']['fixed']    = 'left';
-$config->task->datatable->fieldList['id']['width']    = '70';
+$config->task->datatable->fieldList['id']['width']    = '100';
 $config->task->datatable->fieldList['id']['required'] = 'yes';
 
 $config->task->datatable->fieldList['pri']['title']    = 'priAB';
