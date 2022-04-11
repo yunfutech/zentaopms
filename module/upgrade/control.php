@@ -784,30 +784,6 @@ class upgrade extends control
     }
 
     /**
-     * Ajax get product name.
-     *
-     * @param  int    $productID
-     * @access public
-     * @return void
-     */
-    public function ajaxGetProductName($productID)
-    {
-        echo $this->dao->findByID($productID)->from(TABLE_PRODUCT)->fetch('name');
-    }
-
-    /**
-     * Ajax get program status.
-     *
-     * @param  int    $projectID
-     * @access public
-     * @return void
-     */
-    public function ajaxGetProgramStatus($programID)
-    {
-        echo $this->dao->select('status')->from(TABLE_PROGRAM)->where('id')->eq($programID)->fetch('status');
-    }
-
-    /**
      * Move Extent files.
      *
      * @param  string $fromVersion
