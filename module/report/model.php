@@ -1188,7 +1188,6 @@ class reportModel extends model
                         $exceed[$user] = $task['all'];
                     }
                 }
-                $tasks[$user]['process'] = $task['complete'] / $task['all'] * 100;
                 $taskpri = array_column($task['tasks'], 'taskpri');
                 $pri = array_column($task['tasks'], 'pri');
                 $status_pri = array_column($task['tasks'], 'status_sort');
@@ -1196,7 +1195,6 @@ class reportModel extends model
                 $tasks[$user]['tasks'] = $task['tasks'];
             }
         }
-        // $process = array_column($tasks, 'process');
         asort($short);
         arsort($exceed);
         $complete = array_column($tasks, 'consumed');
@@ -1211,7 +1209,7 @@ class reportModel extends model
 
     public function getFinishedTasks($usernames = [], $date = '', $projectIDs = [], $project = 0)
     {
-        $finishedTasks = $this->dao->select('distinct t1.id, t1.left, t1.status, t1.pri as taskpri, t1.parent, t1.name, t1.project, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy,t2.pri, t2.name as executionName, t3.name as moduleName, t3.id as moduleId, t4.id as storyID, t4.title as storyTitle')->from(TABLE_TASK)->alias('t1')
+        $finishedTasks = $this->dao->select('distinct t1.id, t1.left, t1.status, t1.pri as taskpri, t1.parent, t1.name, t1.execution, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy,t2.pri, t2.name as executionName, t3.name as moduleName, t3.id as moduleId, t4.id as storyID, t4.title as storyTitle')->from(TABLE_TASK)->alias('t1')
             ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.execution = t2.id')
             ->leftJoin(TABLE_MODULE)->alias('t3')->on('t1.module = t3.id')
             ->leftJoin(TABLE_STORY)->alias('t4')->on('t1.story = t4.id')
@@ -1238,7 +1236,7 @@ class reportModel extends model
 
     public function getTodoTasks($usernames = [], $date = '', $projectIDs = [], $project = 0)
     {
-        $todoTasks = $this->dao->select('distinct t1.id, t1.name, t1.project, t1.status, t1.pri as taskpri, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy, t2.pri, t2.name as executionName, t3.name as moduleName, t3.id as moduleId, t4.id as storyID, t4.title as storyTitle')->from(TABLE_TASK)->alias('t1')
+        $todoTasks = $this->dao->select('distinct t1.id, t1.name, t1.execution, t1.status, t1.pri as taskpri, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy, t2.pri, t2.name as executionName, t3.name as moduleName, t3.id as moduleId, t4.id as storyID, t4.title as storyTitle')->from(TABLE_TASK)->alias('t1')
             ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.execution = t2.id')
             ->leftJoin(TABLE_MODULE)->alias('t3')->on('t1.module = t3.id')
             ->leftJoin(TABLE_STORY)->alias('t4')->on('t1.story = t4.id')

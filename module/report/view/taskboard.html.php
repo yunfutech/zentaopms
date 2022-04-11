@@ -14,12 +14,6 @@
           </div>
           <div class='col-sm-2'>
             <div class='input-group'>
-              <span class='input-group-addon'><?php echo $lang->report->productDirector; ?></span>
-              <?php echo html::select('director', $directors, $director, "class='form-control chosen' onchange='changeParams(this)'"); ?>
-            </div>
-          </div>
-          <div class='col-sm-2'>
-            <div class='input-group'>
               <span class='input-group-addon'><?php echo $lang->report->project; ?></span>
               <?php echo html::select('project', $projects, $project, "class='form-control chosen' onchange='changeParams(this)'"); ?>
             </div>
@@ -99,9 +93,9 @@
                         <td class=' <?php if ($index == count($detail['tasks']) - 1) : echo 'td-line'; ?><?php endif; ?>'>
                           <div class='task-detail'>
                             <span class='overview'><?php echo $task->consumed; ?> / <?php echo $task->estimate; ?></span>
-                            <?php echo html::a($this->createLink('project', 'task', "projectID={$task->project}"), "<span class='project-name'><span  class='pri pri_{$task->pri}'>{$task->pri}</span>{$task->executionName}</span>"); ?>
+                            <?php echo html::a($this->createLink('execution', 'task', "executionID={$task->execution}"), "<span class='project-name'><span  class='pri pri_{$task->pri}'>{$task->pri}</span>{$task->executionName}</span>"); ?>
                             <?php if ($task->moduleId) : ?>
-                              <?php echo html::a($this->createLink('project', 'task', "projectID=$task->project&browseType=byModule&param=$task->moduleId"), "<span class='module-name'>{$task->moduleName}</span>") ?>
+                              <?php echo html::a($this->createLink('execution', 'task', "executionID=$task->execution&status=unclosed&param=$task->moduleId"), "<span class='module-name'>{$task->moduleName}</span>") ?>
                             <?php else : ?>
                               <span class='no-module-name'>&nbsp;</span>
                             <?php endif; ?>
