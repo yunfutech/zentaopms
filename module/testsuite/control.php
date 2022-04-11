@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The control file of testsuite module of ZenTaoPMS.
  *
@@ -32,7 +33,7 @@ class testsuite extends control
         parent::__construct($moduleName, $methodName);
 
         $this->view->products = $this->products = $this->loadModel('product')->getPairs();
-        if(empty($this->products) and !helper::isAjaxRequest()) die($this->locate($this->createLink('product', 'showErrorNone', "moduleName=qa&activeMenu=testsuite")));
+        if (empty($this->products) and !helper::isAjaxRequest()) return print($this->locate($this->createLink('product', 'showErrorNone', "moduleName=qa&activeMenu=testsuite")));
     }
 
     /**
@@ -74,8 +75,7 @@ class testsuite extends control
         $sort = common::appendOrder($orderBy);
 
         $suites = $this->testsuite->getSuites($productID, $sort, $pager);
-        if(empty($suites) and $pageID > 1)
-        {
+        if (empty($suites) and $pageID > 1) {
             $pager = pager::init(0, $recPerPage, 1);
             $suites = $this->testsuite->getSuites($productID, $sort, $pager);
         }
@@ -107,13 +107,11 @@ class testsuite extends control
      */
     public function create($productID)
     {
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $response['result']  = 'success';
             $response['message'] = $this->lang->testsuite->successSaved;
             $suiteID = $this->testsuite->create($productID);
-            if(dao::isError())
-            {
+            if (dao::isError()) {
                 $response['result']  = 'fail';
                 $response['message'] = dao::getError();
                 return $this->send($response);
@@ -122,7 +120,7 @@ class testsuite extends control
 
             $this->executeHooks($suiteID);
 
-            if($this->viewType == 'json') return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'id' => $suiteID));
+            if ($this->viewType == 'json') return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'id' => $suiteID));
 
             $response['locate']  = $this->createLink('testsuite', 'browse', "productID=$productID");
             return $this->send($response);
@@ -158,8 +156,8 @@ class testsuite extends control
 
         /* Get test suite, and set menu. */
         $suite = $this->testsuite->getById($suiteID, true);
-        if(!$suite) die(js::error($this->lang->notFound) . js::locate('back'));
-        if($suite->type == 'private' and $suite->addedBy != $this->app->user->account and !$this->app->user->admin) die(js::error($this->lang->error->accessDenied) . js::locate('back'));
+        if (!$suite) return print(js::error($this->lang->notFound) . js::locate('back'));
+        if ($suite->type == 'private' and $suite->addedBy != $this->app->user->account and !$this->app->user->admin) return print(js::error($this->lang->error->accessDenied) . js::locate('back'));
 
         /* Set product session. */
         $productID = $this->product->saveState($suite->product, $this->products);
@@ -206,19 +204,16 @@ class testsuite extends control
     public function edit($suiteID)
     {
         $suite = $this->testsuite->getById($suiteID);
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $response['result']  = 'success';
             $response['message'] = $this->lang->testsuite->successSaved;
             $changes = $this->testsuite->update($suiteID);
-            if(dao::isError())
-            {
+            if (dao::isError()) {
                 $response['result']  = 'fail';
                 $response['message'] = dao::getError();
                 return $this->send($response);
             }
-            if($changes)
-            {
+            if ($changes) {
                 $actionID = $this->loadModel('action')->create('testsuite', $suiteID, 'edited');
                 $this->action->logHistory($actionID, $changes);
             }
@@ -229,7 +224,7 @@ class testsuite extends control
             return $this->send($response);
         }
 
-        if($suite->type == 'private' and $suite->addedBy != $this->app->user->account and !$this->app->user->admin) die(js::error($this->lang->error->accessDenied) . js::locate('back'));
+        if ($suite->type == 'private' and $suite->addedBy != $this->app->user->account and !$this->app->user->admin) return print(js::error($this->lang->error->accessDenied) . js::locate('back'));
 
         /* Set product session. */
         $productID = $this->product->saveState($suite->product, $this->products);
@@ -254,35 +249,28 @@ class testsuite extends control
      */
     public function delete($suiteID, $confirm = 'no')
     {
-        if($confirm == 'no')
-        {
-            die(js::confirm($this->lang->testsuite->confirmDelete, inlink('delete', "suiteID=$suiteID&confirm=yes")));
-        }
-        else
-        {
+        if ($confirm == 'no') {
+            return print(js::confirm($this->lang->testsuite->confirmDelete, inlink('delete', "suiteID=$suiteID&confirm=yes")));
+        } else {
             $suite = $this->testsuite->getById($suiteID);
-            if($suite->type == 'private' and $suite->addedBy != $this->app->user->account and !$this->app->user->admin) die(js::error($this->lang->error->accessDenied) . js::locate('back'));
+            if ($suite->type == 'private' and $suite->addedBy != $this->app->user->account and !$this->app->user->admin) return print(js::error($this->lang->error->accessDenied) . js::locate('back'));
 
             $this->testsuite->delete($suiteID);
 
             $this->executeHooks($suiteID);
 
             /* if ajax request, send result. */
-            if($this->server->ajax)
-            {
-                if(dao::isError())
-                {
+            if ($this->server->ajax) {
+                if (dao::isError()) {
                     $response['result']  = 'fail';
                     $response['message'] = dao::getError();
-                }
-                else
-                {
+                } else {
                     $response['result']  = 'success';
                     $response['message'] = '';
                 }
                 return $this->send($response);
             }
-            die(js::reload('parent'));
+            return print(js::reload('parent'));
         }
     }
 
@@ -302,8 +290,7 @@ class testsuite extends control
         /* Save session. */
         $this->session->set('caseList', $this->app->getURI(true), 'qa');
 
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $this->testsuite->linkCase($suiteID);
             $this->locate(inlink('view', "suiteID=$suiteID"));
         }
@@ -328,7 +315,7 @@ class testsuite extends control
         unset($this->config->testcase->search['fields']['branch']);
         unset($this->config->testcase->search['params']['branch']);
 
-        if(!$this->config->testcase->needReview) unset($this->config->testcase->search['params']['status']['values']['wait']);
+        if (!$this->config->testcase->needReview) unset($this->config->testcase->search['params']['status']['values']['wait']);
         $this->loadModel('search')->setSearchParams($this->config->testcase->search);
 
         $this->view->title      = $suite->name . $this->lang->colon . $this->lang->testsuite->linkCase;
@@ -356,18 +343,14 @@ class testsuite extends control
      */
     public function unlinkCase($suiteID, $rowID, $confirm = 'no')
     {
-        if($confirm == 'no')
-        {
-            die(js::confirm($this->lang->testsuite->confirmUnlinkCase, $this->createLink('testsuite', 'unlinkCase', "rowID=$rowID&confirm=yes")));
-        }
-        else
-        {
+        if ($confirm == 'no') {
+            return print(js::confirm($this->lang->testsuite->confirmUnlinkCase, $this->createLink('testsuite', 'unlinkCase', "rowID=$rowID&confirm=yes")));
+        } else {
             $response['result']  = 'success';
             $response['message'] = '';
 
             $this->dao->delete()->from(TABLE_SUITECASE)->where('`case`')->eq((int)$rowID)->andWhere('suite')->eq($suiteID)->exec();
-            if(dao::isError())
-            {
+            if (dao::isError()) {
                 $response['result']  = 'fail';
                 $response['message'] = dao::getError();
             }
@@ -384,14 +367,13 @@ class testsuite extends control
      */
     public function batchUnlinkCases($suiteID)
     {
-        if(isset($_POST['caseIDList']))
-        {
+        if (isset($_POST['caseIDList'])) {
             $this->dao->delete()->from(TABLE_SUITECASE)
                 ->where('suite')->eq((int)$suiteID)
                 ->andWhere('`case`')->in($this->post->caseIDList)
                 ->exec();
         }
 
-        die(js::locate($this->createLink('testsuite', 'view', "suiteID=$suiteID")));
+        return print(js::locate($this->createLink('testsuite', 'view', "suiteID=$suiteID")));
     }
 }

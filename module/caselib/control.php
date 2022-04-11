@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The control file of caselib module of ZenTaoPMS.
  *
@@ -30,13 +31,11 @@ class caselib extends control
      */
     public function create()
     {
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $response['result']  = 'success';
             $response['message'] = $this->lang->saveSuccess;
             $libID = $this->caselib->create();
-            if(dao::isError())
-            {
+            if (dao::isError()) {
                 $response['result']  = 'fail';
                 $response['message'] = dao::getError();
                 return $this->send($response);
@@ -44,8 +43,7 @@ class caselib extends control
             $this->loadModel('action')->create('caselib', $libID, 'opened');
 
             /* Return lib id when call the API. */
-            if($this->viewType == 'json')
-            {
+            if ($this->viewType == 'json') {
                 $response['id'] = $libID;
                 return $this->send($response);
             }
@@ -75,19 +73,16 @@ class caselib extends control
     public function edit($libID)
     {
         $lib = $this->caselib->getById($libID);
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $response['result']  = 'success';
             $response['message'] = $this->lang->saveSuccess;
             $changes = $this->caselib->update($libID);
-            if(dao::isError())
-            {
+            if (dao::isError()) {
                 $response['result']  = 'fail';
                 $response['message'] = dao::getError();
                 return $this->send($response);
             }
-            if($changes)
-            {
+            if ($changes) {
                 $actionID = $this->loadModel('action')->create('caselib', $libID, 'edited');
                 $this->action->logHistory($actionID, $changes);
             }
@@ -122,32 +117,25 @@ class caselib extends control
      */
     public function delete($libID, $confirm = 'no')
     {
-        if($confirm == 'no')
-        {
-            die(js::confirm($this->lang->caselib->libraryDelete, inlink('delete', "libID=$libID&confirm=yes")));
-        }
-        else
-        {
+        if ($confirm == 'no') {
+            return print(js::confirm($this->lang->caselib->libraryDelete, inlink('delete', "libID=$libID&confirm=yes")));
+        } else {
             $this->caselib->delete($libID);
 
             $this->executeHooks($libID);
 
             /* if ajax request, send result. */
-            if($this->server->ajax)
-            {
-                if(dao::isError())
-                {
+            if ($this->server->ajax) {
+                if (dao::isError()) {
                     $response['result']  = 'fail';
                     $response['message'] = dao::getError();
-                }
-                else
-                {
+                } else {
                     $response['result']  = 'success';
                     $response['message'] = '';
                 }
                 return $this->send($response);
             }
-            die(js::reload('parent'));
+            return print(js::reload('parent'));
         }
     }
 
@@ -170,7 +158,7 @@ class caselib extends control
         $browseType = strtolower($browseType);
 
         $libraries = $this->caselib->getLibraries();
-        if(empty($libraries)) $this->locate(inlink('create'));
+        if (empty($libraries)) $this->locate(inlink('create'));
 
         /* Save session. */
         $this->session->set('caseList', $this->app->getURI(true), 'qa');
@@ -179,14 +167,13 @@ class caselib extends control
         /* Set menu. */
         $libID = $this->caselib->saveLibState($libID, $libraries);
         setcookie('preCaseLibID', $libID, $this->config->cookieLife, $this->config->webRoot, '', $this->config->cookieSecure, true);
-        if($this->cookie->preCaseLibID != $libID)
-        {
+        if ($this->cookie->preCaseLibID != $libID) {
             $_COOKIE['libCaseModule'] = 0;
             setcookie('libCaseModule', 0, 0, $this->config->webRoot, '', $this->config->cookieSecure, true);
         }
 
-        if($browseType == 'bymodule') setcookie('libCaseModule', (int)$param, 0, $this->config->webRoot, '', $this->config->cookieSecure, true);
-        if($browseType != 'bymodule') $this->session->set('libBrowseType', $browseType);
+        if ($browseType == 'bymodule') setcookie('libCaseModule', (int)$param, 0, $this->config->webRoot, '', $this->config->cookieSecure, true);
+        if ($browseType != 'bymodule') $this->session->set('libBrowseType', $browseType);
         $moduleID = ($browseType == 'bymodule') ? (int)$param : ($browseType == 'bysearch' ? 0 : ($this->cookie->libCaseModule ? $this->cookie->libCaseModule : 0));
         $queryID  = ($browseType == 'bysearch') ? (int)$param : 0;
 
@@ -246,26 +233,24 @@ class caselib extends control
      */
     public function createCase($libID, $moduleID = 0, $param = 0)
     {
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $this->loadModel('testcase');
             $this->config->testcase->create->requiredFields = $this->config->caselib->createcase->requiredFields;
             setcookie('lastLibCaseModule', (int)$this->post->module, $this->config->cookieLife, $this->config->webRoot, '', $this->config->cookieSecure, false);
             $caseResult = $this->testcase->create($bugID = 0);
-            if(!$caseResult or dao::isError()) die(js::error(dao::getError()));
+            if (!$caseResult or dao::isError()) return print(js::error(dao::getError()));
 
             $caseID = $caseResult['id'];
-            if($caseResult['status'] == 'exists')
-            {
+            if ($caseResult['status'] == 'exists') {
                 echo js::alert(sprintf($this->lang->duplicate, $this->lang->testcase->common));
-                die(js::locate($this->createLink('testcase', 'view', "caseID=$caseID"), 'parent'));
+                return print(js::locate($this->createLink('testcase', 'view', "caseID=$caseID"), 'parent'));
             }
 
             $this->loadModel('action')->create('case', $caseID, 'Opened');
 
             /* If link from no head then reload. */
-            if(isonlybody()) die(js::reload('parent'));
-            die(js::locate($this->createLink('caselib', 'browse', "libID={$libID}&browseType=byModule&param={$_POST['module']}"), 'parent'));
+            if (isonlybody()) return print(js::reload('parent'));
+            return print(js::locate($this->createLink('caselib', 'browse', "libID={$libID}&browseType=byModule&param={$_POST['module']}"), 'parent'));
         }
         /* Set lib menu. */
         $libraries = $this->caselib->getLibraries();
@@ -281,8 +266,7 @@ class caselib extends control
         $steps        = array();
 
         $this->loadModel('testcase');
-        if($param)
-        {
+        if ($param) {
             $testcase     = $this->testcase->getById((int)$param);
             $type         = $testcase->type ? $testcase->type : 'feature';
             $stage        = $testcase->stage;
@@ -294,14 +278,13 @@ class caselib extends control
             $steps        = $testcase->steps;
         }
 
-        if(count($steps) < $this->config->testcase->defaultSteps)
-        {
+        if (count($steps) < $this->config->testcase->defaultSteps) {
             $paddingCount = $this->config->testcase->defaultSteps - count($steps);
             $step = new stdclass();
             $step->type   = 'item';
             $step->desc   = '';
             $step->expect = '';
-            for($i = 1; $i <= $paddingCount; $i ++) $steps[] = $step;
+            for ($i = 1; $i <= $paddingCount; $i++) $steps[] = $step;
         }
 
         $this->view->title      = $libraries[$libID] . $this->lang->colon . $this->lang->testcase->create;
@@ -309,7 +292,7 @@ class caselib extends control
         $this->view->position[] = $this->lang->caselib->common;
         $this->view->position[] = $this->lang->testcase->create;
 
-        foreach(explode(',', $this->config->caselib->customCreateFields) as $field) $customFields[$field] = $this->lang->testcase->$field;
+        foreach (explode(',', $this->config->caselib->customCreateFields) as $field) $customFields[$field] = $this->lang->testcase->$field;
         $this->view->showFields       = $this->config->caselib->custom->createFields;
         $this->view->customFields     = $customFields;
         $this->view->libraries        = $libraries;
@@ -337,16 +320,15 @@ class caselib extends control
     public function batchCreateCase($libID, $moduleID = 0)
     {
         $this->loadModel('testcase');
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $caseID = $this->caselib->batchCreateCase($libID);
-            if(dao::isError()) die(js::error(dao::getError()));
-            if(isonlybody()) die(js::closeModal('parent.parent', 'this'));
-            die(js::locate($this->createLink('caselib', 'browse', "libID=$libID&browseType=byModule&param=$moduleID"), 'parent'));
+            if (dao::isError()) return print(js::error(dao::getError()));
+            if (isonlybody()) return print(js::closeModal('parent.parent', 'this'));
+            return print(js::locate($this->createLink('caselib', 'browse', "libID=$libID&browseType=byModule&param=$moduleID"), 'parent'));
         }
 
         $libraries = $this->caselib->getLibraries();
-        if(empty($libraries)) $this->locate(inlink('create'));
+        if (empty($libraries)) $this->locate(inlink('create'));
 
         /* Set lib menu. */
         $this->caselib->setLibMenu($libraries, $libID);
@@ -378,7 +360,7 @@ class caselib extends control
     {
         $libID = (int)$libID;
         $lib   = $this->caselib->getById($libID, true);
-        if(!isset($lib->id)) die(js::error($this->lang->notFound) . js::locate($this->createLink('qa', 'index')));
+        if (!isset($lib->id)) return print(js::error($this->lang->notFound) . js::locate($this->createLink('qa', 'index')));
 
         /* Set lib menu. */
         $libraries = $this->caselib->getLibraries();
@@ -450,8 +432,7 @@ class caselib extends control
     public function exportTemplet($libID)
     {
         $this->loadModel('testcase');
-        if($_POST)
-        {
+        if ($_POST) {
             $fields['module']       = $this->lang->testcase->module;
             $fields['title']        = $this->lang->testcase->title;
             $fields['precondition'] = $this->lang->testcase->precondition;
@@ -469,17 +450,14 @@ class caselib extends control
             $modules = $this->loadModel('tree')->getOptionMenu($libID, $viewType = 'caselib', $startModuleID = 0);
             $rows    = array();
             $num     = (int)$this->post->num;
-            for($i = 0; $i < $num; $i++)
-            {
-                foreach($modules as $moduleID => $module)
-                {
+            for ($i = 0; $i < $num; $i++) {
+                foreach ($modules as $moduleID => $module) {
                     $row = new stdclass();
                     $row->module     = $module . "(#$moduleID)";
                     $row->stepDesc   = "1. \n2. \n3.";
                     $row->stepExpect = "1. \n2. \n3.";
 
-                    if(empty($rows))
-                    {
+                    if (empty($rows)) {
                         $row->typeValue   = join("\n", $this->lang->testcase->typeList);
                         $row->stageValue  = join("\n", $this->lang->testcase->stageList);
                     }
@@ -508,8 +486,7 @@ class caselib extends control
     public function import($libID)
     {
         $this->loadModel('testcase');
-        if($_FILES)
-        {
+        if ($_FILES) {
             $file = $this->loadModel('file')->getUpload('file');
             $file = $file[0];
 
@@ -520,22 +497,19 @@ class caselib extends control
             $fields   = $this->testcase->getImportFields($productID);
             $fields   = array_flip($fields);
             $header   = array();
-            foreach($rows[0] as $i => $rowValue)
-            {
-                if(empty($rowValue)) break;
+            foreach ($rows[0] as $i => $rowValue) {
+                if (empty($rowValue)) break;
                 $header[$i] = $rowValue;
             }
             unset($rows[0]);
 
             $columnKey = array();
-            foreach($header as $title)
-            {
-                if(!isset($fields[$title])) continue;
+            foreach ($header as $title) {
+                if (!isset($fields[$title])) continue;
                 $columnKey[] = $fields[$title];
             }
 
-            if(count($columnKey) != count($header) or $this->post->encode != 'utf-8')
-            {
+            if (count($columnKey) != count($header) or $this->post->encode != 'utf-8') {
                 $fc     = file_get_contents($fileName);
                 $encode = $this->post->encode != "utf-8" ? $this->post->encode : 'gbk';
                 $fc     = helper::convertEncoding($fc, $encode, 'utf-8');
@@ -544,23 +518,21 @@ class caselib extends control
                 $rows      = $this->file->parseCSV($fileName);
                 $columnKey = array();
                 $header   = array();
-                foreach($rows[0] as $i => $rowValue)
-                {
-                    if(empty($rowValue)) break;
+                foreach ($rows[0] as $i => $rowValue) {
+                    if (empty($rowValue)) break;
                     $header[$i] = $rowValue;
                 }
                 unset($rows[0]);
-                foreach($header as $title)
-                {
-                    if(!isset($fields[$title])) continue;
+                foreach ($header as $title) {
+                    if (!isset($fields[$title])) continue;
                     $columnKey[] = $fields[$title];
                 }
-                if(count($columnKey) != count($header)) die(js::alert($this->lang->testcase->errorEncode));
+                if (count($columnKey) != count($header)) return print(js::alert($this->lang->testcase->errorEncode));
             }
 
             $this->session->set('fileImport', $fileName);
 
-            die(js::locate(inlink('showImport', "libID=$libID"), 'parent.parent'));
+            return print(js::locate(inlink('showImport', "libID=$libID"), 'parent.parent'));
         }
         $this->display();
     }
@@ -583,22 +555,18 @@ class caselib extends control
         $tmpPath = $this->loadModel('file')->getPathOfImportedFile();
         $tmpFile = $tmpPath . DS . md5(basename($file));
 
-        if($_POST)
-        {
+        if ($_POST) {
             $this->caselib->createFromImport($libID);
-            if($this->post->isEndPage)
-            {
+            if ($this->post->isEndPage) {
                 unlink($tmpFile);
-                die(js::locate(inlink('browse', "libID=$libID"), 'parent'));
-            }
-            else
-            {
-                die(js::locate(inlink('showImport', "libID=$libID&pagerID=" . ($this->post->pagerID + 1) . "&maxImport=$maxImport&insert=" . zget($_POST, 'insert', '')), 'parent'));
+                return print(js::locate(inlink('browse', "libID=$libID"), 'parent'));
+            } else {
+                return print(js::locate(inlink('showImport', "libID=$libID&pagerID=" . ($this->post->pagerID + 1) . "&maxImport=$maxImport&insert=" . zget($_POST, 'insert', '')), 'parent'));
             }
         }
 
         $libraries = $this->caselib->getLibraries();
-        if(empty($libraries)) $this->locate(inlink('create'));
+        if (empty($libraries)) $this->locate(inlink('create'));
 
         $this->caselib->setLibMenu($libraries, $libID);
 
@@ -607,8 +575,7 @@ class caselib extends control
         $modules    = $this->loadModel('tree')->getOptionMenu($libID, $viewType = 'caselib', $startModuleID = 0);
 
         $fields = explode(',', $caseConfig->exportFields);
-        foreach($fields as $key => $fieldName)
-        {
+        foreach ($fields as $key => $fieldName) {
             $fieldName = trim($fieldName);
             $fields[$fieldName] = isset($caseLang->$fieldName) ? $caseLang->$fieldName : $fieldName;
             unset($fields[$key]);
@@ -616,27 +583,22 @@ class caselib extends control
 
         $fields = array_flip($fields);
 
-        if(!empty($maxImport) and file_exists($tmpFile))
-        {
+        if (!empty($maxImport) and file_exists($tmpFile)) {
             $data = unserialize(file_get_contents($tmpFile));
             $caseData = $data['caseData'];
             $stepData = $data['stepData'];
-        }
-        else
-        {
+        } else {
             $pagerID = 1;
             $rows    = $this->loadModel('file')->parseCSV($file);
             $header  = array();
-            foreach($rows[0] as $i => $rowValue)
-            {
-                if(empty($rowValue)) break;
+            foreach ($rows[0] as $i => $rowValue) {
+                if (empty($rowValue)) break;
                 $header[$i] = $rowValue;
             }
             unset($rows[0]);
 
-            foreach($header as $title)
-            {
-                if(!isset($fields[$title])) continue;
+            foreach ($header as $title) {
+                if (!isset($fields[$title])) continue;
                 $columnKey[] = $fields[$title];
             }
 
@@ -644,93 +606,67 @@ class caselib extends control
             $caseData = array();
             $stepData = array();
             $stepVars = 0;
-            foreach($rows as $row => $data)
-            {
+            foreach ($rows as $row => $data) {
                 $case = new stdclass();
-                foreach($columnKey as $key => $field)
-                {
-                    if(!isset($data[$key])) continue;
+                foreach ($columnKey as $key => $field) {
+                    if (!isset($data[$key])) continue;
                     $cellValue = $data[$key];
-                    if($field == 'module')
-                    {
+                    if ($field == 'module') {
                         $case->$field = 0;
-                        if(strrpos($cellValue, '(#') !== false)
-                        {
-                            $id = trim(substr($cellValue, strrpos($cellValue,'(#') + 2), ')');
+                        if (strrpos($cellValue, '(#') !== false) {
+                            $id = trim(substr($cellValue, strrpos($cellValue, '(#') + 2), ')');
                             $case->$field = $id;
                         }
-                    }
-                    elseif(in_array($field, $caseConfig->export->listFields))
-                    {
-                        if($field == 'stage')
-                        {
+                    } elseif (in_array($field, $caseConfig->export->listFields)) {
+                        if ($field == 'stage') {
                             $stages = explode("\n", $cellValue);
-                            foreach($stages as $stage) $case->stage[] = array_search($stage, $caseLang->{$field . 'List'});
+                            foreach ($stages as $stage) $case->stage[] = array_search($stage, $caseLang->{$field . 'List'});
                             $case->stage = join(',', $case->stage);
-                        }
-                        else
-                        {
+                        } else {
                             $case->$field = array_search($cellValue, $caseLang->{$field . 'List'});
                         }
-                    }
-                    elseif($field != 'stepDesc' and $field != 'stepExpect')
-                    {
+                    } elseif ($field != 'stepDesc' and $field != 'stepExpect') {
                         $case->$field = $cellValue;
-                    }
-                    else
-                    {
+                    } else {
                         $steps = (array)$cellValue;
-                        if(strpos($cellValue, "\n"))
-                        {
+                        if (strpos($cellValue, "\n")) {
                             $steps = explode("\n", $cellValue);
-                        }
-                        elseif(strpos($cellValue, "\r"))
-                        {
+                        } elseif (strpos($cellValue, "\r")) {
                             $steps = explode("\r", $cellValue);
                         }
 
                         $stepKey  = str_replace('step', '', strtolower($field));
                         $caseStep = array();
 
-                        foreach($steps as $step)
-                        {
+                        foreach ($steps as $step) {
                             $step = trim($step);
-                            if(empty($step)) continue;
-                            if(preg_match('/^(([0-9]+)\.[0-9]+)([.、]{1})/U', $step, $out))
-                            {
+                            if (empty($step)) continue;
+                            if (preg_match('/^(([0-9]+)\.[0-9]+)([.、]{1})/U', $step, $out)) {
                                 $num     = $out[1];
                                 $parent  = $out[2];
                                 $sign    = $out[3];
                                 $signbit = $sign == '.' ? 1 : 3;
                                 $step    = trim(substr($step, strlen($num) + $signbit));
-                                if(!empty($step)) $caseStep[$num]['content'] = $step;
+                                if (!empty($step)) $caseStep[$num]['content'] = $step;
                                 $caseStep[$num]['type']    = 'item';
                                 $caseStep[$parent]['type'] = 'group';
-                            }
-                            elseif(preg_match('/^([0-9]+)([.、]{1})/U', $step, $out))
-                            {
+                            } elseif (preg_match('/^([0-9]+)([.、]{1})/U', $step, $out)) {
                                 $num     = $out[1];
                                 $sign    = $out[2];
                                 $signbit = $sign == '.' ? 1 : 3;
                                 $step    = trim(substr($step, strlen($num) + $signbit));
-                                if(!empty($step)) $caseStep[$num]['content'] = $step;
+                                if (!empty($step)) $caseStep[$num]['content'] = $step;
                                 $caseStep[$num]['type'] = 'step';
-                            }
-                            elseif(isset($num))
-                            {
-                                if(!isset($caseStep[$num]['content'])) $caseStep[$num]['content'] = '';
+                            } elseif (isset($num)) {
+                                if (!isset($caseStep[$num]['content'])) $caseStep[$num]['content'] = '';
                                 $caseStep[$num]['content'] .= "\n" . $step;
-                            }
-                            else
-                            {
-                                if($field == 'stepDesc')
-                                {
+                            } else {
+                                if ($field == 'stepDesc') {
                                     $num = 1;
                                     $caseStep[$num]['content'] = $step;
                                     $caseStep[$num]['type']    = 'step';
                                 }
-                                if($field == 'stepExpect' and isset($stepData[$row]['desc']))
-                                {
+                                if ($field == 'stepExpect' and isset($stepData[$row]['desc'])) {
                                     end($stepData[$row]['desc']);
                                     $num = key($stepData[$row]['desc']);
                                     $caseStep[$num]['content'] = $step;
@@ -744,7 +680,7 @@ class caselib extends control
                     }
                 }
 
-                if(empty($case->title)) continue;
+                if (empty($case->title)) continue;
                 $caseData[$row] = $case;
                 unset($case);
             }
@@ -754,35 +690,32 @@ class caselib extends control
             file_put_contents($tmpFile, serialize($data));
         }
 
-        if(empty($caseData))
-        {
+        if (empty($caseData)) {
             unlink($this->session->fileImport);
             unset($_SESSION['fileImport']);
             echo js::alert($this->lang->error->noData);
-            die(js::locate($this->createLink('caselib', 'browse', "libID=$libID")));
+            return print(js::locate($this->createLink('caselib', 'browse', "libID=$libID")));
         }
 
         $allCount = count($caseData);
         $allPager = 1;
-        if($allCount > $this->config->file->maxImport)
-        {
-            if(empty($maxImport))
-            {
+        if ($allCount > $this->config->file->maxImport) {
+            if (empty($maxImport)) {
                 $this->view->allCount  = $allCount;
                 $this->view->maxImport = $maxImport;
                 $this->view->libID     = $libID;
-                die($this->display());
+                return print($this->display());
             }
 
             $allPager = ceil($allCount / $maxImport);
             $caseData = array_slice($caseData, ($pagerID - 1) * $maxImport, $maxImport, true);
         }
-        if(empty($caseData)) die(js::locate(inlink('browse', "libID=$libID")));
+        if (empty($caseData)) return print(js::locate(inlink('browse', "libID=$libID")));
 
         /* Judge whether the items is too large and set session. */
         $countInputVars  = count($caseData) * 9 + (isset($stepVars) ? $stepVars : 0);
         $showSuhosinInfo = common::judgeSuhosinSetting($countInputVars);
-        if($showSuhosinInfo) $this->view->suhosinInfo = extension_loaded('suhosin') ? sprintf($this->lang->suhosinInfo, $countInputVars) : sprintf($this->lang->maxVarsInfo, $countInputVars);
+        if ($showSuhosinInfo) $this->view->suhosinInfo = extension_loaded('suhosin') ? sprintf($this->lang->suhosinInfo, $countInputVars) : sprintf($this->lang->maxVarsInfo, $countInputVars);
 
         $this->view->title      = $this->lang->caselib->common . $this->lang->colon . $this->lang->testcase->showImport;
         $this->view->position[] = $this->lang->testcase->showImport;

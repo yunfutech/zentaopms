@@ -1,4 +1,5 @@
 <?php
+
 /**
  * 禅道API的api类。
  * The api class file of ZenTao API.
@@ -92,7 +93,7 @@ class api extends router
          */
 
         $this->path = trim(substr($_SERVER['REQUEST_URI'], strpos($_SERVER['REQUEST_URI'], 'api.php') + 7), '/');
-        if(strpos($this->path, '?') > 0) $this->path = strstr($this->path, '?', true);
+        if (strpos($this->path, '?') > 0) $this->path = strstr($this->path, '?', true);
 
         $subPos = $this->path ? strpos($this->path, '/') : false;
         $this->version = $subPos !== false ? substr($this->path, 0, $subPos) : '';
@@ -112,33 +113,28 @@ class api extends router
      */
     public function route($routes)
     {
-        foreach($routes as $route => $target)
-        {
+        foreach ($routes as $route => $target) {
             $patternAsRegex = preg_replace_callback(
                 '#:([\w]+)\+?#',
                 array($this, 'matchesCallback'),
                 str_replace(')', ')?', $route)
             );
-            if(substr($route, -1) === '/') $patternAsRegex .= '?';
+            if (substr($route, -1) === '/') $patternAsRegex .= '?';
 
             /* Cache URL params' names and values if this route matches the current HTTP request. */
-            if(!preg_match('#^' . $patternAsRegex . '$#', $this->path, $paramValues)) continue;
+            if (!preg_match('#^' . $patternAsRegex . '$#', $this->path, $paramValues)) continue;
 
             /* Set module and action */
             $this->entry  = $target;
             $this->action = strtolower($_SERVER['REQUEST_METHOD']);
 
             /* Set params */
-            foreach($this->paramNames as $name)
-            {
-                if(!isset($paramValues[$name])) continue;
+            foreach ($this->paramNames as $name) {
+                if (!isset($paramValues[$name])) continue;
 
-                if(isset($this->paramNamesPath[$name]))
-                {
+                if (isset($this->paramNamesPath[$name])) {
                     $this->params[$name] = explode('/', urldecode($paramValues[$name]));
-                }
-                else
-                {
+                } else {
                     $this->params[$name] = urldecode($paramValues[$name]);
                 }
             }
@@ -175,7 +171,7 @@ class api extends router
     public function parseRequest()
     {
         /* If version of api don't exists, call parent method. */
-        if(!$this->version) return parent::parseRequest();
+        if (!$this->version) return parent::parseRequest();
 
         $this->route($this->config->routes);
     }
@@ -191,7 +187,7 @@ class api extends router
     public function loadModule()
     {
         /* If the version of api don't exists, call parent method. */
-        if(!$this->version) return parent::loadModule();
+        if (!$this->version) return parent::loadModule();
 
         $entry = strtolower($this->entry);
         include($this->appRoot . "api/$this->version/entries/$entry.php");
@@ -199,8 +195,8 @@ class api extends router
         $entryName = $this->entry . 'Entry';
         $entry = new $entryName();
 
-        if($this->action == 'options') return $entry->send(204);
-        call_user_func_array(array($entry, $this->action), $this->params);
+        if ($this->action == 'options') return $entry->send(204);
+        call_user_func_array(array($entry, $this->action), array_values($this->params));
     }
 
     /**
@@ -229,7 +225,7 @@ class api extends router
     public function loadApiLang()
     {
         global $lang;
-        if($this->version) include($this->appRoot . "api/$this->version/lang/$this->clientLang.php");
+        if ($this->version) include($this->appRoot . "api/$this->version/lang/$this->clientLang.php");
     }
 
     /**
@@ -244,15 +240,15 @@ class api extends router
     public function formatData($output)
     {
         /* If the version exists, return output directly. */
-        if($this->version) return $output;
+        if ($this->version) return $output;
 
         $output = json_decode($output);
 
         $data = new stdClass();
         $data->status = isset($output->status) ? $output->status : $output->result;
-        if(isset($output->message)) $data->message = $output->message;
-        if(isset($output->data))    $data->data    = json_decode($output->data);
-        if(isset($output->id))      $data->id      = $output->id;
+        if (isset($output->message)) $data->message = $output->message;
+        if (isset($output->data))    $data->data    = json_decode($output->data);
+        if (isset($output->id))      $data->id      = $output->id;
         $output = json_encode($data);
 
         unset($_SESSION['ENTRY_CODE']);

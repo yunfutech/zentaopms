@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The model file of setting module of ZenTaoPMS.
  *
@@ -42,18 +43,22 @@ class settingModel extends model
     /**
      * Set value of an item.
      *
-     * @param  string      $path     system.common.global.sn or system.common.sn
+     * @param  string      $path     system.common.global.sn | system.common.sn | system.common.global.sn@rnd
      * @param  string      $value
      * @access public
      * @return void
      */
     public function setItem($path, $value = '')
     {
+        /* Determine vision of config item. */
+        $pathVision = explode('@', $path);
+        $vision     = isset($pathVision[1]) ? $pathVision[1] : '';
+        $path       = $pathVision[0];
+
         /* fix bug when account has dot. */
         $account = isset($this->app->user->account) ? $this->app->user->account : '';
         $replace = false;
-        if($account and strpos($path, $account) === 0)
-        {
+        if ($account and strpos($path, $account) === 0) {
             $replace = true;
             $path    = preg_replace("/^{$account}/", 'account', $path);
         }
@@ -61,10 +66,10 @@ class settingModel extends model
         $level   = substr_count($path, '.');
         $section = '';
 
-        if($level <= 1) return false;
-        if($level == 2) list($owner, $module, $key) = explode('.', $path);
-        if($level == 3) list($owner, $module, $section, $key) = explode('.', $path);
-        if($replace) $owner = $account;
+        if ($level <= 1) return false;
+        if ($level == 2) list($owner, $module, $key) = explode('.', $path);
+        if ($level == 3) list($owner, $module, $section, $key) = explode('.', $path);
+        if ($replace) $owner = $account;
 
         $item = new stdclass();
         $item->owner   = $owner;
@@ -72,6 +77,8 @@ class settingModel extends model
         $item->section = $section;
         $item->key     = $key;
         $item->value   = $value;
+
+        if ($vision) $item->vision = $vision;
 
         $this->dao->replace(TABLE_CONFIG)->data($item)->exec();
     }
@@ -90,23 +97,23 @@ class settingModel extends model
      */
     public function setItems($path, $items)
     {
-        foreach($items as $key => $item)
-        {
-            if(is_array($item) or is_object($item))
-            {
+        /* Determine vision of config item. */
+        $pathVision = explode('@', $path);
+        $vision = isset($pathVision[1]) ? $pathVision[1] : '';
+        $path   = $pathVision[0];
+
+        foreach ($items as $key => $item) {
+            if (is_array($item) or is_object($item)) {
                 $section = $key;
-                foreach($item as $subKey => $subItem)
-                {
-                    $this->setItem($path . '.' . $section . '.' . $subKey, $subItem);
+                foreach ($item as $subKey => $subItem) {
+                    $this->setItem($path . '.' . $section . '.' . $subKey . "@$vision", $subItem);
                 }
-            }
-            else
-            {
-                $this->setItem($path . '.' . $key, $item);
+            } else {
+                $this->setItem($path . '.' . $key . "@$vision", $item);
             }
         }
 
-        if(!dao::isError()) return true;
+        if (!dao::isError()) return true;
         return false;
     }
 
@@ -135,9 +142,9 @@ class settingModel extends model
         parse_str($paramString, $params);
 
         /* Init fields not set in the param string. */
-        $fields = 'owner,module,section,key';
+        $fields = 'vision,owner,module,section,key';
         $fields = explode(',', $fields);
-        foreach($fields as $field) if(!isset($params[$field])) $params[$field] = '';
+        foreach ($fields as $field) if (!isset($params[$field])) $params[$field] = '';
 
         return $params;
     }
@@ -153,6 +160,7 @@ class settingModel extends model
     public function createDAO($params, $method = 'select')
     {
         return $this->dao->$method('*')->from(TABLE_CONFIG)->where('1 = 1')
+            ->beginIF($params['vision'])->andWhere('vision')->in($params['vision'])->fi()
             ->beginIF($params['owner'])->andWhere('owner')->in($params['owner'])->fi()
             ->beginIF($params['module'])->andWhere('module')->in($params['module'])->fi()
             ->beginIF($params['section'])->andWhere('section')->in($params['section'])->fi()
@@ -171,17 +179,17 @@ class settingModel extends model
         $owner   = 'system,' . ($account ? $account : '');
         $records = $this->dao->select('*')->from(TABLE_CONFIG)
             ->where('owner')->in($owner)
+            ->beginIF(!defined('IN_UPGRADE'))->andWhere('vision')->in(array('', $this->config->vision))->fi()
             ->orderBy('id')
             ->fetchAll('id');
-        if(!$records) return array();
+        if (!$records) return array();
 
         /* Group records by owner and module. */
         $config = array();
-        foreach($records as $record)
-        {
-            if(!isset($config[$record->owner])) $config[$record->owner] = new stdclass();
-            if(!isset($record->module)) return array();    // If no module field, return directly. Since 3.2 version, there's the module field.
-            if(empty($record->module)) continue;
+        foreach ($records as $record) {
+            if (!isset($config[$record->owner])) $config[$record->owner] = new stdclass();
+            if (!isset($record->module)) return array();    // If no module field, return directly. Since 3.2 version, there's the module field.
+            if (empty($record->module)) continue;
 
             $config[$record->owner]->{$record->module}[] = $record;
         }
@@ -201,7 +209,7 @@ class settingModel extends model
     public function getVersion()
     {
         $version = isset($this->config->global->version) ? $this->config->global->version : '0.3.beta';    // No version, set as 0.3.beta.
-        if($version == '3.0.stable') $version = '3.0';    // convert 3.0.stable to 3.0.
+        if ($version == '3.0.stable') $version = '3.0';    // convert 3.0.stable to 3.0.
         return $version;
     }
 
@@ -213,7 +221,7 @@ class settingModel extends model
      */
     public function getURSR()
     {
-        if(isset($this->config->URSR)) return $this->config->URSR;
+        if (isset($this->config->URSR)) return $this->config->URSR;
         return $this->getItem('owner=system&module=custom&key=URSR');
     }
 
@@ -238,7 +246,7 @@ class settingModel extends model
     public function setSN()
     {
         $sn = $this->getItem('owner=system&module=common&section=global&key=sn');
-        if($this->snNeededUpdate($sn)) $this->setItem('system.common.global.sn', $this->computeSN());
+        if ($this->snNeededUpdate($sn)) $this->setItem('system.common.global.sn', $this->computeSN());
     }
 
     /**
@@ -265,11 +273,11 @@ class settingModel extends model
      */
     public function snNeededUpdate($sn)
     {
-        if($sn == '') return true;
-        if($sn == '281602d8ff5ee7533eeafd26eda4e776') return true;
-        if($sn == '9bed3108092c94a0db2b934a46268b4a') return true;
-        if($sn == '8522dd4d76762a49d02261ddbe4ad432') return true;
-        if($sn == '13593e340ee2bdffed640d0c4eed8bec') return true;
+        if ($sn == '') return true;
+        if ($sn == '281602d8ff5ee7533eeafd26eda4e776') return true;
+        if ($sn == '9bed3108092c94a0db2b934a46268b4a') return true;
+        if ($sn == '8522dd4d76762a49d02261ddbe4ad432') return true;
+        if ($sn == '13593e340ee2bdffed640d0c4eed8bec') return true;
 
         return false;
     }

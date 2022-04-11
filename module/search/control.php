@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The control file of search module of ZenTaoPMS.
  *
@@ -20,8 +21,8 @@ class search extends control
     public function __construct($module = '', $method = '')
     {
         parent::__construct($module, $method);
-        if(!isset($this->config->maxVersion))  unset($this->lang->search->modules['effort']);
-        if($this->config->systemMode != 'new') unset($this->lang->search->modules['program'], $this->lang->search->modules['project']);
+        if ($this->config->edition != 'max')  unset($this->lang->search->modules['effort']);
+        if ($this->config->systemMode != 'new') unset($this->lang->search->modules['program'], $this->lang->search->modules['project']);
     }
 
     /**
@@ -73,21 +74,18 @@ class search extends control
 
         $actionURL = $this->post->actionURL;
         $parsedURL = parse_url($actionURL);
-        if(isset($parsedURL['host'])) die();
-        if($this->config->requestType != 'GET')
-        {
+        if (isset($parsedURL['host'])) return;
+        if ($this->config->requestType != 'GET') {
             $path = $parsedURL['path'];
             $path = str_replace($this->config->webRoot, '', $path);
-            if(strpos($path, '.') !== false) $path = substr($path, 0, strpos($path, '.'));
-            if(preg_match("/^\w+{$this->config->requestFix}\w+/", $path) == 0) die();
-        }
-        else
-        {
+            if (strpos($path, '.') !== false) $path = substr($path, 0, strpos($path, '.'));
+            if (preg_match("/^\w+{$this->config->requestFix}\w+/", $path) == 0) return;
+        } else {
             $query = $parsedURL['query'];
-            if(preg_match("/^{$this->config->moduleVar}=\w+\&{$this->config->methodVar}=\w+/", $query) == 0) die();
+            if (preg_match("/^{$this->config->moduleVar}=\w+\&{$this->config->methodVar}=\w+/", $query) == 0) return;
         }
 
-        die(js::locate($actionURL, 'parent'));
+        echo js::locate($actionURL, 'parent');
     }
 
     /**
@@ -100,14 +98,14 @@ class search extends control
      */
     public function saveQuery($module, $onMenuBar = 'no')
     {
-        if($_POST)
-        {
+        if ($_POST) {
             $queryID = $this->search->saveQuery();
-            if(!$queryID) die(js::error(dao::getError()));
+            if (!$queryID) return print(js::error(dao::getError()));
 
             $data     = fixer::input('post')->get();
             $shortcut = empty($data->onMenuBar) ? 0 : 1;
-            die(js::closeModal('parent.parent', '', "function(){parent.parent.loadQueries($queryID, $shortcut, '{$data->title}')}"));
+
+            return print(js::closeModal('parent.parent', '', "function(){parent.parent.loadQueries($queryID, $shortcut, '{$data->title}')}"));
         }
         $this->view->module    = $module;
         $this->view->onMenuBar = $onMenuBar;
@@ -124,8 +122,8 @@ class search extends control
     public function deleteQuery($queryID)
     {
         $this->search->deleteQuery($queryID);
-        if(dao::isError()) die(js::error(dao::getError()));
-        die('success');
+        if (dao::isError()) return print(js::error(dao::getError()));
+        echo 'success';
     }
 
     /**
@@ -143,12 +141,11 @@ class search extends control
         $queries = $this->search->getQueryPairs($module);
 
         $html = '';
-        foreach($queries as $queryID => $queryName)
-        {
-            if(empty($queryID)) continue;
+        foreach ($queries as $queryID => $queryName) {
+            if (empty($queryID)) continue;
             $html .= '<li>' . html::a("javascript:executeQuery({$queryID})", $queryName . (common::hasPriv('search', 'deleteQuery') ? '<i class="icon icon-close"></i>' : ''), '', "class='label user-query' data-query-id='$queryID'") . '</li>';
         }
-        die($html);
+        echo $html;
     }
 
     /**
@@ -173,18 +170,14 @@ class search extends control
      */
     public function buildIndex($type = '', $lastID = 0)
     {
-        if(helper::isAjaxRequest())
-        {
+        if (helper::isAjaxRequest()) {
             $result = $this->search->buildAllIndex($type, $lastID);
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
-            if(isset($result['finished']) and $result['finished'])
-            {
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (isset($result['finished']) and $result['finished']) {
                 return $this->send(array('result' => 'finished', 'message' => $this->lang->search->buildSuccessfully));
-            }
-            else
-            {
+            } else {
                 $type = zget($this->lang->searchObjects, ($result['type'] == 'case' ? 'testcase' : $result['type']), $result['type']);
-                return $this->send(array('result' => 'unfinished', 'message' => sprintf($this->lang->search->buildResult, $type, $type, $result['count']), 'type' => $type, 'count' => $result['count'], 'next' => inlink('buildIndex', "type={$result['type']}&lastID={$result['lastID']}") ));
+                return $this->send(array('result' => 'unfinished', 'message' => sprintf($this->lang->search->buildResult, $type, $type, $result['count']), 'type' => $type, 'count' => $result['count'], 'next' => inlink('buildIndex', "type={$result['type']}&lastID={$result['lastID']}")));
             }
         }
 
@@ -208,14 +201,14 @@ class search extends control
     {
         $this->lang->admin->menu->search = "{$this->lang->search->common}|search|index";
 
-        if(empty($words)) $words = $this->get->words;
-        if(empty($words)) $words = $this->post->words;
-        if(empty($words) and ($recTotal != 0 or $pageID != 1)) $words = $this->session->searchIngWord;
+        if (empty($words)) $words = $this->get->words;
+        if (empty($words)) $words = $this->post->words;
+        if (empty($words) and ($recTotal != 0 or $pageID != 1)) $words = $this->session->searchIngWord;
         $words = strip_tags(strtolower($words));
 
-        if(empty($type)) $type = $this->get->type;
-        if(empty($type)) $type = $this->post->type;
-        if(empty($type) and ($recTotal != 0 or $pageID != 1)) $type = $this->session->searchIngType;
+        if (empty($type)) $type = $this->get->type;
+        if (empty($type)) $type = $this->post->type;
+        if (empty($type) and ($recTotal != 0 or $pageID != 1)) $type = $this->session->searchIngType;
         $type = (empty($type) or $type[0] == 'all') ? 'all' : $type;
 
         $this->app->loadClass('pager', $static = true);
@@ -254,7 +247,7 @@ class search extends control
         $this->session->set('searchIngWord',   $words);
         $this->session->set('searchIngType',   $type);
 
-        if(strpos($this->server->http_referer, 'search') === false) $this->session->set('referer', $this->server->http_referer);
+        if (strpos($this->server->http_referer, 'search') === false) $this->session->set('referer', $this->server->http_referer);
 
         $this->view->results    = empty($results) ? $results : $results[$pageID - 1];
         $this->view->consumed   = time() - $begin;

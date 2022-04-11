@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The execution entry point of ZenTaoPMS.
  *
@@ -20,28 +21,27 @@ class executionEntry extends Entry
      */
     public function get($executionID)
     {
-        $fields = $this->param('fields');
+        $fields    = $this->param('fields');
+        $productID = $this->param('productID');
 
         $control = $this->loadController('execution', 'view');
         $control->view($executionID);
 
         $data = $this->getData();
-        if(!$data or !isset($data->status)) return $this->send400('error');
-        if(isset($data->status) and $data->status == 'fail') return $this->sendError(zget($data, 'code', 400), $data->message);
+        if (!$data or !isset($data->status)) return $this->send400('error');
+        if (isset($data->status) and $data->status == 'fail') return $this->sendError(zget($data, 'code', 400), $data->message);
 
         $execution = $this->format($data->data->execution, 'openedBy:user,openedDate:time,lastEditedBy:user,lastEditedDate:time,closedBy:user,closedDate:time,canceledBy:user,canceledDate:time,PM:user,PO:user,RD:user,QD:user,whitelist:userList,begin:date,end:date,realBegan:date,realEnd:date,deleted:bool');
 
         $execution->progress    = ($execution->totalConsumed + $execution->totalLeft) ? round($execution->totalConsumed / ($execution->totalConsumed + $execution->totalLeft) * 100, 1) : 0;
         $execution->teamMembers = array_values((array)$data->data->teamMembers);
         $execution->products    = array();
-        foreach($data->data->products as $productID => $executionProduct)
-        {
+        foreach ($data->data->products as $productID => $executionProduct) {
             $product = new stdclass();
             $product->id = $executionProduct->id;
             $product->name = $executionProduct->name;
             $product->plans = array();
-            foreach($executionProduct->plans as $planID)
-            {
+            foreach ($executionProduct->plans as $planID) {
                 $plan = new stdclass();
                 $plan->id = $planID;
                 $plan->name = $data->data->planGroups->{$productID}->{$planID};
@@ -53,24 +53,23 @@ class executionEntry extends Entry
         $this->loadModel('testcase');
         $execution->caseReview = ($this->config->testcase->needReview or !empty($this->config->testcase->forceReview));
 
-        if(!$fields) $this->send(200, $execution);
+        if (!$fields) $this->send(200, $execution);
 
         $users = $data->data->users;
 
         /* Set other fields. */
         $fields = explode(',', strtolower($fields));
-        foreach($fields as $field)
-        {
-            switch($field)
-            {
+        foreach ($fields as $field) {
+            switch ($field) {
                 case 'modules':
                     $control = $this->loadController('tree', 'browsetask');
                     $control->browsetask($executionID);
                     $data = $this->getData();
-                    if(isset($data->status) and $data->status == 'success')
-                    {
+                    if (isset($data->status) and $data->status == 'success') {
                         $execution->modules = $data->data->tree;
                     }
+                case 'builds':
+                    $execution->builds  = $this->loadModel('build')->getBuildPairs($productID, 'all', 'noempty,noterminate,nodone', $executionID, 'execution');
                     break;
                 case 'moduleoptionmenu':
                     $execution->moduleOptionMenu = $this->loadModel('tree')->getTaskOptionMenu($executionID, 0, 0, 'allModule');
@@ -81,7 +80,7 @@ class executionEntry extends Entry
                     break;
                 case 'stories':
                     $stories = $this->loadModel('story')->getExecutionStories($executionID);
-                    foreach($stories as $storyID => $story) $stories[$storyID] = $this->filterFields($story, 'id,title,module,pri,status,stage,estimate');
+                    foreach ($stories as $storyID => $story) $stories[$storyID] = $this->filterFields($story, 'id,title,module,pri,status,stage,estimate');
 
                     $execution->stories = array_values($stories);
                     break;
@@ -111,17 +110,20 @@ class executionEntry extends Entry
         $oldExecution = $this->loadModel('execution')->getByID($executionID);
 
         /* Set $_POST variables. */
-        $fields = 'project,code,name,begin,end,lifetime,desc,days,acl,status';
+        $fields = 'project,code,name,begin,end,lifetime,desc,days,acl,status,PO,PM,QD,RD';
         $this->batchSetPost($fields, $oldExecution);
 
         $this->setPost('whitelist', $this->request('whitelist', explode(',', $oldExecution->whitelist)));
+
+        $products = $this->loadModel('product')->getProducts($executionID);
+        $this->setPost('products', $this->request('products', array_keys($products)));
 
         $control = $this->loadController('execution', 'edit');
         $control->edit($executionID);
 
         $data = $this->getData();
-        if(isset($data->result) and $data->result == 'fail') return $this->sendError(400, $data->message);
-        if(!isset($data->result)) return $this->sendError(400, 'error');
+        if (isset($data->result) and $data->result == 'fail') return $this->sendError(400, $data->message);
+        if (!isset($data->result)) return $this->sendError(400, 'error');
 
         $execution = $this->execution->getByID($executionID);
         $this->send(200, $this->format($execution, 'openedBy:user,openedDate:time,lastEditedBy:user,lastEditedDate:time,closedBy:user,closedDate:time,canceledBy:user,canceledDate:time,PM:user,PO:user,RD:user,QD:user,whitelist:userList,begin:date,end:date,realBegan:date,realEnd:date,deleted:bool'));

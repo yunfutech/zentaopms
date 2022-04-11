@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The control file of extension module of ZenTaoPMS.
  *
@@ -24,13 +25,14 @@ class extension extends control
         parent::__construct($moduleName, $methodName);
 
         $statusFile = $this->loadModel('common')->checkSafeFile();
-        if($statusFile)
-        {
+        if ($statusFile) {
             $this->view->title      = $this->lang->extension->browse;
             $this->view->position[] = $this->lang->extension->browse;
 
-            $this->view->error = sprintf($this->lang->extension->noticeOkFile, str_replace('\\', '/', $statusFile));
-            die($this->display('extension', 'safe'));
+            $statusFile = str_replace('\\', '/', $statusFile);
+            $this->view->error = sprintf($this->lang->extension->noticeOkFile, $statusFile, $statusFile);
+            $this->display('extension', 'safe');
+            helper::end();
         }
     }
 
@@ -45,22 +47,18 @@ class extension extends control
     {
         $extensions = $this->extension->getLocalExtensions($status);
         $versions   = array();
-        if($extensions and $status == 'installed')
-        {
+        if ($extensions and $status == 'installed') {
             /* Get latest release from remote. */
             $extCodes = helper::safe64Encode(join(',', array_keys($extensions)));
             $results = $this->extension->getExtensionsByAPI('bycode', $extCodes, $recTotal = 0, $recPerPage = 1000, $pageID = 1);
-            if(isset($results->extensions))
-            {
+            if (isset($results->extensions)) {
                 $remoteReleases = $results->extensions;
-                foreach($remoteReleases as $release)
-                {
-                    if(!isset($extensions[$release->code])) continue;
+                foreach ($remoteReleases as $release) {
+                    if (!isset($extensions[$release->code])) continue;
 
                     $extension = $extensions[$release->code];
                     $extension->viewLink = $release->viewLink;
-                    if(isset($release->latestRelease) and $extension->version != $release->latestRelease->releaseVersion and $this->extension->checkVersion($release->latestRelease->zentaoCompatible))
-                    {
+                    if (isset($release->latestRelease) and $extension->version != $release->latestRelease->releaseVersion and $this->extension->checkVersion($release->latestRelease->zentaoCompatible)) {
                         $upgradeLink = inlink('upgrade', "extension=$release->code&downLink=&md5=&type=$release->type");
                         $upgradeLink = ($release->latestRelease->charge or !$release->latestRelease->public) ? $release->latestRelease->downLink : $upgradeLink;
                         $extension->upgradeLink = $upgradeLink;
@@ -94,12 +92,11 @@ class extension extends control
         $pager      = null;
 
         /* Set the key. */
-        if($type == 'bysearch') $param = helper::safe64Encode($this->post->key);
+        if ($type == 'bysearch') $param = helper::safe64Encode($this->post->key);
 
         /* Get results from the api. */
         $results = $this->extension->getExtensionsByAPI($type, $param, $recTotal, $recPerPage, $pageID);
-        if($results)
-        {
+        if ($results) {
             $this->app->loadClass('pager', $static = true);
             $pager      = new pager($results->dbPager->recTotal, $results->dbPager->recPerPage, $results->dbPager->pageID);
             $extensions = $results->extensions;
@@ -145,36 +142,32 @@ class extension extends control
 
 
         $statusFile = $this->loadModel('common')->checkSafeFile();
-        if($statusFile)
-        {
-            $this->view->error = sprintf($this->lang->extension->noticeOkFile, $statusFile);
-            die($this->display());
+        if ($statusFile) {
+            $this->view->error = sprintf($this->lang->extension->noticeOkFile, $statusFile, $statusFile);
+            return $this->display();
         }
         /* Get the package file name. */
         $packageFile = $this->extension->getPackageFile($extension);
 
         /* Check the package file exists or not. */
-        if(!file_exists($packageFile))
-        {
+        if (!file_exists($packageFile)) {
             $this->view->error = sprintf($this->lang->extension->errorPackageNotFound, $packageFile);
-            die($this->display());
+            return $this->display();
         }
 
         /* Checking the extension paths. */
         $return = $this->extension->checkExtensionPaths($extension);
-        if($this->session->dirs2Created == false) $this->session->set('dirs2Created', $return->dirs2Created, 'admin');    // Save the dirs to be created.
-        if($return->result != 'ok')
-        {
+        if ($this->session->dirs2Created == false) $this->session->set('dirs2Created', $return->dirs2Created, 'admin');    // Save the dirs to be created.
+        if ($return->result != 'ok') {
             $this->view->error = $return->errors;
-            die($this->display());
+            return $this->display();
         }
 
         /* Extract the package. */
         $return = $this->extension->extractPackage($extension);
-        if($return->result != 'ok')
-        {
+        if ($return->result != 'ok') {
             $this->view->error = sprintf($this->lang->extension->errorExtracted, $packageFile, $return->error);
-            die($this->display());
+            return $this->display();
         }
         /* Get condition. e.g. zentao|depends|conflicts. */
         $condition = $this->extension->getCondition($extension);
@@ -182,92 +175,76 @@ class extension extends control
 
         /* Check version incompatible */
         $incompatible = $condition->zentao['incompatible'];
-        if($this->extension->checkVersion($incompatible))
-        {
+        if ($this->extension->checkVersion($incompatible)) {
             $this->view->error = sprintf($this->lang->extension->errorIncompatible);
-            die($this->display());
+            return $this->display();
         }
 
         /* Check conflicts. */
         $conflicts = $condition->conflicts;
-        if($conflicts)
-        {
+        if ($conflicts) {
             $conflictsExt = '';
-            foreach($conflicts as $code => $limit)
-            {
-                if(isset($installedExts[$code]))
-                {
-                    if($this->extension->compare4Limit($installedExts[$code]->version, $limit)) $conflictsExt .= $installedExts[$code]->name . " ";
+            foreach ($conflicts as $code => $limit) {
+                if (isset($installedExts[$code])) {
+                    if ($this->extension->compare4Limit($installedExts[$code]->version, $limit)) $conflictsExt .= $installedExts[$code]->name . " ";
                 }
             }
 
-            if($conflictsExt)
-            {
+            if ($conflictsExt) {
                 $this->view->error = sprintf($this->lang->extension->errorConflicts, $conflictsExt);
-                die($this->display());
+                return $this->display();
             }
         }
 
         /* Check Depends. */
         $depends = $condition->depends;
-        if($depends)
-        {
+        if ($depends) {
             $dependsExt = '';
-            foreach($depends as $code => $limit)
-            {
+            foreach ($depends as $code => $limit) {
                 $noDepends = false;
-                if(isset($installedExts[$code]))
-                {
-                    if($this->extension->compare4Limit($installedExts[$code]->version, $limit, 'noBetween'))$noDepends = true;
-                }
-                else
-                {
+                if (isset($installedExts[$code])) {
+                    if ($this->extension->compare4Limit($installedExts[$code]->version, $limit, 'noBetween')) $noDepends = true;
+                } else {
                     $noDepends = true;
                 }
 
                 $extVersion = '';
-                if($limit != 'all')
-                {
+                if ($limit != 'all') {
                     $extVersion .= '(';
-                    if(!empty($limit['min'])) $extVersion .= '>=v' . $limit['min'];
-                    if(!empty($limit['max'])) $extVersion .= ' <=v' . $limit['max'];
-                    $extVersion .=')';
+                    if (!empty($limit['min'])) $extVersion .= '>=v' . $limit['min'];
+                    if (!empty($limit['max'])) $extVersion .= ' <=v' . $limit['max'];
+                    $extVersion .= ')';
                 }
-                if($noDepends)$dependsExt .= $code . $extVersion . ' ' . html::a(inlink('obtain', 'type=bycode&param=' . helper::safe64Encode($code)), $this->lang->extension->installExt, '_blank') . '<br />';
+                if ($noDepends) $dependsExt .= $code . $extVersion . ' ' . html::a(inlink('obtain', 'type=bycode&param=' . helper::safe64Encode($code)), $this->lang->extension->installExt, '_blank') . '<br />';
             }
 
-            if($noDepends)
-            {
+            if ($noDepends) {
                 $this->view->error = sprintf($this->lang->extension->errorDepends, $dependsExt);
-                die($this->display());
+                return $this->display();
             }
         }
 
         /* Check version compatible. */
         $zentaoCompatible = $condition->zentao['compatible'];
-        if(!$this->extension->checkVersion($zentaoCompatible) and $ignoreCompatible == 'no')
-        {
+        if (!$this->extension->checkVersion($zentaoCompatible) and $ignoreCompatible == 'no') {
             $ignoreLink = inlink('install', "extension=$extension&downLink=&md5=$md5&type=$type&overridePackage=$overridePackage&ignoreCompatible=yes&overrideFile=$overrideFile&agreeLicense=$agreeLicense&upgrade=$upgrade");
             $returnLink = inlink('obtain');
             $this->view->error = sprintf($this->lang->extension->errorCheckIncompatible, $installType, $ignoreLink, $installType, $returnLink);
-            die($this->display());
+            return $this->display();
         }
 
         /* Check files in the package conflicts with exists files or not. */
-        if($overrideFile == 'no')
-        {
+        if ($overrideFile == 'no') {
             $return = $this->extension->checkFile($extension);
-            if($return->result != 'ok')
-            {
+            if ($return->result != 'ok') {
                 $overrideLink = inlink('install', "extension=$extension&downLink=&md5=$md5&type=$type&overridePackage=$overridePackage&ignoreCompatible=$ignoreCompatible&overrideFile=yes&agreeLicense=$agreeLicense&upgrade=$upgrade");
                 $returnLink   = inlink('obtain');
                 $this->view->error = sprintf($this->lang->extension->errorFileConflicted, $return->error, $overrideLink, $returnLink);
-                die($this->display());
+                return $this->display();
             }
         }
 
-        if($upgrade == 'yes')
-        {
+        if ($upgrade == 'yes') {
             $newInfo = $this->extension->parseExtensionCFG($extension);
             $this->post->upgradeVersion = isset($newInfo->version) ? $newInfo->version : '';
             $oldInfo = $this->extension->getInfoFromDB($extension);
@@ -275,20 +252,19 @@ class extension extends control
         }
 
         /* Print the license form. */
-        if($agreeLicense == 'no')
-        {
+        if ($agreeLicense == 'no') {
             $extensionInfo = $this->extension->getInfoFromPackage($extension);
             $license       = $this->extension->processLicense($extensionInfo->license);
             $agreeLink     = inlink('install', "extension=$extension&downLink=&md5=$md5&type=$type&overridePackage=$overridePackage&ignoreCompatible=$ignoreCompatible&overrideFile=$overrideFile&agreeLicense=yes&upgrade=$upgrade");
             $this->view->license   = $license;
             $this->view->author    = $extensionInfo->author;
             $this->view->agreeLink = $agreeLink;
-            die($this->display());
+            return $this->display();
         }
 
         /* The preInstall hook file. */
         $hook = $upgrade == 'yes' ? 'preupgrade' : 'preinstall';
-        if($preHookFile = $this->extension->getHookFile($extension, $hook)) include $preHookFile;
+        if ($preHookFile = $this->extension->getHookFile($extension, $hook)) include $preHookFile;
 
         /* Save to database. */
         $this->extension->saveExtension($extension, $type);
@@ -305,13 +281,11 @@ class extension extends control
         $this->session->set('dirs2Created', array(), 'admin');   // clean the session.
 
         /* Execute the install.sql. */
-        if($upgrade == 'no' and $this->extension->needExecuteDB($extension, 'install'))
-        {
+        if ($upgrade == 'no' and $this->extension->needExecuteDB($extension, 'install')) {
             $return = $this->extension->executeDB($extension, 'install');
-            if($return->result != 'ok')
-            {
+            if ($return->result != 'ok') {
                 $this->view->error = sprintf($this->lang->extension->errorInstallDB, $return->error);
-                die($this->display());
+                return $this->display();
             }
         }
 
@@ -321,7 +295,7 @@ class extension extends control
 
         /* The postInstall hook file. */
         $hook = $upgrade == 'yes' ? 'postupgrade' : 'postinstall';
-        if($postHookFile = $this->extension->getHookFile($extension, $hook)) include $postHookFile;
+        if ($postHookFile = $this->extension->getHookFile($extension, $hook)) include $postHookFile;
 
         $this->display();
     }
@@ -337,31 +311,29 @@ class extension extends control
     {
         /* Determine whether need to back up. */
         $dbFile = $this->extension->getDBFile($extension, 'uninstall');
-        if($confirm == 'no' and file_exists($dbFile))
-        {
+        if ($confirm == 'no' and file_exists($dbFile)) {
             $this->view->title   = $this->lang->extension->waring;
             $this->view->confirm = 'no';
             $this->view->code    = $extension;
-            die($this->display());
+            return $this->display();
         }
 
         $dependsExts = $this->extension->checkDepends($extension);
-        if($dependsExts)
-        {
+        if ($dependsExts) {
             $this->view->error = sprintf($this->lang->extension->errorUninstallDepends, join(' ', $dependsExts));
-            die($this->display());
+            return $this->display();
         }
 
-        if($preUninstallHook = $this->extension->getHookFile($extension, 'preuninstall')) include $preUninstallHook;
+        if ($preUninstallHook = $this->extension->getHookFile($extension, 'preuninstall')) include $preUninstallHook;
 
-        if(file_exists($dbFile)) $this->view->backupFile = $this->extension->backupDB($extension);
+        if (file_exists($dbFile)) $this->view->backupFile = $this->extension->backupDB($extension);
 
         $this->extension->executeDB($extension, 'uninstall');
         $this->extension->updateExtension($extension, array('status' => 'available'));
         $this->view->removeCommands = $this->extension->removePackage($extension);
         $this->view->title = $this->lang->extension->uninstallFinished;
 
-        if($postUninstallHook = $this->extension->getHookFile($extension, 'postuninstall')) include $postUninstallHook;
+        if ($postUninstallHook = $this->extension->getHookFile($extension, 'postuninstall')) include $postUninstallHook;
         $this->display();
     }
 
@@ -374,15 +346,13 @@ class extension extends control
      */
     public function activate($extension, $ignore = 'no')
     {
-        if($ignore == 'no')
-        {
+        if ($ignore == 'no') {
             $return = $this->extension->checkFile($extension);
-            if($return->result != 'ok')
-            {
+            if ($return->result != 'ok') {
                 $ignoreLink = inlink('activate', "extension=$extension&ignore=yes");
                 $resetLink  = inlink('browse', 'type=deactivated');
                 $this->view->error = sprintf($this->lang->extension->errorFileConflicted, $return->error, $ignoreLink, $resetLink);
-                die($this->display());
+                return $this->display();
             }
         }
 
@@ -418,37 +388,32 @@ class extension extends control
     public function upload()
     {
         $statusFile = $this->loadModel('common')->checkSafeFile();
-        if($statusFile)
-        {
-            $this->view->error = sprintf($this->lang->extension->noticeOkFile, $statusFile);
-            die($this->display());
+        if ($statusFile) {
+            $this->view->error = sprintf($this->lang->extension->noticeOkFile, $statusFile, $statusFile);
+            return $this->display();
         }
 
-        if($_FILES)
-        {
-            if($_FILES['file']['size'] == 0) die(js::alert(str_replace("'", "\'", sprintf($this->lang->extension->errorFileNotEmpty, $fileName, $return->error))));
+        if ($_FILES) {
+            if ($_FILES['file']['size'] == 0) return print(js::alert(str_replace("'", "\'", sprintf($this->lang->extension->errorFileNotEmpty, $fileName, $return->error))));
 
             $tmpName   = $_FILES['file']['tmp_name'];
             $fileName  = $_FILES['file']['name'];
             $dest      = $this->app->getTmpRoot() . "extension/$fileName";
-            if(!move_uploaded_file($tmpName, $dest))
-            {
+            if (!move_uploaded_file($tmpName, $dest)) {
                 $downloadPath = $this->app->getTmpRoot() . 'extension/';
                 $errorMessage = strip_tags(sprintf($this->lang->extension->errorDownloadPathNotWritable, $downloadPath, $downloadPath));
-                die(js::alert($errorMessage));
+                return print(js::alert($errorMessage));
             }
 
             $extension = basename($fileName, '.zip');
             $return    = $this->extension->extractPackage($extension);
-            if($return->result != 'ok')
-            {
+            if ($return->result != 'ok') {
                 unlink($dest);
-                die(js::alert(str_replace("'", "\'", sprintf($this->lang->extension->errorExtracted, $fileName, $return->error))));
+                return print(js::alert(str_replace("'", "\'", sprintf($this->lang->extension->errorExtracted, $fileName, $return->error))));
             }
 
             $info = $this->extension->parseExtensionCFG($extension);
-            if(isset($info->code) and $info->code != $extension)
-            {
+            if (isset($info->code) and $info->code != $extension) {
                 $classFile = $this->app->loadClass('zfile');
                 $classFile->removeDir("ext/$extension");
                 rename($this->app->getTmpRoot() . "/extension/$fileName", $this->app->getTmpRoot() . "/extension/{$info->code}.zip");
@@ -458,7 +423,7 @@ class extension extends control
             $info = $this->extension->getInfoFromDB($extension);
             $type = (!empty($info) and ($info->status == 'installed' or $info->status == 'deactivated')) ? 'upgrade' : 'install';
             $link = $type == 'install' ? inlink('install', "extension=$extension") : inlink('upgrade', "extension=$extension");
-            die(js::locate($link, 'parent'));
+            return print(js::locate($link, 'parent'));
         }
 
         $this->display();

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The control file of programplan currentModule of ZenTaoPMS.
  *
@@ -59,7 +60,7 @@ class programplan extends control
         $this->commonAction($projectID, $productID, $type);
         $this->session->set('projectPlanList', $this->app->getURI(true), 'project');
 
-        if(!defined('RUN_MODE') || RUN_MODE != 'api') $projectID = $this->project->saveState((int)$projectID, $this->project->getPairsByProgram());
+        if (!defined('RUN_MODE') || RUN_MODE != 'api') $projectID = $this->project->saveState((int)$projectID, $this->project->getPairsByProgram());
 
         $products = $this->loadModel('product')->getProducts($projectID);
         $this->lang->modulePageNav = $this->product->select($products, $this->productID, 'programplan', 'browse', $type, 0, 0, '', false);
@@ -70,24 +71,22 @@ class programplan extends control
         $this->lang->TRActions .= "<li><a href='javascript:exportGantt(" . '"pdf"' . ")'>" . $this->lang->execution->gantt->exportPDF . "</a></li>";
         $this->lang->TRActions .= "</ul>";
 
-        if(common::hasPriv('programplan', 'create')) $this->lang->TRActions .= html::a($this->createLink('programplan', 'create', "projectID=$projectID"), "<i class='icon icon-sm icon-plus'></i> " . $this->lang->programplan->create, '', "class='btn btn-primary'");
+        if (common::hasPriv('programplan', 'create')) $this->lang->TRActions .= html::a($this->createLink('programplan', 'create', "projectID=$projectID"), "<i class='icon icon-sm icon-plus'></i> " . $this->lang->programplan->create, '', "class='btn btn-primary'");
 
         $selectCustom = 0; // Display date and task settings.
         $dateDetails  = 1; // Gantt chart detail date display.
-        if($type == 'gantt')
-        {
+        if ($type == 'gantt') {
             $owner        = $this->app->user->account;
             $module       = 'programplan';
             $section      = 'browse';
             $object       = 'stageCustom';
             $selectCustom = $this->loadModel('setting')->getItem("owner={$owner}&module={$module}&section={$section}&key={$object}");
-            if(strpos($selectCustom, 'date') !== false) $dateDetails = 0;
+            if (strpos($selectCustom, 'date') !== false) $dateDetails = 0;
 
             $plans = $this->programplan->getDataForGantt($projectID, $this->productID, $baselineID);
         }
 
-        if($type == 'lists')
-        {
+        if ($type == 'lists') {
             $sort  = common::appendOrder($orderBy);
             $this->loadModel('datatable');
             $plans = $this->programplan->getPlans($projectID, $this->productID, $sort);
@@ -120,10 +119,9 @@ class programplan extends control
     {
         $this->commonAction($projectID, $productID);
         $this->app->loadLang('project');
-        if($_POST)
-        {
+        if ($_POST) {
             $this->programplan->create($projectID, $this->productID, $planID);
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
             $locate = $this->createLink('project', 'execution', "status=all&projectID=$projectID");
             return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => $locate));
@@ -139,19 +137,16 @@ class programplan extends control
 
         $visibleFields  = array();
         $requiredFields = array();
-        foreach(explode(',', $this->config->programplan->customCreateFields) as $field) $customFields[$field] = $this->lang->programplan->$field;
+        foreach (explode(',', $this->config->programplan->customCreateFields) as $field) $customFields[$field] = $this->lang->programplan->$field;
         $showFields = $this->config->programplan->custom->createFields;
-        foreach(explode(',', $showFields) as $field)
-        {
-            if($field) $visibleFields[$field] = '';
+        foreach (explode(',', $showFields) as $field) {
+            if ($field) $visibleFields[$field] = '';
         }
 
-        foreach(explode(',', $this->config->programplan->create->requiredFields) as $field)
-        {
-            if($field)
-            {
+        foreach (explode(',', $this->config->programplan->create->requiredFields) as $field) {
+            if ($field) {
                 $requiredFields[$field] = '';
-                if(strpos(",{$this->config->programplan->customCreateFields},", ",{$field},") !== false) $visibleFields[$field] = '';
+                if (strpos(",{$this->config->programplan->customCreateFields},", ",{$field},") !== false) $visibleFields[$field] = '';
             }
         }
 
@@ -184,14 +179,13 @@ class programplan extends control
     public function edit($planID = 0, $projectID = 0)
     {
         $this->app->loadLang('project');
+        $this->app->loadLang('execution');
         $plan = $this->programplan->getByID($planID);
-        if($_POST)
-        {
+        if ($_POST) {
             $changes = $this->programplan->update($planID, $projectID);
 
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
-            if($changes)
-            {
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if ($changes) {
                 $actionID = $this->loadModel('action')->create('execution', $planID, 'edited');
                 $this->action->logHistory($actionID, $changes);
             }

@@ -50,8 +50,8 @@ $lang->custom->oneUnit              = "一个{$lang->hourCommon}";
 $lang->custom->convertRelationTitle = "请先设置{$lang->hourCommon}转换为%s的换算系数";
 $lang->custom->superReviewers       = "超级评审人";
 
-if($config->systemMode == 'new') $lang->custom->execution = '执行';
-if($config->systemMode == 'classic' || !$config->systemMode) $lang->custom->execution = $lang->executionCommon;
+if ($config->systemMode == 'new') $lang->custom->execution = '执行';
+if ($config->systemMode == 'classic' || !$config->systemMode) $lang->custom->execution = $lang->executionCommon;
 
 $lang->custom->unitList['efficiency'] = '工时/';
 $lang->custom->unitList['manhour']    = '人时/';
@@ -81,14 +81,14 @@ $lang->custom->numberError = '区间必须大于零';
 $lang->custom->closedExecution = '已关闭' . $lang->custom->execution;
 $lang->custom->closedProduct   = '已关闭' . $lang->productCommon;
 
-if($config->systemMode == 'new') $lang->custom->object['project']   = '项目';
+if ($config->systemMode == 'new') $lang->custom->object['project']   = '项目';
 $lang->custom->object['product']   = $lang->productCommon;
 $lang->custom->object['execution'] = $lang->custom->execution;
 $lang->custom->object['story']     = $lang->SRCommon;
 $lang->custom->object['task']      = '任务';
 $lang->custom->object['bug']       = 'Bug';
 $lang->custom->object['testcase']  = '用例';
-$lang->custom->object['testtask']  = '版本';
+$lang->custom->object['testtask']  = '测试单';
 $lang->custom->object['todo']      = '待办';
 $lang->custom->object['user']      = '用户';
 $lang->custom->object['block']     = '区块';
@@ -202,14 +202,11 @@ $lang->custom->weekendList[2] = '双休';
 $lang->custom->weekendList[1] = '单休';
 
 global $config;
-if($config->systemMode == 'classic')
-{
+if ($config->systemMode == 'classic') {
     $lang->custom->sprintConceptList[0] = '产品 - 项目';
     $lang->custom->sprintConceptList[1] = '产品 - 迭代';
     $lang->custom->sprintConceptList[2] = '产品 - 冲刺';
-}
-else
-{
+} else {
     $lang->custom->sprintConceptList[0] = '项目 - 产品 - 迭代';
     $lang->custom->sprintConceptList[1] = '项目 - 产品 - 冲刺';
 }

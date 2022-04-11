@@ -29,33 +29,29 @@ class tree extends control
     {
         $this->loadModel('product');
 
-        if($this->app->tab == 'product' and strpos($viewType, 'doc') === false)
-        {
+        if ($this->app->tab == 'product' and strpos($viewType, 'doc') === false) {
             $this->product->setMenu($rootID, $branch, 0, '', $viewType);
-        }
-        else if($this->app->tab == 'qa' and $viewType != 'caselib')
-        {
+        } else if ($this->app->tab == 'qa' and $viewType != 'caselib') {
             $products = $this->product->getPairs('noclosed');
             $this->loadModel('qa')->setMenu($products, $rootID, $branch, $viewType);
-        }
-        else if($this->app->tab == 'project' and strpos($viewType, 'doc') === false)
-        {
+        } else if ($this->app->tab == 'project' and strpos($viewType, 'doc') === false) {
             $this->loadModel('project')->setMenu($this->session->project);
 
             $products = $this->product->getProducts($this->session->project, 'all', '', false);
-            if($viewType == 'case') $this->lang->modulePageNav = $this->product->select($products, $rootID, 'tree', 'browse', 'case', $branch);
+            if ($viewType == 'case') $this->lang->modulePageNav = $this->product->select($products, $rootID, 'tree', 'browse', 'case', $branch);
         }
 
         /* According to the type, set the module root and modules. */
-        if(strpos('story|bug|case', $viewType) !== false)
-        {
+        if (strpos('story|bug|case', $viewType) !== false) {
             $product = $this->loadModel('product')->getById($rootID);
-            if(empty($product)) $this->locate($this->createLink('product', 'create'));
-            if(!empty($product->type) && $product->type != 'normal')
-            {
+            if (empty($product)) {
+                if ($this->viewType == 'json' or (defined('RUN_MODE') && RUN_MODE == 'api')) return $this->send(array('result' => 'fail', 'message' => 'No product.'));
+                $this->locate($this->createLink('product', 'create'));
+            }
+
+            if (!empty($product->type) && $product->type != 'normal') {
                 $branches = $this->loadModel('branch')->getPairs($product->id);
-                if($currentModuleID)
-                {
+                if ($currentModuleID) {
                     $currentModuleBranch = $this->dao->select('branch')->from(TABLE_MODULE)->where('id')->eq($currentModuleID)->fetch('branch');
                     $branchName = $branches[$currentModuleBranch];
                     unset($branches);
@@ -67,17 +63,13 @@ class tree extends control
 
             /* Determines whether an object is editable. */
             $canBeChanged = common::canModify('product', $product);
-        }
-        elseif(strpos($viewType, 'doc') !== false)
-        {
+        } elseif (strpos($viewType, 'doc') !== false) {
             /* The viewType is doc. */
             $this->loadModel('doc');
             $viewType         = 'doc';
             $lib              = $this->doc->getLibById($rootID);
             $this->view->root = $lib;
-        }
-        elseif(strpos($viewType, 'api') !== false)
-        {
+        } elseif (strpos($viewType, 'api') !== false) {
             /* The viewType is doc. */
             $this->loadModel('doc');
             $viewType         = 'api';
@@ -86,16 +78,13 @@ class tree extends control
             $position[] = html::a($this->createLink('api', 'index', "libID=$rootID"), $lib->name);
             $position[] = $this->lang->tree->manageCustomDoc;
             $this->view->root = $lib;
-        }
-        elseif(strpos($viewType, 'caselib') !== false)
-        {
+        } elseif (strpos($viewType, 'caselib') !== false) {
             $this->loadModel('caselib');
             $lib              = $this->caselib->getById($rootID);
             $this->view->root = $lib;
         }
 
-        if($viewType == 'story')
-        {
+        if ($viewType == 'story') {
             /* Set menu.*/
             $products = $this->product->getPairs();
             $this->product->saveState($rootID, $products);
@@ -111,19 +100,15 @@ class tree extends control
             $title      = $this->lang->tree->manageProduct;
             $position[] = html::a($this->createLink('product', 'browse', "product=$rootID"), $product->name);
             $position[] = $this->lang->tree->manageProduct;
-        }
-        elseif($viewType == 'bug')
-        {
+        } elseif ($viewType == 'bug') {
             $this->app->loadConfig('qa');
-            foreach($this->config->qa->menuList as $module) $this->lang->navGroup->$module = 'qa';
+            foreach ($this->config->qa->menuList as $module) $this->lang->navGroup->$module = 'qa';
             $this->app->rawModule = 'bug';
 
             $title      = $this->lang->tree->manageBug;
             $position[] = html::a($this->createLink('bug', 'browse', "product=$rootID"), $product->name);
             $position[] = $this->lang->tree->manageBug;
-        }
-        elseif($viewType == 'feedback')
-        {
+        } elseif ($viewType == 'feedback') {
             $this->app->loadLang('feedback');
             $this->lang->tree->menu = $this->lang->feedback->menu;
             $root                   = new stdclass();
@@ -132,21 +117,17 @@ class tree extends control
 
             $title      = $this->lang->tree->manageFeedback;
             $position[] = html::a($this->createLink('feedback', 'admin'), $this->lang->tree->manageFeedback);
-        }
-        elseif($viewType == 'case')
-        {
+        } elseif ($viewType == 'case') {
             $this->app->loadConfig('qa');
-            foreach($this->config->qa->menuList as $module) $this->lang->navGroup->$module = 'qa';
+            foreach ($this->config->qa->menuList as $module) $this->lang->navGroup->$module = 'qa';
             $this->app->rawModule = 'testcase';
 
             $title      = $this->lang->tree->manageCase;
             $position[] = html::a($this->createLink('testcase', 'browse', "product=$rootID"), $product->name);
             $position[] = $this->lang->tree->manageCase;
-        }
-        elseif($viewType == 'caselib')
-        {
+        } elseif ($viewType == 'caselib') {
             $this->app->loadConfig('qa');
-            foreach($this->config->qa->menuList as $module) $this->lang->navGroup->$module = 'qa';
+            foreach ($this->config->qa->menuList as $module) $this->lang->navGroup->$module = 'qa';
 
             $this->caselib->setLibMenu($this->caselib->getLibraries(), $rootID);
             $this->app->rawModule = 'caselib';
@@ -154,28 +135,23 @@ class tree extends control
             $title      = $this->lang->tree->manageCaseLib;
             $position[] = html::a($this->createLink('caselib', 'browse', "libID=$rootID"), $lib->name);
             $position[] = $this->lang->tree->manageCaseLib;
-        }
-        elseif(strpos($viewType, 'doc') !== false)
-        {
+        } elseif (strpos($viewType, 'doc') !== false) {
             $this->lang->navGroup->tree = 'doc';
 
-            if($from == 'product')
-            {
+            if ($from == 'product') {
                 $productID = $lib->product;
                 unset($this->lang->product->menu->set['subModule']);
 
                 $products = $this->product->getPairs();
                 $this->product->saveState($productID, $products);
-            }
-            elseif($from == 'project')
-            {
+            } elseif ($from == 'project') {
                 $this->lang->navGroup->tree  = 'project';
 
                 /* The project parameter needs to be present when the tree module belongs to the project grouping. */
-                if($this->session->docList && $this->session->project && strpos($this->session->docList, 'project') === false) $this->session->set('docList', $this->session->docList . '?project=' . $this->session->project, 'project');
+                if ($this->session->docList && $this->session->project && strpos($this->session->docList, 'project') === false) $this->session->set('docList', $this->session->docList . '?project=' . $this->session->project, 'project');
             }
 
-            if($from == 'doc') $this->lang->navGroup->doc = 'doc';
+            if ($from == 'doc') $this->lang->navGroup->doc = 'doc';
             $type                        = $lib->product ? 'product' : ($lib->project ? 'project' : ($lib->execution ? 'execution' : 'custom'));
             $this->lang->tree->menu      = $this->lang->doc->menu;
             $this->lang->tree->menuOrder = $this->lang->doc->menuOrder;
@@ -183,9 +159,7 @@ class tree extends control
             $title      = $this->lang->tree->manageCustomDoc;
             $position[] = html::a($this->createLink('doc', 'browse', "libID=$rootID"), $lib->name);
             $position[] = $this->lang->tree->manageCustomDoc;
-        }
-        elseif($viewType == 'line')
-        {
+        } elseif ($viewType == 'line') {
             $products = $this->product->getPairs('', $this->session->project);
 
             $this->product->setMenu($products, $rootID, $branch, 'line', '', 'line');
@@ -201,23 +175,16 @@ class tree extends control
 
             $title      = $this->lang->tree->manageLine;
             $position[] = $this->lang->tree->manageLine;
-        }
-        elseif($viewType == 'trainskill')
-        {
+        } elseif ($viewType == 'trainskill') {
             $this->lang->tree->menu = $this->lang->trainskill->menu;
 
             $title      = $this->lang->tree->manageTrainskill;
             $position[] = $this->lang->tree->manageTrainskill;
-        }
-        elseif($viewType == 'trainpost')
-        {
+        } elseif ($viewType == 'trainpost') {
             $postBrowseType = $this->session->postBrowseType ? $this->session->postBrowseType : 'train';
-            if($postBrowseType == 'train')
-            {
+            if ($postBrowseType == 'train') {
                 $this->lang->tree->menu = $this->lang->train->menu;
-            }
-            else
-            {
+            } else {
                 $this->lang->tree->menu = $this->lang->company->menu;
             }
 
@@ -300,8 +267,7 @@ class tree extends control
      */
     public function edit($moduleID, $type, $branch = 0)
     {
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $this->tree->update($moduleID);
             echo js::alert($this->lang->tree->successSave);
             die(js::reload('parent'));
@@ -309,16 +275,13 @@ class tree extends control
 
         $module = $this->tree->getById($moduleID);
 
-        if($type == 'task')
-        {
+        if ($type == 'task') {
             $optionMenu             = $this->tree->getTaskOptionMenu($module->root);
             $this->view->optionMenu = $optionMenu;
-        }
-        else
-        {
+        } else {
             $this->view->optionMenu = $this->tree->getOptionMenu($module->root, $module->type, 0, $branch);
         }
-        if($type == 'doc') $this->view->libs = $this->loadModel('doc')->getLibs('all', $extra = 'withObject');
+        if ($type == 'doc') $this->view->libs = $this->loadModel('doc')->getLibs('all', $extra = 'withObject');
 
         $this->view->module = $module;
         $this->view->type   = $type;
@@ -327,19 +290,18 @@ class tree extends control
 
         $showProduct             = strpos('story|bug|case', $type) !== false ? true : false;
         $this->view->showProduct = $showProduct;
-        if($showProduct)
-        {
+        if ($showProduct) {
             $product = $this->loadModel('product')->getById($module->root);
-            if($product->type != 'normal') $this->view->branches = $this->loadModel('branch')->getPairs($module->root);
+            if ($product->type != 'normal') $this->view->branches = $this->loadModel('branch')->getPairs($module->root);
             $this->view->product  = $product;
             $this->view->products = $this->product->getPairs('', $product->program);
         }
 
         /* Remove self and childs from the $optionMenu. Because it's parent can't be self or childs. */
         $childs = $this->tree->getAllChildId($moduleID);
-        foreach($childs as $childModuleID) unset($this->view->optionMenu[$childModuleID]);
+        foreach ($childs as $childModuleID) unset($this->view->optionMenu[$childModuleID]);
 
-        die($this->display());
+        $this->display();
     }
 
     /**
@@ -353,7 +315,7 @@ class tree extends control
     public function fix($root, $type)
     {
         $this->tree->fixModulePath($root, $type);
-        die(js::alert($this->lang->tree->successFixed) . js::reload('parent'));
+        echo js::alert($this->lang->tree->successFixed) . js::reload('parent');
     }
 
     /**
@@ -364,8 +326,7 @@ class tree extends control
      */
     public function updateOrder()
     {
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $this->tree->updateOrder($_POST['orders']);
             die(js::reload('parent'));
         }
@@ -381,13 +342,12 @@ class tree extends control
      */
     public function manageChild($rootID, $viewType)
     {
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $moduleIDList = $this->tree->manageChild($rootID, $viewType);
 
-            if($this->viewType == 'json') return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'idList' => $moduleIDList));
-            if(($viewType == 'doc' || $viewType == 'api') and isonlybody()) die(js::reload('parent.parent'));
-            if(isonlybody()) die(js::closeModal('parent.parent', '', "function(){parent.parent.$('a.refresh').click()}"));
+            if ($this->viewType == 'json') return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'idList' => $moduleIDList));
+            if (($viewType == 'doc' || $viewType == 'api') and isonlybody()) die(js::reload('parent.parent'));
+            if (isonlybody()) die(js::closeModal('parent.parent', '', "function(){parent.parent.$('a.refresh').click()}"));
 
             die(js::reload('parent'));
         }
@@ -404,20 +364,17 @@ class tree extends control
      */
     public function delete($rootID, $moduleID, $confirm = 'no')
     {
-        if($confirm == 'no')
-        {
+        if ($confirm == 'no') {
             $module      = $this->tree->getByID($moduleID);
             $confirmLang = $this->lang->tree->confirmDelete;
-            if($module->type == 'doc') $confirmLang = $this->lang->tree->confirmDeleteMenu;
-            if($module->type == 'line') $confirmLang = $this->lang->tree->confirmDeleteLine;
-            if($module->type == 'host') $confirmLang = $this->lang->tree->confirmDeleteHost;
-            if($module->type == 'feedback') $confirmLang = $this->lang->tree->confirmDelCategory;
+            if ($module->type == 'doc') $confirmLang = $this->lang->tree->confirmDeleteMenu;
+            if ($module->type == 'line') $confirmLang = $this->lang->tree->confirmDeleteLine;
+            if ($module->type == 'host') $confirmLang = $this->lang->tree->confirmDeleteHost;
+            if ($module->type == 'feedback') $confirmLang = $this->lang->tree->confirmDelCategory;
             die(js::confirm($confirmLang, $this->createLink('tree', 'delete', "rootID=$rootID&moduleID=$moduleID&confirm=yes")));
-        }
-        else
-        {
+        } else {
             $result = $this->tree->delete($moduleID);
-            if(!$result) die();
+            if (!$result) return;
 
             die(js::reload('parent'));
         }
@@ -440,37 +397,29 @@ class tree extends control
      */
     public function ajaxGetOptionMenu($rootID, $viewType = 'story', $branch = 0, $rootModuleID = 0, $returnType = 'html', $fieldID = '', $needManage = false, $extra = '', $currentModuleID = 0)
     {
-        if($viewType == 'task')
-        {
+        if ($viewType == 'task') {
             $optionMenu = $this->tree->getTaskOptionMenu($rootID, 0, 0, $extra);
-        }
-        else
-        {
+        } else {
             $optionMenu = $this->tree->getOptionMenu($rootID, $viewType, $rootModuleID, $branch);
         }
-        if($returnType == 'html')
-        {
+        if ($returnType == 'html') {
             //Code for task #5081.
-            if($viewType == 'line')
-            {
+            if ($viewType == 'line') {
                 $lineID = $this->dao->select('id')->from(TABLE_MODULE)->where('type')->eq('line')->andWhere('deleted')->eq(0)->orderBy('id_desc')->limit(1)->fetch('id');
                 $output = html::select("line", $optionMenu, $lineID, "class='form-control'");
                 $output .= "<span class='input-group-addon' style='border-radius: 0px 2px 2px 0px; border-right-width: 1px;'>";
                 $output .= html::a($this->createLink('tree', 'browse', "rootID=$rootID&view=$viewType&currentModuleID=0&branch=$branch", '', true), $viewType == 'line' ? $this->lang->tree->manageLine : $this->lang->tree->manage, '', "class='text-primary' data-toggle='modal' data-type='iframe' data-width='95%'");
                 $output .= '</span>';
-            }
-            else
-            {
+            } else {
                 $changeFunc = '';
-                if($viewType == 'task' or $viewType == 'bug' or $viewType == 'case') $changeFunc = "onchange='loadModuleRelated()'";
+                if ($viewType == 'task' or $viewType == 'bug' or $viewType == 'case') $changeFunc = "onchange='loadModuleRelated()'";
                 $field = $fieldID ? "modules[$fieldID]" : 'module';
 
                 $currentModule   = $this->tree->getById($currentModuleID);
                 $currentModuleID = (isset($currentModule->branch) and $currentModule->branch == 0) ? $currentModuleID : 0;
 
                 $output = html::select("$field", $optionMenu, $currentModuleID, "class='form-control' $changeFunc");
-                if(count($optionMenu) == 1 and $needManage)
-                {
+                if (count($optionMenu) == 1 and $needManage) {
                     $output .= "<span class='input-group-addon'>";
                     $output .= html::a($this->createLink('tree', 'browse', "rootID=$rootID&view=$viewType&currentModuleID=0&branch=$branch", '', true), $this->lang->tree->manage, '', "class='text-primary' data-toggle='modal' data-type='iframe' data-width='95%'");
                     $output .= '&nbsp; ';
@@ -481,15 +430,14 @@ class tree extends control
 
             die($output);
         }
-        if($returnType == 'mhtml')
-        {
+        if ($returnType == 'mhtml') {
             $changeFunc = '';
-            if($viewType == 'task' or $viewType == 'bug' or $viewType == 'case') $changeFunc = "onchange='loadModuleRelated()'";
+            if ($viewType == 'task' or $viewType == 'bug' or $viewType == 'case') $changeFunc = "onchange='loadModuleRelated()'";
             $field  = $fieldID ? "modules[$fieldID]" : 'module';
             $output = html::select("$field", $optionMenu, '', "class='input' $changeFunc");
             die($output);
         }
-        if($returnType == 'json') die(json_encode($optionMenu));
+        if ($returnType == 'json') die(json_encode($optionMenu));
     }
 
     /**
@@ -510,8 +458,8 @@ class tree extends control
         $this->view->extra     = $extra;
 
         $viewType = $module;
-        if($module == 'bug') $viewType = 'bug';
-        if($module == 'testcase') $viewType = 'case';
+        if ($module == 'bug') $viewType = 'bug';
+        if ($module == 'testcase') $viewType = 'case';
 
         $modules       = $this->tree->getOptionMenu($rootID, $viewType);
         $modulesPinyin = common::convert2Pinyin($modules);
@@ -543,7 +491,7 @@ class tree extends control
 
         $moduleName = $viewType == 'bug' ? "modules[$number]" : "module[$number]";
         $modules    = empty($modules) ? array('' => '') : $modules;
-        die(html::select($moduleName, $modules, $currentModuleID, 'class=form-control'));
+        echo html::select($moduleName, $modules, $currentModuleID, 'class=form-control');
     }
 
     /**
@@ -563,6 +511,6 @@ class tree extends control
             ->andWhere('type')->eq($type)
             ->andWhere('deleted')->eq(0)
             ->fetchAll('id');
-        die(json_encode($modules));
+        echo json_encode($modules);
     }
 }

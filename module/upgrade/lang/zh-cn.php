@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The upgrade module zh-cn file of ZenTaoPMS.
  *
@@ -27,7 +28,7 @@ $lang->upgrade->warnningContent = <<<EOT
 2. 使用mysql命令行的工具。
    $> mysqldump -u <span class='text-danger'>username</span> -p <span class='text-danger'>dbname</span> > <span class='text-danger'>filename</span>
    要将上面红色的部分分别替换成对应的用户名和禅道系统的数据库名。
-   比如： mysqldump -u root -p zentao >zentao.bak
+   比如： mysqldump -u root -p zentao > zentao.bak
 </pre>
 EOT;
 
@@ -87,7 +88,8 @@ $lang->upgrade->mergeProgramDesc = <<<EOD
 <h4>情况三：独立的{$lang->projectCommon}</h4>
 <p>可以选择若干个{$lang->projectCommon}迁移到一个项目集中，也可以独立迁移。</p>
 <h4>情况四：关联多个{$lang->productCommon}的{$lang->projectCommon}</h4>
-<p>可以选择这些{$lang->projectCommon}归属于某个新项目下。</p>
+<p>选择历史{$lang->projectCommon}作为项目升级后，用户可以选择这个项目所属的项目集或新建项目集。</p>
+<p>选择历史{$lang->projectCommon}作为迭代升级后，用户可以选择这个执行所属的项目集、项目或新建项目集、项目。</p>
 EOD;
 
 $lang->upgrade->to15Mode['classic'] = '经典管理模式';
@@ -96,23 +98,26 @@ $lang->upgrade->to15Mode['new']     = '全新项目集管理模式';
 $lang->upgrade->selectedModeTips['classic'] = '后续您还可以在后台-自定义里面切换为全新项目集管理的模式。';
 $lang->upgrade->selectedModeTips['new']     = '切换为项目集管理模式需要对之前的数据进行归并处理，系统会引导您完成这个操作。';
 
-$lang->upgrade->line          = '产品线';
-$lang->upgrade->allLines      = "所有{$lang->productCommon}线";
-$lang->upgrade->program       = '目标项目集和项目';
-$lang->upgrade->existProgram  = '已有项目集';
-$lang->upgrade->existProject  = '已有项目';
-$lang->upgrade->existLine     = '已有' . $lang->productCommon . '线';
-$lang->upgrade->product       = $lang->productCommon;
-$lang->upgrade->project       = '迭代';
-$lang->upgrade->repo          = '版本库';
-$lang->upgrade->mergeRepo     = '归并版本库';
-$lang->upgrade->setProgram    = '设置项目所属项目集';
-$lang->upgrade->dataMethod    = '数据迁移方式';
-$lang->upgrade->begin         = '开始日期';
-$lang->upgrade->end           = '结束日期';
-$lang->upgrade->selectProject = '目标项目';
-$lang->upgrade->programName   = '项目集名称';
-$lang->upgrade->projectName   = '项目名称';
+$lang->upgrade->line           = '产品线';
+$lang->upgrade->allLines       = "所有{$lang->productCommon}线";
+$lang->upgrade->program        = '目标项目集和项目';
+$lang->upgrade->existProgram   = '已有项目集';
+$lang->upgrade->existProject   = '已有项目';
+$lang->upgrade->existLine      = '已有' . $lang->productCommon . '线';
+$lang->upgrade->product        = $lang->productCommon;
+$lang->upgrade->project        = '迭代';
+$lang->upgrade->repo           = '版本库';
+$lang->upgrade->mergeRepo      = '归并版本库';
+$lang->upgrade->setProgram     = '设置项目所属项目集';
+$lang->upgrade->dataMethod     = '数据迁移方式';
+$lang->upgrade->begin          = '开始日期';
+$lang->upgrade->end            = '结束日期';
+$lang->upgrade->selectProject  = '目标项目';
+$lang->upgrade->programName    = '项目集名称';
+$lang->upgrade->projectName    = '项目名称';
+$lang->upgrade->compatibleEXT  = '扩展机制兼容';
+$lang->upgrade->fileName       = '文件名称';
+$lang->upgrade->next           = '下一步';
 
 $lang->upgrade->newProgram         = '新建';
 $lang->upgrade->editedName         = '调整后名称';
@@ -127,6 +132,12 @@ $lang->upgrade->needBuild4Add      = '本次升级需要创建索引。请到 [�
 $lang->upgrade->errorEngineInnodb  = '您当前的数据库不支持使用InnoDB数据表引擎，请修改为MyISAM后重试。';
 $lang->upgrade->duplicateProject   = "同一个项目集内项目名称不能重复，请调整重名的项目名称";
 $lang->upgrade->upgradeTips        = "历史删除数据不参与升级，升级后将不支持还原，请知悉";
+$lang->upgrade->moveEXTFileFail    = '迁移文件失败， 请执行上面命令后刷新！';
+$lang->upgrade->deleteDirTip       = '升级后，如下文件夹会影响系统功能的使用，请删除。';
+$lang->upgrade->moveExtFileTip     = <<<EOT
+<p>新版本将对历史的定制/插件进行扩展机制兼容处理，需要将定制/插件相关的文件迁移到extension/custom下，否则定制/插件功能将无法使用。</p>
+<p>请您确认系统是否有做过定制/插件，如没有做过定制/插件，可取消勾选如下文件；如果不清楚是否做过定制/插件，也可保持文件勾选。</p>
+EOT;
 
 $lang->upgrade->projectType['project']   = "把历史的{$lang->projectCommon}作为项目升级";
 $lang->upgrade->projectType['execution'] = "把历史的{$lang->projectCommon}作为执行升级";

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The model file of message module of ZenTaoCMS.
  *
@@ -29,8 +30,7 @@ class messageModel extends model
     public function getObjectTypes()
     {
         $objectTypes = array();
-        foreach($this->config->message->objectTypes as $objectType => $actions)
-        {
+        foreach ($this->config->message->objectTypes as $objectType => $actions) {
             $objectTypes[$objectType] = $this->lang->action->objectTypes[$objectType];
         }
         return $objectTypes;
@@ -45,9 +45,8 @@ class messageModel extends model
     public function getObjectActions()
     {
         $objectActions = array();
-        foreach($this->config->message->objectTypes as $objectType => $actions)
-        {
-            foreach($actions as $action) $objectActions[$objectType][$action] = $this->lang->message->label->$action;
+        foreach ($this->config->message->objectTypes as $objectType => $actions) {
+            foreach ($actions as $action) $objectActions[$objectType][$action] = $this->lang->message->label->$action;
         }
         return $objectActions;
     }
@@ -65,32 +64,40 @@ class messageModel extends model
     public function send($objectType, $objectID, $actionType, $actionID, $actor = '')
     {
         $messageSetting = $this->config->message->setting;
-        if(is_string($messageSetting)) $messageSetting = json_decode($messageSetting, true);
+        if (is_string($messageSetting)) $messageSetting = json_decode($messageSetting, true);
 
-        if(isset($messageSetting['mail']))
-        {
+        if (isset($messageSetting['mail'])) {
             $actions = $messageSetting['mail']['setting'];
-            if(isset($actions[$objectType]) and in_array($actionType, $actions[$objectType]))
-            {
+            if (isset($actions[$objectType]) and in_array($actionType, $actions[$objectType])) {
+                /* If it is an api call, get the request method set by the user. */
+                global $config;
+                $requestType = $config->requestType;
+                if (defined('RUN_MODE') and RUN_MODE == 'api') {
+                    $configRoot = $this->app->getConfigRoot();
+                    if (file_exists($configRoot . 'my.php')) {
+                        include $configRoot . 'my.php';
+                    } else {
+                        include $configRoot . 'config.php';
+                    }
+                }
+
                 $moduleName = $objectType == 'case' ? 'testcase' : $objectType;
                 $this->loadModel('mail')->sendmail($objectID, $actionID);
+
+                if (defined('RUN_MODE') and RUN_MODE == 'api') $config->requestType = $requestType;
             }
         }
 
-        if(isset($messageSetting['webhook']))
-        {
+        if (isset($messageSetting['webhook'])) {
             $actions = $messageSetting['webhook']['setting'];
-            if(isset($actions[$objectType]) and in_array($actionType, $actions[$objectType]))
-            {
+            if (isset($actions[$objectType]) and in_array($actionType, $actions[$objectType])) {
                 $this->loadModel('webhook')->send($objectType, $objectID, $actionType, $actionID, $actor);
             }
         }
 
-        if(isset($messageSetting['message']))
-        {
+        if (isset($messageSetting['message'])) {
             $actions = $messageSetting['message']['setting'];
-            if(isset($actions[$objectType]) and in_array($actionType, $actions[$objectType]))
-            {
+            if (isset($actions[$objectType]) and in_array($actionType, $actions[$objectType])) {
                 $this->saveNotice($objectType, $objectID, $actionType, $actionID, $actor);
             }
         }
@@ -108,8 +115,8 @@ class messageModel extends model
      */
     public function saveNotice($objectType, $objectID, $actionType, $actionID, $actor = '')
     {
-        if(empty($actor)) $actor = $this->app->user->account;
-        if(empty($actor)) return false;
+        if (empty($actor)) $actor = $this->app->user->account;
+        if (empty($actor)) return false;
 
         $this->loadModel('action');
         $user   = $this->loadModel('user')->getById($actor);
@@ -117,21 +124,21 @@ class messageModel extends model
         $field  = $this->config->action->objectNameFields[$objectType];
         $object = $this->dao->select('*')->from($table)->where('id')->eq($objectID)->fetch();
         $toList = $this->getToList($object, $objectType);
-        if(empty($toList)) return false;
-        if($toList == $actor) return false;
+        if (empty($toList)) return false;
+        if ($toList == $actor) return false;
 
         $this->app->loadConfig('mail');
         $sysURL = zget($this->config->mail, 'domain', common::getSysURL());
 
         $isonlybody = isonlybody();
-        if($isonlybody) unset($_GET['onlybody']);
+        if ($isonlybody) unset($_GET['onlybody']);
 
         $moduleName = $objectType == 'case' ? 'testcase' : $objectType;
         $space = common::checkNotCN() ? ' ' : '';
         $data  = $user->realname . $space . $this->lang->action->label->$actionType . $space . $this->lang->action->objectTypes[$objectType];
         $data .= ' ' . html::a($sysURL . helper::createLink($moduleName, 'view', "id=$objectID"), "[#{$objectID}::{$object->$field}]");
 
-        if($isonlybody) $_GET['onlybody'] = 'yes';
+        if ($isonlybody) $_GET['onlybody'] = 'yes';
 
         $notify = new stdclass();
         $notify->objectType  = 'message';
@@ -156,21 +163,20 @@ class messageModel extends model
     public function getToList($object, $objectType)
     {
         $toList = '';
-        if(!empty($object->assignedTo)) $toList = $object->assignedTo;
-        if(empty($toList) and $objectType == 'todo') $toList = $object->account;
-        if(empty($toList) and $objectType == 'testtask') $toList = $object->owner;
-        if(empty($toList) and $objectType == 'meeting') $toList = $object->host . $object->participant;
-        if(empty($toList) and $objectType == 'mr') $toList = $object->createdBy . ',' . $object->assignee;
-        if(empty($toList) and $objectType == 'release')
-        {
+        if (!empty($object->assignedTo)) $toList = $object->assignedTo;
+        if (empty($toList) and $objectType == 'todo') $toList = $object->account;
+        if (empty($toList) and $objectType == 'testtask') $toList = $object->owner;
+        if (empty($toList) and $objectType == 'meeting') $toList = $object->host . $object->participant;
+        if (empty($toList) and $objectType == 'mr') $toList = $object->createdBy . ',' . $object->assignee;
+        if (empty($toList) and $objectType == 'release') {
             /* Get notifiy persons. */
             $notifyPersons = array();
-            if(!empty($object->notify)) $notifyPersons = $this->loadModel('release')->getNotifyPersons($object->notify, $object->product, $object->build, $object->id);
+            if (!empty($object->notify)) $notifyPersons = $this->loadModel('release')->getNotifyPersons($object->notify, $object->product, $object->build, $object->id);
 
-            if(!empty($notifyPersons)) $toList = implode(',', $notifyPersons);
+            if (!empty($notifyPersons)) $toList = implode(',', $notifyPersons);
         }
 
-        if($toList == 'closed') $toList = '';
+        if ($toList == 'closed') $toList = '';
         return $toList;
     }
 
@@ -186,25 +192,22 @@ class messageModel extends model
         $notices  = array();
         $now      = helper::now();
         $interval = 60;
-        if($todos)
-        {
+        if ($todos) {
             $begins[1]  = date('Hi', strtotime($now));
             $ends[1]    = date('Hi', strtotime("+$interval seconds $now"));
             $begins[10] = date('Hi', strtotime("+10 minute $now"));
             $ends[10]   = date('Hi', strtotime("+10 minute $interval seconds $now"));
             $begins[30] = date('Hi', strtotime("+30 minute $now"));
             $ends[30]   = date('Hi', strtotime("+30 minute $interval seconds $now"));
-            foreach($todos as $todo)
-            {
-                if(empty($todo->begin)) continue;
+            foreach ($todos as $todo) {
+                if (empty($todo->begin)) continue;
                 $time = str_replace(':', '', $todo->begin);
 
                 $lastTime = 0;
-                if((int)$time > (int)$begins[1]  and (int)$time <= (int)$ends[1])  $lastTime = 1;
-                if((int)$time > (int)$begins[10] and (int)$time <= (int)$ends[10]) $lastTime = 10;
-                if((int)$time > (int)$begins[30] and (int)$time <= (int)$ends[30]) $lastTime = 30;
-                if($lastTime)
-                {
+                if ((int)$time > (int)$begins[1]  and (int)$time <= (int)$ends[1])  $lastTime = 1;
+                if ((int)$time > (int)$begins[10] and (int)$time <= (int)$ends[10]) $lastTime = 10;
+                if ((int)$time > (int)$begins[30] and (int)$time <= (int)$ends[30]) $lastTime = 30;
+                if ($lastTime) {
                     $notice = new stdclass();
                     $notice->id   = 'todo' . $todo->id;
                     $notice->data = $this->lang->todo->common . ' ' . html::a(helper::createLink('todo', 'view', "id={$todo->id}"), "{$todo->begin} {$todo->name}");

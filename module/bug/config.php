@@ -71,7 +71,7 @@ $config->bug->search['fields']['resolvedBy']     = $lang->bug->resolvedBy;
 $config->bug->search['fields']['status']         = $lang->bug->status;
 $config->bug->search['fields']['confirmed']      = $lang->bug->confirmed;
 
-if($config->systemMode == 'new') $config->bug->search['fields']['project'] = $lang->bug->project;
+if ($config->systemMode == 'new') $config->bug->search['fields']['project'] = $lang->bug->project;
 $config->bug->search['fields']['product']        = $lang->bug->product;
 $config->bug->search['fields']['branch']         = '';
 $config->bug->search['fields']['plan']           = $lang->bug->productplan;
@@ -105,6 +105,7 @@ $config->bug->search['fields']['resolvedDate']   = $lang->bug->resolvedDate;
 $config->bug->search['fields']['closedDate']     = $lang->bug->closedDate;
 $config->bug->search['fields']['lastEditedDate'] = $lang->bug->lastEditedDateAB;
 $config->bug->search['fields']['deadline']       = $lang->bug->deadline;
+$config->bug->search['fields']['activatedDate']  = $lang->bug->activatedDate;
 
 $config->bug->search['params']['title']         = array('operator' => 'include', 'control' => 'input',  'values' => '');
 $config->bug->search['params']['keywords']      = array('operator' => 'include', 'control' => 'input',  'values' => '');
@@ -115,7 +116,7 @@ $config->bug->search['params']['resolvedBy']    = array('operator' => '=',      
 $config->bug->search['params']['status']        = array('operator' => '=',       'control' => 'select', 'values' => $lang->bug->statusList);
 $config->bug->search['params']['confirmed']     = array('operator' => '=',       'control' => 'select', 'values' => $lang->bug->confirmedList);
 
-if($config->systemMode == 'new') $config->bug->search['params']['project'] = array('operator' => '=', 'control' => 'select', 'values' => '');
+if ($config->systemMode == 'new') $config->bug->search['params']['project'] = array('operator' => '=', 'control' => 'select', 'values' => '');
 $config->bug->search['params']['product']       = array('operator' => '=',       'control' => 'select', 'values' => '');
 $config->bug->search['params']['branch']        = array('operator' => '=',       'control' => 'select', 'values' => '');
 $config->bug->search['params']['plan']          = array('operator' => '=',       'control' => 'select', 'values' => '');
@@ -129,7 +130,7 @@ $config->bug->search['params']['os']            = array('operator' => '=',      
 $config->bug->search['params']['browser']       = array('operator' => '=',       'control' => 'select', 'values' => $lang->bug->browserList);
 $config->bug->search['params']['resolution']    = array('operator' => '=',       'control' => 'select', 'values' => $lang->bug->resolutionList);
 
-$config->bug->search['params']['activatedCount']= array('operator' => '>=',      'control' => 'input',  'values' => '');
+$config->bug->search['params']['activatedCount'] = array('operator' => '>=',      'control' => 'input',  'values' => '');
 
 $config->bug->search['params']['toTask']        = array('operator' => '=',       'control' => 'input',  'values' => '');
 $config->bug->search['params']['toStory']       = array('operator' => '=',       'control' => 'input',  'values' => '');
@@ -147,8 +148,9 @@ $config->bug->search['params']['openedDate']    = array('operator' => '=',      
 $config->bug->search['params']['assignedDate']  = array('operator' => '=',      'control' => 'input',  'values' => '', 'class' => 'date');
 $config->bug->search['params']['resolvedDate']  = array('operator' => '=',      'control' => 'input',  'values' => '', 'class' => 'date');
 $config->bug->search['params']['closedDate']    = array('operator' => '=',      'control' => 'input',  'values' => '', 'class' => 'date');
-$config->bug->search['params']['lastEditedDate']= array('operator' => '=',      'control' => 'input',  'values' => '', 'class' => 'date');
+$config->bug->search['params']['lastEditedDate'] = array('operator' => '=',      'control' => 'input',  'values' => '', 'class' => 'date');
 $config->bug->search['params']['deadline']      = array('operator' => '=',      'control' => 'input',  'values' => '', 'class' => 'date');
+$config->bug->search['params']['activatedDate'] = array('operator' => '=',      'control' => 'input',  'values' => '', 'class' => 'date');
 
 $config->bug->datatable = new stdclass();
 $config->bug->datatable->defaultField = array('id', 'severity', 'pri', 'confirmed', 'title', 'status', 'openedBy', 'openedDate', 'assignedTo', 'resolution', 'actions');
@@ -162,11 +164,13 @@ $config->bug->datatable->fieldList['severity']['title']    = 'severityAB';
 $config->bug->datatable->fieldList['severity']['fixed']    = 'left';
 $config->bug->datatable->fieldList['severity']['width']    = '50';
 $config->bug->datatable->fieldList['severity']['required'] = 'no';
+$config->bug->datatable->fieldList['severity']['name']     = $lang->bug->severity;
 
 $config->bug->datatable->fieldList['pri']['title']    = 'P';
 $config->bug->datatable->fieldList['pri']['fixed']    = 'left';
 $config->bug->datatable->fieldList['pri']['width']    = '50';
 $config->bug->datatable->fieldList['pri']['required'] = 'no';
+$config->bug->datatable->fieldList['pri']['name']     = $lang->bug->pri;
 
 $config->bug->datatable->fieldList['confirmed']['title']    = 'confirmedAB';
 $config->bug->datatable->fieldList['confirmed']['fixed']    = 'left';
@@ -189,8 +193,7 @@ $config->bug->datatable->fieldList['type']['fixed']    = 'no';
 $config->bug->datatable->fieldList['type']['width']    = '90';
 $config->bug->datatable->fieldList['type']['required'] = 'no';
 
-if($config->systemMode == 'new')
-{
+if ($config->systemMode == 'new') {
     $config->bug->datatable->fieldList['project']['title']    = 'project';
     $config->bug->datatable->fieldList['project']['fixed']    = 'no';
     $config->bug->datatable->fieldList['project']['width']    = '120';

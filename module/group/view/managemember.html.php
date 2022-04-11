@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The manage member view of group module of ZenTaoPMS.
  *
@@ -10,69 +11,69 @@
  * @link        http://www.zentao.net
  */
 ?>
-<?php include '../../common/view/header.html.php';?>
+<?php include '../../common/view/header.html.php'; ?>
 <div id='mainContent' class='main-content'>
   <div class='main-header'>
-    <h2 title='<?php echo $group->name;?>'>
-      <span class='label label-id'><?php echo $group->id;?></span>
-      <?php echo $group->name;?>
+    <h2 title='<?php echo $group->name; ?>'>
+      <span class='label label-id'><?php echo $group->id; ?></span>
+      <?php echo $group->name; ?>
     </h2>
   </div>
   <div class='main-row'>
     <div class="side-col">
       <div class='side-body'>
         <div class='panel panel-sm'>
-          <div class='panel-heading nobr'><strong><?php echo $lang->dept->common;?></strong></div>
-          <?php echo $deptTree;?>
+          <div class='panel-heading nobr'><strong><?php echo $lang->dept->common; ?></strong></div>
+          <?php echo $deptTree; ?>
         </div>
       </div>
     </div>
     <div class="main-col">
       <form class='main-table table-members' method='post' target='hiddenwin'>
         <table class='table table-form'>
-          <?php if($groupUsers):?>
-          <tr>
-            <th class='w-140px'>
-              <div class="checkbox-primary checkbox-inline checkbox-right check-all">
-                <input type='checkbox' id='allInsideChecker' checked />
-                <label class='text-right' for='allInsideChecker'><?php echo $lang->group->inside;?></label>
-              </div>
-            </th>
-            <td id='group' class='pv-10px'><?php $i = 1;?>
-              <?php foreach($groupUsers as $account => $realname):?>
-              <div class='group-item'><?php echo html::checkbox('members', array($account => $realname), $account);?></div>
-              <?php endforeach;?>
-            </td>
-          </tr>
-          <?php endif;?>
+          <?php if ($groupUsers) : ?>
+            <tr>
+              <th class='w-140px'>
+                <div class="checkbox-primary checkbox-inline checkbox-right check-all">
+                  <input type='checkbox' id='allInsideChecker' checked />
+                  <label class='text-right' for='allInsideChecker'><?php echo $lang->group->inside; ?></label>
+                </div>
+              </th>
+              <td id='group' class='pv-10px'><?php $i = 1; ?>
+                <?php foreach ($groupUsers as $account => $realname) : ?>
+                  <div class='group-item' title='<?php echo $realname; ?>'><?php echo html::checkbox('members', array($account => $realname), $account); ?></div>
+                <?php endforeach; ?>
+              </td>
+            </tr>
+          <?php endif; ?>
           <tr>
             <th class='w-140px'>
               <div class="checkbox-primary checkbox-inline checkbox-right check-all">
                 <input type='checkbox' id='allOtherChecker'>
-                <label class='text-right' for='allOtherChecker'><?php echo $lang->group->outside;?></label>
+                <label class='text-right' for='allOtherChecker'><?php echo $lang->group->outside; ?></label>
               </div>
             </th>
-            <td id='other' class='pv-10px'><?php $i = 1;?>
-              <?php foreach($otherUsers as $account => $realname):?>
-              <div class='group-item'><?php echo html::checkbox('members', array($account => $realname), '');?></div>
-              <?php endforeach;?>
+            <td id='other' class='pv-10px'><?php $i = 1; ?>
+              <?php foreach ($otherUsers as $account => $realname) : ?>
+                <div class='group-item' title='<?php echo $realname; ?>'><?php echo html::checkbox('members', array($account => $realname), ''); ?></div>
+              <?php endforeach; ?>
             </td>
           </tr>
-          <?php if($config->systemMode == 'new'):?>
-          <tr>
-            <th class='w-140px'>
-              <div class="checkbox-primary checkbox-inline checkbox-right check-all">
-                <input type='checkbox' id='allOutSideChecker'>
-                <label class='text-right' for='allOutSideChecker'><?php echo $lang->user->outside;?></label>
-              </div>
-            </th>
-            <td id='outside' class='pv-10px'><?php $i = 1;?>
-              <?php foreach($outsideUsers as $account => $realname):?>
-              <div class='group-item'><?php echo html::checkbox('members', array($account => $realname), '');?></div>
-              <?php endforeach;?>
-            </td>
-          </tr>
-          <?php endif;?>
+          <?php if ($config->systemMode == 'new') : ?>
+            <tr>
+              <th class='w-140px'>
+                <div class="checkbox-primary checkbox-inline checkbox-right check-all">
+                  <input type='checkbox' id='allOutSideChecker'>
+                  <label class='text-right' for='allOutSideChecker'><?php echo $lang->user->outside; ?></label>
+                </div>
+              </th>
+              <td id='outside' class='pv-10px'><?php $i = 1; ?>
+                <?php foreach ($outsideUsers as $account => $realname) : ?>
+                  <div class='group-item' title='<?php echo $realname; ?>'><?php echo html::checkbox('members', array($account => $realname), ''); ?></div>
+                <?php endforeach; ?>
+              </td>
+            </tr>
+          <?php endif; ?>
           <tr>
             <td class='text-center form-actions' colspan='2'>
               <?php
@@ -87,4 +88,4 @@
     </div>
   </div>
 </div>
-<?php include '../../common/view/footer.html.php';?>
+<?php include '../../common/view/footer.html.php'; ?>

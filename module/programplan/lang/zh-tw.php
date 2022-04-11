@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The programplan module zh-tw file of ZenTaoPMS.
  *
@@ -21,8 +22,6 @@ $lang->programplan->createSubPlan = '創建二級階段';
 $lang->programplan->parent           = '父階段';
 $lang->programplan->emptyParent      = '無';
 $lang->programplan->name             = '階段名稱';
-$lang->programplan->PM               = '階段負責人';
-$lang->programplan->acl              = '訪問控制';
 $lang->programplan->subStageName     = '子階段名稱';
 $lang->programplan->percent          = '工作量占比';
 $lang->programplan->percentAB        = '工作量占比';

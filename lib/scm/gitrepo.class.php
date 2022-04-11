@@ -37,20 +37,19 @@ class GitRepo
      */
     public function ls($path, $revision = 'HEAD')
     {
-        if(!scm::checkRevision($revision)) return array();
+        if (!scm::checkRevision($revision)) return array();
 
         $path = ltrim($path, DIRECTORY_SEPARATOR);
         $sub  = '';
         chdir($this->root);
-        if(!empty($path)) $sub = ":$path";
-        if(!empty($this->branch))$revision = $this->branch;
+        if (!empty($path)) $sub = ":$path";
+        if (!empty($this->branch)) $revision = $this->branch;
         $cmd = escapeCmd("$this->client ls-tree -l $revision$sub");
         $list = execCmd($cmd . ' 2>&1', 'array', $result);
-        if($result) return array();
+        if ($result) return array();
 
         $infos   = array();
-        foreach($list as $entry)
-        {
+        foreach ($list as $entry) {
             list($mod, $kind, $revision, $size, $name) = preg_split('/[\t ]+/', $entry);
 
             /* Get commit info. */
@@ -59,16 +58,11 @@ class GitRepo
             $commit   = execCmd($cmd, 'array');
             $logs    = $this->parseLog($commit);
 
-            if($size > 1024 * 1024)
-            {
+            if ($size > 1024 * 1024) {
                 $size = round($size / (1024 * 1024), 2) . 'MB';
-            }
-            else if($size > 1024)
-            {
+            } else if ($size > 1024) {
                 $size = round($size / 1024, 2) . 'KB';
-            }
-            else
-            {
+            } else {
                 $size .= 'Bytes';
             }
 
@@ -85,8 +79,8 @@ class GitRepo
         }
 
         /* Sort by kind */
-        foreach($infos as $key => $info) $kinds[$key] = $info->kind;
-        if($infos) array_multisort($kinds, SORT_ASC, $infos);
+        foreach ($infos as $key => $info) $kinds[$key] = $info->kind;
+        if ($infos) array_multisort($kinds, SORT_ASC, $infos);
 
         return $infos;
     }
@@ -101,12 +95,12 @@ class GitRepo
      */
     public function tags($path, $revision = 'HEAD')
     {
-        if(!scm::checkRevision($revision)) return array();
+        if (!scm::checkRevision($revision)) return array();
 
         chdir($this->root);
         $cmd  = escapeCmd("$this->client tag --sort=taggerdate");
         $list = execCmd($cmd . ' 2>&1', 'array', $result);
-        if($result) return array();
+        if ($result) return array();
         return $list;
     }
 
@@ -123,15 +117,14 @@ class GitRepo
         /* Get local branch. */
         $cmd  = escapeCmd("$this->client branch");
         $list = execCmd($cmd . ' 2>&1', 'array', $result);
-        if($result) return array();
+        if ($result) return array();
 
         $branches = array();
-        foreach($list as $localBranch)
-        {
-            if(substr($localBranch, 0, 1) == '*') $localBranch = substr($localBranch, 1);
+        foreach ($list as $localBranch) {
+            if (substr($localBranch, 0, 1) == '*') $localBranch = substr($localBranch, 1);
 
             $localBranch = trim($localBranch);
-            if(empty($localBranch))continue;
+            if (empty($localBranch)) continue;
             $branches[$localBranch] = $localBranch;
         }
         asort($branches);
@@ -170,16 +163,15 @@ class GitRepo
      */
     public function log($path, $fromRevision = 0, $toRevision = 'HEAD', $count = 0)
     {
-        if(!scm::checkRevision($fromRevision)) return array();
-        if(!scm::checkRevision($toRevision))   return array();
+        if (!scm::checkRevision($fromRevision)) return array();
+        if (!scm::checkRevision($toRevision))   return array();
 
         $path  = ltrim($path, DIRECTORY_SEPARATOR);
         $count = $count == 0 ? '' : "-n $count";
         /* compatible with svn. */
-        if($fromRevision == 'HEAD' and $this->branch) $fromRevision = $this->branch;
-        if($toRevision   == 'HEAD' and $this->branch) $toRevision   = $this->branch;
-        if($fromRevision === $toRevision)
-        {
+        if ($fromRevision == 'HEAD' and $this->branch) $fromRevision = $this->branch;
+        if ($toRevision   == 'HEAD' and $this->branch) $toRevision   = $this->branch;
+        if ($fromRevision === $toRevision) {
             $logs = array();
             chdir($this->root);
 
@@ -188,12 +180,9 @@ class GitRepo
             return $logs;
         }
 
-        if(!$fromRevision)
-        {
+        if (!$fromRevision) {
             $revisions = " $toRevision";
-        }
-        else
-        {
+        } else {
             $revisions = "$fromRevision..$toRevision";
         }
         chdir($this->root);
@@ -213,7 +202,7 @@ class GitRepo
      */
     public function blame($path, $revision)
     {
-        if(!scm::checkRevision($revision)) return array();
+        if (!scm::checkRevision($revision)) return array();
 
         $path = ltrim($path, DIRECTORY_SEPARATOR);
         chdir($this->root);
@@ -222,14 +211,12 @@ class GitRepo
         $blames   = array();
         $revLine  = 0;
         $revision = '';
-        foreach($list as $line)
-        {
-            if(empty($line)) continue;
-            if($line[0] == '^') $line = substr($line, 1);
+        foreach ($list as $line) {
+            if (empty($line)) continue;
+            if ($line[0] == '^') $line = substr($line, 1);
             preg_match('/^([0-9a-f]{39,40})\s.*\((\S+)\s+([\d-]+)\s(.*)\s(\d+)\)(.*)$/U', $line, $matches);
 
-            if(isset($matches[1]) and $matches[1] != $revision)
-            {
+            if (isset($matches[1]) and $matches[1] != $revision) {
                 $blame = array();
                 $blame['revision']  = $matches[1];
                 $blame['committer'] = $matches[2];
@@ -241,15 +228,13 @@ class GitRepo
                 $revision         = $matches[1];
                 $revLine          = $matches[5];
                 $blames[$revLine] = $blame;
-            }
-            elseif(isset($matches[5]))
-            {
+            } elseif (isset($matches[5])) {
                 $blame            = array();
                 $blame['line']    = $matches[5];
                 $blame['content'] = strpos($matches[6], ' ') === false ? $matches[6] : substr($matches[6], 1);
 
                 $blames[$matches[5]] = $blame;
-                $blames[$revLine]['lines'] ++;
+                $blames[$revLine]['lines']++;
             }
         }
         return $blames;
@@ -261,22 +246,22 @@ class GitRepo
      * @param  string $path
      * @param  string $fromRevision
      * @param  string $toRevision
+     * @param  string $extra
      * @access public
      * @return array
      */
-    public function diff($path, $fromRevision, $toRevision)
+    public function diff($path, $fromRevision, $toRevision, $extra = '')
     {
-        if(!scm::checkRevision($fromRevision)) return array();
-        if(!scm::checkRevision($toRevision))   return array();
+        if (!scm::checkRevision($fromRevision) and $extra != 'isBranchOrTag') return array();
+        if (!scm::checkRevision($toRevision) and $extra != 'isBranchOrTag')   return array();
 
         $path = ltrim($path, DIRECTORY_SEPARATOR);
         chdir($this->root);
-        if($toRevision == 'HEAD' and $this->branch) $toRevision = $this->branch;
-        if($fromRevision == '^') $fromRevision = $toRevision . '^';
-        if(strpos($fromRevision, '^') !== false)
-        {
+        if ($toRevision == 'HEAD' and $this->branch) $toRevision = $this->branch;
+        if ($fromRevision == '^') $fromRevision = $toRevision . '^';
+        if (strpos($fromRevision, '^') !== false) {
             $list = execCmd(escapeCmd("$this->client log -2 $toRevision --pretty=format:%H -- $path"), 'array');
-            if(isset($list[1])) $fromRevision = $list[1];
+            if (isset($list[1])) $fromRevision = $list[1];
         }
         $lines = execCmd(escapeCmd("$this->client diff $fromRevision $toRevision -- $path"), 'array');
         return $lines;
@@ -292,13 +277,13 @@ class GitRepo
      */
     public function cat($entry, $revision = 'HEAD')
     {
-        if(!scm::checkRevision($revision)) return false;
+        if (!scm::checkRevision($revision)) return false;
 
         chdir($this->root);
-        if($revision == 'HEAD' and $this->branch) $revision = $this->branch;
+        if ($revision == 'HEAD' and $this->branch) $revision = $this->branch;
         $cmd     = escapeCmd("$this->client show $revision:$entry");
         $content = execCmd($cmd);
-        if(is_array($content)) $content = implode("\n", $content);
+        if (is_array($content)) $content = implode("\n", $content);
         return $content;
     }
 
@@ -312,23 +297,19 @@ class GitRepo
      */
     public function info($entry, $revision = 'HEAD')
     {
-        if(!scm::checkRevision($revision)) return false;
+        if (!scm::checkRevision($revision)) return false;
 
         chdir($this->root);
-        if($revision == 'HEAD' and $this->branch) $revision = $this->branch;
+        if ($revision == 'HEAD' and $this->branch) $revision = $this->branch;
         $path   = ltrim($entry, DIRECTORY_SEPARATOR);
         $cmd    = escapeCmd("$this->client ls-tree $revision -- $path");
         $result = execCmd($cmd);
         $kind   = '';
-        if($result)
-        {
+        if ($result) {
             $results = explode("\n", trim($result));
-            if(count($results) >= 2)
-            {
+            if (count($results) >= 2) {
                 $kind = 'dir';
-            }
-            else
-            {
+            } else {
                 list($mode, $type) = explode(' ', $results[0]);
                 $kind = $type == 'tree' ? 'dir' : 'file';
             }
@@ -366,61 +347,59 @@ class GitRepo
      */
     public function parseDiff($lines)
     {
-        if(empty($lines)) return array();
+        if (empty($lines)) return array();
         $diffs   = array();
         $num     = count($lines);
         $endLine = end($lines);
-        if(strpos($endLine, '\ No newline at end of file') === 0) $num -= 1;
+        if (strpos($endLine, '\ No newline at end of file') === 0) $num -= 1;
 
-        $newFile = false;
-        for($i = 0; $i < $num; $i ++)
-        {
+        $newFile  = false;
+        $allFiles = array();
+        for ($i = 0; $i < $num; $i++) {
             $diffFile = new stdclass();
-            if(strpos($lines[$i], "diff --git ") === 0)
-            {
-                $fileInfo = explode(' ',$lines[$i]);
+            if (strpos($lines[$i], "diff --git ") === 0) {
+                $fileInfo = explode(' ', $lines[$i]);
                 $fileName = substr($fileInfo[2], strpos($fileInfo[2], '/') + 1);
+
+                /* Prevent duplicate display of files. */
+                if (in_array($fileName, $allFiles)) continue;
+                $allFiles[] = $fileName;
+
                 $diffFile->fileName = $fileName;
-                for($i++; $i < $num; $i ++)
-                {
+                for ($i++; $i < $num; $i++) {
                     $diff = new stdclass();
                     /* Fix bug #1757. */
-                    if($lines[$i] == '+++ /dev/null') $newFile = true;
-                    if(strpos($lines[$i], '+++', 0) !== false) continue;
-                    if(strpos($lines[$i], '---', 0) !== false) continue;
-                    if(strpos($lines[$i], '======', 0) !== false) continue;
-                    if(preg_match('/^@@ -(\\d+)(,(\\d+))?\\s+\\+(\\d+)(,(\\d+))?\\s+@@/A', $lines[$i]))
-                    {
+                    if ($lines[$i] == '+++ /dev/null') $newFile = true;
+                    if (strpos($lines[$i], '+++', 0) !== false) continue;
+                    if (strpos($lines[$i], '---', 0) !== false) continue;
+                    if (strpos($lines[$i], '======', 0) !== false) continue;
+                    if (preg_match('/^@@ -(\\d+)(,(\\d+))?\\s+\\+(\\d+)(,(\\d+))?\\s+@@/A', $lines[$i])) {
                         $startLines = trim(str_replace(array('@', '+', '-'), '', $lines[$i]));
                         list($oldStartLine, $newStartLine) = explode(' ', $startLines);
                         list($diff->oldStartLine) = explode(',', $oldStartLine);
                         list($diff->newStartLine) = explode(',', $newStartLine);
                         $oldCurrentLine = $diff->oldStartLine;
                         $newCurrentLine = $diff->newStartLine;
-                        if($newFile)
-                        {
+                        if ($newFile) {
                             $oldCurrentLine = $diff->newStartLine;
                             $newCurrentLine = $diff->oldStartLine;
                         }
                         $newLines = array();
-                        for($i++; $i < $num; $i ++)
-                        {
-                            if(preg_match('/^@@ -(\\d+)(,(\\d+))?\\s+\\+(\\d+)(,(\\d+))?\\s+@@/A', $lines[$i]))
-                            {
-                                $i --;
+                        for ($i++; $i < $num; $i++) {
+                            if (preg_match('/^@@ -(\\d+)(,(\\d+))?\\s+\\+(\\d+)(,(\\d+))?\\s+@@/A', $lines[$i])) {
+                                $i--;
                                 break;
                             }
-                            if(strpos($lines[$i], "diff --git ") === 0) break;
+                            if (strpos($lines[$i], "diff --git ") === 0) break;
 
                             $line = $lines[$i];
-                            if(strpos($line, '\ No newline at end of file') === 0)continue;
+                            if (strpos($line, '\ No newline at end of file') === 0) continue;
                             $sign = empty($line) ? '' : $line[0];
-                            if($sign == '-' and $newFile) $sign = '+';
+                            if ($sign == '-' and $newFile) $sign = '+';
                             $type = $sign != '-' ? $sign == '+' ? 'new' : 'all' : 'old';
-                            if($sign == '-' || $sign == '+')
-                            {
+                            if ($sign == '-' || $sign == '+') {
                                 $line = substr_replace($line, ' ', 1, 0);
-                                if($newFile) $line = preg_replace('/^\-/', '+', $line);
+                                if ($newFile) $line = preg_replace('/^\-/', '+', $line);
                             }
 
                             $newLine = new stdclass();
@@ -429,8 +408,8 @@ class GitRepo
                             $newLine->newlc = $type != 'old' ? $newCurrentLine : '';
                             $newLine->line  = htmlSpecialString($line);
 
-                            if($type != 'new') $oldCurrentLine++;
-                            if($type != 'old') $newCurrentLine++;
+                            if ($type != 'new') $oldCurrentLine++;
+                            if ($type != 'old') $newCurrentLine++;
 
                             $newLines[] = $newLine;
                         }
@@ -439,9 +418,8 @@ class GitRepo
                         $diffFile->contents[] = $diff;
                     }
 
-                    if(isset($lines[$i]) and strpos($lines[$i], "diff --git ") === 0)
-                    {
-                        $i --;
+                    if (isset($lines[$i]) and strpos($lines[$i], "diff --git ") === 0) {
+                        $i--;
                         $newFile = false;
                         break;
                     }
@@ -462,7 +440,7 @@ class GitRepo
      */
     public function getCommitCount($commits = 0, $lastVersion = '')
     {
-        if(!scm::checkRevision($lastVersion)) return false;
+        if (!scm::checkRevision($lastVersion)) return false;
 
         chdir($this->root);
         $revision = $this->branch ? $this->branch : 'HEAD';
@@ -499,18 +477,17 @@ class GitRepo
     /**
      * Get commits.
      *
-     * @param  string $version
+     * @param  string $rversion
      * @param  int    $count
      * @param  string $branch
      * @access public
      * @return array
      */
-    public function getCommits($version = '', $count = 0, $branch = '')
+    public function getCommits($revision = '', $count = 0, $branch = '')
     {
-        if(!scm::checkRevision($version)) return array();
+        if (!scm::checkRevision($revision)) return array();
 
-        if($version == 'HEAD' and $branch) $version = $branch;
-        $revision = empty($version) ? $revision : $version;
+        if ($revision == 'HEAD' and $branch) $revision = $branch;
         $revision = is_numeric($revision) ? "--skip=$revision $branch" : $revision;
         $count    = $count == 0 ? '' : "-n $count";
 
@@ -519,8 +496,7 @@ class GitRepo
         $commits = $this->parseLog($list);
 
         $logs = array();
-        foreach($commits as $commit)
-        {
+        foreach ($commits as $commit) {
             $hash = $commit->revision;
             $log  = new stdClass();
             $log->committer = $commit->committer;
@@ -530,21 +506,17 @@ class GitRepo
             $logs['commits'][$hash] = $log;
             $logs['files'][$hash]   = array();
         }
-        if(empty($logs)) return $logs;
+        if (empty($logs)) return $logs;
 
         $hash  = '';
         $files = execCmd(escapeCmd("$this->client whatchanged $count $revision --pretty=format:%an@_@%cd@_@%H@_@%s -- ./"), 'array');
-        foreach($files as $commit)
-        {
+        foreach ($files as $commit) {
             $commit = trim($commit);
-            if(empty($commit)) continue;
+            if (empty($commit)) continue;
             $parsedCommit = explode('@_@', $commit);
-            if(count($parsedCommit) == 4)
-            {
+            if (count($parsedCommit) == 4) {
                 list($account, $date, $hash, $comment) = $parsedCommit;
-            }
-            else
-            {
+            } else {
                 $file = explode(' ', $commit);
                 $file = end($file);
                 list($action, $path) = explode("\t", $file);
@@ -570,12 +542,9 @@ class GitRepo
     {
         $parsedLogs = array();
         $i          = 0;
-        foreach($logs as $line)
-        {
-            if(strpos($line, 'commit ') === 0)
-            {
-                if(isset($log))
-                {
+        foreach ($logs as $line) {
+            if (strpos($line, 'commit ') === 0) {
+                if (isset($log)) {
                     $log->comment = trim($comment);
                     $log->change  = $changes;
                     $parsedLogs[$i] = $log;
@@ -587,23 +556,15 @@ class GitRepo
                 $changes = array();
 
                 $log->revision = trim(preg_replace('/^commit/', '', $line));
-            }
-            elseif(strpos($line, 'Author:') === 0)
-            {
+            } elseif (strpos($line, 'Author:') === 0) {
                 $account        = preg_replace('/^Author:/', '', $line);
                 $log->committer = trim(preg_replace('/<[a-zA-Z0-9_\-\.]+@[a-zA-Z0-9_\-\.]+>/', '', $account));
-            }
-            elseif(strpos($line, 'Date:') === 0)
-            {
+            } elseif (strpos($line, 'Date:') === 0) {
                 $date      = trim(preg_replace('/^Date:/', '', $line));
                 $log->time = date('Y-m-d H:i:s', strtotime($date));
-            }
-            elseif(preg_match('/^\s{2,}/', $line))
-            {
+            } elseif (preg_match('/^\s{2,}/', $line)) {
                 $comment .= $line;
-            }
-            elseif(strpos($line, "\t") !== false)
-            {
+            } elseif (strpos($line, "\t") !== false) {
                 list($action, $entry) = explode("\t", $line);
                 $entry = '/' . trim($entry);
                 $pathInfo = array();
@@ -613,8 +574,7 @@ class GitRepo
             }
         }
 
-        if(isset($log))
-        {
+        if (isset($log)) {
             $log->comment   = trim($comment);
             $log->change    = $changes;
             $parsedLogs[$i] = $log;

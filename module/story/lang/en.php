@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The story module English file of ZenTaoPMS.
  *
@@ -33,7 +34,7 @@ $lang->story->link               = 'Link';
 $lang->story->unlink             = 'Unlink';
 $lang->story->track              = 'Track';
 $lang->story->trackAB            = 'Track';
-$lang->story->processStoryChange = 'Process Story Change';
+$lang->story->processStoryChange = 'Confirm Story Change';
 $lang->story->splitRequirent     = 'Decompose';
 $lang->story->close              = 'Close';
 $lang->story->batchClose         = 'Batch Close';
@@ -124,8 +125,10 @@ $lang->story->closedDate     = 'ClosedDate';
 $lang->story->closedReason   = 'Reason';
 $lang->story->rejectedReason = 'Reject Reason';
 $lang->story->reviewedBy     = 'ReviewedBy';
+$lang->story->reviewer       = $lang->story->reviewedBy;
 $lang->story->reviewers      = 'Reviewers';
 $lang->story->reviewedDate   = 'ReviewedDate';
+$lang->story->activatedDate  = 'Activated Date';
 $lang->story->version        = 'Version';
 $lang->story->feedbackBy     = 'From Name';
 $lang->story->notifyEmail    = 'From Email';

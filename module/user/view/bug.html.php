@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The bug view file of dashboard module of ZenTaoPMS.
  *
@@ -10,9 +11,9 @@
  * @link        http://www.zentao.net
  */
 ?>
-<?php include '../../common/view/header.html.php';?>
-<?php include '../../common/view/tablesorter.html.php';?>
-<?php include './featurebar.html.php';?>
+<?php include '../../common/view/header.html.php'; ?>
+<?php include '../../common/view/tablesorter.html.php'; ?>
+<?php include './featurebar.html.php'; ?>
 <div id='mainContent'>
   <nav id='contentNav'>
     <ul class='nav nav-default'>
@@ -38,34 +39,34 @@
       <?php $vars = "userID={$user->id}&type=$type&orderBy=%s&recTotal={$pager->recTotal}&recPerPage={$pager->recPerPage}&pageID={$pager->pageID}"; ?>
       <thead>
         <tr class='text-center'>
-          <th class='c-id'>        <?php common::printOrderLink('id', $orderBy, $vars, $lang->idAB);?></th>
-          <th class='c-severity'>  <?php common::printOrderLink('severity', $orderBy, $vars, $lang->bug->severityAB);?></th>
-          <th class='c-pri'>       <?php common::printOrderLink('pri', $orderBy, $vars, $lang->priAB);?></th>
-          <th class='c-type'>      <?php common::printOrderLink('type', $orderBy, $vars, $lang->typeAB);?></th>
-          <th class='text-left'>   <?php common::printOrderLink('title', $orderBy, $vars, $lang->bug->title);?></th>
-          <th class='c-user'>      <?php common::printOrderLink('openedBy', $orderBy, $vars, $lang->openedByAB);?></th>
-          <th class='c-user'>      <?php common::printOrderLink('resolvedBy', $orderBy, $vars, $lang->bug->resolvedBy);?></th>
-          <th class='c-resolution'><?php common::printOrderLink('resolution', $orderBy, $vars, $lang->bug->resolutionAB);?></th>
+          <th class='c-id'> <?php common::printOrderLink('id', $orderBy, $vars, $lang->idAB); ?></th>
+          <th class='c-severity' title=<?php echo $lang->bug->severity; ?>><?php common::printOrderLink('severity', $orderBy, $vars, $lang->bug->severityAB); ?></th>
+          <th class='c-pri' title='<?php echo $lang->pri; ?>'><?php common::printOrderLink('pri', $orderBy, $vars, $lang->priAB); ?></th>
+          <th class='c-type'> <?php common::printOrderLink('type', $orderBy, $vars, $lang->typeAB); ?></th>
+          <th class='text-left'> <?php common::printOrderLink('title', $orderBy, $vars, $lang->bug->title); ?></th>
+          <th class='c-user'> <?php common::printOrderLink('openedBy', $orderBy, $vars, $lang->openedByAB); ?></th>
+          <th class='c-user'> <?php common::printOrderLink('resolvedBy', $orderBy, $vars, $lang->bug->resolvedBy); ?></th>
+          <th class='c-resolution'><?php common::printOrderLink('resolution', $orderBy, $vars, $lang->bug->resolutionAB); ?></th>
         </tr>
       </thead>
       <tbody>
-        <?php foreach($bugs as $bug):?>
-        <tr class='text-center'>
-          <td><?php echo html::a($this->createLink('bug', 'view', "bugID=$bug->id"), $bug->id, '_blank');?></td>
-          <td><span class='<?php echo 'severity' . zget($lang->bug->severityList, $bug->severity, $bug->severity)?>'><?php echo zget($lang->bug->severityList, $bug->severity, $bug->severity)?></span></td>
-          <td><span class='<?php echo 'pri' . zget($lang->bug->priList, $bug->pri, $bug->pri)?>'><?php echo zget($lang->bug->priList, $bug->pri, $bug->pri)?></span></td>
-          <td><?php echo $lang->bug->typeList[$bug->type]?></td>
-          <td class='text-left nobr'><?php echo html::a($this->createLink('bug', 'view', "bugID=$bug->id"), $bug->title);?></td>
-          <td><?php echo zget($users, $bug->openedBy);?></td>
-          <td><?php echo zget($users, $bug->resolvedBy);?></td>
-          <td><?php echo zget($lang->bug->resolutionList, $bug->resolution);?></td>
-        </tr>
-        <?php endforeach;?>
+        <?php foreach ($bugs as $bug) : ?>
+          <tr class='text-center'>
+            <td><?php echo html::a($this->createLink('bug', 'view', "bugID=$bug->id"), $bug->id, '_blank'); ?></td>
+            <td><span class='<?php echo 'severity' . zget($lang->bug->severityList, $bug->severity, $bug->severity) ?>'><?php echo zget($lang->bug->severityList, $bug->severity, $bug->severity) ?></span></td>
+            <td><span class='<?php echo 'pri' . zget($lang->bug->priList, $bug->pri, $bug->pri) ?>'><?php echo zget($lang->bug->priList, $bug->pri, $bug->pri) ?></span></td>
+            <td><?php echo $lang->bug->typeList[$bug->type] ?></td>
+            <td class='text-left nobr'><?php echo html::a($this->createLink('bug', 'view', "bugID=$bug->id"), $bug->title); ?></td>
+            <td><?php echo zget($users, $bug->openedBy); ?></td>
+            <td><?php echo zget($users, $bug->resolvedBy); ?></td>
+            <td><?php echo zget($lang->bug->resolutionList, $bug->resolution); ?></td>
+          </tr>
+        <?php endforeach; ?>
       </tbody>
     </table>
-    <?php if($bugs):?>
-    <div class="table-footer"><?php $pager->show('right', 'pagerjs');?></div>
-    <?php endif;?>
+    <?php if ($bugs) : ?>
+      <div class="table-footer"><?php $pager->show('right', 'pagerjs'); ?></div>
+    <?php endif; ?>
   </div>
 </div>
-<?php include '../../common/view/footer.html.php';?>
+<?php include '../../common/view/footer.html.php'; ?>

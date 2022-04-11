@@ -33,29 +33,27 @@ class gitlab
      */
     public function ls($path, $revision = 'HEAD')
     {
-        if(!scm::checkRevision($revision)) return array();
+        if (!scm::checkRevision($revision)) return array();
         $api  = "tree";
 
         $param = new stdclass();
         $param->path      = ltrim($path, '/');
         $param->ref       = $revision;
         $param->recursive = 0;
-        if(!empty($this->branch)) $param->ref = $this->branch;
+        if (!empty($this->branch)) $param->ref = $this->branch;
 
         $list = $this->fetch($api, $param, true);
-        if(empty($list)) return array();
+        if (empty($list)) return array();
 
         $infos = array();
-        foreach($list as $file)
-        {
-            if(!isset($file->type)) continue;
+        foreach ($list as $file) {
+            if (!isset($file->type)) continue;
 
             $info = new stdClass();
             $info->name = $file->name;
             $info->kind = $file->type == 'blob' ? 'file' : 'dir';
 
-            if($file->type == 'blob')
-            {
+            if ($file->type == 'blob') {
                 $file = $this->files($file->path, $this->branch);
 
                 $info->revision = zget($file, 'revision', '');
@@ -63,11 +61,9 @@ class gitlab
                 $info->account  = zget($file, 'committer', '');
                 $info->date     = zget($file, 'date', '');
                 $info->size     = zget($file, 'size', '');
-            }
-            else
-            {
+            } else {
                 $commits = $this->getCommitsByPath($file->path);
-                if(empty($commits)) continue;
+                if (empty($commits)) continue;
                 $commit = $commits[0];
 
                 $info->revision = $commit->id;
@@ -82,8 +78,8 @@ class gitlab
         }
 
         /* Sort by kind */
-        foreach($infos as $key => $info) $kinds[$key] = $info->kind;
-        if($infos) array_multisort($kinds, SORT_ASC, $infos);
+        foreach ($infos as $key => $info) $kinds[$key] = $info->kind;
+        if ($infos) array_multisort($kinds, SORT_ASC, $infos);
         return $infos;
     }
 
@@ -106,14 +102,13 @@ class gitlab
         $param = new stdclass();
         $param->ref = $ref;
         $file = $this->fetch($api, $param);
-        if(!isset($file->file_name)) return false;
+        if (!isset($file->file_name)) return false;
 
         $commits = $this->getCommitsByPath($path);
         $file->revision = $file->commit_id;
         $file->size     = $this->formatBytes($file->size);
 
-        if(!empty($commits))
-        {
+        if (!empty($commits)) {
             $commit = $commits[0];
             $file->revision  = $commit->id;
             $file->committer = $commit->committer_name;
@@ -141,14 +136,13 @@ class gitlab
         $params['per_page'] = '100';
         $params['order_by'] = 'updated';
         $params['sort']     = 'asc';
-        for($page = 1; true; $page ++)
-        {
+        for ($page = 1; true; $page++) {
             $params['page'] = $page;
             $list = $this->fetch($api, $params);
-            if(empty($list)) break;
+            if (empty($list)) break;
 
-            foreach($list as $tag) $tags[] = $tag->name;
-            if(count($list) < $params['per_page']) break;
+            foreach ($list as $tag) $tags[] = $tag->name;
+            if (count($list) < $params['per_page']) break;
         }
 
         return $tags;
@@ -167,23 +161,21 @@ class gitlab
         $params['per_page'] = '100';
 
         $branches = array();
-        for($page = 1; true; $page ++)
-        {
+        for ($page = 1; true; $page++) {
             $params['page'] = $page;
             $branchList = $this->fetch("branches", $params);
-            if(empty($branchList)) break;
+            if (empty($branchList)) break;
 
-            foreach($branchList as $branch)
-            {
-                if(!isset($branch->name)) continue;
+            foreach ($branchList as $branch) {
+                if (!isset($branch->name)) continue;
                 $branches[$branch->name] = $branch->name;
             }
 
             /* Last page. */
-            if(count($branchList) < $params['per_page']) break;
+            if (count($branchList) < $params['per_page']) break;
         }
 
-        if(empty($branches)) $branches['master'] = 'master';
+        if (empty($branches)) $branches['master'] = 'master';
         asort($branches);
         return $branches;
     }
@@ -213,16 +205,15 @@ class gitlab
      */
     public function log($path, $fromRevision = 0, $toRevision = 'HEAD', $count = 0)
     {
-        if(!scm::checkRevision($fromRevision)) return array();
-        if(!scm::checkRevision($toRevision))   return array();
+        if (!scm::checkRevision($fromRevision)) return array();
+        if (!scm::checkRevision($toRevision))   return array();
 
         $path  = ltrim($path, DIRECTORY_SEPARATOR);
         $count = $count == 0 ? '' : "-n $count";
 
         $list = $this->getCommitsByPath($path, $fromRevision, $toRevision);
-        foreach($list as $commit)
-        {
-            if(isset($commit->id)) $commit->diffs = $this->getFilesByCommit($commit->id);
+        foreach ($list as $commit) {
+            if (isset($commit->id)) $commit->diffs = $this->getFilesByCommit($commit->id);
         }
 
         return $this->parseLog($list);
@@ -238,13 +229,13 @@ class gitlab
      */
     public function blame($path, $revision)
     {
-        if(!scm::checkRevision($revision)) return array();
+        if (!scm::checkRevision($revision)) return array();
 
-        $path = ltrim($path, DIRECTORY_SEPARATOR);
-        $path = urlencode($path);
-        $api  = "files/$path/blame";
+        $path  = ltrim($path, DIRECTORY_SEPARATOR);
+        $path  = urlencode($path);
+        $api   = "files/$path/blame";
         $param = new stdclass;
-        $param->ref = $this->branch;
+        $param->ref = ($revision and $revision != 'HEAD') ? $revision : $this->branch;
         $results = $this->fetch($api, $param);
 
         $blames   = array();
@@ -252,8 +243,7 @@ class gitlab
         $revision = '';
 
         $lineNumber = 1;
-        foreach($results as $blame)
-        {
+        foreach ($results as $blame) {
             $line = array();
             $line['revision']  = $blame->commit->id;
             $line['committer'] = $blame->commit->committer_name;
@@ -262,14 +252,13 @@ class gitlab
             $line['lines']     = count($blame->lines);
             $line['content']   = array_shift($blame->lines);
 
-            $blames[] = $line;
+            $blames[$lineNumber] = $line;
 
-            $lineNumber ++;
+            $lineNumber++;
 
-            foreach($blame->lines as $line)
-            {
-                $blames[] = array('line' => $lineNumber, 'content' => $line);
-                $lineNumber ++;
+            foreach ($blame->lines as $line) {
+                $blames[$lineNumber] = array('line' => $lineNumber, 'content' => $line);
+                $lineNumber++;
             }
         }
 
@@ -282,34 +271,36 @@ class gitlab
      * @param  string $path
      * @param  string $fromRevision
      * @param  string $toRevision
+     * @param  string $fromProject
+     * @param  string $extra
      * @access public
      * @return array
      */
-    public function diff($path, $fromRevision, $toRevision, $fromProject = '')
+    public function diff($path, $fromRevision, $toRevision, $fromProject = '', $extra = '')
     {
-        if(!scm::checkRevision($fromRevision)) return array();
-        if(!scm::checkRevision($toRevision))   return array();
+        if (!scm::checkRevision($fromRevision) and $extra != 'isBranchOrTag') return array();
+        if (!scm::checkRevision($toRevision) and $extra != 'isBranchOrTag')   return array();
 
         $api    = "compare";
         $params = array('from' => $fromRevision, 'to' => $toRevision);
-        if($fromProject) $params['from_project_id'] = $fromProject;
+        if ($fromProject) $params['from_project_id'] = $fromProject;
 
-        if($toRevision == 'HEAD' and $this->branch) $params['to'] = $this->branch;
+        if ($toRevision == 'HEAD' and $this->branch) $params['to'] = $this->branch;
         $results = $this->fetch($api, $params);
-        foreach($results->diffs as $key => $diff)
-        {
-            if($path != '' and strpos($diff->new_path, $path) === false) unset($results->diffs[$key]);
+        if (!isset($results->diffs)) return array();
+
+        foreach ($results->diffs as $key => $diff) {
+            if ($path != '' and strpos($diff->new_path, $path) === false) unset($results->diffs[$key]);
         }
         $diffs = $results->diffs;
         $lines = array();
-        foreach($diffs as $diff)
-        {
+        foreach ($diffs as $diff) {
             $lines[] = sprintf("diff --git a/%s b/%s", $diff->old_path, $diff->new_path);
             $lines[] = sprintf("index %s ... %s %s ", $fromRevision, $toRevision, $diff->b_mode);
             $lines[] = sprintf("--a/%s", $diff->old_path);
             $lines[] = sprintf("--b/%s", $diff->new_path);
             $diffLines = explode("\n", $diff->diff);
-            foreach($diffLines as $diffLine) $lines[] = $diffLine;
+            foreach ($diffLines as $diffLine) $lines[] = $diffLine;
         }
         return $lines;
     }
@@ -324,8 +315,8 @@ class gitlab
      */
     public function cat($entry, $revision = 'HEAD')
     {
-        if(!scm::checkRevision($revision)) return false;
-        if($revision == 'HEAD' and $this->branch) $revision = $this->branch;
+        if (!scm::checkRevision($revision)) return false;
+        if ($revision == 'HEAD' and $this->branch) $revision = $this->branch;
         $file = $this->files($entry, $revision);
         return base64_decode($file->content);
     }
@@ -340,28 +331,27 @@ class gitlab
      */
     public function info($entry, $revision = 'HEAD')
     {
-        if(!scm::checkRevision($revision)) return false;
+        if (!scm::checkRevision($revision)) return false;
 
         $info = new stdclass();
         $info->kind     = 'dir';
         $info->path     = $entry;
         $info->revision = $revision;
         $info->root     = '';
-        if($revision == 'HEAD' and $this->branch) $info->revision = $this->branch;
+        if ($revision == 'HEAD' and $this->branch) $info->revision = $this->branch;
 
-        if($entry)
-        {
+        if ($entry) {
             $parent = dirname($entry);
-            if($parent == '.') $parent = '/';
-            if($parent == '')  $parent = '/';
+            if ($parent == '.') $parent = '/';
+            if ($parent == '')  $parent = '/';
             $list = $this->tree($parent, 0);
 
-            foreach($list as $node) if($node->path == $entry) $file = $node;
+            foreach ($list as $node) if ($node->path == $entry) $file = $node;
 
             $commits = $this->getCommitsByPath($entry);
 
-            if(!empty($commits)) $file->revision = zget($commits[0], 'id', '');
-            $info->kind = $file->type == 'tree' ? 'dir' : 'file';
+            if (!empty($commits)) $file->revision = zget($commits[0], 'id', '');
+            $info->kind = (isset($file->type) and $file->type == 'tree') ? 'dir' : 'file';
         }
 
         return $info;
@@ -389,61 +379,59 @@ class gitlab
      */
     public function parseDiff($lines)
     {
-        if(empty($lines)) return array();
+        if (empty($lines)) return array();
         $diffs   = array();
         $num     = count($lines);
         $endLine = end($lines);
-        if(strpos($endLine, '\ No newline at end of file') === 0) $num -= 1;
+        if (strpos($endLine, '\ No newline at end of file') === 0) $num -= 1;
 
-        $newFile = false;
-        for($i = 0; $i < $num; $i ++)
-        {
+        $newFile  = false;
+        $allFiles = array();
+        for ($i = 0; $i < $num; $i++) {
             $diffFile = new stdclass();
-            if(strpos($lines[$i], "diff --git ") === 0)
-            {
-                $fileInfo = explode(' ',$lines[$i]);
+            if (strpos($lines[$i], "diff --git ") === 0) {
+                $fileInfo = explode(' ', $lines[$i]);
                 $fileName = substr($fileInfo[2], strpos($fileInfo[2], '/') + 1);
+
+                /* Prevent duplicate display of files. */
+                if (in_array($fileName, $allFiles)) continue;
+                $allFiles[] = $fileName;
+
                 $diffFile->fileName = $fileName;
-                for($i++; $i < $num; $i ++)
-                {
+                for ($i++; $i < $num; $i++) {
                     $diff = new stdclass();
                     /* Fix bug #1757. */
-                    if($lines[$i] == '+++ /dev/null') $newFile = true;
-                    if(strpos($lines[$i], '+++', 0) !== false) continue;
-                    if(strpos($lines[$i], '---', 0) !== false) continue;
-                    if(strpos($lines[$i], '======', 0) !== false) continue;
-                    if(preg_match('/^@@ -(\\d+)(,(\\d+))?\\s+\\+(\\d+)(,(\\d+))?\\s+@@/A', $lines[$i]))
-                    {
+                    if ($lines[$i] == '+++ /dev/null') $newFile = true;
+                    if (strpos($lines[$i], '+++', 0) !== false) continue;
+                    if (strpos($lines[$i], '---', 0) !== false) continue;
+                    if (strpos($lines[$i], '======', 0) !== false) continue;
+                    if (preg_match('/^@@ -(\\d+)(,(\\d+))?\\s+\\+(\\d+)(,(\\d+))?\\s+@@/A', $lines[$i])) {
                         $startLines = trim(str_replace(array('@', '+', '-'), '', $lines[$i]));
                         list($oldStartLine, $newStartLine) = explode(' ', $startLines);
                         list($diff->oldStartLine) = explode(',', $oldStartLine);
                         list($diff->newStartLine) = explode(',', $newStartLine);
                         $oldCurrentLine = $diff->oldStartLine;
                         $newCurrentLine = $diff->newStartLine;
-                        if($newFile)
-                        {
+                        if ($newFile) {
                             $oldCurrentLine = $diff->newStartLine;
                             $newCurrentLine = $diff->oldStartLine;
                         }
                         $newLines = array();
-                        for($i++; $i < $num; $i ++)
-                        {
-                            if(preg_match('/^@@ -(\\d+)(,(\\d+))?\\s+\\+(\\d+)(,(\\d+))?\\s+@@/A', $lines[$i]))
-                            {
-                                $i --;
+                        for ($i++; $i < $num; $i++) {
+                            if (preg_match('/^@@ -(\\d+)(,(\\d+))?\\s+\\+(\\d+)(,(\\d+))?\\s+@@/A', $lines[$i])) {
+                                $i--;
                                 break;
                             }
-                            if(strpos($lines[$i], "diff --git ") === 0) break;
+                            if (strpos($lines[$i], "diff --git ") === 0) break;
 
                             $line = $lines[$i];
-                            if(strpos($line, '\ No newline at end of file') === 0)continue;
+                            if (strpos($line, '\ No newline at end of file') === 0) continue;
                             $sign = empty($line) ? '' : $line[0];
-                            if($sign == '-' and $newFile) $sign = '+';
+                            if ($sign == '-' and $newFile) $sign = '+';
                             $type = $sign != '-' ? $sign == '+' ? 'new' : 'all' : 'old';
-                            if($sign == '-' || $sign == '+')
-                            {
+                            if ($sign == '-' || $sign == '+') {
                                 $line = substr_replace($line, ' ', 1, 0);
-                                if($newFile) $line = preg_replace('/^\-/', '+', $line);
+                                if ($newFile) $line = preg_replace('/^\-/', '+', $line);
                             }
 
                             $newLine = new stdclass();
@@ -452,8 +440,8 @@ class gitlab
                             $newLine->newlc = $type != 'old' ? $newCurrentLine : '';
                             $newLine->line  = htmlSpecialString($line);
 
-                            if($type != 'new') $oldCurrentLine++;
-                            if($type != 'old') $newCurrentLine++;
+                            if ($type != 'new') $oldCurrentLine++;
+                            if ($type != 'old') $newCurrentLine++;
 
                             $newLines[] = $newLine;
                         }
@@ -462,9 +450,8 @@ class gitlab
                         $diffFile->contents[] = $diff;
                     }
 
-                    if(isset($lines[$i]) and strpos($lines[$i], "diff --git ") === 0)
-                    {
-                        $i --;
+                    if (isset($lines[$i]) and strpos($lines[$i], "diff --git ") === 0) {
+                        $i--;
                         $newFile = false;
                         break;
                     }
@@ -485,7 +472,7 @@ class gitlab
      */
     public function getCommitCount($commits = 0, $lastVersion = '')
     {
-        if(!scm::checkRevision($lastVersion)) return false;
+        if (!scm::checkRevision($lastVersion)) return false;
 
         chdir($this->root);
         $revision = $this->branch ? $this->branch : 'HEAD';
@@ -530,45 +517,56 @@ class gitlab
      */
     public function getCommits($version = '', $count = 0, $branch = '')
     {
-        if(!scm::checkRevision($version)) return array();
-        $api = "commits";
+        if (!scm::checkRevision($version)) return array();
+        $api     = "commits";
+        $commits = array();
+        $files   = array();
 
-        if(empty($count)) $count = 10;
+        if (empty($count)) $count = 10;
+
+        if (!empty($version) and $count == 1) {
+            $api .= '/' . $version;
+            $commit = $this->fetch($api);
+            if (isset($commit->id)) {
+                $log = new stdclass;
+                $log->committer = $commit->committer_name;
+                $log->revision  = $commit->id;
+                $log->comment   = $commit->message;
+                $log->time      = date('Y-m-d H:i:s', strtotime($commit->created_at));
+
+                $commits[$commit->id] = $log;
+                $files[$commit->id]   = $this->getFilesByCommit($log->revision);
+
+                return array('commits' => $commits, 'files' => $files);
+            }
+        }
 
         $params = array();
         $params['ref_name'] = $branch;
         $params['per_page'] = $count;
         $params['all']      = 0;
 
-        if($version and $version != 'HEAD')
-        {
+        if ($version and $version != 'HEAD') {
             /* Get since param. */
-            if(substr($version, 0, 5) == 'since')
-            {
+            if (substr($version, 0, 5) == 'since') {
                 $since   = true;
                 $version = substr($version, 5);
             }
 
             $committedDate = $this->getCommittedDate($version);
-            if(!$committedDate) return array('commits' => array(), 'files' => array());
+            if (!$committedDate) return array('commits' => array(), 'files' => array());
 
-            if(!empty($since))
-            {
+            if (!empty($since)) {
                 $params['since'] = $committedDate;
-            }
-            else
-            {
+            } else {
                 $params['until'] = $committedDate;
             }
         }
 
         $list = $this->fetch($api, $params);
 
-        $commits = array();
-        $files   = array();
-        foreach($list as $commit)
-        {
-            if(!is_object($commit)) continue;
+        foreach ($list as $commit) {
+            if (!is_object($commit)) continue;
 
             $log = new stdclass;
             $log->committer = $commit->committer_name;
@@ -592,12 +590,12 @@ class gitlab
      */
     public function getCommittedDate($sha)
     {
-        if(!scm::checkRevision($sha)) return null;
-        if(!$sha or $sha == 'HEAD') return date('c');
+        if (!scm::checkRevision($sha)) return null;
+        if (!$sha or $sha == 'HEAD') return date('c');
 
         global $dao;
         $time = $dao->select('time')->from(TABLE_REPOHISTORY)->where('revision')->eq($sha)->fetch('time');
-        if($time) return date('c', strtotime($time));
+        if ($time) return date('c', strtotime($time));
 
         $result = $this->fetch("commits/$sha");
         return (isset($result->committed_date)) ? $result->committed_date : false;
@@ -617,25 +615,22 @@ class gitlab
 
         $param = new stdclass();
         $param->path     = urldecode($path);
-        $param->ref_name = $this->branch;
+        $param->ref_name = ($toRevision != 'HEAD' and $toRevision) ? $toRevision : $this->branch;
 
         $fromDate = $this->getCommittedDate($fromRevision);
         $toDate   = $this->getCommittedDate($toRevision);
 
         $since = '';
         $until = '';
-        if($fromRevision and $toRevision)
-        {
+        if ($fromRevision and $toRevision) {
             $since = min($fromDate, $toDate);
             $until = max($fromDate, $toDate);
-        }
-        elseif($fromRevision)
-        {
+        } elseif ($fromRevision) {
             $since = $fromDate;
         }
 
-        if($since) $param->since = $since;
-        if($until) $param->until = $until;
+        if ($since) $param->since = $since;
+        if ($until) $param->until = $until;
 
         return $this->fetch($api, $param);
     }
@@ -649,34 +644,32 @@ class gitlab
      */
     public function getFilesByCommit($revision)
     {
-        if(!scm::checkRevision($revision)) return array();
+        if (!scm::checkRevision($revision)) return array();
         $api  = "commits/{$revision}/diff";
         $params = new stdclass;
         $params->page     = 1;
         $params->per_page = 100;
 
         $allResults = array();
-        while(true)
-        {
+        while (true) {
             $results = $this->fetch($api, $params);
-            $params->page ++;
-            if(!is_array($results)) $results = array();
+            $params->page++;
+            if (!is_array($results)) $results = array();
             $allResults = $allResults + $results;
-            if(count($results) < 100) break;
+            if (count($results) < 100) break;
         }
 
         $files = array();
-        foreach($allResults as $row)
-        {
+        foreach ($allResults as $row) {
             $file = new stdclass();
             $file->revision = $revision;
             $file->path     = '/' . $row->new_path;
             $file->type     = 'file';
 
             $file->action   = 'M';
-            if($row->new_file) $file->action = 'A';
-            if($row->renamed_file) $file->action = 'R';
-            if($row->deleted_file) $file->action = 'D';
+            if ($row->new_file) $file->action = 'A';
+            if ($row->renamed_file) $file->action = 'R';
+            if ($row->deleted_file) $file->action = 'D';
             $files[] = $file;
         }
 
@@ -717,24 +710,19 @@ class gitlab
 
         $api = ltrim($api, '/');
         $api = $this->root . $api . '?' . http_build_query($params);
-        if($needToLoop)
-        {
+        if ($needToLoop) {
             $allResults = array();
-            for($page = 1; true; $page++)
-            {
+            for ($page = 1; true; $page++) {
                 $results = json_decode(commonModel::http($api . "&page={$page}"));
-                if(!is_array($results)) break;
-                if(!empty($results)) $allResults = array_merge($allResults, $results);
-                if(count($results) < 100) break;
+                if (!is_array($results)) break;
+                if (!empty($results)) $allResults = array_merge($allResults, $results);
+                if (count($results) < 100) break;
             }
 
             return $allResults;
-        }
-        else
-        {
+        } else {
             $response = commonModel::http($api);
-            if(!empty(commonModel::$requestErrors))
-            {
+            if (!empty(commonModel::$requestErrors)) {
                 commonModel::$requestErrors = array();
                 return array();
             }
@@ -753,9 +741,9 @@ class gitlab
      */
     public static function formatBytes($size)
     {
-        if($size < 1024) return $size . 'Bytes';
-        if(round($size / (1024 * 1024), 2) > 1) return round($size / (1024 * 1024), 2) . 'G';
-        if(round($size / 1024, 2) > 1) return round($size / 1024, 2) . 'M';
+        if ($size < 1024) return $size . 'Bytes';
+        if (round($size / (1024 * 1024), 2) > 1) return round($size / (1024 * 1024), 2) . 'G';
+        if (round($size / 1024, 2) > 1) return round($size / 1024, 2) . 'M';
         return round($size, 2) . 'KB';
     }
 
@@ -770,17 +758,15 @@ class gitlab
     {
         $parsedLogs = array();
         $i          = 0;
-        foreach($logs as $commit)
-        {
-            if(!isset($commit->id)) continue;
+        foreach ($logs as $commit) {
+            if (!isset($commit->id)) continue;
             $parsedLog = new stdclass();
             $parsedLog->revision  = $commit->id;
             $parsedLog->committer = $commit->committer_name;
             $parsedLog->time      = date('Y-m-d H:i:s', strtotime($commit->committed_date));
             $parsedLog->comment   = $commit->message;
             $parsedLog->change    = array();
-            foreach($commit->diffs as $diff)
-            {
+            foreach ($commit->diffs as $diff) {
                 $parsedLog->change[$diff->path] = array();
                 $parsedLog->change[$diff->path]['action'] = $diff->action;
                 $parsedLog->change[$diff->path]['kind']   = $diff->type;

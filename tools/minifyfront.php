@@ -12,10 +12,10 @@ $jsRoot     = $baseDir . '/www/js/';
 $jqueryRoot = $jsRoot . 'jquery/';
 
 /* Set js files to combined. */
-$jsFiles[] = $jqueryRoot . 'lib.js'; 
+$jsFiles[] = $jqueryRoot . 'lib.js';
 $jsFiles[] = $jqueryRoot . 'tablesorter/min.js';
 $jsFiles[] = $jqueryRoot . 'tablesorter/metadata.js';
-$jsFiles[] = $jsRoot     . 'zui/min.js'; 
+$jsFiles[] = $jsRoot     . 'zui/min.js';
 $jsFiles[] = $jsRoot     . 'my.full.js';
 
 /* Combine these js files. */
@@ -34,12 +34,23 @@ $themeRoot  = $baseDir . '/www/theme/';
 
 /* Iinclude config and lang file to get langs and themes. */
 $config = new stdclass();
+$config->programLink   = '-';
+$config->productLink   = '-';
+$config->projectLink   = '-';
+$config->executionLink = '-';
+$config->systemMode    = '';
+$config->URAndSR       = '';
+$config->systemScore   = '';
 include $baseDir . '/config/config.php';
 
 $lang = new stdclass();
-$lang->productCommon = '';
-$lang->projectCommon = '';
-$lang->storyCommon   = '';
+$lang->productCommon   = '';
+$lang->projectCommon   = '';
+$lang->storyCommon     = '';
+$lang->SRCommon        = '';
+$lang->URCommon        = '';
+$lang->productCommon   = '';
+$lang->executionCommon = '';
 include $baseDir . '/module/common/lang/zh-cn.php';
 $langs  = array_keys($config->langs);
 $themes = array_keys($lang->themes);
@@ -55,7 +66,7 @@ foreach($langs as $lang)
         $cssCode .= file_get_contents($themeRoot  . 'default/style.css');
 
         /* Css file for current lang and current them. */
-        $cssCode .= file_get_contents($themeRoot . "lang/$lang.css");
+        if(file_exists($themeRoot . "lang/$lang.css")) $cssCode .= file_get_contents($themeRoot . "lang/$lang.css");
         if($theme != 'default')
         {
             $themCode = file_get_contents($themeRoot . $theme . '/style.css');

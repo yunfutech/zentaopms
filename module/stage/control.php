@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The control file of stage currentModule of ZenTaoPMS.
  *
@@ -37,14 +38,12 @@ class stage extends control
      */
     public function create()
     {
-        if($_POST)
-        {
+        if ($_POST) {
             $stageID = $this->stage->create();
 
             $response['result']  = 'success';
             $response['message'] = $this->lang->saveSuccess;
-            if(!$stageID)
-            {
+            if (!$stageID) {
                 $response['result']  = 'fail';
                 $response['message'] = dao::getError();
                 return $this->send($response);
@@ -70,14 +69,12 @@ class stage extends control
      */
     public function batchCreate()
     {
-        if($_POST)
-        {
+        if ($_POST) {
             $this->stage->batchCreate();
 
             $response['result']  = 'success';
             $response['message'] = $this->lang->saveSuccess;
-            if(dao::isError())
-            {
+            if (dao::isError()) {
                 $response['result']  = 'fail';
                 $response['message'] = dao::getError();
                 return $this->send($response);
@@ -104,21 +101,19 @@ class stage extends control
     public function edit($stageID = 0)
     {
         $stage = $this->stage->getByID($stageID);
-        if($_POST)
-        {
+        if ($_POST) {
             $changes = $this->stage->update($stageID);
 
             $response['result']  = 'success';
             $response['message'] = $this->lang->saveSuccess;
-            if(dao::isError())
-            {
+            if (dao::isError()) {
                 $response['result']  = 'fail';
                 $response['message'] = dao::getError();
                 return $this->send($response);
             }
 
             $actionID = $this->loadModel('action')->create('stage', $stageID, 'Edited');
-            if(!empty($changes)) $this->action->logHistory($actionID, $changes);
+            if (!empty($changes)) $this->action->logHistory($actionID, $changes);
             $response['locate']  = inlink('browse');
             return $this->send($response);
         }
@@ -140,14 +135,12 @@ class stage extends control
     public function setType()
     {
         $this->loadModel('custom');
-        if($_POST)
-        {
+        if ($_POST) {
             $data = fixer::input('post')->get();
             $this->custom->deleteItems("lang=all&module=stage&section=typeList");
-            foreach($data->keys as $index => $key)
-            {
+            foreach ($data->keys as $index => $key) {
                 $value = $data->values[$index];
-                if(!$value or !$key) continue;
+                if (!$value or !$key) continue;
                 $this->custom->setItem("all.stage.typeList.{$key}", $value);
             }
             return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => $this->createLink('stage', 'settype')));
@@ -171,15 +164,12 @@ class stage extends control
     {
         $stage = $this->stage->getById($stageID);
 
-        if($confirm == 'no')
-        {
-            die(js::confirm($this->lang->stage->confirmDelete, inlink('delete', "stageID=$stageID&confirm=yes")));
-        }
-        else
-        {
+        if ($confirm == 'no') {
+            return print(js::confirm($this->lang->stage->confirmDelete, inlink('delete', "stageID=$stageID&confirm=yes")));
+        } else {
             $this->stage->delete(TABLE_STAGE, $stageID);
 
-            die(js::reload('parent'));
+            return print(js::reload('parent'));
         }
     }
 }

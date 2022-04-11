@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The user module zh-cn file of ZenTaoPMS.
  *
@@ -42,6 +43,7 @@ $lang->user->address          = '通讯地址';
 $lang->user->zipcode          = '邮编';
 $lang->user->join             = '入职日期';
 $lang->user->visits           = '访问次数';
+$lang->user->visions          = '界面类型';
 $lang->user->ip               = '最后IP';
 $lang->user->last             = '最后登录';
 $lang->user->ranzhi           = 'ZDOO帐号';
@@ -72,6 +74,7 @@ $lang->user->products         = $lang->productCommon;
 $lang->user->projects         = '项目';
 $lang->user->sprints          = $lang->execution->common;
 $lang->user->identity         = '身份';
+$lang->user->switchVision     = '切换到 %s';
 
 $lang->user->legendBasic        = '基本资料';
 $lang->user->legendContribution = '个人贡献';
@@ -218,6 +221,7 @@ $lang->user->error = new stdclass();
 $lang->user->error->account        = "【ID %s】的用户名应该为：三位以上的英文、数字或下划线的组合";
 $lang->user->error->accountDupl    = "【ID %s】的用户名已经存在";
 $lang->user->error->realname       = "【ID %s】的真实姓名必须填写";
+$lang->user->error->visions        = "【ID %s】的界面类型必须填写";
 $lang->user->error->password       = "【ID %s】的密码必须为六位以上";
 $lang->user->error->mail           = "【ID %s】的邮箱地址不正确";
 $lang->user->error->reserved       = "【ID %s】的用户名已被系统预留";

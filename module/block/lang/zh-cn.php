@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The zh-cn file of block module of ZenTaoPMS.
  *
@@ -99,12 +100,31 @@ $lang->block->productName  = $lang->productCommon . '名称';
 $lang->block->totalStory   = '总' . $lang->SRCommon;
 $lang->block->totalBug     = '总Bug';
 $lang->block->totalRelease = '发布次数';
+$lang->block->totalTask    = '总' . $lang->task->common;
 
 $lang->block->totalInvestment = '总投入';
 $lang->block->totalPeople     = '总人数';
 $lang->block->spent           = '已花费';
 $lang->block->budget          = '预算';
 $lang->block->left            = '剩余';
+
+$lang->block->titleList['flowchart']      = '流程图';
+$lang->block->titleList['statistic']      = '项目统计';
+$lang->block->titleList['recentproject']  = '我近期参与的项目';
+$lang->block->titleList['assigntome']     = '待处理';
+$lang->block->titleList['projectteam']    = '项目人力投入';
+$lang->block->titleList['project']        = '项目列表';
+$lang->block->titleList['dynamic']        = '最新动态';
+$lang->block->titleList['list']           = '我的待办';
+$lang->block->titleList['contribute']     = '我的贡献';
+$lang->block->titleList['scrumoverview']  = '项目概况';
+$lang->block->titleList['scrumtest']      = '待测版本';
+$lang->block->titleList['scrumlist']      = '迭代列表';
+$lang->block->titleList['sprint']         = '迭代总览';
+$lang->block->titleList['projectdynamic'] = '最新动态';
+$lang->block->titleList['bug']            = '指派给我的Bug';
+$lang->block->titleList['case']           = '指派给我的用例';
+$lang->block->titleList['testtask']       = '待测版本列表';
 
 $lang->block->default['waterfall']['project']['3']['title']  = "项目计划";
 $lang->block->default['waterfall']['project']['3']['block']  = 'waterfallgantt';
@@ -143,6 +163,7 @@ $lang->block->default['scrum']['project']['4']['grid']  = 4;
 $lang->block->default['scrum']['project']['5']['title'] = '最新动态';
 $lang->block->default['scrum']['project']['5']['block'] = 'projectdynamic';
 $lang->block->default['scrum']['project']['5']['grid']  = 4;
+$lang->block->default['kanban'] = $lang->block->default['scrum'];
 
 $lang->block->default['product']['1']['title'] = $lang->productCommon . '统计';
 $lang->block->default['product']['1']['block'] = 'statistic';
@@ -260,8 +281,7 @@ $lang->block->default['full']['my']['4']['grid']            = 4;
 $lang->block->default['full']['my']['4']['source']          = 'todo';
 $lang->block->default['full']['my']['4']['params']['count'] = '20';
 
-if($config->systemMode == 'new')
-{
+if ($config->systemMode == 'new') {
     $lang->block->default['full']['my']['5']['title']           = '项目统计';
     $lang->block->default['full']['my']['5']['block']           = 'statistic';
     $lang->block->default['full']['my']['5']['source']          = 'project';
@@ -292,8 +312,7 @@ $lang->block->default['full']['my']['8']['params']['issueCount']   = '20';
 $lang->block->default['full']['my']['8']['params']['storyCount']   = '20';
 $lang->block->default['full']['my']['8']['params']['meetingCount'] = '20';
 
-if($config->systemMode == 'new')
-{
+if ($config->systemMode == 'new') {
     $lang->block->default['full']['my']['9']['title']  = '项目人力投入';
     $lang->block->default['full']['my']['9']['block']  = 'projectteam';
     $lang->block->default['full']['my']['9']['source'] = 'project';
@@ -304,8 +323,7 @@ $lang->block->default['full']['my']['10']['title']  = '项目列表';
 $lang->block->default['full']['my']['10']['block']  = 'project';
 $lang->block->default['full']['my']['10']['source'] = 'project';
 $lang->block->default['full']['my']['10']['grid']   = 8;
-if($config->systemMode == 'classic')
-{
+if ($config->systemMode == 'classic') {
     $lang->block->default['full']['my']['10']['block']  = 'execution';
     $lang->block->default['full']['my']['10']['source'] = 'execution';
 }
@@ -333,7 +351,7 @@ $lang->block->availableBlocks->risk      = '我的风险';
 $lang->block->availableBlocks->issue     = '我的问题';
 $lang->block->availableBlocks->meeting   = '我的会议';
 
-if($config->systemMode == 'new') $lang->block->moduleList['project'] = '项目';
+if ($config->systemMode == 'new') $lang->block->moduleList['project'] = '项目';
 $lang->block->moduleList['product']   = $lang->productCommon;
 $lang->block->moduleList['execution'] = $lang->execution->common;
 $lang->block->moduleList['qa']        = '测试';
@@ -344,7 +362,7 @@ $lang->block->modules['project']->availableBlocks = new stdclass();
 $lang->block->modules['project']->availableBlocks->project       = '项目列表';
 $lang->block->modules['project']->availableBlocks->recentproject = '近期项目';
 $lang->block->modules['project']->availableBlocks->statistic     = '项目统计';
-if($config->systemMode == 'new') $lang->block->modules['project']->availableBlocks->projectteam = '项目人力投入';
+if ($config->systemMode == 'new') $lang->block->modules['project']->availableBlocks->projectteam = '项目人力投入';
 
 $lang->block->modules['scrum']['index'] = new stdclass();
 $lang->block->modules['scrum']['index']->availableBlocks = new stdclass();
@@ -543,10 +561,10 @@ $lang->block->gridOptions[4] = '右侧';
 
 $lang->block->flowchart            = array();
 $lang->block->flowchart['admin']   = array('管理员', '维护公司', '添加用户', '维护权限');
-if($config->systemMode == 'new') $lang->block->flowchart['program'] = array('项目集负责人', '创建项目集', '关联产品', "创建项目", "制定预算和规划", '添加干系人');
+if ($config->systemMode == 'new') $lang->block->flowchart['program'] = array('项目集负责人', '创建项目集', '关联产品', "创建项目", "制定预算和规划", '添加干系人');
 $lang->block->flowchart['product'] = array($lang->productCommon . '经理', '创建' . $lang->productCommon, '维护模块', "维护计划", "维护需求", '创建发布');
 $lang->block->flowchart['project'] = array('项目经理', '创建' . $lang->executionCommon, '维护团队', "关联需求", '分解任务', '跟踪进度');
-if($config->systemMode == 'new') $lang->block->flowchart['project'] = array('项目经理', '创建项目、' . $lang->executionCommon, '维护团队', "关联需求", '分解任务', '跟踪进度');
+if ($config->systemMode == 'new') $lang->block->flowchart['project'] = array('项目经理', '创建项目、' . $lang->executionCommon, '维护团队', "关联需求", '分解任务', '跟踪进度');
 $lang->block->flowchart['dev']     = array('研发人员', '领取任务和Bug', '设计实现方案', '更新状态', '完成任务和Bug', '提交代码');
 $lang->block->flowchart['tester']  = array('测试人员', '撰写用例', '执行用例', '提交Bug', '验证Bug', '关闭Bug');
 
@@ -566,3 +584,7 @@ $lang->block->zentaoapp->createEffort         = '记日志';
 $lang->block->zentaoapp->createDoc            = '建文档';
 $lang->block->zentaoapp->createTodo           = '建待办';
 $lang->block->zentaoapp->workbench            = '工作台';
+$lang->block->zentaoapp->notSupportKanban     = '移动端暂不支持研发看板模式';
+$lang->block->zentaoapp->notSupportVersion    = '移动端暂不支持该禅道版本';
+$lang->block->zentaoapp->incompatibleVersion  = '当前禅道版本较低，请升级至最新版本后再试';
+$lang->block->zentaoapp->canNotGetVersion     = '获取禅道版本失败，请确认网址是否正确';

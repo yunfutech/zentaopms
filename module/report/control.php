@@ -34,7 +34,7 @@ class report extends control
         $this->projectID = isset($_GET['project']) ? $_GET['project'] : 0;
         if (!$this->projectID) $this->lang->navGroup->report = 'report';
 
-        if ((isset($this->config->proVersion) || isset($this->config->bizVersion)) && $this->lang->navGroup->report == 'report' && common::hasPriv('report', 'custom')) $this->lang->report->mainMenuAction = html::a(helper::createLink('report', 'custom'), $this->lang->crystal->custom, '', "class='btn btn-link'");
+        if ($this->config->edition != 'open' && $this->lang->navGroup->report == 'report' && common::hasPriv('report', 'custom')) $this->lang->report->mainMenuAction = html::a(helper::createLink('report', 'custom'), $this->lang->crystal->custom, '', "class='btn btn-link'");
     }
 
     /**
@@ -357,7 +357,8 @@ class report extends control
         $this->view->dept   = $dept;
         $this->view->userID = $userID;
         $this->view->months = $this->report->getYearMonths($year);
-        die($this->display());
+
+        $this->display();
     }
 
     public function taskboard($date = 0, $dept = -1, $director = '', $project = 0)

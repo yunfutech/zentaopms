@@ -1,6 +1,5 @@
-$(document).ready(function()
-{
-    $("a.preview").modalTrigger({width:1000, type:'iframe'});
+$(document).ready(function () {
+    $("a.preview").modalTrigger({ width: 1000, type: 'iframe' });
 })
 
 /**
@@ -10,10 +9,9 @@ $(document).ready(function()
  * @access public
  * @return void
  */
-function showProducts(build)
-{
-    if(build)  $('#productBox').hide();
-    if(!build) $('#productBox').show();
+function showProducts (build) {
+    if (build) $('#productBox').hide();
+    if (!build) $('#productBox').show();
 }
 
 /**
@@ -23,17 +21,14 @@ function showProducts(build)
  * @access public
  * @return void
  */
-function loadBranches(productID)
-{
+function loadBranches (productID) {
     $('#branch').remove();
     $('#branch_chosen').remove();
-    $.get(createLink('branch', 'ajaxGetBranches', "productID=" + productID), function(data)
-    {
+    $.get(createLink('branch', 'ajaxGetBranches', "productID=" + productID + '&oldBranch=0&params=active'), function (data) {
         var $product = $('#product');
         var $inputGroup = $product.closest('.input-group');
         $inputGroup.find('.input-group-addon').toggleClass('hidden', !data);
-        if(data)
-        {
+        if (data) {
             $inputGroup.append(data);
             $('#branch').css('width', '120px').chosen();
         }

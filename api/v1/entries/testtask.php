@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The testtask entry point of ZenTaoPMS.
  *
@@ -11,41 +12,45 @@
  */
 class testtaskEntry extends entry
 {
-    /**
-     * GET method.
-     *
-     * @param  int    $testtaskID
-     * @access public
-     * @return void
-     */
-    public function get($testtaskID)
-    {
-        $control = $this->loadController('testtask', 'view');
-        $control->view($testtaskID);
+        /**
+         * GET method.
+         *
+         * @param  int    $testtaskID
+         * @access public
+         * @return void
+         */
+        public function get($testtaskID)
+        {
+                $control = $this->loadController('testtask', 'cases');
+                $control->cases($testtaskID, 'all', 0, $this->param('order', 'id_desc'), $this->param('total', 0), $this->param('limit', 20), $this->param('page', 1));
 
-        $data = $this->getData();
-        if(isset($data->status) and $data->status == 'fail') return $this->sendError(zget($data, 'code', 400), $data->message);
-        if(!isset($data->data->task)) $this->sendError(400, 'error');
+                $data = $this->getData();
+                if (isset($data->status) and $data->status == 'fail') return $this->sendError(zget($data, 'code', 400), $data->message);
+                if (!isset($data->data->task)) $this->sendError(400, 'error');
 
-        $testtask = $data->data->task;
+                $testtask = $data->data->task;
+                $testtask->testcases = array();
+                foreach ($data->data->runs as $run) {
+                        $testtask->testcases[] = $this->format($run, 'openedBy:user,openedDate:time,reviewedBy:user,reviewedDate:date,lastEditedBy:user,lastEditedDate:time');
+                }
 
-        $this->send(200, $this->format($testtask, 'begin:date,end:date,mailto:userList,owner:user,realFinishedDate:time'));
-    }
+                $this->send(200, $this->format($testtask, 'begin:date,end:date,mailto:userList,owner:user,realFinishedDate:time'));
+        }
 
-    /**
-     * DELETE method.
-     *
-     * @param  int    $testtaskID
-     * @access public
-     * @return void
-     */
-    public function delete($testtaskID)
-    {
-        $control = $this->loadController('testtask', 'delete');
-        $control->delete($testtaskID, 'yes');
+        /**
+         * DELETE method.
+         *
+         * @param  int    $testtaskID
+         * @access public
+         * @return void
+         */
+        public function delete($testtaskID)
+        {
+                $control = $this->loadController('testtask', 'delete');
+                $control->delete($testtaskID, 'yes');
 
-        $this->getData();
+                $this->getData();
 
-        $this->sendSuccess(200, 'success');
-    }
+                $this->sendSuccess(200, 'success');
+        }
 }

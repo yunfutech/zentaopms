@@ -33,7 +33,7 @@ $config->project->sortFields->budget = 'budget';
 
 global $lang;
 $config->project->datatable = new stdclass();
-$config->project->datatable->defaultField = array('id', 'name', 'code', 'PM', 'status', 'begin', 'end', 'budget', 'teamCount','estimate','consume', 'progress', 'actions');
+$config->project->datatable->defaultField = array('id', 'name', 'PM', 'status', 'begin', 'end', 'budget', 'progress', 'actions');
 
 $config->project->datatable->fieldList['id']['title']    = 'ID';
 $config->project->datatable->fieldList['id']['fixed']    = 'left';
@@ -133,6 +133,7 @@ $config->project->maxCheckList->scrum     = array('bug', 'execution', 'build', '
 $config->project->maxCheckList->waterfall = array('execution', 'design', 'doc', 'bug', 'case', 'build', 'release', 'testtask', 'review', 'build', 'researchplan', 'issue', 'risk', 'opportunity', 'auditplan', 'gapanalysis', 'meeting');
 
 $config->project->excludedPriv['project']    = array('index', 'browse', 'kanban', 'create', 'batchEdit', 'qa', 'updateOrder', 'createGuide', 'programTitle', 'export');
+$config->project->excludedPriv['execution']  = array('view', 'browse', 'edit', 'batchedit', 'start', 'activate', 'putoff', 'suspend', 'close', 'delete', 'task', 'grouptask', 'importtask', 'importplanstories', 'importBug', 'story', 'build', 'testtask', 'testcase', 'bug', 'testreport', 'burn', 'computeBurn', 'fixFirst', 'burnData', 'team', 'doc', 'dynamic', 'manageProducts', 'manageMembers', 'unlinkMember', 'linkStory', 'unlinkStory', 'batchUnlinkStory', 'updateOrder', 'taskKanban', 'printKanban', 'tree', 'treeTask', 'treeStory', 'all', 'kanbanHideCols', 'kanbanColsColor', 'export', 'storyKanban', 'storySort', 'whitelist', 'addWhitelist', 'unbindWhitelist', 'storyEstimate', 'executionkanban', 'kanban');
 $config->project->excludedPriv['story']      = array('report', 'linkStory', 'batchChangeBranch', 'batchChangeModule', 'batchToTask', 'processStoryChange', 'track', 'tasks', 'bugs', 'cases');
 $config->project->excludedPriv['bug']        = array('browse', 'batchChangePlan', 'batchCreate', 'batchEdit', 'batchConfirm', 'batchResolve', 'batchClose', 'batchActivate', 'report', 'batchChangeModule', 'batchChangeBranch');
 $config->project->excludedPriv['testcase']   = array('browse', 'batchChangeModule', 'batchChangeBranch');
@@ -141,4 +142,4 @@ $config->project->excludedPriv['doc']        = array('browse', 'view', 'catalog'
 $config->project->excludedPriv['repo']       = array('edit', 'delete', 'maintain', 'setRules');
 $config->project->excludedPriv['testreport'] = array('browse');
 $config->project->excludedPriv['auditplan']  = array('delete');
-if(!isset($config->maxVersion)) $config->project->excludedPriv['stakeholder'] = array('issue', 'viewIssue', 'userIssue');
+if ($config->edition != 'max') $config->project->excludedPriv['stakeholder'] = array('issue', 'viewIssue', 'userIssue');

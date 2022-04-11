@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The search module zh-tw file of ZenTaoPMS.
  *
@@ -98,6 +99,5 @@ $lang->search->objectTypeList['story']            = $lang->SRCommon;
 $lang->search->objectTypeList['requirement']      = $lang->URCommon;
 $lang->search->objectTypeList['stage']            = '階段';
 $lang->search->objectTypeList['sprint']           = $lang->executionCommon;
-$lang->search->objectTypeList['kanban']           = '看板';
 $lang->search->objectTypeList['commonIssue']      = '問題';
 $lang->search->objectTypeList['stakeholderIssue'] = '干係人問題';

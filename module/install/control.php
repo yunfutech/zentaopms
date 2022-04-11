@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The control file of install currentModule of ZenTaoPMS.
  *
@@ -19,7 +20,7 @@ class install extends control
      */
     public function __construct()
     {
-        if(!defined('IN_INSTALL')) die();
+        if (!defined('IN_INSTALL')) helper::end();
         parent::__construct();
         $this->app->loadLang('user');
         $this->app->loadLang('admin');
@@ -34,10 +35,10 @@ class install extends control
      */
     public function index()
     {
-        if(!isset($this->config->installed) or !$this->config->installed) $this->session->set('installing', true);
+        if (!isset($this->config->installed) or !$this->config->installed) $this->session->set('installing', true);
 
         $this->view->title = $this->lang->install->welcome;
-        if(!isset($this->view->versionName)) $this->view->versionName = $this->config->version; // If the versionName variable has been defined in the max version, it cannot be defined here to avoid being overwritten.
+        if (!isset($this->view->versionName)) $this->view->versionName = $this->config->version; // If the versionName variable has been defined in the max version, it cannot be defined here to avoid being overwritten.
         $this->display();
     }
 
@@ -83,11 +84,10 @@ class install extends control
         $checkSession = ini_get('session.save_handler') == 'files';
         $this->view->sessionResult = 'ok';
         $this->view->checkSession  = $checkSession;
-        if($checkSession)
-        {
+        if ($checkSession) {
             $sessionResult = $this->install->checkSessionSavePath();
             $sessionInfo   = $this->install->getSessionSavePath();
-            if($sessionInfo['path'] == '') $sessionResult = 'ok';
+            if ($sessionInfo['path'] == '') $sessionResult = 'ok';
 
             $this->view->sessionResult = $sessionResult;
             $this->view->sessionInfo   = $sessionInfo;
@@ -116,30 +116,26 @@ class install extends control
      */
     public function step3()
     {
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $return = $this->install->checkConfig();
-            if($return->result == 'ok')
-            {
+            if ($return->result == 'ok') {
                 /* Set the session save path when the session save path is null. */
                 $customSession = false;
                 $checkSession  = ini_get('session.save_handler') == 'files';
-                if($checkSession)
-                {
-                    if(!session_save_path())
-                    {
+                if ($checkSession) {
+                    if (!session_save_path()) {
                         /* Restart the session because the session save path is null when start the session last time. */
                         session_write_close();
 
                         $tmpRootInfo     = $this->install->getTmpRoot();
                         $sessionSavePath = $tmpRootInfo['path'] . 'session';
-                        if(!is_dir($sessionSavePath)) mkdir($sessionSavePath, 0777, true);
+                        if (!is_dir($sessionSavePath)) mkdir($sessionSavePath, 0777, true);
 
                         session_save_path($sessionSavePath);
                         $customSession = true;
 
                         $sessionResult = $this->install->checkSessionSavePath();
-                        if($sessionResult == 'fail') chmod($sessionSavePath, 0777);
+                        if ($sessionResult == 'fail') chmod($sessionSavePath, 0777);
 
                         session_start();
                         $this->session->set('installing', true);
@@ -153,16 +149,12 @@ class install extends control
                 $this->view->title         = $this->lang->install->saveConfig;
                 $this->view->customSession = $customSession;
                 $this->display();
-            }
-            else
-            {
+            } else {
                 $this->view->title = $this->lang->install->saveConfig;
                 $this->view->error = $return->error;
                 $this->display();
             }
-        }
-        else
-        {
+        } else {
             $this->locate($this->createLink('install'));
         }
     }
@@ -175,16 +167,20 @@ class install extends control
      */
     public function step4()
     {
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $this->loadModel('setting')->setItem('system.common.global.mode', $this->post->mode); // Update mode.
-            die(js::locate(inlink('step5'), 'parent'));
+            return print(js::locate(inlink('step5'), 'parent'));
         }
 
-        $this->app->loadLang('upgrade');
+        if (!isset($this->config->installed) or !$this->config->installed) {
+            $this->view->error = $this->lang->install->errorNotSaveConfig;
+            $this->display();
+        } else {
+            $this->app->loadLang('upgrade');
 
-        $this->view->title = $this->lang->install->introduction;
-        $this->display();
+            $this->view->title = $this->lang->install->introduction;
+            $this->display();
+        }
     }
 
     /**
@@ -195,36 +191,38 @@ class install extends control
      */
     public function step5()
     {
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $this->install->grantPriv();
-            if(dao::isError()) die(js::error(dao::getError()));
+            if (dao::isError()) return print(js::error(dao::getError()));
 
             $this->install->updateLang();
-            if(dao::isError()) die(js::error(dao::getError()));
+            if (dao::isError()) return print(js::error(dao::getError()));
 
-            if($this->post->importDemoData) $this->install->importDemoData();
-            if(dao::isError()) echo js::alert($this->lang->install->errorImportDemoData);
+            $this->install->updateLang();
+            if (dao::isError()) die(js::error(dao::getError()));
 
-            $this->loadModel('setting')->updateVersion($this->config->version);
-            $this->loadModel('setting')->setItem('system.common.global.flow', $this->post->flow);
-            $this->loadModel('setting')->setItem('system.common.safe.mode', '1');
-            $this->loadModel('setting')->setItem('system.common.safe.changeWeak', '1');
-            $this->loadModel('setting')->setItem('system.common.global.cron', 1);
-            $this->loadModel('api')->createDemoData($this->lang->api->zentaoAPI, 'http://' . $_SERVER['HTTP_HOST'] . $this->app->config->webRoot . 'api.php/v1', '16.0');
-            die(js::locate(inlink('step6'), 'parent'));
+            if ($this->post->importDemoData) $this->install->importDemoData();
+            if (dao::isError()) echo js::alert($this->lang->install->errorImportDemoData);
+
+            $this->loadModel('setting');
+            $this->setting->updateVersion($this->config->version);
+            $this->setting->setSN();
+            $this->setting->setItem('system.common.global.flow', $this->post->flow);
+            $this->setting->setItem('system.common.safe.mode', '1');
+            $this->setting->setItem('system.common.safe.changeWeak', '1');
+            $this->setting->setItem('system.common.global.cron', 1);
+
+            if (strpos($this->app->getClientLang(), 'zh') === 0) $this->loadModel('api')->createDemoData($this->lang->api->zentaoAPI, 'http://' . $_SERVER['HTTP_HOST'] . $this->app->config->webRoot . 'api.php/v1', '16.0');
+            return print(js::locate(inlink('step6'), 'parent'));
         }
 
         $this->app->loadLang('upgrade');
 
         $this->view->title = $this->lang->install->getPriv;
-        if(!isset($this->config->installed) or !$this->config->installed)
-        {
+        if (!isset($this->config->installed) or !$this->config->installed) {
             $this->view->error = $this->lang->install->errorNotSaveConfig;
             $this->display();
-        }
-        else
-        {
+        } else {
             $this->display();
         }
     }

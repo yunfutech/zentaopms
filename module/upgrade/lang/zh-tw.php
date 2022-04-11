@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The upgrade module zh-tw file of ZenTaoPMS.
  *
@@ -14,7 +15,7 @@ $lang->upgrade->start           = '開始';
 $lang->upgrade->result          = '升級結果';
 $lang->upgrade->fail            = '升級失敗';
 $lang->upgrade->successTip      = '升級成功';
-$lang->upgrade->success         = "<p><i class='icon icon-check-circle'></i></p><p>恭喜您！您的禪道已經成功升級。</p>";
+$lang->upgrade->success         = "<p><i class='icon icon-check-circle'></i></p><p>恭喜您！</p><p>您的禪道已經成功升級。</p>";
 $lang->upgrade->tohome          = '訪問禪道';
 $lang->upgrade->license         = '禪道項目管理軟件已更換授權協議至 Z PUBLIC LICENSE(ZPL) 1.2';
 $lang->upgrade->warnning        = '警告';
@@ -126,7 +127,6 @@ $lang->upgrade->mergeRepoTips      = "將選中的版本庫歸併到所選產品
 $lang->upgrade->needBuild4Add      = '本次升級需要創建索引。請到 [後台->系統->重建索引] 頁面，重新創建索引。';
 $lang->upgrade->errorEngineInnodb  = '您當前的資料庫不支持使用InnoDB數據表引擎，請修改為MyISAM後重試。';
 $lang->upgrade->duplicateProject   = "同一個項目集內項目名稱不能重複，請調整重名的項目名稱";
-$lang->upgrade->upgradeTips        = "歷史刪除數據不參與升級，升級後將不支持還原，請知悉";
 
 $lang->upgrade->projectType['project']   = "把歷史的{$lang->projectCommon}作為項目升級";
 $lang->upgrade->projectType['execution'] = "把歷史的{$lang->projectCommon}作為執行升級";

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The control file of dashboard module of ZenTaoPMS.
  *
@@ -86,9 +87,9 @@ class my extends control
      */
     public function work($mode = 'task', $type = 'assignedTo', $orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
-        $this->showWorkCount($recTotal, $recPerPage, $pageID);
-
         echo $this->fetch('my', $mode, "type=$type&orderBy=$orderBy&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID");
+
+        $this->showWorkCount($recTotal, $recPerPage, $pageID);
     }
 
     /**
@@ -110,7 +111,7 @@ class my extends control
 
         /* Load pager. */
         $this->app->loadClass('pager', $static = true);
-        if($this->app->getViewType() == 'mhtml') $recPerPage = 10;
+        if ($this->app->getViewType() == 'mhtml') $recPerPage = 10;
         $pager = pager::init($recTotal, $recPerPage, $pageID);
 
         /* Get the number of tasks assigned to me. */
@@ -126,8 +127,7 @@ class my extends control
 
         $requirementCount = 0;
         $isOpenedURAndSR  = $this->config->URAndSR;
-        if($isOpenedURAndSR)
-        {
+        if ($isOpenedURAndSR) {
             /* Get the number of requirements assigned to me. */
             $assignedRequirements     = $this->story->getUserStories($this->app->user->account, 'assignedTo', 'id_desc', $pager, 'requirement');
             $assignedRequirementCount = $pager->recTotal;
@@ -153,9 +153,8 @@ class my extends control
         $reviewCount  = 0;
         $ncCount      = 0;
         $meetingCount = 0;
-        $isMax = isset($this->config->maxVersion) ? 1 : 0;
-        if($isMax)
-        {
+        $isMax        = $this->config->edition == 'max' ? 1 : 0;
+        if ($isMax) {
             $this->loadModel('issue');
             $this->loadModel('risk');
             $this->loadModel('review');
@@ -170,7 +169,7 @@ class my extends control
             $riskCount = $pager->recTotal;
 
             /* Get the number of reviews assigned to me. */
-            $reviewList  = $this->review->getUserReviews('wait', 'id_desc', $pager);
+            $reviewList  = $this->review->getUserReviews('needreview', 'id_desc', $pager);
             $reviewCount = $pager->recTotal;
 
             /* Get the number of nc assigned to me. */
@@ -182,7 +181,7 @@ class my extends control
             $meetingCount = $pager->recTotal;
         }
 
-echo <<<EOF
+        echo <<<EOF
 <script>
 var taskCount     = $taskCount;
 var storyCount    = $storyCount;
@@ -220,7 +219,7 @@ EOF;
      */
     public function contribute($mode = 'task', $type = 'openedBy', $orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
-        if(($mode == 'issue' or $mode == 'risk') and $type == 'openedBy') $type = 'createdBy';
+        if (($mode == 'issue' or $mode == 'risk') and $type == 'openedBy') $type = 'createdBy';
 
         echo $this->fetch('my', $mode, "type=$type&orderBy=$orderBy&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID");
     }
@@ -250,10 +249,10 @@ EOF;
 
         /* Load pager. */
         $this->app->loadClass('pager', $static = true);
-        if($this->app->getViewType() == 'mhtml') $recPerPage = 10;
+        if ($this->app->getViewType() == 'mhtml') $recPerPage = 10;
         $pager = pager::init($recTotal, $recPerPage, $pageID);
 
-        if(empty($userID)) $userID = $this->app->user->id;
+        if (empty($userID)) $userID = $this->app->user->id;
         $user    = $this->loadModel('user')->getById($userID, 'id');
         $account = $user->account;
 
@@ -266,9 +265,8 @@ EOF;
 
         $todos = $this->loadModel('todo')->getList($type, $account, $status, 0, $pager, $sort);
         $tasks = $this->loadModel('task')->getUserSuspendedTasks($account);
-        foreach($todos as $key => $todo)
-        {
-            if($todo->type == 'task' and isset($tasks[$todo->idvalue])) unset($todos[$key]);
+        foreach ($todos as $key => $todo) {
+            if ($todo->type == 'task' and isset($tasks[$todo->idvalue])) unset($todos[$key]);
         }
 
         $pager->recTotal = count($todos);
@@ -307,18 +305,18 @@ EOF;
     public function story($type = 'assignedTo', $orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
         /* Save session. */
-        if($this->app->viewType != 'json') $this->session->set('storyList', $this->app->getURI(true), 'my');
+        if ($this->app->viewType != 'json') $this->session->set('storyList', $this->app->getURI(true), 'my');
 
         /* Load pager. */
         $this->app->loadClass('pager', $static = true);
-        if($this->app->getViewType() == 'mhtml') $recPerPage = 10;
+        if ($this->app->getViewType() == 'mhtml') $recPerPage = 10;
         $pager = pager::init($recTotal, $recPerPage, $pageID);
 
         /* Append id for secend sort. */
         $sort = common::appendOrder($orderBy);
 
         $stories = $this->loadModel('story')->getUserStories($this->app->user->account, $type, $sort, $pager, 'story', false);
-        if(!empty($stories)) $stories = $this->story->mergeReviewer($stories);
+        if (!empty($stories)) $stories = $this->story->mergeReviewer($stories);
 
         /* Assign. */
         $this->view->title      = $this->lang->my->common . $this->lang->colon . $this->lang->my->story;
@@ -351,18 +349,18 @@ EOF;
     public function requirement($type = 'assignedTo', $orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
         /* Save session. */
-        if($this->app->viewType != 'json') $this->session->set('storyList', $this->app->getURI(true), 'my');
+        if ($this->app->viewType != 'json') $this->session->set('storyList', $this->app->getURI(true), 'my');
 
         /* Load pager. */
         $this->app->loadClass('pager', $static = true);
-        if($this->app->getViewType() == 'mhtml') $recPerPage = 10;
+        if ($this->app->getViewType() == 'mhtml') $recPerPage = 10;
         $pager = pager::init($recTotal, $recPerPage, $pageID);
 
         /* Append id for secend sort. */
         $sort = common::appendOrder($orderBy);
 
         $stories = $this->loadModel('story')->getUserStories($this->app->user->account, $type, $sort, $pager, 'requirement');
-        if(!empty($stories)) $stories = $this->story->mergeReviewer($stories);
+        if (!empty($stories)) $stories = $this->story->mergeReviewer($stories);
 
         /* Assign. */
         $this->view->title      = $this->lang->my->common . $this->lang->colon . $this->lang->my->story;
@@ -395,11 +393,11 @@ EOF;
     public function task($type = 'assignedTo', $orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
         /* Save session. */
-        if($this->app->viewType != 'json') $this->session->set('taskList', $this->app->getURI(true), 'execution');
+        if ($this->app->viewType != 'json') $this->session->set('taskList', $this->app->getURI(true), 'execution');
 
         /* Load pager. */
         $this->app->loadClass('pager', $static = true);
-        if($this->app->getViewType() == 'mhtml') $recPerPage = 10;
+        if ($this->app->getViewType() == 'mhtml') $recPerPage = 10;
         $pager = pager::init($recTotal, $recPerPage, $pageID);
 
         /* append id for secend sort. */
@@ -408,24 +406,27 @@ EOF;
         /* Get tasks. */
         $tasks = $this->loadModel('task')->getUserTasks($this->app->user->account, $type, 0, $pager, $sort);
 
-        $parents = array();
-        foreach($tasks as $task)
-        {
-            if($task->parent > 0) $parents[$task->parent] = $task->parent;
+        $parents         = array();
+        $executionIDList = array();
+        foreach ($tasks as $task) {
+            if ($this->config->systemMode == 'new') $executionIDList[$task->execution] = $task->execution;
+            if ($task->parent > 0) $parents[$task->parent] = $task->parent;
         }
         $parents = $this->dao->select('*')->from(TABLE_TASK)->where('id')->in($parents)->fetchAll('id');
 
-        foreach($tasks as $task)
-        {
-            if($task->parent > 0)
-            {
-                if(isset($tasks[$task->parent]))
-                {
+        if ($this->config->systemMode == 'new') {
+            $projects = $this->dao->select('t1.id,t1.name,t2.id as execution')->from(TABLE_PROJECT)->alias('t1')
+                ->leftJoin(TABLE_EXECUTION)->alias('t2')->on('t1.id=t2.parent')
+                ->where('t2.id')->in($executionIDList)
+                ->fetchAll('execution');
+        }
+
+        foreach ($tasks as $task) {
+            if ($task->parent > 0) {
+                if (isset($tasks[$task->parent])) {
                     $tasks[$task->parent]->children[$task->id] = $task;
                     unset($tasks[$task->id]);
-                }
-                else
-                {
+                } else {
                     $parent = $parents[$task->parent];
                     $task->parentName = $parent->name;
                 }
@@ -451,8 +452,9 @@ EOF;
         $this->view->users      = $this->loadModel('user')->getPairs('noletter');
         $this->view->pager      = $pager;
         $this->view->mode       = 'task';
+        $this->view->projects   = isset($projects) ? $projects : array();
 
-        if($this->app->viewType == 'json') $this->view->tasks = array_values($this->view->tasks);
+        if ($this->app->viewType == 'json') $this->view->tasks = array_values($this->view->tasks);
         $this->display();
     }
 
@@ -470,12 +472,12 @@ EOF;
     public function bug($type = 'assignedTo', $orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
         /* Save session. load Lang. */
-        if($this->app->viewType != 'json') $this->session->set('bugList', $this->app->getURI(true), 'qa');
+        if ($this->app->viewType != 'json') $this->session->set('bugList', $this->app->getURI(true), 'qa');
         $this->app->loadLang('bug');
 
         /* Load pager. */
         $this->app->loadClass('pager', $static = true);
-        if($this->app->getViewType() == 'mhtml') $recPerPage = 10;
+        if ($this->app->getViewType() == 'mhtml') $recPerPage = 10;
         $pager = pager::init($recTotal, $recPerPage, $pageID);
 
         /* Append id for secend sort. */
@@ -489,7 +491,7 @@ EOF;
         $this->view->position[]  = $this->lang->my->bug;
         $this->view->bugs        = $bugs;
         $this->view->users       = $this->user->getPairs('noletter');
-        $this->view->memberPairs = $this->user->getPairs('noletter|nodeleted');
+        $this->view->memberPairs = $this->user->getPairs('noletter|nodeleted|noclosed');
         $this->view->tabID       = 'bug';
         $this->view->type        = $type;
         $this->view->recTotal    = $recTotal;
@@ -520,8 +522,7 @@ EOF;
         $pager = pager::init($recTotal, $recPerPage, $pageID);
 
         /* Save session. */
-        if($this->app->viewType != 'json')
-        {
+        if ($this->app->viewType != 'json') {
             $uri = $this->app->getURI(true);
             $this->session->set('testtaskList', $uri, 'qa');
             $this->session->set('reportList',   $uri, 'qa');
@@ -533,8 +534,8 @@ EOF;
         /* Append id for secend sort. */
         $sort = common::appendOrder($orderBy);
 
-        $this->view->title      = $this->lang->my->common . $this->lang->colon . $this->lang->my->testTask;
-        $this->view->position[] = $this->lang->my->testTask;
+        $this->view->title      = $this->lang->my->common . $this->lang->colon . $this->lang->my->myTestTask;
+        $this->view->position[] = $this->lang->my->myTestTask;
         $this->view->tasks      = $this->loadModel('testtask')->getByUser($this->app->user->account, $pager, $sort, $type);
 
         $this->view->recTotal   = $recTotal;
@@ -577,12 +578,9 @@ EOF;
         $sort = common::appendOrder($orderBy);
 
         $cases = array();
-        if($type == 'assigntome')
-        {
+        if ($type == 'assigntome') {
             $cases = $this->testcase->getByAssignedTo($this->app->user->account, $sort, $pager, 'skip');
-        }
-        elseif($type == 'openedbyme')
-        {
+        } elseif ($type == 'openedbyme') {
             $cases = $this->testcase->getByOpenedBy($this->app->user->account, $sort, $pager, 'skip');
         }
         $this->loadModel('common')->saveQueryCondition($this->dao->get(), 'testcase', $type == 'assigntome' ? false : true);
@@ -590,8 +588,8 @@ EOF;
         $cases = $this->testcase->appendData($cases, $type == 'assigntome' ? 'run' : 'case');
 
         /* Assign. */
-        $this->view->title      = $this->lang->my->common . $this->lang->colon . $this->lang->my->testCase;
-        $this->view->position[] = $this->lang->my->testCase;
+        $this->view->title      = $this->lang->my->common . $this->lang->colon . $this->lang->my->myTestCase;
+        $this->view->position[] = $this->lang->my->myTestCase;
         $this->view->cases      = $cases;
         $this->view->users      = $this->user->getPairs('noletter');
         $this->view->tabID      = 'test';
@@ -611,7 +609,7 @@ EOF;
     {
         /* Save session, load lang. */
         $uri = $this->app->getURI(true);
-        if($this->app->viewType != 'json') $this->session->set('docList', $uri, 'doc');
+        if ($this->app->viewType != 'json') $this->session->set('docList', $uri, 'doc');
         $this->loadModel('doc');
 
         $this->session->set('productList',   $uri, 'product');
@@ -640,7 +638,6 @@ EOF;
         $this->view->pager      = $pager;
 
         $this->display();
-
     }
 
     /**
@@ -669,9 +666,8 @@ EOF;
         /* Get PM id list. */
         $accounts = array();
         $projects = $this->user->getObjects($this->app->user->account, 'project', $status, 'id_desc', $pager);
-        foreach($projects as $project)
-        {
-            if(!empty($project->PM) and !in_array($project->PM, $accounts)) $accounts[] = $project->PM;
+        foreach ($projects as $project) {
+            if (!empty($project->PM) and !in_array($project->PM, $accounts)) $accounts[] = $project->PM;
         }
         $PMList = $this->user->getListByAccounts($accounts, 'account');
 
@@ -793,7 +789,7 @@ EOF;
      * @access public
      * @return void
      */
-    public function audit($browseType = 'wait', $orderBy = 't1.id_desc', $recTotal = 0, $recPerPage = 15, $pageID = 1)
+    public function audit($browseType = 'needreview', $orderBy = 't1.id_desc', $recTotal = 0, $recPerPage = 15, $pageID = 1)
     {
         $this->loadModel('datatable');
         $this->loadModel('baseline');
@@ -836,11 +832,11 @@ EOF;
 
         /* Set the pager. */
         $this->app->loadClass('pager', $static = true);
-        if($this->app->getViewType() == 'mhtml') $recPerPage = 10;
+        if ($this->app->getViewType() == 'mhtml') $recPerPage = 10;
         $pager  = pager::init($recTotal, $recPerPage, $pageID);
         $ncList = $this->my->getNcList($browseType, $orderBy, $pager);
 
-        foreach($ncList as $nc) $ncIdList[] = $nc->id;
+        foreach ($ncList as $nc) $ncIdList[] = $nc->id;
         $this->session->set('ncIdList', isset($ncIdList) ? $ncIdList : '');
 
         $this->view->title      = $this->lang->my->common . $this->lang->colon . $this->lang->my->nc;
@@ -875,7 +871,7 @@ EOF;
 
         /* Load pager. */
         $this->app->loadClass('pager', $static = true);
-        if($this->app->getViewType() == 'mhtml') $recPerPage = 10;
+        if ($this->app->getViewType() == 'mhtml') $recPerPage = 10;
         $pager = pager::init($recTotal, $recPerPage, $pageID);
 
         $this->view->title      = $this->lang->my->common . $this->lang->colon . $this->lang->my->myMeeting;
@@ -915,7 +911,7 @@ EOF;
         $user   = $this->loadModel('user')->getById($this->app->user->account, 'account');
         $deptID = $user->dept;
         $users  = $this->loadModel('company')->getUsers('inside', 'bydept', 0, $deptID, $sort, $pager);
-        foreach($users as $user) unset($user->password); // Remove passwd.
+        foreach ($users as $user) unset($user->password); // Remove passwd.
 
         $this->view->title      = $this->lang->my->team;
         $this->view->position[] = $this->lang->my->team;
@@ -934,17 +930,15 @@ EOF;
      */
     public function editProfile()
     {
-        if($this->app->user->account == 'guest')
-        {
+        if ($this->app->user->account == 'guest') {
             echo js::alert('guest'), js::locate('back');
             return;
         }
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $_POST['account'] = $this->app->user->account;
             $_POST['groups']  = $this->dao->select('`group`')->from(TABLE_USERGROUP)->where('account')->eq($this->post->account)->fetchPairs('group', 'group');
             $this->user->update($this->app->user->id);
-            if(dao::isError()) helper::end(js::error(dao::getError()));
+            if (dao::isError()) helper::end(js::error(dao::getError()));
             echo js::locate($this->createLink('my', 'profile'), 'parent');
             return;
         }
@@ -972,12 +966,11 @@ EOF;
      */
     public function changePassword()
     {
-        if($this->app->user->account == 'guest') return print(js::alert('guest') . js::locate('back'));
-        if(!empty($_POST))
-        {
+        if ($this->app->user->account == 'guest') return print(js::alert('guest') . js::locate('back'));
+        if (!empty($_POST)) {
             $this->user->updatePassword($this->app->user->id);
-            if(dao::isError()) return print(js::error(dao::getError()));
-            if(isonlybody()) return print(js::closeModal('parent.parent', 'this'));
+            if (dao::isError()) return print(js::error(dao::getError()));
+            if (isonlybody()) return print(js::closeModal('parent.parent', 'this'));
             return print(js::locate($this->createLink('my', 'index'), 'parent.parent'));
         }
 
@@ -999,21 +992,35 @@ EOF;
      */
     public function manageContacts($listID = 0, $mode = '')
     {
-        if($_POST)
-        {
-            $data = fixer::input('post')->get();
-            if($data->mode == 'new')
-            {
+        if ($_POST) {
+            $data = fixer::input('post')->setDefault('users', array())->get();
+            if ($data->mode == 'new') {
+                if (empty($data->newList)) {
+                    dao::$errors['newList'] = sprintf($this->lang->error->notempty, $this->lang->user->contacts->listName);
+
+                    $response['result']  = 'fail';
+                    $response['message'] = dao::getError();
+                    return $this->send($response);
+                }
                 $listID = $this->user->createContactList($data->newList, $data->users);
                 $this->user->setGlobalContacts($listID, isset($data->share));
-                if(isonlybody()) return print(js::closeModal('parent.parent', '', ' function(){parent.parent.ajaxGetContacts(\'#mailto\')}'));
-                return print(js::locate(inlink('manageContacts', "listID=$listID"), 'parent'));
-            }
-            elseif($data->mode == 'edit')
-            {
+                if (isonlybody()) return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'closeModal' => true, 'callback' => "parent.parent.ajaxGetContacts('#mailto')"));
+                return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => inlink('manageContacts', "listID=$listID")));
+            } elseif ($data->mode == 'edit') {
+                $response['result']  = 'success';
+                $response['message'] = $this->lang->saveSuccess;
+
                 $this->user->updateContactList($data->listID, $data->listName, $data->users);
                 $this->user->setGlobalContacts($data->listID, isset($data->share));
-                return print(js::locate(inlink('manageContacts', "listID={$data->listID}"), 'parent'));
+
+                if (dao::isError()) {
+                    $response['result']  = 'fail';
+                    $response['message'] = dao::getError();
+                    return $this->send($response);
+                }
+
+                $response['locate'] = inlink('manageContacts', "listID=$listID");
+                return $this->send($response);
             }
         }
 
@@ -1026,32 +1033,27 @@ EOF;
         $myContacts = $this->user->getListByAccount($this->app->user->account);
         $disabled   = $globalContacts;
 
-        if(!empty($myContacts) && !empty($globalContacts))
-        {
-            foreach($globalContacts as $id)
-            {
-                if(in_array($id, array_keys($myContacts))) unset($disabled[array_search($id, $disabled)]);
+        if (!empty($myContacts) && !empty($globalContacts)) {
+            foreach ($globalContacts as $id) {
+                if (in_array($id, array_keys($myContacts))) unset($disabled[array_search($id, $disabled)]);
             }
         }
 
         $listID = $listID ? $listID : key($lists);
-        if(!$listID) $mode = 'new';
+        if (!$listID) $mode = 'new';
 
         /* Create or manage list according to mode. */
-        if($mode == 'new')
-        {
+        if ($mode == 'new') {
             $this->view->title      = $this->lang->my->common . $this->lang->colon . $this->lang->user->contacts->createList;
             $this->view->position[] = $this->lang->user->contacts->createList;
-        }
-        else
-        {
+        } else {
             $this->view->title      = $this->lang->my->common . $this->lang->colon . $this->lang->user->contacts->manage;
             $this->view->position[] = $this->lang->user->contacts->manage;
             $this->view->list       = $this->user->getContactListByID($listID);
         }
 
         $users = $this->user->getPairs('noletter|noempty|noclosed|noclosed', $mode == 'new' ? '' : $this->view->list->userList, $this->config->maxCount);
-        if(isset($this->config->user->moreLink)) $this->config->moreLinks['users[]'] = $this->config->user->moreLink;
+        if (isset($this->config->user->moreLink)) $this->config->moreLinks['users[]'] = $this->config->user->moreLink;
 
         $this->view->mode           = $mode;
         $this->view->lists          = $lists;
@@ -1072,12 +1074,9 @@ EOF;
      */
     public function deleteContacts($listID, $confirm = 'no')
     {
-        if($confirm == 'no')
-        {
+        if ($confirm == 'no') {
             return print(js::confirm($this->lang->user->contacts->confirmDelete, inlink('deleteContacts', "listID=$listID&confirm=yes")));
-        }
-        else
-        {
+        } else {
             $this->user->deleteContactList($listID);
             return print(js::locate(inlink('manageContacts'), 'parent'));
         }
@@ -1105,7 +1104,7 @@ EOF;
      */
     public function profile()
     {
-        if($this->app->user->account == 'guest') return print(js::alert('guest') . js::locate('back'));
+        if ($this->app->user->account == 'guest') return print(js::alert('guest') . js::locate('back'));
 
         $this->app->loadConfig('user');
         $this->app->loadLang('user');
@@ -1130,12 +1129,11 @@ EOF;
     {
         $this->loadModel('setting');
 
-        if($_POST)
-        {
-            foreach($_POST as $key => $value) $this->setting->setItem("{$this->app->user->account}.common.$key", $value);
+        if ($_POST) {
+            foreach ($_POST as $key => $value) $this->setting->setItem("{$this->app->user->account}.common.$key", $value);
 
             $this->setting->setItem("{$this->app->user->account}.common.preferenceSetted", 1);
-            if(isOnlybody()) return print(js::closeModal('parent.parent'));
+            if (isOnlybody()) return print(js::closeModal('parent.parent'));
 
             return print(js::locate($this->createLink('my', 'index'), 'parent'));
         }
@@ -1206,15 +1204,14 @@ EOF;
 
         /* Append id for secend sort. */
         $orderBy = $direction == 'next' ? 'date_desc' : 'date_asc';
-        $sort = common::appendOrder($orderBy);
 
         /* The header and position. */
         $this->view->title      = $this->lang->my->common . $this->lang->colon . $this->lang->my->dynamic;
         $this->view->position[] = $this->lang->my->dynamic;
 
         $date    = empty($date) ? '' : date('Y-m-d', $date);
-        $actions = $this->loadModel('action')->getDynamic($this->app->user->account, $type, $sort, $pager, 'all', 'all', 'all', $date, $direction);
-        if(empty($recTotal)) $originTotal = $pager->recTotal;
+        $actions = $this->loadModel('action')->getDynamic($this->app->user->account, $type, $orderBy, $pager, 'all', 'all', 'all', $date, $direction);
+        if (empty($recTotal)) $originTotal = $pager->recTotal;
 
         /* Assign. */
         $this->view->type        = $type;
@@ -1234,8 +1231,7 @@ EOF;
      */
     public function uploadAvatar()
     {
-        if($_SERVER['REQUEST_METHOD'] == 'POST')
-        {
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $result = $this->loadModel('user')->uploadAvatar();
             $this->send($result);
         }
@@ -1251,14 +1247,29 @@ EOF;
     public function unbind($confirm = 'no')
     {
         $this->loadModel('user');
-        if($confirm == 'no')
-        {
+        if ($confirm == 'no') {
             return print(js::confirm($this->lang->user->confirmUnbind, $this->createLink('my', 'unbind', "confirm=yes")));
-        }
-        else
-        {
+        } else {
             $this->user->unbind($this->app->user->account);
             return print(js::locate($this->createLink('my', 'profile'), 'parent'));
         }
+    }
+
+    /**
+     * Switch vision by ajax.
+     *
+     * @param  string $vision
+     * @access public
+     * @return void
+     */
+    public function ajaxSwitchVision($vision)
+    {
+        $_SESSION['vision'] = $vision;
+        $this->loadModel('setting')->setItem("{$this->app->user->account}.common.global.vision", $vision);
+        $this->config->vision = $vision;
+
+        $_SESSION['user']->rights = $this->loadModel('user')->authorize($this->app->user->account);
+
+        echo js::locate($this->createLink('index', 'index'), 'parent');
     }
 }

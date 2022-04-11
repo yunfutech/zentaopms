@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The model file of jenkins module of ZenTaoPMS.
  *
@@ -21,7 +22,7 @@ class jenkinsModel extends model
      */
     public function getByID($id)
     {
-         return $this->loadModel('pipeline')->getByID($id);
+        return $this->loadModel('pipeline')->getByID($id);
     }
 
     /**
@@ -34,7 +35,7 @@ class jenkinsModel extends model
      */
     public function getList($orderBy = 'id_desc', $pager = null)
     {
-         return $this->loadModel('pipeline')->getList('jenkins', $orderBy, $pager);
+        return $this->loadModel('pipeline')->getList('jenkins', $orderBy, $pager);
     }
 
     /**
@@ -44,7 +45,7 @@ class jenkinsModel extends model
      */
     public function getPairs()
     {
-       return $this->loadModel('pipeline')->getPairs('jenkins');
+        return $this->loadModel('pipeline')->getPairs('jenkins');
     }
 
     /**
@@ -67,12 +68,10 @@ class jenkinsModel extends model
         $response = json_decode($response);
 
         $tasks = array();
-        if(isset($response->jobs))
-        {
-            foreach($response->jobs as $job) $tasks[basename($job->url)] = $job->name;
+        if (isset($response->jobs)) {
+            foreach ($response->jobs as $job) $tasks[basename($job->url)] = $job->name;
         }
         return $tasks;
-
     }
 
     /**
@@ -83,7 +82,7 @@ class jenkinsModel extends model
      */
     public function create()
     {
-       return $this->loadModel('pipeline')->create('jenkins');
+        return $this->loadModel('pipeline')->create('jenkins');
     }
 
     /**
@@ -95,6 +94,6 @@ class jenkinsModel extends model
      */
     public function update($id)
     {
-       return $this->loadModel('pipeline')->update($id);
+        return $this->loadModel('pipeline')->update($id);
     }
 }

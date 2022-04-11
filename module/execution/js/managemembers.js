@@ -1,8 +1,6 @@
-$(function()
-{
-    $('#execution_chosen').click(function()
-    {
-        if(systemMode == 'new') $('#execution_chosen ul li:first').append(' <label class="label">' + projectCommon + '</label>');
+$(function () {
+    $('#execution_chosen').click(function () {
+        if (systemMode == 'new') $('#execution_chosen ul li:first').append(' <label class="label">' + projectCommon + '</label>');
     })
 })
 
@@ -14,49 +12,42 @@ $(function()
  * @access public
  * @return void
  */
-function setRole(account, roleID)
-{
-    role    = roles[account];       // get role according the account.
+function setRole (account, roleID) {
+    role = roles[account];       // get role according the account.
     roleOBJ = $('#role' + roleID);  // get role object.
     roleOBJ.val(role)               // set the role.
 }
 
-function addItem(obj)
-{
-    var item = $('#addItem').html().replace(/%i%/g, i);
-    $(obj).closest('tr').after('<tr class="addedItem">' + item  + '</tr>');
-    var $accounts = $('#hours' + i).closest('tr').find('select:first')
+function addItem (obj) {
+    var item = $('#addItem').html().replace(/%i%/g, itemIndex);
+    $('<tr class="addedItem">' + item + '</tr>').insertAfter($(obj).closest('tr'));
+    var $accounts = $('#hours' + itemIndex).closest('tr').find('select:first')
 
-    if($accounts.attr('data-pickertype') != 'remote')
-    {
+    if ($accounts.attr('data-pickertype') != 'remote') {
         $accounts.chosen();
     }
-    else
-    {
+    else {
         $accounts.parent().find('.picker.picker-ready').remove();
         var pickerremote = $accounts.attr('data-pickerremote');
-        $accounts.picker({chosenMode: true, remote: pickerremote});
+        $accounts.picker({ chosenMode: true, remote: pickerremote });
     }
-    i ++;
+    itemIndex++;
 }
 
-function deleteItem(obj)
-{
-    if($('#teamForm .table tbody').children().length < 2) return false;
+function deleteItem (obj) {
+    if ($('#teamForm .table tbody').children().length < 2) return false;
     $(obj).closest('tr').remove();
 }
 
-function setDeptUsers(obj)
-{
+function setDeptUsers (obj) {
     dept = $(obj).val(); // Get dept ID.
     link = createLink('execution', 'manageMembers', 'executionID=' + executionID + '&team2Import=' + team2Import + '&dept=' + dept); // Create manageMembers link.
-    location.href=link;
+    location.href = link;
 }
 
-function choseTeam2Copy(obj)
-{
+function choseTeam2Copy (obj) {
     team = $(obj).val();
     dept = $('#dept').val();
     link = createLink('execution', 'manageMembers', 'executionID=' + executionID + '&team2Import=' + team + '&dept=' + dept);
-    location.href=link;
+    location.href = link;
 }

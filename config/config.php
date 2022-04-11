@@ -1,4 +1,5 @@
 <?php
+
 /**
  * ZenTaoPHP的config文件。如果更改配置，不要直接修改该文件，复制到my.php修改相应的值。
  * The config file of zentaophp.  Don't modify this file directly, copy the item to my.php and change it.
@@ -12,16 +13,26 @@
  */
 
 /* 保证在命令行环境也能运行。Make sure to run in ztcli env. */
-if(!class_exists('config')){class config{}}
-if(!function_exists('getWebRoot')){function getWebRoot(){}}
+if (!class_exists('config')) {
+    class config
+    {
+    }
+}
+if (!function_exists('getWebRoot')) {
+    function getWebRoot()
+    {
+    }
+}
 
 /* 基本设置。Basic settings. */
-$config->version       = '16.4';               // ZenTaoPHP的版本。 The version of ZenTaoPHP. Don't change it.
+$config->version       = '16.5';               // ZenTaoPHP的版本。 The version of ZenTaoPHP. Don't change it.
+$config->liteVersion   = '1.0';                // 迅捷版版本。      The version of Lite.
 $config->charset       = 'UTF-8';              // ZenTaoPHP的编码。 The encoding of ZenTaoPHP.
 $config->cookieLife    = time() + 2592000;     // Cookie的生存时间。The cookie life time.
 $config->timezone      = 'Asia/Shanghai';      // 时区设置。        The time zone setting, for more see http://www.php.net/manual/en/timezones.php.
 $config->webRoot       = '';                   // URL根目录。       The root path of the url.
 $config->customSession = false;                // 是否开启自定义session的存储路径。Whether custom the session save path.
+$config->edition       = 'open';               // 设置系统的edition，可选值：open|biz|max。Set edition, optional: open|biz|max.
 
 /* 框架路由相关设置。Routing settings. */
 $config->requestType = 'PATH_INFO';               // 请求类型：PATH_INFO|PATHINFO2|GET。    The request type: PATH_INFO|PATH_INFO2|GET.
@@ -31,6 +42,7 @@ $config->methodVar   = 'f';                       // 请求类型为GET：模块
 $config->viewVar     = 't';                       // 请求类型为GET：视图变量名。            requestType=GET: the view var name.
 $config->sessionVar  = 'zentaosid';               // 请求类型为GET：session变量名。         requestType=GET: the session var name.
 $config->views       = ',html,json,mhtml,xhtml,'; // 支持的视图类型。                       Supported view formats.
+$config->visions     = ',rnd,lite,';              // 支持的界面类型。                       Supported vision formats.
 
 /* 支持的主题和语言。Supported thems and languages. */
 $config->themes['default'] = 'default';
@@ -156,24 +168,33 @@ $config->moreLinks     = array();
 
 /* 配置参数过滤。Filter param settings. */
 $filterConfig = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'filter.php';
-if(file_exists($filterConfig)) include $filterConfig;
+if (file_exists($filterConfig)) include $filterConfig;
 
 /* 引用数据库的配置。 Include the database config file. */
 $dbConfig = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'db.php';
-if(file_exists($dbConfig)) include $dbConfig;
+if (file_exists($dbConfig)) include $dbConfig;
 
 /* 引用自定义的配置。 Include the custom config file. */
 $myConfig = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'my.php';
-if(file_exists($myConfig)) include $myConfig;
+if (file_exists($myConfig)) include $myConfig;
 
 /* 禅道配置文件。zentaopms settings. */
 $zentaopmsConfig = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'zentaopms.php';
-if(file_exists($zentaopmsConfig)) include $zentaopmsConfig;
+if (file_exists($zentaopmsConfig)) include $zentaopmsConfig;
 
 /* API路由配置。API route settings. */
 $routesConfig = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'routes.php';
-if(file_exists($routesConfig)) include $routesConfig;
+if (file_exists($routesConfig)) include $routesConfig;
 
 /* Include extension config files. */
 $extConfigFiles = glob(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'ext/*.php');
-if($extConfigFiles) foreach($extConfigFiles as $extConfigFile) include $extConfigFile;
+if ($extConfigFiles) foreach ($extConfigFiles as $extConfigFile) include $extConfigFile;
+
+/* Set version. */
+if ($config->edition != 'open') {
+    $config->version = $config->edition . $config->{$config->edition . 'Version'};
+    if ($config->edition != 'max') unset($config->maxVersion);
+} else {
+    unset($config->bizVersion);
+    unset($config->maxVersion);
+}

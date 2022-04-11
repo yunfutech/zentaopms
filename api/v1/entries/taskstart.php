@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The task start entry point of ZenTaoPMS.
  *
@@ -11,30 +12,30 @@
  */
 class taskStartEntry extends Entry
 {
-    /**
-     * POST method.
-     *
-     * @param  int    $taskID
-     * @access public
-     * @return void
-     */
-    public function post($taskID)
-    {
-        $task = $this->loadModel('task')->getByID($taskID);
+        /**
+         * POST method.
+         *
+         * @param  int    $taskID
+         * @access public
+         * @return void
+         */
+        public function post($taskID)
+        {
+                $task = $this->loadModel('task')->getByID($taskID);
 
-        $fields = 'assignedTo,realStarted,comment,left';
-        $this->batchSetPost($fields);
+                $fields = 'assignedTo,realStarted,consumed,left,comment';
+                $this->batchSetPost($fields);
 
-        $control = $this->loadController('task', 'start');
-        $this->requireFields('left');
-        $control->start($taskID);
+                $control = $this->loadController('task', 'start');
+                $this->requireFields('left');
+                $control->start($taskID);
 
-        $data = $this->getData();
-        if(!$data or !isset($data->status)) return $this->send400('error');
-        if(isset($data->status) and $data->status == 'fail') return $this->sendError(zget($data, 'code', 400), $data->message);
+                $data = $this->getData();
+                if (!$data) return $this->send400('error');
+                if (isset($data->status) and $data->status == 'fail') return $this->sendError(zget($data, 'code', 400), $data->message);
 
-        $task = $this->loadModel('task')->getByID($taskID);
+                $task = $this->loadModel('task')->getByID($taskID);
 
-        $this->send(200, $task);
-    }
+                $this->send(200, $task);
+        }
 }

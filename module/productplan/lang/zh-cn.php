@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The productplan module zh-cn file of ZenTaoPMS.
  *
@@ -32,20 +33,23 @@ $lang->productplan->plan       = '计划';
 $lang->productplan->allAB      = '所有';
 $lang->productplan->to         = '至';
 $lang->productplan->more       = '更多操作';
+$lang->productplan->comment    = '备注';
 
-$lang->productplan->batchUnlink      = "批量移除";
-$lang->productplan->unlinkAB         = "移除";
-$lang->productplan->linkStory        = "关联{$lang->SRCommon}";
-$lang->productplan->unlinkStory      = "移除{$lang->SRCommon}";
-$lang->productplan->unlinkStoryAB    = "移除";
-$lang->productplan->batchUnlinkStory = "批量移除{$lang->SRCommon}";
-$lang->productplan->linkedStories    = $lang->SRCommon;
-$lang->productplan->unlinkedStories  = "未关联{$lang->SRCommon}";
-$lang->productplan->updateOrder      = '排序';
-$lang->productplan->createChildren   = "创建子计划";
-$lang->productplan->createExecution  = "创建{$lang->execution->common}";
-$lang->productplan->list             = '列表';
-$lang->productplan->kanban           = '看板';
+$lang->productplan->batchUnlink       = "批量移除";
+$lang->productplan->batchClose        = "批量关闭";
+$lang->productplan->batchChangeStatus = "批量修改状态";
+$lang->productplan->unlinkAB          = "移除";
+$lang->productplan->linkStory         = "关联{$lang->SRCommon}";
+$lang->productplan->unlinkStory       = "移除{$lang->SRCommon}";
+$lang->productplan->unlinkStoryAB     = "移除";
+$lang->productplan->batchUnlinkStory  = "批量移除{$lang->SRCommon}";
+$lang->productplan->linkedStories     = $lang->SRCommon;
+$lang->productplan->unlinkedStories   = "未关联{$lang->SRCommon}";
+$lang->productplan->updateOrder       = '排序';
+$lang->productplan->createChildren    = "创建子计划";
+$lang->productplan->createExecution   = "创建{$lang->execution->common}";
+$lang->productplan->list              = '列表';
+$lang->productplan->kanban            = '看板';
 
 $lang->productplan->linkBug          = "关联Bug";
 $lang->productplan->unlinkBug        = "移除Bug";
@@ -56,6 +60,7 @@ $lang->productplan->unexpired        = "未过期";
 $lang->productplan->all              = "所有计划";
 $lang->productplan->setDate          = "设置计划起止时间";
 $lang->productplan->expired          = "已过期";
+$lang->productplan->closedReason     = "关闭原因";
 
 $lang->productplan->confirmDelete      = "您确认删除该计划吗？";
 $lang->productplan->confirmUnlinkStory = "您确认移除该{$lang->SRCommon}吗？";
@@ -77,6 +82,7 @@ $lang->productplan->title      = '名称';
 $lang->productplan->desc       = '描述';
 $lang->productplan->begin      = '开始日期';
 $lang->productplan->end        = '结束日期';
+$lang->productplan->status     = '计划状态';
 $lang->productplan->last       = "上次计划";
 $lang->productplan->future     = '待定';
 $lang->productplan->stories    = "{$lang->SRCommon}数";
@@ -91,11 +97,15 @@ $lang->productplan->order      = "排序";
 $lang->productplan->deleted    = "已删除";
 $lang->productplan->mailto     = "抄送给";
 $lang->productplan->status     = "计划状态";
+$lang->productplan->planStatus = "状态";
 
 $lang->productplan->statusList['wait']   = '未开始';
 $lang->productplan->statusList['doing']  = '进行中';
 $lang->productplan->statusList['done']   = '已完成';
 $lang->productplan->statusList['closed'] = '已关闭';
+
+$lang->productplan->closedReasonList['done']   = '已完成';
+$lang->productplan->closedReasonList['cancel'] = '已取消';
 
 $lang->productplan->parentActionList['startedbychild']   = '系统判断由于子计划 <strong>开始</strong> ，将计划状态置为 <strong>进行中</strong> 。';
 $lang->productplan->parentActionList['finishedbychild']  = '系统判断由于子计划 <strong>全部完成</strong> ，将计划状态置为 <strong>已完成</strong> 。';
@@ -131,6 +141,11 @@ $lang->productplan->featureBar['browse']['wait']   = '未开始';
 $lang->productplan->featureBar['browse']['doing']  = '进行中';
 $lang->productplan->featureBar['browse']['done']   = '已完成';
 $lang->productplan->featureBar['browse']['closed'] = '已关闭';
+
+$lang->productplan->statusList['wait']   = '未开始';
+$lang->productplan->statusList['doing']  = '进行中';
+$lang->productplan->statusList['done']   = '已完成';
+$lang->productplan->statusList['closed'] = '已关闭';
 
 $lang->productplan->orderList['begin_desc'] = '计划开始时间倒序';
 $lang->productplan->orderList['begin_asc']  = '计划开始时间正序';

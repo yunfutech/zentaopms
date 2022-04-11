@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The control file of index module of ZenTaoPMS.
  *
@@ -33,16 +34,15 @@ class index extends control
      */
     public function index($open = '')
     {
-        if($this->app->getViewType() == 'mhtml') $this->locate($this->createLink('my', 'index'));
+        if ($this->app->getViewType() == 'mhtml') $this->locate($this->createLink('my', 'index'));
 
         $latestVersionList = array();
-        if(isset($this->config->global->latestVersionList)) $latestVersionList = json_decode($this->config->global->latestVersionList);
+        if (isset($this->config->global->latestVersionList)) $latestVersionList = json_decode($this->config->global->latestVersionList);
 
         $showFeatures = false;
-        foreach($this->config->newFeatures as $feature)
-        {
+        foreach ($this->config->newFeatures as $feature) {
             $accounts = zget($this->config->global, 'skip' . ucfirst($feature), '');
-            if(strpos(",$accounts,", $this->app->user->account) === false) $showFeatures = true;
+            if (strpos(",$accounts,", $this->app->user->account) === false) $showFeatures = true;
         }
 
         $this->view->title             = $this->lang->index->common;
@@ -90,9 +90,9 @@ class index extends control
     {
         $objectType = $this->post->objectType;
         $appGroup   = zget($this->config->index->appGroup, $objectType, '');
-        if($objectType == 'testcase')    $objectType = 'case';
-        if($objectType == 'testreport')  $objectType = 'report';
-        if($objectType == 'productplan') $objectType = 'productPlan';
+        if ($objectType == 'testcase')    $objectType = 'case';
+        if ($objectType == 'testreport')  $objectType = 'report';
+        if ($objectType == 'productplan') $objectType = 'productPlan';
 
         $this->session->set($objectType . 'List', '', $appGroup);
     }
@@ -108,24 +108,19 @@ class index extends control
     public function ajaxGetViewMethod($objectID, $objectType)
     {
         $method = '';
-        if(isset($this->config->maxVersion))
-        {
+        if (isset($this->config->maxVersion)) {
             $table     = $this->config->objectTables[$objectType];
             $field     = $objectType == 'doc' ? 'assetLibType' : 'lib';
-            $objectLib = $this->dao->select($field)->from($table) ->where('id')->eq($objectID)->fetch($field);
-            if(!empty($objectLib))
-            {
-                if($objectType == 'doc')
-                {
+            $objectLib = $this->dao->select($field)->from($table)->where('id')->eq($objectID)->fetch($field);
+            if (!empty($objectLib)) {
+                if ($objectType == 'doc') {
                     $method = $objectLib == 'practice' ? 'practiceView' : 'componentView';
-                }
-                else
-                {
+                } else {
                     $this->app->loadConfig('action');
                     $method = $this->config->action->assetViewMethod[$objectType];
                 }
             }
         }
-        die($method);
+        echo $method;
     }
 }

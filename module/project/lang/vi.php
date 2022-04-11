@@ -160,7 +160,7 @@ $lang->project->modelList['scrum']     = "Scrum";
 $lang->project->modelList['waterfall'] = "CMMI";
 
 $lang->project->featureBar['all']       = 'All';
-$lang->project->featureBar['doing']     = 'Going';
+$lang->project->featureBar['doing']     = 'Doing';
 $lang->project->featureBar['wait']      = 'Waiting';
 $lang->project->featureBar['suspended'] = 'Suspended';
 $lang->project->featureBar['closed']    = 'Closed';
@@ -185,7 +185,7 @@ $lang->project->statusList['closed']    = 'Closed';
 
 $lang->project->endList[31]  = 'One month';
 $lang->project->endList[93]  = 'Trimester';
-$lang->project->endList[186] = 'Half yearly';
+$lang->project->endList[186] = 'Half year';
 $lang->project->endList[365] = 'One year';
 $lang->project->endList[999] = 'Longtime';
 

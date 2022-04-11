@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The model file of personnel of ZenTaoPMS.
  *
@@ -25,34 +26,30 @@ class personnelModel extends model
     public function getAccessiblePersonnel($programID = 0, $deptID = 0, $browseType = 'all', $queryID = 0)
     {
         $accessibleQuery = '';
-        if($browseType == 'bysearch')
-        {
+        if ($browseType == 'bysearch') {
             $query = $queryID ? $this->loadModel('search')->getQuery($queryID) : '';
-            if($query)
-            {
+            if ($query) {
                 $this->session->set('accessibleQuery', $query->sql);
                 $this->session->set('accessibleForm', $query->form);
             }
-            if($this->session->accessibleQuery == false) $this->session->set('accessibleQuery', ' 1=1');
+            if ($this->session->accessibleQuery == false) $this->session->set('accessibleQuery', ' 1=1');
             $accessibleQuery = $this->session->accessibleQuery;
         }
 
         /* Determine who can be accessed based on access control. */
-        $program = $this->loadModel('program')->getByID($programID);
+        $program       = $this->loadModel('program')->getByID($programID);
         $personnelList = array();
         $personnelList = $this->dao->select('t2.id,t2.dept,t2.account,t2.role,t2.realname,t2.gender')->from(TABLE_USERVIEW)->alias('t1')
             ->leftJoin(TABLE_USER)->alias('t2')->on('t1.account=t2.account')
             ->where('t2.deleted')->eq(0)
-            ->beginIF($program->acl != 'open')->andWhere("CONCAT(',', t1.programs, ',')")->like("%,$programID,%")
+            ->beginIF($program->acl != 'open')->andWhere("CONCAT(',', t1.programs, ',')")->like("%,$programID,%")->fi()
             ->beginIF($deptID > 0)->andWhere('t2.dept')->eq($deptID)->fi()
             ->beginIF($browseType == 'bysearch')->andWhere($accessibleQuery)->fi()
             ->fetchAll('id');
 
-        if($program->acl == 'open')
-        {
-            foreach($personnelList as $personnel)
-            {
-                if(!$this->canViewProgram($programID, $personnel->account)) unset($personnelList[$personnel->id]);
+        if ($program->acl == 'open') {
+            foreach ($personnelList as $personnel) {
+                if (!$this->canViewProgram($programID, $personnel->account)) unset($personnelList[$personnel->id]);
             }
         }
 
@@ -69,33 +66,27 @@ class personnelModel extends model
      */
     public function canViewProgram($programID, $account)
     {
-        if($this->app->user->admin) return true;
+        if ($this->app->user->admin) return true;
 
         static $groupAcl  = array();
         static $groupInfo = array();
-        if(empty($groupAcl))
-        {
+        if (empty($groupAcl)) {
             $groupAcl = $this->dao->select('id,acl')->from(TABLE_GROUP)->fetchPairs();
-            foreach($groupAcl as $groupID => $group) $groupInfo[$groupID] = json_decode($groupAcl[$groupID]);
+            foreach ($groupAcl as $groupID => $group) $groupInfo[$groupID] = json_decode($groupAcl[$groupID]);
         }
 
         static $userGroups = array();
-        if(empty($userGroups)) $userGroups = $this->dao->select('*')->from(TABLE_USERGROUP)->fetchGroup('account', 'group');
+        if (empty($userGroups)) $userGroups = $this->dao->select('*')->from(TABLE_USERGROUP)->fetchGroup('account', 'group');
 
         $programRight = false;
-        if(isset($userGroups[$account]))
-        {
-            foreach($userGroups[$account] as $groupID => $userGroup)
-            {
+        if (isset($userGroups[$account])) {
+            foreach ($userGroups[$account] as $groupID => $userGroup) {
                 $group = isset($groupInfo[$groupID]) ? $groupInfo[$groupID] : '';
 
-                if(!isset($group->programs))
-                {
+                if (!isset($group->programs)) {
                     $programRight = true;
                     continue;
-                }
-                elseif(in_array($programID, $group->programs))
-                {
+                } elseif (in_array($programID, $group->programs)) {
                     $programRight = true;
                     continue;
                 }
@@ -122,25 +113,23 @@ class personnelModel extends model
             ->andWhere('deleted')->eq('0')
             ->orderBy('id_desc')
             ->fetchAll('id');
-        if(empty($projects)) return $personnelList;
+        if (empty($projects)) return $personnelList;
         $accountPairs = $this->getInvolvedProjects($projects);
 
-        if(empty($accountPairs)) return $personnelList;
+        if (empty($accountPairs)) return $personnelList;
 
         $executionPairs    = $this->getInvolvedExecutions($projects);
         $taskInvest        = $this->getProjectTaskInvest($projects, $accountPairs);
         $bugAndStoryInvest = $this->getBugAndStoryInvest($accountPairs, $programID);
-        if(isset($this->config->maxVersion))
-        {
+        if ($this->config->edition == 'max') {
             $issueInvest = $this->getIssueInvest($accountPairs, $projects);
             $riskInvest  = $this->getRiskInvest($accountPairs, $projects);
         }
 
         $users = $this->loadModel('user')->getListByAccounts(array_keys($accountPairs), 'account');
-        foreach($users as $user) $user->role = zget($this->lang->user->roleList, $user->role, $user->role);
+        foreach ($users as $user) $user->role = zget($this->lang->user->roleList, $user->role, $user->role);
 
-        foreach($accountPairs as $account => $projects)
-        {
+        foreach ($accountPairs as $account => $projects) {
             $user = zget($users, $account, '');
 
             $personnelList[$account]['realname']   = $user ? $user->realname : $account;
@@ -151,8 +140,7 @@ class personnelModel extends model
 
             $personnelList[$account] += $taskInvest[$account];
             $personnelList[$account] += $bugAndStoryInvest[$account];
-            if(isset($this->config->maxVersion))
-            {
+            if ($this->config->edition == 'max') {
                 $personnelList[$account] += $issueInvest[$account];
                 $personnelList[$account] += $riskInvest[$account];
             }
@@ -178,18 +166,16 @@ class personnelModel extends model
 
         /* Initialization personnel risks. */
         $invest = array();
-        foreach($accounts as $account => $project)
-        {
+        foreach ($accounts as $account => $project) {
             $invest[$account]['createdRisk']  = 0;
             $invest[$account]['resolvedRisk'] = 0;
             $invest[$account]['pendingRisk']  = 0;
         }
 
-        foreach($risks as $risk)
-        {
-            if($risk->createdBy && isset($invest[$risk->createdBy])) $invest[$risk->createdBy]['createdRisk'] += 1;
-            if($risk->resolvedBy && isset($invest[$risk->resolvedBy])) $invest[$risk->resolvedBy]['resolvedRisk'] += 1;
-            if($risk->assignedTo && $risk->status == 'active' && isset($invest[$risk->assignedTo])) $invest[$risk->assignedTo]['pendingRisk'] += 1;
+        foreach ($risks as $risk) {
+            if ($risk->createdBy && isset($invest[$risk->createdBy])) $invest[$risk->createdBy]['createdRisk'] += 1;
+            if ($risk->resolvedBy && isset($invest[$risk->resolvedBy])) $invest[$risk->resolvedBy]['resolvedRisk'] += 1;
+            if ($risk->assignedTo && $risk->status == 'active' && isset($invest[$risk->assignedTo])) $invest[$risk->assignedTo]['pendingRisk'] += 1;
         }
 
         return $invest;
@@ -212,18 +198,16 @@ class personnelModel extends model
 
         /* Initialization personnel issues. */
         $invest = array();
-        foreach($accounts as $account => $project)
-        {
+        foreach ($accounts as $account => $project) {
             $invest[$account]['createdIssue']  = 0;
             $invest[$account]['resolvedIssue'] = 0;
             $invest[$account]['pendingIssue']  = 0;
         }
 
-        foreach($issues as $issue)
-        {
-            if($issue->createdBy && isset($invest[$issue->createdBy])) $invest[$issue->createdBy]['createdIssue'] += 1;
-            if($issue->resolvedBy && isset($invest[$issue->resolvedBy])) $invest[$issue->resolvedBy]['resolvedIssue'] += 1;
-            if($issue->assignedTo && in_array($issue->status, array('unconfirmed', 'confirmed', 'active')) && isset($invest[$issue->assignedTo])) $invest[$issue->assignedTo]['pendingIssue'] += 1;
+        foreach ($issues as $issue) {
+            if ($issue->createdBy && isset($invest[$issue->createdBy])) $invest[$issue->createdBy]['createdIssue'] += 1;
+            if ($issue->resolvedBy && isset($invest[$issue->resolvedBy])) $invest[$issue->resolvedBy]['resolvedIssue'] += 1;
+            if ($issue->assignedTo && in_array($issue->status, array('unconfirmed', 'confirmed', 'active')) && isset($invest[$issue->assignedTo])) $invest[$issue->assignedTo]['pendingIssue'] += 1;
         }
 
         return $invest;
@@ -265,8 +249,7 @@ class personnelModel extends model
 
         /* Initialize bugs and requirements related to personnel. */
         $invest = array();
-        foreach($accounts as $account => $project)
-        {
+        foreach ($accounts as $account => $project) {
             $invest[$account]['createdBug']  = 0;
             $invest[$account]['resolvedBug'] = 0;
             $invest[$account]['pendingBug']  = 0;
@@ -274,14 +257,13 @@ class personnelModel extends model
             $invest[$account]['SR']          = 0;
         }
 
-        foreach($requirement as $account => $number) $invest[$account]['UR'] = $number;
-        foreach($story as $account => $number)       $invest[$account]['SR'] = $number;
+        foreach ($requirement as $account => $number) $invest[$account]['UR'] = $number;
+        foreach ($story as $account => $number)       $invest[$account]['SR'] = $number;
 
-        foreach($bugs as $bug)
-        {
-            if($bug->openedBy && isset($invest[$bug->openedBy])) $invest[$bug->openedBy]['createdBug'] += 1;
-            if($bug->resolvedBy && isset($invest[$bug->resolvedBy])) $invest[$bug->resolvedBy]['resolvedBug'] += 1;
-            if($bug->assignedTo && $bug->status == 'active' && isset($invest[$bug->assignedTo])) $invest[$bug->assignedTo]['pendingBug'] += 1;
+        foreach ($bugs as $bug) {
+            if ($bug->openedBy && isset($invest[$bug->openedBy])) $invest[$bug->openedBy]['createdBug'] += 1;
+            if ($bug->resolvedBy && isset($invest[$bug->resolvedBy])) $invest[$bug->resolvedBy]['resolvedBug'] += 1;
+            if ($bug->assignedTo && $bug->status == 'active' && isset($invest[$bug->assignedTo])) $invest[$bug->assignedTo]['pendingBug'] += 1;
         }
         return $invest;
     }
@@ -335,14 +317,13 @@ class personnelModel extends model
     public function getProjectTaskInvest($projects, $accounts)
     {
         $tasks = $this->dao->select('id,status,openedBy,finishedBy,assignedTo,project')->from(TABLE_TASK)
-          ->where('project')->in(array_keys($projects))
-          ->andWhere('deleted')->eq('0')
-          ->fetchAll('id');
+            ->where('project')->in(array_keys($projects))
+            ->andWhere('deleted')->eq('0')
+            ->fetchAll('id');
 
         /* Initialize personnel related tasks. */
         $invest = array();
-        foreach($accounts as $account => $project)
-        {
+        foreach ($accounts as $account => $project) {
             $invest[$account]['createdTask']  = 0;
             $invest[$account]['finishedTask'] = 0;
             $invest[$account]['pendingTask']  = 0;
@@ -352,22 +333,18 @@ class personnelModel extends model
 
         /* Number of tasks per person. */
         $userTasks = array();
-        foreach($tasks as $task)
-        {
-            if($task->openedBy && isset($invest[$task->openedBy]))
-            {
+        foreach ($tasks as $task) {
+            if ($task->openedBy && isset($invest[$task->openedBy])) {
                 $invest[$task->openedBy]['createdTask'] += 1;
                 $userTasks[$task->openedBy][$task->id]    = $task->id;
             }
 
-            if($task->finishedBy && isset($invest[$task->finishedBy]))
-            {
+            if ($task->finishedBy && isset($invest[$task->finishedBy])) {
                 $invest[$task->finishedBy]['finishedTask'] += 1;
                 $userTasks[$task->finishedBy][$task->id]     = $task->id;
             }
 
-            if($task->assignedTo && $task->status == 'wait' && isset($invest[$task->assignedTo]))
-            {
+            if ($task->assignedTo && $task->status == 'wait' && isset($invest[$task->assignedTo])) {
                 $invest[$task->assignedTo]['pendingTask'] += 1;
                 $userTasks[$task->assignedTo][$task->id]    = $task->id;
             }
@@ -375,17 +352,13 @@ class personnelModel extends model
 
         /* The number of hours per person. */
         $userHours = array();
-        if(isset($this->config->qcVersion) || isset($this->config->proVersion) || isset($this->config->bizVersion))
-        {
+        if ($this->config->edition != 'open') {
             $userHours = $this->getUserEffortHours($userTasks);
-        }
-        else
-        {
+        } else {
             $userHours = $this->getUserHours($userTasks);
         }
 
-        foreach($userHours as $account => $hours)
-        {
+        foreach ($userHours as $account => $hours) {
             $invest[$account]['leftTask']     = $hours->left;
             $invest[$account]['consumedTask'] = $hours->consumed;
         }
@@ -404,8 +377,7 @@ class personnelModel extends model
     {
         $accounts   = array();
         $taskIDList = array();
-        foreach($userTasks as $account => $taskID)
-        {
+        foreach ($userTasks as $account => $taskID) {
             $accounts[] = $account;
             $taskIDList = array_merge($taskIDList, $taskID);
         }
@@ -430,8 +402,7 @@ class personnelModel extends model
     {
         $accounts   = array();
         $taskIDList = array();
-        foreach($userTasks as $account => $taskID)
-        {
+        foreach ($userTasks as $account => $taskID) {
             $accounts[] = $account;
             $taskIDList = array_merge($taskIDList, $taskID);
         }
@@ -472,10 +443,9 @@ class personnelModel extends model
     {
         $objects = array();
 
-        if($objectType == 'sprint')
-        {
+        if ($objectType == 'sprint') {
             $parentID = 0;
-            if($this->config->systemMode == 'new') $parentID = $this->dao->select('project')->from(TABLE_EXECUTION)->where('id')->eq($objectID)->fetch('project');
+            if ($this->config->systemMode == 'new') $parentID = $this->dao->select('project')->from(TABLE_EXECUTION)->where('id')->eq($objectID)->fetch('project');
 
             $objects  = $this->dao->select('id,name')->from(TABLE_EXECUTION)
                 ->where('(project')->eq($parentID)
@@ -488,25 +458,18 @@ class personnelModel extends model
                 ->orderBy('type_asc,openedDate_desc')
                 ->limit('10')
                 ->fetchPairs();
-            foreach($objects as $id => &$object)
-            {
-                if($id != $parentID and $this->config->systemMode == 'new') $object = '&nbsp;&nbsp;&nbsp;' . $object;
+            foreach ($objects as $id => &$object) {
+                if ($id != $parentID and $this->config->systemMode == 'new') $object = '&nbsp;&nbsp;&nbsp;' . $object;
             }
-        }
-        elseif($objectType == 'project')
-        {
+        } elseif ($objectType == 'project') {
             $path     = $this->dao->select('path')->from(TABLE_PROJECT)->where('id')->eq($objectID)->fetch('path');
             $path     = explode(',', trim($path, ','));
             $parentID = $path[0];
             $objects  = $this->loadModel('project')->getPairsByProgram($parentID);
-        }
-        elseif($objectType == 'product')
-        {
+        } elseif ($objectType == 'product') {
             $parentID = $this->dao->select('program')->from(TABLE_PRODUCT)->where('id')->eq($objectID)->fetch('program');
             $objects  = $this->loadModel('product')->getPairs('', $parentID);
-        }
-        elseif($objectType == 'program')
-        {
+        } elseif ($objectType == 'program') {
             $objects = $this->loadModel('program')->getPairs();
         }
 
@@ -565,18 +528,16 @@ class personnelModel extends model
     public function updateWhitelist($users = array(), $objectType = '', $objectID = 0, $type = 'whitelist', $source = 'add', $updateType = 'replace')
     {
         $oldWhitelist = $this->dao->select('account,objectType,objectID,type,source')->from(TABLE_ACL)->where('objectID')->eq($objectID)->andWhere('objectType')->eq($objectType)->fetchAll('account');
-        if($updateType == 'replace') $this->dao->delete()->from(TABLE_ACL)->where('objectID')->eq($objectID)->andWhere('objectType')->eq($objectType)->exec();
+        if ($updateType == 'replace') $this->dao->delete()->from(TABLE_ACL)->where('objectID')->eq($objectID)->andWhere('objectType')->eq($objectType)->exec();
 
         $users = array_filter($users);
         $users = array_unique($users);
         $accounts = array();
-        foreach($users as $account)
-        {
+        foreach ($users as $account) {
             $accounts[$account] = $account;
 
-            if(isset($oldWhitelist[$account]))
-            {
-                if($updateType == 'replace') $this->dao->insert(TABLE_ACL)->data($oldWhitelist[$account])->exec();
+            if (isset($oldWhitelist[$account])) {
+                if ($updateType == 'replace') $this->dao->insert(TABLE_ACL)->data($oldWhitelist[$account])->exec();
                 continue;
             }
 
@@ -587,44 +548,37 @@ class personnelModel extends model
             $acl->type       = $type;
             $acl->source     = $source;
             $this->dao->insert(TABLE_ACL)->data($acl)->autoCheck()->exec();
-            if(!dao::isError()) $this->loadModel('user')->updateUserView($acl->objectID, $acl->objectType, $acl->account);
+            if (!dao::isError()) $this->loadModel('user')->updateUserView($acl->objectID, $acl->objectType, $acl->account);
         }
 
         /* Update whitelist field. */
         $objectTable = $objectType == 'product' ? TABLE_PRODUCT : TABLE_PROJECT;
-        if($updateType == 'increase')
-        {
+        if ($updateType == 'increase') {
             $oldWhitelist = $this->dao->select('whitelist')->from($objectTable)->where('id')->eq($objectID)->fetch('whitelist');
 
             $groups = $this->dao->select('id')->from(TABLE_GROUP)->where('id')->in($oldWhitelist)->fetchPairs('id', 'id');
-            if($groups)
-            {
+            if ($groups) {
                 $oldWhitelist = $this->dao->select('account')->from(TABLE_USERGROUP)->where('`group`')->in($groups)->fetchPairs('account', 'account');
-                if($oldWhitelist) $accounts = array_unique(array_merge($accounts, $oldWhitelist));
-            }
-            else
-            {
+                if ($oldWhitelist) $accounts = array_unique(array_merge($accounts, $oldWhitelist));
+            } else {
                 $oldWhitelist = $this->dao->select('account')->from(TABLE_USER)->where('account')->in($oldWhitelist)->fetchPairs('account', 'account');
-                if($oldWhitelist) $accounts = array_unique(array_merge($accounts, $oldWhitelist));
+                if ($oldWhitelist) $accounts = array_unique(array_merge($accounts, $oldWhitelist));
             }
         }
         $whitelist = !empty($accounts) ? ',' . implode(',', $accounts) : '';
         $this->dao->update($objectTable)->set('whitelist')->eq($whitelist)->where('id')->eq($objectID)->exec();
 
         $deletedAccounts = array();
-        foreach($oldWhitelist as $account => $whitelist)
-        {
-            if(!isset($accounts[$account])) $deletedAccounts[] = $account;
+        foreach ($oldWhitelist as $account => $whitelist) {
+            if (!isset($accounts[$account])) $deletedAccounts[] = $account;
         }
 
         /* Synchronization of people from the product whitelist to the program set. */
-        if($objectType == 'product')
-        {
+        if ($objectType == 'product') {
             $product = $this->loadModel('product')->getById($objectID);
-            if(empty($product)) return false;
+            if (empty($product)) return false;
 
-            if($this->config->systemMode == 'new')
-            {
+            if ($this->config->systemMode == 'new') {
                 $programWhitelist = $this->getWhitelistAccount($product->program, 'program');
                 $newWhitelist     = array_merge($programWhitelist, $accounts);
                 $source           = $source == 'upgrade' ? 'upgrade' : 'sync';
@@ -632,20 +586,17 @@ class personnelModel extends model
             }
 
             /* Removal of persons from centralized program whitelisting. */
-            if($updateType == 'replace')
-            {
-                foreach($deletedAccounts as $account) $this->deleteProgramWhitelist($objectID, $account);
+            if ($updateType == 'replace') {
+                foreach ($deletedAccounts as $account) $this->deleteProgramWhitelist($objectID, $account);
             }
         }
 
         /* Synchronization of people from the sprint white list to the project. */
-        if($objectType == 'sprint')
-        {
+        if ($objectType == 'sprint') {
             $sprint = $this->dao->select('id,project')->from(TABLE_PROJECT)->where('id')->eq($objectID)->fetch();
-            if(empty($sprint)) return false;
+            if (empty($sprint)) return false;
 
-            if($this->config->systemMode == 'new')
-            {
+            if ($this->config->systemMode == 'new') {
                 $projectWhitelist = $this->getWhitelistAccount($sprint->project, 'project');
                 $newWhitelist     = array_merge($projectWhitelist, $accounts);
                 $source           = $source == 'upgrade' ? 'upgrade' : 'sync';
@@ -653,9 +604,8 @@ class personnelModel extends model
             }
 
             /* Removal of whitelisted persons from projects. */
-            if($updateType == 'replace')
-            {
-                foreach($deletedAccounts as $account) $this->deleteProjectWhitelist($objectID, $account);
+            if ($updateType == 'replace') {
+                foreach ($deletedAccounts as $account) $this->deleteProjectWhitelist($objectID, $account);
             }
         }
     }
@@ -685,18 +635,17 @@ class personnelModel extends model
     public function deleteProductWhitelist($productID, $account = '')
     {
         $product = $this->dao->select('id,whitelist')->from(TABLE_PRODUCT)->where('id')->eq($productID)->fetch();
-        if(empty($product)) return false;
+        if (empty($product)) return false;
 
         $result = $this->dao->delete()->from(TABLE_ACL)
-             ->where('objectID')->eq($productID)
-             ->andWhere('account')->eq($account)
-             ->andWhere('objectType')->eq('product')
-             ->andWhere('source')->eq('sync')
-             ->exec();
+            ->where('objectID')->eq($productID)
+            ->andWhere('account')->eq($account)
+            ->andWhere('objectType')->eq('product')
+            ->andWhere('source')->eq('sync')
+            ->exec();
 
         /* Update user view when delete success. */
-        if($result)
-        {
+        if ($result) {
             $newWhitelist = str_replace(',' . $account, '', $product->whitelist);
             $this->dao->update(TABLE_PRODUCT)->set('whitelist')->eq($newWhitelist)->where('id')->eq($productID)->exec();
 
@@ -717,14 +666,13 @@ class personnelModel extends model
     public function deleteProgramWhitelist($programID = 0, $account = '')
     {
         $program = $this->loadModel('program')->getByID($programID);
-        if(empty($program)) return false;
+        if (empty($program)) return false;
 
         $products  = $this->dao->select('id')->from(TABLE_PRODUCT)->where('program')->eq($programID)->andWhere('deleted')->eq('0')->fetchPairs('id');
         $whitelist = $this->dao->select('*')->from(TABLE_ACL)->where('objectID')->in($products)->andWhere('account')->eq($account)->andWhere('objectType')->eq('product')->fetch();
 
         /* Determine if the user exists in other products in the program set. */
-        if(empty($whitelist))
-        {
+        if (empty($whitelist)) {
             $result = $this->dao->delete()->from(TABLE_ACL)
                 ->where('objectID')->eq($programID)
                 ->andWhere('account')->eq($account)
@@ -733,8 +681,7 @@ class personnelModel extends model
                 ->exec();
 
             /* Update user view when delete success. */
-            if($result)
-            {
+            if ($result) {
                 $newWhitelist = str_replace(',' . $account, '', $program->whitelist);
                 $this->dao->update(TABLE_PROGRAM)->set('whitelist')->eq($newWhitelist)->where('id')->eq($programID)->exec();
 
@@ -757,15 +704,14 @@ class personnelModel extends model
     public function deleteProjectWhitelist($objectID = 0, $account = '')
     {
         $project = $this->dao->select('id,project,whitelist')->from(TABLE_PROJECT)->where('id')->eq($objectID)->fetch();
-        if(empty($project)) return false;
+        if (empty($project)) return false;
 
         $projectID = $project->project ? $project->project : $objectID;
         $sprints   = $this->dao->select('id')->from(TABLE_PROJECT)->where('project')->eq($projectID)->andWhere('deleted')->eq('0')->fetchPairs('id');
         $whitelist = $this->dao->select('*')->from(TABLE_ACL)->where('objectID')->in($sprints)->andWhere('account')->eq($account)->andWhere('objectType')->eq('sprint')->fetch();
 
         /* Determine if the user exists in other sprints in the project set. */
-        if(empty($whitelist))
-        {
+        if (empty($whitelist)) {
             $result = $this->dao->delete()->from(TABLE_ACL)
                 ->where('objectID')->eq($projectID)
                 ->andWhere('account')->eq($account)
@@ -774,8 +720,7 @@ class personnelModel extends model
                 ->exec();
 
             /* Update user view when delete success. */
-            if($result)
-            {
+            if ($result) {
                 $newWhitelist = str_replace(',' . $account, '', $project->whitelist);
                 $this->dao->update(TABLE_PROJECT)->set('whitelist')->eq($newWhitelist)->where('id')->eq($projectID)->exec();
 
@@ -798,18 +743,17 @@ class personnelModel extends model
     public function deleteExecutionWhitelist($executionID, $account = '')
     {
         $execution = $this->dao->select('id,whitelist')->from(TABLE_EXECUTION)->where('id')->eq($executionID)->fetch();
-        if(empty($execution)) return false;
+        if (empty($execution)) return false;
 
         $result = $this->dao->delete()->from(TABLE_ACL)
-             ->where('objectID')->eq($executionID)
-             ->andWhere('account')->eq($account)
-             ->andWhere('objectType')->eq('sprint')
-             ->andWhere('source')->eq('sync')
-             ->exec();
+            ->where('objectID')->eq($executionID)
+            ->andWhere('account')->eq($account)
+            ->andWhere('objectType')->eq('sprint')
+            ->andWhere('source')->eq('sync')
+            ->exec();
 
         /* Update user view when delete success. */
-        if($result)
-        {
+        if ($result) {
             $newWhitelist = str_replace(',' . $account, '', $execution->whitelist);
             $this->dao->update(TABLE_EXECUTION)->set('whitelist')->eq($newWhitelist)->where('id')->eq($executionID)->exec();
 
@@ -834,22 +778,20 @@ class personnelModel extends model
         $userGroups = $this->loadModel('group')->getByAccounts($users);
 
         /* Determine whether to delete the whitelist. */
-        foreach($users as $account)
-        {
+        foreach ($users as $account) {
             $groups = zget($userGroups, $account, array());
-            foreach($groups as $group)
-            {
-                if($group->id == $groupID) continue;
+            foreach ($groups as $group) {
+                if ($group->id == $groupID) continue;
 
                 $acl     = json_decode($group->acl);
                 $keyName = $objectType . 's';
-                if(isset($acl->$keyName) and in_array($objectID, $acl->$keyName)) return false;
+                if (isset($acl->$keyName) and in_array($objectID, $acl->$keyName)) return false;
             }
 
-            if($objectType == 'program') $this->deleteProgramWhitelist($objectID, $account);
-            if($objectType == 'project') $this->deleteProjectWhitelist($objectID, $account);
-            if($objectType == 'product') $this->deleteProductWhitelist($objectID, $account);
-            if($objectType == 'sprint')  $this->deleteExecutionWhitelist($objectID, $account);
+            if ($objectType == 'program') $this->deleteProgramWhitelist($objectID, $account);
+            if ($objectType == 'project') $this->deleteProjectWhitelist($objectID, $account);
+            if ($objectType == 'product') $this->deleteProductWhitelist($objectID, $account);
+            if ($objectType == 'sprint')  $this->deleteExecutionWhitelist($objectID, $account);
         }
     }
 

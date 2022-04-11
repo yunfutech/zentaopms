@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The control file of misc of ZenTaoPMS.
  *
@@ -19,8 +20,8 @@ class misc extends control
      */
     public function ping()
     {
-        if(mt_rand(0, 1) == 1) $this->loadModel('setting')->setSN();
-        die("<html><head><meta http-equiv=refresh' content='600' /></head><body></body></html>");
+        if (mt_rand(0, 1) == 1) $this->loadModel('setting')->setSN();
+        echo "<html><head><meta http-equiv=refresh' content='600' /></head><body></body></html>";
     }
 
     /**
@@ -31,7 +32,7 @@ class misc extends control
      */
     public function phpinfo()
     {
-        die(phpinfo());
+        phpinfo();
     }
 
     /**
@@ -42,7 +43,7 @@ class misc extends control
      */
     public function about()
     {
-        die($this->display());
+        $this->display();
     }
 
     /**
@@ -69,16 +70,18 @@ class misc extends control
 
         $website = $this->config->misc->api;
 
-        if(isset($this->config->qcVersion)) $website = $this->config->misc->qucheng;
-        if(isset($this->config->isINT))     $website = $this->config->misc->enApi;
+        if (isset($this->config->qcVersion)) $website = $this->config->misc->qucheng;
+        if (isset($this->config->isINT))     $website = $this->config->misc->enApi;
 
         $source = isset($this->config->qcVersion) ? 'qucheng' : 'zentao';
         $lang   = str_replace('-', '_', $this->app->getClientLang());
-        $link   = $website . "/updater-getLatest-{$this->config->version}-$source-$lang.html";
+        $link   = $website . "/updater-getLatest-{$this->config->version}-$source-$lang-$sn.html";
 
         $latestVersionList = common::http($link);
 
-        $this->loadModel('setting')->setItem('system.common.global.latestVersionList', $latestVersionList);
+        if (!isset($this->config->global->latestVersionList) or $this->config->global->latestVersionList != $latestVersionList) {
+            $this->loadModel('setting')->setItem('system.common.global.latestVersionList', $latestVersionList);
+        }
     }
 
     /**
@@ -102,7 +105,7 @@ class misc extends control
     public function downNotify()
     {
         $notifyDir = $this->app->getBasePath() . 'tmp/cache/notify/';
-        if(!is_dir($notifyDir))mkdir($notifyDir, 0755, true);
+        if (!is_dir($notifyDir)) mkdir($notifyDir, 0755, true);
 
         $account     = $this->app->user->account;
         $packageFile = $notifyDir . $account . 'notify.zip';
@@ -130,10 +133,10 @@ class misc extends control
         /* remove the old config.json, add a new one. */
         $archive = new pclzip($packageFile);
         $result = $archive->delete(PCLZIP_OPT_BY_NAME, 'config.json');
-        if($result == 0) die("Error : " . $archive->errorInfo(true));
+        if ($result == 0) return print("Error : " . $archive->errorInfo(true));
 
         $result = $archive->add($loginFile, PCLZIP_OPT_REMOVE_ALL_PATH, PCLZIP_OPT_ADD_PATH, 'notify');
-        if($result == 0) die("Error : " . $archive->errorInfo(true));
+        if ($result == 0) return print("Error : " . $archive->errorInfo(true));
 
         $zipContent = file_get_contents($packageFile);
         unlink($loginFile);
@@ -152,10 +155,9 @@ class misc extends control
         $loginAPI = common::getSysURL() . $this->config->webRoot;
         $session  = $this->loadModel('user')->isLogon() ? '?' . $this->config->sessionVar . '=' . session_id() : '';
 
-        if(!extension_loaded('gd'))
-        {
+        if (!extension_loaded('gd')) {
             $this->view->noGDLib = sprintf($this->lang->misc->noGDLib, $loginAPI);
-            die($this->display());
+            return print($this->display());
         }
 
         $this->app->loadClass('qrcode');
@@ -180,23 +182,21 @@ class misc extends control
      */
     public function changeLog($version = '')
     {
-        if(empty($version)) $version  = key($this->lang->misc->feature->all);
+        if (empty($version)) $version  = key($this->lang->misc->feature->all);
         $this->view->version  = $version;
         $this->view->features = zget($this->lang->misc->feature->all, $version, '');
 
         $detailed      = '';
         $changeLogFile = $this->app->getBasePath() . 'doc' . DS . 'CHANGELOG';
-        if(file_exists($changeLogFile))
-        {
+        if (file_exists($changeLogFile)) {
             $handle = fopen($changeLogFile, 'r');
             $tag    = false;
-            while($line = fgets($handle))
-            {
+            while ($line = fgets($handle)) {
                 $line = trim($line);
-                if($tag and empty($line)) break;
-                if($tag) $detailed .= $line . '<br />';
+                if ($tag and empty($line)) break;
+                if ($tag) $detailed .= $line . '<br />';
 
-                if(preg_match("/{$version}$/", $line) > 0) $tag = true;
+                if (preg_match("/{$version}$/", $line) > 0) $tag = true;
             }
             fclose($handle);
         }
@@ -214,7 +214,7 @@ class misc extends control
     {
         $this->app->loadConfig('extension');
         $check = @fopen(dirname($this->config->extension->apiRoot), "r");
-        die($check ? 'success' : 'fail');
+        print($check ? 'success' : 'fail');
     }
 
     /**
@@ -228,7 +228,7 @@ class misc extends control
     public function captcha($sessionVar = 'captcha', $uuid = '')
     {
         $obLevel = ob_get_level();
-        for($i = 0; $i < $obLevel; $i++) ob_end_clean();
+        for ($i = 0; $i < $obLevel; $i++) ob_end_clean();
 
         header('Content-Type: image/jpeg');
         $captcha = $this->app->loadClass('captcha');
@@ -248,13 +248,10 @@ class misc extends control
     public function ajaxSetUnfoldID($objectID, $objectType, $action = 'add')
     {
         $account = $this->app->user->account;
-        if($objectType == 'execution')
-        {
+        if ($objectType == 'execution') {
             $condition   = "owner={$account}&module={$objectType}&section=task&key=unfoldTasks";
             $settingPath = $account . ".{$objectType}.task.unfoldTasks";
-        }
-        else
-        {
+        } else {
             $condition   = "owner={$account}&module=product&section=browse&key=unfoldStories";
             $settingPath = $account . ".{$objectType}.browse.unfoldStories";
         }
@@ -262,22 +259,123 @@ class misc extends control
         $this->loadModel('setting');
         $setting     = $this->setting->createDAO($this->setting->parseItemParam($condition), 'select')->fetch();
         $newUnfoldID = $this->post->newUnfoldID;
-        if(empty($newUnfoldID)) die();
+        if (empty($newUnfoldID)) return;
 
         $newUnfoldID  = json_decode($newUnfoldID);
         $unfoldIdList = $setting ? json_decode($setting->value, true) : array();
-        foreach($newUnfoldID as $unfoldID)
-        {
+        foreach ($newUnfoldID as $unfoldID) {
             unset($unfoldIdList[$objectID][$unfoldID]);
-            if($action == 'add') $unfoldIdList[$objectID][$unfoldID] = $unfoldID;
+            if ($action == 'add') $unfoldIdList[$objectID][$unfoldID] = $unfoldID;
         }
 
-        if(empty($setting))
-        {
+        if (empty($setting)) {
             $this->setting->setItem($settingPath, json_encode($unfoldIdList));
+        } else {
+            $this->dao->update(TABLE_CONFIG)->set('value')->eq(json_encode($unfoldIdList))->where('id')->eq($setting->id)->exec();
         }
-        else
-        {
+        echo 'success';
+    }
+
+    /**
+     * Get annual remind.
+     *
+     * @access public
+     * @return void
+     */
+    public function getRemind()
+    {
+        $data = array('content' => $this->misc->getRemind(), 'title' => $this->lang->misc->remind);
+        $this->send(array('result' => 'success', 'data' => $data));
+    }
+
+    /**
+     * Features dialog.
+     *
+     * @access public
+     * @return void
+     */
+    public function features()
+    {
+        $features = array();
+        foreach ($this->config->newFeatures as $feature) {
+            $accounts = zget($this->config->global, 'skip' . ucfirst($feature), '');
+            if (strpos(",$accounts,", $this->app->user->account) === false) $features[] = $feature;
+        }
+
+        $this->app->loadLang('install');
+
+        $this->view->features = $features;
+        $this->display();
+    }
+
+    /**
+     * Save viewed feature.
+     *
+     * @param  string $feature
+     * @access public
+     * @return void
+     */
+    public function ajaxSaveViewed($feature)
+    {
+        $accounts = zget($this->config->global, 'skip' . ucfirst($feature), '');
+        if (strpos(",$accounts,", $this->app->user->account) === false) $accounts .= ',' . $this->app->user->account;
+        $this->loadModel('setting')->setItem('system.common.global.skip' . ucfirst($feature), $accounts);
+    }
+
+    /**
+     * Show captcha and save to session.
+     *
+     * @param  string $sessionVar
+     * @param  string $uuid
+     * @access public
+     * @return void
+     */
+    public function captcha($sessionVar = 'captcha', $uuid = '')
+    {
+        $obLevel = ob_get_level();
+        for ($i = 0; $i < $obLevel; $i++) ob_end_clean();
+
+        header('Content-Type: image/jpeg');
+        $captcha = $this->app->loadClass('captcha');
+        $this->session->set($sessionVar, $captcha->getPhrase());
+        $captcha->build()->output();
+    }
+
+    /**
+     * Ajax set unfoldID.
+     *
+     * @param  int    $objectID
+     * @param  string $objectType
+     * @param  string $action       add|delete
+     * @access public
+     * @return void
+     */
+    public function ajaxSetUnfoldID($objectID, $objectType, $action = 'add')
+    {
+        $account = $this->app->user->account;
+        if ($objectType == 'execution') {
+            $condition   = "owner={$account}&module={$objectType}&section=task&key=unfoldTasks";
+            $settingPath = $account . ".{$objectType}.task.unfoldTasks";
+        } else {
+            $condition   = "owner={$account}&module=product&section=browse&key=unfoldStories";
+            $settingPath = $account . ".{$objectType}.browse.unfoldStories";
+        }
+
+        $this->loadModel('setting');
+        $setting     = $this->setting->createDAO($this->setting->parseItemParam($condition), 'select')->fetch();
+        $newUnfoldID = $this->post->newUnfoldID;
+        if (empty($newUnfoldID)) die();
+
+        $newUnfoldID  = json_decode($newUnfoldID);
+        $unfoldIdList = $setting ? json_decode($setting->value, true) : array();
+        foreach ($newUnfoldID as $unfoldID) {
+            unset($unfoldIdList[$objectID][$unfoldID]);
+            if ($action == 'add') $unfoldIdList[$objectID][$unfoldID] = $unfoldID;
+        }
+
+        if (empty($setting)) {
+            $this->setting->setItem($settingPath, json_encode($unfoldIdList));
+        } else {
             $this->dao->update(TABLE_CONFIG)->set('value')->eq(json_encode($unfoldIdList))->where('id')->eq($setting->id)->exec();
         }
         die('success');
@@ -304,10 +402,9 @@ class misc extends control
     public function features()
     {
         $features = array();
-        foreach($this->config->newFeatures as $feature)
-        {
+        foreach ($this->config->newFeatures as $feature) {
             $accounts = zget($this->config->global, 'skip' . ucfirst($feature), '');
-            if(strpos(",$accounts,", $this->app->user->account) === false) $features[] = $feature;
+            if (strpos(",$accounts,", $this->app->user->account) === false) $features[] = $feature;
         }
 
         $this->app->loadLang('install');
@@ -326,7 +423,7 @@ class misc extends control
     public function ajaxSaveViewed($feature)
     {
         $accounts = zget($this->config->global, 'skip' . ucfirst($feature), '');
-        if(strpos(",$accounts,", $this->app->user->account) === false) $accounts .= ',' . $this->app->user->account;
+        if (strpos(",$accounts,", $this->app->user->account) === false) $accounts .= ',' . $this->app->user->account;
         $this->loadModel('setting')->setItem('system.common.global.skip' . ucfirst($feature), $accounts);
     }
 }

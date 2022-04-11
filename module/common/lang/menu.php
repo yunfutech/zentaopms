@@ -445,7 +445,6 @@ $lang->report->menu->product = array('link' => "{$lang->product->common}|report|
 $lang->report->menu->project = array('link' => "{$lang->project->common}|report|projectdeviation");
 $lang->report->menu->test    = array('link' => "{$lang->qa->common}|report|bugcreate", 'alias' => 'bugassign');
 $lang->report->menu->staff   = array('link' => "{$lang->system->common}|report|workload");
-$lang->report->menu->task   = array('link' => "{$lang->task->common}|report|taskboard");
 
 /* Report menu order. */
 $lang->report->menuOrder[5]  = 'annual';
@@ -503,7 +502,7 @@ $lang->admin->menuOrder[35] = 'dev';
 $lang->admin->menuOrder[40] = 'system';
 
 $lang->admin->menu->message['subMenu']          = new stdclass();
-$lang->admin->menu->message['subMenu']->message = new stdclass();
+$lang->admin->menu->message['subMenu']->message = array();
 $lang->admin->menu->message['subMenu']->mail    = array('link' => "{$lang->mail->common}|mail|index", 'subModule' => 'mail');
 $lang->admin->menu->message['subMenu']->webhook = array('link' => "Webhook|webhook|browse", 'subModule' => 'webhook');
 $lang->admin->menu->message['subMenu']->browser = array('link' => "$lang->browser|message|browser");
@@ -658,6 +657,7 @@ $lang->navGroup->entry     = 'admin';
 $lang->navGroup->extension = 'admin';
 $lang->navGroup->action    = 'admin';
 $lang->navGroup->convert   = 'admin';
+$lang->navGroup->stage     = 'admin';
 
 $lang->navGroup->search  = 'search';
 $lang->navGroup->index   = 'index';

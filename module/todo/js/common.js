@@ -49,6 +49,19 @@ function loadList(type, id)
     {
         $(divClass).html($(divID).html());
     }
+
+
+    if(typeof(nameBoxLabel) != "undefined")
+    {
+        if(type == 'custom' || (typeof(vision) != "undefined" && vision == 'rnd'))
+        {
+            $('#nameBoxLabel').text(nameBoxLabel.custom);
+        }
+        else
+        {
+            $('#nameBoxLabel').text(nameBoxLabel.idvalue);
+        }
+    }
 }
 
 function selectNext()

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The control file of design module of ZenTaoPMS.
  *
@@ -78,24 +79,29 @@ class design extends control
 
         /* Print top and right actions. */
         $this->lang->TRActions  = '<div class="btn-toolbar pull-right">';
-        if(isset($this->config->maxVersion) and common::hasPriv('design', 'submit'))
-        {
+        if ($this->config->edition == 'max' and common::hasPriv('design', 'submit')) {
             $this->lang->TRActions .= '<div class="btn-group">';
             $this->lang->TRActions .= html::a($this->createLink('design', 'submit', "productID=$productID", '', true), "<i class='icon-plus'></i> {$this->lang->design->submit}", '', "class='btn btn-secondary iframe'");
             $this->lang->TRActions .= '</div>';
         }
-        $this->lang->TRActions .= '<div class="btn-group dropdown">';
-        $this->lang->TRActions .= html::a(inlink('create', "projectID=$projectID&productID=$productID&type=$type"), "<i class='icon-plus'></i> {$this->lang->design->create}", '', "class='btn btn-primary'");
-        $this->lang->TRActions .= "<button type='button' class='btn btn-primary dropdown-toggle' data-toggle='dropdown'><span class='caret'></span>";
-        $this->lang->TRActions .= '</button>';
-        $this->lang->TRActions .= "<ul class='dropdown-menu pull-right' id='createActionMenu'>";
 
-        if(common::hasPriv('design', 'create'))      $this->lang->TRActions .= '<li>' . html::a($this->createLink('design', 'create', "projectID=$projectID&productID=$productID&type=$type"), $this->lang->design->create, '', "class='btn btn-link'") . '</li>';
-        if(common::hasPriv('design', 'batchCreate')) $this->lang->TRActions .= '<li>' . html::a($this->createLink('design', 'batchCreate', "projectID=$projectID&productID=$productID&type=$type"), $this->lang->design->batchCreate, '', "class='btn btn-link'") . '</li>';
+        if (common::hasPriv('design', 'create') and common::hasPriv('design', 'batchCreate')) {
+            $this->lang->TRActions .= '<div class="btn-group dropdown">';
+            $this->lang->TRActions .= html::a(inlink('create', "projectID=$projectID&productID=$productID&type=$type"), "<i class='icon-plus'></i> {$this->lang->design->create}", '', "class='btn btn-primary'");
+            $this->lang->TRActions .= "<button type='button' class='btn btn-primary dropdown-toggle' data-toggle='dropdown'><span class='caret'></span>";
+            $this->lang->TRActions .= '</button>';
+            $this->lang->TRActions .= "<ul class='dropdown-menu pull-right' id='createActionMenu'>";
 
-        $this->lang->TRActions .= '</ul>';
-        $this->lang->TRActions .= '</div>';
-        $this->lang->TRActions .= '</div>';
+            if (common::hasPriv('design', 'create'))      $this->lang->TRActions .= '<li>' . html::a($this->createLink('design', 'create', "projectID=$projectID&productID=$productID&type=$type"), $this->lang->design->create, '', "class='btn btn-link'") . '</li>';
+            if (common::hasPriv('design', 'batchCreate')) $this->lang->TRActions .= '<li>' . html::a($this->createLink('design', 'batchCreate', "projectID=$projectID&productID=$productID&type=$type"), $this->lang->design->batchCreate, '', "class='btn btn-link'") . '</li>';
+
+            $this->lang->TRActions .= '</ul>';
+            $this->lang->TRActions .= '</div>';
+            $this->lang->TRActions .= '</div>';
+        } else {
+            if (common::hasPriv('design', 'create')) $this->lang->TRActions .= html::a(inlink('create', "projectID=$projectID&productID=$productID&type=$type"), "<i class='icon-plus'></i> {$this->lang->design->create}", '', "class='btn btn-primary'");
+            if (common::hasPriv('design', 'batchCreate')) $this->lang->TRActions .= html::a(inlink('batchCreate', "projectID=$projectID&productID=$productID&type=$type"), "<i class='icon-plus'></i> {$this->lang->design->batchCreate}", '', "class='btn btn-primary'");
+        }
 
         /* Init pager and get designs. */
         $this->app->loadClass('pager', $static = true);
@@ -130,12 +136,10 @@ class design extends control
     {
         $productID = $this->commonAction($projectID, $productID);
 
-        if($_POST)
-        {
+        if ($_POST) {
             $designID = $this->design->create($projectID);
 
-            if(dao::isError())
-            {
+            if (dao::isError()) {
                 $response['result']  = 'fail';
                 $response['message'] = dao::getError();
                 return $this->send($response);
@@ -174,12 +178,10 @@ class design extends control
     {
         $productID = $this->commonAction($projectID, $productID);
 
-        if($_POST)
-        {
+        if ($_POST) {
             $this->design->batchCreate($projectID, $productID);
 
-            if(dao::isError())
-            {
+            if (dao::isError()) {
                 $response['result']  = 'fail';
                 $response['message'] = dao::getError();
                 return $this->send($response);
@@ -238,19 +240,16 @@ class design extends control
         $design = $this->design->getAffectedScope($design);
         $productID = $this->commonAction($design->project, $design->product, $designID);
 
-        if($_POST)
-        {
+        if ($_POST) {
             $changes = $this->design->update($designID);
 
-            if(dao::isError())
-            {
+            if (dao::isError()) {
                 $response['result']  = 'fail';
                 $response['message'] = dao::getError();
                 return $this->send($response);
             }
 
-            if(!empty($changes))
-            {
+            if (!empty($changes)) {
                 $actionID = $this->loadModel('action')->create('design', $designID, 'changed');
                 $this->action->logHistory($actionID, $changes);
             }
@@ -298,13 +297,12 @@ class design extends control
         $repos  = $this->loadModel('repo')->getRepoPairs('project', $design->project);
         $repoID = $repoID ? $repoID : key($repos);
 
-        if(empty($repoID)) return print(js::locate(helper::createLink('repo', 'create', "objectID=$design->project")));
+        if (empty($repoID)) return print(js::locate(helper::createLink('repo', 'create', "objectID=$design->project")));
 
         $repo      = $this->loadModel('repo')->getRepoByID($repoID);
         $revisions = $this->repo->getCommits($repo, '', 'HEAD', '', '', $begin, $end);
 
-        if($_POST)
-        {
+        if ($_POST) {
             $this->design->linkCommit($designID, $repoID);
 
             $result['result']  = 'success';
@@ -316,11 +314,10 @@ class design extends control
         /* Linked submission. */
         $linkedRevisions = array();
         $relations = $this->loadModel('common')->getRelations('design', $designID, 'commit');
-        foreach($relations as $relation) $linkedRevisions[$relation->BID] = $relation->BID;
+        foreach ($relations as $relation) $linkedRevisions[$relation->BID] = $relation->BID;
 
-        foreach($revisions as $id => $commit)
-        {
-            if(isset($linkedRevisions[$commit->id])) unset($revisions[$id]);
+        foreach ($revisions as $id => $commit) {
+            if (isset($linkedRevisions[$commit->id])) unset($revisions[$id]);
         }
 
         /* Init pager. */
@@ -358,12 +355,9 @@ class design extends control
      */
     public function unlinkCommit($designID = 0, $commitID = 0, $confirm = 'no')
     {
-        if($confirm == 'no')
-        {
+        if ($confirm == 'no') {
             return print(js::confirm($this->lang->design->confirmUnlink, inlink('unlinkCommit', "designID=$designID&commitID=$commitID&confirm=yes")));
-        }
-        else
-        {
+        } else {
             $this->design->unlinkCommit($designID, $commitID);
 
             return print(js::reload('parent'));
@@ -444,12 +438,9 @@ class design extends control
      */
     public function delete($designID = 0, $confirm = 'no')
     {
-        if($confirm == 'no')
-        {
+        if ($confirm == 'no') {
             return print(js::confirm($this->lang->design->confirmDelete, inlink('delete', "designID=$designID&confirm=yes")));
-        }
-        else
-        {
+        } else {
             $this->design->delete(TABLE_DESIGN, $designID);
             $this->dao->delete()->from(TABLE_RELATION)->where('Atype')->eq('design')->andWhere('AID')->eq($designID)->andWhere('Btype')->eq('commit')->andwhere('relation')->eq('completedin')->exec();
             $this->dao->delete()->from(TABLE_RELATION)->where('Atype')->eq('commit')->andWhere('BID')->eq($designID)->andWhere('Btype')->eq('design')->andwhere('relation')->eq('completedfrom')->exec();
@@ -467,19 +458,17 @@ class design extends control
      */
     public function assignTo($designID = 0)
     {
-        if($_POST)
-        {
+        if ($_POST) {
             $changes = $this->design->assign($designID);
-            if(dao::isError()) return print(js::error(dao::getError()));
+            if (dao::isError()) return print(js::error(dao::getError()));
 
             $this->loadModel('action');
-            if(!empty($changes))
-            {
+            if (!empty($changes)) {
                 $actionID = $this->action->create('design', $designID, 'Assigned', $this->post->comment, $this->post->assignedTo);
                 $this->action->logHistory($actionID, $changes);
             }
 
-            if(isonlybody()) return print(js::closeModal('parent.parent', 'this'));
+            if (isonlybody()) return print(js::closeModal('parent.parent', 'this'));
             return print(js::locate($this->createLink('design', 'browse'), 'parent'));
         }
 

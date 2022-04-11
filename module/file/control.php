@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The control file of file module of ZenTaoPMS.
  *
@@ -23,13 +24,10 @@ class file extends control
      */
     public function buildForm($fileCount = 1, $percent = 0.9, $filesName = "files", $labelsName = "labels")
     {
-        if(!file_exists($this->file->savePath))
-        {
+        if (!file_exists($this->file->savePath)) {
             printf($this->lang->file->errorNotExists, $this->file->savePath);
             return false;
-        }
-        elseif(!is_writable($this->file->savePath))
-        {
+        } elseif (!is_writable($this->file->savePath)) {
             printf($this->lang->file->errorCanNotWrite, $this->file->savePath, $this->file->savePath);
             return false;
         }
@@ -50,21 +48,15 @@ class file extends control
     {
         $file = $this->file->getUpload('imgFile');
         $file = $file[0];
-        if($file)
-        {
-            if($file['size'] == 0)
-            {
-                if(defined('RUN_MODE') && RUN_MODE == 'api')
-                {
-                    die(json_encode(array('status' => 'error', 'message' => $this->lang->file->errorFileUpload)));
-                }
-                else
-                {
-                    die(json_encode(array('error' => 1, 'message' => $this->lang->file->errorFileUpload)));
+        if ($file) {
+            if ($file['size'] == 0) {
+                if (defined('RUN_MODE') && RUN_MODE == 'api') {
+                    return print(json_encode(array('status' => 'error', 'message' => $this->lang->file->errorFileUpload)));
+                } else {
+                    return print(json_encode(array('error' => 1, 'message' => $this->lang->file->errorFileUpload)));
                 }
             }
-            if(@move_uploaded_file($file['tmpname'], $this->file->savePath . $this->file->getSaveName($file['pathname'])))
-            {
+            if (@move_uploaded_file($file['tmpname'], $this->file->savePath . $this->file->getSaveName($file['pathname']))) {
                 /* Compress image for jpg and bmp. */
                 $file = $this->file->compressImage($file);
 
@@ -75,28 +67,20 @@ class file extends control
 
                 $fileID = $this->dao->lastInsertID();
                 $url    = $this->createLink('file', 'read', "fileID=$fileID", $file['extension']);
-                if($uid) $_SESSION['album'][$uid][] = $fileID;
-                if(defined('RUN_MODE') && RUN_MODE == 'api')
-                {
-                    if($uid) $_SESSION['album']['used'][$uid][$fileID] = $fileID;
+                if ($uid) $_SESSION['album'][$uid][] = $fileID;
+                if (defined('RUN_MODE') && RUN_MODE == 'api') {
+                    if ($uid) $_SESSION['album']['used'][$uid][$fileID] = $fileID;
                     $_SERVER['SCRIPT_NAME'] = 'index.php';
                     return $this->send(array('status' => 'success', 'id' => $fileID, 'data' => commonModel::getSysURL() . $this->config->webRoot . $url));
+                } else {
+                    return print(json_encode(array('error' => 0, 'url' => $url)));
                 }
-                else
-                {
-                    die(json_encode(array('error' => 0, 'url' => $url)));
-                }
-            }
-            else
-            {
+            } else {
                 $error = strip_tags(sprintf($this->lang->file->errorCanNotWrite, $this->file->savePath, $this->file->savePath));
-                if(defined('RUN_MODE') && RUN_MODE == 'api')
-                {
+                if (defined('RUN_MODE') && RUN_MODE == 'api') {
                     return $this->send(array('status' => 'error', 'message' => $error));
-                }
-                else
-                {
-                    die(json_encode(array('error' => 1, 'message' => $error)));
+                } else {
+                    return print(json_encode(array('error' => 1, 'message' => $error)));
                 }
             }
         }
@@ -113,55 +97,44 @@ class file extends control
      */
     public function download($fileID, $mouse = '')
     {
-        if(session_id() != $this->app->sessionID) helper::restartSession($this->app->sessionID);
+        if (session_id() != $this->app->sessionID) helper::restartSession($this->app->sessionID);
         $file = $this->file->getById($fileID);
-        if(empty($file))
-        {
-            if(defined('RUN_MODE') && RUN_MODE == 'api') return $this->send(array('status' => 'fail', 'code' => 404, 'message' => $this->lang->file->fileNotFound));
-            die("<html><head><meta charset='utf-8'></head><body>{$this->lang->file->fileNotFound}</body></html>");
+        if (empty($file)) {
+            if (defined('RUN_MODE') && RUN_MODE == 'api') return $this->send(array('status' => 'fail', 'code' => 404, 'message' => $this->lang->file->fileNotFound));
+            return print("<html><head><meta charset='utf-8'></head><body>{$this->lang->file->fileNotFound}</body></html>");
         }
 
         /* Judge the mode, down or open. */
         $mode      = 'down';
         $fileTypes = 'txt|jpg|jpeg|gif|png|bmp|xml|html';
-        if(stripos($fileTypes, $file->extension) !== false && $mouse == 'left') $mode = 'open';
-        if($file->extension == 'txt')
-        {
+        if (stripos($fileTypes, $file->extension) !== false && $mouse == 'left') $mode = 'open';
+        if ($file->extension == 'txt') {
             $extension = 'txt';
-            if(($postion = strrpos($file->title, '.')) !== false) $extension = substr($file->title, $postion + 1);
-            if($extension != 'txt') $mode = 'down';
+            if (($postion = strrpos($file->title, '.')) !== false) $extension = substr($file->title, $postion + 1);
+            if ($extension != 'txt') $mode = 'down';
             $file->extension = $extension;
         }
 
-        if(file_exists($file->realPath))
-        {
+        if (file_exists($file->realPath)) {
             /* If the mode is open, locate directly. */
-            if($mode == 'open')
-            {
-                if(stripos('txt|jpg|jpeg|gif|png|bmp', $file->extension) !== false)
-                {
+            if ($mode == 'open') {
+                if (stripos('txt|jpg|jpeg|gif|png|bmp', $file->extension) !== false) {
                     $this->view->file     = $file;
                     $this->view->charset  = $this->get->charset ? $this->get->charset : $this->config->charset;
                     $this->view->fileType = ($file->extension == 'txt') ? 'txt' : 'image';
                     $this->display();
-                }
-                else
-                {
+                } else {
                     $this->locate($file->webPath);
                 }
-            }
-            else
-            {
+            } else {
                 /* Down the file. */
                 $fileName = $file->title;
-                if(!preg_match("/\.{$file->extension}$/", $fileName)) $fileName .= '.' . $file->extension;
+                if (!preg_match("/\.{$file->extension}$/", $fileName)) $fileName .= '.' . $file->extension;
                 $this->sendDownHeader($fileName, $file->extension, $file->realPath, 'file');
             }
-        }
-        else
-        {
-            if(defined('RUN_MODE') && RUN_MODE == 'api') return $this->send(array('status' => 'fail', 'code' => 404, 'message' => $this->lang->file->fileNotFound));
-            die("<html><head><meta charset='utf-8'></head><body>{$this->lang->file->fileNotFound}</body></html>");
+        } else {
+            if (defined('RUN_MODE') && RUN_MODE == 'api') return $this->send(array('status' => 'fail', 'code' => 404, 'message' => $this->lang->file->fileNotFound));
+            return print("<html><head><meta charset='utf-8'></head><body>{$this->lang->file->fileNotFound}</body></html>");
         }
     }
 
@@ -176,7 +149,7 @@ class file extends control
         $this->view->fields = $this->post->fields;
         $this->view->rows   = $this->post->rows;
         $output = $this->parse('file', 'export2csv');
-        if($this->post->encode != "utf-8") $output = helper::convertEncoding($output, 'utf-8', $this->post->encode . '//TRANSLIT');
+        if ($this->post->encode != "utf-8") $output = helper::convertEncoding($output, 'utf-8', $this->post->encode . '//TRANSLIT');
 
         $this->sendDownHeader($this->post->fileName, 'csv', $output);
     }
@@ -209,32 +182,27 @@ class file extends control
         $this->view->rows   = $this->post->rows;
         $this->host         = common::getSysURL();
 
-        switch($this->post->kind)
-        {
+        switch ($this->post->kind) {
             case 'task':
-            foreach($this->view->rows as $row)
-            {
-                $row->name = html::a($this->host . $this->createLink('task', 'view', "taskID=$row->id"), $row->name);
-            }
-            break;
+                foreach ($this->view->rows as $row) {
+                    $row->name = html::a($this->host . $this->createLink('task', 'view', "taskID=$row->id"), $row->name);
+                }
+                break;
             case 'story':
-            foreach($this->view->rows as $row)
-            {
-                $row->title= html::a($this->host . $this->createLink('story', 'view', "storyID=$row->id"), $row->title);
-            }
-            break;
+                foreach ($this->view->rows as $row) {
+                    $row->title = html::a($this->host . $this->createLink('story', 'view', "storyID=$row->id"), $row->title);
+                }
+                break;
             case 'bug':
-            foreach($this->view->rows as $row)
-            {
-                $row->title= html::a($this->host . $this->createLink('bug', 'view', "bugID=$row->id"), $row->title);
-            }
-            break;
+                foreach ($this->view->rows as $row) {
+                    $row->title = html::a($this->host . $this->createLink('bug', 'view', "bugID=$row->id"), $row->title);
+                }
+                break;
             case 'testcase':
-            foreach($this->view->rows as $row)
-            {
-                $row->title= html::a($this->host . $this->createLink('testcase', 'view', "caseID=$row->id"), $row->title);
-            }
-            break;
+                foreach ($this->view->rows as $row) {
+                    $row->title = html::a($this->host . $this->createLink('testcase', 'view', "caseID=$row->id"), $row->title);
+                }
+                break;
         }
         $this->view->fileName = $this->post->fileName;
         $output = $this->parse('file', 'export2Html');
@@ -265,19 +233,16 @@ class file extends control
      */
     public function delete($fileID, $confirm = 'no')
     {
-        if($confirm == 'no')
-        {
-            die(js::confirm($this->lang->file->confirmDelete, inlink('delete', "fileID=$fileID&confirm=yes")));
-        }
-        else
-        {
+        if ($confirm == 'no') {
+            return print(js::confirm($this->lang->file->confirmDelete, inlink('delete', "fileID=$fileID&confirm=yes")));
+        } else {
             $file = $this->file->getById($fileID);
             $this->dao->delete()->from(TABLE_FILE)->where('id')->eq($fileID)->exec();
-            $this->loadModel('action')->create($file->objectType, $file->objectID, 'deletedFile', '', $extra=$file->title);
+            $this->loadModel('action')->create($file->objectType, $file->objectID, 'deletedFile', '', $extra = $file->title);
             /* Fix Bug #1518. */
             $fileRecord = $this->dao->select('id')->from(TABLE_FILE)->where('pathname')->eq($file->pathname)->fetch();
-            if(empty($fileRecord)) @unlink($file->realPath);
-            die(js::reload('parent'));
+            if (empty($fileRecord)) @unlink($file->realPath);
+            return print(js::reload('parent'));
         }
     }
 
@@ -307,15 +272,13 @@ class file extends control
      */
     public function edit($fileID)
     {
-        if($_POST)
-        {
+        if ($_POST) {
             $this->app->loadLang('action');
             $file = $this->file->getByID($fileID);
             $data = fixer::input('post')->get();
-            if(validater::checkLength($data->fileName, 80, 1) == false)
-            {
+            if (validater::checkLength($data->fileName, 80, 1) == false) {
                 $errTip = $this->lang->error->length;
-                die(js::alert(sprintf($errTip[1], $this->lang->file->title, 80, 1)));
+                return print(js::alert(sprintf($errTip[1], $this->lang->file->title, 80, 1)));
             }
             $fileName = $data->fileName . '.' . $data->extension;
             $this->dao->update(TABLE_FILE)->set('title')->eq($fileName)->where('id')->eq($fileID)->exec();
@@ -325,7 +288,7 @@ class file extends control
             $changes[] = array('field' => 'fileName', 'old' => $file->title . $extension, 'new' => $fileName);
             $this->action->logHistory($actionID, $changes);
 
-            die(js::reload('parent.parent'));
+            return print(js::reload('parent.parent'));
         }
 
         $this->view->file = $this->file->getById($fileID);
@@ -340,7 +303,7 @@ class file extends control
      */
     public function ajaxPasteImg($uid = '')
     {
-        if($_POST) die($this->file->pasteImage($this->post->editor, $uid));
+        if ($_POST) return print($this->file->pasteImage($this->post->editor, $uid, $safe = true));
     }
 
     /**
@@ -353,40 +316,33 @@ class file extends control
      */
     public function uploadImages($module, $params, $uid = '', $locate = false)
     {
-        if($locate)
-        {
+        if ($locate) {
             $sessionName = $uid . 'ImagesFile';
             $imageFiles  = $this->session->$sessionName;
             $this->session->set($module . 'ImagesFile', $imageFiles);
             unset($_SESSION[$sessionName]);
-            die(js::locate($this->createLink($module, 'batchCreate', helper::safe64Decode($params)), 'parent'));
+            return print(js::locate($this->createLink($module, 'batchCreate', helper::safe64Decode($params)), 'parent'));
         }
 
-        if($_FILES)
-        {
+        if ($_FILES) {
             $file = $this->file->getUploadFile('file');
-            if(!$file) die(json_encode(array('result' => 'fail', 'message' => $this->lang->error->noData)));
-            if(empty($file['extension']) or !in_array($file['extension'], $this->config->file->imageExtensions))
-            {
-                die(json_encode(array('result' => 'fail', 'message' => $this->lang->file->errorFileFormate)));
+            if (!$file) return print(json_encode(array('result' => 'fail', 'message' => $this->lang->error->noData)));
+            if (empty($file['extension']) or !in_array($file['extension'], $this->config->file->imageExtensions)) {
+                return print(json_encode(array('result' => 'fail', 'message' => $this->lang->file->errorFileFormate)));
             }
 
             $imageFile = $this->file->saveUploadFile($file, $uid);
-            if($imageFile === false)
-            {
-                die(json_encode(array('result' => 'fail', 'message' => $this->lang->file->errorFileMove)));
-            }
-            else
-            {
-                if(!empty($imageFile))
-                {
+            if ($imageFile === false) {
+                return print(json_encode(array('result' => 'fail', 'message' => $this->lang->file->errorFileMove)));
+            } else {
+                if (!empty($imageFile)) {
                     $sessionName = $uid . 'ImagesFile';
                     $imageFiles  = $this->session->$sessionName;
                     $fileName    = basename($imageFile['pathname']);
                     $imageFiles[$fileName] = $imageFile;
                     $this->session->set($sessionName, $imageFiles);
                 }
-                die(json_encode(array('result' => 'success', 'file' => $file, 'message' => $this->lang->file->uploadSuccess)));
+                return print(json_encode(array('result' => 'success', 'file' => $file, 'message' => $this->lang->file->uploadSuccess)));
             }
         }
 
@@ -409,7 +365,7 @@ class file extends control
     {
         $templates       = $this->file->getExportTemplate($module);
         $templatePairs[] = $this->lang->file->defaultTPL;
-        foreach($templates as $template) $templatePairs[$template->id] = ($template->public ? "[{$this->lang->public}] " : '') . $template->title;
+        foreach ($templates as $template) $templatePairs[$template->id] = ($template->public ? "[{$this->lang->public}] " : '') . $template->title;
 
         $this->view->templates     = $templates;
         $this->view->templatePairs = $templatePairs;
@@ -427,12 +383,11 @@ class file extends control
     public function ajaxSaveTemplate($module)
     {
         $templateID = $this->file->saveExportTemplate($module);
-        if(dao::isError())
-        {
+        if (dao::isError()) {
             echo js::error(dao::getError(), $full = false);
             $templateID = 0;
         }
-        die($this->fetch('file', 'buildExportTPL', "module=$module&templateID=$templateID"));
+        return print($this->fetch('file', 'buildExportTPL', "module=$module&templateID=$templateID"));
     }
 
     /**
@@ -445,7 +400,6 @@ class file extends control
     public function ajaxDeleteTemplate($templateID)
     {
         $this->dao->delete()->from(TABLE_USERTPL)->where('id')->eq($templateID)->andWhere('account')->eq($this->app->user->account)->exec();
-        die();
     }
 
     /**
@@ -458,10 +412,10 @@ class file extends control
     public function read($fileID)
     {
         $file = $this->file->getById($fileID);
-        if(empty($file) or !file_exists($file->realPath)) return false;
+        if (empty($file) or !file_exists($file->realPath)) return false;
 
         $obLevel = ob_get_level();
-        for($i = 0; $i < $obLevel; $i++) ob_end_clean();
+        for ($i = 0; $i < $obLevel; $i++) ob_end_clean();
 
         $mime = (isset($file->extension) and in_array($file->extension, $this->config->file->imageExtensions)) ? "image/{$file->extension}" : $this->config->file->mimes['default'];
         header("Content-type: $mime");
@@ -473,9 +427,8 @@ class file extends control
         header("Cache-Control: max-age=$cacheMaxAge");
 
         $handle = fopen($file->realPath, "r");
-        if($handle)
-        {
-            while(!feof($handle)) echo fgets($handle);
+        if ($handle) {
+            while (!feof($handle)) echo fgets($handle);
             fclose($handle);
         }
     }

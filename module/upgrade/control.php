@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The control file of upgrade module of ZenTaoPMS.
  *
@@ -21,18 +22,17 @@ class upgrade extends control
     {
         /* Locate to index page of my module, if upgrade.php does not exist. */
         $upgradeFile = $this->app->wwwRoot . 'upgrade.php';
-        if(!file_exists($upgradeFile)) $this->locate($this->createLink('my', 'index'));
+        if (!file_exists($upgradeFile)) $this->locate($this->createLink('my', 'index'));
 
         $this->upgrade->deleteTmpModel();
 
         $systemMode = $this->loadModel('setting')->getItem('owner=system&module=common&section=global&key=mode');
-        if(empty($systemMode) && !isset($this->config->qcVersion))
-        {
+        if (empty($systemMode) && !isset($this->config->qcVersion)) {
             /* Judge upgrade step. */
             $upgradeStep = $this->loadModel('setting')->getItem('owner=system&module=common&section=global&key=upgradeStep');
-            if($upgradeStep == 'mergeProgram') $this->locate(inlink('mergeProgram'));
+            if ($upgradeStep == 'mergeProgram') $this->locate(inlink('mergeProgram'));
         }
-        if(version_compare($this->config->installedVersion, '6.4', '<=')) $this->locate(inlink('license'));
+        if (version_compare($this->config->installedVersion, '6.4', '<=')) $this->locate(inlink('license'));
         $this->locate(inlink('backup'));
     }
 
@@ -44,14 +44,14 @@ class upgrade extends control
      */
     public function license()
     {
-        if($this->get->agree == true) $this->locate(inlink('backup'));
+        if ($this->get->agree == true) $this->locate(inlink('backup'));
 
         $clientLang = $this->app->getClientLang();
         $licenseCN  = file_get_contents($this->app->getBasePath() . 'doc/LICENSE.CN');
         $licenseEN  = file_get_contents($this->app->getBasePath() . 'doc/LICENSE.EN');
 
         $license = $licenseEN . $licenseCN;
-        if($clientLang == 'zh-cn' or $clientLang == 'zh-tw') $license = $licenseCN . $licenseEN;
+        if ($clientLang == 'zh-cn' or $clientLang == 'zh-tw') $license = $licenseCN . $licenseEN;
 
         $this->view->title   = $this->lang->upgrade->common;
         $this->view->license = $license;
@@ -103,7 +103,7 @@ class upgrade extends control
         $this->view->fromVersion = $this->post->fromVersion;
 
         /* When sql is empty then skip it. */
-        if(empty($this->view->confirm)) $this->locate(inlink('execute', "fromVersion={$this->post->fromVersion}"));
+        if (empty($this->view->confirm)) $this->locate(inlink('execute', "fromVersion={$this->post->fromVersion}"));
 
         $this->display();
     }
@@ -122,23 +122,21 @@ class upgrade extends control
         $this->view->position[] = $this->lang->upgrade->common;
 
         $result = $this->upgrade->deleteFiles();
-        if($result)
-        {
+        if ($result) {
             $this->view->result = 'fail';
             $this->view->errors  = $result;
 
-            die($this->display());
+            return $this->display();
         }
 
         $fromVersion = isset($_POST['fromVersion']) ? $this->post->fromVersion : $fromVersion;
         $this->upgrade->execute($fromVersion);
 
-        if(!$this->upgrade->isError())
-        {
+        if (!$this->upgrade->isError()) {
             $systemMode = $this->loadModel('setting')->getItem('owner=system&module=common&section=global&key=mode');
-            if((empty($systemMode) && !isset($this->config->qcVersion) && strpos($fromVersion, 'max') === false) or
-               ($systemMode != 'new' && strpos($fromVersion, 'max') === false && strpos($this->config->version, 'max') !== false))
-            {
+            if ((empty($systemMode) && !isset($this->config->qcVersion) && strpos($fromVersion, 'max') === false) or
+                ($systemMode != 'new' && strpos($fromVersion, 'max') === false && strpos($this->config->version, 'max') !== false)
+            ) {
                 $this->locate(inlink('to15Guide', "fromVersion=$fromVersion"));
             }
             $this->locate(inlink('afterExec', "fromVersion=$fromVersion"));
@@ -158,44 +156,32 @@ class upgrade extends control
      */
     public function to15Guide($fromVersion)
     {
-        if($_POST)
-        {
+        if ($_POST) {
             $mode = fixer::input('post')->get('mode');
             $this->loadModel('setting')->setItem('system.common.global.mode', $mode);
 
             /* Update sprint concept. */
             $sprintConcept = 0;
-            if(isset($this->config->custom->sprintConcept))
-            {
-                if($this->config->custom->sprintConcept == 2 and $mode == 'new') $sprintConcept = 1;
-            }
-            elseif(isset($this->config->custom->productProject))
-            {
+            if (isset($this->config->custom->sprintConcept)) {
+                if ($this->config->custom->sprintConcept == 2 and $mode == 'new') $sprintConcept = 1;
+            } elseif (isset($this->config->custom->productProject)) {
                 list($productConcept, $projectConcept) = explode('_', $this->config->custom->productProject);
-                if($mode == 'classic') $sprintConcept = $projectConcept;
-                if($mode == 'new' and $projectConcept == 2) $sprintConcept = 1;
+                if ($mode == 'classic') $sprintConcept = $projectConcept;
+                if ($mode == 'new' and $projectConcept == 2) $sprintConcept = 1;
             }
             $this->setting->setItem('system.custom.sprintConcept', $sprintConcept);
 
-            if($mode == 'classic') $this->locate(inlink('afterExec', "fromVersion=$fromVersion"));
-            if($mode == 'new')     $this->locate(inlink('mergeTips'));
+            if ($mode == 'classic') $this->locate(inlink('afterExec', "fromVersion=$fromVersion"));
+            if ($mode == 'new')     $this->locate(inlink('mergeTips'));
         }
 
         $title = $this->lang->upgrade->toPMS15Guide;
-        if(isset($this->config->maxVersion))
-        {
+        if ($this->config->edition == 'max') {
             $this->lang->upgrade->to15Desc = str_replace('15.0', $this->lang->maxName, $this->lang->upgrade->to15Desc);
             $title = $this->lang->upgrade->toMAXGuide;
-        }
-        elseif(isset($this->config->bizVersion))
-        {
+        } elseif ($this->config->edition == 'biz') {
             $this->lang->upgrade->to15Desc = str_replace('15', $this->lang->bizName . '5', $this->lang->upgrade->to15Desc);
             $title = $this->lang->upgrade->toBIZ5Guide;
-        }
-        elseif(isset($this->config->proVersion))
-        {
-            $this->lang->upgrade->to15Desc = str_replace('15', $this->lang->proName . '10', $this->lang->upgrade->to15Desc);
-            $title = $this->lang->upgrade->toPRO10Guide;
         }
 
         $this->view->title = $title;
@@ -232,11 +218,9 @@ class upgrade extends control
         $this->app->loadLang('product');
         $this->app->loadConfig('execution');
 
-        if($_POST)
-        {
+        if ($_POST) {
             $projectType = isset($_POST['projectType']) ? $_POST['projectType'] : 'project';
-            if($type == 'productline')
-            {
+            if ($type == 'productline') {
                 $linkedProducts = array();
                 $linkedSprints  = array();
                 $unlinkSprints  = array();
@@ -244,16 +228,12 @@ class upgrade extends control
                 $singleProducts = array();
 
                 /* Compute checked products and sprints, unchecked products and sprints. */
-                foreach($_POST['products'] as $lineID => $products)
-                {
-                    foreach($products as $productID)
-                    {
+                foreach ($_POST['products'] as $lineID => $products) {
+                    foreach ($products as $productID) {
                         $linkedProducts[$productID] = $productID;
 
-                        if(isset($_POST['sprints'][$lineID][$productID]))
-                        {
-                            foreach($_POST['sprints'][$lineID][$productID] as $sprintID)
-                            {
+                        if (isset($_POST['sprints'][$lineID][$productID])) {
+                            foreach ($_POST['sprints'][$lineID][$productID] as $sprintID) {
                                 $linkedSprints[$sprintID]  = $sprintID;
                                 $sprintProducts[$sprintID] = $productID;
                                 unset($_POST['sprintIdList'][$lineID][$productID][$sprintID]);
@@ -265,48 +245,38 @@ class upgrade extends control
 
                 /* Create Program. */
                 list($programID, $projectList, $lineID) = $this->upgrade->createProgram($linkedProducts, $linkedSprints);
-                if(dao::isError()) die(js::error(dao::getError()));
+                if (dao::isError()) return print(js::error(dao::getError()));
 
                 /* Process merged products and projects. */
-                if($_POST['projectType'] == 'execution')
-                {
+                if ($_POST['projectType'] == 'execution') {
                     /* Use historical projects as execution upgrades. */
                     $this->upgrade->processMergedData($programID, $projectList, $lineID, $linkedProducts, $linkedSprints);
-                }
-                else
-                {
+                } else {
                     /* Use historical projects as project upgrades. */
                     $singleProducts = array_diff($linkedProducts, $sprintProducts);
-                    foreach($linkedSprints as $sprint)
-                    {
+                    foreach ($linkedSprints as $sprint) {
                         $this->upgrade->processMergedData($programID, $projectList[$sprint], $lineID, array($sprintProducts[$sprint] => $sprintProducts[$sprint]), array($sprint => $sprint));
                     }
                 }
 
                 /* When upgrading historical data as a project, handle products that are not linked with the project. */
-                if(!empty($singleProducts)) $this->upgrade->computeProductAcl($singleProducts, $programID);
+                if (!empty($singleProducts)) $this->upgrade->computeProductAcl($singleProducts, $programID);
 
                 /* Process unlinked sprint and product. */
-                foreach($linkedProducts as $productID => $product)
-                {
-                    if((isset($unlinkSprints[$productID]) and empty($unlinkSprints[$productID])) || !isset($unlinkSprints[$productID])) $this->dao->update(TABLE_PRODUCT)->set('line')->eq($lineID)->where('id')->eq($productID)->exec();
+                foreach ($linkedProducts as $productID => $product) {
+                    if ((isset($unlinkSprints[$productID]) and empty($unlinkSprints[$productID])) || !isset($unlinkSprints[$productID])) $this->dao->update(TABLE_PRODUCT)->set('line')->eq($lineID)->where('id')->eq($productID)->exec();
                 }
-            }
-            elseif($type == 'product')
-            {
+            } elseif ($type == 'product') {
                 $linkedProducts = array();
                 $linkedSprints  = array();
                 $unlinkSprints  = array();
                 $sprintProducts = array();
                 $singleProducts = array();
-                foreach($_POST['products'] as $productID)
-                {
+                foreach ($_POST['products'] as $productID) {
                     $linkedProducts[$productID] = $productID;
 
-                    if(isset($_POST['sprints'][$productID]))
-                    {
-                        foreach($_POST['sprints'][$productID] as $sprintID)
-                        {
+                    if (isset($_POST['sprints'][$productID])) {
+                        foreach ($_POST['sprints'][$productID] as $sprintID) {
                             $linkedSprints[$sprintID]  = $sprintID;
                             $sprintProducts[$sprintID] = $productID;
                             unset($_POST['sprintIdList'][$productID][$sprintID]);
@@ -317,70 +287,54 @@ class upgrade extends control
 
                 /* Create Program. */
                 list($programID, $projectList, $lineID) = $this->upgrade->createProgram($linkedProducts, $linkedSprints);
-                if(dao::isError()) die(js::error(dao::getError()));
+                if (dao::isError()) return print(js::error(dao::getError()));
 
                 /* Process productline. */
                 $this->dao->delete()->from(TABLE_MODULE)->where('`root`')->eq(0)->andWhere('`type`')->eq('line')->exec();
 
                 /* Process merged products and projects. */
-                if($_POST['projectType'] == 'execution')
-                {
+                if ($_POST['projectType'] == 'execution') {
                     /* Use historical projects as execution upgrades. */
                     $this->upgrade->processMergedData($programID, $projectList, $lineID, $linkedProducts, $linkedSprints);
-                }
-                else
-                {
+                } else {
                     /* Use historical projects as project upgrades. */
                     $singleProducts = array_diff($linkedProducts, $sprintProducts);
-                    foreach($linkedSprints as $sprint)
-                    {
+                    foreach ($linkedSprints as $sprint) {
                         $this->upgrade->processMergedData($programID, $projectList[$sprint], $lineID, array($sprintProducts[$sprint] => $sprintProducts[$sprint]), array($sprint => $sprint));
                     }
                 }
 
                 /* When upgrading historical data as a project, handle products that are not linked with the project. */
-                if(!empty($singleProducts)) $this->upgrade->computeProductAcl($singleProducts, $programID);
-            }
-            elseif($type == 'sprint')
-            {
+                if (!empty($singleProducts)) $this->upgrade->computeProductAcl($singleProducts, $programID);
+            } elseif ($type == 'sprint') {
                 $linkedSprints = $this->post->sprints;
 
                 /* Create Program. */
                 list($programID, $projectList, $lineID) = $this->upgrade->createProgram(array(), $linkedSprints);
-                if(dao::isError()) die(js::error(dao::getError()));
+                if (dao::isError()) return print(js::error(dao::getError()));
 
-                if($_POST['projectType'] == 'execution')
-                {
+                if ($_POST['projectType'] == 'execution') {
                     /* Use historical projects as execution upgrades. */
                     $this->upgrade->processMergedData($programID, $projectList, $lineID, array(), $linkedSprints);
-                }
-                else
-                {
+                } else {
                     /* Use historical projects as project upgrades. */
-                    foreach($linkedSprints as $sprint)
-                    {
+                    foreach ($linkedSprints as $sprint) {
                         $this->upgrade->processMergedData($programID, $projectList[$sprint], $lineID, array(), array($sprint => $sprint));
                     }
                 }
-            }
-            elseif($type == 'moreLink')
-            {
+            } elseif ($type == 'moreLink') {
                 $linkedSprints = $this->post->sprints;
 
                 /* Create Program. */
                 list($programID, $projectList, $lineID) = $this->upgrade->createProgram(array(), $linkedSprints);
-                if(dao::isError()) die(js::error(dao::getError()));
+                if (dao::isError()) return print(js::error(dao::getError()));
 
-                if($_POST['projectType'] == 'execution')
-                {
+                if ($_POST['projectType'] == 'execution') {
                     /* Use historical projects as execution upgrades. */
                     $this->upgrade->processMergedData($programID, $projectList, $lineID, array(), $linkedSprints);
-                }
-                else
-                {
+                } else {
                     /* Use historical projects as project upgrades. */
-                    foreach($linkedSprints as $sprint)
-                    {
+                    foreach ($linkedSprints as $sprint) {
                         $this->upgrade->processMergedData($programID, $projectList[$sprint], $lineID, array(), array($sprint => $sprint));
                     }
                 }
@@ -389,8 +343,7 @@ class upgrade extends control
                 $projectProducts = $this->dao->select('product,project,branch,plan')->from(TABLE_PROJECTPRODUCT)
                     ->where('project')->in($linkedSprints)
                     ->fetchAll();
-                foreach($projectProducts as $projectProduct)
-                {
+                foreach ($projectProducts as $projectProduct) {
                     $data = new stdclass();
                     $data->project = $_POST['projectType'] == 'execution' ? $projectList : $projectList[$projectProduct->project];
                     $data->product = $projectProduct->product;
@@ -401,16 +354,15 @@ class upgrade extends control
                 }
             }
 
-            die(js::locate($this->createLink('upgrade', 'mergeProgram', "type=$type&programID=$programID&projectType=$projectType"), 'parent'));
+            return print(js::locate($this->createLink('upgrade', 'mergeProgram', "type=$type&programID=$programID&projectType=$projectType"), 'parent'));
         }
 
         /* Get no merged product and project count. */
-        $noMergedProductCount = $this->dao->select('count(*) as count')->from(TABLE_PRODUCT)->where('program')->eq(0)->fetch('count');
-        $noMergedSprintCount  = $this->dao->select('count(*) as count')->from(TABLE_PROJECT)->where('grade')->eq(0)->andWhere('path')->eq('')->andWhere('type')->ne('program')->andWhere('deleted')->eq(0)->fetch('count');
+        $noMergedProductCount = $this->dao->select('count(*) as count')->from(TABLE_PRODUCT)->where('program')->eq(0)->andWhere('vision')->eq('rnd')->fetch('count');
+        $noMergedSprintCount  = $this->dao->select('count(*) as count')->from(TABLE_PROJECT)->where('grade')->eq(0)->andWhere('vision')->eq('rnd')->andWhere('path')->eq('')->andWhere('type')->ne('program')->andWhere('deleted')->eq(0)->fetch('count');
 
         /* When all products and projects merged then finish and locate afterExec page. */
-        if(empty($noMergedProductCount) and empty($noMergedSprintCount))
-        {
+        if (empty($noMergedProductCount) and empty($noMergedSprintCount)) {
             $this->upgrade->computeObjectMembers();
             $this->upgrade->initUserView();
             $this->upgrade->setDefaultPriv();
@@ -418,12 +370,12 @@ class upgrade extends control
 
             /* Set defult hourPoint. */
             $hourPoint = $this->loadModel('setting')->getItem('owner=system&module=custom&key=hourPoint');
-            if(empty($hourPoint)) $this->setting->setItem('system.custom.hourPoint', 0);
+            if (empty($hourPoint)) $this->setting->setItem('system.custom.hourPoint', 0);
 
             /* Update sprints history. */
             $sprints = $this->dao->select('id')->from(TABLE_PROJECT)->where('type')->eq('sprint')->fetchAll('id');
             $this->dao->update(TABLE_ACTION)->set('objectType')->eq('execution')->where('objectID')->in(array_keys($sprints))->andWhere('objectType')->eq('project')->exec();
-            die(js::locate($this->createLink('upgrade', 'mergeRepo')));
+            return print(js::locate($this->createLink('upgrade', 'mergeRepo')));
         }
 
         $this->view->noMergedProductCount = $noMergedProductCount;
@@ -433,17 +385,17 @@ class upgrade extends control
         $this->view->type = $type;
 
         /* Get products and projects group by product line. */
-        if($type == 'productline')
-        {
+        if ($type == 'productline') {
             $productlines = $this->dao->select('*')->from(TABLE_MODULE)->where('type')->eq('line')->andWhere('root')->eq(0)->orderBy('id_desc')->fetchAll('id');
 
-            $noMergedProducts = $this->dao->select('*')->from(TABLE_PRODUCT)->where('line')->in(array_keys($productlines))->orderBy('id_desc')->fetchAll('id');
-            if(empty($productlines) || empty($noMergedProducts)) $this->locate($this->createLink('upgrade', 'mergeProgram', "type=product&programID=0&projectType=$projectType"));
+            $noMergedProducts = $this->dao->select('*')->from(TABLE_PRODUCT)->where('line')->in(array_keys($productlines))->andWhere('vision')->eq('rnd')->orderBy('id_desc')->fetchAll('id');
+            if (empty($productlines) || empty($noMergedProducts)) $this->locate($this->createLink('upgrade', 'mergeProgram', "type=product&programID=0&projectType=$projectType"));
 
             $noMergedSprints = $this->dao->select('t1.*')->from(TABLE_PROJECT)->alias('t1')
                 ->leftJoin(TABLE_PROJECTPRODUCT)->alias('t2')->on('t1.id=t2.project')
                 ->where('t1.project')->eq(0)
                 ->andWhere('t1.deleted')->eq(0)
+                ->andWhere('t1.vision')->eq('rnd')
                 ->andWhere('t1.type')->eq('sprint')
                 ->andWhere('t2.product')->in(array_keys($noMergedProducts))
                 ->orderBy('t1.id_desc')
@@ -451,29 +403,26 @@ class upgrade extends control
 
             /* Remove sprint than linked more than two products */
             $sprintProducts = $this->dao->select('*')->from(TABLE_PROJECTPRODUCT)->where('project')->in(array_keys($noMergedSprints))->fetchGroup('project', 'product');
-            foreach($sprintProducts as $sprintID => $products)
-            {
-                if(count($products) > 1) unset($noMergedSprints[$sprintID]);
+            foreach ($sprintProducts as $sprintID => $products) {
+                if (count($products) > 1) unset($noMergedSprints[$sprintID]);
             }
 
             /* Group product by product line. */
             $lineGroups = array();
-            foreach($noMergedProducts as $product) $lineGroups[$product->line][$product->id] = $product;
+            foreach ($noMergedProducts as $product) $lineGroups[$product->line][$product->id] = $product;
 
             /* Group sprint by product. */
             $productGroups = array();
-            foreach($noMergedSprints as $sprint)
-            {
+            foreach ($noMergedSprints as $sprint) {
                 $sprintProduct = zget($sprintProducts, $sprint->id, array());
-                if(empty($sprintProduct)) continue;
+                if (empty($sprintProduct)) continue;
 
                 $productID = key($sprintProduct);
                 $productGroups[$productID][$sprint->id] = $sprint;
             }
 
-            foreach($productlines as $line)
-            {
-                if(!isset($lineGroups[$line->id])) unset($productlines[$line->id]);
+            foreach ($productlines as $line) {
+                if (!isset($lineGroups[$line->id])) unset($productlines[$line->id]);
             }
 
             $this->view->productlines  = $productlines;
@@ -482,12 +431,12 @@ class upgrade extends control
         }
 
         /* Get projects group by product. */
-        if($type == 'product')
-        {
+        if ($type == 'product') {
             $noMergedSprints = $this->dao->select('t2.*')->from(TABLE_PROJECTPRODUCT)->alias('t1')
                 ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project=t2.id')
                 ->where('t2.model')->eq('')
                 ->andWhere('t2.project')->eq(0)
+                ->andWhere('t2.vision')->eq('rnd')
                 ->andWhere('t2.deleted')->eq(0)
                 ->andWhere('t2.type')->eq('sprint')
                 ->fetchAll('id');
@@ -495,10 +444,8 @@ class upgrade extends control
             /* Remove project than linked more than two products */
             $sprintProducts = $this->dao->select('*')->from(TABLE_PROJECTPRODUCT)->where('project')->in(array_keys($noMergedSprints))->fetchGroup('project', 'product');
             $productGroup   = array();
-            foreach($sprintProducts as $sprintID => $products)
-            {
-                if(count($products) > 1)
-                {
+            foreach ($sprintProducts as $sprintID => $products) {
+                if (count($products) > 1) {
                     unset($noMergedSprints[$sprintID]);
                     $productGroup[] = array_keys($products);
                 }
@@ -508,19 +455,19 @@ class upgrade extends control
             $noMergedProducts = $this->dao->select('t1.*')->from(TABLE_PRODUCT)->alias('t1')
                 ->leftJoin(TABLE_PROJECTPRODUCT)->alias('t2')->on('t1.id=t2.product')
                 ->where('t2.project')->in(array_keys($noMergedSprints))
+                ->andWhere('t1.vision')->eq('rnd')
                 ->fetchAll('id');
 
             /* Add products without sprints. */
-            $noMergedProducts += $this->dao->select('*')->from(TABLE_PRODUCT)->where('program')->eq(0)->fetchAll('id');
+            $noMergedProducts += $this->dao->select('*')->from(TABLE_PRODUCT)->where('program')->eq(0)->andWhere('vision')->eq('rnd')->fetchAll('id');
 
-            if(empty($noMergedProducts)) $this->locate($this->createLink('upgrade', 'mergeProgram', "type=sprint&programID=0&projectType=$projectType"));
+            if (empty($noMergedProducts)) $this->locate($this->createLink('upgrade', 'mergeProgram', "type=sprint&programID=0&projectType=$projectType"));
 
             /* Group project by product. */
             $productGroups = array();
-            foreach($noMergedSprints as $sprint)
-            {
+            foreach ($noMergedSprints as $sprint) {
                 $sprintProduct = zget($sprintProducts, $sprint->id, array());
-                if(empty($sprintProduct)) continue;
+                if (empty($sprintProduct)) continue;
 
                 $productID = key($sprintProduct);
                 $productGroups[$productID][$sprint->id] = $sprint;
@@ -531,28 +478,28 @@ class upgrade extends control
         }
 
         /* Get no merged projects than is not linked product. */
-        if($type == 'sprint')
-        {
+        if ($type == 'sprint') {
             $noMergedSprints = $this->dao->select('*')->from(TABLE_PROJECT)
                 ->where('parent')->eq(0)
                 ->andWhere('path')->eq('')
+                ->andWhere('vision')->eq('rnd')
                 ->andWhere('deleted')->eq(0)
                 ->orderBy('id_desc')
                 ->fetchAll('id');
 
             $projectProducts = $this->dao->select('*')->from(TABLE_PROJECTPRODUCT)->where('project')->in(array_keys($noMergedSprints))->fetchGroup('project', 'product');
-            foreach($projectProducts as $sprintID => $products) unset($noMergedSprints[$sprintID]);
+            foreach ($projectProducts as $sprintID => $products) unset($noMergedSprints[$sprintID]);
 
-            if(empty($noMergedSprints)) $this->locate($this->createLink('upgrade', 'mergeProgram', "type=moreLink"));
+            if (empty($noMergedSprints)) $this->locate($this->createLink('upgrade', 'mergeProgram', "type=moreLink"));
 
             $this->view->noMergedSprints = $noMergedSprints;
         }
 
         /* Get no merged projects that link more then two products. */
-        if($type == 'moreLink')
-        {
+        if ($type == 'moreLink') {
             $noMergedSprints = $this->dao->select('*')->from(TABLE_PROJECT)
                 ->where('parent')->eq(0)
+                ->andWhere('vision')->eq('rnd')
                 ->andWhere('path')->eq('')
                 ->andWhere('deleted')->eq(0)
                 ->orderBy('id_desc')
@@ -563,27 +510,25 @@ class upgrade extends control
                 ->fetchGroup('project', 'product');
 
             $productPairs = array();
-            foreach($projectProducts as $sprintID => $products)
-            {
-                foreach($products as $productID => $data) $productPairs[$productID] = $productID;
+            foreach ($projectProducts as $sprintID => $products) {
+                foreach ($products as $productID => $data) $productPairs[$productID] = $productID;
             }
 
             $projects = $this->dao->select('t1.*,t2.product as productID')->from(TABLE_PROJECT)->alias('t1')
                 ->leftJoin(TABLE_PROJECTPRODUCT)->alias('t2')->on('t1.id=t2.project')
                 ->where('t2.product')->in($productPairs)
+                ->andWhere('t1.vision')->eq('rnd')
                 ->andWhere('t1.type')->eq('project')
                 ->fetchAll('productID');
 
-            foreach($noMergedSprints as $sprintID => $sprint)
-            {
+            foreach ($noMergedSprints as $sprintID => $sprint) {
                 $products = zget($projectProducts, $sprintID, array());
-                foreach($products as $productID => $data)
-                {
+                foreach ($products as $productID => $data) {
                     $project = zget($projects, $productID, '');
-                    if($project) $sprint->projects[$project->id] = $project->name;
+                    if ($project) $sprint->projects[$project->id] = $project->name;
                 }
 
-                if(!isset($sprint->projects)) $sprint->projects = $this->dao->select('id,name')->from(TABLE_PROJECT)->where('type')->eq('project')->fetchPairs();
+                if (!isset($sprint->projects)) $sprint->projects = $this->dao->select('id,name')->from(TABLE_PROJECT)->where('type')->eq('project')->andWhere('vision')->eq('rnd')->fetchPairs();
             }
 
             $this->view->noMergedSprints = $noMergedSprints;
@@ -614,20 +559,17 @@ class upgrade extends control
     public function renameObject($type = 'project', $duplicateList = '')
     {
         $this->app->loadLang($type);
-        if($_POST)
-        {
-            foreach($this->post->project as $projectID => $projectName)
-            {
-                if(!$projectName) continue;
+        if ($_POST) {
+            foreach ($this->post->project as $projectID => $projectName) {
+                if (!$projectName) continue;
                 $this->dao->update(TABLE_PROJECT)->set('name')->eq($projectName)->where('id')->eq($projectID)->exec();
             }
 
-            die(js::closeModal('parent.parent', ''));
+            return print(js::closeModal('parent.parent', ''));
         }
 
         $objectGroup = array();
-        if($type == 'project' or $type == 'execution')
-        {
+        if ($type == 'project' or $type == 'execution') {
             $objectGroup = $this->dao->select('id,name')->from(TABLE_PROJECT)
                 ->where('id')->in($duplicateList)
                 ->fetchGroup('name');
@@ -646,20 +588,18 @@ class upgrade extends control
      */
     public function mergeRepo()
     {
-        if($_POST)
-        {
+        if ($_POST) {
             $this->upgrade->mergeRepo();
-            die(js::locate($this->createLink('upgrade', 'mergeRepo'), 'parent'));
+            return print(js::locate($this->createLink('upgrade', 'mergeRepo'), 'parent'));
         }
 
         $repoes   = $this->dao->select('id, name')->from(TABLE_REPO)->where('deleted')->eq(0)->andWhere('product')->eq('')->fetchPairs();
         $products = $this->dao->select('id, name')->from(TABLE_PRODUCT)->where('deleted')->eq(0)->fetchPairs();
-        if(empty($repoes) or empty($products))
-        {
+        if (empty($repoes) or empty($products)) {
             $this->dao->delete()->from(TABLE_BLOCK)->exec();
             $this->dao->delete()->from(TABLE_CONFIG)->where('`key`')->eq('blockInited')->exec();
             $this->loadModel('setting')->deleteItems('owner=system&module=common&section=global&key=upgradeStep');
-            die(js::locate($this->createLink('upgrade', 'afterExec', "fromVersion=&processed=no")));
+            return print(js::locate($this->createLink('upgrade', 'afterExec', "fromVersion=&processed=no")));
         }
 
         $this->view->title    = $this->lang->upgrade->mergeRepo;
@@ -680,7 +620,7 @@ class upgrade extends control
     public function ajaxGetProjectPairsByProgram($programID = 0)
     {
         $projects = array('' => '') + $this->upgrade->getProjectPairsByProgram($programID);
-        die(html::select('projects', $projects, '', 'class="form-control prj-exist" onchange="getProgramStatus(\'project\', this.value)"'));
+        echo html::select('projects', $projects, '', 'class="form-control prj-exist" onchange="getProgramStatus(\'project\', this.value)"');
     }
 
     /**
@@ -693,8 +633,8 @@ class upgrade extends control
     public function ajaxGetLinesPairsByProgram($programID = 0)
     {
         $lines = array('' => '');
-        if((int)$programID) $lines += $this->loadModel('product')->getLinePairs($programID);
-        die(html::select('lines', $lines, '', 'class="form-control line-exist"'));
+        if ((int)$programID) $lines += $this->loadModel('product')->getLinePairs($programID);
+        echo html::select('lines', $lines, '', 'class="form-control line-exist"');
     }
 
     /**
@@ -702,40 +642,50 @@ class upgrade extends control
      *
      * @param  string $fromVersion
      * @param  string $processed
+     * @param  string $skipMoveFile
      * @access public
      * @return void
      */
-    public function afterExec($fromVersion, $processed = 'no')
+    public function afterExec($fromVersion, $processed = 'no', $skipMoveFile = 'no')
     {
         $alterSQL = $this->upgrade->checkConsistency($this->config->version);
-        if(!empty($alterSQL))
-        {
+        if (!empty($alterSQL)) {
             $this->view->title    = $this->lang->upgrade->consistency;
             $this->view->alterSQL = $alterSQL;
-            die($this->display('upgrade', 'consistency'));
+            return print($this->display('upgrade', 'consistency'));
+        }
+
+        $extFiles = $this->upgrade->getExtFiles();
+        if (!empty($extFiles) and $skipMoveFile == 'no') return $this->locate(inlink('moveExtFiles', "fromVersion=$fromVersion"));
+
+        $response = $this->upgrade->removeEncryptedDir();
+        if ($response['result'] == 'fail') {
+            $this->view->title  = $this->lang->upgrade->common;
+            $this->view->errors = $response['command'];
+            $this->view->result = 'fail';
+
+            return $this->display('upgrade', 'execute');
         }
 
         unset($_SESSION['user']);
 
-        if($processed == 'no')
-        {
+        if ($processed == 'no') {
             $this->app->loadLang('install');
             $this->view->title      = $this->lang->upgrade->result;
             $this->view->position[] = $this->lang->upgrade->common;
 
-            $needProcess = $this->upgrade->checkProcess($fromVersion);
+            $needProcess = $this->upgrade->checkProcess();
             $this->view->needProcess = $needProcess;
             $this->view->fromVersion = $fromVersion;
             $this->display();
         }
-        if(empty($needProcess) or $processed == 'yes')
-        {
+        if (empty($needProcess) or $processed == 'yes') {
             $this->loadModel('setting')->updateVersion($this->config->version);
 
             $installFile = $this->app->getAppRoot() . 'www/install.php';
             $upgradeFile = $this->app->getAppRoot() . 'www/upgrade.php';
-            if(file_exists($installFile)) @unlink($installFile);
-            if(file_exists($upgradeFile)) @unlink($upgradeFile);
+            if (file_exists($installFile)) @unlink($installFile);
+            if (file_exists($upgradeFile)) @unlink($upgradeFile);
             unset($_SESSION['upgrading']);
         }
     }
@@ -750,9 +700,8 @@ class upgrade extends control
     {
         set_time_limit(0);
         $alterSQL = $this->upgrade->checkConsistency();
-        if(empty($alterSQL))
-        {
-            if(!$netConnect) $this->locate(inlink('selectVersion'));
+        if (empty($alterSQL)) {
+            if (!$netConnect) $this->locate(inlink('selectVersion'));
             $this->locate(inlink('checkExtension'));
         }
 
@@ -771,32 +720,29 @@ class upgrade extends control
     {
         $this->loadModel('extension');
         $extensions = $this->extension->getLocalExtensions('installed');
-        if(empty($extensions)) $this->locate(inlink('selectVersion'));
+        if (empty($extensions)) $this->locate(inlink('selectVersion'));
 
         $versions = array();
-        foreach($extensions as $code => $extension) $versions[$code] = $extension->version;
+        foreach ($extensions as $code => $extension) $versions[$code] = $extension->version;
 
         $incompatibleExts = $this->extension->checkIncompatible($versions);
         $extensionsName   = array();
-        if(empty($incompatibleExts)) $this->locate(inlink('selectVersion'));
+        if (empty($incompatibleExts)) $this->locate(inlink('selectVersion'));
 
         $removeCommands = array();
-        foreach($incompatibleExts as $extension)
-        {
+        foreach ($incompatibleExts as $extension) {
             $this->extension->updateExtension($extension, array('status' => 'deactivated'));
             $removeCommands[$extension] = $this->extension->removePackage($extension);
             $extensionsName[$extension] = $extensions[$extension]->name;
         }
 
         $data = '';
-        if($extensionsName)
-        {
+        if ($extensionsName) {
             $data .= "<h3>{$this->lang->upgrade->forbiddenExt}</h3>";
             $data .= '<ul>';
-            foreach($extensionsName as $extension => $extensionName)
-            {
+            foreach ($extensionsName as $extension => $extensionName) {
                 $data .= "<li>$extensionName";
-                if($removeCommands[$extension]) $data .= '<p>'. $this->lang->extension->unremovedFiles . '</p> <p>' . join('<br />', $removeCommands[$extension]) . '</p>';
+                if ($removeCommands[$extension]) $data .= '<p>' . $this->lang->extension->unremovedFiles . '</p> <p>' . join('<br />', $removeCommands[$extension]) . '</p>';
                 $data .= '</li>';
             }
             $data .= '</ul>';
@@ -821,15 +767,12 @@ class upgrade extends control
         $this->app->loadLang('search');
         $result = $this->upgrade->updateFileObjectID($type, $lastID);
         $response = array();
-        if($result['type'] == 'finish')
-        {
+        if ($result['type'] == 'finish') {
             $response['result']  = 'finished';
             $response['type']    = $type;
             $response['count']   = $result['count'];
             $response['message'] = $this->lang->search->buildSuccessfully;
-        }
-        else
-        {
+        } else {
             $response['result']   = 'continue';
             $response['next']     = inlink('ajaxUpdateFile', "type={$result['type']}&lastID={$result['lastID']}");
             $response['count']    = $result['count'];
@@ -837,7 +780,61 @@ class upgrade extends control
             $response['nextType'] = $result['type'];
             $response['message']  = zget($this->lang->searchObjects, $result['type']) . " <span class='{$result['type']}-num'>0</span>";
         }
-        die(json_encode($response));
+        echo json_encode($response);
+    }
+
+    /**
+     * Ajax get product name.
+     *
+     * @param  int    $productID
+     * @access public
+     * @return void
+     */
+    public function ajaxGetProductName($productID)
+    {
+        echo $this->dao->findByID($productID)->from(TABLE_PRODUCT)->fetch('name');
+    }
+
+    /**
+     * Ajax get program status.
+     *
+     * @param  int    $projectID
+     * @access public
+     * @return void
+     */
+    public function ajaxGetProgramStatus($programID)
+    {
+        echo $this->dao->select('status')->from(TABLE_PROGRAM)->where('id')->eq($programID)->fetch('status');
+    }
+
+    /**
+     * Move Extent files.
+     *
+     * @param  string $fromVersion
+     * @access public
+     * @return void
+     */
+    public function moveExtFiles($fromVersion)
+    {
+        $command      = '';
+        $result       = 'success';
+        if (strtolower($this->server->request_method) == 'post') {
+            if (!empty($_POST['files'])) {
+                $response = $this->upgrade->moveExtFiles();
+                $result   = $response['result'];
+                if ($result == 'fail') $command = $response['command'];
+            }
+
+            if ($result == 'success') $this->locate($this->inlink('afterExec', "fromVersion=$fromVersion&processed=no&skipMoveFile=yes"));
+        }
+
+        $this->view->title        = $this->lang->upgrade->common;
+        $this->view->files        = $this->upgrade->getExtFiles();
+        $this->view->result       = $result;
+        $this->view->command      = $command;
+        $this->view->fromVersion  = $fromVersion;
+
+        $this->display();
     }
 
     /**

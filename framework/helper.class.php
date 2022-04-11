@@ -1,4 +1,5 @@
 <?php
+
 /**
  * ZenTaoPHP的helper类。
  * The helper class file of ZenTaoPHP framework.
@@ -23,37 +24,27 @@ class helper extends baseHelper
     public static function getViewType($source = false)
     {
         global $config, $app;
-        if($config->requestType != 'GET')
-        {
+        if ($config->requestType != 'GET') {
             $pathInfo = $app->getPathInfo();
-            if(!empty($pathInfo))
-            {
+            if (!empty($pathInfo)) {
                 $dotPos = strrpos($pathInfo, '.');
-                if($dotPos)
-                {
+                if ($dotPos) {
                     $viewType = substr($pathInfo, $dotPos + 1);
-                }
-                else
-                {
+                } else {
                     $config->default->view = $config->default->view == 'mhtml' ? 'html' : $config->default->view;
                 }
             }
-        }
-        elseif($config->requestType == 'GET')
-        {
-            if(isset($_GET[$config->viewVar]))
-            {
+        } elseif ($config->requestType == 'GET') {
+            if (isset($_GET[$config->viewVar])) {
                 $viewType = $_GET[$config->viewVar];
-            }
-            else
-            {
+            } else {
                 /* Set default view when url has not module name. such as only domain. */
                 $config->default->view = ($config->default->view == 'mhtml' and isset($_GET[$config->moduleVar])) ? 'html' : $config->default->view;
             }
         }
-        if($source and isset($viewType)) return $viewType;
+        if ($source and isset($viewType)) return $viewType;
 
-        if(isset($viewType) and strpos($config->views, ',' . $viewType . ',') === false) $viewType = $config->default->view;
+        if (isset($viewType) and strpos($config->views, ',' . $viewType . ',') === false) $viewType = $config->default->view;
         return isset($viewType) ? $viewType : $config->default->view;
     }
 
@@ -69,7 +60,7 @@ class helper extends baseHelper
     public static function jsonEncode4Parse($data, $options = 0)
     {
         $json = json_encode($data);
-        if($options) $json = str_replace(array("'", '"'), array('\u0027', '\u0022'), $json);
+        if ($options) $json = str_replace(array("'", '"'), array('\u0027', '\u0022'), $json);
 
         $escapers     = array("\\",  "/",   "\"", "'", "\n",  "\r",  "\t", "\x08", "\x0c", "\\\\u");
         $replacements = array("\\\\", "\\/", "\\\"", "\'", "\\n", "\\r", "\\t",  "\\f",  "\\b", "\\u");
@@ -89,24 +80,21 @@ class helper extends baseHelper
     public static function convertEncoding($string, $fromEncoding, $toEncoding = 'utf-8')
     {
         $toEncoding = str_replace('utf8', 'utf-8', $toEncoding);
-        if(function_exists('mb_convert_encoding'))
-        {
+        if (function_exists('mb_convert_encoding')) {
             /* Remove like utf-8//TRANSLIT. */
             $position = strpos($toEncoding, '//');
-            if($position !== false) $toEncoding = substr($toEncoding, 0, $position);
+            if ($position !== false) $toEncoding = substr($toEncoding, 0, $position);
 
             /* Check string encoding. */
-            $encodings = array_merge(array('GB2312','GBK','BIG5'), mb_list_encodings());
+            $encodings = array_merge(array('GB2312', 'GBK', 'BIG5'), mb_list_encodings());
             $encoding  = strtolower(mb_detect_encoding($string, $encodings));
-            if($encoding == $toEncoding) return $string;
+            if ($encoding == $toEncoding) return $string;
             return mb_convert_encoding($string, $toEncoding, $encoding);
-        }
-        elseif(function_exists('iconv'))
-        {
-            if($fromEncoding == $toEncoding) return $string;
+        } elseif (function_exists('iconv')) {
+            if ($fromEncoding == $toEncoding) return $string;
             $convertString = @iconv($fromEncoding, $toEncoding, $string);
             /* iconv error then return original. */
-            if(!$convertString) return $string;
+            if (!$convertString) return $string;
             return $convertString;
         }
 
@@ -125,7 +113,7 @@ class helper extends baseHelper
     {
         $begin = strtotime($begin);
         $end   = strtotime($end);
-        if($end < $begin) return false;
+        if ($end < $begin) return false;
 
         $double = floor(($end - $begin) / (7 * 24 * 3600));
         $begin  = date('w', $begin);
@@ -162,8 +150,7 @@ class helper extends baseHelper
     {
         return preg_replace_callback(
             '/([0-9]+)((?:\.[0-9]+)?)((?:\.[0-9]+)?)(?:[\s\-\+]?)((?:[a-z]+)?)((?:\.?[0-9]+)?)/i',
-            function($matches)
-            {
+            function ($matches) {
                 $major      = $matches[1];
                 $minor      = $matches[2];
                 $patch      = $matches[3];
@@ -176,12 +163,11 @@ class helper extends baseHelper
                     $patch ?: ".0",
                 );
 
-                if($preRelease ?: $build) array_push($versionStrs, "-");
-                if($preRelease) array_push($versionStrs, $preRelease);
-                if($build)
-                {
-                    if(!$preRelease) array_push($versionStrs, "build");
-                    if(mb_substr($build, 0, 1) !== ".") array_push($versionStrs, ".");
+                if ($preRelease ?: $build) array_push($versionStrs, "-");
+                if ($preRelease) array_push($versionStrs, $preRelease);
+                if ($build) {
+                    if (!$preRelease) array_push($versionStrs, "build");
+                    if (mb_substr($build, 0, 1) !== ".") array_push($versionStrs, ".");
 
                     array_push($versionStrs, $build);
                 }
@@ -191,43 +177,41 @@ class helper extends baseHelper
         );
     }
 
-	/**
-	 * Trim version to xuanxuan version format.
-	 *
-	 * @param  string    $version
-	 * @access public
-	 * @return string
-	 */
-	public function trimVersion($version)
-	{
-		return preg_replace_callback(
-			'/([0-9]+)((?:\.[0-9]+)?)((?:\.[0-9]+)?)(?:[\s\-\+]?)((?:[a-z]+)?)((?:\.?[0-9]+)?)/i',
-			function($matches)
-			{
-				$major      = $matches[1];
-				$minor      = $matches[2];
-				$patch      = $matches[3];
-				$preRelease = $matches[4];
-				$build      = $matches[5];
+    /**
+     * Trim version to xuanxuan version format.
+     *
+     * @param  string    $version
+     * @access public
+     * @return string
+     */
+    public function trimVersion($version)
+    {
+        return preg_replace_callback(
+            '/([0-9]+)((?:\.[0-9]+)?)((?:\.[0-9]+)?)(?:[\s\-\+]?)((?:[a-z]+)?)((?:\.?[0-9]+)?)/i',
+            function ($matches) {
+                $major      = $matches[1];
+                $minor      = $matches[2];
+                $patch      = $matches[3];
+                $preRelease = $matches[4];
+                $build      = $matches[5];
 
-				$versionStrs = array(
-					$major,
-					$minor ?: ".0",
-				);
+                $versionStrs = array(
+                    $major,
+                    $minor ?: ".0",
+                );
 
-				if($patch && $patch !== ".0" && $patch !== "0") array_push($versionStrs, $patch);
-				if($preRelease ?: $build) array_push($versionStrs, " ");
-				if($preRelease) array_push($versionStrs, $preRelease);
-				if($build)
-				{
-					if(!$preRelease) array_push($versionStrs, "build");
-					array_push($versionStrs, mb_substr($build, 0, 1) === "." ? substr($build, 1) : $build);
-				}
-				return join("", $versionStrs);
-			},
-			$version
-		);
-	}
+                if ($patch && $patch !== ".0" && $patch !== "0") array_push($versionStrs, $patch);
+                if ($preRelease ?: $build) array_push($versionStrs, " ");
+                if ($preRelease) array_push($versionStrs, $preRelease);
+                if ($build) {
+                    if (!$preRelease) array_push($versionStrs, "build");
+                    array_push($versionStrs, mb_substr($build, 0, 1) === "." ? substr($build, 1) : $build);
+                }
+                return join("", $versionStrs);
+            },
+            $version
+        );
+    }
 
     /**
      * Request API.
@@ -242,10 +226,10 @@ class helper extends baseHelper
         global $config;
 
         $url .= (strpos($url, '?') !== false ? '&' : '?') . $config->sessionVar . '=' . session_id();
-        if(isset($_SESSION['user'])) $url .= '&account=' . $_SESSION['user']->account;
+        if (isset($_SESSION['user'])) $url .= '&account=' . $_SESSION['user']->account;
         $response = common::http($url);
         $jsonDecode = json_decode($response);
-        if(empty($jsonDecode)) return $response;
+        if (empty($jsonDecode)) return $response;
         return $jsonDecode;
     }
 
@@ -255,7 +239,7 @@ class helper extends baseHelper
      * @param string $content
      * @return void
      */
-    public static function end($content)
+    public static function end($content = '')
     {
         throw EndResponseException::create($content);
     }
@@ -285,8 +269,8 @@ function formatTime($time, $format = '')
 {
     $time = str_replace('0000-00-00', '', $time);
     $time = str_replace('00:00:00', '', $time);
-    if(trim($time) == '') return ;
-    if($format) return date($format, strtotime($time));
+    if (trim($time) == '') return;
+    if ($format) return date($format, strtotime($time));
     return trim($time);
 }
 
@@ -299,9 +283,8 @@ function formatTime($time, $format = '')
  */
 function autoloader($class)
 {
-    if(!class_exists($class))
-    {
-        if($class == 'post_max_size' or $class == 'max_input_vars') eval('class ' . $class . ' {};');
+    if (!class_exists($class)) {
+        if ($class == 'post_max_size' or $class == 'max_input_vars') eval('class ' . $class . ' {};');
     }
 }
 

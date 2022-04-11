@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The editspace file of kanban module of ZenTaoPMS.
  *
@@ -10,53 +11,54 @@
  * @link        https://www.zentao.net
  */
 ?>
-<?php include '../../common/view/header.html.php';?>
-<?php include '../../common/view/kindeditor.html.php';?>
+<?php include '../../common/view/header.html.php'; ?>
+<?php include '../../common/view/kindeditor.html.php'; ?>
 <div id='mainContent' class='main-content'>
   <div class='main-header'>
-    <h2><?php echo $lang->kanban->editSpace;?></h2>
+    <h2><?php echo $lang->kanban->editSpace; ?></h2>
   </div>
   <form class='form-indicator main-form form-ajax' method='post' enctype='multipart/form-data' id='dataform'>
     <table class='table table-form'>
       <tr>
-        <th><?php echo $lang->kanbanspace->name;?></th>
-        <td><?php echo html::input('name', $space->name, "class='form-control'");?></td>
+        <th><?php echo $lang->kanbanspace->type; ?></th>
+        <td><?php echo html::select('type', $typeList, $defaultType, "onchange='changeType(this.value)' class='form-control chosen'"); ?></td>
         <td></td>
       </tr>
-      <?php if($space->type != 'private'):?>
       <tr>
-        <th><?php echo $lang->kanbanspace->owner;?></th>
-        <td><?php echo html::select('owner', $users, $space->owner, "class='form-control chosen'");?></td>
+        <th><?php echo $lang->kanbanspace->name; ?></th>
+        <td><?php echo html::input('name', $space->name, "class='form-control'"); ?></td>
+        <td></td>
       </tr>
-      <tr>
-        <th><?php echo $lang->kanbanspace->team;?></th>
+      <tr id='ownerBox' class="<?php echo $space->type == 'private' ? 'hidden' : ''; ?>">
+        <th><?php echo $lang->kanbanspace->owner; ?></th>
+        <td><?php echo html::select('owner', $users, $space->owner, "class='form-control chosen'"); ?></td>
+      </tr>
+      <tr id='teamBox' class="<?php echo $space->type == 'private' ? 'hidden' : ''; ?>">
+        <th><?php echo $lang->kanbanspace->team; ?></th>
         <td colspan='2'>
           <div class="input-group">
-            <?php echo html::select('team[]', $users, $space->team, "class='form-control chosen' multiple data-drop_direction='down'");?>
-            <?php echo $this->fetch('my', 'buildContactLists');?>
+            <?php echo html::select('team[]', $users, $team, "class='form-control chosen' multiple data-drop_direction='down'"); ?>
+            <?php echo $this->fetch('my', 'buildContactLists'); ?>
           </div>
         </td>
       </tr>
-      <?php endif;?>
       <tr>
-        <th><?php echo $lang->kanbanspace->desc;?></th>
+        <th><?php echo $lang->kanbanspace->desc; ?></th>
         <td colspan='2'>
-          <?php echo $this->fetch('user', 'ajaxPrintTemplates', 'type=kanbanSpace&link=desc');?>
-          <?php echo html::textarea('desc', $space->desc, "rows='10' class='form-control'");?>
+          <?php echo $this->fetch('user', 'ajaxPrintTemplates', 'type=kanbanSpace&link=desc'); ?>
+          <?php echo html::textarea('desc', $space->desc, "rows='10' class='form-control'"); ?>
         </td>
       </tr>
-      <?php if($space->type == 'private'):?>
-      <tr id="whitelistBox">
-        <th><?php echo $lang->whitelist;?></th>
-        <td><?php echo html::select('whitelist[]', $users, $space->whitelist, 'class="form-control chosen" multiple');?></td>
+      <tr id="whitelistBox" class="<?php echo $space->type == 'private' ? '' : 'hidden'; ?>">
+        <th><?php echo $lang->whitelist; ?></th>
+        <td><?php echo html::select('whitelist[]', $users, $space->whitelist, 'class="form-control chosen" multiple'); ?></td>
       </tr>
-      <?php endif;?>
       <tr>
         <td colspan='3' class='text-center form-actions'>
-          <?php echo html::submitButton();?>
+          <?php echo html::submitButton(); ?>
         </td>
       </tr>
     </table>
   </form>
 </div>
-<?php include '../../common/view/footer.html.php';?>
+<?php include '../../common/view/footer.html.php'; ?>

@@ -79,6 +79,18 @@
             <td><?php echo html::select('reviewer[]', $users, '', "class='form-control chosen' multiple"); ?></td>
           </tr>
           <tr>
+            <th><?php echo $lang->product->QD; ?></th>
+            <td><?php echo html::select('QD', $qdUsers, '', "class='form-control chosen'"); ?></td>
+          </tr>
+          <tr>
+            <th><?php echo $lang->product->RD; ?></th>
+            <td><?php echo html::select('RD', $rdUsers, '', "class='form-control chosen'"); ?></td>
+          </tr>
+          <tr>
+            <th><?php echo $lang->product->reviewer; ?></th>
+            <td><?php echo html::select('reviewer[]', $users, '', "class='form-control chosen' multiple"); ?></td>
+          </tr>
+          <tr>
             <th><?php echo $lang->product->type; ?></th>
             <td>
               <?php
@@ -87,6 +99,11 @@
               ?>
               <?php echo html::select('type', $productTypeList, 'normal', "class='form-control'"); ?>
             </td>
+            <td></td>
+          </tr>
+          <tr class='hide'>
+            <th><?php echo $lang->product->status; ?></th>
+            <td><?php echo html::hidden('status', 'normal'); ?></td>
             <td></td>
           </tr>
           <tr class='hide'>

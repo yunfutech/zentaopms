@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The control file of personnel of ZenTaoPMS.
  *
@@ -103,12 +104,9 @@ class personnel extends control
      */
     public function whitelist($objectID = 0, $module = 'personnel', $objectType = 'program', $orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1, $programID = 0, $from = '')
     {
-        if($this->app->tab == 'program')
-        {
+        if ($this->app->tab == 'program') {
             $this->loadModel('program')->setMenu($objectID);
-        }
-        else if($this->app->tab == 'project')
-        {
+        } else if ($this->app->tab == 'project') {
             $this->loadModel('project')->setMenu($objectID);
         }
 
@@ -122,8 +120,8 @@ class personnel extends control
 
         /* Set back link. */
         $goback = $this->session->projectList ? $this->session->projectList : $this->createLink('program', 'whitelist', "projectID=$objectID");
-        if($from == 'program')  $goback = $this->createLink('program', 'browse');
-        if($from == 'programproject') $goback = $this->session->programProject ? $this->session->programProject : $this->createLink('program', 'project', "programID=$programID");
+        if ($from == 'program')  $goback = $this->createLink('program', 'browse');
+        if ($from == 'programproject') $goback = $this->session->programProject ? $this->session->programProject : $this->createLink('program', 'project', "programID=$programID");
 
         $this->view->title      = $this->lang->personnel->whitelist;
         $this->view->position[] = $this->lang->personnel->whitelist;
@@ -155,21 +153,17 @@ class personnel extends control
      */
     public function addWhitelist($objectID = 0, $deptID = 0, $copyID = 0, $objectType = 'program', $module = 'personnel', $programID = 0, $from = '')
     {
-        if($this->app->tab == 'program')
-        {
+        if ($this->app->tab == 'program') {
             $this->loadModel('program')->setMenu($objectID);
-        }
-        else if($this->app->tab == 'project')
-        {
+        } else if ($this->app->tab == 'project') {
             $this->loadModel('project')->setMenu($objectID);
         }
 
         $this->app->loadLang('execution');
 
-        if($_POST)
-        {
+        if ($_POST) {
             $this->personnel->addWhitelist($objectType, $objectID);
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => $this->getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => $this->getError()));
 
             $this->loadModel('action')->create('whitelist', $objectID, 'managedWhitelist', '', $objectType);
 
@@ -182,19 +176,18 @@ class personnel extends control
         $deptUsers = empty($deptID) ? array() : $this->dept->getDeptUserPairs($deptID);
 
         $copyObjectType = $objectType;
-        if($copyObjectType == 'sprint')
-        {
+        if ($copyObjectType == 'sprint') {
             $object = $this->loadModel('project')->getByID($copyID);
-            if(!empty($object)) $copyObjectType = 'project';
+            if (!empty($object)) $copyObjectType = 'project';
         }
         $copyUsers   = empty($copyID) ? array() : $this->personnel->getWhitelistAccount($copyID, $copyObjectType);
         $appendUsers = array_unique($deptUsers + $copyUsers);
 
         $objectName = $this->lang->execution->common;
-        if($this->config->systemMode == 'new') $objectName = $this->lang->projectCommon . $this->lang->execution->or . $objectName;
-        if($objectType == 'program')           $objectName = $this->lang->program->common;
-        if($objectType == 'product')           $objectName = $this->lang->productCommon;
-        if($objectType == 'project')           $objectName = $this->lang->projectCommon;
+        if ($this->config->systemMode == 'new') $objectName = $this->lang->projectCommon . $this->lang->execution->or . $objectName;
+        if ($objectType == 'program')           $objectName = $this->lang->program->common;
+        if ($objectType == 'product')           $objectName = $this->lang->productCommon;
+        if ($objectType == 'project')           $objectName = $this->lang->projectCommon;
         $this->lang->personnel->selectObjectTips = sprintf($this->lang->personnel->selectObjectTips, $objectName);
 
         $this->view->title      = $this->lang->personnel->addWhitelist;
@@ -228,14 +221,11 @@ class personnel extends control
      */
     public function unbindWhitelist($id = 0, $confirm = 'no')
     {
-        if($confirm == 'no')
-        {
-            die(js::confirm($this->lang->personnel->confirmDelete, inLink('unbindWhitelist',"id=$id&confirm=yes")));
-        }
-        else
-        {
+        if ($confirm == 'no') {
+            return print(js::confirm($this->lang->personnel->confirmDelete, inLink('unbindWhitelist', "id=$id&confirm=yes")));
+        } else {
             $acl = $this->dao->select('*')->from(TABLE_ACL)->where('id')->eq($id)->fetch();
-            if(empty($acl)) die(js::reload('parent'));
+            if (empty($acl)) return print(js::reload('parent'));
 
             $objectTable  = $acl->objectType == 'product' ? TABLE_PRODUCT : TABLE_PROJECT;
             $whitelist    = $this->dao->select('whitelist')->from($objectTable)->where('id')->eq($acl->objectID)->fetch('whitelist');
@@ -243,18 +233,17 @@ class personnel extends control
             $this->dao->update($objectTable)->set('whitelist')->eq($newWhitelist)->where('id')->eq($acl->objectID)->exec();
             $this->dao->delete()->from(TABLE_ACL)->where('id')->eq($id)->exec();
 
-            if($acl->objectType == 'product')
-            {
+            if ($acl->objectType == 'product') {
                 $product = $this->loadModel('product')->getByID($acl->objectID);
-                if($product->program) $this->personnel->deleteProgramWhitelist($product->program, $acl->account);
+                if ($product->program) $this->personnel->deleteProgramWhitelist($product->program, $acl->account);
             }
-            if($acl->objectType == 'sprint')  $this->personnel->deleteProjectWhitelist($acl->objectID, $acl->account);
+            if ($acl->objectType == 'sprint')  $this->personnel->deleteProjectWhitelist($acl->objectID, $acl->account);
 
             $this->loadModel('user')->updateUserView($acl->objectID, $acl->objectType, array($acl->account));
 
             $this->loadModel('action')->create('whitelist', $acl->objectID, 'managedWhitelist', '', $acl->objectType);
 
-            die(js::reload('parent'));
+            return print(js::reload('parent'));
         }
     }
 }

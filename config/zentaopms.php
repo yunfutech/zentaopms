@@ -1,14 +1,15 @@
 <?php
+
 /**
-* The config file of zentaophp.  Don't modify this file directly, copy the item to my.php and change it.
-*
-* @copyright   Copyright 2009-2017 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
-* @license     ZPL (http://zpl.pub/page/zplv12.html)
-* @author      Chunsheng Wang <chunsheng@cnezsoft.com>
-* @package     config
-* @version     $Id: zentaopms.php 5068 2017-06-20 15:35:22Z pengjx $
-* @link        http://www.zentao.net
-*/
+ * The config file of zentaophp.  Don't modify this file directly, copy the item to my.php and change it.
+ *
+ * @copyright   Copyright 2009-2017 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
+ * @package     config
+ * @version     $Id: zentaopms.php 5068 2017-06-20 15:35:22Z pengjx $
+ * @link        http://www.zentao.net
+ */
 
 /* Product common list. */
 $config->productCommonList['zh-cn'][0] = '产品';
@@ -216,6 +217,8 @@ $config->openMethods[] = 'kanban.importexecution';
 $config->openMethods[] = 'kanban.importbuild';
 $config->openMethods[] = 'kanban.activatecard';
 $config->openMethods[] = 'kanban.finishcard';
+$config->openMethods[] = 'kanban.deleteobjectcard';
+$config->openMethods[] = 'admin.ignore';
 
 /* Define the tables. */
 define('TABLE_COMPANY',       '`' . $config->db->prefix . 'company`');
@@ -258,7 +261,7 @@ define('TABLE_EXECUTION',     '`' . $config->db->prefix . 'project`');
 define('TABLE_TASK',          '`' . $config->db->prefix . 'task`');
 define('TABLE_TASKSPEC',      '`' . $config->db->prefix . 'taskspec`');
 define('TABLE_TEAM',          '`' . $config->db->prefix . 'team`');
-define('TABLE_PROJECTPRODUCT','`' . $config->db->prefix . 'projectproduct`');
+define('TABLE_PROJECTPRODUCT', '`' . $config->db->prefix . 'projectproduct`');
 define('TABLE_PROJECTSTORY',  '`' . $config->db->prefix . 'projectstory`');
 define('TABLE_PROJECTCASE',   '`' . $config->db->prefix . 'projectcase`');
 define('TABLE_TASKESTIMATE',  '`' . $config->db->prefix . 'taskestimate`');
@@ -317,11 +320,11 @@ define('TABLE_KANBANORDER',  '`' . $config->db->prefix . 'kanbanorder`');
 define('TABLE_KANBANGROUP',  '`' . $config->db->prefix . 'kanbangroup`');
 define('TABLE_KANBANCARD',   '`' . $config->db->prefix . 'kanbancard`');
 define('TABLE_KANBANCELL',   '`' . $config->db->prefix . 'kanbancell`');
-if(!defined('TABLE_LANG'))        define('TABLE_LANG', '`' . $config->db->prefix . 'lang`');
-if(!defined('TABLE_PROJECTSPEC')) define('TABLE_PROJECTSPEC', '`' . $config->db->prefix . 'projectspec`');
+if (!defined('TABLE_LANG'))        define('TABLE_LANG', '`' . $config->db->prefix . 'lang`');
+if (!defined('TABLE_PROJECTSPEC')) define('TABLE_PROJECTSPEC', '`' . $config->db->prefix . 'projectspec`');
 
-if(!defined('TABLE_SEARCHINDEX')) define('TABLE_SEARCHINDEX', $config->db->prefix . 'searchindex');
-if(!defined('TABLE_SEARCHDICT'))  define('TABLE_SEARCHDICT',  $config->db->prefix . 'searchdict');
+if (!defined('TABLE_SEARCHINDEX')) define('TABLE_SEARCHINDEX', $config->db->prefix . 'searchindex');
+if (!defined('TABLE_SEARCHDICT'))  define('TABLE_SEARCHDICT',  $config->db->prefix . 'searchdict');
 
 $config->objectTables['product']      = TABLE_PRODUCT;
 $config->objectTables['productplan']  = TABLE_PRODUCTPLAN;
@@ -366,10 +369,11 @@ $config->objectTables['kanbancard']   = TABLE_KANBANCARD;
 $config->objectTables['sonarqube']    = TABLE_PIPELINE;
 $config->objectTables['gitlab']       = TABLE_PIPELINE;
 $config->objectTables['jebkins']      = TABLE_PIPELINE;
+$config->objectTables['stage']        = TABLE_STAGE;
 
-$config->newFeatures = array('introduction', 'tutorial', 'youngBlueTheme');
+$config->newFeatures = array('introduction', 'tutorial', 'youngBlueTheme', 'visions');
 
 /* Program privs.*/
 $config->programPriv = new stdclass();
-$config->programPriv->scrum     = array('story', 'projectstory', 'projectrelease', 'project', 'build', 'bug', 'testcase', 'testreport', 'doc', 'repo', 'meeting', 'stakeholder', 'testtask');
+$config->programPriv->scrum     = array('story', 'projectstory', 'projectrelease', 'project', 'execution', 'build', 'bug', 'testcase', 'testreport', 'doc', 'repo', 'meeting', 'stakeholder', 'testtask');
 $config->programPriv->waterfall = array_merge($config->programPriv->scrum, array('workestimation', 'durationestimation', 'budget', 'programplan', 'review', 'reviewissue', 'weekly', 'cm', 'milestone', 'design', 'issue', 'risk', 'opportunity', 'measrecord', 'auditplan', 'trainplan', 'gapanalysis', 'pssp', 'researchplan', 'researchreport'));

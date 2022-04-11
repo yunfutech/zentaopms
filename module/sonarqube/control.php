@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The control file of sonarqube module of ZenTaoPMS.
  *
@@ -63,25 +64,20 @@ class sonarqube extends control
         $qualitygate = $this->sonarqube->apiGetQualitygate($job->sonarqubeServer, $job->projectKey);
         $report      = $this->sonarqube->apiGetReport($job->sonarqubeServer, $job->projectKey);
         $measures    = array();
-        if(isset($report->component->measures))
-        {
-            foreach($report->component->measures as $measure)
-            {
-                if(in_array($measure->metric, array('security_hotspots_reviewed', 'coverage', 'duplicated_lines_density')))
-                {
+        if (isset($report->component->measures)) {
+            foreach ($report->component->measures as $measure) {
+                if (in_array($measure->metric, array('security_hotspots_reviewed', 'coverage', 'duplicated_lines_density'))) {
                     $measures[$measure->metric] = $measure->value . '%';
-                }
-                else
-                {
+                } else {
                     $measures[$measure->metric] = $measure->value;
-                    if($measure->value > 1000) $measures[$measure->metric] = round($measure->value / 1000, 1) . 'K';
+                    if ($measure->value > 1000) $measures[$measure->metric] = round($measure->value / 1000, 1) . 'K';
                 }
             }
         }
 
         $projectName = $job->projectKey;
         $projects    = $this->sonarqube->apiGetProjects($job->sonarqubeServer, '', $job->projectKey);
-        if(isset($projects[0]->name)) $projectName = $projects[0]->name;
+        if (isset($projects[0]->name)) $projectName = $projects[0]->name;
 
         $this->view->measures    = $measures;
         $this->view->qualitygate = $qualitygate;
@@ -107,9 +103,8 @@ class sonarqube extends control
         $projectList = $this->sonarqube->apiGetProjects($sonarqubeID);
 
         $projectPairs = array('' => '');
-        foreach($projectList as $project)
-        {
-            if(!empty($project) and !in_array($project->key, $existsProject)) $projectPairs[$project->key] = $project->name;
+        foreach ($projectList as $project) {
+            if (!empty($project) and !in_array($project->key, $existsProject)) $projectPairs[$project->key] = $project->name;
         }
 
         echo html::select('projectKey', $projectPairs, str_replace('*', '-', $projectKey), "class='form-control chosen'");
@@ -123,12 +118,11 @@ class sonarqube extends control
      */
     public function create()
     {
-        if($_POST)
-        {
+        if ($_POST) {
             $this->checkToken();
             $sonarqubeID = $this->loadModel('pipeline')->create('sonarqube');
 
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
             $actionID = $this->loadModel('action')->create('sonarqube', $sonarqubeID, 'created');
             return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => inlink('browse')));
         }
@@ -151,8 +145,8 @@ class sonarqube extends control
         $this->dao->update('sonarqube')->data($sonarqube)
             ->batchCheck(empty($sonarqubeID) ? $this->config->sonarqube->create->requiredFields : $this->config->sonarqube->edit->requiredFields, 'notempty')
             ->batchCheck("url", 'URL');
-        if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
-        if(strpos($sonarqube->url, 'http') !== 0) return $this->send(array('result' => 'fail', 'message' => array('url' => array($this->lang->sonarqube->hostError))));
+        if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+        if (strpos($sonarqube->url, 'http') !== 0) return $this->send(array('result' => 'fail', 'message' => array('url' => array($this->lang->sonarqube->hostError))));
 
         /* Check name and url unique. */
         $existSonarQube = $this->dao->select('*')->from(TABLE_PIPELINE)
@@ -160,13 +154,13 @@ class sonarqube extends control
             ->andWhere('deleted')->eq('0')
             ->beginIF(!empty($sonarqubeID))->andWhere('id')->ne($sonarqubeID)->fi()
             ->fetch();
-        if(isset($existSonarQube->name) and $existSonarQube->name == $sonarqube->name) return $this->send(array('result' => 'fail', 'message' => $this->lang->sonarqube->nameRepeatError));
-        if(isset($existSonarQube->url) and $existSonarQube->url == $sonarqube->url) return $this->send(array('result' => 'fail', 'message' => $this->lang->sonarqube->urlRepeatError));
+        if (isset($existSonarQube->name) and $existSonarQube->name == $sonarqube->name) return $this->send(array('result' => 'fail', 'message' => $this->lang->sonarqube->nameRepeatError));
+        if (isset($existSonarQube->url) and $existSonarQube->url == $sonarqube->url) return $this->send(array('result' => 'fail', 'message' => $this->lang->sonarqube->urlRepeatError));
 
         $token  = base64_encode("{$sonarqube->account}:{$sonarqube->password}");
         $result = $this->sonarqube->apiValidate($sonarqube->url, $token);
 
-        if(!empty($result)) return $this->send(array('result' => 'fail', 'message' => $result));
+        if (!empty($result)) return $this->send(array('result' => 'fail', 'message' => $result));
         $this->post->set('token', $token);
     }
 
@@ -181,12 +175,11 @@ class sonarqube extends control
     {
         $oldSonarQube = $this->loadModel('pipeline')->getByID($sonarqubeID);
 
-        if($_POST)
-        {
+        if ($_POST) {
             $this->checkToken($sonarqubeID);
             $this->pipeline->update($sonarqubeID);
             $sonarqube = $this->pipeline->getByID($sonarqubeID);
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
             $this->loadModel('action');
             $actionID = $this->action->create('sonarqube', $sonarqubeID, 'edited');
@@ -210,7 +203,7 @@ class sonarqube extends control
      */
     public function delete($sonarqubeID, $confirm = 'no')
     {
-        if($confirm != 'yes') die(js::confirm($this->lang->sonarqube->confirmDelete, inlink('delete', "sonarqubeID=$sonarqubeID&confirm=yes")));
+        if ($confirm != 'yes') return print(js::confirm($this->lang->sonarqube->confirmDelete, inlink('delete', "sonarqubeID=$sonarqubeID&confirm=yes")));
 
         $oldSonarQube = $this->loadModel('pipeline')->getByID($sonarqubeID);
         $this->loadModel('action');
@@ -252,16 +245,15 @@ class sonarqube extends control
 
         $sonarqubeProjectList = $this->sonarqube->apiGetProjects($sonarqubeID, $keyword);
         $projectKeyList       = array();
-        foreach($sonarqubeProjectList as $key => $sonarqubeProject)
-        {
-            if(!isset($sonarqubeProject->lastAnalysisDate)) $sonarqubeProject->lastAnalysisDate = '';
+        foreach ($sonarqubeProjectList as $key => $sonarqubeProject) {
+            if (!isset($sonarqubeProject->lastAnalysisDate)) $sonarqubeProject->lastAnalysisDate = '';
             $projectKeyList[] = $sonarqubeProject->key;
         }
 
-         /* Data sort. */
+        /* Data sort. */
         list($order, $sort) = explode('_', $orderBy);
         $orderList = array();
-        foreach($sonarqubeProjectList as $sonarqubeProject) $orderList[] = $sonarqubeProject->$order;
+        foreach ($sonarqubeProjectList as $sonarqubeProject) $orderList[] = $sonarqubeProject->$order;
         array_multisort($orderList, $sort == 'desc' ? SORT_DESC : SORT_ASC, $sonarqubeProjectList);
 
         /* Pager. */
@@ -295,11 +287,10 @@ class sonarqube extends control
      */
     public function createProject($sonarqubeID)
     {
-        if($_POST)
-        {
+        if ($_POST) {
             $this->sonarqube->createProject($sonarqubeID);
 
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
             return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => inlink('browseProject', "sonarqubeID=$sonarqubeID")));
         }
 
@@ -319,13 +310,13 @@ class sonarqube extends control
      */
     public function deleteProject($sonarqubeID, $projectKey, $confirm = 'no')
     {
-        if($confirm != 'yes') die(js::confirm($this->lang->sonarqube->confirmDeleteProject, inlink('deleteProject', "sonarqubeID=$sonarqubeID&projectKey=$projectKey&confirm=yes")));
+        if ($confirm != 'yes') return print(js::confirm($this->lang->sonarqube->confirmDeleteProject, inlink('deleteProject', "sonarqubeID=$sonarqubeID&projectKey=$projectKey&confirm=yes")));
 
         /* Fix error when request type is PATH_INFO and the tag name contains '-'.*/
         $projectKey = str_replace('*', '-', $projectKey);
         $reponse    = $this->sonarqube->apiDeleteProject($sonarqubeID, $projectKey);
 
-        if(isset($reponse->errors)) return print(js::alert($reponse->errors[0]->msg));
+        if (isset($reponse->errors)) return print(js::alert($reponse->errors[0]->msg));
 
         $this->loadModel('action')->create('sonarqubeproject', 0, 'deleted', '', $projectKey);
         return print(js::reload('parent'));
@@ -346,29 +337,24 @@ class sonarqube extends control
      */
     public function browseIssue($sonarqubeID, $projectKey = '', $search = false, $orderBy = 'severity_desc', $recTotal = 0, $recPerPage = 100, $pageID = 1)
     {
-        if(isset($_POST['keyword']))
-        {
+        if (isset($_POST['keyword'])) {
             $keyword = htmlspecialchars(trim($_POST['keyword']));
             $search  = true;
             $pageID  = 1;
             $this->session->set('sonarqubeIssueKeyword', $keyword);
-        }
-        else
-        {
+        } else {
             $keyword = '';
-            if($search == true) $keyword = $this->session->sonarqubeIssueKeyword;
+            if ($search == true) $keyword = $this->session->sonarqubeIssueKeyword;
         }
+
+        ini_set('memory_limit', '256M');
 
         $cacheFile = $this->sonarqube->getCacheFile($sonarqubeID, $projectKey);
-        if(!$cacheFile or !file_exists($cacheFile) or (time() - filemtime($cacheFile)) / 60 > $this->config->sonarqube->cacheTime)
-        {
-            ini_set('memory_limit', '256M');
-
+        if (!$cacheFile or !file_exists($cacheFile) or (time() - filemtime($cacheFile)) / 60 > $this->config->sonarqube->cacheTime) {
             $sonarqubeIssueList = $this->sonarqube->apiGetIssues($sonarqubeID, $projectKey);
-            foreach($sonarqubeIssueList as $key => $sonarqubeIssue)
-            {
-                if(!isset($sonarqubeIssue->line)) $sonarqubeIssue->line = '';
-                if(!isset($sonarqubeIssue->effort)) $sonarqubeIssue->effort = '';
+            foreach ($sonarqubeIssueList as $key => $sonarqubeIssue) {
+                if (!isset($sonarqubeIssue->line)) $sonarqubeIssue->line = '';
+                if (!isset($sonarqubeIssue->effort)) $sonarqubeIssue->effort = '';
                 $sonarqubeIssue->message      = htmlspecialchars($sonarqubeIssue->message);
                 $sonarqubeIssue->creationDate = date('Y-m-d H:i:s', strtotime($sonarqubeIssue->creationDate));
 
@@ -376,35 +362,29 @@ class sonarqube extends control
                 $sonarqubeIssue->file = $file;
             }
 
-            if($cacheFile)
-            {
-                if(!file_exists($cacheFile . '.lock'))
-                {
+            if ($cacheFile) {
+                if (!file_exists($cacheFile . '.lock')) {
                     touch($cacheFile . '.lock');
                     file_put_contents($cacheFile, serialize($sonarqubeIssueList));
                     unlink($cacheFile . '.lock');
                 }
             }
-        }
-        else
-        {
+        } else {
             $sonarqubeIssueList = unserialize(file_get_contents($cacheFile));
         }
 
         /* Data search. */
-        if($keyword)
-        {
-            foreach($sonarqubeIssueList as $key => $sonarqubeIssue)
-            {
-                if(strpos($sonarqubeIssue->message, $keyword) === false and strpos($sonarqubeIssue->file, $keyword) === false) unset($sonarqubeIssueList[$key]);
+        if ($keyword) {
+            foreach ($sonarqubeIssueList as $key => $sonarqubeIssue) {
+                if (strpos($sonarqubeIssue->message, $keyword) === false and strpos($sonarqubeIssue->file, $keyword) === false) unset($sonarqubeIssueList[$key]);
             }
             $sonarqubeIssueList = array_values($sonarqubeIssueList);
         }
 
-         /* Data sort. */
+        /* Data sort. */
         list($order, $sort) = explode('_', $orderBy);
         $orderList = array();
-        foreach($sonarqubeIssueList as $sonarqubeIssue) $orderList[] = $sonarqubeIssue->$order;
+        foreach ($sonarqubeIssueList as $sonarqubeIssue) $orderList[] = $sonarqubeIssue->$order;
         array_multisort($orderList, $sort == 'desc' ? SORT_DESC : SORT_ASC, $sonarqubeIssueList);
 
         /* Get product. */

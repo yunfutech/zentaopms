@@ -1,4 +1,5 @@
 <?php
+
 /**
  * ZenTaoPHP的baseHelper类。
  * The baseHelper class file of ZenTaoPHP framework.
@@ -33,7 +34,7 @@ class baseHelper
     static public function setMember($objName, $key, $value)
     {
         global $$objName;
-        if(!is_object($$objName) or empty($key)) return false;
+        if (!is_object($$objName) or empty($key)) return false;
         $key   = str_replace('.', '->', $key);
         $value = serialize($value);
         $code  = ("\$${objName}->{$key}=unserialize(<<<EOT\n$value\nEOT\n);");
@@ -65,35 +66,31 @@ class baseHelper
         /* 设置$appName和$moduleName。Set appName and moduleName. */
         global $app, $config;
 
-        if(strpos($moduleName, '.') !== false)
-        {
+        if (strpos($moduleName, '.') !== false) {
             list($appName, $moduleName) = explode('.', $moduleName);
-        }
-        else
-        {
+        } else {
             $appName = $app->getAppName();
         }
-        if(!empty($appName)) $appName .= '/';
+        if (!empty($appName)) $appName .= '/';
 
         /* 处理$viewType和$vars。Set $viewType and $vars. */
-        if(empty($viewType)) $viewType = $app->getViewType();
-        if(!is_array($vars)) parse_str($vars, $vars);
+        if (empty($viewType)) $viewType = $app->getViewType();
+        if (!is_array($vars)) parse_str($vars, $vars);
 
         /* 生成url链接的开始部分。Set the begin parts of the link. */
-        if($config->requestType == 'PATH_INFO')  $link = $config->webRoot . $appName;
-        if($config->requestType != 'PATH_INFO')  $link = $config->webRoot . $appName . basename($_SERVER['SCRIPT_NAME']);
-        if($config->requestType == 'PATH_INFO2') $link .= '/';
+        if ($config->requestType == 'PATH_INFO')  $link = $config->webRoot . $appName;
+        if ($config->requestType != 'PATH_INFO')  $link = $config->webRoot . $appName . basename($_SERVER['SCRIPT_NAME']);
+        if ($config->requestType == 'PATH_INFO2') $link .= '/';
 
         /**
          * #1: RequestType为GET。When the requestType is GET.
          * Input: moduleName=article&methodName=index&var1=value1. Output: ?m=article&f=index&var1=value1.
          *
          */
-        if($config->requestType == 'GET')
-        {
+        if ($config->requestType == 'GET') {
             $link .= "?{$config->moduleVar}=$moduleName&{$config->methodVar}=$methodName";
-            if($viewType != 'html') $link .= "&{$config->viewVar}=" . $viewType;
-            foreach($vars as $key => $value) $link .= "&$key=$value";
+            if ($viewType != 'html') $link .= "&{$config->viewVar}=" . $viewType;
+            foreach ($vars as $key => $value) $link .= "&$key=$value";
 
             return self::processOnlyBodyParam($link, $onlyBody);
         }
@@ -104,10 +101,9 @@ class baseHelper
          * Input: moduleName=article&methodName=view. Output: article-index-abc.html
          *
          */
-        if($methodName != $config->default->method or !empty($vars))
-        {
+        if ($methodName != $config->default->method or !empty($vars)) {
             $link .= "$moduleName{$config->requestFix}$methodName";
-            foreach($vars as $value) $link .= "{$config->requestFix}$value";
+            foreach ($vars as $value) $link .= "{$config->requestFix}$value";
             $link .= '.' . $viewType;
 
             return self::processOnlyBodyParam($link, $onlyBody);
@@ -118,8 +114,7 @@ class baseHelper
          * Input: moduleName=index&methodName=index. Output: index.html
          *
          */
-        if($moduleName == $config->default->module)
-        {
+        if ($moduleName == $config->default->module) {
             $link .= $config->default->method . '.' . $viewType;
             return self::processOnlyBodyParam($link, $onlyBody);
         }
@@ -129,8 +124,7 @@ class baseHelper
          * Input: moduleName=article&methodName=index&viewType=html. Output: /article/
          *
          */
-        if($viewType == $app->getViewType())
-        {
+        if ($viewType == $app->getViewType()) {
             $link .= $moduleName . '/';
             return self::processOnlyBodyParam($link, $onlyBody);
         }
@@ -160,7 +154,7 @@ class baseHelper
     public static function processOnlyBodyParam($link, $onlyBody = false)
     {
         global $config;
-        if(!$onlyBody and !self::inOnlyBodyMode()) return $link;
+        if (!$onlyBody and !self::inOnlyBodyMode()) return $link;
         $onlybodyString = strpos($link, '?') === false ? "?onlybody=yes" : "&onlybody=yes";
         return $link . $onlybodyString;
     }
@@ -189,17 +183,31 @@ class baseHelper
     static public function import($file)
     {
         $file = realpath($file);
-        if(!is_file($file)) return false;
+        if (!is_file($file)) return false;
 
         static $includedFiles = array();
-        if(!isset($includedFiles[$file]))
-        {
+        if (!isset($includedFiles[$file])) {
             include $file;
             $includedFiles[$file] = true;
             return true;
         }
 
         return true;
+    }
+
+    /**
+     * 使用helper::importControl()来引入Control文件，不要直接使用include或者require.
+     * Using helper::importControl() to import a file, instead of include or require.
+     *
+     * @param string    $moduleName.
+     * @static
+     * @access public
+     * @return bool
+     */
+    static public function importControl($moduleName)
+    {
+        global $app;
+        return helper::import($app->getModulePath($moduleName) . 'control.php');
     }
 
     /**
@@ -213,13 +221,12 @@ class baseHelper
      */
     static public function dbIN($idList)
     {
-        if(is_array($idList))
-        {
-            foreach($idList as $key=>$value) $idList[$key] = addslashes($value);
+        if (is_array($idList)) {
+            foreach ($idList as $key => $value) $idList[$key] = addslashes($value);
             return "IN ('" . join("','", $idList) . "')";
         }
 
-        if(!is_string($idList)) $idList = json_encode($idList);
+        if (!is_string($idList)) $idList = json_encode($idList);
         $idList = addslashes($idList);
         return "IN ('" . str_replace(',', "','", str_replace(' ', '', $idList)) . "')";
     }
@@ -279,23 +286,20 @@ class baseHelper
         global $config;
 
         $encrypted = '';
-        if(!empty($config->encryptSecret) and $password)
-        {
+        if (!empty($config->encryptSecret) and $password) {
             $secret = $config->encryptSecret;
-            if(function_exists('mcrypt_encrypt'))
-            {
-                $encrypted = base64_encode(@mcrypt_encrypt(MCRYPT_DES, substr($secret, 0, 8), $password, MCRYPT_MODE_CBC));
-            }
-            elseif(function_exists('openssl_encrypt'))
-            {
+            $iv     = str_repeat("\0", 8);
+            if (function_exists('mcrypt_encrypt')) {
+                $encrypted = base64_encode(mcrypt_encrypt(MCRYPT_DES, substr($secret, 0, 8), $password, MCRYPT_MODE_CBC, $iv));
+            } elseif (function_exists('openssl_encrypt')) {
                 /* Set password length to multiple of 8. For compatible mcrypt_encrypt function. */
                 $oversize = strlen($password) % 8;
-                if($oversize != 0) $password .= str_repeat("\0", 8 - $oversize);
+                if ($oversize != 0) $password .= str_repeat("\0", 8 - $oversize);
 
-                $encrypted = @openssl_encrypt($password, 'DES-CBC', substr($secret, 0, 8), OPENSSL_ZERO_PADDING);
+                $encrypted = openssl_encrypt($password, 'DES-CBC', substr($secret, 0, 8), OPENSSL_ZERO_PADDING, $iv);
             }
         }
-        if(empty($encrypted)) $encrypted = $password;
+        if (empty($encrypted)) $encrypted = $password;
 
         return $encrypted;
     }
@@ -313,23 +317,20 @@ class baseHelper
         global $config;
 
         $decryptedPassword = '';
-        if(!empty($config->encryptSecret) and $password)
-        {
+        if (!empty($config->encryptSecret) and $password) {
             $secret = $config->encryptSecret;
-            if(function_exists('mcrypt_decrypt'))
-            {
-                $decryptedPassword = @mcrypt_decrypt(MCRYPT_DES, substr($secret, 0, 8), base64_decode($password), MCRYPT_MODE_CBC);
-            }
-            elseif(function_exists('openssl_decrypt'))
-            {
-                $decryptedPassword = openssl_decrypt($password, 'DES-CBC', substr($secret, 0, 8), OPENSSL_ZERO_PADDING);
+            $iv     = str_repeat("\0", 8);
+            if (function_exists('mcrypt_decrypt')) {
+                $decryptedPassword = trim(mcrypt_decrypt(MCRYPT_DES, substr($secret, 0, 8), base64_decode($password), MCRYPT_MODE_CBC, $iv));
+            } elseif (function_exists('openssl_decrypt')) {
+                $decryptedPassword = trim(openssl_decrypt($password, 'DES-CBC', substr($secret, 0, 8), OPENSSL_ZERO_PADDING, $iv));
             }
 
             /* Check decrypted password. Judge whether there is garbled code. */
             $jsoned = json_encode($decryptedPassword);
-            if($jsoned === 'null' or empty($jsoned)) $decryptedPassword = '';
+            if ($jsoned === 'null' or empty($jsoned)) $decryptedPassword = '';
         }
-        if(empty($decryptedPassword)) $decryptedPassword = $password;
+        if (empty($decryptedPassword)) $decryptedPassword = $password;
 
         $decryptedPassword = trim($decryptedPassword);
         return $decryptedPassword;
@@ -352,24 +353,21 @@ class baseHelper
         $b    = 0;
         $bits = 0;
         $len  = strlen($string);
-        for($i=0; $i<$len; $i++)
-        {
+        for ($i = 0; $i < $len; $i++) {
             $c = ord($string[$i]);
-            if($c > 128)
-            {
-                if(($c >= 254)) return false;
-                elseif($c >= 252) $bits=6;
-                elseif($c >= 248) $bits=5;
-                elseif($c >= 240) $bits=4;
-                elseif($c >= 224) $bits=3;
-                elseif($c >= 192) $bits=2;
+            if ($c > 128) {
+                if (($c >= 254)) return false;
+                elseif ($c >= 252) $bits = 6;
+                elseif ($c >= 248) $bits = 5;
+                elseif ($c >= 240) $bits = 4;
+                elseif ($c >= 224) $bits = 3;
+                elseif ($c >= 192) $bits = 2;
                 else return false;
-                if(($i+$bits) > $len) return false;
-                while($bits > 1)
-                {
+                if (($i + $bits) > $len) return false;
+                while ($bits > 1) {
                     $i++;
-                    $b=ord($string[$i]);
-                    if($b < 128 || $b > 191) return false;
+                    $b = ord($string[$i]);
+                    if ($b < 128 || $b > 191) return false;
                     $bits--;
                 }
             }
@@ -387,7 +385,7 @@ class baseHelper
      */
     public static function removeUTF8Bom($string)
     {
-        if(substr($string, 0, 3) == pack('CCC', 239, 187, 191)) return substr($string, 3);
+        if (substr($string, 0, 3) == pack('CCC', 239, 187, 191)) return substr($string, 3);
         return $string;
     }
 
@@ -404,7 +402,7 @@ class baseHelper
     {
         $rawString = $string;
 
-        if(function_exists('mb_substr')) $string = mb_substr($string, 0, $length, 'utf-8');
+        if (function_exists('mb_substr')) $string = mb_substr($string, 0, $length, 'utf-8');
 
         preg_match_all("/./su", $string, $data);
         $string = join("", array_slice($data[0],  0, $length));
@@ -420,31 +418,31 @@ class baseHelper
      */
     public static function getBrowser()
     {
-        $browser = array('name'=>'unknown', 'version'=>'unknown');
+        $browser = array('name' => 'unknown', 'version' => 'unknown');
 
-        if(empty($_SERVER['HTTP_USER_AGENT'])) return $browser;
+        if (empty($_SERVER['HTTP_USER_AGENT'])) return $browser;
 
         $agent = $_SERVER["HTTP_USER_AGENT"];
 
         /* Chrome should checked before safari.*/
-        if(strpos($agent, 'Firefox') !== false) $browser['name'] = "firefox";
-        if(strpos($agent, 'Opera') !== false)   $browser['name'] = 'opera';
-        if(strpos($agent, 'Safari') !== false)  $browser['name'] = 'safari';
-        if(strpos($agent, 'Chrome') !== false)  $browser['name'] = "chrome";
+        if (strpos($agent, 'Firefox') !== false) $browser['name'] = "firefox";
+        if (strpos($agent, 'Opera') !== false)   $browser['name'] = 'opera';
+        if (strpos($agent, 'Safari') !== false)  $browser['name'] = 'safari';
+        if (strpos($agent, 'Chrome') !== false)  $browser['name'] = "chrome";
 
         // Check the name of browser
-        if(strpos($agent, 'MSIE') !== false || strpos($agent, 'rv:11.0')) $browser['name'] = 'ie';
-        if(strpos($agent, 'Edge') !== false) $browser['name'] = 'edge';
+        if (strpos($agent, 'MSIE') !== false || strpos($agent, 'rv:11.0')) $browser['name'] = 'ie';
+        if (strpos($agent, 'Edge') !== false) $browser['name'] = 'edge';
 
         // Check the version of browser
-        if(preg_match('/MSIE\s(\d+)\..*/i', $agent, $regs))       $browser['version'] = $regs[1];
-        if(preg_match('/FireFox\/(\d+)\..*/i', $agent, $regs))    $browser['version'] = $regs[1];
-        if(preg_match('/Opera[\s|\/](\d+)\..*/i', $agent, $regs)) $browser['version'] = $regs[1];
-        if(preg_match('/Chrome\/(\d+)\..*/i', $agent, $regs))     $browser['version'] = $regs[1];
+        if (preg_match('/MSIE\s(\d+)\..*/i', $agent, $regs))       $browser['version'] = $regs[1];
+        if (preg_match('/FireFox\/(\d+)\..*/i', $agent, $regs))    $browser['version'] = $regs[1];
+        if (preg_match('/Opera[\s|\/](\d+)\..*/i', $agent, $regs)) $browser['version'] = $regs[1];
+        if (preg_match('/Chrome\/(\d+)\..*/i', $agent, $regs))     $browser['version'] = $regs[1];
 
-        if((strpos($agent, 'Chrome') == false) && preg_match('/Safari\/(\d+)\..*$/i', $agent, $regs)) $browser['version'] = $regs[1];
-        if(preg_match('/rv:(\d+)\..*/i', $agent, $regs)) $browser['version'] = $regs[1];
-        if(preg_match('/Edge\/(\d+)\..*/i', $agent, $regs)) $browser['version'] = $regs[1];
+        if ((strpos($agent, 'Chrome') == false) && preg_match('/Safari\/(\d+)\..*$/i', $agent, $regs)) $browser['version'] = $regs[1];
+        if (preg_match('/rv:(\d+)\..*/i', $agent, $regs)) $browser['version'] = $regs[1];
+        if (preg_match('/Edge\/(\d+)\..*/i', $agent, $regs)) $browser['version'] = $regs[1];
 
         return $browser;
     }
@@ -458,7 +456,7 @@ class baseHelper
      */
     public static function getOS()
     {
-        if(empty($_SERVER['HTTP_USER_AGENT'])) return 'unknow';
+        if (empty($_SERVER['HTTP_USER_AGENT'])) return 'unknow';
 
         $osList = array();
         $osList['/windows nt 10/i']      = 'Windows 10';
@@ -485,9 +483,8 @@ class baseHelper
         $osList['/blackberry/i']         = 'BlackBerry';
         $osList['/webos/i']              = 'Mobile';
 
-        foreach ($osList as $regex => $value)
-        {
-            if(preg_match($regex, $_SERVER['HTTP_USER_AGENT'])) return $value;
+        foreach ($osList as $regex => $value) {
+            if (preg_match($regex, $_SERVER['HTTP_USER_AGENT'])) return $value;
         }
 
         return 'unknown';
@@ -569,11 +566,11 @@ class baseHelper
      */
     static public function ls($dir, $pattern = '')
     {
-        if(empty($dir)) return array();
+        if (empty($dir)) return array();
 
         $files = array();
         $dir   = realpath($dir);
-        if(is_dir($dir)) $files = glob($dir . DIRECTORY_SEPARATOR . '*' . $pattern);
+        if (is_dir($dir)) $files = glob($dir . DIRECTORY_SEPARATOR . '*' . $pattern);
         return empty($files) ? array() : $files;
     }
 
@@ -589,7 +586,7 @@ class baseHelper
     static public function cd($path = '')
     {
         static $cwd = '';
-        if($path) $cwd = getcwd();
+        if ($path) $cwd = getcwd();
         !empty($path) ? chdir($path) : chdir($cwd);
     }
 
@@ -611,12 +608,12 @@ class baseHelper
         global $config;
 
         /* 去除域名中的端口部分。Remove the port part of the domain. */
-        if(strpos($domain, ':') !== false) $domain = substr($domain, 0, strpos($domain, ':'));
+        if (strpos($domain, ':') !== false) $domain = substr($domain, 0, strpos($domain, ':'));
         $domain = strtolower($domain);
 
         /* $config里面有定义或者是localhost，直接返回。 Return directly if defined in $config or is localhost. */
-        if(isset($config->siteCodeList[$domain])) return $config->siteCodeList[$domain];
-        if($domain == 'localhost') return $domain;
+        if (isset($config->siteCodeList[$domain])) return $config->siteCodeList[$domain];
+        if ($domain == 'localhost') return $domain;
 
         /* 将域名中的-改为_。Replace '-' with '_' in the domain. */
         $domain = str_replace('-', '_', $domain);
@@ -624,15 +621,15 @@ class baseHelper
 
         /* 类似a.com的形式。 Domain like a.com. */
         $postfix = str_replace($items[0] . '.', '', $domain);
-        if(isset($config->domainPostfix) and strpos($config->domainPostfix, "|$postfix|") !== false) return $items[0];
+        if (isset($config->domainPostfix) and strpos($config->domainPostfix, "|$postfix|") !== false) return $items[0];
 
         /* 类似www.a.com的形式。 Domain like www.a.com. */
         $postfix = str_replace($items[0] . '.' . $items[1] . '.', '', $domain);
-        if(isset($config->domainPostfix) and strpos($config->domainPostfix, "|$postfix|") !== false) return $items[1];
+        if (isset($config->domainPostfix) and strpos($config->domainPostfix, "|$postfix|") !== false) return $items[1];
 
         /* 类似xxx.sub.a.com的形式。 Domain like xxx.sub.a.com. */
         $postfix = str_replace($items[0] . '.' . $items[1] . '.' . $items[2] . '.', '', $domain);
-        if(isset($config->domainPostfix) and strpos($config->domainPostfix, "|$postfix|") !== false) return $items[0];
+        if (isset($config->domainPostfix) and strpos($config->domainPostfix, "|$postfix|") !== false) return $items[0];
 
         return '';
     }
@@ -647,8 +644,8 @@ class baseHelper
      */
     public static function isAjaxRequest()
     {
-        if(isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest') return true;
-        if(isset($_GET['HTTP_X_REQUESTED_WITH'])    && $_GET['HTTP_X_REQUESTED_WITH']    == 'XMLHttpRequest') return true;
+        if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest') return true;
+        if (isset($_GET['HTTP_X_REQUESTED_WITH'])    && $_GET['HTTP_X_REQUESTED_WITH']    == 'XMLHttpRequest') return true;
         return false;
     }
 
@@ -677,12 +674,11 @@ class baseHelper
     public static function getRemoteIp($proxy = false)
     {
         $ip = '';
-        if(!empty($_SERVER["REMOTE_ADDR"])) $ip = $_SERVER["REMOTE_ADDR"];
+        if (!empty($_SERVER["REMOTE_ADDR"])) $ip = $_SERVER["REMOTE_ADDR"];
 
-        if($proxy)
-        {
-            if(!empty($_SERVER["HTTP_X_FORWARDED_FOR"])) $ip = $_SERVER["HTTP_X_FORWARDED_FOR"];
-            if(!empty($_SERVER['HTTP_CLIENT_IP']))       $ip = $_SERVER['HTTP_CLIENT_IP'];
+        if ($proxy) {
+            if (!empty($_SERVER["HTTP_X_FORWARDED_FOR"])) $ip = $_SERVER["HTTP_X_FORWARDED_FOR"];
+            if (!empty($_SERVER['HTTP_CLIENT_IP']))       $ip = $_SERVER['HTTP_CLIENT_IP'];
         }
 
         return $ip;
@@ -698,7 +694,7 @@ class baseHelper
      */
     public static function restartSession($sessionID = '')
     {
-        if(empty($sessionID)) $sessionID = sha1(mt_rand());
+        if (empty($sessionID)) $sessionID = sha1(mt_rand());
 
         session_write_close();
         session_id($sessionID);
@@ -723,10 +719,8 @@ class baseHelper
         $errorMsg   = $errorInfo[2];
         $message    = $exception->getMessage();
 
-        if(strpos($repairCode, "|$errorCode|") !== false or ($errorCode == '1016' and strpos($errorMsg, 'errno: 145') !== false) or strpos($message, 'repair') !== false)
-        {
-            if(isset($config->framework->autoRepairTable) and $config->framework->autoRepairTable)
-            {
+        if (strpos($repairCode, "|$errorCode|") !== false or ($errorCode == '1016' and strpos($errorMsg, 'errno: 145') !== false) or strpos($message, 'repair') !== false) {
+            if (isset($config->framework->autoRepairTable) and $config->framework->autoRepairTable) {
                 header("location: " . $config->webRoot . 'checktable.php');
                 exit;
             }
@@ -764,8 +758,8 @@ function inLink($methodName = 'index', $vars = '', $viewType = '', $onlybody = f
 function cycle($items)
 {
     static $i = 0;
-    if(!is_array($items)) $items = explode(',', $items);
-    if(!isset($items[$i])) $i = 0;
+    if (!is_array($items)) $items = explode(',', $items);
+    if (!isset($items[$i])) $i = 0;
     return $items[$i++];
 }
 
@@ -807,10 +801,10 @@ function a($var)
 function isLocalIP()
 {
     global $config;
-    if(isset($config->islocalIP)) return $config->isLocalIP;
+    if (isset($config->islocalIP)) return $config->isLocalIP;
     $serverIP = $_SERVER['SERVER_ADDR'];
-    if($serverIP == '127.0.0.1' or $serverIP == '::1') return true;
-    if(strpos($serverIP, '10.70') !== false) return false;
+    if ($serverIP == '127.0.0.1' or $serverIP == '::1') return true;
+    if (strpos($serverIP, '10.70') !== false) return false;
     return !filter_var($serverIP, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE);
 }
 
@@ -825,18 +819,15 @@ function getWebRoot($full = false)
 {
     $path = $_SERVER['SCRIPT_NAME'];
 
-    if(PHP_SAPI == 'cli')
-    {
-        if(isset($_SERVER['argv'][1]))
-        {
+    if (PHP_SAPI == 'cli') {
+        if (isset($_SERVER['argv'][1])) {
             $url  = parse_url($_SERVER['argv'][1]);
             $path = empty($url['path']) ? '/' : rtrim($url['path'], '/');
         }
         $path = empty($path) ? '/' : preg_replace('/\/www$/', '/www/', $path);
     }
 
-    if($full)
-    {
+    if ($full) {
         $http = (isset($_SERVER['HTTPS']) and strtolower($_SERVER['HTTPS']) != 'off') ? 'https://' : 'http://';
         return $http . $_SERVER['HTTP_HOST'] . substr($path, 0, (strrpos($path, '/') + 1));
     }
@@ -859,18 +850,17 @@ function getWebRoot($full = false)
  */
 function zget($var, $key, $valueWhenNone = false, $valueWhenExists = false)
 {
-    if(!is_array($var) and !is_object($var)) return false;
+    if (!is_array($var) and !is_object($var)) return false;
 
     $type = is_array($var) ? 'array' : 'object';
     $checkExists = $type == 'array' ? isset($var[$key]) : isset($var->$key);
 
-    if($checkExists)
-    {
-        if($valueWhenExists !== false) return $valueWhenExists;
+    if ($checkExists) {
+        if ($valueWhenExists !== false) return $valueWhenExists;
         return $type == 'array' ? $var[$key] : $var->$key;
     }
 
-    if($valueWhenNone !== false) return $valueWhenNone;
+    if ($valueWhenNone !== false) return $valueWhenNone;
     return $key;
 }
 
@@ -882,9 +872,9 @@ function zget($var, $key, $valueWhenNone = false, $valueWhenExists = false)
  */
 function isHttps()
 {
-    if(!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') return true;
-    if(isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') return true;
-    if(!empty($_SERVER['HTTP_FRONT_END_HTTPS']) && strtolower($_SERVER['HTTP_FRONT_END_HTTPS']) !== 'off') return true;
+    if (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') return true;
+    if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') return true;
+    if (!empty($_SERVER['HTTP_FRONT_END_HTTPS']) && strtolower($_SERVER['HTTP_FRONT_END_HTTPS']) !== 'off') return true;
     return false;
 }
 
@@ -899,12 +889,11 @@ function isHttps()
  */
 function htmlSpecialString($string, $flags = '', $encoding = 'UTF-8')
 {
-    if(!$flags) $flags = defined('ENT_SUBSTITUTE') ? ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401 : ENT_QUOTES;
+    if (!$flags) $flags = defined('ENT_SUBSTITUTE') ? ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401 : ENT_QUOTES;
     return htmlspecialchars($string, $flags, $encoding);
 }
 
-if (!function_exists('array_column'))
-{
+if (!function_exists('array_column')) {
     function array_column(array $input, $columnKey, $indexKey = null)
     {
         $output = array();

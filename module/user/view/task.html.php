@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The task view file of dashboard module of ZenTaoPMS.
  *
@@ -10,9 +11,9 @@
  * @link        http://www.zentao.net
  */
 ?>
-<?php include '../../common/view/header.html.php';?>
-<?php include '../../common/view/tablesorter.html.php';?>
-<?php include './featurebar.html.php';?>
+<?php include '../../common/view/header.html.php'; ?>
+<?php include '../../common/view/tablesorter.html.php'; ?>
+<?php include './featurebar.html.php'; ?>
 <div id='mainContent'>
   <nav id='contentNav'>
     <ul class='nav nav-default'>
@@ -41,40 +42,40 @@
       <?php $vars = "userID={$user->id}&type=$type&orderBy=%s&recTotal={$pager->recTotal}&recPerPage={$pager->recPerPage}&pageID={$pager->pageID}"; ?>
       <thead>
         <tr class='colhead'>
-          <th class='w-id'><?php echo $lang->idAB;?></th>
-          <th class='w-pri'><?php common::printOrderLink('pri', $orderBy, $vars, $lang->priAB);?></th>
-          <th><?php common::printOrderLink('execution', $orderBy, $vars, $lang->task->execution);?></th>
-          <th><?php common::printOrderLink('name', $orderBy, $vars, $lang->task->name);?></th>
-          <th class='w-70px hours'><?php echo $lang->task->estimateAB;?></th>
-          <th class='w-70px hours'><?php echo $lang->task->consumedAB;?></th>
-          <th class='w-hour hours'><?php echo $lang->task->leftAB;?></th>
-          <th class='w-date'><?php echo $lang->task->deadlineAB;?></th>
-          <th class='w-70px'><?php echo $lang->statusAB;?></th>
+          <th class='w-id'><?php echo $lang->idAB; ?></th>
+          <th class='w-pri' title='<?php echo $lang->pri; ?>'><?php common::printOrderLink('pri', $orderBy, $vars, $lang->priAB); ?></th>
+          <th><?php common::printOrderLink('execution', $orderBy, $vars, $lang->task->execution); ?></th>
+          <th><?php common::printOrderLink('name', $orderBy, $vars, $lang->task->name); ?></th>
+          <th class='w-70px hours'><?php echo $lang->task->estimateAB; ?></th>
+          <th class='w-70px hours'><?php echo $lang->task->consumedAB; ?></th>
+          <th class='w-hour hours'><?php echo $lang->task->leftAB; ?></th>
+          <th class='w-date'><?php echo $lang->task->deadlineAB; ?></th>
+          <th class='w-70px'><?php echo $lang->statusAB; ?></th>
         </tr>
       </thead>
       <tbody>
-        <?php foreach($tasks as $task):?>
-        <tr class='text-left'>
-          <td><?php echo html::a($this->createLink('task', 'view', "taskID=$task->id"), sprintf('%03d', $task->id));?></td>
-          <td><span class='label-pri label-pri-<?php echo $task->pri;?>'><?php echo zget($lang->task->priList, $task->pri, $task->pri);?></span></td>
-          <td class='text-left nobr'><?php echo html::a($this->createLink('execution', 'browse', "executionID=$task->executionID"), $task->executionName);?></td>
-          <td class='text-left nobr'>
-            <?php if(!empty($task->team))   echo '<span class="label label-badge label-light">' . $this->lang->task->multipleAB . '</span> ';?>
-            <?php if($task->parent > 0) echo '<span class="label label-badge label-light">' . $this->lang->task->childrenAB . '</span> ';?>
-            <?php echo html::a($this->createLink('task', 'view', "taskID=$task->id"), $task->name, null, "style='color: $task->color'");?>
-          </td>
-          <td class='hours' title="<?php echo $task->estimate . ' ' . $lang->execution->workHour;?>"><?php echo $task->estimate . $lang->execution->workHourUnit;?></td>
-          <td class='hours' title="<?php echo $task->consumed . ' ' . $lang->execution->workHour;?>"><?php echo $task->consumed . $lang->execution->workHourUnit;?></td>
-          <td class='hours' title="<?php echo $task->left     . ' ' . $lang->execution->workHour;?>"><?php echo $task->left     . $lang->execution->workHourUnit;?></td>
-          <td class=<?php if(isset($task->delay)) echo 'delayed';?>><?php if(substr($task->deadline, 0, 4) > 0) echo $task->deadline;?></td>
-          <td class='<?php echo $task->status;?>'><?php echo $this->processStatus('task', $task);?></td>
-        </tr>
-        <?php endforeach;?>
+        <?php foreach ($tasks as $task) : ?>
+          <tr class='text-left'>
+            <td><?php echo html::a($this->createLink('task', 'view', "taskID=$task->id"), sprintf('%03d', $task->id)); ?></td>
+            <td><span class='label-pri label-pri-<?php echo $task->pri; ?>'><?php echo zget($lang->task->priList, $task->pri, $task->pri); ?></span></td>
+            <td class='text-left nobr'><?php echo html::a($this->createLink('execution', 'browse', "executionID=$task->executionID"), $task->executionName); ?></td>
+            <td class='text-left nobr'>
+              <?php if (!empty($task->team))   echo '<span class="label label-badge label-light">' . $this->lang->task->multipleAB . '</span> '; ?>
+              <?php if ($task->parent > 0) echo '<span class="label label-badge label-light">' . $this->lang->task->childrenAB . '</span> '; ?>
+              <?php echo html::a($this->createLink('task', 'view', "taskID=$task->id"), $task->name, null, "style='color: $task->color'"); ?>
+            </td>
+            <td class='hours' title="<?php echo $task->estimate . ' ' . $lang->execution->workHour; ?>"><?php echo $task->estimate . $lang->execution->workHourUnit; ?></td>
+            <td class='hours' title="<?php echo $task->consumed . ' ' . $lang->execution->workHour; ?>"><?php echo $task->consumed . $lang->execution->workHourUnit; ?></td>
+            <td class='hours' title="<?php echo $task->left     . ' ' . $lang->execution->workHour; ?>"><?php echo $task->left     . $lang->execution->workHourUnit; ?></td>
+            <td class=<?php if (isset($task->delay)) echo 'delayed'; ?>><?php if (substr($task->deadline, 0, 4) > 0) echo $task->deadline; ?></td>
+            <td class='<?php echo $task->status; ?>'><?php echo $this->processStatus('task', $task); ?></td>
+          </tr>
+        <?php endforeach; ?>
       </tbody>
     </table>
-    <?php if($tasks):?>
-    <div class="table-footer"><?php $pager->show('right', 'pagerjs');?></div>
-    <?php endif;?>
+    <?php if ($tasks) : ?>
+      <div class="table-footer"><?php $pager->show('right', 'pagerjs'); ?></div>
+    <?php endif; ?>
   </div>
 </div>
-<?php include '../../common/view/footer.html.php';?>
+<?php include '../../common/view/footer.html.php'; ?>

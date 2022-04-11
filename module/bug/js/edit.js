@@ -1,17 +1,12 @@
-$(function()
-{
+$(function () {
     loadModuleRelated();
 
     resolution = $('#resolution').val();
-    if(resolution == 'fixed')
-    {
-        $('#resolvedBuildBox').change(function()
-        {
-            if($('#resolvedBuild').val() != oldResolvedBuild)
-            {
+    if (resolution == 'fixed') {
+        $('#resolvedBuildBox').change(function () {
+            if ($('#resolvedBuild').val() != oldResolvedBuild) {
                 confirmResult = confirm(confirmUnlinkBuild);
-                if(!confirmResult)
-                {
+                if (!confirmResult) {
                     $('#resolvedBuild').val(oldResolvedBuild);
                     $('#resolvedBuild').trigger("chosen:updated");
                     $('#resolvedBuild').chosen();
@@ -22,39 +17,17 @@ $(function()
 });
 
 /**
- * Ajax change execution name.
- *
- * @param  int projectID
- * @access public
- * @return void
- */
-function changeExecutionName(projectID)
-{
-    if(parseInt(projectID))
-    {
-        var link = createLink('bug', 'ajaxGetExecutionLang', 'projectID=' + projectID);
-        $.post(link, function(executionLang)
-        {
-            $('#executionBox').html(executionLang);
-        })
-    }
-}
-
-/**
  * Set duplicate field.
  *
  * @param  string $resolution
  * @access public
  * @return void
  */
-function setDuplicate(resolution)
-{
-    if(resolution == 'duplicate')
-    {
+function setDuplicate (resolution) {
+    if (resolution == 'duplicate') {
         $('#duplicateBugBox').show();
     }
-    else
-    {
+    else {
         $('#duplicateBugBox').hide();
     }
 }
@@ -66,19 +39,16 @@ function setDuplicate(resolution)
  * @access public
  * @return void
  */
-function getList(module)
-{
+function getList (module) {
     productID = $('#product').val();
     executionID = $('#execution').val();
-    storyID   = $('#story').val();
-    taskID    = $('#task').val();
-    if(module == 'story')
-    {
+    storyID = $('#story').val();
+    taskID = $('#task').val();
+    if (module == 'story') {
         link = createLink('search', 'select', 'productID=' + productID + '&executionID=' + executionID + '&module=story&moduleID=' + storyID);
         $('#storyListIdBox a').attr("href", link);
     }
-    else
-    {
+    else {
         link = createLink('search', 'select', 'productID=' + productID + '&executionID=' + executionID + '&module=task&moduleID=' + taskID);
         $('#taskListIdBox a').attr("href", link);
     }
@@ -90,10 +60,9 @@ function getList(module)
  * @access public
  * @return void
  */
-function loadModuleRelated()
-{
-    moduleID  = $('#module').val();
+function loadModuleRelated () {
+    moduleID = $('#module').val();
     productID = $('#product').val();
-    storyID   = $('#story').val();
+    storyID = $('#story').val();
     setStories(moduleID, productID, storyID);
 }

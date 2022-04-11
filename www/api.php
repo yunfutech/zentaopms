@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The api router file of ZenTaoPMS.
  *
@@ -38,17 +39,17 @@ $common->checkEntry();
 $common->loadConfigFromDB();
 
 /* Set default params. */
-if(!$app->version) $config->requestType = 'GET';
+if (!$app->version) $config->requestType = 'GET';
 $config->default->view = 'json';
 
 $app->parseRequest();
 
 /* Old version need check priv here, new version check priv in entry. */
-if(!$app->version) $common->checkPriv();
+if (!$app->version) $common->checkPriv();
 
 $app->loadModule();
 
 $output = ob_get_clean();
 
 /* Flush the buffer. */
-echo helper::removeUTF8Bom($app->formatData($output));
+echo $app->formatData(helper::removeUTF8Bom($output));

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The story module zh-tw file of ZenTaoPMS.
  *
@@ -66,7 +67,6 @@ $lang->story->viewAll            = '查看全部';
 $lang->story->toTask             = '轉任務';
 $lang->story->batchToTask        = '批量轉任務';
 $lang->story->convertRelations   = '換算關係';
-$lang->story->undetermined       = '待定';
 
 $lang->story->editAction      = "編輯{$lang->SRCommon}";
 $lang->story->changeAction    = "變更{$lang->SRCommon}";
@@ -85,6 +85,7 @@ $lang->story->batchToTaskTips = "此操作會創建與所選{$lang->SRCommon}同
 $lang->story->successToTask   = '批量轉任務成功';
 $lang->story->storyRound      = '第 %s 輪估算';
 
+$lang->story->common         = $lang->SRCommon;
 $lang->story->id             = '編號';
 $lang->story->parent         = '父需求';
 $lang->story->product        = "所屬{$lang->productCommon}";
@@ -126,6 +127,7 @@ $lang->story->rejectedReason = '拒絶原因';
 $lang->story->reviewedBy     = '由誰評審';
 $lang->story->reviewers      = '評審人員';
 $lang->story->reviewedDate   = '評審時間';
+$lang->story->activatedDate  = '激活日期';
 $lang->story->version        = '版本號';
 $lang->story->feedbackBy     = '反饋者';
 $lang->story->notifyEmail    = '通知郵箱';
@@ -161,7 +163,6 @@ $lang->story->field          = '同步的欄位';
 $lang->story->completeRate   = '完成率';
 $lang->story->reviewed       = '已評審';
 $lang->story->toBeReviewed   = '待評審';
-$lang->story->linkMR         = '相關合併請求';
 
 $lang->story->ditto       = '同上';
 $lang->story->dittoNotice = "該{$lang->SRCommon}與上一{$lang->SRCommon}不屬於同一產品！";

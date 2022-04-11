@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The view file of GitLab module of ZenTaoPMS.
  *
@@ -10,14 +11,18 @@
  * @link        http://www.zentao.net
  * */
 ?>
-<?php include '../../common/view/header.html.php';?>
-<?php js::set('sysurl', common::getSysUrl());?>
-<style>.action-cell {margin-bottom: 10px;}</style>
+<?php include '../../common/view/header.html.php'; ?>
+<?php js::set('sysurl', common::getSysUrl()); ?>
+<style>
+  .action-cell {
+    margin-bottom: 10px;
+  }
+</style>
 <div id="mainMenu" class="clearfix">
   <div class="btn-toolbar pull-left">
     <div class="page-title">
-      <span class="label label-id"><?php echo $gitlab->id?></span>
-      <span class="text" title="<?php echo $gitlab->name;?>" style='color: #3c4354'><?php echo $gitlab->name;?></span>
+      <span class="label label-id"><?php echo $gitlab->id ?></span>
+      <span class="text" title="<?php echo $gitlab->name; ?>" style='color: #3c4354'><?php echo $gitlab->name; ?></span>
     </div>
   </div>
 </div>
@@ -25,11 +30,11 @@
   <div class="main-col col-8">
     <div class="cell">
       <div class="detail">
-        <div class="detail-title"><?php echo $lang->gitlab->url;?></div>
-        <div class="detail-content article-content"><?php echo $gitlab->url;?></div>
+        <div class="detail-title"><?php echo $lang->gitlab->url; ?></div>
+        <div class="detail-content article-content"><?php echo html::a($gitlab->url, $gitlab->url, '_target'); ?></div>
       </div>
     </div>
-    <div class='cell action-cell'><?php include '../../common/view/action.html.php';?></div>
+    <div class='cell action-cell'><?php include '../../common/view/action.html.php'; ?></div>
   </div>
 </div>
-<?php include '../../common/view/footer.html.php';?>
+<?php include '../../common/view/footer.html.php'; ?>

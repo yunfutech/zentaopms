@@ -80,8 +80,73 @@ function createProject()
 
     var link = createLink('project', 'create');
 
-    config.onlybody      = onlybody;
-    parent.location.href = link;
+    config.onlybody = onlybody;
+    window.parent.$.apps.open(link, 'project');
+}
+
+/**
+ * Create execution.
+ *
+ * @access public
+ * @return void
+ */
+function createExecution()
+{
+    var onlybody    = config.onlybody;
+    config.onlybody = 'no';
+
+    var link = createLink('execution', 'create');
+
+    config.onlybody = onlybody;
+    window.parent.$.apps.open(link, 'execution');
+}
+
+/**
+ * Get executions by project id.
+ *
+ * @param  int    $projectID
+ * @access public
+ * @return void
+ */
+function getExecutionByProject(projectID)
+{
+    link = createLink('todo', 'ajaxGetExecutionPairs', "projectID=" + projectID);
+    $('#executionIdBox').load(link, function()
+    {
+        $(this).find('select').chosen();
+    })
+}
+
+/**
+ * Get products by project id.
+ *
+ * @param  int    $projectID
+ * @access public
+ * @return void
+ */
+function getProductByProject(projectID)
+{
+    link = createLink('todo', 'ajaxGetProductPairs', "projectID=" + projectID);
+    $('#productIdBox').load(link, function()
+    {
+        $(this).find('select').chosen();
+    })
+}
+
+/**
+ * Get programs by product id.
+ *
+ * @param  int    $productID
+ * @access public
+ * @return void
+ */
+function getProgramByProduct(productID)
+{
+    link = createLink('todo', 'ajaxGetProgramID', "productID=" + productID + '&type=product');
+    $.post(link, function(data)
+    {
+        $('#productProgram').val(data);
+    })
 }
 
 /**

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The bug module zh-tw file of ZenTaoPMS.
  *
@@ -19,7 +20,6 @@ $lang->bug->module           = '所屬模組';
 $lang->bug->moduleAB         = '模組';
 $lang->bug->project          = '所屬項目';
 $lang->bug->execution        = '所屬' . $lang->execution->common;
-$lang->bug->kanban           = '所屬看板';
 $lang->bug->story            = "相關需求";
 $lang->bug->storyVersion     = "{$lang->SRCommon}版本";
 $lang->bug->color            = '標題顏色';
@@ -165,7 +165,7 @@ $lang->bug->labelConfirmed = '已確認';
 $lang->bug->labelPostponed = '被延期';
 $lang->bug->changed        = '已變動';
 $lang->bug->storyChanged   = '需求變動';
-$lang->bug->linkMR         = '相關合併請求';
+$lang->bug->linkMR         = '相關合并請求';
 
 /* 頁面標籤。*/
 $lang->bug->lblAssignedTo = '當前指派';

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The execution module zh-tw file of ZenTaoMS.
  *
@@ -10,106 +11,105 @@
  * @link        http://www.zentao.net
  */
 /* 欄位列表。*/
-$lang->execution->allExecutions       = '所有' . $lang->execution->common;
-$lang->execution->allExecutionAB      = "{$lang->execution->common}列表";
-$lang->execution->id                  = $lang->executionCommon . '編號';
-$lang->execution->type                = $lang->executionCommon . '類型';
-$lang->execution->name                = $lang->executionCommon . '名稱';
-$lang->execution->code                = $lang->executionCommon . '代號';
-$lang->execution->projectName         = '所屬項目';
-$lang->execution->execName            = "{$lang->execution->common}名稱";
-$lang->execution->execCode            = "{$lang->execution->common}代號";
-$lang->execution->execType            = "{$lang->execution->common}類型";
-$lang->execution->stage               = '階段';
-$lang->execution->pri                 = '優先順序';
-$lang->execution->openedBy            = '由誰創建';
-$lang->execution->openedDate          = '創建日期';
-$lang->execution->closedBy            = '由誰關閉';
-$lang->execution->closedDate          = '關閉日期';
-$lang->execution->canceledBy          = '由誰取消';
-$lang->execution->canceledDate        = '取消日期';
-$lang->execution->begin               = '計劃開始';
-$lang->execution->end                 = '計劃完成';
-$lang->execution->dateRange           = '起始日期';
-$lang->execution->realBeganAB         = '實際開始';
-$lang->execution->realEndAB           = '實際完成';
-$lang->execution->realBegan           = '實際開始日期';
-$lang->execution->realEnd             = '實際完成日期';
-$lang->execution->to                  = '至';
-$lang->execution->days                = '可用工作日';
-$lang->execution->day                 = '天';
-$lang->execution->workHour            = '工時';
-$lang->execution->workHourUnit        = 'h';
-$lang->execution->totalHours          = '可用工時';
-$lang->execution->totalDays           = '可用工日';
-$lang->execution->status              = $lang->executionCommon . '狀態';
-$lang->execution->execStatus          = "{$lang->execution->common}狀態";
-$lang->execution->subStatus           = '子狀態';
-$lang->execution->desc                = $lang->executionCommon . '描述';
-$lang->execution->execDesc            = "{$lang->execution->common}描述";
-$lang->execution->owner               = '負責人';
-$lang->execution->PO                  = $lang->productCommon . '負責人';
-$lang->execution->PM                  = $lang->executionCommon . '負責人';
-$lang->execution->execPM              = "{$lang->execution->common}負責人";
-$lang->execution->QD                  = '測試負責人';
-$lang->execution->RD                  = '發佈負責人';
-$lang->execution->release             = '發佈';
-$lang->execution->acl                 = '訪問控制';
-$lang->execution->teamname            = '團隊名稱';
-$lang->execution->updateOrder         = '排序';
-$lang->execution->order               = $lang->executionCommon . '排序';
-$lang->execution->orderAB             = '排序';
-$lang->execution->products            = '相關' . $lang->productCommon;
-$lang->execution->whitelist           = '白名單';
-$lang->execution->addWhitelist        = '添加白名單';
-$lang->execution->unbindWhitelist     = '刪除白名單';
-$lang->execution->totalEstimate       = '預計';
-$lang->execution->totalConsumed       = '消耗';
-$lang->execution->totalLeft           = '剩餘';
-$lang->execution->progress            = '進度';
-$lang->execution->hours               = '預計 %s 消耗 %s 剩餘 %s';
-$lang->execution->viewBug             = '查看bug';
-$lang->execution->noProduct           = "無{$lang->executionCommon}";
-$lang->execution->createStory         = "提{$lang->SRCommon}";
-$lang->execution->storyTitle          = "{$lang->SRCommon}名稱";
-$lang->execution->all                 = '所有';
-$lang->execution->undone              = '未完成';
-$lang->execution->unclosed            = '未關閉';
-$lang->execution->typeDesc            = "運維{$lang->executionCommon}沒有{$lang->SRCommon}、bug、版本、測試功能。";
-$lang->execution->mine                = '我負責：';
-$lang->execution->involved            = '我參與';
-$lang->execution->other               = '其他';
-$lang->execution->deleted             = '已刪除';
-$lang->execution->delayed             = '已延期';
-$lang->execution->product             = $lang->execution->products;
-$lang->execution->readjustTime        = "調整{$lang->executionCommon}起止時間";
-$lang->execution->readjustTask        = '順延任務的起止時間';
-$lang->execution->effort              = '日誌';
-$lang->execution->storyEstimate       = '需求估算';
-$lang->execution->newEstimate         = '新一輪估算';
-$lang->execution->reestimate          = '重新估算';
-$lang->execution->selectRound         = '選擇輪次';
-$lang->execution->average             = '平均值';
-$lang->execution->relatedMember       = '相關成員';
-$lang->execution->watermark           = '由禪道導出';
-$lang->execution->burnXUnit           = '(日期)';
-$lang->execution->burnYUnit           = '(工時)';
-$lang->execution->waitTasks           = '待處理';
-$lang->execution->viewByUser          = '按用戶查看';
-$lang->execution->oneProduct          = "階段只能關聯一個{$lang->productCommon}";
-$lang->execution->noLinkProduct       = "關聯{$lang->productCommon}不能為空！";
-$lang->execution->recent              = '近期訪問：';
-$lang->execution->copyNoExecution     = '沒有可用的' . $lang->executionCommon . '來複制';
-$lang->execution->noTeam              = '暫時沒有團隊成員';
-$lang->execution->or                  = '或';
-$lang->execution->selectProject       = '請選擇項目';
-$lang->execution->unfoldClosed        = '展開已結束';
-$lang->execution->editName            = '編輯名稱';
-$lang->execution->setWIP              = '在製品數量設置（WIP）';
-$lang->execution->sortColumn          = '看板列卡片排序';
-$lang->execution->batchCreateStroy    = "批量新建{$lang->SRCommon}";
-$lang->execution->batchCreateTask     = '批量建任務';
-$lang->execution->kanbanNoLinkProduct = "看板沒有關聯{$lang->productCommon}";
+$lang->execution->allExecutions    = '所有' . $lang->execution->common;
+$lang->execution->allExecutionAB   = "{$lang->execution->common}列表";
+$lang->execution->id               = $lang->executionCommon . '編號';
+$lang->execution->type             = $lang->executionCommon . '類型';
+$lang->execution->name             = $lang->executionCommon . '名稱';
+$lang->execution->code             = $lang->executionCommon . '代號';
+$lang->execution->projectName      = '所屬項目';
+$lang->execution->execName         = "{$lang->execution->common}名稱";
+$lang->execution->execCode         = "{$lang->execution->common}代號";
+$lang->execution->execType         = "{$lang->execution->common}類型";
+$lang->execution->stage            = '階段';
+$lang->execution->pri              = '優先順序';
+$lang->execution->openedBy         = '由誰創建';
+$lang->execution->openedDate       = '創建日期';
+$lang->execution->closedBy         = '由誰關閉';
+$lang->execution->closedDate       = '關閉日期';
+$lang->execution->canceledBy       = '由誰取消';
+$lang->execution->canceledDate     = '取消日期';
+$lang->execution->begin            = '計劃開始';
+$lang->execution->end              = '計劃完成';
+$lang->execution->dateRange        = '起始日期';
+$lang->execution->realBeganAB      = '實際開始';
+$lang->execution->realEndAB        = '實際完成';
+$lang->execution->realBegan        = '實際開始日期';
+$lang->execution->realEnd          = '實際完成日期';
+$lang->execution->to               = '至';
+$lang->execution->days             = '可用工作日';
+$lang->execution->day              = '天';
+$lang->execution->workHour         = '工時';
+$lang->execution->workHourUnit     = 'h';
+$lang->execution->totalHours       = '可用工時';
+$lang->execution->totalDays        = '可用工日';
+$lang->execution->status           = $lang->executionCommon . '狀態';
+$lang->execution->execStatus       = "{$lang->execution->common}狀態";
+$lang->execution->subStatus        = '子狀態';
+$lang->execution->desc             = $lang->executionCommon . '描述';
+$lang->execution->execDesc         = "{$lang->execution->common}描述";
+$lang->execution->owner            = '負責人';
+$lang->execution->PO               = $lang->productCommon . '負責人';
+$lang->execution->PM               = $lang->executionCommon . '負責人';
+$lang->execution->execPM           = "{$lang->execution->common}負責人";
+$lang->execution->QD               = '測試負責人';
+$lang->execution->RD               = '發佈負責人';
+$lang->execution->release          = '發佈';
+$lang->execution->acl              = '訪問控制';
+$lang->execution->teamname         = '團隊名稱';
+$lang->execution->updateOrder      = '排序';
+$lang->execution->order            = $lang->executionCommon . '排序';
+$lang->execution->orderAB          = '排序';
+$lang->execution->products         = '相關' . $lang->productCommon;
+$lang->execution->whitelist        = '白名單';
+$lang->execution->addWhitelist     = '添加白名單';
+$lang->execution->unbindWhitelist  = '刪除白名單';
+$lang->execution->totalEstimate    = '預計';
+$lang->execution->totalConsumed    = '消耗';
+$lang->execution->totalLeft        = '剩餘';
+$lang->execution->progress         = '進度';
+$lang->execution->hours            = '預計 %s 消耗 %s 剩餘 %s';
+$lang->execution->viewBug          = '查看bug';
+$lang->execution->noProduct        = "無{$lang->executionCommon}";
+$lang->execution->createStory      = "提{$lang->SRCommon}";
+$lang->execution->storyTitle       = "{$lang->SRCommon}名稱";
+$lang->execution->all              = '所有';
+$lang->execution->undone           = '未完成';
+$lang->execution->unclosed         = '未關閉';
+$lang->execution->typeDesc         = "運維{$lang->executionCommon}沒有{$lang->SRCommon}、bug、版本、測試功能。";
+$lang->execution->mine             = '我負責：';
+$lang->execution->involved         = '我參與';
+$lang->execution->other            = '其他';
+$lang->execution->deleted          = '已刪除';
+$lang->execution->delayed          = '已延期';
+$lang->execution->product          = $lang->execution->products;
+$lang->execution->readjustTime     = "調整{$lang->executionCommon}起止時間";
+$lang->execution->readjustTask     = '順延任務的起止時間';
+$lang->execution->effort           = '日誌';
+$lang->execution->storyEstimate    = '需求估算';
+$lang->execution->newEstimate      = '新一輪估算';
+$lang->execution->reestimate       = '重新估算';
+$lang->execution->selectRound      = '選擇輪次';
+$lang->execution->average          = '平均值';
+$lang->execution->relatedMember    = '相關成員';
+$lang->execution->watermark        = '由禪道導出';
+$lang->execution->burnXUnit        = '(日期)';
+$lang->execution->burnYUnit        = '(工時)';
+$lang->execution->waitTasks        = '待處理';
+$lang->execution->viewByUser       = '按用戶查看';
+$lang->execution->oneProduct       = "階段只能關聯一個{$lang->productCommon}";
+$lang->execution->noLinkProduct    = "階段沒有關聯{$lang->productCommon}";
+$lang->execution->recent           = '近期訪問：';
+$lang->execution->copyNoExecution  = '沒有可用的' . $lang->executionCommon . '來複制';
+$lang->execution->noTeam           = '暫時沒有團隊成員';
+$lang->execution->or               = '或';
+$lang->execution->selectProject    = '請選擇項目';
+$lang->execution->unfoldClosed     = '展開已結束';
+$lang->execution->editName         = '編輯名稱';
+$lang->execution->setWIP           = '在製品數量設置（WIP）';
+$lang->execution->sortColumn       = '看板列卡片排序';
+$lang->execution->batchCreateStory = "批量新建{$lang->SRCommon}";
+$lang->execution->batchCreateTask  = '批量建任務';
 
 /* Fields of zt_team. */
 $lang->execution->root     = '源ID';
@@ -117,8 +117,8 @@ $lang->execution->estimate = '預計';
 $lang->execution->consumed = '消耗';
 $lang->execution->left     = '剩餘';
 
-if($this->config->systemMode == 'new') $lang->execution->copyTeamTip = "可以選擇複製項目或{$lang->execution->common}團隊的成員";
-if($this->config->systemMode == 'classic') $lang->execution->copyTeamTip = "可以選擇複製{$lang->executionCommon}團隊的成員";
+if ($this->config->systemMode == 'new') $lang->execution->copyTeamTip = "可以選擇複製項目或{$lang->execution->common}團隊的成員";
+if ($this->config->systemMode == 'classic') $lang->execution->copyTeamTip = "可以選擇複製{$lang->executionCommon}團隊的成員";
 
 $lang->execution->start    = "開始";
 $lang->execution->activate = "激活";
@@ -161,19 +161,13 @@ $lang->execution->statusList['suspended'] = '已掛起';
 $lang->execution->statusList['closed']    = '已關閉';
 
 global $config;
-if($config->systemMode == 'new')
-{
+if ($config->systemMode == 'new') {
     $lang->execution->aclList['private'] = "私有（團隊成員和項目負責人、干係人可訪問）";
     $lang->execution->aclList['open']    = "繼承項目訪問權限（能訪問當前項目，即可訪問）";
-}
-else
-{
+} else {
     $lang->execution->aclList['private'] = "私有（團隊成員和{$lang->executionCommon}負責人可訪問）";
     $lang->execution->aclList['open']    = "公開（有{$lang->executionCommon}視圖權限即可訪問）";
 }
-
-$lang->execution->kanbanAclList['private'] = '私有';
-$lang->execution->kanbanAclList['open']    = '繼承項目';
 
 $lang->execution->storyPoint = '故事點';
 
@@ -251,8 +245,6 @@ $lang->execution->iteration         = '版本迭代';
 $lang->execution->iterationInfo     = '迭代%s次';
 $lang->execution->viewAll           = '查看所有';
 $lang->execution->testreport        = '測試報告';
-$lang->execution->taskKanban        = '任務看板';
-$lang->execution->RDKanban          = '研發看板';
 
 /* 分組瀏覽。*/
 $lang->execution->allTasks     = '所有';
@@ -330,8 +322,8 @@ $lang->execution->noMembers           = '暫時沒有團隊成員。';
 $lang->execution->workloadTotal       = "工作量占比累計不應當超過100, 當前產品下的工作量之和為%s";
 // $lang->execution->linkProjectStoryTip = "(關聯{$lang->SRCommon}來源於項目下所關聯的{$lang->SRCommon})";
 $lang->execution->linkAllStoryTip     = "(項目下還未關聯{$lang->SRCommon}，可直接關聯該{$lang->execution->common}所關聯產品的{$lang->SRCommon})";
-if($config->systemMode == 'classic') $lang->execution->copyTeamTitle = "選擇一個{$lang->execution->common}團隊來複制";
-if($config->systemMode == 'new')     $lang->execution->copyTeamTitle = "選擇一個{$lang->project->common}或{$lang->execution->common}團隊來複制";
+if ($config->systemMode == 'classic') $lang->execution->copyTeamTitle = "選擇一個{$lang->execution->common}團隊來複制";
+if ($config->systemMode == 'new')     $lang->execution->copyTeamTitle = "選擇一個{$lang->project->common}或{$lang->execution->common}團隊來複制";
 
 /* 交互提示。*/
 $lang->execution->confirmDelete               = "您確定刪除{$lang->executionCommon}[%s]嗎？";
@@ -428,7 +420,6 @@ $lang->printKanban->typeList['increment'] = '增量';
 $lang->execution->typeList['']       = '';
 $lang->execution->typeList['stage']  = '階段';
 $lang->execution->typeList['sprint'] = $lang->executionCommon;
-$lang->execution->typeList['kanban'] = '看板';
 
 $lang->execution->featureBar['task']['all']          = $lang->execution->allTasks;
 $lang->execution->featureBar['task']['unclosed']     = $lang->execution->unclosed;

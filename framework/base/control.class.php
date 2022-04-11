@@ -1,4 +1,5 @@
 <?php
+
 /**
  * ZenTaoPHP的baseControl类。
  * The baseControl class file of ZenTaoPHP framework.
@@ -272,12 +273,11 @@ class baseControl
      */
     public function loadModel($moduleName = '', $appName = '')
     {
-        if(empty($moduleName)) $moduleName = $this->moduleName;
-        if(empty($appName)) $appName = $this->appName;
+        if (empty($moduleName)) $moduleName = $this->moduleName;
+        if (empty($appName)) $appName = $this->appName;
 
         global $loadedModels;
-        if(isset($loadedModels[$appName][$moduleName]))
-        {
+        if (isset($loadedModels[$appName][$moduleName])) {
             $this->$moduleName = $loadedModels[$appName][$moduleName];
             $this->dao         = $this->$moduleName->dao;
             return $this->$moduleName;
@@ -289,8 +289,7 @@ class baseControl
          * 如果没有model文件，尝试加载config配置信息。
          * If no model file, try load config.
          */
-        if(!helper::import($modelFile))
-        {
+        if (!helper::import($modelFile)) {
             $this->app->loadModuleConfig($moduleName, $appName);
             $this->app->loadLang($moduleName, $appName);
             $this->dao = new dao();
@@ -302,10 +301,9 @@ class baseControl
          * If no extension file, model class name is $moduleName + 'model', else with 'ext' as the prefix.
          */
         $modelClass = class_exists('ext' . $appName . $moduleName . 'model') ? 'ext' . $appName . $moduleName . 'model' : $appName . $moduleName . 'model';
-        if(!class_exists($modelClass))
-        {
+        if (!class_exists($modelClass)) {
             $modelClass = class_exists('ext' . $moduleName . 'model') ? 'ext' . $moduleName . 'model' : $moduleName . 'model';
-            if(!class_exists($modelClass)) $this->app->triggerError(" The model $modelClass not found", __FILE__, __LINE__, $exit = true);
+            if (!class_exists($modelClass)) $this->app->triggerError(" The model $modelClass not found", __FILE__, __LINE__, $exit = true);
         }
 
         /**
@@ -381,21 +379,20 @@ class baseControl
         $mainViewFile = $modulePath . 'view' . DS . $this->devicePrefix . $methodName . '.' . $viewType . '.php';
         $viewFile     = $mainViewFile;
 
-        if(!empty($viewExtPath))
-        {
+        if (!empty($viewExtPath)) {
             $commonExtViewFile = $viewExtPath['common'] . $this->devicePrefix . $methodName . ".{$viewType}.php";
             $siteExtViewFile   = empty($viewExtPath['site']) ? '' : $viewExtPath['site'] . $this->devicePrefix . $methodName . ".{$viewType}.php";
 
             $viewFile = file_exists($commonExtViewFile) ? $commonExtViewFile : $mainViewFile;
             $viewFile = (!empty($siteExtViewFile) and file_exists($siteExtViewFile)) ? $siteExtViewFile : $viewFile;
-            if(!is_file($viewFile)) $this->app->triggerError("the view file $viewFile not found", __FILE__, __LINE__, $exit = true);
+            if (!is_file($viewFile)) $this->app->triggerError("the view file $viewFile not found", __FILE__, __LINE__, $exit = true);
 
             $commonExtHookFiles = glob($viewExtPath['common'] . $this->devicePrefix . $methodName . ".*.{$viewType}.hook.php");
             $siteExtHookFiles   = empty($viewExtPath['site']) ? '' : glob($viewExtPath['site'] . $this->devicePrefix . $methodName . ".*.{$viewType}.hook.php");
             $extHookFiles       = array_merge((array)$commonExtHookFiles, (array)$siteExtHookFiles);
         }
 
-        if(!empty($extHookFiles)) return array('viewFile' => $viewFile, 'hookFiles' => $extHookFiles);
+        if (!empty($extHookFiles)) return array('viewFile' => $viewFile, 'hookFiles' => $extHookFiles);
         return $viewFile;
     }
 
@@ -413,25 +410,21 @@ class baseControl
          * 首先找sitecode下的扩展文件，如果没有，再找ext下的扩展文件。
          * Find extViewFile in ext/_$siteCode/view first, then try ext/view/.
          */
-        if($this->app->siteCode)
-        {
-            $extPath     = dirname(dirname(realpath($viewFile))) . "/ext/_{$this->app->siteCode}/view";
-            $extViewFile = $extPath . basename($viewFile);
+        $moduleName = basename(dirname(dirname(realpath($viewFile))));
+        $extPath    = $this->app->getModuleExtPath('', $moduleName, 'view');
 
-            if(file_exists($extViewFile))
-            {
-                helper::cd($extPath);
-                return $extViewFile;
+        $checkedOrder = array('site', 'custom', 'vision', 'xuan', 'common');
+        $fileName     = basename($viewFile);
+        foreach ($checkedOrder as $checkedType) {
+            if (!empty($extPath[$checkedType])) {
+                $extViewFile = $extPath[$checkedType] . $fileName;
+                if (file_exists($extViewFile)) {
+                    helper::cd($extPath[$checkedType]);
+                    return $extViewFile;
+                }
             }
         }
 
-        $extPath     = dirname(dirname(realpath($viewFile))) . '/ext/view/';
-        $extViewFile = $extPath . basename($viewFile);
-        if(file_exists($extViewFile))
-        {
-            helper::cd($extPath);
-            return $extViewFile;
-        }
         return false;
     }
 
@@ -461,42 +454,34 @@ class baseControl
 
         /* Common css file. like module/story/css/common.css. */
         $mainCssFile = $mainCssPath . $devicePrefix . 'common.css';
-        if(is_file($mainCssFile)) $css .= file_get_contents($mainCssFile);
+        if (is_file($mainCssFile)) $css .= file_get_contents($mainCssFile);
 
         /* Common css file with lang. like module/story/css/common.en.css. */
         $mainCssLangFile = $mainCssPath . $devicePrefix . "common.{$clientLang}.css";
-        if(!file_exists($mainCssLangFile) and $notCNLang) $mainCssLangFile = $mainCssPath . $devicePrefix . "common.en.css";
-        if(is_file($mainCssLangFile)) $css .= file_get_contents($mainCssLangFile);
+        if (!file_exists($mainCssLangFile) and $notCNLang) $mainCssLangFile = $mainCssPath . $devicePrefix . "common.en.css";
+        if (is_file($mainCssLangFile)) $css .= file_get_contents($mainCssLangFile);
 
         /* Method css file. like module/story/css/create.css. */
         $methodCssFile = $mainCssPath . $devicePrefix . $methodName . '.css';
-        if(is_file($methodCssFile)) $css .= file_get_contents($methodCssFile);
+        if (is_file($methodCssFile)) $css .= file_get_contents($methodCssFile);
 
         /* Method css file with lang. like module/story/css/create.en.css. */
         $methodCssLangFile = $mainCssPath . $devicePrefix . "{$methodName}.{$clientLang}.css";
-        if(!file_exists($methodCssLangFile) and $notCNLang) $methodCssLangFile = $mainCssPath . $devicePrefix . "{$methodName}.en.css";
-        if(is_file($methodCssLangFile)) $css .= file_get_contents($methodCssLangFile);
+        if (!file_exists($methodCssLangFile) and $notCNLang) $methodCssLangFile = $mainCssPath . $devicePrefix . "{$methodName}.en.css";
+        if (is_file($methodCssLangFile)) $css .= file_get_contents($methodCssLangFile);
 
-        if(!empty($cssExtPath))
-        {
-            $cssMethodExt = $cssExtPath['common'] . $methodName . DS;
-            $cssCommonExt = $cssExtPath['common'] . 'common' . DS;
+        if (!empty($cssExtPath)) {
+            foreach ($cssExtPath as $cssPath) {
+                if (empty($cssPath)) continue;
 
-            $cssExtFiles = glob($cssCommonExt . $devicePrefix . '*.css');
-            if(!empty($cssExtFiles) and is_array($cssExtFiles)) $css .= $this->getExtCSS($cssExtFiles);
+                $cssMethodExt = $cssPath . $methodName . DS;
+                $cssCommonExt = $cssPath . 'common' . DS;
 
-            $cssExtFiles = glob($cssMethodExt . $devicePrefix . '*.css');
-            if(!empty($cssExtFiles) and is_array($cssExtFiles)) $css .= $this->getExtCSS($cssExtFiles);
-
-            if(!empty($cssExtPath['site']))
-            {
-                $cssMethodExt = $cssExtPath['site'] . $methodName . DS;
-                $cssCommonExt = $cssExtPath['site'] . 'common' . DS;
-                $cssExtFiles  = glob($cssCommonExt . $devicePrefix . '*.css');
-                if(!empty($cssExtFiles) and is_array($cssExtFiles)) $css .= $this->getExtCSS($cssExtFiles);
+                $cssExtFiles = glob($cssCommonExt . $devicePrefix . '*.css');
+                if (!empty($cssExtFiles) and is_array($cssExtFiles)) $css .= $this->getExtCSS($cssExtFiles);
 
                 $cssExtFiles = glob($cssMethodExt . $devicePrefix . '*.css');
-                if(!empty($cssExtFiles) and is_array($cssExtFiles)) $css .= $this->getExtCSS($cssExtFiles);
+                if (!empty($cssExtFiles) and is_array($cssExtFiles)) $css .= $this->getExtCSS($cssExtFiles);
             }
         }
 
@@ -516,36 +501,28 @@ class baseControl
         $notCNLang  = strpos('|zh-cn|zh-tw|', "|{$clientLang}|") === false;
 
         $filePairs = array();
-        foreach($files as $cssFile)
-        {
+        foreach ($files as $cssFile) {
             $fileName             = basename($cssFile);
             $filePairs[$fileName] = $cssFile;
         }
 
         $css       = '';
         $usedCodes = array();
-        foreach($filePairs as $fileName => $cssFile)
-        {
-            if(preg_match('/^\w+\.css$/', $fileName))
-            {
+        foreach ($filePairs as $fileName => $cssFile) {
+            if (preg_match('/^\w+\.css$/', $fileName)) {
                 /* Method extension css file. like module/story/ext/css/create/effort.css. */
                 $css .= file_get_contents($cssFile);
                 list($code) = explode('.', $fileName);
-            }
-            else
-            {
+            } else {
                 list($code) = explode('.', $fileName);
-                if(isset($usedCodes[$code])) continue;
+                if (isset($usedCodes[$code])) continue;
             }
 
 
             /* Method extension css file. like module/story/ext/css/create/effort.zh-cn.css. */
-            if(isset($filePairs["{$code}.{$clientLang}.css"]))
-            {
+            if (isset($filePairs["{$code}.{$clientLang}.css"])) {
                 $css .= file_get_contents($filePairs["{$code}.{$clientLang}.css"]);
-            }
-            elseif($notCNLang and isset($filePairs["{$code}.en.css"]))
-            {
+            } elseif ($notCNLang and isset($filePairs["{$code}.en.css"])) {
                 $css .= file_get_contents($filePairs["{$code}.en.css"]);
             }
             $usedCodes[$code] = $code;
@@ -574,30 +551,21 @@ class baseControl
         $js           = '';
         $mainJsFile   = $modulePath . 'js' . DS . $this->devicePrefix . 'common.js';
         $methodJsFile = $modulePath . 'js' . DS . $this->devicePrefix . $methodName . '.js';
-        if(file_exists($mainJsFile)) $js .= file_get_contents($mainJsFile);
-        if(is_file($methodJsFile)) $js .= file_get_contents($methodJsFile);
+        if (file_exists($mainJsFile)) $js .= file_get_contents($mainJsFile);
+        if (is_file($methodJsFile)) $js .= file_get_contents($methodJsFile);
 
-        if(!empty($jsExtPath))
-        {
-            $jsMethodExt = $jsExtPath['common'] . $methodName . DS;
-            $jsCommonExt = $jsExtPath['common'] . 'common' . DS;
+        if (!empty($jsExtPath)) {
+            foreach ($jsExtPath as $jsPath) {
+                if (empty($jsPath)) continue;
 
-            $jsExtFiles = glob($jsCommonExt . $this->devicePrefix . '*.js');
-            if(!empty($jsExtFiles) and is_array($jsExtFiles)) foreach($jsExtFiles as $jsFile) $js .= file_get_contents($jsFile);
-
-            $jsExtFiles = glob($jsMethodExt . $this->devicePrefix . '*.js');
-            if(!empty($jsExtFiles) and is_array($jsExtFiles)) foreach($jsExtFiles as $jsFile) $js .= file_get_contents($jsFile);
-
-            if(!empty($jsExtPath['site']))
-            {
-                $jsMethodExt = $jsExtPath['site'] . $methodName . DS;
-                $jsCommonExt = $jsExtPath['site'] . 'common' . DS;
+                $jsMethodExt = $jsPath . $methodName . DS;
+                $jsCommonExt = $jsPath . 'common' . DS;
 
                 $jsExtFiles = glob($jsCommonExt . $this->devicePrefix . '*.js');
-                if(!empty($jsExtFiles) and is_array($jsExtFiles)) foreach($jsExtFiles as $jsFile) $js .= file_get_contents($jsFile);
+                if (!empty($jsExtFiles) and is_array($jsExtFiles)) foreach ($jsExtFiles as $jsFile) $js .= file_get_contents($jsFile);
 
                 $jsExtFiles = glob($jsMethodExt . $this->devicePrefix . '*.js');
-                if(!empty($jsExtFiles) and is_array($jsExtFiles)) foreach($jsExtFiles as $jsFile) $js .= file_get_contents($jsFile);
+                if (!empty($jsExtFiles) and is_array($jsExtFiles)) foreach ($jsExtFiles as $jsFile) $js .= file_get_contents($jsFile);
             }
         }
 
@@ -641,11 +609,11 @@ class baseControl
      */
     public function parse($moduleName = '', $methodName = '')
     {
-        if(empty($moduleName)) $moduleName = $this->moduleName;
-        if(empty($methodName)) $methodName = $this->methodName;
+        if (empty($moduleName)) $moduleName = $this->moduleName;
+        if (empty($methodName)) $methodName = $this->methodName;
 
-        if($this->viewType == 'json') $this->parseJSON($moduleName, $methodName);
-        if($this->viewType != 'json') $this->parseDefault($moduleName, $methodName);
+        if ($this->viewType == 'json') $this->parseJSON($moduleName, $methodName);
+        if ($this->viewType != 'json') $this->parseDefault($moduleName, $methodName);
 
         return $this->output;
     }
@@ -696,7 +664,7 @@ class baseControl
         $results = $this->setViewFile($moduleName, $methodName);
 
         $viewFile = $results;
-        if(is_array($results)) extract($results);
+        if (is_array($results)) extract($results);
 
         /**
          * 获得当前页面的CSS和JS。
@@ -704,8 +672,8 @@ class baseControl
          */
         $css = $this->getCSS($moduleName, $methodName);
         $js  = $this->getJS($moduleName, $methodName);
-        if($css) $this->view->pageCSS = $css;
-        if($js) $this->view->pageJS = $js;
+        if ($css) $this->view->pageCSS = $css;
+        if ($js) $this->view->pageJS = $js;
 
         /**
          * 切换到视图文件所在的目录，以保证视图文件里面的include语句能够正常运行。
@@ -721,7 +689,7 @@ class baseControl
         extract((array)$this->view);
         ob_start();
         include $viewFile;
-        if(isset($hookFiles)) foreach($hookFiles as $hookFile) if(file_exists($hookFile)) include $hookFile;
+        if (isset($hookFiles)) foreach ($hookFiles as $hookFile) if (file_exists($hookFile)) include $hookFile;
         $this->output .= ob_get_contents();
         ob_end_clean();
 
@@ -751,11 +719,10 @@ class baseControl
          * 如果模块名为空，则调用该模块、该方法。
          * If the module name is empty, then use the current module and method.
          */
-        if($moduleName == '') $moduleName = $this->moduleName;
-        if($methodName == '') $methodName = $this->methodName;
-        if($appName == '') $appName = $this->appName;
-        if($moduleName == $this->moduleName and $methodName == $this->methodName)
-        {
+        if ($moduleName == '') $moduleName = $this->moduleName;
+        if ($methodName == '') $methodName = $this->methodName;
+        if ($appName == '') $appName = $this->appName;
+        if ($moduleName == $this->moduleName and $methodName == $this->methodName) {
             $this->parse($moduleName, $methodName);
             return $this->output;
         }
@@ -771,8 +738,9 @@ class baseControl
          */
         $this->app->setModuleName($moduleName);
         $this->app->setMethodName($methodName);
+        $this->app->setControlFile();
 
-        if(!is_array($params)) parse_str($params, $params);
+        if (!is_array($params)) parse_str($params, $params);
         $this->app->params = $params;
 
         $currentPWD = getcwd();
@@ -787,17 +755,32 @@ class baseControl
         $file2Included     = $moduleControlFile;
         $classNameToFetch  = $moduleName;
 
-        if(!empty($actionExtPath))
-        {
+        if (!empty($actionExtPath)) {
             /**
              * 设置公共扩展。
              * set common extension.
              */
-            $commonActionExtFile = $actionExtPath['common'] . strtolower($methodName) . '.php';
-            $file2Included       = file_exists($commonActionExtFile) ? $commonActionExtFile : $moduleControlFile;
+            $file2Included = $moduleControlFile;
 
-            if(!empty($actionExtPath['site']))
-            {
+            if (!empty($actionExtPath['common'])) {
+                $commonActionExtFile = $actionExtPath['common'] . strtolower($methodName) . '.php';
+                if (file_exists($commonActionExtFile)) $file2Included = $commonActionExtFile;
+            }
+
+            if (!empty($actionExtPath['xuan'])) {
+                $commonActionExtFile = $actionExtPath['xuan'] . strtolower($methodName) . '.php';
+                if (file_exists($commonActionExtFile)) $file2Included = $commonActionExtFile;
+            }
+
+            if (!empty($actionExtPath['vision'])) {
+                $commonActionExtFile = $actionExtPath['vision'] . strtolower($methodName) . '.php';
+                if (file_exists($commonActionExtFile)) $file2Included = $commonActionExtFile;
+            }
+
+            $commonActionExtFile = $actionExtPath['custom'] . strtolower($methodName) . '.php';
+            if (file_exists($commonActionExtFile)) $file2Included = $commonActionExtFile;
+
+            if (!empty($actionExtPath['site'])) {
                 /**
                  * 设置站点扩展。
                  * every site has it's extension.
@@ -807,16 +790,15 @@ class baseControl
             }
 
             /* If class name is my{$moduleName} then set classNameToFetch for include this file. */
-            if(strpos($file2Included, DS . 'ext' . DS) !== false and stripos(file_get_contents($file2Included), "class my{$moduleName} extends $moduleName") !== false) $classNameToFetch = "my{$moduleName}";
+            if (strpos($file2Included, DS . 'ext' . DS) !== false and stripos(file_get_contents($file2Included), "class my{$moduleName} extends $moduleName") !== false) $classNameToFetch = "my{$moduleName}";
         }
 
         /**
          * 加载控制器文件。
          * Load the control file.
          */
-        if(!is_file($file2Included)) $this->app->triggerError("The control file $file2Included not found", __FILE__, __LINE__, $exit = true);
-        if(!class_exists($classNameToFetch))
-        {
+        if (!is_file($file2Included)) $this->app->triggerError("The control file $file2Included not found", __FILE__, __LINE__, $exit = true);
+        if (!class_exists($classNameToFetch)) {
             chdir(dirname($file2Included));
             helper::import($file2Included);
         }
@@ -826,7 +808,7 @@ class baseControl
          * Set the name of the class to be called.
          */
         $className = class_exists("my$moduleName") ? "my$moduleName" : $moduleName;
-        if(!class_exists($className)) $this->app->triggerError(" The class $className not found", __FILE__, __LINE__, $exit = true);
+        if (!class_exists($className)) $this->app->triggerError(" The class $className not found", __FILE__, __LINE__, $exit = true);
 
         /**
          * 解析参数，创建模块control对象。
@@ -874,7 +856,7 @@ class baseControl
      */
     public function display($moduleName = '', $methodName = '')
     {
-        if(empty($this->output)) $this->parse($moduleName, $methodName);
+        if (empty($this->output)) $this->parse($moduleName, $methodName);
         echo $this->output;
     }
 
@@ -889,15 +871,13 @@ class baseControl
      */
     public function send($data, $type = 'json')
     {
-        if($type != 'json') die();
+        if ($type != 'json') die();
 
         $data = (array)$data;
-        if(helper::isAjaxRequest() or $this->viewType == 'json')
-        {
+        if (helper::isAjaxRequest() or $this->viewType == 'json') {
             /* Process for zh-cn in json. */
-            foreach($data as $key => $value)
-            {
-                if(!is_string($value)) continue;
+            foreach ($data as $key => $value) {
+                if (!is_string($value)) continue;
 
                 /* Retain ["] for json encode when value is jsoned string. */
                 $data[$key] = str_replace('%22', '"', urlencode($value));
@@ -906,7 +886,7 @@ class baseControl
             print(urldecode(json_encode($data)));
             $response = helper::removeUTF8Bom(ob_get_clean());
 
-            if(defined('RUN_MODE') and RUN_MODE == 'api') return print($response);
+            if (defined('RUN_MODE') and RUN_MODE == 'api') return print($response);
 
             die($response);
         }
@@ -915,20 +895,16 @@ class baseControl
          * 响应非ajax的请求。
          * Response request not ajax.
          */
-        if(isset($data['result']) and $data['result'] == 'success')
-        {
-            if(!empty($data['message'])) echo js::alert($data['message']);
+        if (isset($data['result']) and $data['result'] == 'success') {
+            if (!empty($data['message'])) echo js::alert($data['message']);
             $locate = isset($data['locate']) ? $data['locate'] : (isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '');
-            if(!empty($locate)) die(js::locate($locate));
+            if (!empty($locate)) die(js::locate($locate));
             die(isset($data['message']) ? $data['message'] : 'success');
         }
 
-        if(isset($data['result']) and $data['result'] == 'fail')
-        {
-            if(!empty($data['message']))
-            {
-                if(is_string($data['message']))
-                {
+        if (isset($data['result']) and $data['result'] == 'fail') {
+            if (!empty($data['message'])) {
+                if (is_string($data['message'])) {
                     echo js::alert($data['message']);
                     $locate = isset($data['locate']) ? $data['locate'] : (isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '');
                     if (!empty($locate)) die(js::locate($locate));
@@ -936,7 +912,7 @@ class baseControl
                 }
 
                 $message = json_decode(json_encode((array)$data['message']));
-                foreach((array)$message as $item => $errors) $message->$item = implode(',', $errors);
+                foreach ((array)$message as $item => $errors) $message->$item = implode(',', $errors);
                 die(js::alert(strip_tags(implode('\n', (array)$message))));
             }
             die('fail');
@@ -965,7 +941,7 @@ class baseControl
     public function sendSuccess($data)
     {
         $data['result'] = 'success';
-        if(empty($data['message'])) $data['message'] = $this->lang->saveSuccess;
+        if (empty($data['message'])) $data['message'] = $this->lang->saveSuccess;
         $this->send($data);
     }
 
@@ -983,7 +959,7 @@ class baseControl
      */
     public function createLink($moduleName, $methodName = 'index', $vars = array(), $viewType = '', $onlybody = false)
     {
-        if(empty($moduleName)) $moduleName = $this->moduleName;
+        if (empty($moduleName)) $moduleName = $this->moduleName;
         return helper::createLink($moduleName, $methodName, $vars, $viewType, $onlybody);
     }
 

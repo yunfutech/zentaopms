@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The model file of dashboard module of ZenTaoPMS.
  *
@@ -25,20 +26,16 @@ class myModel extends model
         $flowModule = $this->config->global->flow . '_my';
         $customMenu = isset($this->config->customMenu->$flowModule) ? $this->config->customMenu->$flowModule : array();
 
-        if(empty($customMenu))
-        {
+        if (empty($customMenu)) {
             $role = $this->app->user->role;
-            if($role == 'qa')
-            {
+            if ($role == 'qa') {
                 $taskOrder = '15';
                 $bugOrder  = '20';
 
                 unset($this->lang->my->menuOrder[$taskOrder]);
                 $this->lang->my->menuOrder[32] = 'task';
                 $this->lang->my->dividerMenu = str_replace(',task,', ',' . $this->lang->my->menuOrder[$bugOrder] . ',', $this->lang->my->dividerMenu);
-            }
-            elseif($role == 'po')
-            {
+            } elseif ($role == 'po') {
                 $requirementOrder = 29;
                 unset($this->lang->my->menuOrder[$requirementOrder]);
 
@@ -46,9 +43,7 @@ class myModel extends model
                 $this->lang->my->menuOrder[16] = 'requirement';
                 $this->lang->my->menuOrder[30] = 'task';
                 $this->lang->my->dividerMenu = str_replace(',task,', ',story,', $this->lang->my->dividerMenu);
-            }
-            elseif($role == 'pm')
-            {
+            } elseif ($role == 'pm') {
                 $projectOrder = 35;
                 unset($this->lang->my->menuOrder[$projectOrder]);
 
@@ -83,18 +78,16 @@ class myModel extends model
             ->groupBy('product')
             ->fetchGroup('product', 'id');
         $summaryStories = array();
-        foreach($storyGroups as $productID => $stories)
-        {
+        foreach ($storyGroups as $productID => $stories) {
             $summaryStory = new stdclass();
             $summaryStory->total = count($stories);
 
             $finishedTotal = 0;
             $leftTotal     = 0;
             $estimateCount = 0;
-            foreach($stories as $story)
-            {
+            foreach ($stories as $story) {
                 $estimateCount += $story->estimate;
-                ($story->status == 'closed' or $story->stage == 'released' or $story->stage == 'closed') ? $finishedTotal ++ : $leftTotal ++;
+                ($story->status == 'closed' or $story->stage == 'released' or $story->stage == 'closed') ? $finishedTotal++ : $leftTotal++;
             }
 
             $summaryStory->finishedTotal = $finishedTotal;
@@ -125,30 +118,29 @@ class myModel extends model
             ->orderBy('t1.project')
             ->fetchAll('product');
         $this->loadModel('execution');
-        foreach($executions as $productID => $execution)
-        {
+        foreach ($executions as $productID => $execution) {
             $execution = $this->execution->getById($execution->id);
             $executions[$productID]->progress = ($execution->totalConsumed + $execution->totalLeft) ? floor($execution->totalConsumed / ($execution->totalConsumed + $execution->totalLeft) * 1000) / 1000 * 100 : 0;
         }
 
         $allCount      = count($products);
         $unclosedCount = 0;
-        foreach($products as $key => $product)
-        {
+        foreach ($products as $key => $product) {
             $product->plans      = isset($plans[$product->id]) ? $plans[$product->id] : 0;
             $product->releases   = isset($releases[$product->id]) ? $releases[$product->id] : 0;
-            if(isset($executions[$product->id])) $product->executions = $executions[$product->id];
+            if (isset($executions[$product->id])) $product->executions = $executions[$product->id];
             $product->storyEstimateCount = isset($summaryStories[$product->id]) ? $summaryStories[$product->id]->estimateCount : 0;
             $product->storyTotal         = isset($summaryStories[$product->id]) ? $summaryStories[$product->id]->total : 0;
             $product->storyFinishedTotal = isset($summaryStories[$product->id]) ? $summaryStories[$product->id]->finishedTotal : 0;
             $product->storyLeftTotal     = isset($summaryStories[$product->id]) ? $summaryStories[$product->id]->leftTotal : 0;
             $product->storyFinishedRate  = isset($summaryStories[$product->id]) ? $summaryStories[$product->id]->finishedRate : 0;
             $product->latestExecution    = isset($executions[$product->id])     ? $executions[$product->id] : '';
-            if($product->status != 'closed') $unclosedCount ++;
-            if($product->status == 'closed') unset($products[$key]);
+            if ($product->status != 'closed') $unclosedCount++;
+            if ($product->status == 'closed') unset($products[$key]);
         }
 
         /* Sort by storyCount, get 5 records */
+        $products = json_decode(json_encode($products), true);
         array_multisort(array_column($products, 'storyEstimateCount'), SORT_DESC, $products);
         $products = array_slice($products, 0, 5);
 
@@ -171,26 +163,21 @@ class myModel extends model
         $doingProjects = $this->loadModel('project')->getOverviewList('byStatus', 'doing', 'id_desc');
         $maxCount      = 5;
         $myProjects    = array();
-        foreach($doingProjects as $key => $project)
-        {
-            if($project->PM == $this->app->user->account)
-            {
+        foreach ($doingProjects as $key => $project) {
+            if ($project->PM == $this->app->user->account) {
                 $myProjects[$key] = $project;
                 unset($doingProjects[$key]);
             }
-            if(count($myProjects) >= $maxCount) break;
+            if (count($myProjects) >= $maxCount) break;
         }
-        if(count($myProjects) < $maxCount and !empty($doingProjects))
-        {
-            foreach($doingProjects as $key => $project)
-            {
+        if (count($myProjects) < $maxCount and !empty($doingProjects)) {
+            foreach ($doingProjects as $key => $project) {
                 $myProjects[$key] = $project;
-                if(count($myProjects) >= $maxCount) break;
+                if (count($myProjects) >= $maxCount) break;
             }
         }
 
-        foreach($myProjects as $key => $project)
-        {
+        foreach ($myProjects as $key => $project) {
             $workhour = $this->project->getWorkhour($project->id);
             $project->progress = ($workhour->totalConsumed + $workhour->totalLeft) ? round($workhour->totalConsumed / ($workhour->totalConsumed + $workhour->totalLeft) * 100, 1) : 0;
             $project->delay    = (helper::diffDate(helper::today(), $project->end) > 0);
@@ -217,15 +204,13 @@ class myModel extends model
             ->fetch();
 
         $overview = new stdclass();
-        if(!empty($inAdminGroup) or $this->app->user->admin)
-        {
+        if (!empty($inAdminGroup) or $this->app->user->admin) {
             $allConsumed      = 0;
             $thisYearConsumed = 0;
 
             $projects         = $this->loadModel('project')->getOverviewList('byStatus', 'all', 'id_desc', 0);
             $projectsConsumed = $this->project->getProjectsConsumed(array_keys($projects), 'THIS_YEAR');
-            foreach($projects as $project)
-            {
+            foreach ($projects as $project) {
                 $allConsumed      += $project->consumed;
                 $thisYearConsumed += $projectsConsumed[$project->id]->totalConsumed;
             }
@@ -233,9 +218,7 @@ class myModel extends model
             $overview->projectTotal     = count($projects);
             $overview->allConsumed      = round($allConsumed, 1);
             $overview->thisYearConsumed = round($thisYearConsumed, 1);
-        }
-        else
-        {
+        } else {
             $overview->myTaskTotal  = (int)$this->dao->select('count(*) AS count')->from(TABLE_TASK)->where('assignedTo')->eq($this->app->user->account)->andWhere('deleted')->eq(0)->fetch('count');
             $overview->myStoryTotal = (int)$this->dao->select('count(*) AS count')->from(TABLE_STORY)->where('assignedTo')->eq($this->app->user->account)->andWhere('deleted')->eq(0)->andWhere('type')->eq('story')->fetch('count');
             $overview->myBugTotal   = (int)$this->dao->select('count(*) AS count')->from(TABLE_BUG)->where('assignedTo')->eq($this->app->user->account)->andWhere('deleted')->eq(0)->fetch('count');
@@ -292,8 +275,7 @@ class myModel extends model
         $users   = $this->loadModel('user')->getList();
 
         $simplifyUsers = array();
-        foreach($users as $user)
-        {
+        foreach ($users as $user) {
             $simplifyUser = new stdclass();
             $simplifyUser->id       = $user->id;
             $simplifyUser->account  = $user->account;

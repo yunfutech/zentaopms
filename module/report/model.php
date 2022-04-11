@@ -286,8 +286,8 @@ class reportModel extends model
                             $project[$execution->projectname]['execution'][$name]['count']       = 0;
                             $project[$execution->projectname]['execution'][$name]['manhour']     = 0;
 
-                            $workload[$member]['total']['count']                                 = 0;
-                            $workload[$member]['total']['manhour']                               = 0;
+                            $workload[$member]['total']['count']   = 0;
+                            $workload[$member]['total']['manhour'] = 0;
                         }
                     }
                     $workload[$member]['task']['project'] = $project;
@@ -355,6 +355,8 @@ class reportModel extends model
                     $workload[$user]['total']['count']   = isset($workload[$user]['total']['count'])   ? $workload[$user]['total']['count']  + 1 : 1;
                     $workload[$user]['total']['manhour'] = isset($workload[$user]['total']['manhour']) ? $workload[$user]['total']['manhour'] + $task->left : $task->left;
                 }
+
+                if (empty($project)) continue;
                 $workload[$user]['task']['project'] = $project;
             }
         }
@@ -602,6 +604,7 @@ class reportModel extends model
         return $this->dao->select("count(*) as count, sum(if((`status` != 'done'), 1, 0)) AS `undone`, sum(if((`status` = 'done'), 1, 0)) AS `done`")->from(TABLE_TODO)
             ->where('LEFT(date, 4)')->eq($year)
             ->andWhere('deleted')->eq('0')
+            ->andWhere('vision')->eq($this->config->vision)
             ->beginIF($accounts)->andWhere('account')->in($accounts)->fi()
             ->fetch();
     }
@@ -1001,6 +1004,7 @@ class reportModel extends model
             ->beginIF($this->config->systemMode == 'classic')->andWhere('t2.type')->eq('execution')->fi()
             ->beginIF($this->config->systemMode == 'new')->andWhere('t2.type')->eq('project')->fi()
             ->beginIF(!empty($accounts))->andWhere('t2.account')->in($accounts)->fi()
+            ->andWhere('t1.deleted')->eq(0)
             ->fetchPairs('id', 'status');
 
         $statusOverview = array();
@@ -1115,148 +1119,6 @@ class reportModel extends model
         }
 
         return $pairs;
-    }
-
-    /**
-     * 任务看板
-     */
-    public function getTaskStatistics($dept = 0, $date, $projectIDs = [], $project = 0, $independentProjects = [])
-    {
-        $childDeptIds = $this->loadModel('dept')->getAllChildID($dept);
-        $deptUsers = $this->dept->getUsers('all', $childDeptIds);
-        $usernames = array();
-        $tasks = array();
-        foreach ($deptUsers as $user) {
-            if ($user) {
-                $username = $user->account;
-                $usernames[] = $username;
-                $tasks[$username] = [
-                    "tasks" => [],
-                    "all" => 0,
-                    "complete" => 0,
-                    "consumed" => 0
-                ];
-            }
-        }
-
-        $finishedTasks = $this->getFinishedTasks($usernames, $date, $projectIDs, $project);
-        $todoTasks = $this->getTodoTasks($usernames, $date, $projectIDs, $project);
-
-        $status_dict = array(
-            'doing' => 1,
-            'done' => 2,
-            'wait' => 3
-        );
-
-        foreach ($finishedTasks as $task) {
-            if (in_array($task->finishedBy, $usernames)) {
-                $task->status_sort = $status_dict[$task->status];
-                $tasks[$task->finishedBy]['tasks'][]  = $task;
-                $tasks[$task->finishedBy]['all'] += $task->estimate;
-                $tasks[$task->finishedBy]['complete'] += $task->estimate;
-                $tasks[$task->finishedBy]['consumed'] += $task->consumed;
-            }
-        }
-        foreach ($todoTasks as $task) {
-            if (in_array($task->assignedTo, $usernames)) {
-                $task->status_sort = $status_dict[$task->status];
-                $tasks[$task->assignedTo]['tasks'][]  = $task;
-                $tasks[$task->assignedTo]['all'] += $task->estimate;
-                $tasks[$task->assignedTo]['complete'] += $task->consumed;
-                $tasks[$task->assignedTo]['consumed'] += $task->consumed;
-            }
-        }
-        $short = array();
-        $exceed = array();
-        foreach ($tasks as $user => $task) {
-            if (in_array($user, $usernames)) {
-                if ($dept == 3) {
-                    if ($task['all'] - 8 < 0) {
-                        $short[$user] = $task['all'];
-                    } elseif ($task['all'] - 8 > 2) {
-                        $exceed[$user] = $task['all'];
-                    }
-                } elseif ($dept == 1) {
-                    if ($task['all'] < 6) {
-                        $short[$user] = $task['all'];
-                    } elseif ($task['all'] - 8 > 2) {
-                        $exceed[$user] = $task['all'];
-                    }
-                }
-                $tasks[$user]['process'] = $task['complete'] / $task['all'] * 100;
-                $taskpri = array_column($task['tasks'], 'taskpri');
-                $pri = array_column($task['tasks'], 'pri');
-                $status_pri = array_column($task['tasks'], 'status_sort');
-                array_multisort($status_pri, SORT_ASC, $taskpri, SORT_ASC, $pri, SORT_ASC, $task['tasks']);
-                $tasks[$user]['tasks'] = $task['tasks'];
-            }
-        }
-        // $process = array_column($tasks, 'process');
-        asort($short);
-        arsort($exceed);
-        $complete = array_column($tasks, 'consumed');
-        $all = array_column($tasks, 'all');
-        array_multisort($complete, SORT_DESC, $all, SORT_DESC,  $tasks);
-        return  [
-            "tasks" => $tasks,
-            "short" => $short,
-            "exceed" => $exceed
-        ];
-    }
-
-    public function getFinishedTasks($usernames = [], $date = '', $projectIDs = [], $project = 0)
-    {
-        $finishedTasks = $this->dao->select('distinct t1.id, t1.left, t1.status, t1.pri as taskpri, t1.parent, t1.name, t1.project, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy,t2.pri, t2.name as executionName, t3.name as moduleName, t3.id as moduleId, t4.id as storyID, t4.title as storyTitle')->from(TABLE_TASK)->alias('t1')
-            ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.execution = t2.id')
-            ->leftJoin(TABLE_MODULE)->alias('t3')->on('t1.module = t3.id')
-            ->leftJoin(TABLE_STORY)->alias('t4')->on('t1.story = t4.id')
-            ->leftJoin(TABLE_PROJECT)->alias('t6')->on('t1.project = t6.id')
-            ->where('t1.deleted')->eq(0)
-            ->beginIF(!empty($usernames))
-            ->andWhere('t1.finishedBy')->in($usernames)
-            ->fi()
-            ->beginIF($date != '')
-            ->andWhere('t1.deadline')->eq($date)
-            ->fi()
-            ->andWhere('t1.finishedBy')->ne('')
-            ->beginIF(!empty($projectIDs))
-            ->andWhere('t6.id')->in($projectIDs)
-            ->fi()
-            ->beginIF($project != 0)
-            ->andWhere('t6.id')->eq($project)
-            ->fi()
-            ->andWhere('t1.assignedTo')->ne('')
-            ->orderBy('t1.id')
-            ->fetchAll('id');
-        return $finishedTasks;
-    }
-
-    public function getTodoTasks($usernames = [], $date = '', $projectIDs = [], $project = 0)
-    {
-        $todoTasks = $this->dao->select('distinct t1.id, t1.name, t1.project, t1.status, t1.pri as taskpri, t1.estimate, t1.consumed, t1.assignedTo, t1.finishedBy, t2.pri, t2.name as executionName, t3.name as moduleName, t3.id as moduleId, t4.id as storyID, t4.title as storyTitle')->from(TABLE_TASK)->alias('t1')
-            ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.execution = t2.id')
-            ->leftJoin(TABLE_MODULE)->alias('t3')->on('t1.module = t3.id')
-            ->leftJoin(TABLE_STORY)->alias('t4')->on('t1.story = t4.id')
-            ->leftJoin(TABLE_PROJECT)->alias('t6')->on('t1.project = t6.id')
-            ->where('t1.deleted')->eq(0)
-            ->beginIF(!empty($usernames))
-            ->andWhere('t1.assignedTo')->in($usernames)
-            ->fi()
-            ->beginIF($date != '')
-            ->andWhere('t1.deadline')->eq($date)
-            ->fi()
-            ->andWhere('t1.status')->notin('cancel, closed')
-            ->andWhere('t1.finishedBy')->eq('')
-            ->beginIF(!empty($projectIDs))
-            ->andWhere('t6.id')->in($projectIDs)
-            ->fi()
-            ->beginIF($project != 0)
-            ->andWhere('t6.id')->eq($project)
-            ->fi()
-            ->andWhere('t1.assignedTo')->ne('')
-            ->orderBy('t1.id')
-            ->fetchAll('id');
-        return $todoTasks;
     }
 }
 

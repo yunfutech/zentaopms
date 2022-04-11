@@ -1,4 +1,5 @@
 <?php
+
 /**
  * 禅道API的entry类。
  * The entry class file of ZenTao API.
@@ -18,7 +19,7 @@ class entry extends baseEntry
     {
         parent::__construct();
 
-        if(!isset($this->app->user) or $this->app->user->account == 'guest') $this->sendError(401, 'Unauthorized');
+        if (!isset($this->app->user) or $this->app->user->account == 'guest') $this->sendError(401, 'Unauthorized');
 
         $this->dao = $this->loadModel('common')->dao;
     }
@@ -87,7 +88,7 @@ class baseEntry
      */
     public function request($key, $defaultValue = '')
     {
-        if(isset($this->requestBody->$key)) return $this->requestBody->$key;
+        if (isset($this->requestBody->$key)) return $this->requestBody->$key;
         return $defaultValue;
     }
 
@@ -102,7 +103,7 @@ class baseEntry
      */
     public function param($key, $defaultValue = '')
     {
-        if(isset($_GET[$key])) return $_GET[$key];
+        if (isset($_GET[$key])) return $_GET[$key];
         return $defaultValue;
     }
 
@@ -131,10 +132,9 @@ class baseEntry
     {
         $this->requestBody = new stdClass();
 
-        if($this->app->action == 'post' or $this->app->action == 'put')
-        {
+        if ($this->app->action == 'post' or $this->app->action == 'put') {
             $requestBody = file_get_contents("php://input");
-            if($requestBody) $this->requestBody = json_decode($requestBody);
+            if ($requestBody) $this->requestBody = json_decode($requestBody);
         }
     }
 
@@ -208,7 +208,7 @@ class baseEntry
         header("Content-type: application/json");
         header("HTTP/1.1 {$this->statusCode[$code]}");
 
-        if($data) echo json_encode($data, JSON_HEX_TAG);
+        if ($data) echo json_encode($data, JSON_HEX_TAG);
         exit;
     }
 
@@ -247,6 +247,18 @@ class baseEntry
     }
 
     /**
+     * Send 400 response.
+     *
+     * @param  string message
+     * @access public
+     * @return void
+     */
+    public function send400($message = 'error')
+    {
+        $this->sendError(400, $message);
+    }
+
+    /**
      * Send 404 response.
      *
      * @access public
@@ -270,8 +282,7 @@ class baseEntry
     {
         ob_start();
 
-        if(!class_exists($moduleName) and !class_exists("my$moduleName"))
-        {
+        if (!class_exists($moduleName) and !class_exists("my$moduleName")) {
             global $app;
             $app->setModuleName($moduleName);
             $app->setMethodName($methodName);
@@ -286,7 +297,18 @@ class baseEntry
              * 引入该模块的control文件。
              * Include the control file of the module.
              **/
+
             $file2Included = $app->setActionExtFile() ? $app->extActionFile : $app->controlFile;
+
+            $isExt = $app->setActionExtFile();
+            if ($isExt) {
+                $controlFile = $app->controlFile;
+                spl_autoload_register(function ($class) use ($moduleName, $controlFile) {
+                    if ($class == $moduleName) include $controlFile;
+                });
+            }
+
+            $file2Included = $isExt ? $app->extActionFile : $app->controlFile;
             chdir(dirname($file2Included));
             helper::import($file2Included);
         }
@@ -296,7 +318,7 @@ class baseEntry
          * Set the class name of the control.
          **/
         $className = class_exists("my$moduleName") ? "my$moduleName" : $moduleName;
-        if(!class_exists($className)) $app->triggerError("the control $className not found", __FILE__, __LINE__, $exit = true);
+        if (!class_exists($className)) $app->triggerError("the control $className not found", __FILE__, __LINE__, $exit = true);
 
         $controller = new $className();
         $controller->viewType = 'json';
@@ -315,12 +337,11 @@ class baseEntry
      */
     public function loadModel($moduleName = '', $appName = '')
     {
-        if(empty($moduleName)) $moduleName = $this->moduleName;
-        if(empty($appName))    $appName    = $this->app->appName;
+        if (empty($moduleName)) $moduleName = $this->moduleName;
+        if (empty($appName))    $appName    = $this->app->appName;
 
         global $loadedModels;
-        if(isset($loadedModels[$appName][$moduleName]))
-        {
+        if (isset($loadedModels[$appName][$moduleName])) {
             $this->$moduleName = $loadedModels[$appName][$moduleName];
             $this->dao = $this->$moduleName->dao;
             return $this->$moduleName;
@@ -332,8 +353,7 @@ class baseEntry
          * 如果没有model文件，尝试加载config配置信息。
          * If no model file, try load config.
          */
-        if(!helper::import($modelFile))
-        {
+        if (!helper::import($modelFile)) {
             $this->app->loadModuleConfig($moduleName, $appName);
             $this->app->loadLang($moduleName, $appName);
             $this->dao = new dao();
@@ -344,11 +364,10 @@ class baseEntry
          * 如果没有扩展文件，model类名是$moduleName + 'model'，如果有扩展，还需要增加ext前缀。
          * If no extension file, model class name is $moduleName + 'model', else with 'ext' as the prefix.
          */
-        $modelClass = class_exists('ext' . $appName . $moduleName. 'model') ? 'ext' . $appName . $moduleName . 'model' : $appName . $moduleName . 'model';
-        if(!class_exists($modelClass))
-        {
-            $modelClass = class_exists('ext' . $moduleName. 'model') ? 'ext' . $moduleName . 'model' : $moduleName . 'model';
-            if(!class_exists($modelClass)) $this->app->triggerError(" The model $modelClass not found", __FILE__, __LINE__, $exit = true);
+        $modelClass = class_exists('ext' . $appName . $moduleName . 'model') ? 'ext' . $appName . $moduleName . 'model' : $appName . $moduleName . 'model';
+        if (!class_exists($modelClass)) {
+            $modelClass = class_exists('ext' . $moduleName . 'model') ? 'ext' . $moduleName . 'model' : $moduleName . 'model';
+            if (!class_exists($modelClass)) $this->app->triggerError(" The model $modelClass not found", __FILE__, __LINE__, $exit = true);
         }
 
         /**
@@ -373,7 +392,7 @@ class baseEntry
     {
         $output = helper::removeUTF8Bom(ob_get_clean());
         $output = json_decode($output);
-        if(isset($output->data)) $output->data = json_decode($output->data);
+        if (isset($output->data)) $output->data = json_decode($output->data);
 
         return $output;
     }
@@ -404,19 +423,15 @@ class baseEntry
     public function batchSetPost($fields, $object = '')
     {
         $fields = explode(',', $fields);
-        foreach($fields as $field)
-        {
+        foreach ($fields as $field) {
             /*
              * If the field exists in request body, use it.
              * Otherwise set default value from $object.
              */
-            if(isset($this->requestBody->$field))
-            {
+            if (isset($this->requestBody->$field)) {
                 $value = $this->requestBody->$field;
-            }
-            else
-            {
-                if(!$object or !isset($object->$field)) continue;
+            } else {
+                if (!$object or !isset($object->$field)) continue;
                 $value = $object->$field;
             }
 
@@ -436,10 +451,8 @@ class baseEntry
     public function requireFields($fields)
     {
         $fields = explode(',', $fields);
-        foreach($fields as $field)
-        {
-            if(!isset($_POST[$field]))
-            {
+        foreach ($fields as $field) {
+            if (!isset($_POST[$field])) {
                 $module = $this->app->moduleName;
                 $name   = isset($this->app->lang->$module->$field) ? $this->app->lang->$module->$field : $field;
                 $this->sendError(400, sprintf($this->app->lang->error->notempty, $name));
@@ -458,9 +471,8 @@ class baseEntry
      */
     public function format($data, $fields)
     {
-        if(is_array($data))
-        {
-            foreach($data as $object) $this->formatFields($object, $fields);
+        if (is_array($data)) {
+            foreach ($data as $object) $this->formatFields($object, $fields);
         }
         $this->formatFields($data, $fields);
 
@@ -480,41 +492,34 @@ class baseEntry
     {
         $fields = explode(',', $fields);
 
-        foreach($fields as $field)
-        {
+        foreach ($fields as $field) {
             $field   = explode(':', $field);
             $key     = $field[0];
             $type    = $field[1];
             $isArray = false;
 
-            if(!isset($object->$key)) continue;
+            if (!isset($object->$key)) continue;
 
             $pos = strpos($type, ']');
-            if($pos !== FALSE)
-            {
+            if ($pos !== FALSE) {
                 $is_array = true;
                 $type = substr($type, $pos + 1);
             }
 
             /* Format value. */
-            if(!$isArray)
-            {
+            if (!$isArray) {
                 $object->$key = $this->cast($object->$key, $type);
                 continue;
             }
 
             /* Format array. */
             $value = array();
-            if(is_array($object->$key))
-            {
-                foreach($object->$key as $v) $value[] = $this->cast($v, $type);
-            }
-            else
-            {
+            if (is_array($object->$key)) {
+                foreach ($object->$key as $v) $value[] = $this->cast($v, $type);
+            } else {
                 $vs = implode(',', $object->$key);
-                foreach($vs as $v)
-                {
-                    if($v === '') continue;
+                foreach ($vs as $v) {
+                    if ($v === '') continue;
                     $value[] = $this->cast($v, $type);
                 }
             }
@@ -532,15 +537,14 @@ class baseEntry
      */
     public function filterFields($object, $allowable = '')
     {
-        if(empty($allowable)) return $object;
-        if(is_string($allowable)) $allowable = explode(',', $allowable);
+        if (empty($allowable)) return $object;
+        if (is_string($allowable)) $allowable = explode(',', $allowable);
 
         $filtered = new stdclass();
-        foreach($allowable as $field)
-        {
+        foreach ($allowable as $field) {
             $field = trim($field);
-            if(empty($field)) continue;
-            if(!isset($object->$field)) continue;
+            if (empty($field)) continue;
+            if (!isset($object->$field)) continue;
             $filtered->$field = $object->$field;
         }
 
@@ -575,18 +579,16 @@ class baseEntry
      */
     private function cast($value, $type)
     {
-        switch($type)
-        {
+        switch ($type) {
             case 'time':
                 $timeFormat = $this->param('timeFormat', 'utc');
-                if($timeFormat == 'utc')
-                {
-                    if(!$value or $value == '0000-00-00 00:00:00') return null;
+                if ($timeFormat == 'utc') {
+                    if (!$value or $value == '0000-00-00 00:00:00') return null;
                     return gmdate("Y-m-d\TH:i:s\Z", strtotime($value));
                 }
                 return $value;
             case 'date':
-                if(!$value or $value == '0000-00-00') return null;
+                if (!$value or $value == '0000-00-00') return null;
                 return $value;
             case 'bool':
                 return !empty($value);
@@ -594,41 +596,38 @@ class baseEntry
                 return (int) $value;
             case 'idList':
                 $values = explode(',', $value);
-                if(empty($values)) return array();
+                if (empty($values)) return array();
 
                 $idList = array();
-                foreach($values as $val)
-                {
-                    if($val !== '') $idList[] = (int) $val;
+                foreach ($values as $val) {
+                    if ($val !== '') $idList[] = (int) $val;
                 }
                 return $idList;
             case 'stringList':
                 $values = explode(',', $value);
-                if(empty($values)) return array();
+                if (empty($values)) return array();
 
                 $stringList = array();
-                foreach($values as $val)
-                {
-                    if($val !== '') $stringList[] = $val;
+                foreach ($values as $val) {
+                    if ($val !== '') $stringList[] = $val;
                 }
                 return $stringList;
             case 'array':
                 $array = array();
-                if(!empty($value)) foreach($value as $v) $array[] = $v;
+                if (!empty($value)) foreach ($value as $v) $array[] = $v;
                 return $array;
             case 'user':
-                if(empty($value)) return null;
-                if(empty($this->users)) $this->users = $this->dao->select('id,account,avatar,realname')->from(TABLE_USER)->fetchAll('account');
+                if (empty($value)) return null;
+                if (empty($this->users)) $this->users = $this->dao->select('id,account,avatar,realname')->from(TABLE_USER)->fetchAll('account');
                 return zget($this->users, $value, null);
             case 'userList':
                 $values = explode(',', $value);
-                if(empty($values)) return array();
+                if (empty($values)) return array();
 
                 $userList = array();
-                foreach($values as $val)
-                {
+                foreach ($values as $val) {
                     $val = $this->cast($val, 'user');
-                    if($val) $userList[] = $val;
+                    if ($val) $userList[] = $val;
                 }
                 return $userList;
             default:
@@ -665,8 +664,7 @@ class baseEntry
     {
         $module = $this->app->getModuleName();
         $method = $this->app->getMethodName();
-        if($module and $method and !$this->loadModel('common')->isOpenMethod($module, $method) and !commonModel::hasPriv($module, $method))
-        {
+        if ($module and $method and !$this->loadModel('common')->isOpenMethod($module, $method) and !commonModel::hasPriv($module, $method)) {
             $this->send(403, array('error' => 'Access not allowed'));
         }
     }

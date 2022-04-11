@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The model file of git module of ZenTaoPMS.
  *
@@ -70,7 +71,7 @@ class gitModel extends model
         $this->setRepos();
         $this->loadModel('job');
 
-        if(empty($this->repos)) return false;
+        if (empty($this->repos)) return false;
 
         /* Get commit triggerType jobs by repoIdList. */
         $commentGroup = $this->job->getTriggerGroup('commit', array_keys($this->repos));
@@ -78,31 +79,27 @@ class gitModel extends model
         /* Get tag triggerType jobs by repoIdList. */
         $tagGroup = $this->job->getTriggerGroup('tag', array_keys($this->repos));
 
-        foreach($this->repos as $repoID => $repo)
-        {
+        foreach ($this->repos as $repoID => $repo) {
             $this->updateCommit($repo, $commentGroup, true);
 
             /* Create compile by tag. */
             $jobs = zget($tagGroup, $repoID, array());
-            foreach($jobs as $job)
-            {
+            foreach ($jobs as $job) {
                 $tags    = $this->getRepoTags($repo);
                 $isNew   = empty($job->lastTag) ? true : false;
                 $lastTag = '';
-                foreach($tags as $tag)
-                {
-                    if(empty($tag)) continue;
-                    if(!$isNew and $tag == $job->lastTag)
-                    {
+                foreach ($tags as $tag) {
+                    if (empty($tag)) continue;
+                    if (!$isNew and $tag == $job->lastTag) {
                         $isNew = true;
                         continue;
                     }
-                    if(!$isNew) continue;
+                    if (!$isNew) continue;
 
                     $lastTag = $tag;
-                    if($lastTag) $this->loadModel('compile')->createByJob($job->id, $lastTag, 'tag');
+                    if ($lastTag) $this->loadModel('compile')->createByJob($job->id, $lastTag, 'tag');
                 }
-                if($lastTag) $this->dao->update(TABLE_JOB)->set('lastTag')->eq($lastTag)->where('id')->eq($job->id)->exec();
+                if ($lastTag) $this->dao->update(TABLE_JOB)->set('lastTag')->eq($lastTag)->where('id')->eq($job->id)->exec();
             }
         }
     }
@@ -120,78 +117,75 @@ class gitModel extends model
     {
         /* Load module and print log. */
         $this->loadModel('repo');
-        if($printLog) $this->printLog("begin repo $repo->id");
+        if ($printLog) $this->printLog("begin repo $repo->id");
 
-        if(!$this->setRepo($repo)) return false;
+        if (!$this->setRepo($repo)) return false;
 
         /* Get branches and commits. */
         $branches = $this->repo->getBranches($repo);
         $commits  = $repo->commits;
 
+        $gitlabAccountPairs = array();
+        if ($repo->SCM == 'Gitlab') {
+            $gitlabUserList = $this->loadModel('gitlab')->apiGetUsers($repo->gitlab);
+            $acountIDPairs  = $this->gitlab->getUserIdAccountPairs($repo->gitlab);
+            foreach ($gitlabUserList as $gitlabUser) $gitlabAccountPairs[$gitlabUser->realname] = zget($acountIDPairs, $gitlabUser->id, $gitlabUser->realname);
+        }
+
         /* Update code commit history. */
-        foreach($branches as $branch)
-        {
-            if($printLog) $this->printLog("sync branch $branch logs.");
+        foreach ($branches as $branch) {
+            if ($printLog) $this->printLog("sync branch $branch logs.");
             $_COOKIE['repoBranch'] = $branch;
 
-            if($printLog) $this->printLog("get this repo logs.");
+            if ($printLog) $this->printLog("get this repo logs.");
 
             $lastInDB = $this->repo->getLatestCommit($repo->id);
 
             /* Ignore unsynced branch. */
-            if(empty($lastInDB))
-            {
-                if($printLog) $this->printLog("Please init repo {$repo->name}");
+            if (empty($lastInDB)) {
+                if ($printLog) $this->printLog("Please init repo {$repo->name}");
                 continue;
             }
 
             $version = (int)$lastInDB->commit + 1;
             $logs    = $this->repo->getUnsyncedCommits($repo);
             $objects = array();
-            if(!empty($logs))
-            {
-                if($printLog) $this->printLog("get " . count($logs) . " logs");
-                if($printLog) $this->printLog('begin parsing logs');
+            if (!empty($logs)) {
+                if ($printLog) $this->printLog("get " . count($logs) . " logs");
+                if ($printLog) $this->printLog('begin parsing logs');
 
-                foreach($logs as $log)
-                {
-                    if($printLog) $this->printLog("parsing log {$log->revision}");
-                    if($printLog) $this->printLog("comment is\n----------\n" . trim($log->msg) . "\n----------");
+                foreach ($logs as $log) {
+                    if ($printLog) $this->printLog("parsing log {$log->revision}");
+                    if ($printLog) $this->printLog("comment is\n----------\n" . trim($log->msg) . "\n----------");
 
                     $objects = $this->repo->parseComment($log->msg);
-                    if($objects)
-                    {
-                        if($printLog) $this->printLog('extract' .
+                    if ($objects) {
+                        if ($printLog) $this->printLog('extract' .
                             ' story:' . join(' ', $objects['stories']) .
                             ' task:' . join(' ', $objects['tasks']) .
                             ' bug:'  . join(',', $objects['bugs']));
 
-                        $this->repo->saveAction2PMS($objects, $log, $this->repoRoot, $repo->encoding, 'git');
-                    }
-                    else
-                    {
-                        if($printLog) $this->printLog('no objects found' . "\n");
+                        $this->repo->saveAction2PMS($objects, $log, $this->repoRoot, $repo->encoding, 'git', $gitlabAccountPairs);
+                    } else {
+                        if ($printLog) $this->printLog('no objects found' . "\n");
                     }
 
                     /* Create compile by comment. */
                     $jobs = zget($commentGroup, $repo->id, array());
-                    foreach($jobs as $job)
-                    {
-                        foreach(explode(',', $job->comment) as $comment)
-                        {
-                            if(strpos($log->msg, $comment) !== false) $this->loadModel('compile')->createByJob($job->id);
+                    foreach ($jobs as $job) {
+                        foreach (explode(',', $job->comment) as $comment) {
+                            if (strpos($log->msg, $comment) !== false) $this->loadModel('compile')->createByJob($job->id);
                         }
                     }
                     $version  = $this->repo->saveOneCommit($repo->id, $log, $version, $branch);
                     $commits += count($logs);
                 }
             }
-
         }
 
         $this->repo->updateCommitCount($repo->id, $commits);
         $this->dao->update(TABLE_REPO)->set('lastSync')->eq(helper::now())->where('id')->eq($repo->id)->exec();
-        if($printLog) $this->printLog("\n\nrepo #" . $repo->id . ': ' . $repo->path . " finished");
+        if ($printLog) $this->printLog("\n\nrepo #" . $repo->id . ': ' . $repo->path . " finished");
     }
 
     /**
@@ -205,10 +199,8 @@ class gitModel extends model
         $repos    = $this->loadModel('repo')->getListBySCM('Git,Gitlab');
         $gitRepos = array();
         $paths    = array();
-        foreach($repos as $repo)
-        {
-            if(!isset($paths[$repo->path]))
-            {
+        foreach ($repos as $repo) {
+            if (!isset($paths[$repo->path])) {
                 unset($repo->acl);
                 unset($repo->desc);
                 $gitRepos[$repo->id] = $repo;
@@ -216,7 +208,7 @@ class gitModel extends model
             }
         }
 
-        if(empty($gitRepos)) echo "You must set one git repo.\n";
+        if (empty($gitRepos)) echo "You must set one git repo.\n";
 
         $this->repos = $gitRepos;
         return true;
@@ -232,7 +224,7 @@ class gitModel extends model
     {
         $this->setRepos();
         $repoPairs = array();
-        foreach($this->repos as $repo) $repoPairs[] = $repo->path;
+        foreach ($this->repos as $repo) $repoPairs[] = $repo->path;
 
         return $repoPairs;
     }
@@ -247,7 +239,7 @@ class gitModel extends model
     public function setRepo($repo)
     {
         $this->setClient($repo);
-        if(empty($this->client)) return false;
+        if (empty($this->client)) return false;
 
         $this->setRepoRoot($repo);
         return true;
@@ -306,17 +298,16 @@ class gitModel extends model
         $scm = $this->app->loadClass('scm');
         $scm->setEngine($repo);
         $logs = $scm->log('', $fromRevision);
-        if(empty($logs)) return false;
+        if (empty($logs)) return false;
 
-        foreach($logs as $log)
-        {
+        foreach ($logs as $log) {
             $log->author = $log->committer;
             $log->msg    = $log->comment;
             $log->date   = $log->time;
 
             /* Process files. */
             $log->files = array();
-            foreach($log->change as $file => $info) $log->files[$info['action']][] = $file;
+            foreach ($log->change as $file => $info) $log->files[$info['action']][] = $file;
         }
         return $logs;
     }
@@ -339,15 +330,11 @@ class gitModel extends model
         $count   = count($log);
         $comment = '';
         $files   = array();
-        for($i = 3; $i < $count; $i++)
-        {
+        for ($i = 3; $i < $count; $i++) {
             $line = $log[$i];
-            if(preg_match('/^\s{2,}/', $line))
-            {
+            if (preg_match('/^\s{2,}/', $line)) {
                 $comment .= $line;
-            }
-            elseif(strpos($line, "\t") !== false)
-            {
+            } elseif (strpos($line, "\t") !== false) {
                 list($action, $entry) = explode("\t", $line);
                 $entry = '/' . trim($entry);
                 $files[$action][] = $entry;
@@ -374,33 +361,32 @@ class gitModel extends model
     public function diff($path, $revision)
     {
         $repo = $this->getRepoByURL($path);
-        if(!$repo) return false;
+        if (!$repo) return false;
 
         $this->setClient($repo);
-        if(empty($this->client)) return false;
+        if (empty($this->client)) return false;
         putenv('LC_CTYPE=en_US.UTF-8');
 
         chdir($repo->path);
         exec("{$this->client} config core.quotepath false");
         $subPath = substr($path, strlen($repo->path));
-        if($subPath[0] == '/' or $subPath[0] == '\\') $subPath = substr($subPath, 1);
+        if ($subPath[0] == '/' or $subPath[0] == '\\') $subPath = substr($subPath, 1);
 
         $encodings = explode(',', $this->config->git->encodings);
-        foreach($encodings as $encoding)
-        {
+        foreach ($encodings as $encoding) {
             $encoding = trim($encoding);
-            if($encoding == 'utf-8') continue;
+            if ($encoding == 'utf-8') continue;
             $subPath = helper::convertEncoding($subPath, 'utf-8', $encoding);
-            if($subPath) break;
+            if ($subPath) break;
         }
 
         exec("$this->client rev-list -n 2 $revision -- $subPath", $lists);
-        if(count($lists) == 2) list($nowRevision, $preRevision) = $lists;
+        if (count($lists) == 2) list($nowRevision, $preRevision) = $lists;
         $cmd = "$this->client diff $preRevision $nowRevision -- $subPath 2>&1";
         $diff = `$cmd`;
 
         $encoding = isset($repo->encoding) ? $repo->encoding : 'utf-8';
-        if($encoding and $encoding != 'utf-8') $diff = helper::convertEncoding($diff, $encoding);
+        if ($encoding and $encoding != 'utf-8') $diff = helper::convertEncoding($diff, $encoding);
 
         return $diff;
     }
@@ -416,23 +402,22 @@ class gitModel extends model
     public function cat($path, $revision)
     {
         $repo = $this->getRepoByURL($path);
-        if(!$repo) return false;
+        if (!$repo) return false;
 
         $this->setClient($repo);
-        if(empty($this->client)) return false;
+        if (empty($this->client)) return false;
 
         putenv('LC_CTYPE=en_US.UTF-8');
 
         $subPath = substr($path, strlen($repo->path));
-        if($subPath[0] == '/' or $subPath[0] == '\\') $subPath = substr($subPath, 1);
+        if ($subPath[0] == '/' or $subPath[0] == '\\') $subPath = substr($subPath, 1);
 
         $encodings = explode(',', $this->config->git->encodings);
-        foreach($encodings as $encoding)
-        {
+        foreach ($encodings as $encoding) {
             $encoding = trim($encoding);
-            if($encoding == 'utf-8') continue;
+            if ($encoding == 'utf-8') continue;
             $subPath = helper::convertEncoding($subPath, 'utf-8', $encoding);
-            if($subPath) break;
+            if ($subPath) break;
         }
 
         chdir($repo->path);
@@ -441,7 +426,7 @@ class gitModel extends model
         $code = `$cmd`;
 
         $encoding = isset($repo->encoding) ? $repo->encoding : 'utf-8';
-        if($encoding and $encoding != 'utf-8') $code = helper::convertEncoding($code, $encoding);
+        if ($encoding and $encoding != 'utf-8') $code = helper::convertEncoding($code, $encoding);
 
         return $code;
     }
@@ -455,10 +440,9 @@ class gitModel extends model
      */
     public function getRepoByURL($url)
     {
-        foreach($this->config->git->repos as $repo)
-        {
-            if(empty($repo['path'])) continue;
-            if(strpos($url, $repo['path']) !== false) return (object)$repo;
+        foreach ($this->config->git->repos as $repo) {
+            if (empty($repo['path'])) continue;
+            if (strpos($url, $repo['path']) !== false) return (object)$repo;
         }
         return false;
     }

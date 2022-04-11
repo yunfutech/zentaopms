@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The common simplified chinese file of ZenTaoPMS.
  *
@@ -10,7 +11,7 @@
  * @link        http://www.zentao.net
  */
 
-include (dirname(__FILE__) . '/common.php');
+include(dirname(__FILE__) . '/common.php');
 
 global $config;
 
@@ -30,6 +31,7 @@ $lang->zentaoPMS      = 'ZenTao';
 $lang->pmsName        = 'ALM';
 $lang->proName        = 'Pro';
 $lang->bizName        = 'Biz';
+$lang->liteName       = 'Lite';
 $lang->logoImg        = 'zt-logo-en.png';
 $lang->welcome        = "%s ALM";
 $lang->logout         = 'Logout';
@@ -88,6 +90,7 @@ $lang->history         = 'History';
 $lang->attatch         = 'Files';
 $lang->reverse         = 'Inverse';
 $lang->switchDisplay   = 'Toggle';
+$lang->switchTo        = 'Switch To';
 $lang->expand          = 'Expand';
 $lang->collapse        = 'Collapse';
 $lang->saveSuccess     = 'Saved';
@@ -144,6 +147,9 @@ $lang->openedByAB   = 'CreatedBy';
 $lang->assignedToAB = 'AssignedTo';
 $lang->typeAB       = 'Type';
 $lang->nameAB       = 'Name';
+
+$lang->pri     = 'Priority';
+$lang->delayed = 'Delayed';
 
 $lang->common->common     = 'Common Module';
 $lang->my->common         = 'My';
@@ -319,6 +325,10 @@ $lang->exportFileTypeList['html'] = 'html';
 $lang->exportTypeList['all']      = 'All Data';
 $lang->exportTypeList['selected'] = 'Selected Data';
 
+$lang->visionList = array();
+$lang->visionList['rnd']  = 'R&D';
+$lang->visionList['lite'] = 'Lite';
+
 $lang->createObjects['todo']        = 'Todo';
 $lang->createObjects['effort']      = 'Effort';
 $lang->createObjects['bug']         = 'Bug';
@@ -430,19 +440,19 @@ $lang->pasteImgFail       = "Failed to paste images. Try again later.";
 $lang->pasteImgUploading  = "Uploading...";
 
 /* Time formats settings. */
-if(!defined('DT_DATETIME1'))  define('DT_DATETIME1',  'Y-m-d H:i:s');
-if(!defined('DT_DATETIME2'))  define('DT_DATETIME2',  'y-m-d H:i');
-if(!defined('DT_MONTHTIME1')) define('DT_MONTHTIME1', 'n/d H:i');
-if(!defined('DT_MONTHTIME2')) define('DT_MONTHTIME2', 'n/d H:i');
-if(!defined('DT_DATE1'))      define('DT_DATE1',     'Y-m-d');
-if(!defined('DT_DATE2'))      define('DT_DATE2',     'Ymd');
-if(!defined('DT_DATE3'))      define('DT_DATE3',     'Y/m/d');
-if(!defined('DT_DATE4'))      define('DT_DATE4',     'M d');
-if(!defined('DT_DATE5'))      define('DT_DATE5',     'j/n');
-if(!defined('DT_TIME1'))      define('DT_TIME1',     'H:i:s');
-if(!defined('DT_TIME2'))      define('DT_TIME2',     'H:i');
-if(!defined('LONG_TIME'))     define('LONG_TIME',    '2059-12-31');
-if(!defined('BRANCH_MAIN'))   define('BRANCH_MAIN', '0');
+if (!defined('DT_DATETIME1'))  define('DT_DATETIME1',  'Y-m-d H:i:s');
+if (!defined('DT_DATETIME2'))  define('DT_DATETIME2',  'y-m-d H:i');
+if (!defined('DT_MONTHTIME1')) define('DT_MONTHTIME1', 'n/d H:i');
+if (!defined('DT_MONTHTIME2')) define('DT_MONTHTIME2', 'n/d H:i');
+if (!defined('DT_DATE1'))      define('DT_DATE1',     'Y-m-d');
+if (!defined('DT_DATE2'))      define('DT_DATE2',     'Ymd');
+if (!defined('DT_DATE3'))      define('DT_DATE3',     'Y/m/d');
+if (!defined('DT_DATE4'))      define('DT_DATE4',     'M d');
+if (!defined('DT_DATE5'))      define('DT_DATE5',     'j/n');
+if (!defined('DT_TIME1'))      define('DT_TIME1',     'H:i:s');
+if (!defined('DT_TIME2'))      define('DT_TIME2',     'H:i');
+if (!defined('LONG_TIME'))     define('LONG_TIME',    '2059-12-31');
+if (!defined('BRANCH_MAIN'))   define('BRANCH_MAIN', '0');
 
 /* Datepicker. */
 $lang->datepicker = new stdclass();
@@ -466,4 +476,4 @@ $lang->datepicker->dayNames     = array('Sunday', 'Monday', 'Tuesday', 'Wednesda
 $lang->datepicker->abbrDayNames = array('Sun', 'Mon', 'Tues', 'Wed', 'Thur', 'Fri', 'Sat');
 $lang->datepicker->monthNames   = array('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec');
 
-include (dirname(__FILE__) . '/menu.php');
+include(dirname(__FILE__) . '/menu.php');

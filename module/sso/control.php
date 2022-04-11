@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The control file of sso module of ZenTaoPMS.
  *
@@ -24,13 +25,12 @@ class sso extends control
         $locate  = empty($referer) ? getWebRoot() : base64_decode($referer);
 
         $this->app->loadConfig('sso');
-        if(!$this->config->sso->turnon) die($this->locate($locate));
+        if (!$this->config->sso->turnon) return print($this->locate($locate));
 
         $userIP = $this->server->remote_addr;
         $code   = $this->config->sso->code;
         $key    = $this->config->sso->key;
-        if($type != 'return')
-        {
+        if ($type != 'return') {
             $token  = $this->get->token;
             $auth   = md5($code . $userIP . $token . $key);
 
@@ -38,25 +38,20 @@ class sso extends control
             $location = $this->config->sso->addr;
             $isGet = strpos($location, '&') !== false;
             $requestType = $this->get->requestType;
-            if(isset($requestType)) $isGet = $this->get->requestType == 'GET' ? true : false;
-            if($isGet)
-            {
+            if (isset($requestType)) $isGet = $this->get->requestType == 'GET' ? true : false;
+            if ($isGet) {
                 /* Update location when dburl is path_info but need get. */
-                if(strpos($location, '&') === false)
-                {
+                if (strpos($location, '&') === false) {
                     $index = strripos($location, '/');
-                    $uri = substr($location, 0 ,$index + 1);
+                    $uri = substr($location, 0, $index + 1);
                     $param = str_replace('.html', '', substr($location, $index + 1));
                     list($module, $method) = explode('-', $param);
                     $location = $uri . 'index.php?m=' . $module . '&f=' . $method;
                 }
                 $location = rtrim($location, '&') . "&token=$token&auth=$auth&userIP=$userIP&callback=$callback&referer=$referer";
-            }
-            else
-            {
+            } else {
                 /* Update location when dburl is get but need path_info. */
-                if(strpos($location, '&') !== false)
-                {
+                if (strpos($location, '&') !== false) {
                     list($uri, $param) = explode('index.php', $location);
                     $param = trim($param, "?");
                     list($module, $method) = explode('&', $param);
@@ -67,32 +62,27 @@ class sso extends control
                 $location = rtrim($location, '?') . "?token=$token&auth=$auth&userIP=$userIP&callback=$callback&referer=$referer";
             }
 
-            if(!empty($_GET['sessionid']))
-            {
+            if (!empty($_GET['sessionid'])) {
                 $sessionConfig = json_decode(base64_decode($this->get->sessionid), false);
                 $location     .= '&' . $sessionConfig->session_name . '=' . $sessionConfig->session_id;
             }
             $this->locate($location);
         }
 
-        if($this->get->status == 'success' and md5($this->get->data) == $this->get->md5)
-        {
+        if ($this->get->status == 'success' and md5($this->get->data) == $this->get->md5) {
             $last = $this->server->request_time;
             $data = json_decode(base64_decode($this->get->data));
 
             $token = $data->token;
-            if($data->auth == md5($code . $userIP . $token . $key))
-            {
+            if ($data->auth == md5($code . $userIP . $token . $key)) {
                 $user = $this->sso->getBindUser($data->account);
-                if(!$user)
-                {
+                if (!$user) {
                     $this->session->set('ssoData', $data);
                     $this->locate($this->createLink('sso', 'bind', "referer=" . helper::safe64Encode($locate)));
                 }
 
-                if($this->loadModel('user')->isLogon())
-                {
-                    if($this->session->user && $this->session->user->account == $user->account) die($this->locate($locate));
+                if ($this->loadModel('user')->isLogon()) {
+                    if ($this->session->user && $this->session->user->account == $user->account) return print($this->locate($locate));
                 }
 
                 $this->user->cleanLocked($user->account);
@@ -104,11 +94,10 @@ class sso extends control
                 $user->last     = date(DT_DATETIME1, $last);
                 $user->lastTime = $user->last;
                 $user->modifyPassword = ($user->visits == 0 and !empty($this->config->safe->modifyPasswordFirstLogin));
-                if($user->modifyPassword) $user->modifyPasswordReason = 'modifyPasswordFirstLogin';
-                if(!$user->modifyPassword and !empty($this->config->safe->changeWeak))
-                {
+                if ($user->modifyPassword) $user->modifyPasswordReason = 'modifyPasswordFirstLogin';
+                if (!$user->modifyPassword and !empty($this->config->safe->changeWeak)) {
                     $user->modifyPassword = $this->loadModel('admin')->checkWeak($user);
-                    if($user->modifyPassword) $user->modifyPasswordReason = 'weak';
+                    if ($user->modifyPassword) $user->modifyPasswordReason = 'weak';
                 }
 
                 $this->dao->update(TABLE_USER)->set('visits = visits + 1')->set('ip')->eq($userIP)->set('last')->eq($last)->where('account')->eq($user->account)->exec();
@@ -116,7 +105,8 @@ class sso extends control
                 $this->session->set('user', $user);
                 $this->app->user = $this->session->user;
                 $this->loadModel('action')->create('user', $user->id, 'login');
-                die($this->locate($locate));
+
+                return print($this->locate($locate));
             }
         }
         $this->locate($this->createLink('user', 'login', empty($referer) ? '' : "referer=$referer"));
@@ -131,8 +121,7 @@ class sso extends control
      */
     public function logout($type = 'notify')
     {
-        if($type != 'return')
-        {
+        if ($type != 'return') {
             $code   = $this->config->sso->code;
             $userIP = $this->server->remote_addr;
             $token  = $this->get->token;
@@ -141,19 +130,15 @@ class sso extends control
 
             $callback = urlencode($common->getSysURL() . inlink('logout', "type=return"));
             $location = $this->config->sso->addr;
-            if(strpos($location, '&') !== false)
-            {
+            if (strpos($location, '&') !== false) {
                 $location = rtrim($location, '&') . "&token=$token&auth=$auth&userIP=$userIP&callback=$callback";
-            }
-            else
-            {
+            } else {
                 $location = rtrim($location, '?') . "?token=$token&auth=$auth&userIP=$userIP&callback=$callback";
             }
             $this->locate($location);
         }
 
-        if($this->get->status == 'success')
-        {
+        if ($this->get->status == 'success') {
             session_destroy();
             setcookie('za', false);
             setcookie('zp', false);
@@ -170,10 +155,9 @@ class sso extends control
      */
     public function ajaxSetConfig()
     {
-        if(!$this->app->user->admin) die('deny');
+        if (!$this->app->user->admin) return print('deny');
 
-        if($_POST)
-        {
+        if ($_POST) {
             $ssoConfig = new stdclass();
             $ssoConfig->turnon = 1;
             $ssoConfig->addr   = $this->post->addr;
@@ -181,8 +165,8 @@ class sso extends control
             $ssoConfig->key    = trim($this->post->key);
 
             $this->loadModel('setting')->setItems('system.sso', $ssoConfig);
-            if(dao::isError()) die('fail');
-            die('success');
+            if (dao::isError()) return print('fail');
+            echo 'success';
         }
     }
 
@@ -195,19 +179,18 @@ class sso extends control
      */
     public function bind($referer = '')
     {
-        if(!$this->session->ssoData) die();
+        if (!$this->session->ssoData) return;
 
         $ssoData = $this->session->ssoData;
         $userIP  = $this->server->remote_addr;
         $code    = $this->config->sso->code;
         $key     = $this->config->sso->key;
-        if($ssoData->auth != md5($code . $userIP . $ssoData->token . $key))die();
+        if ($ssoData->auth != md5($code . $userIP . $ssoData->token . $key)) return;
 
         $this->loadModel('user');
-        if($_POST)
-        {
+        if ($_POST) {
             $user = $this->sso->bind();
-            if(dao::isError()) die(js::error(dao::getError()));
+            if (dao::isError()) return print(js::error(dao::getError()));
 
             /* Authorize him and save to session. */
             $user->rights = $this->user->authorize($user->account);
@@ -219,7 +202,7 @@ class sso extends control
             $this->app->user = $this->session->user;
             $this->loadModel('action')->create('user', $user->id, 'login');
             unset($_SESSION['ssoData']);
-            die(js::locate(helper::safe64Decode($referer), 'parent'));
+            return print(js::locate(helper::safe64Decode($referer), 'parent'));
         }
         $this->view->title = $this->lang->sso->bind;
         $this->view->users = $this->user->getPairs('noclosed|nodeleted');
@@ -235,9 +218,9 @@ class sso extends control
      */
     public function getUserPairs()
     {
-        if(!$this->sso->checkKey()) return false;
+        if (!$this->sso->checkKey()) return false;
         $users = $this->loadModel('user')->getPairs('noclosed|nodeleted');
-        die(json_encode($users));
+        echo json_encode($users);
     }
 
     /**
@@ -248,9 +231,9 @@ class sso extends control
      */
     public function getBindUsers()
     {
-        if(!$this->sso->checkKey()) return false;
+        if (!$this->sso->checkKey()) return false;
         $users = $this->sso->getBindUsers();
-        die(json_encode($users));
+        echo json_encode($users);
     }
 
     /**
@@ -261,12 +244,11 @@ class sso extends control
      */
     public function bindUser()
     {
-        if($_POST)
-        {
+        if ($_POST) {
             $this->dao->update(TABLE_USER)->set('ranzhi')->eq('')->where('ranzhi')->eq($this->post->ranzhiAccount)->exec();
             $this->dao->update(TABLE_USER)->set('ranzhi')->eq($this->post->ranzhiAccount)->where('account')->eq($this->post->zentaoAccount)->exec();
-            if(dao::isError()) die(dao::getError());
-            die('success');
+            if (dao::isError()) return print(dao::getError());
+            return print('success');
         }
     }
 
@@ -278,12 +260,11 @@ class sso extends control
      */
     public function createUser()
     {
-        if($_POST)
-        {
+        if ($_POST) {
             $result = $this->sso->createUser();
-            if($this->viewType == 'json') return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'id' => $result['id']));
-            if($result['status'] != 'success') die($result['data']);
-            die('success');
+            if ($this->viewType == 'json') return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'id' => $result['id']));
+            if ($result['status'] != 'success') return print($result['data']);
+            return print('success');
         }
     }
 
@@ -296,14 +277,14 @@ class sso extends control
      */
     public function getTodoList($account = '')
     {
-        if(!$this->sso->checkKey()) return false;
+        if (!$this->sso->checkKey()) return false;
         $user = $this->dao->select('*')->from(TABLE_USER)->where('ranzhi')->eq($account)->andWhere('deleted')->eq(0)->fetch();
-        if($user) $account = $user->account;
+        if ($user) $account = $user->account;
 
         $datas = array();
         $datas['task'] = $this->dao->select("id, name")->from(TABLE_TASK)->where('assignedTo')->eq($account)->andWhere('status')->in('wait,doing')->andWhere('deleted')->eq(0)->fetchPairs();
         $datas['bug']  = $this->dao->select("id, title")->from(TABLE_BUG)->where('assignedTo')->eq($account)->andWhere('status')->eq('active')->andWhere('deleted')->eq(0)->fetchPairs();
-        die(json_encode($datas));
+        echo json_encode($datas);
     }
 
     /**
@@ -336,7 +317,7 @@ class sso extends control
         $redirectURI = urlencode($redirectURI);
 
         $feishuConfig = $this->loadModel('webhook')->getByType('feishuuser');
-        if(empty($feishuConfig)) $this->showError($this->lang->sso->feishuConfigEmpty);
+        if (empty($feishuConfig)) $this->showError($this->lang->sso->feishuConfigEmpty);
 
         $appConfig = json_decode($feishuConfig->secret);
         $appID     = $appConfig->appId;
@@ -355,15 +336,14 @@ class sso extends control
      */
     public function feishuLogin($code = '')
     {
-        if($this->config->requestType == 'PATH_INFO')
-        {
+        if ($this->config->requestType == 'PATH_INFO') {
             $params = $_SERVER["QUERY_STRING"];
             parse_str($params, $params);
-            if(isset($params['code'])) $code = $params['code'];
+            if (isset($params['code'])) $code = $params['code'];
         }
 
         $feishuConfig = $this->loadModel('webhook')->getByType('feishuuser');
-        if(empty($feishuConfig)) $this->showError($this->lang->sso->feishuConfigEmpty);
+        if (empty($feishuConfig)) $this->showError($this->lang->sso->feishuConfigEmpty);
         $appConfig = json_decode($feishuConfig->secret);
 
         /* Obtain the access credentials of the Feishu app. */
@@ -371,10 +351,10 @@ class sso extends control
         $appParams = array('app_id' => $appConfig->appId, 'app_secret' => $appConfig->appSecret);
         $appResult = common::http($appUrl, $appParams, array(), array(), 'json');
 
-        if(empty($appResult)) $this->showError($this->lang->sso->feishuResponseEmpty);
+        if (empty($appResult)) $this->showError($this->lang->sso->feishuResponseEmpty);
         $appInfo = json_decode($appResult);
 
-        if(!isset($appInfo->msg) or $appInfo->msg != 'ok') $this->showError($appResult);
+        if (!isset($appInfo->msg) or $appInfo->msg != 'ok') $this->showError($appResult);
         $accessToken = $appInfo->app_access_token;
 
         /* Verify the identity of the logged in user. */
@@ -383,10 +363,10 @@ class sso extends control
         $tokenParams  = array('grant_type' => 'authorization_code', 'code' => $code);
         $tokenResult  = common::http($tokenUrl, $tokenParams, array(), $tokenHeaders, 'json');
 
-        if(empty($tokenResult)) $this->showError($this->lang->sso->feishuResponseEmpty);
+        if (empty($tokenResult)) $this->showError($this->lang->sso->feishuResponseEmpty);
         $tokenInfo = json_decode($tokenResult);
 
-        if(!isset($tokenInfo->msg) or $tokenInfo->msg != 'success') $this->showError($tokenResult);
+        if (!isset($tokenInfo->msg) or $tokenInfo->msg != 'success') $this->showError($tokenResult);
         $userToken = $tokenInfo->data->access_token;
 
         /* Get login user information. */
@@ -394,15 +374,136 @@ class sso extends control
         $userHeaders = array('Authorization: Bearer ' . $userToken);
         $userResult  = common::http($userUrl, array(), array(), $userHeaders, 'json');
 
-        if(empty($userResult)) $this->showError($this->lang->sso->feishuResponseEmpty);
+        if (empty($userResult)) $this->showError($this->lang->sso->feishuResponseEmpty);
         $userInfo = json_decode($userResult);
 
-        if(!isset($userInfo->msg) or $userInfo->msg != 'success') $this->showError($userResult);
+        if (!isset($userInfo->msg) or $userInfo->msg != 'success') $this->showError($userResult);
         $openID = $userInfo->data->open_id;
 
         /* Get the user relationship bound in webhook. */
         $account  = $this->loadModel('webhook')->getBindAccount($feishuConfig->id, 'webhook', $openID);
-        if(empty($account)) $this->showError($this->lang->sso->unbound);
+        if (empty($account)) $this->showError($this->lang->sso->unbound);
+
+        $user     = $this->loadModel('user')->getById($account);
+        $password = $user->password;
+        $this->session->set('rand', '');
+        $user = $this->user->identify($account, $password);
+        $this->user->login($user);
+
+        $indexUrl = $this->createLink('my', 'index');
+        header("location: $indexUrl");
+    }
+
+    /**
+     * Display the error message.
+     *
+     * @param  string  $message
+     * @access public
+     * @return void
+     */
+    public function showError($message = '')
+    {
+        $this->view->title   = $this->lang->sso->deny;
+        $this->view->message = $message;
+        $this->display('sso', 'error');
+    }
+
+    /**
+     * Get the link to the Feishu single sign-on configuration.
+     *
+     * @access public
+     * @return void
+     */
+    public function getFeishuSSO()
+    {
+        $httpType = ((isset($_SERVER['HTTPS']) and $_SERVER['HTTPS'] == 'on') or (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) and $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')) ? 'https://' : 'http://';
+        $applicationHome = $httpType . $_SERVER['HTTP_HOST'] . $this->createLink('sso', 'feishuAuthen');
+        $redirectLink    = $httpType . $_SERVER['HTTP_HOST'] . $this->createLink('sso', 'feishuLogin');
+
+        echo $this->lang->sso->homeURL . $applicationHome;
+        echo '<br>';
+        echo $this->lang->sso->redirectURL . $redirectLink;
+    }
+
+    /**
+     * Get the pre-authorization code for Feishu code.
+     *
+     * @access public
+     * @return void
+     */
+    public function feishuAuthen()
+    {
+        $httpType    = ((isset($_SERVER['HTTPS']) and $_SERVER['HTTPS'] == 'on') or (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) and $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')) ? 'https://' : 'http://';
+        $redirectURI = $httpType . $_SERVER['HTTP_HOST'] . $this->createLink('sso', 'feishuLogin');
+        $redirectURI = urlencode($redirectURI);
+
+        $feishuConfig = $this->loadModel('webhook')->getByType('feishuuser');
+        if (empty($feishuConfig)) $this->showError($this->lang->sso->feishuConfigEmpty);
+
+        $appConfig = json_decode($feishuConfig->secret);
+        $appID     = $appConfig->appId;
+
+        $url = "https://open.feishu.cn/open-apis/authen/v1/index?redirect_uri=%s&app_id=%s";
+        $url = sprintf($url, $redirectURI, $appID, $state);
+        header("location: $url");
+    }
+
+    /**
+     * Get the identity of the logged-in user.
+     *
+     * @param  string  $code
+     * @access public
+     * @return void
+     */
+    public function feishuLogin($code = '')
+    {
+        if ($this->config->requestType == 'PATH_INFO') {
+            $params = $_SERVER["QUERY_STRING"];
+            parse_str($params, $params);
+            if (isset($params['code'])) $code = $params['code'];
+        }
+
+        $feishuConfig = $this->loadModel('webhook')->getByType('feishuuser');
+        if (empty($feishuConfig)) $this->showError($this->lang->sso->feishuConfigEmpty);
+        $appConfig = json_decode($feishuConfig->secret);
+
+        /* Obtain the access credentials of the Feishu app. */
+        $appUrl    = 'https://open.feishu.cn/open-apis/auth/v3/app_access_token/internal';
+        $appParams = array('app_id' => $appConfig->appId, 'app_secret' => $appConfig->appSecret);
+        $appResult = common::http($appUrl, $appParams, array(), array(), 'json');
+
+        if (empty($appResult)) $this->showError($this->lang->sso->feishuResponseEmpty);
+        $appInfo = json_decode($appResult);
+
+        if (!isset($appInfo->msg) or $appInfo->msg != 'ok') $this->showError($appResult);
+        $accessToken = $appInfo->app_access_token;
+
+        /* Verify the identity of the logged in user. */
+        $tokenUrl     = 'https://open.feishu.cn/open-apis/authen/v1/refresh_access_token';
+        $tokenHeaders = array('Authorization: Bearer ' . $accessToken);
+        $tokenParams  = array('grant_type' => 'authorization_code', 'code' => $code);
+        $tokenResult  = common::http($tokenUrl, $tokenParams, array(), $tokenHeaders, 'json');
+
+        if (empty($tokenResult)) $this->showError($this->lang->sso->feishuResponseEmpty);
+        $tokenInfo = json_decode($tokenResult);
+
+        if (!isset($tokenInfo->msg) or $tokenInfo->msg != 'success') $this->showError($tokenResult);
+        $userToken = $tokenInfo->data->access_token;
+
+        /* Get login user information. */
+        $userUrl     = 'https://open.feishu.cn/open-apis/authen/v1/user_info';
+        $userHeaders = array('Authorization: Bearer ' . $userToken);
+        $userResult  = common::http($userUrl, array(), array(), $userHeaders, 'json');
+
+        if (empty($userResult)) $this->showError($this->lang->sso->feishuResponseEmpty);
+        $userInfo = json_decode($userResult);
+
+        if (!isset($userInfo->msg) or $userInfo->msg != 'success') $this->showError($userResult);
+        $openID = $userInfo->data->open_id;
+
+        /* Get the user relationship bound in webhook. */
+        $account  = $this->loadModel('webhook')->getBindAccount($feishuConfig->id, 'webhook', $openID);
+        if (empty($account)) $this->showError($this->lang->sso->unbound);
 
         $user     = $this->loadModel('user')->getById($account);
         $password = $user->password;

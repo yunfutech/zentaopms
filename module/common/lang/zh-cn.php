@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The common simplified chinese file of ZenTaoPMS.
  *
@@ -30,6 +31,8 @@ $lang->zentaoPMS      = '禅道';
 $lang->pmsName        = '开源版';
 $lang->proName        = '专业版';
 $lang->bizName        = '企业版';
+$lang->maxName        = '旗舰版';
+$lang->liteName       = '迅捷版';
 $lang->logoImg        = 'zt-logo.png';
 $lang->welcome        = "%s项目管理系统";
 $lang->logout         = '退出';
@@ -88,6 +91,7 @@ $lang->history         = '历史记录';
 $lang->attatch         = '附件';
 $lang->reverse         = '切换顺序';
 $lang->switchDisplay   = '切换显示';
+$lang->switchTo        = '切换到';
 $lang->expand          = '展开全部';
 $lang->collapse        = '收起';
 $lang->saveSuccess     = '保存成功';
@@ -144,6 +148,9 @@ $lang->openedByAB   = '创建';
 $lang->assignedToAB = '指派';
 $lang->typeAB       = '类型';
 $lang->nameAB       = '名称';
+
+$lang->pri     = '优先级';
+$lang->delayed = '已延期';
 
 $lang->common->common     = '公有模块';
 $lang->my->common         = '地盘';
@@ -319,6 +326,10 @@ $lang->exportFileTypeList['html'] = 'html';
 $lang->exportTypeList['all']      = '全部记录';
 $lang->exportTypeList['selected'] = '选中记录';
 
+$lang->visionList = array();
+$lang->visionList['rnd']  = '研发综合界面';
+$lang->visionList['lite'] = '迅捷界面';
+
 $lang->createObjects['todo']        = '待办';
 $lang->createObjects['effort']      = '日志';
 $lang->createObjects['bug']         = 'Bug';
@@ -430,19 +441,19 @@ $lang->pasteImgFail      = "贴图失败，请稍后重试。";
 $lang->pasteImgUploading = "正在上传图片，请稍后...";
 
 /* 时间格式设置。*/
-if(!defined('DT_DATETIME1'))  define('DT_DATETIME1', 'Y-m-d H:i:s');
-if(!defined('DT_DATETIME2'))  define('DT_DATETIME2', 'y-m-d H:i');
-if(!defined('DT_MONTHTIME1')) define('DT_MONTHTIME1', 'n/d H:i');
-if(!defined('DT_MONTHTIME2')) define('DT_MONTHTIME2', 'n月d日 H:i');
-if(!defined('DT_DATE1'))      define('DT_DATE1', 'Y-m-d');
-if(!defined('DT_DATE2'))      define('DT_DATE2', 'Ymd');
-if(!defined('DT_DATE3'))      define('DT_DATE3', 'Y年m月d日');
-if(!defined('DT_DATE4'))      define('DT_DATE4', 'n月j日');
-if(!defined('DT_DATE5'))      define('DT_DATE5', 'j/n');
-if(!defined('DT_TIME1'))      define('DT_TIME1', 'H:i:s');
-if(!defined('DT_TIME2'))      define('DT_TIME2', 'H:i');
-if(!defined('LONG_TIME'))     define('LONG_TIME', '2059-12-31');
-if(!defined('BRANCH_MAIN'))   define('BRANCH_MAIN', '0');
+if (!defined('DT_DATETIME1'))  define('DT_DATETIME1', 'Y-m-d H:i:s');
+if (!defined('DT_DATETIME2'))  define('DT_DATETIME2', 'y-m-d H:i');
+if (!defined('DT_MONTHTIME1')) define('DT_MONTHTIME1', 'n/d H:i');
+if (!defined('DT_MONTHTIME2')) define('DT_MONTHTIME2', 'n月d日 H:i');
+if (!defined('DT_DATE1'))      define('DT_DATE1', 'Y-m-d');
+if (!defined('DT_DATE2'))      define('DT_DATE2', 'Ymd');
+if (!defined('DT_DATE3'))      define('DT_DATE3', 'Y年m月d日');
+if (!defined('DT_DATE4'))      define('DT_DATE4', 'n月j日');
+if (!defined('DT_DATE5'))      define('DT_DATE5', 'j/n');
+if (!defined('DT_TIME1'))      define('DT_TIME1', 'H:i:s');
+if (!defined('DT_TIME2'))      define('DT_TIME2', 'H:i');
+if (!defined('LONG_TIME'))     define('LONG_TIME', '2059-12-31');
+if (!defined('BRANCH_MAIN'))   define('BRANCH_MAIN', '0');
 
 /* datepicker 时间*/
 $lang->datepicker = new stdclass();

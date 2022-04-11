@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The action module English file of ZenTaoPMS.
  *
@@ -46,14 +47,15 @@ $lang->action->comment     = 'Comment';
 $lang->action->undeleteAction = 'Reset Data';
 $lang->action->hideOneAction  = 'Hide Data';
 
-$lang->action->trashTips      = 'Note: Delete in ZenTao is logic.';
-$lang->action->textDiff       = 'Text Format';
-$lang->action->original       = 'Original Format';
-$lang->action->confirmHideAll = 'Do you want to hide all the records?';
-$lang->action->needEdit       = '%s that you want to restore. Please edit it.';
-$lang->action->historyEdit    = 'The history EditBy cannot be empty.';
-$lang->action->noDynamic      = 'No dynamics. ';
-$lang->action->undeletedTips  = 'This data did not participate in the merging process during the version upgrade process, so restore is not supported.';
+$lang->action->trashTips          = 'Note: Delete in ZenTao is logic.';
+$lang->action->textDiff           = 'Text Format';
+$lang->action->original           = 'Original Format';
+$lang->action->confirmHideAll     = 'Do you want to hide all the records?';
+$lang->action->needEdit           = '%s that you want to restore. Please edit it.';
+$lang->action->historyEdit        = 'The history EditBy cannot be empty.';
+$lang->action->noDynamic          = 'No dynamics. ';
+$lang->action->undeletedTips      = 'This data did not participate in the merging process during the version upgrade process, so restore is not supported.';
+$lang->action->executionNoProject = 'The execution does not belong to a project,please restore the project first';
 
 $lang->action->history = new stdclass();
 $lang->action->history->action = 'Link';
@@ -85,6 +87,7 @@ $lang->action->periods['lastmonth'] = $lang->action->dynamic->lastMonth;
 $lang->action->objectTypes['product']          = $lang->productCommon;
 $lang->action->objectTypes['branch']           = 'Branch';
 $lang->action->objectTypes['story']            = $lang->SRCommon;
+$lang->action->objectTypes['requirement']      = $lang->URCommon;
 $lang->action->objectTypes['design']           = 'Design';
 $lang->action->objectTypes['productplan']      = 'Plan';
 $lang->action->objectTypes['release']          = 'Release';
@@ -117,8 +120,8 @@ $lang->action->objectTypes['entry']            = 'Entry';
 $lang->action->objectTypes['webhook']          = 'Webhook';
 $lang->action->objectTypes['team']             = 'Team';
 $lang->action->objectTypes['whitelist']        = 'Whitelist';
-$lang->action->objectTypes['pipeline']         = 'GitLab';
-$lang->action->objectTypes['gitlab']           = 'GitLab';
+$lang->action->objectTypes['pipeline']         = 'GitLab Server';
+$lang->action->objectTypes['gitlab']           = 'GitLab Server';
 $lang->action->objectTypes['jenkins']          = 'Jenkins';
 $lang->action->objectTypes['mr']               = 'Merge Request';
 $lang->action->objectTypes['gitlabproject']    = 'GitLab Project';
@@ -344,6 +347,8 @@ $lang->action->label->importedrelease       = 'imported';
 $lang->action->label->importedexecution     = 'imported';
 $lang->action->label->importedbuild         = 'imported';
 $lang->action->label->fromsonarqube         = 'created a bug from SonarQube Issue named:';
+$lang->action->label->bind                  = 'bound';
+$lang->action->label->unbind                = 'unbound';
 
 /* Dynamic information is grouped by object. */
 $lang->action->dynamicAction                    = new stdclass;
@@ -607,12 +612,9 @@ $lang->action->label->release     = 'Release|release|view|productID=%s';
 $lang->action->label->story       = 'Story|story|view|storyID=%s';
 $lang->action->label->program     = "Program|program|product|programID=%s";
 $lang->action->label->project     = "Project|project|index|projectID=%s";
-if($config->systemMode == 'new')
-{
+if ($config->systemMode == 'new') {
     $lang->action->label->execution = "Execution|execution|task|executionID=%s";
-}
-else
-{
+} else {
     $lang->action->label->execution = "$lang->executionCommon|execution|task|executionID=%s";
 }
 $lang->action->label->task         = 'Task|task|view|taskID=%s';
@@ -642,6 +644,7 @@ $lang->action->label->kanbancolumn = 'Kanban Column|execution|kanban|execution=%
 $lang->action->label->kanbanlane   = 'Kanban Lane|execution|kanban|execution=%s&type=all';
 $lang->action->label->kanbancard   = 'Kanban Card|kanban|view|kanbanID=%s';
 $lang->action->label->mr           = 'Merge Request|mr|view|id=%s';
+$lang->action->label->gitlab       = 'GitLab Server|gitlab|view|id=%s';
 
 /* Object type. */
 $lang->action->search = new stdclass();
@@ -818,6 +821,7 @@ $lang->action->label->repocreated                 = "create and review";
 $lang->action->dynamicAction->task['gitcommited'] = 'Git Commit';
 $lang->action->dynamicAction->bug['repocreated']  = $lang->action->label->repocreated;
 $lang->action->desc->createmr                     = '$extra';
+$lang->action->desc->deletemr                     = '$date, <strong>$actor</strong> unlink <a href="$extra">merge request</a>。';
 $lang->action->desc->mergedmr                     = '$date, <strong>$actor</strong> merged <a href="$extra">code</a>.';
 $lang->action->desc->approve                      = '$date, <strong>$actor</strong> approved.';
 $lang->action->desc->reject                       = '$date, <strong>$actor</strong> rejected.';

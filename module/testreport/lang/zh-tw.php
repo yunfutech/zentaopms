@@ -70,22 +70,21 @@ $lang->testreport->bugStageList['generated'] = '產生的Bug';
 $lang->testreport->bugStageList['legacy']    = '遺留的Bug';
 $lang->testreport->bugStageList['resolved']  = '解決的Bug';
 
-$lang->testreport->caseSummary     = '共有<strong>%s</strong>個用例，共執行<strong>%s</strong>個用例，產生了<strong>%s</strong>個結果，失敗的用例有<strong>%s</strong>個。';
-$lang->testreport->buildSummary    = '共測試了<strong>%s</strong>個版本。';
-$lang->testreport->confirmDelete   = '是否刪除該報告？';
-$lang->testreport->moreNotice      = '更多功能可以參考禪道擴展機制進行擴展，也可以聯繫我們進行定製。';
-$lang->testreport->exportNotice    = "由<a href='https://www.zentao.net' target='_blank' style='color:grey'>禪道項目管理軟件</a>導出";
-$lang->testreport->noReport        = "暫無報告，請選擇測試單生成測試報告。";
-$lang->testreport->foundBugTip     = "影響版本在測試輪次內，並且創建時間在測試時間範圍內產生的Bug數。";
-$lang->testreport->legacyBugTip    = "Bug狀態是激活，或Bug的解決時間在測試結束時間之後。";
-$lang->testreport->activatedBugTip = "在測試單時間範圍內被激活的Bug數量。";
-$lang->testreport->fromCaseBugTip  = "測試時間範圍內，用例執行失敗後創建的Bug。";
-$lang->testreport->errorTrunk      = "主幹版本不能創建測試報告，請修改關聯版本！";
-$lang->testreport->noTestTask      = "該{$lang->productCommon}下還沒有關聯非Trunk的測試單，不能創建報告。請先創建測試單，再創建。";
-$lang->testreport->noObjectID      = "沒有選定測試單或{$lang->executionCommon}，無法創建測試報告！";
-$lang->testreport->moreProduct     = "只能對同一個{$lang->productCommon}生成測試報告。";
-$lang->testreport->hiddenCase      = "隱藏 %s 個用例";
-$lang->testreport->goalTip         = "該版本所屬{$lang->execution->common}的描述信息";
+$lang->testreport->caseSummary    = '共有<strong>%s</strong>個用例，共執行<strong>%s</strong>個用例，產生了<strong>%s</strong>個結果，失敗的用例有<strong>%s</strong>個。';
+$lang->testreport->buildSummary   = '共測試了<strong>%s</strong>個版本。';
+$lang->testreport->confirmDelete  = '是否刪除該報告？';
+$lang->testreport->moreNotice     = '更多功能可以參考禪道擴展機制進行擴展，也可以聯繫我們進行定製。';
+$lang->testreport->exportNotice   = "由<a href='https://www.zentao.net' target='_blank' style='color:grey'>禪道項目管理軟件</a>導出";
+$lang->testreport->noReport       = "暫無報告，請選擇測試單生成測試報告。";
+$lang->testreport->foundBugTip    = "影響版本在測試輪次內，並且創建時間在測試時間範圍內產生的Bug數。";
+$lang->testreport->legacyBugTip   = "Bug狀態是激活，或Bug的解決時間在測試結束時間之後。";
+$lang->testreport->fromCaseBugTip = "測試時間範圍內，用例執行失敗後創建的Bug。";
+$lang->testreport->errorTrunk     = "主幹版本不能創建測試報告，請修改關聯版本！";
+$lang->testreport->noTestTask     = "該{$lang->productCommon}下還沒有關聯非Trunk的測試單，不能創建報告。請先創建測試單，再創建。";
+$lang->testreport->noObjectID     = "沒有選定測試單或{$lang->executionCommon}，無法創建測試報告！";
+$lang->testreport->moreProduct    = "只能對同一個{$lang->productCommon}生成測試報告。";
+$lang->testreport->hiddenCase     = "隱藏 %s 個用例";
+$lang->testreport->goalTip        = "該版本所屬{$lang->execution->common}的描述信息";
 
 $lang->testreport->bugSummary = <<<EOD
 共發現<strong>%s</strong>個Bug <a data-toggle='tooltip' class='text-warning' title='{$lang->testreport->foundBugTip}'><i class='icon-help'></i></a>，

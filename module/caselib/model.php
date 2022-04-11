@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The model file of caselib module of ZenTaoPMS.
  *
@@ -25,13 +26,12 @@ class caselibModel extends model
     {
         /* Set case lib menu. */
         $products = $this->loadModel('product')->getPairs();
-        if(!empty($products) and $this->session->product) $this->loadModel('qa')->setMenu($products, $this->session->product);
-        if(empty($products)) $this->loadModel('qa')->setMenu(array(0 => ''), 0);
+        if (!empty($products) and $this->session->product) $this->loadModel('qa')->setMenu($products, $this->session->product);
+        if (empty($products)) $this->loadModel('qa')->setMenu(array(0 => ''), 0);
 
-        if($libraries)
-        {
+        if ($libraries) {
             $libName = '';
-            if(!isset($libraries[$libID])) $libName = $this->dao->select('name')->from(TABLE_TESTSUITE)->where('id')->eq($libID)->fetch('name');
+            if (!isset($libraries[$libID])) $libName = $this->dao->select('name')->from(TABLE_TESTSUITE)->where('id')->eq($libID)->fetch('name');
             $currentLibName = zget($libraries, $libID, $libName);
             setCookie("lastCaseLib", $libID, $this->config->cookieLife, $this->config->webRoot, '', false, true);
 
@@ -55,11 +55,10 @@ class caselibModel extends model
      */
     public function saveLibState($libID = 0, $libraries = array())
     {
-        if($libID > 0) $this->session->set('caseLib', (int)$libID);
-        if($libID == 0 and $this->cookie->lastCaseLib) $this->session->set('caseLib', $this->cookie->lastCaseLib);
-        if($libID == 0 and $this->session->caseLib == '') $this->session->set('caseLib', key($libraries));
-        if(!isset($libraries[$this->session->caseLib]))
-        {
+        if ($libID > 0) $this->session->set('caseLib', (int)$libID);
+        if ($libID == 0 and $this->cookie->lastCaseLib) $this->session->set('caseLib', $this->cookie->lastCaseLib);
+        if ($libID == 0 and $this->session->caseLib == '') $this->session->set('caseLib', key($libraries));
+        if (!isset($libraries[$this->session->caseLib])) {
             $this->session->set('caseLib', key($libraries));
             $libID = $this->session->caseLib;
         }
@@ -78,7 +77,7 @@ class caselibModel extends model
     {
         $lib = $this->dao->select('*')->from(TABLE_TESTSUITE)->where('id')->eq((int)$libID)->fetch();
         $lib = $this->loadModel('file')->replaceImgURL($lib, 'desc');
-        if($setImgSize) $lib->desc = $this->file->setImgSize($lib->desc);
+        if ($setImgSize) $lib->desc = $this->file->setImgSize($lib->desc);
         return $lib;
     }
 
@@ -104,8 +103,7 @@ class caselibModel extends model
             ->batchcheck($this->config->caselib->edit->requiredFields, 'notempty')
             ->where('id')->eq($libID)
             ->exec();
-        if(!dao::isError())
-        {
+        if (!dao::isError()) {
             $this->file->updateObjectID($this->post->uid, $libID, 'caselib');
             return common::createChanges($oldLib, $lib);
         }
@@ -187,8 +185,7 @@ class caselibModel extends model
             ->batchcheck($this->config->caselib->create->requiredFields, 'notempty')
             ->check('name', 'unique', "deleted = '0'")
             ->exec();
-        if(!dao::isError())
-        {
+        if (!dao::isError()) {
             $libID = $this->dao->lastInsertID();
             $this->file->updateObjectID($this->post->uid, $libID, 'caselib');
             return $libID;
@@ -214,8 +211,7 @@ class caselibModel extends model
         $browseType   = ($browseType == 'bymodule' and $this->session->libBrowseType and $this->session->libBrowseType != 'bysearch') ? $this->session->libBrowseType : $browseType;
 
         $cases = array();
-        if($browseType == 'bymodule' or $browseType == 'all' or $browseType == 'wait')
-        {
+        if ($browseType == 'bymodule' or $browseType == 'all' or $browseType == 'wait') {
             $cases = $this->dao->select('*')->from(TABLE_CASE)
                 ->where('lib')->eq((int)$libID)
                 ->andWhere('product')->eq(0)
@@ -224,29 +220,22 @@ class caselibModel extends model
                 ->andWhere('deleted')->eq('0')
                 ->orderBy($sort)->page($pager)->fetchAll('id');
         }
-        /* By search. */
-        elseif($browseType == 'bysearch')
-        {
-            if($queryID)
-            {
+        /* By search. */ elseif ($browseType == 'bysearch') {
+            if ($queryID) {
                 $query = $this->loadModel('search')->getQuery($queryID);
                 $this->session->set('caselibQuery', ' 1 = 1');
-                if($query)
-                {
+                if ($query) {
                     $this->session->set('caselibQuery', $query->sql);
                     $this->session->set('caselibForm', $query->form);
                 }
-            }
-            else
-            {
-                if($this->session->caselibQuery == false) $this->session->set('caselibQuery', ' 1 = 1');
+            } else {
+                if ($this->session->caselibQuery == false) $this->session->set('caselibQuery', ' 1 = 1');
             }
 
             $queryLibID = $libID;
             $allLib     = "`lib` = 'all'";
             $caseQuery  = '(' . $this->session->caselibQuery;
-            if(strpos($this->session->caselibQuery, $allLib) !== false)
-            {
+            if (strpos($this->session->caselibQuery, $allLib) !== false) {
                 $caseQuery = str_replace($allLib, '1', $caseQuery);
                 $queryLibID = 'all';
             }
@@ -279,7 +268,7 @@ class caselibModel extends model
         $this->config->testcase->search['params']['lib']['operator']  = '=';
         $this->config->testcase->search['params']['lib']['control']   = 'select';
         $this->config->testcase->search['params']['module']['values'] = $this->loadModel('tree')->getOptionMenu($libID, $viewType = 'caselib');
-        if(!$this->config->testcase->needReview) unset($this->config->testcase->search['params']['status']['values']['wait']);
+        if (!$this->config->testcase->needReview) unset($this->config->testcase->search['params']['status']['values']['wait']);
         unset($this->config->testcase->search['fields']['product']);
         unset($this->config->testcase->search['params']['product']);
         unset($this->config->testcase->search['fields']['branch']);
@@ -310,23 +299,15 @@ class caselibModel extends model
     public function getLibLink($module, $method, $extra)
     {
         $link = '';
-        if($module == 'caselib')
-        {
-            if($module == 'caselib' && ($method == 'create'))
-            {
+        if ($module == 'caselib') {
+            if ($module == 'caselib' && ($method == 'create')) {
                 $link = helper::createLink($module, 'browse', "libID=%s");
-            }
-            else
-            {
+            } else {
                 $link = helper::createLink($module, $method, "libID=%s");
             }
-        }
-        else if($module == 'tree')
-        {
+        } else if ($module == 'tree') {
             $link = helper::createLink($module, $method, "libID=%s&type=caselib&currentModuleID=0");
-        }
-        else
-        {
+        } else {
             $link = helper::createLink('caselib', 'browse', "libID=%s");
         }
         return $link;
@@ -347,8 +328,7 @@ class caselibModel extends model
         $now  = helper::now();
         $data = fixer::input('post')->get();
 
-        if(!empty($_POST['id']))
-        {
+        if (!empty($_POST['id'])) {
             $oldSteps = $this->dao->select('t2.*')->from(TABLE_CASE)->alias('t1')
                 ->leftJoin(TABLE_CASESTEP)->alias('t2')->on('t1.id = t2.case')
                 ->where('t1.id')->in(($_POST['id']))
@@ -360,8 +340,7 @@ class caselibModel extends model
 
         $cases = array();
         $line  = 1;
-        foreach($data->lib as $key => $lib)
-        {
+        foreach ($data->lib as $key => $lib) {
             $caseData = new stdclass();
 
             $caseData->lib          = $lib;
@@ -375,43 +354,37 @@ class caselibModel extends model
             $caseData->frequency    = 1;
             $caseData->precondition = $data->precondition[$key];
 
-            if(isset($this->config->testcase->create->requiredFields))
-            {
+            if (isset($this->config->testcase->create->requiredFields)) {
                 $requiredFields = explode(',', $this->config->testcase->create->requiredFields);
-                foreach($requiredFields as $requiredField)
-                {
+                foreach ($requiredFields as $requiredField) {
                     $requiredField = trim($requiredField);
-                    if(!isset($caseData->$requiredField)) continue;
-                    if(empty($caseData->$requiredField)) dao::$errors[] = sprintf($this->lang->testcase->noRequire, $line, $this->lang->testcase->$requiredField);
+                    if (!isset($caseData->$requiredField)) continue;
+                    if (empty($caseData->$requiredField)) dao::$errors[] = sprintf($this->lang->testcase->noRequire, $line, $this->lang->testcase->$requiredField);
                 }
             }
 
             $cases[$key] = $caseData;
             $line++;
         }
-        if(dao::isError()) die(js::error(dao::getError()));
+        if (dao::isError()) return print(js::error(dao::getError()));
 
         $forceNotReview = $this->testcase->forceNotReview();
-        foreach($cases as $key => $caseData)
-        {
-            if(!empty($_POST['id'][$key]) and empty($_POST['insert']))
-            {
+        foreach ($cases as $key => $caseData) {
+            if (!empty($_POST['id'][$key]) and empty($_POST['insert'])) {
                 $caseID      = $data->id[$key];
                 $stepChanged = false;
                 $oldStep     = isset($oldSteps[$caseID]) ? $oldSteps[$caseID] : array();
                 $oldCase     = $oldCases[$caseID];
 
                 /* Ignore updating cases for different libs. */
-                if($oldCase->lib != $caseData->lib) continue;
+                if ($oldCase->lib != $caseData->lib) continue;
 
                 /* Remove the empty setps in post. */
                 $steps = array();
-                if(isset($_POST['desc'][$key]))
-                {
-                    foreach($data->desc[$key] as $id => $desc)
-                    {
+                if (isset($_POST['desc'][$key])) {
+                    foreach ($data->desc[$key] as $id => $desc) {
                         $desc = trim($desc);
-                        if(empty($desc)) continue;
+                        if (empty($desc)) continue;
                         $step = new stdclass();
                         $step->type   = $data->stepType[$key][$id];
                         $step->desc   = htmlSpecialString($desc);
@@ -422,17 +395,12 @@ class caselibModel extends model
                 }
 
                 /* If step count changed, case changed. */
-                if((!$oldStep != !$steps) or (count($oldStep) != count($steps)))
-                {
+                if ((!$oldStep != !$steps) or (count($oldStep) != count($steps))) {
                     $stepChanged = true;
-                }
-                else
-                {
+                } else {
                     /* Compare every step. */
-                    foreach($oldStep as $id => $oldStep)
-                    {
-                        if(trim($oldStep->desc) != trim($steps[$id]->desc) or trim($oldStep->expect) != $steps[$id]->expect)
-                        {
+                    foreach ($oldStep as $id => $oldStep) {
+                        if (trim($oldStep->desc) != trim($steps[$id]->desc) or trim($oldStep->expect) != $steps[$id]->expect) {
                             $stepChanged = true;
                             break;
                         }
@@ -442,21 +410,18 @@ class caselibModel extends model
                 $version           = $stepChanged ? $oldCase->version + 1 : $oldCase->version;
                 $caseData->version = $version;
                 $changes           = common::createChanges($oldCase, $caseData);
-                if(!$changes and !$stepChanged) continue;
+                if (!$changes and !$stepChanged) continue;
 
-                if($changes or $stepChanged)
-                {
+                if ($changes or $stepChanged) {
                     $caseData->lastEditedBy   = $this->app->user->account;
                     $caseData->lastEditedDate = $now;
-                    if($stepChanged and !$forceNotReview) $caseData->status = 'wait';
+                    if ($stepChanged and !$forceNotReview) $caseData->status = 'wait';
                     $this->dao->update(TABLE_CASE)->data($caseData)->where('id')->eq($caseID)->autoCheck()->exec();
-                    if($stepChanged)
-                    {
+                    if ($stepChanged) {
                         $parentStepID = 0;
-                        foreach($steps as $id => $step)
-                        {
+                        foreach ($steps as $id => $step) {
                             $step = (array)$step;
-                            if(empty($step['desc'])) continue;
+                            if (empty($step['desc'])) continue;
                             $stepData = new stdclass();
                             $stepData->type    = ($step['type'] == 'item' and $parentStepID == 0) ? 'step' : $step['type'];
                             $stepData->parent  = ($stepData->type == 'item') ? $parentStepID : 0;
@@ -465,8 +430,8 @@ class caselibModel extends model
                             $stepData->desc    = $step['desc'];
                             $stepData->expect  = $step['expect'];
                             $this->dao->insert(TABLE_CASESTEP)->data($stepData)->autoCheck()->exec();
-                            if($stepData->type == 'group') $parentStepID = $this->dao->lastInsertID();
-                            if($stepData->type == 'step')  $parentStepID = 0;
+                            if ($stepData->type == 'group') $parentStepID = $this->dao->lastInsertID();
+                            if ($stepData->type == 'step')  $parentStepID = 0;
                         }
                     }
                     $oldCase->steps  = $this->testcase->joinStep($oldStep);
@@ -475,9 +440,7 @@ class caselibModel extends model
                     $actionID = $this->action->create('case', $caseID, 'Edited');
                     $this->action->logHistory($actionID, $changes);
                 }
-            }
-            else
-            {
+            } else {
                 $caseData->project    = (int)$this->session->project;
                 $caseData->version    = 1;
                 $caseData->openedBy   = $this->app->user->account;
@@ -485,14 +448,12 @@ class caselibModel extends model
                 $caseData->status     = $forceNotReview ? 'normal' : 'wait';
                 $this->dao->insert(TABLE_CASE)->data($caseData)->autoCheck()->exec();
 
-                if(!dao::isError())
-                {
+                if (!dao::isError()) {
                     $caseID       = $this->dao->lastInsertID();
                     $parentStepID = 0;
-                    foreach($data->desc[$key] as $id => $desc)
-                    {
+                    foreach ($data->desc[$key] as $id => $desc) {
                         $desc = trim($desc);
-                        if(empty($desc)) continue;
+                        if (empty($desc)) continue;
                         $stepData = new stdclass();
                         $stepData->type    = ($data->stepType[$key][$id] == 'item' and $parentStepID == 0) ? 'step' : $data->stepType[$key][$id];
                         $stepData->parent  = ($stepData->type == 'item') ? $parentStepID : 0;
@@ -501,16 +462,15 @@ class caselibModel extends model
                         $stepData->desc    = htmlSpecialString($desc);
                         $stepData->expect  = htmlSpecialString(trim($data->expect[$key][$id]));
                         $this->dao->insert(TABLE_CASESTEP)->data($stepData)->autoCheck()->exec();
-                        if($stepData->type == 'group') $parentStepID = $this->dao->lastInsertID();
-                        if($stepData->type == 'step')  $parentStepID = 0;
+                        if ($stepData->type == 'group') $parentStepID = $this->dao->lastInsertID();
+                        if ($stepData->type == 'step')  $parentStepID = 0;
                     }
                     $this->action->create('case', $caseID, 'Opened');
                 }
             }
         }
 
-        if($this->post->isEndPage)
-        {
+        if ($this->post->isEndPage) {
             unlink($this->session->fileImport);
             unset($_SESSION['fileImport']);
         }
@@ -535,16 +495,14 @@ class caselibModel extends model
         $result = $this->loadModel('common')->removeDuplicate('case', $cases, "lib={$libID}");
         $cases  = $result['data'];
 
-        foreach($cases->title as $i => $title)
-        {
-            if(!empty($cases->title[$i]) and empty($cases->type[$i])) die(js::alert(sprintf($this->lang->error->notempty, $this->lang->testcase->type)));
+        foreach ($cases->title as $i => $title) {
+            if (!empty($cases->title[$i]) and empty($cases->type[$i])) return print(js::alert(sprintf($this->lang->error->notempty, $this->lang->testcase->type)));
         }
 
         $module = 0;
         $type   = '';
         $pri    = 3;
-        foreach($cases->title as $i => $title)
-        {
+        foreach ($cases->title as $i => $title) {
             $module = $cases->module[$i] == 'ditto' ? $module : $cases->module[$i];
             $type   = $cases->type[$i] == 'ditto'   ? $type   : $cases->type[$i];
             $pri    = $cases->pri[$i] == 'ditto'    ? $pri    : $cases->pri[$i];
@@ -554,10 +512,8 @@ class caselibModel extends model
         }
 
         $forceNotReview = $this->testcase->forceNotReview();
-        foreach($cases->title as $i => $title)
-        {
-            if($cases->type[$i] != '' and $cases->title[$i] != '')
-            {
+        foreach ($cases->title as $i => $title) {
+            if ($cases->type[$i] != '' and $cases->title[$i] != '') {
                 $data[$i] = new stdclass();
                 $data[$i]->lib          = $libID;
                 $data[$i]->module       = $cases->module[$i];
@@ -572,17 +528,17 @@ class caselibModel extends model
                 $data[$i]->openedDate   = $now;
                 $data[$i]->status       = $forceNotReview ? 'normal' : 'wait';
                 $data[$i]->version      = 1;
-                if($this->config->systemMode == 'new' and $this->lang->navGroup->caselib != 'qa') $data[$i]->project = $this->session->project;
+                $data[$i]->project      = 0;
+                if ($this->config->systemMode == 'new' and $this->lang->navGroup->caselib != 'qa' and $this->session->project) $data[$i]->project = $this->session->project;
 
                 $this->dao->insert(TABLE_CASE)->data($data[$i])
                     ->autoCheck()
                     ->batchCheck($this->config->testcase->create->requiredFields, 'notempty')
                     ->exec();
 
-                if(dao::isError())
-                {
+                if (dao::isError()) {
                     echo js::error(dao::getError());
-                    die(js::reload('parent'));
+                    return print(js::reload('parent'));
                 }
 
                 $caseID   = $this->dao->lastInsertID();

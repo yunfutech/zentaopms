@@ -6,18 +6,87 @@
 class control {}
 $config = new stdclass();
 $config->global = new stdclass();
-$config->global->flow = 'full';
+$config->global->flow  = 'full';
+$config->programLink   = '-';
+$config->productLink   = '-';
+$config->projectLink   = '-';
+$config->executionLink = '-';
+$config->systemMode    = 'new';
+$config->URAndSR       = true;
+$config->systemScore   = true;
 
 /* set module root path and included the resource of group module. */
+$lang = new stdclass();
+$lang->index          = new stdclass();
+$lang->my             = new stdclass();
+$lang->personnel      = new stdclass();
+$lang->program        = new stdclass();
+$lang->project        = new stdclass();
+$lang->projectbuild   = new stdclass();
+$lang->projectstory   = new stdclass();
+$lang->projectrelease = new stdclass();
+$lang->stakeholder    = new stdclass();
+$lang->product        = new stdclass();
+$lang->branch         = new stdclass();
+$lang->story          = new stdclass();
+$lang->productplan    = new stdclass();
+$lang->release        = new stdclass();
+$lang->execution      = new stdclass();
+$lang->task           = new stdclass();
+$lang->build          = new stdclass();
+$lang->qa             = new stdclass();
+$lang->bug            = new stdclass();
+$lang->testcase       = new stdclass();
+$lang->testtask       = new stdclass();
+$lang->testreport     = new stdclass();
+$lang->testsuite      = new stdclass();
+$lang->caselib        = new stdclass();
+$lang->automation     = new stdclass();
+$lang->repo           = new stdclass();
+$lang->ci             = new stdclass();
+$lang->compile        = new stdclass();
+$lang->jenkins        = new stdclass();
+$lang->job            = new stdclass();
+$lang->doc            = new stdclass();
+$lang->mail           = new stdclass();
+$lang->custom         = new stdclass();
+$lang->datatable      = new stdclass();
+$lang->svn            = new stdclass();
+$lang->gitlab         = new stdclass();
+$lang->mr             = new stdclass();
+$lang->git            = new stdclass();
+$lang->company        = new stdclass();
+$lang->dept           = new stdclass();
+$lang->group          = new stdclass();
+$lang->user           = new stdclass();
+$lang->tree           = new stdclass();
+$lang->report         = new stdclass();
+$lang->search         = new stdclass();
+$lang->admin          = new stdclass();
+$lang->extension      = new stdclass();
+$lang->webhook        = new stdclass();
+$lang->api            = new stdclass();
+$lang->file           = new stdclass();
+$lang->misc           = new stdclass();
+$lang->message        = new stdclass();
+$lang->action         = new stdclass();
+$lang->backup         = new stdclass();
+$lang->cron           = new stdclass();
+$lang->dev            = new stdclass();
+
 $moduleRoot = '../module/';
 include $moduleRoot . '/group/lang/resource.php';
 foreach(glob($moduleRoot . '/group/ext/lang/zh-cn/*.php') as $resourceFile) include $resourceFile;
 foreach(glob('../xuanxuan/module/group/ext/lang/zh-cn/*.php') as $resourceFile) include $resourceFile;
 
-$lang->productCommon = '';
-$lang->projectCommon = '';
-$lang->storyCommon   = '';
+$lang->projectCommon   = '';
+$lang->storyCommon     = '';
+$lang->SRCommon        = '';
+$lang->URCommon        = '';
+$lang->productCommon   = '';
+$lang->executionCommon = '';
 
+$whiteList[] = 'report-annualdata';
 $whiteList[] = 'api-getsessionid';
 $whiteList[] = 'admin-setflow';
 $whiteList[] = 'bug-buildtemplates';
@@ -40,14 +109,17 @@ $whiteList[] = 'help-field';
 $whiteList[] = 'index-testext';
 $whiteList[] = 'productplan-commonaction';
 $whiteList[] = 'project-managechilds';
-$whiteList[] = 'project-tips';
-$whiteList[] = 'project-commonaction';
+$whiteList[] = 'execution-tips';
+$whiteList[] = 'execution-commonaction';
 $whiteList[] = 'project-sendmail';
 $whiteList[] = 'release-commonaction';
 $whiteList[] = 'task-commonaction';
 $whiteList[] = 'task-sendmail';
 $whiteList[] = 'testtask-sendmail';
 $whiteList[] = 'user-login';
+$whiteList[] = 'im-login';
+$whiteList[] = 'im-debug';
+$whiteList[] = 'im-sysgetserverinfo';
 $whiteList[] = 'user-deny';
 $whiteList[] = 'user-logout';
 $whiteList[] = 'user-setreferer';
@@ -106,16 +178,15 @@ $whiteList[] = 'testsuite-batchcreatecase';
 $whiteList[] = 'testsuite-exporttemplet';
 $whiteList[] = 'testsuite-import';
 $whiteList[] = 'testsuite-showimport';
-$whiteList[] = 'webhook-browse';
-$whiteList[] = 'webhook-create';
-$whiteList[] = 'webhook-edit';
-$whiteList[] = 'webhook-bind';
-$whiteList[] = 'webhook-delete';
-$whiteList[] = 'webhook-log';
 $whiteList[] = 'webhook-asyncsend';
 $whiteList[] = 'testreport-setchartdatas';
 $whiteList[] = 'chat-login';
 $whiteList[] = 'entry-visit';
+$whiteList[] = 'ci-initqueue';
+$whiteList[] = 'ci-exec';
+$whiteList[] = 'ci-checkcompilestatus';
+$whiteList[] = 'im-userlogin';
+$whiteList[] = 'user-refreshRandom';
 
 /* checking actions of every module. */
 echo '-------------action checking-----------------' . "\n";
@@ -284,7 +355,7 @@ foreach($demoSQL as $line => $sql)
 
     if(strpos($sql, $config->db->prefix . 'config')  !== false or
        strpos($sql, $config->db->prefix . 'company') !== false or
-       strpos($sql, $config->db->prefix . 'group')   !== false) 
+       strpos($sql, $config->db->prefix . 'group')   !== false)
     {
         die('line ' . ($line + 1) . " has error\n");
     }

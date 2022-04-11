@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The install module English file of ZenTaoPMS.
  *
@@ -157,7 +158,10 @@ $lang->install->getPriv            = 'Set Admin';
 $lang->install->company            = 'Company Name';
 $lang->install->account            = 'Admin Account';
 $lang->install->password           = 'Admin Password';
-$lang->install->errorEmptyPassword = 'Password should not be blank.';
+
+$lang->install->errorEmpty['company']  = "{$lang->install->company} should not be blank.";
+$lang->install->errorEmpty['account']  = "{$lang->install->account} should not be blank.";
+$lang->install->errorEmpty['password'] = "{$lang->install->password} should not be blank.";
 
 $lang->install->processList['11'] = 'Project management';
 $lang->install->processList['12'] = 'Project planning';
@@ -197,25 +201,25 @@ $lang->install->basicmeasList['30'] = array('name' => 'Actual days of product de
 $lang->install->basicmeasList['31'] = array('name' => 'Actual days of product design stage', 'unit' => 'Day', 'definition' => 'The sum of the actual days of all design phases under the product');
 $lang->install->basicmeasList['32'] = array('name' => 'By actual days of product development stage', 'unit' => 'Day', 'definition' => 'The sum of the actual days of all development phases under the product');
 $lang->install->basicmeasList['33'] = array('name' => 'By actual days of product test phase', 'unit' => 'Day', 'definition' => 'The sum of the actual days of all testing phases under the product');
-$lang->install->basicmeasList['34'] = array('name' => 'Real-time estimated working hours of project tasks', 'unit' => 'Hour','definition' => 'The sum of the initial estimated man-hours for all tasks under the project');
-$lang->install->basicmeasList['35'] = array('name' => 'Total estimated real-time working hours of project requirements', 'unit' => 'Hour','definition' => 'The sum of the initial estimated man-hours for all requirements related tasks of the project');
-$lang->install->basicmeasList['36'] = array('name' => 'Total estimated time of project design work in real time', 'unit' => 'Hour','definition' => 'The sum of the initial estimated man-hours for all design-related tasks of the project');
-$lang->install->basicmeasList['37'] = array('name' => 'Total estimated time of project development in real time', 'unit' => 'Hour','definition' => 'The sum of the initial estimated man-hours for all development related tasks of the project');
-$lang->install->basicmeasList['38'] = array('name' => 'Total estimated time of project test work in real time', 'unit' => 'Hour','definition' => 'The sum of the initial estimated man-hours for all test related tasks of the project');
-$lang->install->basicmeasList['39'] = array('name' => 'Actual man-hours consumed by project tasks', 'unit' => 'Hour','definition' => 'The sum of the actual man-hours consumed for all tasks under the project');
-$lang->install->basicmeasList['40'] = array('name' => 'The actual number of man-hours consumed by project demand work', 'unit' => 'Hour','definition' => 'The sum of the actual man-hours consumed by all demand-related tasks of the project');
-$lang->install->basicmeasList['41'] = array('name' => 'The actual number of man-hours consumed by project design work', 'unit' => 'Hour','definition' => 'The sum of the actual man-hours consumed by all design-related tasks of the project');
-$lang->install->basicmeasList['42'] = array('name' => 'The actual number of man-hours consumed by project development work', 'unit' => 'Hour','definition' => 'The sum of the actual man-hours consumed by all development related tasks of the project');
-$lang->install->basicmeasList['43'] = array('name' => 'The actual number of man-hours consumed by the project testing work', 'unit' => 'Hour','definition' => 'The sum of the actual man-hours consumed by all test related tasks of the project');
-$lang->install->basicmeasList['44'] = array('name' => 'Total estimated initial hours of project development work', 'unit' => 'Hour','definition' => 'The sum of the initial estimated work hours of all development related work in the first baseline release of the project plan');
-$lang->install->basicmeasList['45'] = array('name' => 'Total estimated initial hours of project design work', 'unit' => 'Hour','definition' => 'The sum of the initial estimated man-hours of all design-related work in the first baseline version of the project plan');
-$lang->install->basicmeasList['46'] = array('name' => 'Total estimated initial work hours for project testing', 'unit' => 'Hour','definition' => 'The sum of the initial estimated man-hours of all test-related work in the first baseline release of the project plan');
-$lang->install->basicmeasList['47'] = array('name' => 'Total estimated initial hours of work required for the project', 'unit' => 'Hour','definition' => 'The sum of the initial estimated man-hours of all requirements related work in the first baseline version of the project plan');
-$lang->install->basicmeasList['48'] = array('name' => 'Total estimated initial work hours for project tasks', 'unit' => 'Hour','definition' => 'The sum of the initial estimated man-hours for all tasks in the first baseline version of the project plan');
-$lang->install->basicmeasList['49'] = array('name' => 'The final estimated number of project development hours', 'unit' => 'Hour','definition' => 'The sum of the initial estimated work hours of all development-related tasks in the last baseline release of the project plan');
-$lang->install->basicmeasList['50'] = array('name' => 'Total estimated final work hours of project requirements', 'unit' => 'Hour','definition' => 'The sum of the initial estimated work hours of all requirements related tasks in the last baseline release of the project plan');
-$lang->install->basicmeasList['51'] = array('name' => 'The final estimated number of project testing hours', 'unit' => 'Hour','definition' => 'The sum of the initial estimated man-hours of all test related tasks in the last baseline release of the project plan');
-$lang->install->basicmeasList['52'] = array('name' => 'The final estimated total working hours of project design work', 'unit' => 'Hour','definition' => 'The sum of the initial estimated man-hours of all design-related tasks in the last baseline release of the project plan');
+$lang->install->basicmeasList['34'] = array('name' => 'Real-time estimated working hours of project tasks', 'unit' => 'Hour', 'definition' => 'The sum of the initial estimated man-hours for all tasks under the project');
+$lang->install->basicmeasList['35'] = array('name' => 'Total estimated real-time working hours of project requirements', 'unit' => 'Hour', 'definition' => 'The sum of the initial estimated man-hours for all requirements related tasks of the project');
+$lang->install->basicmeasList['36'] = array('name' => 'Total estimated time of project design work in real time', 'unit' => 'Hour', 'definition' => 'The sum of the initial estimated man-hours for all design-related tasks of the project');
+$lang->install->basicmeasList['37'] = array('name' => 'Total estimated time of project development in real time', 'unit' => 'Hour', 'definition' => 'The sum of the initial estimated man-hours for all development related tasks of the project');
+$lang->install->basicmeasList['38'] = array('name' => 'Total estimated time of project test work in real time', 'unit' => 'Hour', 'definition' => 'The sum of the initial estimated man-hours for all test related tasks of the project');
+$lang->install->basicmeasList['39'] = array('name' => 'Actual man-hours consumed by project tasks', 'unit' => 'Hour', 'definition' => 'The sum of the actual man-hours consumed for all tasks under the project');
+$lang->install->basicmeasList['40'] = array('name' => 'The actual number of man-hours consumed by project demand work', 'unit' => 'Hour', 'definition' => 'The sum of the actual man-hours consumed by all demand-related tasks of the project');
+$lang->install->basicmeasList['41'] = array('name' => 'The actual number of man-hours consumed by project design work', 'unit' => 'Hour', 'definition' => 'The sum of the actual man-hours consumed by all design-related tasks of the project');
+$lang->install->basicmeasList['42'] = array('name' => 'The actual number of man-hours consumed by project development work', 'unit' => 'Hour', 'definition' => 'The sum of the actual man-hours consumed by all development related tasks of the project');
+$lang->install->basicmeasList['43'] = array('name' => 'The actual number of man-hours consumed by the project testing work', 'unit' => 'Hour', 'definition' => 'The sum of the actual man-hours consumed by all test related tasks of the project');
+$lang->install->basicmeasList['44'] = array('name' => 'Total estimated initial hours of project development work', 'unit' => 'Hour', 'definition' => 'The sum of the initial estimated work hours of all development related work in the first baseline release of the project plan');
+$lang->install->basicmeasList['45'] = array('name' => 'Total estimated initial hours of project design work', 'unit' => 'Hour', 'definition' => 'The sum of the initial estimated man-hours of all design-related work in the first baseline version of the project plan');
+$lang->install->basicmeasList['46'] = array('name' => 'Total estimated initial work hours for project testing', 'unit' => 'Hour', 'definition' => 'The sum of the initial estimated man-hours of all test-related work in the first baseline release of the project plan');
+$lang->install->basicmeasList['47'] = array('name' => 'Total estimated initial hours of work required for the project', 'unit' => 'Hour', 'definition' => 'The sum of the initial estimated man-hours of all requirements related work in the first baseline version of the project plan');
+$lang->install->basicmeasList['48'] = array('name' => 'Total estimated initial work hours for project tasks', 'unit' => 'Hour', 'definition' => 'The sum of the initial estimated man-hours for all tasks in the first baseline version of the project plan');
+$lang->install->basicmeasList['49'] = array('name' => 'The final estimated number of project development hours', 'unit' => 'Hour', 'definition' => 'The sum of the initial estimated work hours of all development-related tasks in the last baseline release of the project plan');
+$lang->install->basicmeasList['50'] = array('name' => 'Total estimated final work hours of project requirements', 'unit' => 'Hour', 'definition' => 'The sum of the initial estimated work hours of all requirements related tasks in the last baseline release of the project plan');
+$lang->install->basicmeasList['51'] = array('name' => 'The final estimated number of project testing hours', 'unit' => 'Hour', 'definition' => 'The sum of the initial estimated man-hours of all test related tasks in the last baseline release of the project plan');
+$lang->install->basicmeasList['52'] = array('name' => 'The final estimated total working hours of project design work', 'unit' => 'Hour', 'definition' => 'The sum of the initial estimated man-hours of all design-related tasks in the last baseline release of the project plan');
 $lang->install->basicmeasList['53'] = array('name' => 'Total estimated final work hours of project tasks', 'unit' => 'Hour', 'definition' => 'The sum of the initial estimated man-hours for all tasks in the last baseline release of the project plan');
 
 $lang->install->selectedMode     = 'Selection mode';

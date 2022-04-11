@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The vi file of block module of ZenTaoPMS.
  *
@@ -67,8 +68,8 @@ $lang->block->createdDocs         = 'Docs Created';
 $lang->block->allExecutions       = 'All ' . $lang->executionCommon;
 $lang->block->doingExecution      = 'Doning ' . $lang->executionCommon;
 $lang->block->finishExecution     = 'Finish ' . $lang->executionCommon;
-$lang->block->estimatedHours      = 'Estimated Hours';
-$lang->block->consumedHours       = 'Consumed Hours';
+$lang->block->estimatedHours      = 'Estimated';
+$lang->block->consumedHours       = 'Cost';
 $lang->block->time                = 'No';
 $lang->block->week                = 'Week';
 $lang->block->month               = 'Month';
@@ -93,15 +94,15 @@ $lang->block->cannotPlaceInLeft  = 'Khối này không thể được đặt ở
 $lang->block->cannotPlaceInRight = 'Khối này không thể được đặt ở bên phải.';
 
 $lang->block->productName  = $lang->productCommon . ' Name';
-$lang->block->totalStory   = 'The Total ' . $lang->SRCommon;
-$lang->block->totalBug     = 'The Total Bug';
+$lang->block->totalStory   = 'Total';
+$lang->block->totalBug     = 'Total Bug';
 $lang->block->totalRelease = 'Release The Number';
 
 $lang->block->totalInvestment = 'Total investment';
 $lang->block->totalPeople     = 'Total number';
 $lang->block->spent           = 'Has Been Spent';
 $lang->block->budget          = 'Budget';
-$lang->block->left            = 'Residuals';
+$lang->block->left            = 'Remain';
 
 $lang->block->default['waterfall']['project']['3']['title']  = 'Plan Gantt Chart';
 $lang->block->default['waterfall']['project']['3']['block']  = 'waterfallgantt';
@@ -141,14 +142,14 @@ $lang->block->default['scrum']['project']['5']['title'] = 'Dynamic';
 $lang->block->default['scrum']['project']['5']['block'] = 'projectdynamic';
 $lang->block->default['scrum']['project']['5']['grid']  = 4;
 
-$lang->block->default['product']['1']['title'] = 'Báo cáo '.$lang->productCommon;
+$lang->block->default['product']['1']['title'] = 'Báo cáo ' . $lang->productCommon;
 $lang->block->default['product']['1']['block'] = 'statistic';
 $lang->block->default['product']['1']['grid']  = 8;
 
 $lang->block->default['product']['1']['params']['type']  = 'all';
 $lang->block->default['product']['1']['params']['count'] = '20';
 
-$lang->block->default['product']['2']['title'] = 'Tổng quan '.$lang->productCommon;
+$lang->block->default['product']['2']['title'] = 'Tổng quan ' . $lang->productCommon;
 $lang->block->default['product']['2']['block'] = 'overview';
 $lang->block->default['product']['2']['grid']  = 4;
 
@@ -167,14 +168,14 @@ $lang->block->default['product']['4']['params']['count']   = 15;
 $lang->block->default['product']['4']['params']['orderBy'] = 'id_desc';
 $lang->block->default['product']['4']['params']['type']    = 'assignedTo';
 
-$lang->block->default['execution']['1']['title'] = 'Báo cáo '.$lang->executionCommon;
+$lang->block->default['execution']['1']['title'] = 'Báo cáo ' . $lang->executionCommon;
 $lang->block->default['execution']['1']['block'] = 'statistic';
 $lang->block->default['execution']['1']['grid']  = 8;
 
 $lang->block->default['execution']['1']['params']['type']  = 'all';
 $lang->block->default['execution']['1']['params']['count'] = '20';
 
-$lang->block->default['execution']['2']['title'] = 'Tổng quan '.$lang->executionCommon ;
+$lang->block->default['execution']['2']['title'] = 'Tổng quan ' . $lang->executionCommon;
 $lang->block->default['execution']['2']['block'] = 'overview';
 $lang->block->default['execution']['2']['grid']  = 4;
 
@@ -252,8 +253,7 @@ $lang->block->default['full']['my']['3']['grid']            = 4;
 $lang->block->default['full']['my']['3']['source']          = 'todo';
 $lang->block->default['full']['my']['3']['params']['count'] = '20';
 
-if($config->systemMode == 'new')
-{
+if ($config->systemMode == 'new') {
     $lang->block->default['full']['my']['4']['title']           = 'Project Statistic';
     $lang->block->default['full']['my']['4']['block']           = 'statistic';
     $lang->block->default['full']['my']['4']['source']          = 'project';
@@ -284,8 +284,7 @@ $lang->block->default['full']['my']['7']['params']['issueCount']   = '20';
 $lang->block->default['full']['my']['7']['params']['storyCount']   = '20';
 $lang->block->default['full']['my']['7']['params']['meetingCount'] = '20';
 
-if($config->systemMode == 'new')
-{
+if ($config->systemMode == 'new') {
     $lang->block->default['full']['my']['8']['title']  = 'Human Input';
     $lang->block->default['full']['my']['8']['block']  = 'projectteam';
     $lang->block->default['full']['my']['8']['source'] = 'project';
@@ -320,7 +319,7 @@ $lang->block->availableBlocks->risk      = 'My Risks';
 $lang->block->availableBlocks->issue     = 'My Issues';
 $lang->block->availableBlocks->meeting   = 'My Meetings';
 
-if($config->systemMode == 'new') $lang->block->moduleList['project'] = 'Project';
+if ($config->systemMode == 'new') $lang->block->moduleList['project'] = 'Project';
 $lang->block->moduleList['product']   = $lang->productCommon;
 $lang->block->moduleList['execution'] = $lang->execution->common;
 $lang->block->moduleList['qa']        = 'QA';
@@ -331,7 +330,7 @@ $lang->block->modules['project']->availableBlocks = new stdclass();
 $lang->block->modules['project']->availableBlocks->project       = 'Project List';
 $lang->block->modules['project']->availableBlocks->recentproject = 'Recent Projects';
 $lang->block->modules['project']->availableBlocks->statistic     = 'Project Statistic';
-if($config->systemMode == 'new') $lang->block->modules['project']->availableBlocks->projectteam = 'ProjectHuman Input';
+if ($config->systemMode == 'new') $lang->block->modules['project']->availableBlocks->projectteam = 'ProjectHuman Input';
 
 $lang->block->modules['scrum']['index'] = new stdclass();
 $lang->block->modules['scrum']['index']->availableBlocks = new stdclass();
@@ -348,9 +347,9 @@ $lang->block->modules['waterfall']['index']->availableBlocks->projectdynamic = '
 
 $lang->block->modules['product'] = new stdclass();
 $lang->block->modules['product']->availableBlocks = new stdclass();
-$lang->block->modules['product']->availableBlocks->statistic = 'Báo cáo '.$lang->productCommon;
-$lang->block->modules['product']->availableBlocks->overview  = 'Tổng quan '.$lang->productCommon;
-$lang->block->modules['product']->availableBlocks->list      = 'Danh sách '.$lang->productCommon;
+$lang->block->modules['product']->availableBlocks->statistic = 'Báo cáo ' . $lang->productCommon;
+$lang->block->modules['product']->availableBlocks->overview  = 'Tổng quan ' . $lang->productCommon;
+$lang->block->modules['product']->availableBlocks->list      = 'Danh sách ' . $lang->productCommon;
 $lang->block->modules['product']->availableBlocks->story     = 'Câu chuyện';
 $lang->block->modules['product']->availableBlocks->plan      = 'Kế hoạch';
 $lang->block->modules['product']->availableBlocks->release   = 'Phát hành';
@@ -458,7 +457,7 @@ $lang->block->typeList->case['openedbyme'] = 'Tạo bởi bạn';
 $lang->block->typeList->story['assignedTo'] = 'Giao cho bạn';
 $lang->block->typeList->story['openedBy']   = 'Tạo bởi bạn';
 $lang->block->typeList->story['reviewedBy'] = 'Duyệt bởi bạn';
-$lang->block->typeList->story['closedBy']   = 'ClosedByMe' ;
+$lang->block->typeList->story['closedBy']   = 'ClosedByMe';
 
 $lang->block->typeList->product['noclosed'] = 'Mở';
 $lang->block->typeList->product['closed']   = 'Đã đóng';
@@ -531,6 +530,6 @@ $lang->block->gridOptions[4] = 'Phải';
 $lang->block->flowchart              = array();
 $lang->block->flowchart['admin']     = array('Quản trị viên', 'Phòng/ban', 'Người dùng', 'Phân quyền');
 $lang->block->flowchart['product']   = array($lang->productCommon, $lang->productCommon, 'Modules', 'Kế hoạch', 'Câu chuyện', 'Phát hành');
-$lang->block->flowchart['execution'] = array('Scrum Master',$lang->executionCommon, 'Đội nhóm', $lang->productCommon, 'Câu chuyện', 'Nhiệm vụ');
+$lang->block->flowchart['execution'] = array('Scrum Master', $lang->executionCommon, 'Đội nhóm', $lang->productCommon, 'Câu chuyện', 'Nhiệm vụ');
 $lang->block->flowchart['dev']       = array('Dev Team', 'Nhiệm vụ/Bugs', 'Tình trạng');
 $lang->block->flowchart['tester']    = array('QA Team', 'Tình huống', 'Báo cáo Bugs', 'Kiểm tra Bugs', 'Đóng Bugs');

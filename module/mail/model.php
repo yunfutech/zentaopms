@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The model file of mail module of ZenTaoPMS.
  *
@@ -45,9 +46,10 @@ class mailModel extends model
          * 3. try smtp.$domain's 25 and 465 port, if can connect, use smtp.$domain.
          */
         $config = $this->getConfigFromProvider($domain, $username);
-        if(!$config) $config = $this->getConfigByMXRR($domain, $username);
-        if(!$config) $config = $this->getConfigByDetectingSMTP($domain, $username, 25);
-        if(!$config) $config = $this->getConfigByDetectingSMTP($domain, $username, 465);
+        if (!$config) $config = $this->getConfigByMXRR($domain, $username);
+        if (!$config) $config = $this->getConfigByDetectingSMTP($domain, $username, 25);
+        if (!$config) $config = $this->getConfigByDetectingSMTP($domain, $username, 465);
+        if (!$config) $config = new stdclass();
 
         /* Set default values. */
         $config->mta      = 'smtp';
@@ -55,12 +57,14 @@ class mailModel extends model
         $config->password = '';
         $config->debug    = 1;
         $config->charset  = 'utf-8';
-        if(!isset($config->host)) $config->host = '';
-        if(!isset($config->auth)) $config->auth = 1;
-        if(!isset($config->port)) $config->port = '25';
+        if (!isset($config->secure))   $config->secure   = '';
+        if (!isset($config->username)) $config->username = $username;
+        if (!isset($config->host))     $config->host = '';
+        if (!isset($config->auth))     $config->auth = 1;
+        if (!isset($config->port))     $config->port = '25';
 
         return $config;
-   }
+    }
 
     /**
      * Try get config from providers.
@@ -72,14 +76,13 @@ class mailModel extends model
      */
     public function getConfigFromProvider($domain, $username)
     {
-        if(isset($this->config->mail->provider[$domain]))
-        {
+        if (isset($this->config->mail->provider[$domain])) {
             $config = (object)$this->config->mail->provider[$domain];
             $config->mta      = 'smtp';
             $config->username = $username;
             $config->auth     = 1;
-            if(!isset($config->port))   $config->port   = 25;
-            if(!isset($config->secure)) $config->secure = '';
+            if (!isset($config->port))   $config->port   = 25;
+            if (!isset($config->secure)) $config->secure = '';
             return $config;
         }
         return false;
@@ -96,30 +99,24 @@ class mailModel extends model
     public function getConfigByMXRR($domain, $username)
     {
         /* Try to get mx record, under linux, use getmxrr() directly, windows use nslookup. */
-        if(function_exists('getmxrr'))
-        {
+        if (function_exists('getmxrr')) {
             getmxrr($domain, $smtpHosts);
-        }
-        elseif(strpos(PHP_OS, 'WIN') !== false)
-        {
+        } elseif (strpos(PHP_OS, 'WIN') !== false) {
             $smtpHosts = array();
             $result    = `nslookup -q=mx {$domain} 2>nul`;
             $lines     = explode("\n", $result);
-            foreach($lines as $line)
-            {
-                if(stripos($line, 'exchanger')) $smtpHosts[] = trim(substr($line, strrpos($line, '=') + 1));
+            foreach ($lines as $line) {
+                if (stripos($line, 'exchanger')) $smtpHosts[] = trim(substr($line, strrpos($line, '=') + 1));
             }
         }
 
         /* Cycle the smtpHosts and try to find it's config from the provider config. */
-        foreach($smtpHosts as $smtpHost)
-        {
+        foreach ($smtpHosts as $smtpHost) {
             /* Get the domain name from the hosts, for example: imxbiz1.qq.com get qq.com. */
             $smtpDomain = explode('.', $smtpHost);
             array_shift($smtpDomain);
             $smtpDomain = strtolower(implode('.', $smtpDomain));
-            if($config = $this->getConfigFromProvider($smtpDomain, $username))
-            {
+            if ($config = $this->getConfigFromProvider($smtpDomain, $username)) {
                 $config->username = "$username@$domain";
                 return $config;
             }
@@ -141,8 +138,9 @@ class mailModel extends model
     {
         $host = 'smtp.' . $domain;
         ini_set('default_socket_timeout', 3);
+        if (gethostbynamel($host) == false) return false;
         $connection = @fsockopen($host, $port);
-        if(!$connection) return false;
+        if (!$connection) return false;
         fclose($connection);
 
         $config = new stdclass();
@@ -153,7 +151,7 @@ class mailModel extends model
         $config->secure   = $port == 465 ? 'ssl' : '';
 
         return $config;
-     }
+    }
 
     /**
      * Set MTA.
@@ -165,11 +163,11 @@ class mailModel extends model
     {
         $mta = $this->config->mail->mta;
         $className = ($mta == 'sendcloud' or $mta == 'ztcloud') ? $mta : 'phpmailer';
-        if(self::$instance == null) self::$instance = new $className(true);
+        if (self::$instance == null) self::$instance = new $className(true);
         $this->mta = self::$instance;
         $this->mta->CharSet = $this->config->charset;
         $funcName = "set{$this->config->mail->mta}";
-        if(!method_exists($this, $funcName)) $this->app->triggerError("The MTA {$this->config->mail->mta} not supported now.", __FILE__, __LINE__, $exit = true);
+        if (!method_exists($this, $funcName)) $this->app->triggerError("The MTA {$this->config->mail->mta} not supported now.", __FILE__, __LINE__, $exit = true);
         $this->$funcName();
 
         return $this->mta;
@@ -189,9 +187,9 @@ class mailModel extends model
         $this->mta->SMTPAuth  = $this->config->mail->smtp->auth;
         $this->mta->Username  = $this->config->mail->smtp->username;
         $this->mta->Password  = $this->config->mail->smtp->password;
-        if(isset($this->config->mail->smtp->charset)) $this->mta->CharSet = $this->config->mail->smtp->charset;
-        if(isset($this->config->mail->smtp->port)) $this->mta->Port = $this->config->mail->smtp->port;
-        if(isset($this->config->mail->smtp->secure) and !empty($this->config->mail->smtp->secure))$this->mta->SMTPSecure = strtolower($this->config->mail->smtp->secure);
+        if (isset($this->config->mail->smtp->charset)) $this->mta->CharSet = $this->config->mail->smtp->charset;
+        if (isset($this->config->mail->smtp->port)) $this->mta->Port = $this->config->mail->smtp->port;
+        if (isset($this->config->mail->smtp->secure) and !empty($this->config->mail->smtp->secure)) $this->mta->SMTPSecure = strtolower($this->config->mail->smtp->secure);
     }
 
     /**
@@ -272,34 +270,32 @@ class mailModel extends model
      */
     public function send($toList, $subject, $body = '', $ccList = '', $includeMe = false, $emails = array())
     {
-        if(!$this->config->mail->turnon) return;
-        if(!empty($this->config->mail->async)) return $this->addQueue($toList, $subject, $body, $ccList, $includeMe);
+        if (!$this->config->mail->turnon) return;
+        if (!empty($this->config->mail->async)) return $this->addQueue($toList, $subject, $body, $ccList, $includeMe);
 
         ob_start();
 
-        if(empty($emails))
-        {
+        if (empty($emails)) {
             $toList  = $toList ? explode(',', str_replace(' ', '', $toList)) : array();
             $ccList  = $ccList ? explode(',', str_replace(' ', '', $ccList)) : array();
 
             /* Process toList and ccList, remove current user from them. If toList is empty, use the first cc as to. */
-            if($includeMe == false)
-            {
+            if ($includeMe == false) {
                 $account = isset($this->app->user->account) ? $this->app->user->account : '';
 
-                foreach($toList as $key => $to) if(trim($to) == $account or !trim($to)) unset($toList[$key]);
-                foreach($ccList as $key => $cc) if(trim($cc) == $account or !trim($cc)) unset($ccList[$key]);
+                foreach ($toList as $key => $to) if (trim($to) == $account or !trim($to)) unset($toList[$key]);
+                foreach ($ccList as $key => $cc) if (trim($cc) == $account or !trim($cc)) unset($ccList[$key]);
             }
 
             /* Remove deleted users. */
             $this->app->loadConfig('message');
             $users      = $this->loadModel('user')->getPairs('nodeleted|all');
             $blockUsers = isset($this->config->message->blockUser) ? explode(',', $this->config->message->blockUser) : array();
-            foreach($toList as $key => $to) if(!isset($users[trim($to)]) or in_array(trim($to), $blockUsers)) unset($toList[$key]);
-            foreach($ccList as $key => $cc) if(!isset($users[trim($cc)]) or in_array(trim($cc), $blockUsers)) unset($ccList[$key]);
+            foreach ($toList as $key => $to) if (!isset($users[trim($to)]) or in_array(trim($to), $blockUsers)) unset($toList[$key]);
+            foreach ($ccList as $key => $cc) if (!isset($users[trim($cc)]) or in_array(trim($cc), $blockUsers)) unset($ccList[$key]);
 
-            if(!$toList and !$ccList) return;
-            if(!$toList and $ccList) $toList = array(array_shift($ccList));
+            if (!$toList and !$ccList) return;
+            if (!$toList and $ccList) $toList = array(array_shift($ccList));
             $toList = join(',', $toList);
             $ccList = join(',', $ccList);
 
@@ -313,16 +309,15 @@ class mailModel extends model
         /* Replace full webPath image for mail. */
         $sysURL      = zget($this->config->mail, 'domain', common::getSysURL());
         $readLinkReg = str_replace(array('%fileID%', '/', '.', '?'), array('[0-9]+', '\/', '\.', '\?'), helper::createLink('file', 'read', 'fileID=(%fileID%)', '\w+'));
-        if(isonlybody()) $readLinkReg = str_replace(array('\?onlybody=yes', '&onlybody=yes'), '', $readLinkReg);
+        if (isonlybody()) $readLinkReg = str_replace(array('\?onlybody=yes', '&onlybody=yes'), '', $readLinkReg);
 
         $body = preg_replace('/ src="(' . $readLinkReg . ')" /', ' src="' . $sysURL . '$1" ', $body);
         $body = preg_replace('/ src="{([0-9]+)(\.(\w+))?}" /', ' src="' . $sysURL . helper::createLink('file', 'read', "fileID=$1", "$3") . '" ', $body);
         $body = preg_replace('/<img (.*)src="\/?data\/upload/', '<img $1 src="' . $sysURL . $this->config->webRoot . 'data/upload', $body);
 
-        try
-        {
+        try {
             /* Add for task #5301. */
-            if(function_exists('putenv')) putenv('RES_OPTIONS=retrans:1 retry:1 timeout:1 attempts:1');
+            if (function_exists('putenv')) putenv('RES_OPTIONS=retrans:1 retry:1 timeout:1 attempts:1');
 
             $this->mta->setFrom($this->config->mail->fromAddress, $this->convertCharset($this->config->mail->fromName));
             $this->setSubject($this->convertCharset($subject));
@@ -331,25 +326,20 @@ class mailModel extends model
             $this->setBody($this->convertCharset($body));
             $this->setErrorLang();
             $this->mta->send();
-        }
-        catch (phpmailerException $e)
-        {
+        } catch (phpmailerException $e) {
             $mailError = ob_get_contents();
-            if(extension_loaded('mbstring'))
-            {
-                $encoding = mb_detect_encoding($mailError, array('ASCII','UTF-8','GB2312','GBK','BIG5'));
-                if($encoding != 'UTF-8') $mailError = mb_convert_encoding($mailError, 'utf8', $encoding);
+            if (extension_loaded('mbstring')) {
+                $encoding = mb_detect_encoding($mailError, array('ASCII', 'UTF-8', 'GB2312', 'GBK', 'BIG5'));
+                if ($encoding != 'UTF-8') $mailError = mb_convert_encoding($mailError, 'utf8', $encoding);
             }
             $this->errors[] = nl2br(trim(strip_tags($e->errorMessage()))) . '<br />' . $mailError;
-        }
-        catch (Exception $e)
-        {
+        } catch (Exception $e) {
             $this->errors[] = trim(strip_tags($e->getMessage()));
         }
-        if($this->config->mail->mta == 'smtp') $this->mta->smtpClose();
+        if ($this->config->mail->mta == 'smtp') $this->mta->smtpClose();
 
         /* save errors. */
-        if($this->isError()) $this->app->saveError('E_MAIL', join(' ', $this->errors), __FILE__, __LINE__, true);
+        if ($this->isError()) $this->app->saveError('E_MAIL', join(' ', $this->errors), __FILE__, __LINE__, true);
 
         $message = ob_get_contents();
         ob_end_clean();
@@ -368,9 +358,8 @@ class mailModel extends model
     public function setTO($toList, $emails)
     {
         $toList = explode(',', str_replace(' ', '', $toList));
-        foreach($toList as $account)
-        {
-            if(!isset($emails[$account]) or isset($emails[$account]->sended) or strpos($emails[$account]->email, '@') == false) continue;
+        foreach ($toList as $account) {
+            if (!isset($emails[$account]) or isset($emails[$account]->sended) or strpos($emails[$account]->email, '@') == false) continue;
             $this->mta->addAddress($emails[$account]->email, $this->convertCharset($emails[$account]->realname));
             $emails[$account]->sended = true;
         }
@@ -387,11 +376,10 @@ class mailModel extends model
     public function setCC($ccList, $emails)
     {
         $ccList = explode(',', str_replace(' ', '', $ccList));
-        if(!is_array($ccList)) return;
+        if (!is_array($ccList)) return;
         $ccList = array_unique($ccList);
-        foreach($ccList as $account)
-        {
-            if(!isset($emails[$account]) or isset($emails[$account]->sended) or strpos($emails[$account]->email, '@') == false) continue;
+        foreach ($ccList as $account) {
+            if (!isset($emails[$account]) or isset($emails[$account]->sended) or strpos($emails[$account]->email, '@') == false) continue;
             $this->mta->addCC($emails[$account]->email, $this->convertCharset($emails[$account]->realname));
             $emails[$account]->sended = true;
         }
@@ -430,7 +418,7 @@ class mailModel extends model
      */
     public function convertCharset($string)
     {
-        if(!empty($this->config->mail->smtp->charset) and $this->config->mail->smtp->charset != strtolower($this->config->charset)) return iconv($this->config->charset, $this->config->mail->smtp->charset . '//IGNORE', $string);
+        if (!empty($this->config->mail->smtp->charset) and $this->config->mail->smtp->charset != strtolower($this->config->charset)) return iconv($this->config->charset, $this->config->mail->smtp->charset . '//IGNORE', $string);
         return $string;
     }
 
@@ -509,19 +497,18 @@ class mailModel extends model
         $ccList  = $ccList ? explode(',', str_replace(' ', '', $ccList)) : array();
 
         /* Process toList and ccList, remove current user from them. If toList is empty, use the first cc as to. */
-        if($includeMe == false)
-        {
+        if ($includeMe == false) {
             $account = isset($this->app->user->account) ? $this->app->user->account : '';
 
-            foreach($toList as $key => $to) if(trim($to) == $account or !trim($to)) unset($toList[$key]);
-            foreach($ccList as $key => $cc) if(trim($cc) == $account or !trim($cc)) unset($ccList[$key]);
+            foreach ($toList as $key => $to) if (trim($to) == $account or !trim($to)) unset($toList[$key]);
+            foreach ($ccList as $key => $cc) if (trim($cc) == $account or !trim($cc)) unset($ccList[$key]);
         }
-        if(!$toList and !$ccList) return;
-        if(!$toList and $ccList) $toList = array(array_shift($ccList));
+        if (!$toList and !$ccList) return;
+        if (!$toList and $ccList) $toList = array(array_shift($ccList));
 
         $toList = join(',', $toList);
         $ccList = join(',', $ccList);
-        if(empty($toList) or empty($subject)) return true;
+        if (empty($toList) or empty($subject)) return true;
 
         $data = new stdclass();
         $data->objectType  = 'mail';
@@ -550,22 +537,20 @@ class mailModel extends model
             ->page($pager)
             ->fetchAll('id');
 
-        if($this->app->methodName == 'browse' or $this->config->mail->mta == 'sendcloud') return $mails;
+        if ($this->app->methodName == 'browse' or $this->config->mail->mta == 'sendcloud') return $mails;
 
         /* Group mails by toList and ccList. */
         $groupMails = array();
-        foreach($mails as $mail)
-        {
+        foreach ($mails as $mail) {
             $users = $mail->toList . ',' . $mail->ccList;
             $groupMails[$users][] = $mail;
         }
 
         /* Merge the mails if a group has more than one mail. */
         $queue = array();
-        foreach($groupMails as $groupMail)
-        {
-            if(count($groupMail) == 1) $queue[] = reset($groupMail);
-            if(count($groupMail) > 1)  $queue[] = $this->mergeMails($groupMail);
+        foreach ($groupMails as $groupMail) {
+            if (count($groupMail) == 1) $queue[] = reset($groupMail);
+            if (count($groupMail) > 1)  $queue[] = $this->mergeMails($groupMail);
         }
 
         return $queue;
@@ -599,13 +584,10 @@ class mailModel extends model
         $mail->toList  = $firstMail->toList;
         $mail->ccList  = $firstMail->ccList;
         $mail->subject = $firstMail->subject;
-        if($mails)
-        {
+        if ($mails) {
             $secondMail = reset($mails);
             $mail->subject .= '|' . $secondMail->subject . '|' . $this->lang->mail->more;
-        }
-        else
-        {
+        } else {
             $mail->subject .= '|' . $lastMail->subject;
         }
 
@@ -614,10 +596,8 @@ class mailModel extends model
         $mail->data = trim(substr($firstMail->data, 0, $endPos));
 
         /* Merge middle mails. */
-        if($mails)
-        {
-            foreach($mails as $middleMail)
-            {
+        if ($mails) {
+            foreach ($mails as $middleMail) {
                 $mail->id .= ',' . $middleMail->id;
 
                 /* Remove html head and tail for middle mails. */
@@ -652,12 +632,9 @@ class mailModel extends model
     public function syncSendCloud($action, $email, $userName = '')
     {
         $result = '';
-        if($action == 'delete')
-        {
+        if ($action == 'delete') {
             $result = $this->mta->deleteMember($email);
-        }
-        elseif($action == 'sync')
-        {
+        } elseif ($action == 'sync') {
             $member = new stdclass();
             $member->nickName = $email;
             $member->email    = $email;
@@ -679,7 +656,7 @@ class mailModel extends model
      */
     public function sendmail($objectID, $actionID)
     {
-        if(empty($objectID) or empty($actionID)) return;
+        if (empty($objectID) or empty($actionID)) return;
 
         /* Load module and get vars. */
         $this->loadModel('action');
@@ -691,13 +668,12 @@ class mailModel extends model
         $nameFields = $this->config->action->objectNameFields[$objectType];
         $title      = zget($object, $nameFields, '');
         $subject    = $this->getSubject($objectType, $object, $title, $action->action);
+        $domain     = (defined('RUN_MODE') and RUN_MODE == 'api') ? '' : zget($this->config->mail, 'domain', common::getSysURL());
 
-        if($objectType == 'review' and empty($object->auditedBy)) return;
+        if ($objectType == 'review' and empty($object->auditedBy)) return;
 
-        if($objectType == 'doc')
-        {
-            if($object->contentType == 'markdown')
-            {
+        if ($objectType == 'doc') {
+            if ($object->contentType == 'markdown') {
                 $object->content = commonModel::processMarkdown($object->content);
                 $object->content = str_replace("<table>", "<table style='border-collapse: collapse;'>", $object->content);
                 $object->content = str_replace("<th>", "<th style='word-break: break-word; border:1px solid #000;'>", $object->content);
@@ -707,59 +683,49 @@ class mailModel extends model
 
         $action->history    = isset($history[$actionID]) ? $history[$actionID] : array();
         $action->appendLink = '';
-        if(strpos($action->extra, ':') !== false)
-        {
+        if (strpos($action->extra, ':') !== false) {
             list($extra, $id) = explode(':', $action->extra);
             $action->extra    = $extra;
-            if($title)
-            {
+            if ($title) {
                 $action->appendLink = html::a(zget($this->config->mail, 'domain', common::getSysURL()) . helper::createLink($action->objectType, 'view', "id=$id", 'html'), "#$id " . $title);
             }
         }
 
-        if($objectType == 'meeting') $rooms = $this->loadmodel('meetingroom')->getpairs();
-        if($objectType == 'review') $this->app->loadLang('baseline');
+        if ($objectType == 'meeting') $rooms = $this->loadmodel('meetingroom')->getpairs();
+        if ($objectType == 'review') $this->app->loadLang('baseline');
 
         /* Get mail content. */
         $modulePath = $this->app->getModulePath($appName = '', $objectType);
         $oldcwd     = getcwd();
         $viewFile   = $modulePath . 'view/sendmail.html.php';
         chdir($modulePath . 'view');
-        if(file_exists($modulePath . 'ext/view/sendmail.html.php'))
-        {
+        if (file_exists($modulePath . 'ext/view/sendmail.html.php')) {
             $viewFile = $modulePath . 'ext/view/sendmail.html.php';
             chdir($modulePath . 'ext/view');
         }
         ob_start();
-        if($objectType != 'mr') include $viewFile;
-        foreach(glob($modulePath . 'ext/view/sendmail.*.html.hook.php') as $hookFile) include $hookFile;
+        if ($objectType != 'mr') include $viewFile;
+        foreach (glob($modulePath . 'ext/view/sendmail.*.html.hook.php') as $hookFile) include $hookFile;
         $mailContent = ob_get_contents();
         ob_end_clean();
         chdir($oldcwd);
 
         /* Get the sender. */
-        if($objectType == 'story' or $objectType == 'meeting')
-        {
+        if ($objectType == 'story' or $objectType == 'meeting') {
             $sendUsers = $this->{$objectType}->getToAndCcList($object, $action->action);
-        }
-        elseif($objectType == 'review')
-        {
+        } elseif ($objectType == 'review') {
             $sendUsers = array($object->auditedBy, '');
-        }
-        else
-        {
+        } else {
             $sendUsers = $this->{$objectType}->getToAndCcList($object);
         }
 
-        if(!$sendUsers) return;
+        if (!$sendUsers) return;
         list($toList, $ccList) = $sendUsers;
 
         /* Send it. */
-        if($objectType == 'mr')
-        {
+        if ($objectType == 'mr') {
             $MRLink = common::getSysURL() . helper::createLink('mr', 'view', "id={$object->id}");
-            if($action->action == 'compilepass')
-            {
+            if ($action->action == 'compilepass') {
                 $mailContent = sprintf($this->lang->mr->toCreatedMessage, $MRLink, $title);
                 $this->send($toList, $subject, $mailContent);
 
@@ -768,18 +734,14 @@ class mailModel extends model
 
                 /* Create a todo item for this MR. */
                 $this->loadModel('mr')->apiCreateMRTodo($object->gitlabID, $object->targetProject, $object->mriid);
-            }
-            elseif($action->action == 'compilefail')
-            {
+            } elseif ($action->action == 'compilefail') {
                 $mailContent = sprintf($this->lang->mr->failMessage, $MRLink, $title);
                 $this->send($toList, $subject, $mailContent, $ccList);
             }
-        }
-        else
-        {
+        } else {
             $this->send($toList, $subject, $mailContent, $ccList);
         }
-        if($this->isError()) error_log(join("\n", $this->getError()));
+        if ($this->isError()) error_log(join("\n", $this->getError()));
     }
 
     /**
@@ -798,26 +760,21 @@ class mailModel extends model
         $subject   = '';
         $titleType = 'edit';
 
-        if($objectType == 'testtask')
-        {
+        if ($objectType == 'testtask') {
             $this->app->loadLang('testtask');
 
-            if($actionType == 'opened') $titleType = 'create';
-            if($actionType == 'closed') $titleType = 'close';
+            if ($actionType == 'opened') $titleType = 'create';
+            if ($actionType == 'closed') $titleType = 'close';
 
             $subject = sprintf($this->lang->testtask->mail->{$titleType}->title, $this->app->user->realname, $object->id, $object->name);
-        }
-        elseif($objectType == 'doc')
-        {
+        } elseif ($objectType == 'doc') {
             $this->app->loadLang('doc');
 
-            if($actionType == 'created') $titleType = 'create';
+            if ($actionType == 'created') $titleType = 'create';
             $subject = sprintf($this->lang->doc->mail->{$titleType}->title, $this->app->user->realname, $object->id, $object->title);
-        }
-        else
-        {
-            if($objectType == 'story' or $objectType == 'bug') $suffix = empty($object->product) ? '' : ' - ' . $this->loadModel('product')->getById($object->product)->name;
-            if($objectType == 'task') $suffix = empty($object->execution) ? '' : ' - ' . $this->loadModel('execution')->getById($object->execution)->name;
+        } else {
+            if ($objectType == 'story' or $objectType == 'bug') $suffix = empty($object->product) ? '' : ' - ' . $this->loadModel('product')->getById($object->product)->name;
+            if ($objectType == 'task') $suffix = empty($object->execution) ? '' : ' - ' . $this->loadModel('execution')->getById($object->execution)->name;
 
             $subject = strtoupper($objectType) . ' #' . $object->id . ' ' . $title . $suffix;
         }

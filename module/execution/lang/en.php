@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The execution module English file of ZenTaoPMS.
  *
@@ -14,11 +15,11 @@ $lang->execution->allExecutions       = 'All ' . $lang->execution->common . 's';
 $lang->execution->allExecutionAB      = 'Execution List';
 $lang->execution->id                  = $lang->executionCommon . ' ID';
 $lang->execution->type                = $lang->executionCommon . 'Type';
-$lang->execution->name                = $lang->executionCommon . 'Name';
-$lang->execution->code                = $lang->executionCommon . 'Code';
+$lang->execution->name                = "{$lang->executionCommon} Name";
+$lang->execution->code                = "{$lang->executionCommon} Code";
 $lang->execution->projectName         = 'Project';
-$lang->execution->execName            = 'Execution Name';
-$lang->execution->execCode            = 'Execution Code';
+$lang->execution->execName            = "{$lang->execution->common} Name";
+$lang->execution->execCode            = "{$lang->execution->common} Code";
 $lang->execution->execType            = 'Execution Type';
 $lang->execution->stage               = 'Stage';
 $lang->execution->pri                 = 'Priority';
@@ -45,7 +46,7 @@ $lang->execution->totalDays           = ' Days';
 $lang->execution->status              = $lang->executionCommon . 'Status';
 $lang->execution->execStatus          = 'Status';
 $lang->execution->subStatus           = 'Sub Status';
-$lang->execution->desc                = $lang->executionCommon . 'Description';
+$lang->execution->desc                = "{$lang->executionCommon} Description";
 $lang->execution->execDesc            = 'Description';
 $lang->execution->owner               = 'Owner';
 $lang->execution->PO                  = "{$lang->executionCommon} Owner";
@@ -107,7 +108,7 @@ $lang->execution->unfoldClosed        = 'Unfold Closed';
 $lang->execution->editName            = 'Edit Name';
 $lang->execution->setWIP              = 'WIP Settings';
 $lang->execution->sortColumn          = 'Kanban Card Sorting';
-$lang->execution->batchCreateStroy    = "Batch create {$lang->SRCommon}";
+$lang->execution->batchCreateStory    = "Batch create {$lang->SRCommon}";
 $lang->execution->batchCreateTask     = 'Batch create task';
 $lang->execution->kanbanNoLinkProduct = "Kanban not linked {$lang->productCommon}";
 
@@ -117,8 +118,8 @@ $lang->execution->estimate = 'estimate';
 $lang->execution->consumed = 'consumed';
 $lang->execution->left     = 'Left';
 
-if($this->config->systemMode == 'new') $lang->execution->copyTeamTip = "select Project/{$lang->execution->common} to copy its members";
-if($this->config->systemMode == 'classic') $lang->execution->copyTeamTip = "select Project/{$lang->executionCommon} to copy its members";
+if ($this->config->systemMode == 'new') $lang->execution->copyTeamTip = "select Project/{$lang->execution->common} to copy its members";
+if ($this->config->systemMode == 'classic') $lang->execution->copyTeamTip = "select Project/{$lang->executionCommon} to copy its members";
 
 $lang->execution->start    = 'Start';
 $lang->execution->activate = 'Activate';
@@ -161,13 +162,10 @@ $lang->execution->statusList['suspended'] = 'Suspended';
 $lang->execution->statusList['closed']    = 'Closed';
 
 global $config;
-if($config->systemMode == 'new')
-{
+if ($config->systemMode == 'new') {
     $lang->execution->aclList['private'] = 'Private (for team members and execution stakeholders)';
     $lang->execution->aclList['open']    = 'Inherited Project ACL (for who can access the current project)';
-}
-else
-{
+} else {
     $lang->execution->aclList['private'] = 'Private (for team members and execution stakeholders)';
     $lang->execution->aclList['open']    = "Public (Users who can visit {$lang->executionCommon} can access it.)";
 }
@@ -221,8 +219,8 @@ $lang->execution->treeAction        = "Execution Tree View";
 $lang->execution->exportAction      = "Export Execution";
 $lang->execution->computeBurnAction = "Update Burndown";
 $lang->execution->create            = "Create {$lang->executionCommon}";
-$lang->execution->createExec        = "Create Execution";
-$lang->execution->copyExec          = "Copy Execution";
+$lang->execution->createExec        = "Create {$lang->execution->common}";
+$lang->execution->copyExec          = "Copy {$lang->execution->common}";
 $lang->execution->copy              = "Copy {$lang->executionCommon}";
 $lang->execution->delete            = "Delete {$lang->executionCommon}";
 $lang->execution->deleteAB          = "Delete Execution";
@@ -292,46 +290,47 @@ $lang->execution->aboveAllProduct   = "All the above {$lang->productCommon}s";
 $lang->execution->aboveAllExecution = "All the above {$lang->executionCommon}s";
 
 /* Page prompt. */
-$lang->execution->linkStoryByPlanTips = "This action will link all stories in this plan to the {$lang->executionCommon}.";
-$lang->execution->selectExecution     = "Select {$lang->executionCommon}";
-$lang->execution->beginAndEnd         = 'Duration';
-$lang->execution->lblStats            = 'Efforts';
-$lang->execution->stats               = 'Available: <strong>%s</strong>(h). Estimates: <strong>%s</strong>(h). Cost: <strong>%s</strong>(h). Left: <strong>%s</strong>(h).';
-$lang->execution->taskSummary         = "Total tasks on this page:<strong>%s</strong>. Waiting: <strong>%s</strong>. Doing: <strong>%s</strong>.  &nbsp;&nbsp;&nbsp;  Estimates: <strong>%s</strong>(h). Cost: <strong>%s</strong>(h). Left: <strong>%s</strong>(h).";
-$lang->execution->pageSummary         = "Total tasks: <strong>%total%</strong>. Waiting: <strong>%wait%</strong>. Doing: <strong>%doing%</strong>.    Estimates: <strong>%estimate%</strong>(h). Cost: <strong>%consumed%</strong>(h). Left: <strong>%left%</strong>(h).";
-$lang->execution->checkedSummary      = "Selected: <strong>%total%</strong>. Waiting: <strong>%wait%</strong>. Doing: <strong>%doing%</strong>.    Estimates: <strong>%estimate%</strong>(h). Cost: <strong>%consumed%</strong>(h). Left: <strong>%left%</strong>(h).";
-$lang->execution->memberHoursAB       = "%s has <strong>%s</ strong> hours.";
-$lang->execution->memberHours         = '<div class="table-col"><div class="clearfix segments"><div class="segment"><div class="segment-title">%s Available Hours</div><div class="segment-value">%s</div></div></div></div>';
-$lang->execution->countSummary        = '<div class="table-col"><div class="clearfix segments"><div class="segment"><div class="segment-title">Tasks</div><div class="segment-value">%s</div></div><div class="segment"><div class="segment-title">Doing</div><div class="segment-value"><span class="label label-dot label-primary"></span> %s</div></div><div class="segment"><div class="segment-title">Waiting</div><div class="segment-value"><span class="label label-dot label-primary muted"></span> %s</div></div></div></div>';
-$lang->execution->timeSummary         = '<div class="table-col"><div class="clearfix segments"><div class="segment"><div class="segment-title">Estimates</div><div class="segment-value">%s</div></div><div class="segment"><div class="segment-title">Cost</div><div class="segment-value text-red">%s</div></div><div class="segment"><div class="segment-title">Left</div><div class="segment-value">%s</div></div></div></div>';
-$lang->execution->groupSummaryAB      = "<div>Tasks <strong>%s ：</strong><span class='text-muted'>Waiting</span> %s &nbsp; <span class='text-muted'>Doing</span> %s</div><div>Estimates <strong>%s ：</strong><span class='text-muted'>Cost</span> %s &nbsp; <span class='text-muted'>Left</span> %s</div>";
-$lang->execution->wbs                 = "Create Task";
-$lang->execution->batchWBS            = "Batch Create Tasks";
-$lang->execution->howToUpdateBurn     = "<a href='https://api.zentao.pm/goto.php?item=burndown' target='_blank' title='How to update the Burndown Chart?' class='btn btn-link'>Help <i class='icon icon-help'></i></a>";
-$lang->execution->whyNoStories        = "No story can be linked. Please check whether there is any story in {$lang->executionCommon} which is linked to {$lang->productCommon} and make sure it has been reviewed.";
-$lang->execution->productStories      = "Stories linked to {$lang->executionCommon} are the subeset of stories linked to {$lang->productCommon}. Stories can only be linked after they pass the review. <a href='%s'> Link Stories</a> now.";
-$lang->execution->haveDraft           = "%s stories in draft, so they can't be linked.";
-$lang->execution->doneExecutions      = 'Finished';
-$lang->execution->selectDept          = 'Select Department';
-$lang->execution->selectDeptTitle     = 'Select User';
-$lang->execution->copyTeam            = 'Copy Team';
-$lang->execution->copyFromTeam        = "Copy from {$lang->execution->common} Team: <strong>%s</strong>";
-$lang->execution->noMatched           = "No {$lang->execution->common} including '%s'can be found.";
-$lang->execution->copyTitle           = "Choose a {$lang->execution->common} to copy.";
-$lang->execution->copyNoExecution     = "No {$lang->execution->common} can be copied.";
-$lang->execution->copyFromExecution   = "Copy from {$lang->execution->common} <strong>%s</strong>";
-$lang->execution->cancelCopy          = 'Cancel Copy';
-$lang->execution->byPeriod            = 'By Time';
-$lang->execution->byUser              = 'By User';
-$lang->execution->noExecution         = "No {$lang->executionCommon}. ";
-$lang->execution->noExecutions        = "No {$lang->execution->common}.";
-$lang->execution->noPrintData         = "No data can be printed.";
-$lang->execution->noMembers           = 'No team members yet. ';
-$lang->execution->workloadTotal       = "The cumulative workload ratio should not exceed 100, and the total workload under the current product is: %s";
-// $lang->execution->linkProjectStoryTip = "(Link {$lang->SRCommon} comes from {$lang->SRCommon} linked under the execution)";
-$lang->execution->linkAllStoryTip     = "({$lang->SRCommon} has never been linked under the execution, and can be directly linked with {$lang->SRCommon} of the product linked with the sprint/stage)";
-if($config->systemMode == 'classic') $lang->execution->copyTeamTitle = "Choose a {$lang->execution->common} Team to copy.";
-if($config->systemMode == 'new')     $lang->execution->copyTeamTitle = "Choose a {$lang->project->common} or {$lang->execution->common} Team to copy.";
+$lang->execution->linkStoryByPlanTips  = "This action will link all stories in this plan to the {$lang->executionCommon}.";
+$lang->execution->batchCreateStoryTips = "Please select the product that needs to be created in batches";
+$lang->execution->selectExecution      = "Select {$lang->executionCommon}";
+$lang->execution->beginAndEnd          = 'Duration';
+$lang->execution->lblStats             = 'Efforts';
+$lang->execution->stats                = 'Available: <strong>%s</strong>(h). Estimates: <strong>%s</strong>(h). Cost: <strong>%s</strong>(h). Left: <strong>%s</strong>(h).';
+$lang->execution->taskSummary          = "Total tasks on this page:<strong>%s</strong>. Waiting: <strong>%s</strong>. Doing: <strong>%s</strong>.  &nbsp;&nbsp;&nbsp;  Estimates: <strong>%s</strong>(h). Cost: <strong>%s</strong>(h). Left: <strong>%s</strong>(h).";
+$lang->execution->pageSummary          = "Total tasks: <strong>%total%</strong>. Waiting: <strong>%wait%</strong>. Doing: <strong>%doing%</strong>.    Estimates: <strong>%estimate%</strong>(h). Cost: <strong>%consumed%</strong>(h). Left: <strong>%left%</strong>(h).";
+$lang->execution->checkedSummary       = "Selected: <strong>%total%</strong>. Waiting: <strong>%wait%</strong>. Doing: <strong>%doing%</strong>.    Estimates: <strong>%estimate%</strong>(h). Cost: <strong>%consumed%</strong>(h). Left: <strong>%left%</strong>(h).";
+$lang->execution->memberHoursAB        = "%s has <strong>%s</ strong> hours.";
+$lang->execution->memberHours          = '<div class="table-col"><div class="clearfix segments"><div class="segment"><div class="segment-title">%s Available Hours</div><div class="segment-value">%s</div></div></div></div>';
+$lang->execution->countSummary         = '<div class="table-col"><div class="clearfix segments"><div class="segment"><div class="segment-title">Tasks</div><div class="segment-value">%s</div></div><div class="segment"><div class="segment-title">Doing</div><div class="segment-value"><span class="label label-dot label-primary"></span> %s</div></div><div class="segment"><div class="segment-title">Waiting</div><div class="segment-value"><span class="label label-dot label-primary muted"></span> %s</div></div></div></div>';
+$lang->execution->timeSummary          = '<div class="table-col"><div class="clearfix segments"><div class="segment"><div class="segment-title">Estimates</div><div class="segment-value">%s</div></div><div class="segment"><div class="segment-title">Cost</div><div class="segment-value text-red">%s</div></div><div class="segment"><div class="segment-title">Left</div><div class="segment-value">%s</div></div></div></div>';
+$lang->execution->groupSummaryAB       = "<div>Tasks <strong>%s ：</strong><span class='text-muted'>Waiting</span> %s &nbsp; <span class='text-muted'>Doing</span> %s</div><div>Estimates <strong>%s ：</strong><span class='text-muted'>Cost</span> %s &nbsp; <span class='text-muted'>Left</span> %s</div>";
+$lang->execution->wbs                  = "Create Task";
+$lang->execution->batchWBS             = "Batch Create Tasks";
+$lang->execution->howToUpdateBurn      = "<a href='https://api.zentao.pm/goto.php?item=burndown' target='_blank' title='How to update the Burndown Chart?' class='btn btn-link'>Help <i class='icon icon-help'></i></a>";
+$lang->execution->whyNoStories         = "No story can be linked. Please check whether there is any story in {$lang->executionCommon} which is linked to {$lang->productCommon} and make sure it has been reviewed.";
+$lang->execution->productStories       = "Stories linked to {$lang->executionCommon} are the subeset of stories linked to {$lang->productCommon}. Stories can only be linked after they pass the review. <a href='%s'> Link Stories</a> now.";
+$lang->execution->haveDraft            = "%s stories in draft, so they can't be linked.";
+$lang->execution->doneExecutions       = 'Finished';
+$lang->execution->selectDept           = 'Select Department';
+$lang->execution->selectDeptTitle      = 'Select User';
+$lang->execution->copyTeam             = 'Copy Team';
+$lang->execution->copyFromTeam         = "Copy from {$lang->execution->common} Team: <strong>%s</strong>";
+$lang->execution->noMatched            = "No {$lang->execution->common} including '%s'can be found.";
+$lang->execution->copyTitle            = "Choose a {$lang->execution->common} to copy.";
+$lang->execution->copyNoExecution      = "No {$lang->execution->common} can be copied.";
+$lang->execution->copyFromExecution    = "Copy from {$lang->execution->common} <strong>%s</strong>";
+$lang->execution->cancelCopy           = 'Cancel Copy';
+$lang->execution->byPeriod             = 'By Time';
+$lang->execution->byUser               = 'By User';
+$lang->execution->noExecution          = "No {$lang->executionCommon}. ";
+$lang->execution->noExecutions         = "No {$lang->execution->common}.";
+$lang->execution->noPrintData          = "No data can be printed.";
+$lang->execution->noMembers            = 'No team members yet. ';
+$lang->execution->workloadTotal        = "The cumulative workload ratio should not exceed 100, and the total workload under the current product is: %s";
+// $lang->execution->linkProjectStoryTip  = "(Link {$lang->SRCommon} comes from {$lang->SRCommon} linked under the execution)";
+$lang->execution->linkAllStoryTip      = "({$lang->SRCommon} has never been linked under the execution, and can be directly linked with {$lang->SRCommon} of the product linked with the sprint/stage)";
+if ($config->systemMode == 'classic') $lang->execution->copyTeamTitle = "Choose a {$lang->execution->common} Team to copy.";
+if ($config->systemMode == 'new')     $lang->execution->copyTeamTitle = "Choose a {$lang->project->common} or {$lang->execution->common} Team to copy.";
 
 /* Interactive prompts. */
 $lang->execution->confirmDelete               = "Do you want to delete the {$lang->executionCommon}[%s]?";
@@ -346,6 +345,8 @@ $lang->execution->errorSameProducts           = "{$lang->executionCommon} cannot
 $lang->execution->errorSameBranches           = "{$lang->executionCommon} cannot be linked to the same branch twice";
 $lang->execution->errorBegin                  = "The start time of {$lang->executionCommon} cannot be less than the start time of the project %s.";
 $lang->execution->errorEnd                    = "The end time of {$lang->executionCommon} cannot be greater than the end time %s of the project.";
+$lang->execution->errorLetterProject          = "The start time of stage cannot be less than the start time of the project %s.";
+$lang->execution->errorGreaterProject         = "The end time of stage cannot be greater than the end time %s of the project.";
 $lang->execution->accessDenied                = "Your access to {$lang->executionCommon} is denied!";
 $lang->execution->tips                        = 'Note';
 $lang->execution->afterInfo                   = "{$lang->executionCommon} is created. Next you can ";

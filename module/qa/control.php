@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The control file of qa module of ZenTaoPMS.
  *
@@ -11,25 +12,25 @@
  */
 class qa extends control
 {
-    /**
-     * The index of qa, go to bug's browse page.
-     *
-     * @access public
-     * @return void
-     */
-    public function index($locate = 'auto', $productID = 0, $projectID = 0)
-    {
-        $products = $this->loadModel('product')->getProductPairsByProject($projectID, 'noclosed');
-        if(empty($products)) die($this->locate($this->createLink('product', 'showErrorNone', "moduleName=qa&activeMenu=index")));
-        if($locate == 'yes') $this->locate($this->createLink('bug', 'browse'));
+        /**
+         * The index of qa, go to bug's browse page.
+         *
+         * @access public
+         * @return void
+         */
+        public function index($locate = 'auto', $productID = 0, $projectID = 0)
+        {
+                $products = $this->loadModel('product')->getProductPairsByProject($projectID, 'noclosed');
+                if (empty($products)) return print($this->locate($this->createLink('product', 'showErrorNone', "moduleName=qa&activeMenu=index")));
+                if ($locate == 'yes') $this->locate($this->createLink('bug', 'browse'));
 
-        $productID = $this->product->saveState($productID, $products);
-        $branch    = (int)$this->cookie->preBranch;
-        $this->qa->setMenu($products, $productID, $branch);
+                $productID = $this->product->saveState($productID, $products);
+                $branch    = (int)$this->cookie->preBranch;
+                $this->qa->setMenu($products, $productID, $branch);
 
-        $this->view->title      = $this->lang->qa->index;
-        $this->view->position[] = $this->lang->qa->index;
-        $this->view->products   = $products;
-        $this->display();
-    }
+                $this->view->title      = $this->lang->qa->index;
+                $this->view->position[] = $this->lang->qa->index;
+                $this->view->products   = $products;
+                $this->display();
+        }
 }

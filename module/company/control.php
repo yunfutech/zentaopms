@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The control file of company module of ZenTaoPMS.
  *
@@ -74,7 +75,7 @@ class company extends control
         $users = $this->company->getUsers($browseType, $type, $queryID, $deptID, $sort, $pager);
 
         /* Remove passwd. */
-        foreach($users as $user) unset($user->password);
+        foreach ($users as $user) unset($user->password);
 
         /* Assign. */
         $this->view->title       = $this->lang->company->index . $this->lang->colon . $this->lang->dept->common;
@@ -97,11 +98,10 @@ class company extends control
 
     public function create()
     {
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $this->company->create();
-            if(dao::isError()) die(js::error(dao::getError()));
-            die(js::reload('parent.parent'));
+            if (dao::isError()) return print(js::error(dao::getError()));
+            return print(js::reload('parent.parent'));
         }
 
         $this->view->title     = $this->lang->company->common . $this->lang->colon . $this->lang->company->create;
@@ -118,16 +118,15 @@ class company extends control
      */
     public function edit()
     {
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $this->company->update();
-            if(dao::isError()) die(js::error(dao::getError()));
+            if (dao::isError()) return print(js::error(dao::getError()));
 
             /* reset company in session. */
             $company = $this->loadModel('company')->getFirst();
             $this->session->set('company', $company);
 
-            die(js::reload('parent.parent'));
+            return print(js::reload('parent.parent'));
         }
 
         $this->company->setMenu();
@@ -204,8 +203,8 @@ class company extends control
         $pager = new pager($recTotal, $recPerPage = 50, $pageID = 1);
 
         /* Append id for secend sort. */
-        $order = $direction == 'next' ? 'date_desc' : 'date_asc';
-        $sort  = common::appendOrder($order);
+        if ($direction == 'next') $orderBy = 'date_desc';
+        if ($direction == 'pre')  $orderBy = 'date_asc';
 
         $queryID = ($browseType == 'bysearch') ? (int)$param : 0;
         $date    = empty($date) ? '' : date('Y-m-d', $date);
@@ -240,16 +239,13 @@ class company extends control
         $this->view->position[] = $this->lang->company->dynamic;
 
         /* Get actions. */
-        if($browseType != 'bysearch')
-        {
-            if(!$productID) $productID = 'all';
-            if(!$projectID) $projectID = 'all';
-            if(!$executionID) $executionID = 'all';
-            $actions = $this->action->getDynamic($account, $browseType, $sort, $pager, $productID, $projectID, $executionID, $date, $direction);
-        }
-        else
-        {
-            $actions = $this->action->getDynamicBySearch($products, $projects, $executions, $queryID, $sort, $pager, $date, $direction);
+        if ($browseType != 'bysearch') {
+            if (!$productID) $productID = 'all';
+            if (!$projectID) $projectID = 'all';
+            if (!$executionID) $executionID = 'all';
+            $actions = $this->action->getDynamic($account, $browseType, $orderBy, $pager, $productID, $projectID, $executionID, $date, $direction);
+        } else {
+            $actions = $this->action->getDynamicBySearch($products, $projects, $executions, $queryID, $orderBy, $pager, $date, $direction);
         }
 
         /* Build search form. */
@@ -263,15 +259,14 @@ class company extends control
         $products['all']   = $this->lang->product->allProduct;
         $projects['all']   = $this->lang->project->all;
 
-        foreach($this->lang->action->search->label as $action => $name)
-        {
-            if($action) $this->lang->action->search->label[$action] .= " [ $action ]";
+        foreach ($this->lang->action->search->label as $action => $name) {
+            if ($action) $this->lang->action->search->label[$action] .= " [ $action ]";
         }
 
         $this->config->company->dynamic->search['actionURL'] = $this->createLink('company', 'dynamic', "browseType=bysearch&param=myQueryID");
         $this->config->company->dynamic->search['queryID'] = $queryID;
         $this->config->company->dynamic->search['params']['action']['values']    = $this->lang->action->search->label;
-        $this->config->company->dynamic->search['params']['product']['values']   = $products;
+        if ($this->config->vision == 'rnd') $this->config->company->dynamic->search['params']['product']['values']   = $products;
         $this->config->company->dynamic->search['params']['project']['values']   = $projects;
         $this->config->company->dynamic->search['params']['execution']['values'] = $executions;
         $this->config->company->dynamic->search['params']['actor']['values']     = $accountPairs;
@@ -289,7 +284,6 @@ class company extends control
         $this->view->pager        = $pager;
         $this->view->userID       = $userID;
         $this->view->param        = $param;
-        $this->view->browseType   = $browseType;
         $this->view->dateGroups   = $this->action->buildDateGroup($actions, $direction, $browseType, $orderBy);
         $this->view->direction    = $direction;
         $this->display();
@@ -304,6 +298,6 @@ class company extends control
     public function ajaxGetOutsideCompany()
     {
         $companies = $this->company->getOutsideCompanies();
-        die(html::select('company', $companies, '', "class='form-control chosen'"));
+        return print(html::select('company', $companies, '', "class='form-control chosen'"));
     }
 }

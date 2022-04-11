@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The report module zh-tw file of ZenTaoPMS.
  *
@@ -18,7 +19,6 @@ $lang->report->undefined  = '未設定';
 $lang->report->query      = '查詢';
 $lang->report->annual     = '年度總結';
 $lang->report->project    = '項目';
-$lang->report->PO         = 'PO';
 
 $lang->report->colors[]   = 'AFD8F8';
 $lang->report->colors[]   = 'F6BD0F';
@@ -109,8 +109,8 @@ $lang->report->mailTitle->todo     = " 待辦(%s),";
 $lang->report->mailTitle->testTask = " 測試版本(%s),";
 
 $lang->report->deviationDesc = '按照已關閉執行統計偏差率（偏差率 = (總消耗 - 總預計) / 總預計），總預計為0時偏差率為n/a。';
-$lang->report->proVersion    = '<a href="https://www.zentao.net/page/enterprise.html" target="_blank">更多精彩，盡在企業版！</a>';
-$lang->report->proVersionEn  = '<a href="https://www.zentao.pm/" target="_blank">Try ZenTao Biz for more!</a>';
+$lang->report->proVersion    = '<a href="https://api.zentao.net/goto.php?item=proversion&from=reportpage" target="_blank">更多精彩，盡在專業版！</a>';
+$lang->report->proVersionEn  = '<a href="http://api.zentao.pm/goto.php?item=proversion&from=reportpage" target="_blank">Try ZenTao Pro for more!</a>';
 $lang->report->workloadDesc  = '工作負載=用戶所有任務剩餘工時之和/選擇的時間天數*每天的工時。例如：起止時間設為1月1日~1月7日、工作日天數5天、每天工時8h，統計的是所有指派給該人員的未完成的任務，在5天內，每天8h的情況下的工作負載。';
 
 
@@ -164,8 +164,7 @@ $lang->report->annualData->executionFields['bug']   = "解決Bug數";
 $lang->report->annualData->productFields['name'] = "{$lang->productCommon}名稱";
 $lang->report->annualData->productFields['plan'] = "計劃數";
 global $config;
-if(!empty($config->URAndSR))
-{
+if (!empty($config->URAndSR)) {
     $lang->report->annualData->productFields['requirement'] = "創建{$lang->URCommon}數";
 }
 $lang->report->annualData->productFields['story']  = "創建{$lang->SRCommon}數";

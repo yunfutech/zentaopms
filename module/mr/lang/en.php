@@ -60,6 +60,7 @@ $lang->mr->approvalResultList['reject']  = 'Reject';
 $lang->mr->needApproved       = 'This MR should be approved before merge';
 $lang->mr->needCI             = 'Merge only after passing CI';
 $lang->mr->removeSourceBranch = 'Delete source branch after merge';
+$lang->mr->squash             = 'Squash commits';
 
 $lang->mr->repeatedOperation = 'Do not repeat operations';
 
@@ -80,6 +81,7 @@ $lang->mr->statusList['merged'] = 'merged';
 $lang->mr->statusList['closed'] = 'closed';
 
 $lang->mr->mergeStatusList = array();
+$lang->mr->mergeStatusList['unchecked']            = 'unchecked';
 $lang->mr->mergeStatusList['checking']             = 'checking';
 $lang->mr->mergeStatusList['can_be_merged']        = 'can be merged';
 $lang->mr->mergeStatusList['cannot_be_merged']     = 'cannot be merged';

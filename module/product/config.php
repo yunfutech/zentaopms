@@ -3,17 +3,17 @@ $config->product = new stdclass();
 $config->product->orderBy = 'isClosed,order_desc';
 
 $config->product->customBatchEditFields = 'line,PO,QD,RD,status,type,acl';
-if($config->systemMode == 'new') $config->product->customBatchEditFields = 'program,' . $config->product->customBatchEditFields;
+if ($config->systemMode == 'new') $config->product->customBatchEditFields = 'program,' . $config->product->customBatchEditFields;
 
 $config->product->browse = new stdclass();
 $config->product->custom = new stdclass();
 $config->product->custom->batchEditFields = 'line,PO,QD,RD';
-if($config->systemMode == 'new') $config->product->custom->batchEditFields .= ',program';
+if ($config->systemMode == 'new') $config->product->custom->batchEditFields .= ',program';
 
 $config->product->list = new stdclass();
 $config->product->list->exportFields = 'id,program,line,name,activeRequirements,changedRequirements,draftRequirements,closedRequirements,requireCompleteRate,activeStories,changedStories,draftStories,closedStories,storyCompleteRate,plans,releases,bugs,unResolvedBugs,assignToNullBugs,closedBugs,bugFixedRate';
 
-$config->product->showBranchMethod = 'browse,project,roadmap';
+$config->product->showBranchMethod = 'browse,project';
 
 global $lang, $app;
 $app->loadLang('story');
@@ -51,6 +51,7 @@ $config->product->search['fields']['reviewedDate']   = $lang->story->reviewedDat
 $config->product->search['fields']['assignedDate']   = $lang->story->assignedDate;
 $config->product->search['fields']['closedDate']     = $lang->story->closedDate;
 $config->product->search['fields']['lastEditedDate'] = $lang->story->lastEditedDate;
+$config->product->search['fields']['activatedDate']  = $lang->story->activatedDate;
 
 $config->product->search['params']['title']          = array('operator' => 'include', 'control' => 'input',  'values' => '');
 $config->product->search['params']['keywords']       = array('operator' => 'include', 'control' => 'input',  'values' => '');
@@ -84,6 +85,7 @@ $config->product->search['params']['reviewedDate']   = array('operator' => '=', 
 $config->product->search['params']['assignedDate']   = array('operator' => '=', 'control' => 'input', 'values' => '', 'class' => 'date');
 $config->product->search['params']['closedDate']     = array('operator' => '=', 'control' => 'input', 'values' => '', 'class' => 'date');
 $config->product->search['params']['lastEditedDate'] = array('operator' => '=', 'control' => 'input', 'values' => '', 'class' => 'date');
+$config->product->search['params']['activatedDate']  = array('operator' => '=', 'control' => 'input', 'values' => '', 'class' => 'date');
 
 $config->product->create = new stdclass();
 $config->product->edit   = new stdclass();

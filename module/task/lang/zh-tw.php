@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The task module zh-tw file of ZenTaoPMS.
  *
@@ -160,7 +161,7 @@ $lang->task->noFinished        = '未完成';
 $lang->task->noClosed          = '未關閉';
 $lang->task->yesterdayFinished = '昨日完成任務數';
 $lang->task->allTasks          = '總任務';
-$lang->task->linkMR            = '相關合併請求';
+$lang->task->linkMR            = '相關合并請求';
 
 $lang->task->statusList['']       = '';
 $lang->task->statusList['wait']   = '未開始';

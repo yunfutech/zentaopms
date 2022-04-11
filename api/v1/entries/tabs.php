@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The tabs entry point of ZenTaoPMS.
  *
@@ -21,16 +22,15 @@ class tabsEntry extends baseEntry
     public function get($moduleName)
     {
         $menus = array();
-        if($moduleName == 'work')
-        {
+        if ($moduleName == 'work') {
             $this->app->loadLang('my');
             $tabs = array('calendar', 'task', 'bug', 'story', 'issue', 'risk', 'myMeeting');
 
-            foreach($tabs as $menuKey)
-            {
-                if(!common::hasPriv('my', $menuKey)) continue;
+            foreach ($tabs as $menuKey) {
+                if (!isset($this->lang->my->$menuKey)) continue;
+                if (!common::hasPriv('my', $menuKey)) continue;
                 $label = $this->lang->my->$menuKey;
-                if($menuKey == 'calendar') $label = $this->lang->my->calendarAction;
+                if ($menuKey == 'calendar') $label = $this->lang->my->calendarAction;
 
                 $menu = new stdclass();
                 $menu->code = $menuKey;
@@ -38,31 +38,28 @@ class tabsEntry extends baseEntry
 
                 $menus[] = $menu;
             }
-        }
-        elseif($moduleName == 'product')
-        {
+        } elseif ($moduleName == 'product') {
             $this->app->loadLang('product');
             $tabs = array('story', 'plan', 'project', 'release', 'requirement', 'doc', 'view');
 
-            foreach($tabs as $menuKey)
-            {
-                if($menuKey == 'requirement' and empty($this->config->URAndSR)) continue;
-                if(isset($this->lang->product->menu->$menuKey))
-                {
-                    list($label, $module, $method) = explode('|', $this->lang->product->menu->$menuKey['link']);
-                    if(!common::hasPriv($module, $method)) continue;
-                }
-                else
-                {
-                    if(!common::hasPriv('product', $menuKey)) continue;
+            foreach ($tabs as $menuKey) {
+                if ($menuKey == 'requirement' and empty($this->config->URAndSR)) continue;
+                if (isset($this->lang->product->menu->$menuKey)) {
+                    $menuName = $this->lang->product->menu->$menuKey;
+                    if (!isset($menuName['link'])) continue;
+
+                    list($label, $module, $method) = explode('|', $menuName['link']);
+                    if (!common::hasPriv($module, $method)) continue;
+                } else {
+                    if (!common::hasPriv('product', $menuKey)) continue;
                 }
 
                 $label = zget($this->lang->product, $menuKey, '');
-                if($menuKey == 'view')        $label = $this->lang->overview;
-                if($menuKey == 'doc')         $label = $this->lang->doc->common;
-                if($menuKey == 'project')     $label = $this->lang->project->common;
-                if($menuKey == 'story')       $label = $this->lang->createObjects['story'];
-                if($menuKey == 'requirement') $label = $this->lang->URCommon;
+                if ($menuKey == 'view')        $label = $this->lang->overview;
+                if ($menuKey == 'doc')         $label = $this->lang->doc->common;
+                if ($menuKey == 'project')     $label = $this->lang->project->common;
+                if ($menuKey == 'story')       $label = $this->lang->createObjects['story'];
+                if ($menuKey == 'requirement') $label = $this->lang->URCommon;
 
                 $menu = new stdclass();
                 $menu->code = $menuKey;

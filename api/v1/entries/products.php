@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The products entry point of ZenTaoPMS.
  *
@@ -21,60 +22,61 @@ class productsEntry extends entry
     public function get($programID = 0)
     {
         $fields = $this->param('fields', '');
-        if(strpos(strtolower(",{$fields},"), ',dropmenu,') !== false) return $this->getDropMenu();
+        if (strpos(strtolower(",{$fields},"), ',dropmenu,') !== false) return $this->getDropMenu();
 
-        if(!$programID) $programID = $this->param('program', 0);
+        if (!$programID) $programID = $this->param('program', 0);
+        $projectID = $this->param('project', 0);
         $mergeChildren = $this->param('mergeChildren', '');
 
-        if($programID)
-        {
+        if ($programID) {
             $control = $this->loadController('program', 'product');
             $control->product($programID, $this->param('status', 'all'), $this->param('order', 'order_asc'), 0, $this->param('limit', '20'), $this->param('page', '1'));
 
             /* Response */
             $data = $this->getData();
-            if(!$data or !isset($data->status)) return $this->sendError(400, 'error');
-            if(isset($data->status) and $data->status == 'fail') return $this->sendError(zget($data, 'code', 400), $data->message);
+            if (!$data or !isset($data->status)) return $this->sendError(400, 'error');
+            if (isset($data->status) and $data->status == 'fail') return $this->sendError(zget($data, 'code', 400), $data->message);
 
             $products = $data->data->products;
+        } elseif ($projectID) {
+            $control = $this->loadController('project', 'manageProducts');
+            $control->manageProducts($projectID);
 
-        }
-        else
-        {
+            /* Response */
+            $data = $this->getData();
+            if (!$data or !isset($data->status)) return $this->sendError(400, 'error');
+            if (isset($data->status) and $data->status == 'fail') return $this->sendError(zget($data, 'code', 400), $data->message);
+
+            $products = $data->data->linkedProducts;
+        } else {
             $control = $this->loadController('product', 'all');
             $control->all($this->param('status', 'all'), $this->param('order', 'order_asc'));
 
             /* Response */
             $data = $this->getData();
-            if(!$data or !isset($data->status)) return $this->sendError(400, 'error');
-            if(isset($data->status) and $data->status == 'fail') return $this->sendError(400, $data->message);
+            if (!$data or !isset($data->status)) return $this->sendError(400, 'error');
+            if (isset($data->status) and $data->status == 'fail') return $this->sendError(400, $data->message);
 
             $products = $data->data->productStats;
-            if($mergeChildren) $products = $data->data->productStructure;
+            if ($mergeChildren) $products = $data->data->productStructure;
         }
 
         $result   = array();
-        if($mergeChildren)
-        {
+        if ($mergeChildren) {
             $programs = $this->mergeChildren($products);
             return $this->send(200, $programs);
-        }
-        else
-        {
+        } else {
             $accounts = array();
-            foreach($products as $product)
-            {
+            foreach ($products as $product) {
                 $accounts[$product->PO]        = $product->PO;
                 $accounts[$product->QD]        = $product->QD;
                 $accounts[$product->RD]        = $product->RD;
                 $accounts[$product->createdBy] = $product->createdBy;
-                if(isset($product->feedback)) $accounts[$product->feedback] = $product->feedback;
-                if(!empty($product->mailto))
-                {
-                    foreach(explode(',', $product->mailto) as $account)
-                    {
+                if (isset($product->feedback)) $accounts[$product->feedback] = $product->feedback;
+                if (!empty($product->mailto)) {
+                    foreach (explode(',', $product->mailto) as $account) {
                         $account = trim($account);
-                        if(empty($account)) continue;
+                        if (empty($account)) continue;
                         $accounts[$account] = $account;
                     }
                 }
@@ -87,7 +89,7 @@ class productsEntry extends entry
             $data['products'] = $result;
 
             $withUser = $this->param('withUser', '');
-            if(!empty($withUser)) $data['users'] = $this->loadModel('user')->getListByAccounts($accounts, 'account');
+            if (!empty($withUser)) $data['users'] = $this->loadModel('user')->getListByAccounts($accounts, 'account');
 
             return $this->send(200, $data);
         }
@@ -113,7 +115,7 @@ class productsEntry extends entry
         $control->create($this->request('program', 0));
 
         $data = $this->getData();
-        if(isset($data->result) and $data->result == 'fail') return $this->sendError(zget($data, 'code', 400), $data->message);
+        if (isset($data->result) and $data->result == 'fail') return $this->sendError(zget($data, 'code', 400), $data->message);
 
         /* Response */
         $product = $this->loadModel('product')->getByID($data->id);
@@ -134,25 +136,18 @@ class productsEntry extends entry
         $control->ajaxGetDropMenu($this->request('productID', 0), $this->request('module', 'product'), $this->request('method', 'browse'), $this->request('extra', ''), $this->request('from', ''));
 
         $data = $this->getData();
-        if(isset($data->status) and $data->status == 'fail') return $this->sendError(zget($data, 'code', 400), $data->message);
+        if (isset($data->status) and $data->status == 'fail') return $this->sendError(zget($data, 'code', 400), $data->message);
 
         $dropMenu = array('owner' => array(), 'other' => array(), 'closed' => array());
-        foreach($data->data->products as $programID => $products)
-        {
-            foreach($products as $product)
-            {
+        foreach ($data->data->products as $programID => $products) {
+            foreach ($products as $product) {
                 $product = $this->filterFields($product, 'id,program,name,code,status,PO');
 
-                if($product->status == 'closed')
-                {
+                if ($product->status == 'closed') {
                     $dropMenu['closed'][] = $product;
-                }
-                elseif($product->PO == $this->app->user->account)
-                {
+                } elseif ($product->PO == $this->app->user->account) {
                     $dropMenu['owner'][] = $product;
-                }
-                else
-                {
+                } else {
                     $dropMenu['other'][] = $product;
                 }
             }
@@ -170,65 +165,55 @@ class productsEntry extends entry
     public function mergeChildren($products)
     {
         $programs = array();
-        foreach($products as $programID => $program)
-        {
+        foreach ($products as $programID => $program) {
             $programs[$programID] = new stdclass();
-            if(!empty($programID))
-            {
+            if (!empty($programID)) {
                 $programs[$programID]->id   = $programID;
                 $programs[$programID]->name = $program->programName;
                 $programs[$programID]->type = 'program';
             }
 
             $unclosedTotal = 0;
-            foreach($program as $field => $value)
-            {
-                if(!isset($programs[$programID]->children)) $programs[$programID]->children = array();
-                if(isset($value->products))
-                {
+            foreach ($program as $field => $value) {
+                if (!isset($programs[$programID]->children)) $programs[$programID]->children = array();
+                if (isset($value->products)) {
                     $lineID = $field;
-                    if(empty($lineID))
-                    {
-                        foreach($value->products as $product)
-                        {
+                    if (empty($lineID)) {
+                        foreach ($value->products as $product) {
                             unset($product->desc);
                             $programs[$programID]->children[$product->id] = $product;
-                            if($product->status != 'closed') $unclosedTotal += 1;
+                            if ($product->status != 'closed') $unclosedTotal += 1;
                         }
-                    }
-                    else
-                    {
+                    } else {
                         $line = new stdclass();
                         $line->id   = $lineID;
                         $line->name = $value->lineName;
                         $line->type = 'line';
 
                         $line->children = array();
-                        foreach($value->products as $product)
-                        {
+                        foreach ($value->products as $product) {
                             unset($product->desc);
                             $line->children[$product->id] = $product;
-                            if($product->status != 'closed') $unclosedTotal += 1;
+                            if ($product->status != 'closed') $unclosedTotal += 1;
                         }
-                        if(isset($line->children)) $line->children = array_values($line->children);
+                        if (isset($line->children)) $line->children = array_values($line->children);
 
                         $programs[$programID]->children[$lineID] = $line;
                     }
-                    if(isset($programs[$programID]->children)) $programs[$programID]->children = array_values($programs[$programID]->children);
+                    if (isset($programs[$programID]->children)) $programs[$programID]->children = array_values($programs[$programID]->children);
                     $programs[$programID]->unclosedTotal = $unclosedTotal;
                 }
             }
         }
 
         $topProducts = array();
-        if(isset($programs[0]))
-        {
+        if (isset($programs[0])) {
             $topProducts = $programs[0]->children;
             unset($programs[0]);
         }
 
         $programs = array_values($programs);
-        foreach($topProducts as $product) $programs[] = $product;
+        foreach ($topProducts as $product) $programs[] = $product;
 
         return $programs;
     }

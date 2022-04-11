@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The install module zh-tw file of ZenTaoPMS.
  *
@@ -158,65 +159,6 @@ $lang->install->company            = '公司名稱';
 $lang->install->account            = '管理員帳號';
 $lang->install->password           = '管理員密碼';
 $lang->install->errorEmptyPassword = '密碼不能為空';
-
-$lang->install->processList['11'] = '立項管理';
-$lang->install->processList['12'] = '項目規劃';
-$lang->install->processList['13'] = '項目監控';
-$lang->install->processList['14'] = '風險管理';
-$lang->install->processList['15'] = '結項管理';
-$lang->install->processList['16'] = '量化項目管理';
-$lang->install->processList['17'] = '需求開發';
-$lang->install->processList['18'] = '設計開發';
-$lang->install->processList['19'] = '實現與測試';
-$lang->install->processList['20'] = '系統測試';
-$lang->install->processList['21'] = '客戶驗收';
-$lang->install->processList['22'] = '質量保證';
-$lang->install->processList['23'] = '配置管理';
-$lang->install->processList['24'] = '度量分析';
-$lang->install->processList['25'] = '原因分析與解決';
-$lang->install->processList['26'] = '決策分析';
-
-$lang->install->basicmeasList['2'] = array('name' => '項目用戶需求初始規模', 'unit' => '故事點或功能點', 'definition' => '項目每個產品的第一個用戶需求規格說明書基線版本的規模之和');
-$lang->install->basicmeasList['3'] = array('name' => '項目軟件需求初始規模', 'unit' => '故事點或功能點', 'definition' => '項目每個產品的第一個軟件需求規格說明書基線版本的規模之和');
-$lang->install->basicmeasList['4'] = array('name' => '項目用戶需求實時規模', 'unit' => '故事點或功能點', 'definition' => '項目用戶需求實際的規模');
-$lang->install->basicmeasList['5'] = array('name' => '項目軟件需求實時規模', 'unit' => '故事點或功能點', 'definition' => '項目軟件需求實際的規模');
-$lang->install->basicmeasList['6'] = array('name' => '項目估算規模', 'unit' => '故事點或功能點', 'definition' => '項目最初估算時估計的規模');
-$lang->install->basicmeasList['8'] = array('name' => '項目需求階段計劃天數', 'unit' => '天', 'definition' => '項目下面所有需求階段計劃天數的和');
-$lang->install->basicmeasList['9'] = array('name' => '項目設計階段計劃天數', 'unit' => '天', 'definition' => '項目下面所有設計階段計劃天數的和');
-$lang->install->basicmeasList['10'] = array('name' => '項目開發階段計劃天數', 'unit' => '天', 'definition' => '項目下面所有研發階段計劃天數的和');
-$lang->install->basicmeasList['11'] = array('name' => '項目測試階段計劃天數', 'unit' => '天', 'definition' => '項目下面所有測試階段計劃天數的和');
-$lang->install->basicmeasList['12'] = array('name' => '項目需求階段實際天數', 'unit' => '天', 'definition' => '項目下面所有需求階段實際天數的和');
-$lang->install->basicmeasList['13'] = array('name' => '項目設計階段實際天數', 'unit' => '天', 'definition' => '項目下面所有設計階段實際天數的和');
-$lang->install->basicmeasList['14'] = array('name' => '項目開發階段實際天數', 'unit' => '天', 'definition' => '項目下面所有研發階段實際天數的和');
-$lang->install->basicmeasList['15'] = array('name' => '項目測試階段實際天數', 'unit' => '天', 'definition' => '項目下面所有測試階段實際天數的和');
-$lang->install->basicmeasList['26'] = array('name' => '分產品需求階段計劃天數', 'unit' => '天', 'definition' => '產品下面所有需求階段計劃天數的和');
-$lang->install->basicmeasList['27'] = array('name' => '分產品設計階段計劃天數', 'unit' => '天', 'definition' => '產品下面所有設計階段計劃天數的和');
-$lang->install->basicmeasList['28'] = array('name' => '分產品開發階段計劃天數', 'unit' => '天', 'definition' => '產品下面所有研發階段計劃天數的和');
-$lang->install->basicmeasList['29'] = array('name' => '分產品測試階段計劃天數', 'unit' => '天', 'definition' => '產品下面所有測試階段計劃天數的和');
-$lang->install->basicmeasList['30'] = array('name' => '分產品需求階段實際天數', 'unit' => '天', 'definition' => '產品下面所有需求階段實際天數的和');
-$lang->install->basicmeasList['31'] = array('name' => '分產品設計階段實際天數', 'unit' => '天', 'definition' => '產品下面所有設計階段實際天數的和');
-$lang->install->basicmeasList['32'] = array('name' => '分產品開發階段實際天數', 'unit' => '天', 'definition' => '產品下面所有研發階段實際天數的和');
-$lang->install->basicmeasList['33'] = array('name' => '分產品測試階段實際天數', 'unit' => '天', 'definition' => '產品下面所有測試階段實際天數的和');
-$lang->install->basicmeasList['34'] = array('name' => '項目任務實時預計工時數', 'unit' => '小時', 'definition' => '項目下面所有任務的最初預計工時和');
-$lang->install->basicmeasList['35'] = array('name' => '項目需求工作實時總預計工時數', 'unit' => '小時', 'definition' => '項目所有需求相關任務的最初預計工時和');
-$lang->install->basicmeasList['36'] = array('name' => '項目設計工作實時總預計工時數', 'unit' => '小時', 'definition' => '項目所有設計相關任務的最初預計工時和');
-$lang->install->basicmeasList['37'] = array('name' => '項目開發工作實時總預計工時數', 'unit' => '小時', 'definition' => '項目所有開發相關任務的最初預計工時和');
-$lang->install->basicmeasList['38'] = array('name' => '項目測試工作實時總預計工時數', 'unit' => '小時', 'definition' => '項目所有測試相關任務的最初預計工時和');
-$lang->install->basicmeasList['39'] = array('name' => '項目任務實際消耗工時數', 'unit' => '小時', 'definition' => '項目下面所有任務的實際消耗工時和');
-$lang->install->basicmeasList['40'] = array('name' => '項目需求工作實際消耗工時數', 'unit' => '小時', 'definition' => '項目所有需求相關任務的實際消耗工時和');
-$lang->install->basicmeasList['41'] = array('name' => '項目設計工作實際消耗工時數', 'unit' => '小時', 'definition' => '項目所有設計相關任務的實際消耗工時和');
-$lang->install->basicmeasList['42'] = array('name' => '項目開發工作實際消耗工時數', 'unit' => '小時', 'definition' => '項目所有開發相關任務的實際消耗工時和');
-$lang->install->basicmeasList['43'] = array('name' => '項目測試工作實際消耗工時數', 'unit' => '小時', 'definition' => '項目所有測試相關任務的實際消耗工時和');
-$lang->install->basicmeasList['44'] = array('name' => '項目開發工作最初總預計工時數', 'unit' => '小時', 'definition' => '項目計劃第一個基線版本中所有開發相關工作最初預計工時和');
-$lang->install->basicmeasList['45'] = array('name' => '項目設計工作最初總預計工時數', 'unit' => '小時', 'definition' => '項目計劃第一個基線版本中所有設計相關工作最初預計工時和');
-$lang->install->basicmeasList['46'] = array('name' => '項目測試工作最初總預計工時數', 'unit' => '小時', 'definition' => '項目計劃第一個基線版本中所有測試相關工作最初預計工時和');
-$lang->install->basicmeasList['47'] = array('name' => '項目需求工作最初總預計工時數', 'unit' => '小時', 'definition' => '項目計劃第一個基線版本中所有需求相關工作最初預計工時和');
-$lang->install->basicmeasList['48'] = array('name' => '項目任務最初總預計工時數', 'unit' => '小時', 'definition' => '項目計劃第一個基線版本中所有任務最初預計工時和');
-$lang->install->basicmeasList['49'] = array('name' => '項目開發工作最終總預計工時數', 'unit' => '小時', 'definition' => '項目計劃最後一個基線版本中所有開發相關任務最初預計工時和');
-$lang->install->basicmeasList['50'] = array('name' => '項目需求工作最終總預計工時數', 'unit' => '小時', 'definition' => '項目計劃最後一個基線版本中所有需求相關任務最初預計工時和');
-$lang->install->basicmeasList['51'] = array('name' => '項目測試工作最終總預計工時數', 'unit' => '小時', 'definition' => '項目計劃最後一個基線版本中所有測試相關任務最初預計工時和');
-$lang->install->basicmeasList['52'] = array('name' => '項目設計工作最終總預計工時數', 'unit' => '小時', 'definition' => '項目計劃最後一個基線版本中所有設計相關任務最初預計工時和');
-$lang->install->basicmeasList['53'] = array('name' => '項目任務最終總預計工時數', 'unit' => '小時', 'definition' => '項目計劃最後一個基線版本中所有任務最初預計工時和');
 
 $lang->install->selectedMode     = '選擇模式';
 $lang->install->selectedModeTips = '後續您還可以去後台-自定義-模式中進行調整';

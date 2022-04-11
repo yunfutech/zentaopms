@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The model file of mr module of ZenTaoPMS.
  *
@@ -49,18 +50,16 @@ class mrModel extends model
     public function getList($mode = 'all', $param = 'all', $orderBy = 'id_desc', $pager = null, $filterProjects = array())
     {
         /* If filterProjects equals false,it means no permission. */
-        if($filterProjects === false) return array();
+        if ($filterProjects === false) return array();
 
         $filterProjectSql = '';
-        if(!$this->app->user->admin and !empty($filterProjects))
-        {
-            foreach($filterProjects as $gitlabID => $projects)
-            {
+        if (!$this->app->user->admin and !empty($filterProjects)) {
+            foreach ($filterProjects as $gitlabID => $projects) {
                 $projectIDList = array_keys($projects);
-                if(!empty($projectIDList)) $filterProjectSql .= "(gitlabID = {$gitlabID} and sourceProject " . helper::dbIN($projectIDList) . ") or ";
+                if (!empty($projectIDList)) $filterProjectSql .= "(gitlabID = {$gitlabID} and sourceProject " . helper::dbIN($projectIDList) . ") or ";
             }
 
-            if($filterProjectSql) $filterProjectSql = '(' . substr($filterProjectSql, 0, -3) . ')'; // Remove last or.
+            if ($filterProjectSql) $filterProjectSql = '(' . substr($filterProjectSql, 0, -3) . ')'; // Remove last or.
         }
 
         $MRList = $this->dao->select('*')
@@ -108,28 +107,33 @@ class mrModel extends model
         $allProjects = array();
         $allGroups   = array();
         $gitlabUsers = $this->gitlab->getGitLabListByAccount();
-        foreach($gitlabIDList as $gitlabID)
-        {
-            if(!$this->app->user->admin and !isset($gitlabUsers[$gitlabID])) continue;
+        foreach ($gitlabIDList as $gitlabID) {
+            if (!$this->app->user->admin and !isset($gitlabUsers[$gitlabID])) continue;
 
-            $allProjects[$gitlabID] = $this->gitlab->apiGetProjects($gitlabID, 'false');
+            $minProject = $maxProject = 0;
+            $projectCount = $this->dao->select('min(sourceProject) as minSource,MAX(sourceProject) as maxSource,MIN(targetProject) as minTarget,MAX(targetProject) as maxTarget')->from(TABLE_MR)
+                ->where('deleted')->eq('0')
+                ->andWhere('gitlabID')->eq($gitlabID)
+                ->fetch();
+            if ($projectCount) {
+                $minProject = min($projectCount->minSource, $projectCount->minTarget);
+                $maxProject = max($projectCount->maxSource, $projectCount->maxTarget);
+            }
+            $allProjects[$gitlabID] = $this->gitlab->apiGetProjects($gitlabID, 'false', $minProject, $maxProject);
 
             /* If not an administrator, need to obtain group member information. */
             $groupIDList = array(0 => 0);
-            if(!$this->app->user->admin)
-            {
+            if (!$this->app->user->admin) {
                 $groups = $this->gitlab->apiGetGroups($gitlabID, 'name_asc', 'reporter');
-                foreach($groups as $group) $groupIDList[] = $group->id;
+                foreach ($groups as $group) $groupIDList[] = $group->id;
             }
             $allGroups[$gitlabID] = $groupIDList;
         }
 
         $allProjectPairs = array();
-        foreach($allProjects as $gitlabID => $projects)
-        {
-            foreach($projects as $key => $project)
-            {
-                if($this->gitlab->checkUserAccess($gitlabID, 0, $project, $allGroups[$gitlabID], 'reporter') == false) continue;
+        foreach ($allProjects as $gitlabID => $projects) {
+            foreach ($projects as $key => $project) {
+                if ($this->gitlab->checkUserAccess($gitlabID, 0, $project, $allGroups[$gitlabID], 'reporter') == false) continue;
                 $project->isDeveloper = $this->gitlab->checkUserAccess($gitlabID, 0, $project, $allGroups[$gitlabID], 'developer');
 
                 $allProjectPairs[$gitlabID][$project->id] = $project;
@@ -150,21 +154,20 @@ class mrModel extends model
         $MR = fixer::input('post')
             ->setDefault('jobID', 0)
             ->setDefault('repoID', 0)
-            ->setDefault('removeSourceBranch','0')
+            ->setDefault('removeSourceBranch', '0')
             ->setDefault('needCI', 0)
+            ->setDefault('squash', 0)
             ->add('createdBy', $this->app->user->account)
             ->add('createdDate', helper::now())
             ->get();
 
         $result = $this->checkSameOpened($MR->gitlabID, $MR->sourceProject, $MR->sourceBranch, $MR->targetProject, $MR->targetBranch);
-        if($result['result'] == 'fail') return $result;
+        if ($result['result'] == 'fail') return $result;
 
         /* Exec Job */
-        if(isset($MR->jobID) && $MR->jobID)
-        {
+        if (isset($MR->jobID) && $MR->jobID) {
             $pipeline = $this->loadModel('job')->exec($MR->jobID);
-            if(!empty($pipeline->queue))
-            {
+            if (!empty($pipeline->queue)) {
                 $compile = $this->loadModel('compile')->getByQueue($pipeline->queue);
                 $MR->compileID     = $compile->id;
                 $MR->compileStatus = $compile->status;
@@ -174,9 +177,8 @@ class mrModel extends model
         $this->dao->insert(TABLE_MR)->data($MR, $this->config->mr->create->skippedFields)
             ->batchCheck($this->config->mr->create->requiredFields, 'notempty')
             ->checkIF($MR->needCI, 'jobID',  'notempty')
-            ->autoCheck()
             ->exec();
-        if(dao::isError()) return array('result' => 'fail', 'message' => dao::getError());
+        if (dao::isError()) return array('result' => 'fail', 'message' => dao::getError());
 
         $MRID = $this->dao->lastInsertId();
         $this->loadModel('action')->create('mr', $MRID, 'opened');
@@ -188,10 +190,10 @@ class mrModel extends model
         $MRObject->title                = $MR->title;
         $MRObject->description          = $MR->description;
         $MRObject->remove_source_branch = $MR->removeSourceBranch == '1' ? true : false;
-        if($MR->assignee)
-        {
+        $MRObject->squash               = $MR->squash == '1' ? 1 : 0;
+        if ($MR->assignee) {
             $gitlabAssignee = $this->gitlab->getUserIDByZentaoAccount($this->post->gitlabID, $MR->assignee);
-            if($gitlabAssignee) $MRObject->assignee_ids = $gitlabAssignee;
+            if ($gitlabAssignee) $MRObject->assignee_ids = $gitlabAssignee;
         }
 
         $rawMR = $this->apiCreateMR($this->post->gitlabID, $this->post->sourceProject, $MRObject);
@@ -200,8 +202,7 @@ class mrModel extends model
          * Another open merge request already exists for this source branch.
          * The type of variable `$rawMR->message` is array.
          */
-        if(isset($rawMR->message) and !isset($rawMR->iid))
-        {
+        if (isset($rawMR->message) and !isset($rawMR->iid)) {
             $this->dao->delete()->from(TABLE_MR)->where('id')->eq($MRID)->exec();
 
             $errorMessage = $this->convertApiError($rawMR->message);
@@ -209,14 +210,13 @@ class mrModel extends model
         }
 
         /* Create MR failed. */
-        if(!isset($rawMR->iid))
-        {
+        if (!isset($rawMR->iid)) {
             $this->dao->delete()->from(TABLE_MR)->where('id')->eq($MRID)->exec();
             return array('result' => 'fail', 'message' => $this->lang->mr->createFailedFromAPI);
         }
 
         /* Create a todo item for this MR. */
-        if(empty($MR->jobID)) $this->apiCreateMRTodo($this->post->gitlabID, $this->post->targetProject, $rawMR->iid);
+        if (empty($MR->jobID)) $this->apiCreateMRTodo($this->post->gitlabID, $this->post->targetProject, $rawMR->iid);
 
         $newMR = new stdclass;
         $newMR->mriid       = $rawMR->iid;
@@ -225,7 +225,7 @@ class mrModel extends model
 
         /* Update MR in Zentao database. */
         $this->dao->update(TABLE_MR)->data($newMR)->where('id')->eq($MRID)->autoCheck()->exec();
-        if(dao::isError()) return array('result' => 'fail', 'message' => dao::getError());
+        if (dao::isError()) return array('result' => 'fail', 'message' => dao::getError());
         return array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => helper::createLink('mr', 'browse'));
     }
 
@@ -241,8 +241,7 @@ class mrModel extends model
         $postData = (object)$postData->data;
 
         $repo = $this->loadModel('repo')->getRepoByUrl($postData->RepoUrl);
-        if(empty($repo['data']))
-        {
+        if (empty($repo['data'])) {
             dao::$errors[] = $repo['message'];
             return false;
         }
@@ -256,7 +255,7 @@ class mrModel extends model
         $MR->targetProject  = $repo->path;
         $MR->targetBranch   = $postData->RepoDistBranch;
         $MR->diffs          = $this->post->data['DiffMsg'];
-        $MR->title          = $this->lang->mr->common . ' ' . $postData->RepoSrcBranch . $this->lang->mr->to . $postData->RepoDistBranch ;
+        $MR->title          = $this->lang->mr->common . ' ' . $postData->RepoSrcBranch . $this->lang->mr->to . $postData->RepoDistBranch;
         $MR->repoID         = $repo->id;
         $MR->jobID          = isset($repo->job->id) ? $repo->job->id : 0;
         $MR->status         = 'opened';
@@ -267,15 +266,13 @@ class mrModel extends model
         $MR->createdBy      = $this->app->user->account;
         $MR->createdDate    = date('Y-m-d H:i:s');
 
-        if($MR->sourceProject == $MR->targetProject and $MR->sourceBranch == $MR->targetBranch)
-        {
+        if ($MR->sourceProject == $MR->targetProject and $MR->sourceBranch == $MR->targetBranch) {
             dao::$errors[] = $this->lang->mr->errorLang[1];
             return false;
         }
 
         $result = $this->checkSameOpened($MR->gitlabID, $MR->sourceProject, $MR->sourceBranch, $MR->targetProject, $MR->targetBranch);
-        if($result['result'] == 'fail')
-        {
+        if ($result['result'] == 'fail') {
             dao::$errors[] = $result['message'];
             return false;
         }
@@ -284,35 +281,31 @@ class mrModel extends model
             ->batchCheck($this->config->mr->apicreate->requiredFields, 'notempty')
             ->autoCheck()
             ->exec();
-        if(dao::isError()) return false;
+        if (dao::isError()) return false;
 
         $MRID = $this->dao->lastInsertId();
         $this->loadModel('action')->create('mr', $MRID, 'opened');
 
         /* Exec Job */
-        if($MR->hasNoConflict == '0' && $MR->mergeStatus == 'can_be_merged' && $MR->jobID)
-        {
+        if ($MR->hasNoConflict == '0' && $MR->mergeStatus == 'can_be_merged' && $MR->jobID) {
             $extraParam = array();
-            if(!empty($repo->fileServerUrl)) $extraParam = array('ZENTAO_REPOPATH' => $repo->fileServerUrl);
+            if (!empty($repo->fileServerUrl)) $extraParam = array('ZENTAO_REPOPATH' => $repo->fileServerUrl);
 
             $pipeline = $this->loadModel('job')->exec($MR->jobID, $extraParam);
             $newMR    = new stdClass();
-            if(!empty($pipeline->queue))
-            {
+            if (!empty($pipeline->queue)) {
                 $compile = $this->loadModel('compile')->getByQueue($pipeline->queue);
                 $newMR->compileID     = $compile->id;
                 $newMR->compileStatus = $compile->status;
-                if($newMR->compileStatus == 'failure') $newMR->status = 'closed';
-            }
-            else
-            {
+                if ($newMR->compileStatus == 'failure') $newMR->status = 'closed';
+            } else {
                 $newMR->compileStatus = $pipeline->status;
-                if($newMR->compileStatus == 'create_fail') $newMR->status = 'closed';
+                if ($newMR->compileStatus == 'create_fail') $newMR->status = 'closed';
             }
 
             /* Update MR in Zentao database. */
             $this->dao->update(TABLE_MR)->data($newMR)->where('id')->eq($MRID)->autoCheck()->exec();
-            if(dao::isError()) return false;
+            if (dao::isError()) return false;
         }
         return true;
     }
@@ -329,8 +322,9 @@ class mrModel extends model
             ->setDefault('jobID', 0)
             ->setDefault('compileID', 0)
             ->setDefault('repoID', 0)
-            ->setDefault('removeSourceBranch','0')
+            ->setDefault('removeSourceBranch', '0')
             ->setDefault('needCI', 0)
+            ->setDefault('squash', 0)
             ->setDefault('editedBy', $this->app->user->account)
             ->setDefault('editedDate', helper::now())
             ->setIF($this->post->needCI == 0, 'jobID', 0)
@@ -338,15 +332,13 @@ class mrModel extends model
         $oldMR = $this->getByID($MRID);
 
         $this->dao->update(TABLE_MR)->data($MR)->checkIF($MR->needCI, 'jobID',  'notempty');
-        if(dao::isError()) return array('result' => 'fail', 'message' => dao::getError());
+        if (dao::isError()) return array('result' => 'fail', 'message' => dao::getError());
 
         /* Exec Job */
-        if(isset($MR->jobID) && $MR->jobID)
-        {
+        if (isset($MR->jobID) && $MR->jobID) {
             $pipeline = $this->loadModel('job')->exec($MR->jobID);
 
-            if(!empty($pipeline->queue))
-            {
+            if (!empty($pipeline->queue)) {
                 $compile = $this->loadModel('compile')->getByQueue($pipeline->queue);
                 $MR->compileID = $compile->id;
                 $MR->compileStatus = $compile->status;
@@ -359,16 +351,15 @@ class mrModel extends model
         $newMR->description          = $MR->description;
         $newMR->target_branch        = $MR->targetBranch;
         $newMR->remove_source_branch = $MR->removeSourceBranch == '1' ? true : false;
-        if($MR->assignee)
-        {
+        $newMR->squash               = $MR->squash == '1' ? 1 : 0;
+        if ($MR->assignee) {
             $gitlabAssignee = $this->gitlab->getUserIDByZentaoAccount($oldMR->gitlabID, $MR->assignee);
-            if($gitlabAssignee) $newMR->assignee_ids = $gitlabAssignee;
+            if ($gitlabAssignee) $newMR->assignee_ids = $gitlabAssignee;
         }
 
         /* Known issue: `reviewer_ids` takes no effect. */
         $rawMR = $this->apiUpdateMR($oldMR->gitlabID, $oldMR->targetProject, $oldMR->mriid, $newMR);
-        if(!isset($rawMR->id) and isset($rawMR->message))
-        {
+        if (!isset($rawMR->id) and isset($rawMR->message)) {
             $errorMessage = $this->convertApiError($rawMR->message);
             return array('result' => 'fail', 'message' => $errorMessage);
         }
@@ -381,9 +372,9 @@ class mrModel extends model
             ->exec();
         $MR = $this->getByID($MRID);
 
-        if(dao::isError()) return array('result' => 'fail', 'message' => dao::getError());
+        if (dao::isError()) return array('result' => 'fail', 'message' => dao::getError());
         return array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => helper::createLink('mr', 'browse'));
-   }
+    }
 
     /**
      * sync MR from GitLab API to Zentao database.
@@ -396,30 +387,26 @@ class mrModel extends model
     {
         $rawMR = $this->apiGetSingleMR($MR->gitlabID, $MR->targetProject, $MR->mriid);
         /* Sync MR in ZenTao database whatever status of MR in GitLab. */
-        if(isset($rawMR->iid))
-        {
+        if (isset($rawMR->iid)) {
             $map         = $this->config->mr->maps->sync;
             $gitlabUsers = $this->gitlab->getUserIdAccountPairs($MR->gitlabID);
 
             $newMR = new stdclass;
-            foreach($map as $syncField => $config)
-            {
+            foreach ($map as $syncField => $config) {
                 $value = '';
                 list($field, $optionType, $options) = explode('|', $config);
 
-                if($optionType == 'field')       $value = $rawMR->$field;
-                if($optionType == 'userPairs')
-                {
+                if ($optionType == 'field')       $value = $rawMR->$field;
+                if ($optionType == 'userPairs') {
                     $gitlabUserID = '';
-                    if(isset($rawMR->$field))
-                    {
+                    if (isset($rawMR->$field)) {
                         $values = $rawMR->$field;
-                        if(isset($values[0])) $gitlabUserID = $values[0]->$options;
+                        if (isset($values[0])) $gitlabUserID = $values[0]->$options;
                     }
                     $value = zget($gitlabUsers, $gitlabUserID, '');
                 }
 
-                if($value) $newMR->$syncField = $value;
+                if ($value) $newMR->$syncField = $value;
             }
 
             /* Update MR in Zentao database. */
@@ -439,25 +426,21 @@ class mrModel extends model
      */
     public function batchSyncMR($MRList)
     {
-        if(empty($MRList)) return array();
+        if (empty($MRList)) return array();
 
-        foreach($MRList as $key => $MR)
-        {
-            if($MR->status != 'opened') continue;
+        foreach ($MRList as $key => $MR) {
+            if ($MR->status != 'opened') continue;
 
-            if(!isset($rawMRList[$MR->gitlabID][$MR->targetProject])) $rawMRList[$MR->gitlabID][$MR->targetProject] = $this->apiGetMRList($MR->gitlabID, $MR->targetProject);
+            if (!isset($rawMRList[$MR->gitlabID][$MR->targetProject])) $rawMRList[$MR->gitlabID][$MR->targetProject] = $this->apiGetMRList($MR->gitlabID, $MR->targetProject);
             $rawMR = new stdClass();
-            foreach($rawMRList[$MR->gitlabID][$MR->targetProject] as $projcetRawMR)
-            {
-                if(isset($projcetRawMR->iid) and $projcetRawMR->iid == $MR->mriid)
-                {
+            foreach ($rawMRList[$MR->gitlabID][$MR->targetProject] as $projcetRawMR) {
+                if (isset($projcetRawMR->iid) and $projcetRawMR->iid == $MR->mriid) {
                     $rawMR = $projcetRawMR;
                     break;
                 }
             }
 
-            if(isset($rawMR->iid))
-            {
+            if (isset($rawMR->iid)) {
                 /* create gitlab mr todo to zentao todo */
                 $this->batchSyncTodo($MR->gitlabID, $MR->targetProject);
 
@@ -466,33 +449,29 @@ class mrModel extends model
 
                 $newMR = new stdclass;
 
-                foreach($map as $syncField => $config)
-                {
+                foreach ($map as $syncField => $config) {
                     $value = '';
                     list($field, $optionType, $options) = explode('|', $config);
 
-                    if($optionType == 'field') $value = $rawMR->$field;
-                    if($optionType == 'userPairs')
-                    {
+                    if ($optionType == 'field') $value = $rawMR->$field;
+                    if ($optionType == 'userPairs') {
                         $gitlabUserID = '';
-                        if(isset($rawMR->$field))
-                        {
+                        if (isset($rawMR->$field)) {
                             $values = $rawMR->$field;
-                            if(isset($values[0])) $gitlabUserID = $values[0]->$options;
+                            if (isset($values[0])) $gitlabUserID = $values[0]->$options;
                         }
                         $value = zget($gitlabUsers, $gitlabUserID, '');
                     }
 
-                    if($value) $newMR->$syncField = $value;
+                    if ($value) $newMR->$syncField = $value;
                 }
 
                 /* For compatibility with PHP 5.4 . */
                 $condition = (array)$newMR;
-                if(empty($condition)) continue;
+                if (empty($condition)) continue;
 
                 /* Update compile status of current MR object */
-                if(isset($MR->needCI) and $MR->needCI == '1')
-                {
+                if (isset($MR->needCI) and $MR->needCI == '1') {
                     $newMR->compileStatus = empty($MR->compileID) ? 'failed' : $this->loadModel('compile')->getByID($MR->compileID)->status;
                 }
 
@@ -529,22 +508,21 @@ class mrModel extends model
             ->andWhere('targetProject')->eq($projectID)
             ->fetchPairs();
 
-        foreach($accountList as $account)
-        {
+        foreach ($accountList as $account) {
             $accountPair = $this->getSudoAccountPair($gitlabID, $projectID, $account);
-            if(!empty($accountPair) and isset($accountPair[$account]))
-            {
+            if (!empty($accountPair) and isset($accountPair[$account])) {
                 $sudo  = $accountPair[$account];
                 $todoList = $this->gitlab->apiGetTodoList($gitlabID, $projectID, $sudo);
 
-                foreach($todoList as $rawTodo)
-                {
+                foreach ($todoList as $rawTodo) {
                     $todoDesc = $this->dao->select('*')
                         ->from(TABLE_TODO)
                         ->where('idvalue')->eq($rawTodo->id)
                         ->fetch();
-                    if(empty($todoDesc))
-                    {
+                    if (empty($todoDesc)) {
+                        $acountPairs = $this->gitlab->getUserIdRealnamePairs($gitlabID);
+                        $author      = isset($acountPairs[$rawTodo->author->id]) ? $acountPairs[$rawTodo->author->id] : $rawTodo->author->name;
+
                         $todo = new stdClass;
                         $todo->account      = $this->app->user->account;
                         $todo->assignedTo   = $account;
@@ -557,7 +535,7 @@ class mrModel extends model
                         $todo->idvalue      = $rawTodo->id;
                         $todo->pri          = 3;
                         $todo->name         = $this->lang->mr->common . ": " . $rawTodo->target->title;
-                        $todo->desc         = $rawTodo->target->assignee->name . '&nbsp;' . $this->lang->mr->at . '&nbsp;' . '<a href="' . $this->gitlab->apiGetSingleProject($gitlabID, $projectID)->web_url . '" target="_blank">' . $rawTodo->project->path .'</a>' . '&nbsp;' . $this->lang->mr->todomessage . '<a href="' . $rawTodo->target->web_url . '" target="_blank">' . '&nbsp;' . $this->lang->mr->common .'</a>' . '。';
+                        $todo->desc         = $author . '&nbsp;' . $this->lang->mr->at . '&nbsp;' . '<a href="' . $this->gitlab->apiGetSingleProject($gitlabID, $projectID)->web_url . '" target="_blank">' . $rawTodo->project->path . '</a>' . '&nbsp;' . $this->lang->mr->todomessage . '<a href="' . $rawTodo->target->web_url . '" target="_blank">' . '&nbsp;' . $this->lang->mr->common . '</a>' . '。';
                         $todo->status       = 'wait';
                         $todo->finishedBy   = '';
 
@@ -579,8 +557,8 @@ class mrModel extends model
     public function todoDescriptionLink($gitlabID, $projectID)
     {
         $gitlab = $this->gitlab->getByID($gitlabID);
-        if(!$gitlab) return '';
-        return rtrim($gitlab->url, '/')."/dashboard/todos?project_id=$projectID&type=MergeRequest";
+        if (!$gitlab) return '';
+        return rtrim($gitlab->url, '/') . "/dashboard/todos?project_id=$projectID&type=MergeRequest";
     }
 
     /**
@@ -627,17 +605,15 @@ class mrModel extends model
      */
     public function apiGetSameOpened($gitlabID, $sourceProject, $sourceBranch, $targetProject, $targetBranch)
     {
-        if(empty($gitlabID) or empty($sourceProject) or empty($sourceBranch) or  empty($targetProject) or  empty($targetBranch)) return null;
+        if (empty($gitlabID) or empty($sourceProject) or empty($sourceBranch) or  empty($targetProject) or  empty($targetBranch)) return null;
 
         $url = sprintf($this->loadModel('gitlab')->getApiRoot((int)$gitlabID), "/projects/{$sourceProject}/merge_requests") . "&state=opened&source_branch={$sourceBranch}&target_branch={$targetBranch}";
         $response = json_decode(commonModel::http($url));
 
-        if($response)
-        {
-            foreach($response as $mr)
-            {
-                if(empty($mr->source_project_id) or empty($mr->target_project_id)) return null;
-                if($mr->source_project_id == $sourceProject and $mr->target_project_id == $targetProject) return $mr;
+        if ($response) {
+            foreach ($response as $mr) {
+                if (empty($mr->source_project_id) or empty($mr->target_project_id)) return null;
+                if ($mr->source_project_id == $sourceProject and $mr->target_project_id == $targetProject) return $mr;
             }
         }
         return null;
@@ -692,7 +668,7 @@ class mrModel extends model
         return json_decode(commonModel::http($url, null, array(CURLOPT_CUSTOMREQUEST => 'DELETE')));
     }
 
-     /**
+    /**
      * Close MR by API.
      *
      * @link   https://docs.gitlab.com/ee/api/merge_requests.html#update-mr
@@ -737,9 +713,13 @@ class mrModel extends model
      */
     public function apiAcceptMR($gitlabID, $projectID, $MRID, $sudo = "")
     {
-        $url = sprintf($this->gitlab->getApiRoot($gitlabID), "/projects/$projectID/merge_requests/$MRID/merge");
-        if($sudo != "") return json_decode(commonModel::http($url, $data = null, $options = array(CURLOPT_CUSTOMREQUEST => 'PUT'), $headers = array("sudo: {$sudo}")));
-        return json_decode(commonModel::http($url, $data = null, $options = array(CURLOPT_CUSTOMREQUEST => 'PUT')));
+        $apiRoot    = $this->gitlab->getApiRoot($gitlabID);
+        $approveUrl = sprintf($apiRoot, "/projects/$projectID/merge_requests/$MRID/approved");
+        commonModel::http($approveUrl, null, array(CURLOPT_CUSTOMREQUEST => 'POST'));
+
+        $url = sprintf($apiRoot, "/projects/$projectID/merge_requests/$MRID/merge");
+        if ($sudo != "") return json_decode(commonModel::http($url, null, array(CURLOPT_CUSTOMREQUEST => 'PUT'), $headers = array("sudo: {$sudo}")));
+        return json_decode(commonModel::http($url, null, array(CURLOPT_CUSTOMREQUEST => 'PUT')));
     }
 
     /**
@@ -754,7 +734,7 @@ class mrModel extends model
     public function getDiffs($MR, $encoding = '')
     {
         $diffVersions = array();
-        if($MR->synced) $diffVersions = $this->apiGetDiffVersions($MR->gitlabID, $MR->targetProject, $MR->mriid);
+        if ($MR->synced) $diffVersions = $this->apiGetDiffVersions($MR->gitlabID, $MR->targetProject, $MR->mriid);
 
         $gitlab = $this->gitlab->getByID($MR->gitlabID);
 
@@ -771,26 +751,23 @@ class mrModel extends model
 
         $lines      = array();
         $commitList = array();
-        foreach($diffVersions as $diffVersion)
-        {
+        foreach ($diffVersions as $diffVersion) {
             $singleDiff = $this->apiGetSingleDiffVersion($MR->gitlabID, $MR->targetProject, $MR->mriid, $diffVersion->id);
-            if($singleDiff->state == 'empty') continue;
+            if ($singleDiff->state == 'empty') continue;
 
             $commits = $singleDiff->commits;
             $diffs   = $singleDiff->diffs;
-            foreach($diffs as $index => $diff)
-            {
+            foreach ($diffs as $index => $diff) {
                 $lines[] = sprintf("diff --git a/%s b/%s", $diff->old_path, $diff->new_path);
                 $lines[] = sprintf("index %s ... %s %s ", $singleDiff->head_commit_sha, $singleDiff->base_commit_sha, $diff->b_mode);
                 $lines[] = sprintf("--a/%s", $diff->old_path);
                 $lines[] = sprintf("--b/%s", $diff->new_path);
                 $diffLines = explode("\n", $diff->diff);
-                foreach($diffLines as $diffLine) $lines[] = $diffLine;
+                foreach ($diffLines as $diffLine) $lines[] = $diffLine;
             }
         }
 
-        if(empty($MR->synced))
-        {
+        if (empty($MR->synced)) {
             $diffs = preg_replace('/^\s*$\n?\r?/m', '', $MR->diffs);
             $lines = explode("\n", $diffs);
         }
@@ -814,7 +791,7 @@ class mrModel extends model
     {
         $bindedUsers = $this->gitlab->getUserAccountIdPairs($gitlabID);
         $accountPair = array();
-        if(isset($bindedUsers[$account])) $accountPair[$account] = $bindedUsers[$account];
+        if (isset($bindedUsers[$account])) $accountPair[$account] = $bindedUsers[$account];
         return $accountPair;
     }
 
@@ -834,11 +811,10 @@ class mrModel extends model
         $bindedUsers     = $this->gitlab->getUserAccountIdPairs($gitlabID);
         $rawProjectUsers = $this->gitlab->apiGetProjectUsers($gitlabID, $projectID);
         $users           = array();
-        foreach($rawProjectUsers as $rawProjectUser)
-        {
-            if(!empty($bindedUsers[$rawProjectUser->username])) $users[$rawProjectUser->username] = $bindedUsers[$rawProjectUser->username];
+        foreach ($rawProjectUsers as $rawProjectUser) {
+            if (!empty($bindedUsers[$rawProjectUser->username])) $users[$rawProjectUser->username] = $bindedUsers[$rawProjectUser->username];
         }
-        if(!empty($users[$zentaoUser])) return $users[$zentaoUser];
+        if (!empty($users[$zentaoUser])) return $users[$zentaoUser];
         return '';
     }
 
@@ -917,15 +893,13 @@ class mrModel extends model
         $actionID = $this->action->create('mr', $MR->id, $action);
 
         $oldMR = $MR;
-        if(isset($MR->status) and $MR->status == 'opened')
-        {
+        if (isset($MR->status) and $MR->status == 'opened') {
             $rawApprovalStatus = '';
-            if(isset($MR->approvalStatus)) $rawApprovalStatus = $MR->approvalStatus;
+            if (isset($MR->approvalStatus)) $rawApprovalStatus = $MR->approvalStatus;
             $MR->approver = $this->app->user->account;
             if ($action == 'reject' and $rawApprovalStatus != 'rejected') $MR->approvalStatus = 'rejected';
             if ($action == 'approve' and $rawApprovalStatus != 'approved') $MR->approvalStatus = 'approved';
-            if (isset($MR->approvalStatus) and $rawApprovalStatus != $MR->approvalStatus)
-            {
+            if (isset($MR->approvalStatus) and $rawApprovalStatus != $MR->approvalStatus) {
                 $changes = common::createChanges($oldMR, $MR);
                 $this->action->logHistory($actionID, $changes);
                 $this->dao->update(TABLE_MR)->data($MR)
@@ -965,7 +939,7 @@ class mrModel extends model
         $rawMR = $this->apiCloseMR($MR->gitlabID, $MR->targetProject, $MR->mriid);
         $changes = common::createChanges($MR, $rawMR);
         $this->action->logHistory($actionID, $changes);
-        if(isset($rawMR->state) and $rawMR->state == 'closed') return array('result' => 'success', 'message' => $this->lang->mr->closeSuccess, 'locate' => helper::createLink('mr', 'view', "mr={$MR->id}"));
+        if (isset($rawMR->state) and $rawMR->state == 'closed') return array('result' => 'success', 'message' => $this->lang->mr->closeSuccess, 'locate' => helper::createLink('mr', 'view', "mr={$MR->id}"));
         return array('result' => 'fail', 'message' => $this->lang->fail, 'locate' => helper::createLink('mr', 'view', "mr={$MR->id}"));
     }
 
@@ -982,7 +956,7 @@ class mrModel extends model
         $rawMR = $this->apiReopenMR($MR->gitlabID, $MR->targetProject, $MR->mriid);
         $changes = common::createChanges($MR, $rawMR);
         $this->action->logHistory($actionID, $changes);
-        if(isset($rawMR->state) and $rawMR->state == 'opened') return array('result' => 'success', 'message' => $this->lang->mr->reopenSuccess, 'locate' => helper::createLink('mr', 'view', "mr={$MR->id}"));
+        if (isset($rawMR->state) and $rawMR->state == 'opened') return array('result' => 'success', 'message' => $this->lang->mr->reopenSuccess, 'locate' => helper::createLink('mr', 'view', "mr={$MR->id}"));
         return array('result' => 'fail', 'message' => $this->lang->fail, 'locate' => helper::createLink('mr', 'view', "mr={$MR->id}"));
     }
 
@@ -998,7 +972,7 @@ class mrModel extends model
      */
     public function getReview($repoID, $MRID, $revision = '')
     {
-        if(empty($repoID) or empty($MRID)) return array();
+        if (empty($repoID) or empty($MRID)) return array();
 
         $reviews = array();
         $bugs    = $this->dao->select('t1.*, t2.realname')->from(TABLE_BUG)->alias('t1')
@@ -1008,11 +982,10 @@ class mrModel extends model
             ->beginIF($revision)->andWhere('t1.v2')->eq($revision)->fi()
             ->andWhere('t1.deleted')->eq(0)
             ->fetchAll('id');
-        foreach($bugs as $bug)
-        {
-            if(common::hasPriv('bug', 'edit'))   $bug->edit   = true;
-            if(common::hasPriv('bug', 'delete')) $bug->delete = true;
-            if(common::hasPriv('bug', 'view'))   $bug->view   = true;
+        foreach ($bugs as $bug) {
+            if (common::hasPriv('bug', 'edit'))   $bug->edit   = true;
+            if (common::hasPriv('bug', 'delete')) $bug->delete = true;
+            if (common::hasPriv('bug', 'view'))   $bug->view   = true;
             $lines = explode(',', trim($bug->lines, ','));
             $line  = $lines[0];
             $reviews[$line]['bug'][$bug->id] = $bug;
@@ -1025,11 +998,10 @@ class mrModel extends model
             ->beginIF($revision)->andWhere('t1.v2')->eq($revision)->fi()
             ->andWhere('t1.deleted')->eq(0)
             ->fetchAll('id');
-        foreach($tasks as $task)
-        {
-            if(common::hasPriv('task', 'edit'))   $task->edit   = true;
-            if(common::hasPriv('task', 'delete')) $task->delete = true;
-            if(common::hasPriv('task', 'view'))   $task->view   = true;
+        foreach ($tasks as $task) {
+            if (common::hasPriv('task', 'edit'))   $task->edit   = true;
+            if (common::hasPriv('task', 'delete')) $task->delete = true;
+            if (common::hasPriv('task', 'view'))   $task->view   = true;
             $lines = explode(',', trim($task->lines, ','));
             $line  = $lines[0];
             $reviews[$line]['task'][$task->id] = $task;
@@ -1082,7 +1054,7 @@ class mrModel extends model
     {
         $pairs = array();
         $executions = $this->loadModel('execution')->getList(0, 'all', 'undone', 0, $product, $branch);
-        foreach($executions as $execution) $pairs[$execution->id] = $execution->name;
+        foreach ($executions as $execution) $pairs[$execution->id] = $execution->name;
         return $pairs;
     }
 
@@ -1117,29 +1089,26 @@ class mrModel extends model
             ->get();
 
         $data->steps = $this->loadModel('file')->pasteImage($data->commentText, $this->post->uid);
-        if($data->execution) $data->project = (int)$this->dao->select('project')->from(TABLE_PROJECT)->where('id')->eq($data->execution)->fetch('project');
-        if($data->assignedTo) $data->assignedDate = $now;
+        if ($data->execution) $data->project = (int)$this->dao->select('project')->from(TABLE_PROJECT)->where('id')->eq($data->execution)->fetch('project');
+        if ($data->assignedTo) $data->assignedDate = $now;
         unset($data->commentText);
 
         $this->loadModel('bug');
-        foreach(explode(',', $this->config->bug->create->requiredFields . ',repo,mr') as $requiredField)
-        {
+        foreach (explode(',', $this->config->bug->create->requiredFields . ',repo,mr') as $requiredField) {
             $requiredField = trim($requiredField);
-            if(empty($requiredField)) continue;
-            if(!isset($data->$requiredField)) continue;
-            if(empty($data->$requiredField))
-            {
+            if (empty($requiredField)) continue;
+            if (!isset($data->$requiredField)) continue;
+            if (empty($data->$requiredField)) {
                 $fieldName = $requiredField;
-                if(isset($this->lang->bug->$requiredField)) $fieldName = $this->lang->bug->$requiredField;
+                if (isset($this->lang->bug->$requiredField)) $fieldName = $this->lang->bug->$requiredField;
                 dao::$errors[$requiredField][] = sprintf($this->lang->error->notempty, $fieldName);
             }
         }
-        if(dao::isError()) return array('result' => 'fail', 'message' => dao::getError());
+        if (dao::isError()) return array('result' => 'fail', 'message' => dao::getError());
 
         $this->dao->insert(TABLE_BUG)->data($data)->autocheck()->exec();
 
-        if(!dao::isError())
-        {
+        if (!dao::isError()) {
             $bugID = $this->dao->lastInsertID();
             $this->loadModel('file')->updateObjectID($this->post->uid, $bugID, 'bug');
             setcookie("repoPairs[$repoID]", $data->product);
@@ -1197,27 +1166,24 @@ class mrModel extends model
         $task->v1         = $v1;
         $task->v2         = $v2;
         $task->desc       = $this->loadModel('file')->pasteImage($data->commentText, $this->post->uid);
-        if($task->assignedTo) $task->assignedDate = $now;
+        if ($task->assignedTo) $task->assignedDate = $now;
 
         $this->loadModel('task');
-        foreach(explode(',', $this->config->task->create->requiredFields . ',repo,mr') as $requiredField)
-        {
+        foreach (explode(',', $this->config->task->create->requiredFields . ',repo,mr') as $requiredField) {
             $requiredField = trim($requiredField);
-            if(empty($requiredField)) continue;
-            if(!isset($task->$requiredField)) continue;
-            if(empty($task->$requiredField))
-            {
+            if (empty($requiredField)) continue;
+            if (!isset($task->$requiredField)) continue;
+            if (empty($task->$requiredField)) {
                 $fieldName = $requiredField;
-                if(isset($this->lang->task->$requiredField)) $fieldName = $this->lang->task->$requiredField;
+                if (isset($this->lang->task->$requiredField)) $fieldName = $this->lang->task->$requiredField;
                 dao::$errors[$requiredField][] = sprintf($this->lang->error->notempty, $fieldName);
             }
         }
-        if(dao::isError()) return array('result' => 'fail', 'message' => dao::getError());
+        if (dao::isError()) return array('result' => 'fail', 'message' => dao::getError());
 
         $this->dao->insert(TABLE_TASK)->data($task)->autocheck()->exec();
 
-        if(!dao::isError())
-        {
+        if (!dao::isError()) {
             $taskID = $this->dao->lastInsertID();
             $this->file->updateObjectID($this->post->uid, $taskID, 'task');
 
@@ -1290,7 +1256,7 @@ class mrModel extends model
      */
     public function getLastReviewInfo($repoID)
     {
-        if(empty($repoID)) return null;
+        if (empty($repoID)) return null;
 
         $lastReview = new stdclass();
         $lastReview->bug  = $this->dao->select('*')->from(TABLE_BUG)->where('repo')->eq((int)$repoID)->orderby('id_desc')->fetch();
@@ -1320,8 +1286,7 @@ class mrModel extends model
             ->fetchPairs('BID');
 
         $links = array();
-        if($type == 'story' and !empty($linkIDs))
-        {
+        if ($type == 'story' and !empty($linkIDs)) {
             $orderBy = str_replace('name_', 'title_', $orderBy);
             $links = $this->dao->select('t1.*, t2.spec, t2.verify, t3.name as productTitle')
                 ->from(TABLE_STORY)->alias('t1')
@@ -1334,8 +1299,7 @@ class mrModel extends model
                 ->page($pager)
                 ->fetchAll('id');
         }
-        if($type == 'bug' and !empty($linkIDs))
-        {
+        if ($type == 'bug' and !empty($linkIDs)) {
             $orderBy = str_replace('name_', 'title_', $orderBy);
             $links = $this->dao->select('*')->from(TABLE_BUG)
                 ->where('deleted')->eq(0)
@@ -1344,8 +1308,7 @@ class mrModel extends model
                 ->page($pager)
                 ->fetchAll('id');
         }
-        if($type == 'task' and !empty($linkIDs))
-        {
+        if ($type == 'task' and !empty($linkIDs)) {
             $orderBy = str_replace('title_', 'name_', $orderBy);
             $links = $this->dao->select('*')->from(TABLE_TASK)
                 ->where('deleted')->eq(0)
@@ -1388,17 +1351,16 @@ class mrModel extends model
     public function link($MRID, $productID, $type)
     {
         $this->loadModel('action');
-        if($type == 'story') $links = $this->post->stories;
-        if($type == 'bug')   $links = $this->post->bugs;
-        if($type == 'task')  $links = $this->post->tasks;
+        if ($type == 'story') $links = $this->post->stories;
+        if ($type == 'bug')   $links = $this->post->bugs;
+        if ($type == 'task')  $links = $this->post->tasks;
 
         /* Get link action text. */
-        $MR       = $this->getByID($MRID);
-        $users    = $this->loadModel('user')->getPairs('noletter');
-        $MRCreateAction = sprintf($this->lang->mr->createAction, $MR->createdDate, zget($users, $MR->createdBy), helper::createLink('mr', 'view', "mr={$MR->id}"));
+        $MR             = $this->getByID($MRID);
+        $users          = $this->loadModel('user')->getPairs('noletter');
+        $MRCreateAction = $MR->createdDate . '::' . zget($users, $MR->createdBy) . '::' . helper::createLink('mr', 'view', "mr={$MR->id}");
 
-        foreach($links as $linkID)
-        {
+        foreach ($links as $linkID) {
             $relation           = new stdclass;
             $relation->product  = $productID;
             $relation->AType    = 'mr';
@@ -1409,9 +1371,9 @@ class mrModel extends model
 
             $this->dao->replace(TABLE_RELATION)->data($relation)->exec();
 
-            if($type == 'story') $this->action->create('story', $linkID, 'createmr', '', $MRCreateAction);
-            if($type == 'bug')   $this->action->create('bug', $linkID, 'createmr', '', $MRCreateAction);
-            if($type == 'task')  $this->action->create('task', $linkID, 'createmr', '', $MRCreateAction);
+            if ($type == 'story') $this->action->create('story', $linkID, 'createmr', '', $MRCreateAction);
+            if ($type == 'bug')   $this->action->create('bug', $linkID, 'createmr', '', $MRCreateAction);
+            if ($type == 'task')  $this->action->create('task', $linkID, 'createmr', '', $MRCreateAction);
         }
     }
 
@@ -1429,7 +1391,7 @@ class mrModel extends model
     {
         $this->dao->delete()->from(TABLE_RELATION)->where('product')->eq($productID)->andWhere('AType')->eq('mr')->andWhere('AID')->eq($MRID)->andWhere('BType')->eq($type)->andWhere('BID')->eq($linkID)->exec();
 
-        $this->loadModel('action')->create($type, $linkID, 'deletemr');
+        $this->loadModel('action')->create($type, $linkID, 'deletemr', '', helper::createLink('mr', 'view', "mr={$MRID}"));
     }
 
     /**
@@ -1447,9 +1409,8 @@ class mrModel extends model
         $DiffCommits = $this->apiGetDiffCommits($gitlabID, $projectID, $MRID);
 
         $commits = array();
-        foreach($DiffCommits as $DiffCommit)
-        {
-            if(isset($DiffCommit->id)) $commits[] = substr($DiffCommit->id, 0, 10);
+        foreach ($DiffCommits as $DiffCommit) {
+            if (isset($DiffCommit->id)) $commits[] = substr($DiffCommit->id, 0, 10);
         }
 
         return $this->dao->select('objectID')->from(TABLE_ACTION)->where('objectType')->eq($type)->andWhere('extra')->in($commits)->fetchPairs('objectID');
@@ -1466,17 +1427,14 @@ class mrModel extends model
     {
         $product = array();
 
-        if($MR->repoID)
-        {
+        if ($MR->repoID) {
             $productID = $this->dao->select('product')->from(TABLE_REPO)->where('id')->eq($MR->repoID)->fetch('product');
-        }
-        else
-        {
+        } else {
             $products  = $this->loadModel('gitlab')->getProductsByProjects(array($MR->targetProject, $MR->sourceProject));
             $productID = array_shift($products);
         }
 
-        if($productID) $product = $this->loadModel('product')->getById($productID);
+        if ($productID) $product = $this->loadModel('product')->getById($productID);
         return $product;
     }
 
@@ -1505,20 +1463,17 @@ class mrModel extends model
         $product = $this->getMRProduct($MR);
 
         $stories = $this->getLinkList($MR->id, $product->id, 'story');
-        foreach($stories as $story)
-        {
+        foreach ($stories as $story) {
             $this->action->create('story', $story->id, 'mergedmr', '', helper::createLink('mr', 'view', "mr={$MR->id}"));
         }
 
         $bugs = $this->getLinkList($MR->id, $product->id, 'bug');
-        foreach($bugs as $bug)
-        {
+        foreach ($bugs as $bug) {
             $this->action->create('bug', $bug->id, 'mergedmr', '', helper::createLink('mr', 'view', "mr={$MR->id}"));
         }
 
         $tasks = $this->getLinkList($MR->id, $product->id, 'task');
-        foreach($tasks as $task)
-        {
+        foreach ($tasks as $task) {
             $this->action->create('task', $task->id, 'mergedmr', '', helper::createLink('mr', 'view', "mr={$MR->id}"));
         }
     }
@@ -1536,7 +1491,7 @@ class mrModel extends model
      */
     public function checkSameOpened($gitlabID, $sourceProject, $sourceBranch, $targetProject, $targetBranch)
     {
-        if(empty($sourceProject) or empty($sourceBranch) or empty($targetProject) or empty($targetBranch)) return array('result' => 'success');
+        if (empty($sourceProject) or empty($sourceBranch) or empty($targetProject) or empty($targetBranch)) return array('result' => 'success');
 
         $dbOpenedID = $this->dao->select('id')->from(TABLE_MR)
             ->where('gitlabID')->eq($gitlabID)
@@ -1547,10 +1502,10 @@ class mrModel extends model
             ->andWhere('status')->eq('opened')
             ->andWhere('deleted')->eq('0')
             ->fetch('id');
-        if(!empty($dbOpenedID)) return array('result' => 'fail', 'message' => sprintf($this->lang->mr->hasSameOpenedMR, $dbOpenedID));
+        if (!empty($dbOpenedID)) return array('result' => 'fail', 'message' => sprintf($this->lang->mr->hasSameOpenedMR, $dbOpenedID));
 
         $mr = $this->apiGetSameOpened($gitlabID, $sourceProject, $sourceBranch, $targetProject, $targetBranch);
-        if($mr) return array('result' => 'fail', 'message' => sprintf($this->lang->mr->errorLang[2], $mr->iid));
+        if ($mr) return array('result' => 'fail', 'message' => sprintf($this->lang->mr->errorLang[2], $mr->iid));
         return array('result' => 'success');
     }
 
@@ -1563,21 +1518,17 @@ class mrModel extends model
      */
     public function convertApiError($message)
     {
-        if(is_array($message)) $message = $message[0];
-        if(!is_string($message)) return $message;
+        if (is_array($message)) $message = $message[0];
+        if (!is_string($message)) return $message;
 
-        foreach($this->lang->mr->apiErrorMap as $key => $errorMsg)
-        {
-            if(strpos($errorMsg, '/') === 0)
-            {
+        foreach ($this->lang->mr->apiErrorMap as $key => $errorMsg) {
+            if (strpos($errorMsg, '/') === 0) {
                 $result = preg_match($errorMsg, $message, $matches);
-                if($result) $errorMessage = sprintf(zget($this->lang->mr->errorLang, $key), $matches[1]);
-            }
-            elseif($message == $errorMsg)
-            {
+                if ($result) $errorMessage = sprintf(zget($this->lang->mr->errorLang, $key), $matches[1]);
+            } elseif ($message == $errorMsg) {
                 $errorMessage = zget($this->lang->mr->errorLang, $key, $message);
             }
-            if(isset($errorMessage)) break;
+            if (isset($errorMessage)) break;
         }
         return isset($errorMessage) ? $errorMessage : $message;
     }
@@ -1592,7 +1543,7 @@ class mrModel extends model
      */
     public static function isClickable($MR, $action)
     {
-        if($action == 'edit' and !$MR->synced) return false;
+        if ($action == 'edit' and !$MR->synced) return false;
         return true;
     }
 }

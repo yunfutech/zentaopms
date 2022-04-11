@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The testtask module English file of ZenTaoPMS.
  *
@@ -14,7 +15,7 @@ $lang->testtask->create           = "Submit Request";
 $lang->testtask->reportChart      = 'Report';
 $lang->testtask->delete           = "Delete Request";
 $lang->testtask->importUnitResult = "Import Unit Result";
-$lang->testtask->importunitresult = "Import Unit Result"; //Fix bug custom required testtask.
+$lang->testtask->importUnit       = "Import Unit Result"; //Fix bug custom required testtask.
 $lang->testtask->browseUnits      = "Unit Test List";
 $lang->testtask->unitCases        = "Unit Test Cases";
 $lang->testtask->view             = "Request Detail";
@@ -183,14 +184,6 @@ $lang->testtask->report->charts['testTaskPerRunResult'] = 'Test Case Result';
 $lang->testtask->report->charts['testTaskPerType']      = 'Test Case Type';
 $lang->testtask->report->charts['testTaskPerModule']    = 'Test Case Module';
 $lang->testtask->report->charts['testTaskPerRunner']    = 'Test Case RunBy';
-$lang->testtask->report->charts['bugSeverityGroups']    = 'Bug Severity Distribution';
-$lang->testtask->report->charts['bugStatusGroups']      = 'Bug Status Distribution';
-$lang->testtask->report->charts['bugOpenedByGroups']    = 'Bug ReportedBy Distribution';
-$lang->testtask->report->charts['bugResolvedByGroups']  = 'Bug ResolvedBy Distribution';
-$lang->testtask->report->charts['bugResolutionGroups']  = 'Bug Resolution Distribution';
-$lang->testtask->report->charts['bugModuleGroups']      = 'Bug Module Distribution';
-$lang->testtask->report->charts['bugStageGroups']       = 'Bug Priority Distribution';
-$lang->testtask->report->charts['bugHandleGroups']      = 'Distribution of daily bug processing';
 
 $lang->testtask->report->options = new stdclass();
 $lang->testtask->report->options->graph  = new stdclass();

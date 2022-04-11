@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The test view file of dashboard module of ZenTaoPMS.
  *
@@ -10,8 +11,8 @@
  * @link        http://www.zentao.net
  */
 ?>
-<?php include '../../common/view/header.html.php';?>
-<?php include './featurebar.html.php';?>
+<?php include '../../common/view/header.html.php'; ?>
+<?php include './featurebar.html.php'; ?>
 <div id='mainContent'>
   <nav id='contentNav'>
     <ul class='nav nav-default'>
@@ -34,37 +35,37 @@
       ?>
       <thead>
         <tr class='colhead'>
-          <th class='c-id'>    <?php common::printOrderLink('id',       $orderBy, $vars, $lang->idAB);?></th>
-          <th class='c-pri'>   <?php common::printOrderLink('pri',      $orderBy, $vars, $lang->priAB);?></th>
-          <th>                 <?php common::printOrderLink('title',    $orderBy, $vars, $lang->testcase->title);?></th>
-          <th class='c-type'>  <?php common::printOrderLink('type',     $orderBy, $vars, $lang->typeAB);?></th>
-          <th class='c-user'>  <?php common::printOrderLink('openedBy', $orderBy, $vars, $lang->openedByAB);?></th>
-          <th class='c-user'>  <?php common::printOrderLink('lastRunner',    $orderBy, $vars, $lang->testtask->lastRunAccount);?></th>
-          <th class='c-date'>  <?php common::printOrderLink('lastRunDate',   $orderBy, $vars, $lang->testtask->lastRunTime);?></th>
-          <th class='c-result'><?php common::printOrderLink('lastRunResult', $orderBy, $vars, $lang->testtask->lastRunResult);?></th>
-          <th class='c-status'><?php common::printOrderLink('status',        $orderBy, $vars, $lang->statusAB);?></th>
+          <th class='c-id'> <?php common::printOrderLink('id',       $orderBy, $vars, $lang->idAB); ?></th>
+          <th class='c-pri' title='<?php echo $lang->pri; ?>'><?php common::printOrderLink('pri',      $orderBy, $vars, $lang->priAB); ?></th>
+          <th> <?php common::printOrderLink('title',    $orderBy, $vars, $lang->testcase->title); ?></th>
+          <th class='c-type'> <?php common::printOrderLink('type',     $orderBy, $vars, $lang->typeAB); ?></th>
+          <th class='c-user'> <?php common::printOrderLink('openedBy', $orderBy, $vars, $lang->openedByAB); ?></th>
+          <th class='c-user'> <?php common::printOrderLink('lastRunner',    $orderBy, $vars, $lang->testtask->lastRunAccount); ?></th>
+          <th class='c-date'> <?php common::printOrderLink('lastRunDate',   $orderBy, $vars, $lang->testtask->lastRunTime); ?></th>
+          <th class='c-result'><?php common::printOrderLink('lastRunResult', $orderBy, $vars, $lang->testtask->lastRunResult); ?></th>
+          <th class='c-status'><?php common::printOrderLink('status',        $orderBy, $vars, $lang->statusAB); ?></th>
         </tr>
       </thead>
       <tbody>
-        <?php foreach($cases as $case):?>
-        <?php $caseID = $type == 'case2Him' ? $case->case : $case->id?>
-        <tr class='text-left'>
-          <td><?php echo html::a($this->createLink('testcase', 'view', "testcaseID=$caseID&version=$case->version"), sprintf('%03d', $caseID));?></td>
-          <td><span class='<?php echo 'pri' . zget($lang->testcase->priList, $case->pri, $case->pri)?>'><?php echo zget($lang->testcase->priList, $case->pri, $case->pri)?></span></td>
-          <td class='text-left'><?php echo html::a($this->createLink('testcase', 'view', "testcaseID=$caseID&version=$case->version"), $case->title);?></td>
-          <td><?php echo $lang->testcase->typeList[$case->type];?></td>
-          <td><?php echo zget($users, $case->openedBy);?></td>
-          <td><?php echo zget($users, $case->lastRunner);?></td>
-          <td><?php if(!helper::isZeroDate($case->lastRunDate)) echo date(DT_MONTHTIME1, strtotime($case->lastRunDate));?></td>
-          <td class='<?php echo $case->lastRunResult;?>'><?php if($case->lastRunResult) echo $lang->testcase->resultList[$case->lastRunResult];?></td>
-          <td class='<?php echo $case->status;?>'><?php echo $this->processStatus('testcase', $case);?></td>
-        </tr>
-        <?php endforeach;?>
+        <?php foreach ($cases as $case) : ?>
+          <?php $caseID = $type == 'case2Him' ? $case->case : $case->id ?>
+          <tr class='text-left'>
+            <td><?php echo html::a($this->createLink('testcase', 'view', "testcaseID=$caseID&version=$case->version"), sprintf('%03d', $caseID)); ?></td>
+            <td><span class='<?php echo 'pri' . zget($lang->testcase->priList, $case->pri, $case->pri) ?>'><?php echo zget($lang->testcase->priList, $case->pri, $case->pri) ?></span></td>
+            <td class='text-left'><?php echo html::a($this->createLink('testcase', 'view', "testcaseID=$caseID&version=$case->version"), $case->title); ?></td>
+            <td><?php echo $lang->testcase->typeList[$case->type]; ?></td>
+            <td><?php echo zget($users, $case->openedBy); ?></td>
+            <td><?php echo zget($users, $case->lastRunner); ?></td>
+            <td><?php if (!helper::isZeroDate($case->lastRunDate)) echo date(DT_MONTHTIME1, strtotime($case->lastRunDate)); ?></td>
+            <td class='<?php echo $case->lastRunResult; ?>'><?php if ($case->lastRunResult) echo $lang->testcase->resultList[$case->lastRunResult]; ?></td>
+            <td class='<?php echo $case->status; ?>'><?php echo $this->processStatus('testcase', $case); ?></td>
+          </tr>
+        <?php endforeach; ?>
       </tbody>
     </table>
-    <?php if($cases):?>
-    <div class="table-footer"><?php $pager->show('right', 'pagerjs');?></div>
-    <?php endif;?>
+    <?php if ($cases) : ?>
+      <div class="table-footer"><?php $pager->show('right', 'pagerjs'); ?></div>
+    <?php endif; ?>
   </div>
 </div>
-<?php include '../../common/view/footer.html.php';?>
+<?php include '../../common/view/footer.html.php'; ?>

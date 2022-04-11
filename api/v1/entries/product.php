@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The product entry point of ZenTaoPMS.
  *
@@ -26,34 +27,41 @@ class productEntry extends Entry
         $control->view($productID);
 
         $data = $this->getData();
-        if(!$data or !isset($data->status)) return $this->send400('error');
-        if(isset($data->status) and $data->status == 'fail') return $this->sendError(zget($data, 'code', 400), $data->message);
+        if (!$data or !isset($data->status)) return $this->send400('error');
+        if (isset($data->status) and $data->status == 'fail') return $this->sendError(zget($data, 'code', 400), $data->message);
 
         $product = $this->format($data->data->product, 'createdDate:time,whitelist:userList,createdBy:user,PO:user,RD:user,QD:user,feedback:user');
 
         $this->loadModel('testcase');
         $product->caseReview = ($this->config->testcase->needReview or !empty($this->config->testcase->forceReview));
 
-        if(!$fields) return $this->send(200, $product);
+        if (!$fields) return $this->send(200, $product);
 
         /* Set other fields. */
         $fields = explode(',', strtolower($fields));
-        foreach($fields as $field)
-        {
-            switch($field)
-            {
+        foreach ($fields as $field) {
+            switch ($field) {
                 case 'modules':
                     $control = $this->loadController('tree', 'browse');
                     $control->browse($productID, 'story');
                     $data = $this->getData();
-                    if(isset($data->status) and $data->status == 'success')
-                    {
+                    if (isset($data->status) and $data->status == 'success') {
                         $product->modules = $data->data->tree;
                     }
+                    break;
+                case 'execution':
+                    $product->execution = $this->loadModel('product')->getExecutionPairsByProduct($productID);
+                    break;
+                case 'moduleoptionmenu':
+                    $product->moduleOptionMenu = $this->loadModel('tree')->getOptionMenu($productID, 'bug', 0, 'all');
+                    break;
+                case 'builds':
+                    $product->builds = $this->loadModel('build')->getBuildPairs($productID, 'all', 'noempty,noterminate,nodone,withbranch');
                     break;
                 case 'actions':
                     $product->addComment = common::hasPriv('action', 'comment') ? true : false;
 
+                    $users   = $this->loadModel('user')->getPairs();
                     $actions = $data->data->actions;
                     $product->actions = $this->loadModel('action')->processActionForAPI($actions, $users, $this->lang->product);
                     break;
@@ -66,10 +74,9 @@ class productEntry extends Entry
                         ->orderBy('t2.id desc')
                         ->limit(1)
                         ->fetch();
-                    if($execution)
-                    {
+                    if ($execution) {
                         $workhour = $this->loadModel('project')->computerProgress(array($execution->id => $execution));
-                        if(isset($workhour[$execution->id])) $execution->progress = $workhour[$execution->id]->progress;
+                        if (isset($workhour[$execution->id])) $execution->progress = $workhour[$execution->id]->progress;
                     }
 
                     $product->lastExecution = $execution;
@@ -99,7 +106,7 @@ class productEntry extends Entry
         $control->edit($productID);
 
         $data = $this->getData();
-        if(isset($data->result) and $data->result == 'fail') return $this->sendError(400, $data->message);
+        if (isset($data->result) and $data->result == 'fail') return $this->sendError(400, $data->message);
 
         $product = $this->product->getByID($productID);
         $this->send(200, $this->format($product, 'createdDate:time'));

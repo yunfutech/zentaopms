@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The control file of admin module of ZenTaoPMS.
  *
@@ -19,14 +20,11 @@ class admin extends control
     public function index()
     {
         $community = zget($this->config->global, 'community', '');
-        if(!$community or $community == 'na')
-        {
+        if (!$community or $community == 'na') {
             $this->view->bind    = false;
             $this->view->account = false;
             $this->view->ignore  = $community == 'na';
-        }
-        else
-        {
+        } else {
             $this->view->bind    = true;
             $this->view->account = $community;
             $this->view->ignore  = false;
@@ -47,10 +45,10 @@ class admin extends control
      */
     public function ignore()
     {
+        $account = $this->app->user->account;
         $this->loadModel('setting');
-        $this->setting->deleteItems('owner=system&module=common&section=global&key=community');
         $this->setting->deleteItems('owner=system&module=common&section=global&key=ztPrivateKey');
-        $this->setting->setItem('system.common.global.community', 'na');
+        $this->setting->setItem("$account.common.global.community", 'na');
         echo js::locate(inlink('index'), 'parent');
     }
 
@@ -63,12 +61,10 @@ class admin extends control
      */
     public function register($from = 'admin')
     {
-        if($_POST)
-        {
+        if ($_POST) {
             $response = $this->admin->registerByAPI();
             $response = json_decode($response);
-            if($response->result == 'success')
-            {
+            if ($response->result == 'success') {
                 $user = $response->data;
                 $data['community']    = $user->account;
                 $data['ztPrivateKey'] = $user->private;
@@ -79,18 +75,15 @@ class admin extends control
                 $this->setting->setItems('system.common.global', $data);
 
                 echo js::alert($this->lang->admin->registerNotice->success);
-                if($from == 'admin') return print(js::locate(inlink('index'), 'parent'));
-                if($from == 'mail') return print(js::locate($this->createLink('mail', 'ztcloud'), 'parent'));
+                if ($from == 'admin') return print(js::locate(inlink('index'), 'parent'));
+                if ($from == 'mail') return print(js::locate($this->createLink('mail', 'ztcloud'), 'parent'));
             }
 
             $alertMessage = '';
-            if(is_string($response->message))
-            {
+            if (is_string($response->message)) {
                 $alertMessage = $response->message;
-            }
-            else
-            {
-                foreach($response->message as $item) $alertMessage .= is_array($item) ? join('\n', $item) . '\n' : $item . '\n';
+            } else {
+                foreach ($response->message as $item) $alertMessage .= is_array($item) ? join('\n', $item) . '\n' : $item . '\n';
             }
             $alertMessage = str_replace(array('<strong>', '</strong>'), '', $alertMessage);
             return print(js::alert($alertMessage));
@@ -113,12 +106,10 @@ class admin extends control
      */
     public function bind($from = 'admin')
     {
-        if($_POST)
-        {
+        if ($_POST) {
             $response = $this->admin->bindByAPI();
             $response = json_decode($response);
-            if($response->result == 'success')
-            {
+            if ($response->result == 'success') {
                 $user = $response->data;
                 $data['community']    = $user->account;
                 $data['ztPrivateKey'] = $user->private;
@@ -129,12 +120,10 @@ class admin extends control
                 $this->setting->setItems('system.common.global', $data);
 
                 echo js::alert($this->lang->admin->bind->success);
-                if($from == 'admin') return print(js::locate(inlink('index'), 'parent'));
-                if($from == 'mail') return print(js::locate($this->createLink('mail', 'ztcloud'), 'parent'));
-            }
-            else
-            {
-                if($response->result == 'fail') return print(js::alert($response->message));
+                if ($from == 'admin') return print(js::locate(inlink('index'), 'parent'));
+                if ($from == 'mail') return print(js::locate($this->createLink('mail', 'ztcloud'), 'parent'));
+            } else {
+                if ($response->result == 'fail') return print(js::alert($response->message));
             }
         }
 
@@ -154,8 +143,7 @@ class admin extends control
     public function checkDB()
     {
         $tables = $this->dbh->query("show full tables where Table_Type != 'VIEW'")->fetchAll(PDO::FETCH_ASSOC);
-        foreach($tables as $table)
-        {
+        foreach ($tables as $table) {
             $tableName = current($table);
             $result = $this->dbh->query("REPAIR TABLE $tableName")->fetch();
             echo "Repairing TABLE: " . $result->Table . (defined('IN_SHELL') ? "\t" : "&nbsp;&nbsp;&nbsp;&nbsp;") . $result->Msg_type . ":" . $result->Msg_text . (defined('IN_SHELL') ? "\n" : "<br />\n");
@@ -170,8 +158,7 @@ class admin extends control
      */
     public function safe()
     {
-        if($_POST)
-        {
+        if ($_POST) {
             $data = fixer::input('post')->get();
             $this->loadModel('setting')->setItems('system.common.safe', $data);
             return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'reload'));
@@ -204,8 +191,7 @@ class admin extends control
      */
     public function sso()
     {
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $ssoConfig = new stdclass();
             $ssoConfig->turnon   = $this->post->turnon;
             $ssoConfig->redirect = $this->post->redirect;
@@ -213,14 +199,14 @@ class admin extends control
             $ssoConfig->code     = trim($this->post->code);
             $ssoConfig->key      = trim($this->post->key);
 
-            if(!$ssoConfig->turnon) $ssoConfig->redirect = $ssoConfig->turnon;
+            if (!$ssoConfig->turnon) $ssoConfig->redirect = $ssoConfig->turnon;
             $this->loadModel('setting')->setItems('system.sso', $ssoConfig);
-            if(dao::isError()) return print(js::error(dao::getError()));
+            if (dao::isError()) return print(js::error(dao::getError()));
             return print($this->locate(inlink('sso')));
         }
 
         $this->loadModel('sso');
-        if(!isset($this->config->sso)) $this->config->sso = new stdclass();
+        if (!isset($this->config->sso)) $this->config->sso = new stdclass();
 
         $this->view->title      = $this->lang->admin->sso;
         $this->view->position[] = $this->lang->admin->sso;
@@ -242,11 +228,10 @@ class admin extends control
      */
     public function certifyZtEmail($email = '')
     {
-        if($_POST)
-        {
+        if ($_POST) {
             $response = $this->admin->certifyByAPI('mail');
             $response = json_decode($response);
-            if($response->result == 'fail') return print(js::alert($response->message));
+            if ($response->result == 'fail') return print(js::alert($response->message));
             return print(js::locate($this->createLink('mail', 'ztCloud'), 'parent'));
         }
 
@@ -266,11 +251,10 @@ class admin extends control
      */
     public function certifyZtMobile($mobile = '')
     {
-        if($_POST)
-        {
+        if ($_POST) {
             $response = $this->admin->certifyByAPI('mobile');
             $response = json_decode($response);
-            if($response->result == 'fail') return print(js::alert($response->message));
+            if ($response->result == 'fail') return print(js::alert($response->message));
             return print(js::locate($this->createLink('mail', 'ztCloud'), 'parent'));
         }
 
@@ -289,11 +273,10 @@ class admin extends control
      */
     public function ztCompany($fields = 'company')
     {
-        if($_POST)
-        {
+        if ($_POST) {
             $response = $this->admin->setCompanyByAPI();
             $response = json_decode($response);
-            if($response->result == 'fail') return print(js::alert($response->message));
+            if ($response->result == 'fail') return print(js::alert($response->message));
             return print(js::locate($this->createLink('mail', 'ztCloud'), 'parent'));
         }
 
@@ -324,12 +307,11 @@ class admin extends control
      */
     public function log()
     {
-        if($_POST)
-        {
-            if(!validater::checkInt($this->post->days)) return $this->send(array('result' => 'fail', 'message' => array('days' => sprintf($this->lang->admin->notice->int, $this->lang->admin->days))));
+        if ($_POST) {
+            if (!validater::checkInt($this->post->days)) return $this->send(array('result' => 'fail', 'message' => array('days' => sprintf($this->lang->admin->notice->int, $this->lang->admin->days))));
 
             $this->loadModel('setting')->setItem('system.admin.log.saveDays', $this->post->days);
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
             return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'parent'));
         }
 

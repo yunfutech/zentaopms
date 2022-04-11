@@ -50,8 +50,8 @@ $lang->custom->oneUnit              = "One {$lang->hourCommon}";
 $lang->custom->convertRelationTitle = "Please set the conversion factor of {$lang->hourCommon} to %s first";
 $lang->custom->superReviewers       = "Super Reviewer";
 
-if($config->systemMode == 'new') $lang->custom->execution = 'Execution';
-if($config->systemMode == 'classic' || !$config->systemMode) $lang->custom->execution = $lang->executionCommon;
+if ($config->systemMode == 'new') $lang->custom->execution = 'Execution';
+if ($config->systemMode == 'classic' || !$config->systemMode) $lang->custom->execution = $lang->executionCommon;
 
 $lang->custom->unitList['efficiency'] = 'Working Hours/';
 $lang->custom->unitList['manhour']    = 'Man-hour/';
@@ -81,14 +81,14 @@ $lang->custom->numberError = 'The interval must be greater than zero!';
 $lang->custom->closedExecution = 'Closed ' . $lang->executionCommon;
 $lang->custom->closedProduct   = 'Closed ' . $lang->productCommon;
 
-if($config->systemMode == 'new') $lang->custom->object['project']   = 'Project';
+if ($config->systemMode == 'new') $lang->custom->object['project']   = 'Project';
 $lang->custom->object['product']   = $lang->productCommon;
 $lang->custom->object['execution'] = $lang->custom->execution;
 $lang->custom->object['story']     = 'Story';
 $lang->custom->object['task']      = 'Task';
 $lang->custom->object['bug']       = 'Bug';
 $lang->custom->object['testcase']  = 'Case';
-$lang->custom->object['testtask']  = 'Build';
+$lang->custom->object['testtask']  = 'Request';
 $lang->custom->object['todo']      = 'Todo';
 $lang->custom->object['user']      = 'User';
 $lang->custom->object['block']     = 'Block';
@@ -202,14 +202,11 @@ $lang->custom->weekendList[2] = '2-Day Off';
 $lang->custom->weekendList[1] = '1-Day Off';
 
 global $config;
-if($config->systemMode == 'classic')
-{
+if ($config->systemMode == 'classic') {
     $lang->custom->sprintConceptList[0] = 'Product - Project';
     $lang->custom->sprintConceptList[1] = 'Product - Iteration';
     $lang->custom->sprintConceptList[2] = 'Product - Sprint';
-}
-else
-{
+} else {
     $lang->custom->sprintConceptList[0] = 'Program - Product - Iteration';
     $lang->custom->sprintConceptList[1] = 'Program - Product - Sprint';
 }

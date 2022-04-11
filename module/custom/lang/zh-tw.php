@@ -50,8 +50,8 @@ $lang->custom->oneUnit              = "一個{$lang->hourCommon}";
 $lang->custom->convertRelationTitle = "請先設置{$lang->hourCommon}轉換為%s的換算係數";
 $lang->custom->superReviewers       = "超級評審人";
 
-if($config->systemMode == 'new') $lang->custom->execution = '執行';
-if($config->systemMode == 'classic' || !$config->systemMode) $lang->custom->execution = $lang->executionCommon;
+if ($config->systemMode == 'new') $lang->custom->execution = '執行';
+if ($config->systemMode == 'classic' || !$config->systemMode) $lang->custom->execution = $lang->executionCommon;
 
 $lang->custom->unitList['efficiency'] = '工時/';
 $lang->custom->unitList['manhour']    = '人時/';
@@ -81,7 +81,7 @@ $lang->custom->numberError = '區間必須大於零';
 $lang->custom->closedExecution = '已關閉' . $lang->custom->execution;
 $lang->custom->closedProduct   = '已關閉' . $lang->productCommon;
 
-if($config->systemMode == 'new') $lang->custom->object['project']   = '項目';
+if ($config->systemMode == 'new') $lang->custom->object['project']   = '項目';
 $lang->custom->object['product']   = $lang->productCommon;
 $lang->custom->object['execution'] = $lang->custom->execution;
 $lang->custom->object['story']     = $lang->SRCommon;
@@ -202,14 +202,11 @@ $lang->custom->weekendList[2] = '雙休';
 $lang->custom->weekendList[1] = '單休';
 
 global $config;
-if($config->systemMode == 'classic')
-{
+if ($config->systemMode == 'classic') {
     $lang->custom->sprintConceptList[0] = '產品 - 項目';
     $lang->custom->sprintConceptList[1] = '產品 - 迭代';
     $lang->custom->sprintConceptList[2] = '產品 - 衝刺';
-}
-else
-{
+} else {
     $lang->custom->sprintConceptList[0] = '項目 - 產品 - 迭代';
     $lang->custom->sprintConceptList[1] = '項目 - 產品 - 衝刺';
 }
@@ -220,7 +217,6 @@ $lang->custom->menuTip          = '點擊顯示或隱藏導航條目，拖拽來
 $lang->custom->saveFail         = '保存失敗！';
 $lang->custom->page             = '頁面';
 $lang->custom->changeClassicTip = '切換為老版本的習慣後，系統將取消項目集功能。';
-$lang->custom->changeModeTips   = '歷史刪除數據不參與數據歸併流程，切換模式後將不支持還原，請知悉';
 
 $lang->custom->scoreStatus[1] = '開啟';
 $lang->custom->scoreStatus[0] = '關閉';

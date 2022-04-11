@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The control file of tutorial module of ZenTaoPMS.
  *
@@ -51,9 +52,9 @@ class tutorial extends control
      */
     public function ajaxSetTasks($finish = 'keepAll')
     {
-        if($_POST && isset($_POST['finish'])) $finish = $_POST['finish'];
+        if ($_POST && isset($_POST['finish'])) $finish = $_POST['finish'];
 
-        if($finish == 'keepAll') return $this->send(array('result' => 'fail', 'message' => $this->lang->tutorial->ajaxSetError));
+        if ($finish == 'keepAll') return $this->send(array('result' => 'fail', 'message' => $this->lang->tutorial->ajaxSetError));
         $account = $this->app->user->account;
         $this->session->set('tutorialMode', false);
         $this->loadModel('setting')->setItem("$account.tutorial.tasks.setting", $finish);
@@ -72,8 +73,8 @@ class tutorial extends control
     {
         $this->session->set('tutorialMode', false);
         $this->loadModel('setting')->setItem($this->app->user->account . '.common.global.novice', 0);
-        if(empty($referer)) $referer = helper::safe64Encode(helper::createLink('my', 'index', '', 'html'));
-        die(js::locate(helper::safe64Decode($referer), 'parent'));
+        if (empty($referer)) $referer = helper::safe64Encode(helper::createLink('my', 'index', '', 'html'));
+        echo js::locate(helper::safe64Decode($referer), 'parent');
     }
 
     /**
@@ -86,7 +87,7 @@ class tutorial extends control
     {
         $this->session->set('tutorialMode', false);
         $this->loadModel('setting')->setItem($this->app->user->account . '.common.global.novice', 0);
-        die(json_encode(array('result' => 'success')));
+        echo json_encode(array('result' => 'success'));
     }
 
     /**
@@ -100,36 +101,35 @@ class tutorial extends control
      */
     public function wizard($module, $method, $params = '')
     {
-        if(!defined('TUTORIAL')) define('TUTORIAL', true);
+        if (!defined('TUTORIAL')) define('TUTORIAL', true);
         define('WIZARD_MODULE', $module);
         define('WIZARD_METHOD', $method);
 
         /* Check priv for tutorial. */
         $hasPriv = false;
         $moduleLower = strtolower($module);
-        foreach($this->lang->tutorial->tasks as $task)
-        {
+        foreach ($this->lang->tutorial->tasks as $task) {
             $taskModule     = strtolower($task['nav']['module']);
             $taskMenuModule = strtolower($task['nav']['menuModule']);
-            if($taskModule == $moduleLower or $taskMenuModule == $moduleLower)
-            {
+            if ($taskModule == $moduleLower or $taskMenuModule == $moduleLower) {
                 $hasPriv = true;
                 break;
             }
         }
-        if(!$hasPriv and $module == 'my' and $method == 'index') $hasPriv = true;
-        if(!$hasPriv) die(js::locate('back'));
+        if (!$hasPriv and $module == 'my' and $method == 'index') $hasPriv = true;
+        if (!$hasPriv) return print(js::locate('back'));
 
         $params = helper::safe64Decode($params);
-        if($_POST)
-        {
+        if ($_POST) {
             $target = 'parent';
-            if(($module == 'story' or $module == 'task' or $module == 'bug') and $method == 'create') $target = 'self';
-            if($module == 'execution' and $method == 'linkStory') $target = 'self';
-            if($module == 'execution' and $method == 'managemembers') $target = 'self';
-            die(js::locate(helper::createLink('tutorial', 'wizard', "module=$module&method=$method&params=" . helper::safe64Encode($params)), $target));
+            if (($module == 'story' or $module == 'task' or $module == 'bug') and $method == 'create') $target = 'self';
+            if ($module == 'execution' and $method == 'linkStory') $target = 'self';
+            if ($module == 'execution' and $method == 'managemembers') $target = 'self';
+
+            if (helper::isAjaxRequest()) return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => helper::createLink('tutorial', 'wizard', "module=$module&method=$method&params=" . helper::safe64Encode($params))));
+            return print(js::locate(helper::createLink('tutorial', 'wizard', "module=$module&method=$method&params=" . helper::safe64Encode($params)), $target));
         }
-        die($this->fetch($module, $method, $params));
+        echo $this->fetch($module, $method, $params);
     }
 
     /**
@@ -144,7 +144,7 @@ class tutorial extends control
     public function ajaxSaveNovice($novice = 'true', $reload = 'false')
     {
         $this->loadModel('setting')->setItem($this->app->user->account . '.common.global.novice', $novice == true ? 1 : 0);
-        if($reload == 'true') die(js::reload('parent'));
+        if ($reload == 'true') return print(js::reload('parent'));
     }
 
     /**

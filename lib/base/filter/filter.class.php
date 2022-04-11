@@ -1,4 +1,5 @@
 <?php
+
 /**
  * ZenTaoPHP的验证和过滤类。
  * The validater and fixer class file of ZenTaoPHP framework.
@@ -51,26 +52,20 @@ class baseValidater
     public static function checkInt($var)
     {
         $args = func_get_args();
-        if($var != 0) $var = ltrim($var, 0);  // 去掉变量左边的0，00不是Int类型
+        if ($var != 0) $var = ltrim($var, 0);  // 去掉变量左边的0，00不是Int类型
         // Remove the left 0, filter don't think 00 is an int.
 
         /* 如果设置了最小的整数。  Min is setted.  */
-        if(isset($args[1]))
-        {
+        if (isset($args[1])) {
             /* 如果最大的整数也设置了。  And Max is setted.  */
-            if(isset($args[2]))
-            {
+            if (isset($args[2])) {
                 $options = array('options' => array('min_range' => $args[1], 'max_range' => $args[2]));
-            }
-            else
-            {
+            } else {
                 $options = array('options' => array('min_range' => $args[1]));
             }
 
             return filter_var($var, FILTER_VALIDATE_INT, $options);
-        }
-        else
-        {
+        } else {
             return filter_var($var, FILTER_VALIDATE_INT);
         }
     }
@@ -157,7 +152,7 @@ class baseValidater
      */
     public static function checkMobile($var)
     {
-        return preg_match("/^1[3-5,7,8]{1}[0-9]{9}$/", $var) ? true : false;
+        return preg_match("/^1[3-9]{1}[0-9]{9}$/", $var) ? true : false;
     }
 
     /**
@@ -205,11 +200,10 @@ class baseValidater
      */
     public static function checkIP($var, $range = 'all')
     {
-        if($range == 'all') return filter_var($var, FILTER_VALIDATE_IP);
-        if($range == 'public static') return filter_var($var, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE);
-        if($range == 'private')
-        {
-            if($var == '127.0.0.1' or filter_var($var, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE) === false) return true;
+        if ($range == 'all') return filter_var($var, FILTER_VALIDATE_IP);
+        if ($range == 'public static') return filter_var($var, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE);
+        if ($range == 'private') {
+            if ($var == '127.0.0.1' or filter_var($var, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE) === false) return true;
             return false;
         }
     }
@@ -223,7 +217,7 @@ class baseValidater
      */
     public static function checkIdcard($idcard)
     {
-        if(strlen($idcard) != 18) return false;
+        if (strlen($idcard) != 18) return false;
         $idcard   = strtoupper($idcard);
         $cityList = array(
             '11', '12', '13', '14', '15', '21', '22',
@@ -233,9 +227,9 @@ class baseValidater
             '63', '64', '65', '71', '81', '82', '91'
         );
 
-        if(!preg_match('/^([\d]{17}[xX\d]|[\d]{15})$/', $idcard)) return false;
+        if (!preg_match('/^([\d]{17}[xX\d]|[\d]{15})$/', $idcard)) return false;
 
-        if(!in_array(substr($idcard, 0, 2), $cityList)) return false;
+        if (!in_array(substr($idcard, 0, 2), $cityList)) return false;
 
         $baseCode     = substr($idcard, 0, 17);
         $verifyCode   = substr($idcard, 17, 1);
@@ -244,7 +238,7 @@ class baseValidater
         $verifyConfig = array('1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2');
 
         $total = 0;
-        for($i = 0; $i < 17; $i++) $total += substr($baseCode, $i, 1) * $interference[$i];
+        for ($i = 0; $i < 17; $i++) $total += substr($baseCode, $i, 1) * $interference[$i];
 
         $mod = $total % 11;
 
@@ -262,9 +256,9 @@ class baseValidater
      */
     public static function checkDate($date)
     {
-        if(empty($date)) return true;
-        if($date == '0000-00-00') return true;
-        if(preg_match("/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/", $date, $parts)) return checkdate($parts[2], $parts[3], $parts[1]);
+        if (empty($date)) return true;
+        if ($date == '0000-00-00') return true;
+        if (preg_match("/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/", $date, $parts)) return checkdate($parts[2], $parts[3], $parts[1]);
         return false;
     }
 
@@ -278,11 +272,11 @@ class baseValidater
      */
     public static function checkDatetime($datetime)
     {
-        if(empty($datetime)) return true;
-        if($datetime == '0000-00-00') return true;
-        if($datetime == '0000-00-00 00:00:00') return true;
+        if (empty($datetime)) return true;
+        if ($datetime == '0000-00-00') return true;
+        if ($datetime == '0000-00-00 00:00:00') return true;
         $date = substr($datetime, 0, 10);
-        if(preg_match("/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/", $date, $parts)) return checkdate($parts[2], $parts[3], $parts[1]);
+        if (preg_match("/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/", $date, $parts)) return checkdate($parts[2], $parts[3], $parts[1]);
         return false;
     }
 
@@ -387,7 +381,7 @@ class baseValidater
      */
     public static function checkCaptcha($var)
     {
-        if(!isset($_SESSION['captcha'])) return false;
+        if (!isset($_SESSION['captcha'])) return false;
         return $var == $_SESSION['captcha'];
     }
 
@@ -493,7 +487,7 @@ class baseValidater
      */
     public static function checkIn($var, $value)
     {
-        if(!is_array($value)) $value = explode(',', $value);
+        if (!is_array($value)) $value = explode(',', $value);
         return in_array($var, $value);
     }
 
@@ -523,13 +517,11 @@ class baseValidater
      */
     public static function checkSensitive($vars, $dicts)
     {
-        foreach($vars as $var)
-        {
-            if(!$var) continue;
-            foreach($dicts as $dict)
-            {
-                if(strpos($var, $dict) === false) continue;
-                if(strpos($var, $dict) !== false) return false;
+        foreach ($vars as $var) {
+            if (!$var) continue;
+            foreach ($dicts as $dict) {
+                if (strpos($var, $dict) === false) continue;
+                if (strpos($var, $dict) !== false) return false;
             }
         }
         return true;
@@ -545,27 +537,20 @@ class baseValidater
     public static function filterFiles()
     {
         global $config;
-        if(empty($_FILES)) return $_FILES;
+        if (empty($_FILES)) return $_FILES;
 
-        foreach($_FILES as $varName => $files)
-        {
-            if(is_array($files['name']))
-            {
-                foreach($files['name'] as $i => $fileName)
-                {
+        foreach ($_FILES as $varName => $files) {
+            if (is_array($files['name'])) {
+                foreach ($files['name'] as $i => $fileName) {
                     $extension = ltrim(strrchr($fileName, '.'), '.');
-                    if(stripos(",{$config->file->dangers},", ",{$extension},") !== false)
-                    {
+                    if (stripos(",{$config->file->dangers},", ",{$extension},") !== false) {
                         unset($_FILES);
                         return array();
                     }
                 }
-            }
-            else
-            {
+            } else {
                 $extension = ltrim(strrchr($files['name'], '.'), '.');
-                if(stripos(",{$config->file->dangers},", ",{$extension},") !== false)
-                {
+                if (stripos(",{$config->file->dangers},", ",{$extension},") !== false) {
                     unset($_FILES);
                     return array();
                 }
@@ -585,23 +570,18 @@ class baseValidater
      */
     public static function filterSuper($super)
     {
-        if(!is_array($super)) return $super;
+        if (!is_array($super)) return $super;
 
         $super = self::filterBadKeys($super);
-        foreach($super as $key => $item)
-        {
-            if(is_array($item))
-            {
+        foreach ($super as $key => $item) {
+            if (is_array($item)) {
                 $item = self::filterBadKeys($item);
-                foreach($item as $subkey => $subItem)
-                {
-                    if(is_array($subItem)) continue;
+                foreach ($item as $subkey => $subItem) {
+                    if (is_array($subItem)) continue;
                     $subItem              = self::filterTrojan($subItem);
                     $super[$key][$subkey] = self::filterXSS($subItem);
                 }
-            }
-            else
-            {
+            } else {
                 $item        = self::filterTrojan($item);
                 $super[$key] = self::filterXSS($item);
             }
@@ -621,8 +601,8 @@ class baseValidater
     public static function filterBadKeys($var)
     {
         global $config;
-        if(empty($config->framework->filterBadKeys)) return $var;
-        foreach($var as $key => $value) if(preg_match('/[^a-zA-Z0-9_\.\-]/', $key)) unset($var[$key]);
+        if (empty($config->framework->filterBadKeys)) return $var;
+        foreach ($var as $key => $value) if (preg_match('/[^a-zA-Z0-9_\.\-]/', $key)) unset($var[$key]);
         return $var;
     }
 
@@ -637,8 +617,8 @@ class baseValidater
     public static function filterTrojan($var)
     {
         global $config;
-        if(empty($config->framework->filterTrojan)) return $var;
-        if(strpos(htmlspecialchars_decode($var), '<?') === false) return $var;
+        if (empty($config->framework->filterTrojan)) return $var;
+        if (strpos(htmlspecialchars_decode($var), '<?') === false) return $var;
 
         $var      = (string)$var;
         $evils    = array('eval', 'exec', 'passthru', 'proc_open', 'shell_exec', 'system', '$$', 'include', 'require', 'assert');
@@ -659,10 +639,9 @@ class baseValidater
     public static function filterXSS($var)
     {
         global $config;
-        if(empty($config->framework->filterXSS)) return $var;
+        if (empty($config->framework->filterXSS)) return $var;
 
-        if(stripos($var, '<script') !== false)
-        {
+        if (stripos($var, '<script') !== false) {
             $var      = (string)$var;
             $evils    = array('appendchild(', 'createElement(', 'xss.re', 'onfocus', 'onclick', 'innerHTML', 'replaceChild(', 'html(', 'append(', 'appendTo(', 'prepend(', 'prependTo(', 'after(', 'insertBefore', 'before(', 'replaceWith(');
             $replaces = array('a p p e n d c h i l d (', 'c r e a t e E l e m e n t (', 'x s s . r e', 'o n f o c u s', 'o n c l i c k', 'i n n e r H T M L', 'r e p l a c e C h i l d (', 'h t m l (', 'a p p e n d (', 'a p p e n d T o (', 'p r e p e n d (', 'p r e p e n d T o (', 'a f t e r (', 'i n s e r t B e f o r e (', 'b e f o r e (', 'r e p l a c e W i t h (');
@@ -692,30 +671,28 @@ class baseValidater
         $methodName = $app->getMethodName();
         $params     = $app->getParams();
 
-        if($type == 'cookie')
-        {
+        if ($moduleName == 'tutorial' and $methodName == 'wizard' and isset($params['module']) and isset($params['method'])) {
+            $moduleName = $params['module'];
+            $methodName = $params['method'];
+        }
+
+        if ($type == 'cookie') {
             $pagerCookie                           = 'pager' . ucfirst($moduleName) . ucfirst($methodName);
             $filter->default->cookie[$pagerCookie] = 'int';
         }
-        foreach($var as $key => $value)
-        {
-            if($config->requestType == 'GET' and $type == 'get' and isset($params[$key])) continue;
+        foreach ($var as $key => $value) {
+            if ($config->requestType == 'GET' and $type == 'get' and isset($params[$key])) continue;
 
             $rules = '';
-            if(isset($filter->{$moduleName}->{$methodName}->{$type}[$key]))
-            {
+            if (isset($filter->{$moduleName}->{$methodName}->{$type}[$key])) {
                 $rules = $filter->{$moduleName}->{$methodName}->{$type}[$key];
-            }
-            elseif(isset($filter->{$moduleName}->default->{$type}[$key]))
-            {
+            } elseif (isset($filter->{$moduleName}->default->{$type}[$key])) {
                 $rules = $filter->{$moduleName}->default->{$type}[$key];
-            }
-            elseif(isset($filter->default->{$type}[$key]))
-            {
+            } elseif (isset($filter->default->{$type}[$key])) {
                 $rules = $filter->default->{$type}[$key];
             }
 
-            if(!self::checkByRule($value, $rules)) unset($var[$key]);
+            if (!self::checkByRule($value, $rules)) unset($var[$key]);
         }
         return $var;
     }
@@ -752,25 +729,20 @@ class baseValidater
      */
     public static function checkByRule($var, $rule)
     {
-        if(empty($rule)) return false;
+        if (empty($rule)) return false;
 
         /* Parse rule to operator and param. */
         list($operator, $param) = baseValidater::parseRuleString($rule);
 
         /* check by operator. */
         $checkMethod = 'check' . $operator;
-        if(method_exists('baseValidater', $checkMethod))
-        {
-            if(empty($param) and self::$checkMethod($var) === false) return false;
-            if(!empty($param) and self::$checkMethod($var, $param) === false) return false;
-        }
-        elseif(function_exists('is_' . $operator))
-        {
+        if (method_exists('baseValidater', $checkMethod)) {
+            if (empty($param) and self::$checkMethod($var) === false) return false;
+            if (!empty($param) and self::$checkMethod($var, $param) === false) return false;
+        } elseif (function_exists('is_' . $operator)) {
             $checkFunction = 'is_' . $operator;
-            if(!$checkFunction($var)) return false;
-        }
-        else
-        {
+            if (!$checkFunction($var)) return false;
+        } else {
             return false;
         }
 
@@ -789,9 +761,9 @@ class baseValidater
     {
         global $filter;
 
-        if(strpos($rule, '::') !== false) list($operator, $param) = explode('::', $rule);
-        if(strpos($rule, '::') === false) list($operator, $param) = array($rule, '');
-        if($operator == 'reg' and isset($filter->rules->$param)) $param = $filter->rules->$param;
+        if (strpos($rule, '::') !== false) list($operator, $param) = explode('::', $rule);
+        if (strpos($rule, '::') === false) list($operator, $param) = array($rule, '');
+        if ($operator == 'reg' and isset($filter->rules->$param)) $param = $filter->rules->$param;
 
         return array($operator, $param);
     }
@@ -848,8 +820,7 @@ class baseFixer
      */
     public function __construct($scope)
     {
-        switch ($scope)
-        {
+        switch ($scope) {
             case 'post':
                 $this->data = (object)$_POST;
                 break;
@@ -901,7 +872,7 @@ class baseFixer
     public function cleanEmail($fieldName)
     {
         $fields = $this->processFields($fieldName);
-        foreach($fields as $fieldName) $this->data->$fieldName = filter_var($this->data->$fieldName, FILTER_SANITIZE_EMAIL);
+        foreach ($fields as $fieldName) $this->data->$fieldName = filter_var($this->data->$fieldName, FILTER_SANITIZE_EMAIL);
         return $this;
     }
 
@@ -917,8 +888,7 @@ class baseFixer
     {
         $fields = $this->processFields($fieldName);
         $args   = func_get_args();
-        foreach($fields as $fieldName)
-        {
+        foreach ($fields as $fieldName) {
             $this->data->$fieldName = isset($args[1]) ? filter_var($this->data->$fieldName, FILTER_SANITIZE_ENCODED, $args[1]) : filter_var($this->data->$fieldName, FILTER_SANITIZE_ENCODED);
         }
         return $this;
@@ -935,7 +905,7 @@ class baseFixer
     public function cleanURL($fieldName)
     {
         $fields = $this->processFields($fieldName);
-        foreach($fields as $fieldName) $this->data->$fieldName = filter_var($this->data->$fieldName, FILTER_SANITIZE_URL);
+        foreach ($fields as $fieldName) $this->data->$fieldName = filter_var($this->data->$fieldName, FILTER_SANITIZE_URL);
         return $this;
     }
 
@@ -950,7 +920,7 @@ class baseFixer
     public function cleanFloat($fieldName)
     {
         $fields = $this->processFields($fieldName);
-        foreach($fields as $fieldName) $this->data->$fieldName = (float)filter_var($this->data->$fieldName, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION | FILTER_FLAG_ALLOW_THOUSAND);
+        foreach ($fields as $fieldName) $this->data->$fieldName = (float)filter_var($this->data->$fieldName, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION | FILTER_FLAG_ALLOW_THOUSAND);
         return $this;
     }
 
@@ -965,10 +935,9 @@ class baseFixer
     public function cleanINT($fieldName = '')
     {
         $fields = $this->processFields($fieldName);
-        foreach($fields as $fieldName)
-        {
+        foreach ($fields as $fieldName) {
             $filterVar = filter_var($this->data->$fieldName, FILTER_SANITIZE_NUMBER_INT);
-            if(empty($filterVar)) $filterVar = 0;
+            if (empty($filterVar)) $filterVar = 0;
 
             $this->data->$fieldName = (int)$filterVar;
         }
@@ -986,10 +955,8 @@ class baseFixer
     public function specialChars($fieldName)
     {
         $fields = $this->processFields($fieldName);
-        foreach($fields as $fieldName)
-        {
-            if(empty($this->stripedFields) or !isset($this->stripedFields[$fieldName]))
-            {
+        foreach ($fields as $fieldName) {
+            if (empty($this->stripedFields) or !isset($this->stripedFields[$fieldName])) {
                 $this->data->$fieldName          = $this->specialArray($this->data->$fieldName);
                 $this->stripedFields[$fieldName] = $fieldName;
             }
@@ -1006,9 +973,9 @@ class baseFixer
      */
     public function specialArray($data)
     {
-        if(!is_array($data)) return htmlspecialchars($data, ENT_QUOTES);
+        if (!is_array($data)) return htmlspecialchars($data, ENT_QUOTES);
 
-        foreach($data as &$value) $value = $this->specialArray($value);
+        foreach ($data as &$value) $value = $this->specialArray($value);
 
         return $data;
     }
@@ -1026,10 +993,8 @@ class baseFixer
     public function stripTags($fieldName, $allowedTags = '', $attributes = array())
     {
         $fields = $this->processFields($fieldName);
-        foreach($fields as $fieldName)
-        {
-            if(!isset($this->stripedFields[$fieldName]) and (!defined('RUN_MODE') or RUN_MODE != 'admin'))
-            {
+        foreach ($fields as $fieldName) {
+            if (!isset($this->stripedFields[$fieldName]) and (!defined('RUN_MODE') or RUN_MODE != 'admin')) {
                 $this->data->$fieldName = self::stripDataTags($this->data->$fieldName, $allowedTags, $attributes);
 
                 /* Code for bug #2721. */
@@ -1052,16 +1017,14 @@ class baseFixer
      */
     public static function stripDataTags($data, $allowedTags = '', $attributes = array())
     {
-        if(empty($data)) return $data;
+        if (empty($data)) return $data;
 
         global $app, $config;
-        if(empty($allowedTags) and isset($config->allowedTags)) $allowedTags = $config->allowedTags;
+        if (empty($allowedTags) and isset($config->allowedTags)) $allowedTags = $config->allowedTags;
         $usePurifier = isset($config->framework->purifier) ? $config->framework->purifier : false;
-        if($usePurifier)
-        {
+        if ($usePurifier) {
             static $purifier;
-            if(empty($purifier))
-            {
+            if (empty($purifier)) {
                 $app->loadClass('purifier', true);
                 $purifierConfig = HTMLPurifier_Config::createDefault();
                 $purifierConfig->set('Filter.YouTube', 1);
@@ -1076,10 +1039,8 @@ class baseFixer
                 $def      = $purifierConfig->getHTMLDefinition(true);
                 $def->addAttribute('a', 'target', 'Enum#_blank,_self,_target,_top');
 
-                if(!empty($attributes))
-                {
-                    foreach($attributes as $attribute)
-                    {
+                if (!empty($attributes)) {
+                    foreach ($attributes as $attribute) {
                         list($element, $attribute, $values) = explode('|', $attribute);
                         $def->addAttribute($element, $attribute, $values);
                     }
@@ -1093,9 +1054,9 @@ class baseFixer
          **/
         $data = preg_replace('/<[^>]+</', '<', $data);
         $data = preg_replace('/>[^<]+>/', '>', $data);
-        if($usePurifier) $data = str_replace('&nbsp;', '&spnb;', $data);
+        if ($usePurifier) $data = str_replace('&nbsp;', '&spnb;', $data);
         $data = $usePurifier ? $purifier->purify($data) : strip_tags($data, $allowedTags);
-        if($usePurifier) $data = str_replace('&amp;spnb;', '&nbsp;', $data);
+        if ($usePurifier) $data = str_replace('&amp;spnb;', '&nbsp;', $data);
 
         return $data;
     }
@@ -1111,7 +1072,7 @@ class baseFixer
     public function trim($fieldName)
     {
         $fields = $this->processFields($fieldName);
-        foreach($fields as $fieldName) $this->data->$fieldName = trim($this->data->$fieldName);
+        foreach ($fields as $fieldName) $this->data->$fieldName = trim($this->data->$fieldName);
         return $this;
     }
 
@@ -1126,7 +1087,7 @@ class baseFixer
     public function skipSpecial($fieldName)
     {
         $fields = $this->processFields($fieldName);
-        foreach($fields as $fieldName) $this->stripedFields[$fieldName] = $fieldName;
+        foreach ($fields as $fieldName) $this->stripedFields[$fieldName] = $fieldName;
         return $this;
     }
 
@@ -1141,7 +1102,7 @@ class baseFixer
     public function quote($fieldName)
     {
         $fields = $this->processFields($fieldName);
-        foreach($fields as $fieldName) $this->data->$fieldName = filter_var($this->data->$fieldName, FILTER_SANITIZE_MAGIC_QUOTES);
+        foreach ($fields as $fieldName) $this->data->$fieldName = filter_var($this->data->$fieldName, FILTER_SANITIZE_MAGIC_QUOTES);
         return $this;
     }
 
@@ -1157,7 +1118,7 @@ class baseFixer
     public function setDefault($fields, $value)
     {
         $fields = strpos($fields, ',') ? explode(',', str_replace(' ', '', $fields)) : array($fields);
-        foreach($fields as $fieldName) if(!isset($this->data->$fieldName) or empty($this->data->$fieldName)) $this->data->$fieldName = $value;
+        foreach ($fields as $fieldName) if (!isset($this->data->$fieldName) or empty($this->data->$fieldName)) $this->data->$fieldName = $value;
         return $this;
     }
 
@@ -1172,9 +1133,8 @@ class baseFixer
     public function json($fields)
     {
         $fields = strpos($fields, ',') ? explode(',', str_replace(' ', '', $fields)) : array($fields);
-        foreach($fields as $field)
-        {
-            if(isset($this->data->$field)) $this->data->$field = json_encode($this->data->$field);
+        foreach ($fields as $field) {
+            if (isset($this->data->$field)) $this->data->$field = json_encode($this->data->$field);
         }
 
         return $this;
@@ -1191,9 +1151,8 @@ class baseFixer
     public function unHtml($fields)
     {
         $fields = strpos($fields, ',') ? explode(',', str_replace(' ', '', $fields)) : array($fields);
-        foreach($fields as $field)
-        {
-            if(isset($this->data->$field)) $this->data->$field = htmlspecialchars_decode($this->data->$field);
+        foreach ($fields as $field) {
+            if (isset($this->data->$field)) $this->data->$field = htmlspecialchars_decode($this->data->$field);
         }
 
         return $this;
@@ -1211,7 +1170,7 @@ class baseFixer
      */
     public function setIF($condition, $fieldName, $value)
     {
-        if($condition) $this->data->$fieldName = $value;
+        if ($condition) $this->data->$fieldName = $value;
         return $this;
     }
 
@@ -1241,7 +1200,7 @@ class baseFixer
     public function remove($fieldName)
     {
         $fields = $this->processFields($fieldName);
-        foreach($fields as $fieldName) unset($this->data->$fieldName);
+        foreach ($fields as $fieldName) unset($this->data->$fieldName);
         return $this;
     }
 
@@ -1257,7 +1216,7 @@ class baseFixer
     public function removeIF($condition, $fields)
     {
         $fields = $this->processFields($fields);
-        if($condition) foreach($fields as $fieldName) unset($this->data->$fieldName);
+        if ($condition) foreach ($fields as $fieldName) unset($this->data->$fieldName);
         return $this;
     }
 
@@ -1288,7 +1247,7 @@ class baseFixer
      */
     public function addIF($condition, $fieldName, $value)
     {
-        if($condition) $this->data->$fieldName = $value;
+        if ($condition) $this->data->$fieldName = $value;
         return $this;
     }
 
@@ -1303,7 +1262,7 @@ class baseFixer
      */
     public function join($fieldName, $value)
     {
-        if(!isset($this->data->$fieldName) or !is_array($this->data->$fieldName)) return $this;
+        if (!isset($this->data->$fieldName) or !is_array($this->data->$fieldName)) return $this;
         $this->data->$fieldName = join($value, $this->data->$fieldName);
         return $this;
     }
@@ -1320,7 +1279,7 @@ class baseFixer
     public function callFunc($fieldName, $func)
     {
         $fields = $this->processFields($fieldName);
-        foreach($fields as $fieldName) $this->data->$fieldName = filter_var($this->data->$fieldName, FILTER_CALLBACK, array('options' => $func));
+        foreach ($fields as $fieldName) $this->data->$fieldName = filter_var($this->data->$fieldName, FILTER_CALLBACK, array('options' => $func));
         return $this;
     }
 
@@ -1335,16 +1294,15 @@ class baseFixer
     public function get($fields = '')
     {
         $fields = str_replace(' ', '', trim($fields));
-        foreach($this->data as $field => $value) $this->specialChars($field);
+        foreach ($this->data as $field => $value) $this->specialChars($field);
 
-        if(empty($fields)) return $this->data;
-        if(strpos($fields, ',') === false) return $this->data->$fields;
+        if (empty($fields)) return $this->data;
+        if (strpos($fields, ',') === false) return $this->data->$fields;
 
         $fields = array_flip(explode(',', $fields));
-        foreach($this->data as $field => $value)
-        {
-            if(!isset($fields[$field])) unset($this->data->$field);
-            if(!isset($this->stripedFields[$field])) $this->specialChars($field);
+        foreach ($this->data as $field => $value) {
+            if (!isset($fields[$field])) unset($this->data->$field);
+            if (!isset($this->stripedFields[$field])) $this->specialChars($field);
         }
 
         return $this->data;
@@ -1361,7 +1319,7 @@ class baseFixer
     public function processFields($fields)
     {
         $fields = strpos($fields, ',') ? explode(',', str_replace(' ', '', $fields)) : array($fields);
-        foreach($fields as $key => $fieldName) if(!isset($this->data->$fieldName)) unset($fields[$key]);
+        foreach ($fields as $key => $fieldName) if (!isset($this->data->$fieldName)) unset($fields[$key]);
         return $fields;
     }
 }

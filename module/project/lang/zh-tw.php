@@ -155,8 +155,6 @@ $lang->project->etc                = "等";
 $lang->project->product            = '所屬產品';
 $lang->project->branch             = '所屬分支';
 $lang->project->plan               = '所屬計劃';
-$lang->project->createKanban       = '添加看板';
-$lang->project->kanban             = '看板';
 
 /* Project Kanban. */
 $lang->project->typeList = array();
@@ -222,7 +220,6 @@ $lang->project->currencySymbol['SGD'] = 'S$';
 
 $lang->project->modelList['scrum']     = "Scrum";
 $lang->project->modelList['waterfall'] = "瀑布";
-$lang->project->modelList['kanban']    = "看板";
 
 $lang->project->featureBar['all']       = '所有';
 $lang->project->featureBar['doing']     = '進行中';
@@ -255,10 +252,6 @@ $lang->project->endList[186] = '半年';
 $lang->project->endList[365] = '一年';
 $lang->project->endList[999] = '長期';
 
-$lang->project->scrumTitle     = '敏捷開發全流程項目管理';
-$lang->project->waterfallTitle = '瀑布式項目管理';
-$lang->project->kanbanTitle    = '專業研發看板項目管理';
-
 $lang->project->empty                  = '暫時沒有項目';
 $lang->project->nextStep               = '下一步';
 $lang->project->hoursUnit              = '%s 工時';
@@ -267,6 +260,7 @@ $lang->project->lastIteration          = "近期{$lang->executionCommon}";
 $lang->project->ongoingStage           = '進行中的階段';
 $lang->project->scrum                  = 'Scrum';
 $lang->project->waterfall              = '瀑布';
+$lang->project->waterfallTitle         = '瀑布式項目管理';
 $lang->project->cannotCreateChild      = '該項目已經有實際的內容，無法直接添加子項目。您可以為當前項目創建一個父項目，然後在新的父項目下面添加子項目。';
 $lang->project->confirmDelete          = "您確定要刪除嗎？";
 $lang->project->emptyPM                = '暫無';
@@ -284,6 +278,7 @@ $lang->project->programTitle['end']  = '只顯示最後一級項目集';
 
 $lang->project->accessDenied        = '您無權訪問該項目！';
 $lang->project->chooseProgramType   = '選擇項目管理方式';
+$lang->project->scrumTitle          = '敏捷開發全流程項目管理';
 $lang->project->cannotCreateChild   = '該項目已經有實際的內容，無法直接添加子項目。您可以為當前項目創建一個父項目，然後在新的父項目下面添加子項目。';
 $lang->project->hasChildren         = '該項目有子項目存在，不能刪除。';
 $lang->project->confirmDelete       = "您確定刪除項目[%s]嗎？";

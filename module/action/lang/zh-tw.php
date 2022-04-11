@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The action module zh-tw file of ZenTaoPMS.
  *
@@ -85,6 +86,7 @@ $lang->action->periods['lastmonth'] = $lang->action->dynamic->lastMonth;
 $lang->action->objectTypes['product']          = $lang->productCommon;
 $lang->action->objectTypes['branch']           = '分支';
 $lang->action->objectTypes['story']            = $lang->SRCommon;
+$lang->action->objectTypes['requirement']      = $lang->URCommon;
 $lang->action->objectTypes['design']           = '設計';
 $lang->action->objectTypes['productplan']      = '計劃';
 $lang->action->objectTypes['release']          = '發佈';
@@ -127,78 +129,68 @@ $lang->action->objectTypes['gitlabgroup']      = 'GitLab群組';
 $lang->action->objectTypes['gitlabbranch']     = 'GitLab分支';
 $lang->action->objectTypes['gitlabbranchpriv'] = 'GitLab保護分支';
 $lang->action->objectTypes['gitlabtag']        = 'GitLab標籤';
-$lang->action->objectTypes['gitlabtagpriv']    = 'GitLab標籤保護';
 $lang->action->objectTypes['kanbanspace']      = '看板空間';
 $lang->action->objectTypes['kanban']           = '看板';
 $lang->action->objectTypes['kanbanregion']     = '看板區域';
 $lang->action->objectTypes['kanbanlane']       = '看板泳道';
 $lang->action->objectTypes['kanbancolumn']     = '看板列';
 $lang->action->objectTypes['kanbancard']       = '看板卡片';
-$lang->action->objectTypes['sonarqube']        = 'SonarQube伺服器';
-$lang->action->objectTypes['sonarqubeproject'] = 'SonarQube項目';
 
 /* 用來描述操作歷史記錄。*/
 $lang->action->desc = new stdclass();
-$lang->action->desc->common               = '$date, <strong>$action</strong> by <strong>$actor</strong>。' . "\n";
-$lang->action->desc->extra                = '$date, <strong>$action</strong> as <strong>$extra</strong> by <strong>$actor</strong>。' . "\n";
-$lang->action->desc->opened               = '$date, 由 <strong>$actor</strong> 創建。' . "\n";
-$lang->action->desc->openedbysystem       = '$date, 由系統創建。' . "\n";
-$lang->action->desc->created              = '$date, 由 <strong>$actor</strong> 創建。' . "\n";
-$lang->action->desc->added                = '$date, 由 <strong>$actor</strong> 添加。' . "\n";
-$lang->action->desc->changed              = '$date, 由 <strong>$actor</strong> 變更。' . "\n";
-$lang->action->desc->edited               = '$date, 由 <strong>$actor</strong> 編輯。' . "\n";
-$lang->action->desc->assigned             = '$date, 由 <strong>$actor</strong> 指派給 <strong>$extra</strong>。' . "\n";
-$lang->action->desc->closed               = '$date, 由 <strong>$actor</strong> 關閉。' . "\n";
-$lang->action->desc->closedbysystem       = '$date, 由系統關閉。' . "\n";
-$lang->action->desc->deleted              = '$date, 由 <strong>$actor</strong> 刪除。' . "\n";
-$lang->action->desc->deletedfile          = '$date, 由 <strong>$actor</strong> 刪除了附件：<strong><i>$extra</i></strong>。' . "\n";
-$lang->action->desc->editfile             = '$date, 由 <strong>$actor</strong> 編輯了附件：<strong><i>$extra</i></strong>。' . "\n";
-$lang->action->desc->erased               = '$date, 由 <strong>$actor</strong> 刪除。' . "\n";
-$lang->action->desc->undeleted            = '$date, 由 <strong>$actor</strong> 還原。' . "\n";
-$lang->action->desc->hidden               = '$date, 由 <strong>$actor</strong> 隱藏。' . "\n";
-$lang->action->desc->commented            = '$date, 由 <strong>$actor</strong> 添加備註。' . "\n";
-$lang->action->desc->activated            = '$date, 由 <strong>$actor</strong> 激活。' . "\n";
-$lang->action->desc->blocked              = '$date, 由 <strong>$actor</strong> 阻塞。' . "\n";
-$lang->action->desc->moved                = '$date, 由 <strong>$actor</strong> 移動，之前為 "$extra"。' . "\n";
-$lang->action->desc->confirmed            = '$date, 由 <strong>$actor</strong> 確認' . $lang->SRCommon . '變動，最新版本為<strong>#$extra</strong>。' . "\n";
-$lang->action->desc->caseconfirmed        = '$date, 由 <strong>$actor</strong> 確認用例變動，最新版本為<strong>#$extra</strong>。' . "\n";
-$lang->action->desc->bugconfirmed         = '$date, 由 <strong>$actor</strong> 確認Bug。' . "\n";
-$lang->action->desc->frombug              = '$date, 由 <strong>$actor</strong> Bug轉化而來，Bug編號為 <strong>$extra</strong>。';
-$lang->action->desc->started              = '$date, 由 <strong>$actor</strong> 啟動。' . "\n";
-$lang->action->desc->restarted            = '$date, 由 <strong>$actor</strong> 繼續。' . "\n";
-$lang->action->desc->delayed              = '$date, 由 <strong>$actor</strong> 延期。' . "\n";
-$lang->action->desc->suspended            = '$date, 由 <strong>$actor</strong> 掛起。' . "\n";
-$lang->action->desc->recordestimate       = '$date, 由 <strong>$actor</strong> 記錄工時，消耗 <strong>$extra</strong> 小時。';
-$lang->action->desc->editestimate         = '$date, 由 <strong>$actor</strong> 編輯工時。';
-$lang->action->desc->deleteestimate       = '$date, 由 <strong>$actor</strong> 刪除工時。';
-$lang->action->desc->canceled             = '$date, 由 <strong>$actor</strong> 取消。' . "\n";
-$lang->action->desc->svncommited          = '$date, 由 <strong>$actor</strong> 提交代碼，版本為<strong>#$extra</strong>。' . "\n";
-$lang->action->desc->gitcommited          = '$date, 由 <strong>$actor</strong> 提交代碼，版本為<strong>#$extra</strong>。' . "\n";
-$lang->action->desc->finished             = '$date, 由 <strong>$actor</strong> 完成。' . "\n";
-$lang->action->desc->paused               = '$date, 由 <strong>$actor</strong> 暫停。' . "\n";
-$lang->action->desc->verified             = '$date, 由 <strong>$actor</strong> 驗收。' . "\n";
-$lang->action->desc->diff1                = '修改了 <strong><i>%s</i></strong>，舊值為 "%s"，新值為 "%s"。<br />' . "\n";
-$lang->action->desc->diff2                = '修改了 <strong><i>%s</i></strong>，區別為：' . "\n" . "<blockquote class='textdiff'>%s</blockquote>" . "\n<blockquote class='original'>%s</blockquote>";
-$lang->action->desc->diff3                = '將檔案名 %s 改為 %s 。' . "\n";
-$lang->action->desc->linked2bug           = '$date 由 <strong>$actor</strong> 關聯到版本 <strong>$extra</strong>';
-$lang->action->desc->linked2testtask      = '$date 由 <strong>$actor</strong> 關聯到測試單 <strong>$extra</strong>';
-$lang->action->desc->unlinkedfromtesttask = '$date 由 <strong>$actor</strong> 從測試單 <strong>$extra</strong> 中移除';
-$lang->action->desc->resolved             = '$date, 由 <strong>$actor</strong> 解決。' . "\n";
-$lang->action->desc->managed              = '$date, 由 <strong>$actor</strong> 維護。' . "\n";
-$lang->action->desc->estimated            = '$date, 由 <strong>$actor</strong> 估算。' . "\n";
-$lang->action->desc->run                  = '$date, 由 <strong>$actor</strong> 執行。' . "\n";
-$lang->action->desc->syncprogram          = '$date, 由 <strong>$actor</strong> 啟動(因項目開始而啟動項目集)。' . "\n";
-$lang->action->desc->syncproject          = '$date, 系統判斷由於執行開始，將項目狀態置為進行中。' . "\n";
-$lang->action->desc->syncexecution        = '$date, 系統判斷由於任務開始，將執行狀態置為進行中。' . "\n";
-$lang->action->desc->importfromgitlab     = '$date, 由 <strong>$actor</strong> 從Gitlab的Issue關聯創建。' . "\n";
-$lang->action->desc->archived             = '$date, 由 <strong>$actor</strong> 歸檔。' . "\n";
-$lang->action->desc->restore              = '$date, 由 <strong>$actor</strong> 還原。' . "\n";
-$lang->action->desc->importedcard         = '$date, 由 <strong>$actor</strong> 從看板 <strong>$extra</strong> 導入。' . "\n";
-$lang->action->desc->importedproductplan  = '$date, 由 <strong>$actor</strong> 從產品計劃 <strong>$extra</strong> 導入。' . "\n";
-$lang->action->desc->importedrelease      = '$date, 由 <strong>$actor</strong> 從產品發佈 <strong>$extra</strong> 導入。' . "\n";
-$lang->action->desc->importedexecution    = '$date, 由 <strong>$actor</strong> 從項目執行 <strong>$extra</strong> 導入。' . "\n";
-$lang->action->desc->importedbuild        = '$date, 由 <strong>$actor</strong> 從項目版本 <strong>$extra</strong> 導入。' . "\n";
-$lang->action->desc->fromsonarqube        = '$date, 由 <strong>$actor</strong> 從<strong>SonarQube問題</strong>轉化而來。' . "\n";
+$lang->action->desc->common           = '$date, <strong>$action</strong> by <strong>$actor</strong>。' . "\n";
+$lang->action->desc->extra            = '$date, <strong>$action</strong> as <strong>$extra</strong> by <strong>$actor</strong>。' . "\n";
+$lang->action->desc->opened           = '$date, 由 <strong>$actor</strong> 創建。' . "\n";
+$lang->action->desc->openedbysystem   = '$date, 由系統創建。' . "\n";
+$lang->action->desc->created          = '$date, 由 <strong>$actor</strong> 創建。' . "\n";
+$lang->action->desc->added            = '$date, 由 <strong>$actor</strong> 添加。' . "\n";
+$lang->action->desc->changed          = '$date, 由 <strong>$actor</strong> 變更。' . "\n";
+$lang->action->desc->edited           = '$date, 由 <strong>$actor</strong> 編輯。' . "\n";
+$lang->action->desc->assigned         = '$date, 由 <strong>$actor</strong> 指派給 <strong>$extra</strong>。' . "\n";
+$lang->action->desc->closed           = '$date, 由 <strong>$actor</strong> 關閉。' . "\n";
+$lang->action->desc->closedbysystem   = '$date, 由系統關閉。' . "\n";
+$lang->action->desc->deleted          = '$date, 由 <strong>$actor</strong> 刪除。' . "\n";
+$lang->action->desc->deletedfile      = '$date, 由 <strong>$actor</strong> 刪除了附件：<strong><i>$extra</i></strong>。' . "\n";
+$lang->action->desc->editfile         = '$date, 由 <strong>$actor</strong> 編輯了附件：<strong><i>$extra</i></strong>。' . "\n";
+$lang->action->desc->erased           = '$date, 由 <strong>$actor</strong> 刪除。' . "\n";
+$lang->action->desc->undeleted        = '$date, 由 <strong>$actor</strong> 還原。' . "\n";
+$lang->action->desc->hidden           = '$date, 由 <strong>$actor</strong> 隱藏。' . "\n";
+$lang->action->desc->commented        = '$date, 由 <strong>$actor</strong> 添加備註。' . "\n";
+$lang->action->desc->activated        = '$date, 由 <strong>$actor</strong> 激活。' . "\n";
+$lang->action->desc->blocked          = '$date, 由 <strong>$actor</strong> 阻塞。' . "\n";
+$lang->action->desc->moved            = '$date, 由 <strong>$actor</strong> 移動，之前為 "$extra"。' . "\n";
+$lang->action->desc->confirmed        = '$date, 由 <strong>$actor</strong> 確認' . $lang->SRCommon . '變動，最新版本為<strong>#$extra</strong>。' . "\n";
+$lang->action->desc->caseconfirmed    = '$date, 由 <strong>$actor</strong> 確認用例變動，最新版本為<strong>#$extra</strong>。' . "\n";
+$lang->action->desc->bugconfirmed     = '$date, 由 <strong>$actor</strong> 確認Bug。' . "\n";
+$lang->action->desc->frombug          = '$date, 由 <strong>$actor</strong> Bug轉化而來，Bug編號為 <strong>$extra</strong>。';
+$lang->action->desc->started          = '$date, 由 <strong>$actor</strong> 啟動。' . "\n";
+$lang->action->desc->restarted        = '$date, 由 <strong>$actor</strong> 繼續。' . "\n";
+$lang->action->desc->delayed          = '$date, 由 <strong>$actor</strong> 延期。' . "\n";
+$lang->action->desc->suspended        = '$date, 由 <strong>$actor</strong> 掛起。' . "\n";
+$lang->action->desc->recordestimate   = '$date, 由 <strong>$actor</strong> 記錄工時，消耗 <strong>$extra</strong> 小時。';
+$lang->action->desc->editestimate     = '$date, 由 <strong>$actor</strong> 編輯工時。';
+$lang->action->desc->deleteestimate   = '$date, 由 <strong>$actor</strong> 刪除工時。';
+$lang->action->desc->canceled         = '$date, 由 <strong>$actor</strong> 取消。' . "\n";
+$lang->action->desc->svncommited      = '$date, 由 <strong>$actor</strong> 提交代碼，版本為<strong>#$extra</strong>。' . "\n";
+$lang->action->desc->gitcommited      = '$date, 由 <strong>$actor</strong> 提交代碼，版本為<strong>#$extra</strong>。' . "\n";
+$lang->action->desc->finished         = '$date, 由 <strong>$actor</strong> 完成。' . "\n";
+$lang->action->desc->paused           = '$date, 由 <strong>$actor</strong> 暫停。' . "\n";
+$lang->action->desc->verified         = '$date, 由 <strong>$actor</strong> 驗收。' . "\n";
+$lang->action->desc->diff1            = '修改了 <strong><i>%s</i></strong>，舊值為 "%s"，新值為 "%s"。<br />' . "\n";
+$lang->action->desc->diff2            = '修改了 <strong><i>%s</i></strong>，區別為：' . "\n" . "<blockquote class='textdiff'>%s</blockquote>" . "\n<blockquote class='original'>%s</blockquote>";
+$lang->action->desc->diff3            = '將檔案名 %s 改為 %s 。' . "\n";
+$lang->action->desc->linked2bug       = '$date 由 <strong>$actor</strong> 關聯到版本 <strong>$extra</strong>';
+$lang->action->desc->linked2testtask  = '$date 由 <strong>$actor</strong> 關聯到測試單 <strong>$extra</strong>';
+$lang->action->desc->resolved         = '$date, 由 <strong>$actor</strong> 解決。' . "\n";
+$lang->action->desc->managed          = '$date, 由 <strong>$actor</strong> 維護。' . "\n";
+$lang->action->desc->estimated        = '$date, 由 <strong>$actor</strong> 估算。' . "\n";
+$lang->action->desc->run              = '$date, 由 <strong>$actor</strong> 執行。' . "\n";
+$lang->action->desc->syncprogram      = '$date, 由 <strong>$actor</strong> 啟動(因項目開始而啟動項目集)。' . "\n";
+$lang->action->desc->syncproject      = '$date, 系統判斷由於執行開始，將項目狀態置為進行中。' . "\n";
+$lang->action->desc->syncexecution    = '$date, 系統判斷由於任務開始，將執行狀態置為進行中。' . "\n";
+$lang->action->desc->importfromgitlab = '$date, 由 <strong>$actor</strong> 從Gitlab的Issue關聯創建。' . "\n";
+$lang->action->desc->archived         = '$date, 由 <strong>$actor</strong> 歸檔。' . "\n";
+$lang->action->desc->restore          = '$date, 由 <strong>$actor</strong> 還原。' . "\n";
 
 /* 用來描述和父子任務相關的操作歷史記錄。*/
 $lang->action->desc->createchildren     = '$date, 由 <strong>$actor</strong> 創建子任務 <strong>$extra</strong>。' . "\n";
@@ -332,18 +324,6 @@ $lang->action->label->importfromgitlab      = '從Gitlab關聯創建了';
 $lang->action->label->archived              = '歸檔了';
 $lang->action->label->restore               = '還原了';
 $lang->action->label->mergedbranch          = '合併分支';
-$lang->action->label->startedbychild        = '開始了';
-$lang->action->label->finishedbychild       = '完成了';
-$lang->action->label->closedbychild         = '關閉了';
-$lang->action->label->activatedbychild      = '激活了';
-$lang->action->label->createchild           = '激活了';
-$lang->action->label->executed              = '執行了';
-$lang->action->label->importedcard          = '導入了';
-$lang->action->label->importedproductplan   = '導入了';
-$lang->action->label->importedrelease       = '導入了';
-$lang->action->label->importedexecution     = '導入了';
-$lang->action->label->importedbuild         = '導入了';
-$lang->action->label->fromsonarqube         = '由SonarQube問題創建';
 
 /* 動態信息按照對象分組 */
 $lang->action->dynamicAction                    = new stdclass();
@@ -384,12 +364,8 @@ $lang->action->dynamicAction->branch['activated']        = '激活分支';
 $lang->action->dynamicAction->branch['setdefaultbranch'] = '設置預設分支';
 $lang->action->dynamicAction->branch['mergebranch']      = '合併分支';
 
-$lang->action->dynamicAction->productplan['opened']    = "創建計劃";
-$lang->action->dynamicAction->productplan['edited']    = "編輯計劃";
-$lang->action->dynamicAction->productplan['started']   = "開始計劃";
-$lang->action->dynamicAction->productplan['finished']  = "完成計劃";
-$lang->action->dynamicAction->productplan['closed']    = "關閉計劃";
-$lang->action->dynamicAction->productplan['activated'] = "激活計劃";
+$lang->action->dynamicAction->productplan['opened'] = "創建計劃";
+$lang->action->dynamicAction->productplan['edited'] = "編輯計劃";
 
 $lang->action->dynamicAction->release['opened']       = '創建發佈';
 $lang->action->dynamicAction->release['edited']       = '編輯發佈';
@@ -521,7 +497,6 @@ $lang->action->dynamicAction->bug['linked2release']      = 'Bug關聯發佈';
 $lang->action->dynamicAction->bug['unlinkedfromrelease'] = '發佈移除Bug';
 $lang->action->dynamicAction->bug['linked2bug']          = 'Bug關聯版本';
 $lang->action->dynamicAction->bug['unlinkedfrombuild']   = '版本移除Bug';
-$lang->action->dynamicAction->bug['fromsonarqube']       = '由SonarQube問題創建';
 
 $lang->action->dynamicAction->testtask['opened']    = '創建測試單';
 $lang->action->dynamicAction->testtask['edited']    = '編輯測試單';
@@ -584,22 +559,6 @@ $lang->action->dynamicAction->user['loginxuanxuan'] = '登錄客戶端';
 $lang->action->dynamicAction->entry['created'] = '添加應用';
 $lang->action->dynamicAction->entry['edited']  = '編輯應用';
 
-$lang->action->dynamicAction->job['created']   = '創建構建任務';
-$lang->action->dynamicAction->job['edited']    = '編輯構建任務';
-$lang->action->dynamicAction->job['executed']  = '執行構建任務';
-$lang->action->dynamicAction->job['deleted']   = '刪除構建任務';
-$lang->action->dynamicAction->job['undeleted'] = '還原構建任務';
-
-$lang->action->dynamicAction->sonarqube['created'] = '創建SonarQube伺服器';
-$lang->action->dynamicAction->sonarqube['edited']  = '設置SonarQube伺服器';
-$lang->action->dynamicAction->sonarqube['deleted'] = '刪除SonarQube伺服器';
-
-$lang->action->dynamicAction->sonarqubeproject['deleted'] = '刪除SonarQube項目';
-
-$lang->action->dynamicAction->gitlab['created'] = '創建GitLab伺服器';
-$lang->action->dynamicAction->gitlab['edited']  = '設置GitLab伺服器';
-$lang->action->dynamicAction->gitlab['deleted'] = '刪除GitLab伺服器';
-
 /* 用來生成相應對象的連結。*/
 $lang->action->label->product     = $lang->productCommon . '|product|view|productID=%s';
 $lang->action->label->productplan = "計劃|productplan|view|productID=%s";
@@ -607,12 +566,9 @@ $lang->action->label->release     = '發佈|release|view|productID=%s';
 $lang->action->label->story       = "{$lang->SRCommon}|story|view|storyID=%s";
 $lang->action->label->program     = "項目集|program|product|programID=%s";
 $lang->action->label->project     = "項目|project|index|projectID=%s";
-if($config->systemMode == 'new')
-{
+if ($config->systemMode == 'new') {
     $lang->action->label->execution = "執行|execution|task|executionID=%s";
-}
-else
-{
+} else {
     $lang->action->label->execution = "$lang->executionCommon|execution|task|executionID=%s";
 }
 $lang->action->label->task         = '任務|task|view|taskID=%s';
@@ -635,7 +591,7 @@ $lang->action->label->issue        = '問題|issue|view|issueID=%s';
 $lang->action->label->design       = '設計|design|view|designID=%s';
 $lang->action->label->stakeholder  = '干係人|stakeholder|view|userID=%s';
 $lang->action->label->api          = '介面|api|index|libID=%s&moduleID=%s&apiID=%s';
-$lang->action->label->kanbanspace  = '看板空間|kanban|space|browseType=%s';
+$lang->action->label->kanbanspace  = '看板空間|kanban|space|browseType=all';
 $lang->action->label->kanbanregion = '看板區域|kanban|view|kanbanID=%s';
 $lang->action->label->kanban       = '看板|kanban|view|kanbanID=%s';
 $lang->action->label->kanbancolumn = '看板列|execution|kanban|execution=%s';

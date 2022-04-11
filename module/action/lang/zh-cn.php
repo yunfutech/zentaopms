@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The action module zh-cn file of ZenTaoPMS.
  *
@@ -46,14 +47,15 @@ $lang->action->comment     = '备注';
 $lang->action->undeleteAction = '还原数据';
 $lang->action->hideOneAction  = '隐藏数据';
 
-$lang->action->trashTips      = '提示：为了保证系统的完整性，禅道系统的删除都是标记删除。';
-$lang->action->textDiff       = '文本格式';
-$lang->action->original       = '原始格式';
-$lang->action->confirmHideAll = '您确定要全部隐藏这些记录吗？';
-$lang->action->needEdit       = '要还原%s的名称或代号已经存在，请编辑更改。';
-$lang->action->historyEdit    = '历史记录编辑不能为空。';
-$lang->action->noDynamic      = '暂时没有动态。';
-$lang->action->undeletedTips  = '该数据在版本升级过程中未参与数据归并流程，不支持还原。';
+$lang->action->trashTips          = '提示：为了保证系统的完整性，禅道系统的删除都是标记删除。';
+$lang->action->textDiff           = '文本格式';
+$lang->action->original           = '原始格式';
+$lang->action->confirmHideAll     = '您确定要全部隐藏这些记录吗？';
+$lang->action->needEdit           = '要还原%s的名称或代号已经存在，请编辑更改。';
+$lang->action->historyEdit        = '历史记录编辑不能为空。';
+$lang->action->noDynamic          = '暂时没有动态。';
+$lang->action->undeletedTips      = '该数据在版本升级过程中未参与数据归并流程，不支持还原。';
+$lang->action->executionNoProject = '该执行没有所属的项目，请先还原项目再还原执行';
 
 $lang->action->history = new stdclass();
 $lang->action->history->action = '关联日志';
@@ -85,6 +87,7 @@ $lang->action->periods['lastmonth'] = $lang->action->dynamic->lastMonth;
 $lang->action->objectTypes['product']          = $lang->productCommon;
 $lang->action->objectTypes['branch']           = '分支';
 $lang->action->objectTypes['story']            = $lang->SRCommon;
+$lang->action->objectTypes['requirement']      = $lang->URCommon;
 $lang->action->objectTypes['design']           = '设计';
 $lang->action->objectTypes['productplan']      = '计划';
 $lang->action->objectTypes['release']          = '发布';
@@ -117,8 +120,8 @@ $lang->action->objectTypes['entry']            = '应用';
 $lang->action->objectTypes['webhook']          = 'Webhook';
 $lang->action->objectTypes['team']             = '团队';
 $lang->action->objectTypes['whitelist']        = '白名单';
-$lang->action->objectTypes['pipeline']         = 'GitLab';
-$lang->action->objectTypes['gitlab']           = 'GitLab';
+$lang->action->objectTypes['pipeline']         = 'GitLab服务器';
+$lang->action->objectTypes['gitlab']           = 'GitLab服务器';
 $lang->action->objectTypes['jenkins']          = 'Jenkins';
 $lang->action->objectTypes['mr']               = '合并请求';
 $lang->action->objectTypes['gitlabproject']    = 'GitLab项目';
@@ -188,8 +191,8 @@ $lang->action->desc->managed              = '$date, 由 <strong>$actor</strong> 
 $lang->action->desc->estimated            = '$date, 由 <strong>$actor</strong> 估算。' . "\n";
 $lang->action->desc->run                  = '$date, 由 <strong>$actor</strong> 执行。' . "\n";
 $lang->action->desc->syncprogram          = '$date, 由 <strong>$actor</strong> 启动(因项目开始而启动项目集)。' . "\n";
-$lang->action->desc->syncproject          = '$date, 系统判断由于执行开始，将项目状态置为进行中。' . "\n";
-$lang->action->desc->syncexecution        = '$date, 系统判断由于任务开始，将执行状态置为进行中。' . "\n";
+$lang->action->desc->syncproject          = '$date, 系统判断由于' . $lang->executionCommon . '开始，将项目状态置为进行中。' . "\n";
+$lang->action->desc->syncexecution        = '$date, 系统判断由于任务开始，将' . $lang->executionCommon . '状态置为进行中。' . "\n";
 $lang->action->desc->importfromgitlab     = '$date, 由 <strong>$actor</strong> 从Gitlab的Issue关联创建。' . "\n";
 $lang->action->desc->archived             = '$date, 由 <strong>$actor</strong> 归档。' . "\n";
 $lang->action->desc->restore              = '$date, 由 <strong>$actor</strong> 还原。' . "\n";
@@ -344,6 +347,8 @@ $lang->action->label->importedrelease       = '导入了';
 $lang->action->label->importedexecution     = '导入了';
 $lang->action->label->importedbuild         = '导入了';
 $lang->action->label->fromsonarqube         = '由SonarQube问题创建';
+$lang->action->label->bind                  = '绑定了';
+$lang->action->label->unbind                = '取消绑定了';
 
 /* 动态信息按照对象分组 */
 $lang->action->dynamicAction                    = new stdclass();
@@ -607,12 +612,9 @@ $lang->action->label->release     = '发布|release|view|productID=%s';
 $lang->action->label->story       = "{$lang->SRCommon}|story|view|storyID=%s";
 $lang->action->label->program     = "项目集|program|product|programID=%s";
 $lang->action->label->project     = "项目|project|index|projectID=%s";
-if($config->systemMode == 'new')
-{
+if ($config->systemMode == 'new') {
     $lang->action->label->execution = "执行|execution|task|executionID=%s";
-}
-else
-{
+} else {
     $lang->action->label->execution = "$lang->executionCommon|execution|task|executionID=%s";
 }
 $lang->action->label->task         = '任务|task|view|taskID=%s';
@@ -642,6 +644,8 @@ $lang->action->label->kanbancolumn = '看板列|execution|kanban|execution=%s';
 $lang->action->label->kanbanlane   = '看板泳道|execution|kanban|execution=%s&type=all';
 $lang->action->label->kanbancard   = '看板卡片|kanban|view|kanbanID=%s';
 $lang->action->label->mr           = '合并请求|mr|view|id=%s';
+$lang->action->label->gitlab       = 'GitLab服务器|gitlab|view|id=%s';
+$lang->action->label->stage        = '瀑布模型的阶段|stage|browse|';
 
 /* Object type. */
 $lang->action->search = new stdclass();
@@ -818,6 +822,7 @@ $lang->action->label->repocreated                 = "创建评审";
 $lang->action->dynamicAction->task['gitcommited'] = 'git提交';
 $lang->action->dynamicAction->bug['repocreated']  = '创建代码评审';
 $lang->action->desc->createmr                     = '$extra';
+$lang->action->desc->deletemr                     = '$date, 由 <strong>$actor</strong> 取消关联了 <a href="$extra">合并请求</a>。';
 $lang->action->desc->mergedmr                     = '$date, 由 <strong>$actor</strong> 合并了 <a href="$extra">代码</a>。';
 $lang->action->desc->approve                      = '$date, 由 <strong>$actor</strong> 审核通过。';
 $lang->action->desc->reject                       = '$date, 由 <strong>$actor</strong> 拒绝。';

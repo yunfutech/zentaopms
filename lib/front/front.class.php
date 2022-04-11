@@ -1,4 +1,5 @@
 <?php
+
 /**
  * ZenTaoPHP的前端类。
  * The front class file of ZenTaoPHP framework.
@@ -35,9 +36,9 @@ class html extends baseHTML
      */
     static public function a($href = '', $title = '', $target = "_self", $misc = '', $newline = true)
     {
-        if(empty($target)) $target = '_self';
-        if($target != '_self')  $misc .= " target='$target'";
-        if($target == '_blank') $misc .= " rel='noopener noreferrer'";
+        if (empty($target)) $target = '_self';
+        if ($target != '_self')  $misc .= " target='$target'";
+        if ($target == '_blank') $misc .= " rel='noopener noreferrer'";
         return parent::a($href, $title, $misc, $newline);
     }
 
@@ -55,7 +56,7 @@ class html extends baseHTML
     static public function input($name, $value = "", $attrib = "", $autocomplete = false)
     {
         $id = "id='$name'";
-        if(strpos($attrib, 'id=') !== false) $id = '';
+        if (strpos($attrib, 'id=') !== false) $id = '';
         $value = str_replace("'", '&#039;', $value);
         $autocomplete = $autocomplete ? 'autocomplete="on"' : 'autocomplete="off"';
         return "<input type='text' name='$name' {$id} value='$value' $attrib $autocomplete />\n";
@@ -77,16 +78,15 @@ class html extends baseHTML
     static public function checkbox($name, $options, $checked = "", $attrib = "", $type = 'block')
     {
         $options = (array)($options);
-        if(!is_array($options) or empty($options)) return false;
+        if (!is_array($options) or empty($options)) return false;
 
-        if(is_array($checked)) $checked = implode(',', $checked);
+        if (is_array($checked)) $checked = implode(',', $checked);
         $string  = '';
         $checked = ",$checked,";
         $isBlock = $type == 'block';
 
-        foreach($options as $key => $value)
-        {
-            if($isBlock) $string .= "<div class='checkbox-primary'>";
+        foreach ($options as $key => $value) {
+            if ($isBlock) $string .= "<div class='checkbox-primary'>";
             else $string .= "<div class='checkbox-primary checkbox-inline'>";
             $string .= "<input type='checkbox' name='{$name}[]' value='$key' ";
             $string .= (strpos($checked, ",$key,") !== false) ? " checked ='checked'" : "";
@@ -156,21 +156,19 @@ class html extends baseHTML
     static public function select($name = '', $options = array(), $selectedItems = "", $attrib = "", $append = false)
     {
         $options = (array)($options);
-        if($append and !isset($options[$selectedItems])) $options[$selectedItems] = $selectedItems;
+        if ($append and !isset($options[$selectedItems])) $options[$selectedItems] = $selectedItems;
 
         /* The begin. */
         $id = $name;
-        if(strpos($name, '[') !== false) $id = trim(str_replace(']', '', str_replace('[', '', $name)));
+        if (strpos($name, '[') !== false) $id = trim(str_replace(']', '', str_replace('[', '', $name)));
         $id = "id='{$id}'";
-        if(strpos($attrib, 'id=') !== false) $id = '';
+        if (strpos($attrib, 'id=') !== false) $id = '';
 
         global $config;
         $convertedPinYin = (empty($config->isINT) and class_exists('common')) ? common::convert2Pinyin($options) : array();
-        if(count($options) >= $config->maxCount or isset($config->moreLinks[$name]))
-        {
-            if(strpos($attrib, 'chosen') !== false) $attrib = str_replace('chosen', 'picker-select', $attrib);
-            if(isset($config->moreLinks[$name]))
-            {
+        if (count($options) >= $config->maxCount or isset($config->moreLinks[$name])) {
+            if (strpos($attrib, 'chosen') !== false) $attrib = str_replace('chosen', 'picker-select', $attrib);
+            if (isset($config->moreLinks[$name])) {
                 $link = $config->moreLinks[$name];
                 $attrib .= " data-pickertype='remote' data-pickerremote='" . $link . "'";
             }
@@ -179,10 +177,9 @@ class html extends baseHTML
         $string = "<select name='$name' {$id} $attrib>\n";
 
         /* The options. */
-        if(is_array($selectedItems)) $selectedItems = implode(',', $selectedItems);
+        if (is_array($selectedItems)) $selectedItems = implode(',', $selectedItems);
         $selectedItems   = ",$selectedItems,";
-        foreach($options as $key => $value)
-        {
+        foreach ($options as $key => $value) {
             $optionPinyin = zget($convertedPinYin, $value, '');
             $selected = strpos($selectedItems, ",$key,") !== false ? " selected='selected'" : '';
             $string  .= "<option value='$key'$selected title='{$value}' data-keys='{$optionPinyin}'>$value</option>\n";
@@ -205,7 +202,7 @@ class html extends baseHTML
     static public function number($name, $value = '', $attrib = '')
     {
         $id = "id='$name'";
-        if(strpos($attrib, 'id=') !== false) $id = '';
+        if (strpos($attrib, 'id=') !== false) $id = '';
         $value = str_replace("'", '&#039;', $value);
         return "<input type='number' name='$name' {$id} value='$value' $attrib />\n";
     }
@@ -219,10 +216,10 @@ class html extends baseHTML
     static public function stringToCode($string)
     {
         $stringLength = strlen($string);
-        if($stringLength == 0) return 0;
+        if ($stringLength == 0) return 0;
 
         $code = 0;
-        for($i = 0; $i < $stringLength; ++ $i) $code += ($i + 1) * ord($string[$i]);
+        for ($i = 0; $i < $stringLength; ++$i) $code += ($i + 1) * ord($string[$i]);
         return $code;
     }
 
@@ -245,15 +242,18 @@ class html extends baseHTML
     {
         $userObj = new stdClass();
 
-        if(is_string($user))
-        {
+        if (is_string($user)) {
             $userObj->account = $user;
             $user = $userObj;
-        }
-        elseif(is_array($user))
-        {
+        } elseif (is_array($user)) {
             $userObj->avatar  = $user['avatar'];
             $userObj->account = $user['account'];
+            $userObj->name    = isset($user['name']) ? $user['name'] : (isset($user['realname']) ? $user['realname'] : $user['account']);
+            $user = $userObj;
+        } elseif (is_object($user)) {
+            $userObj->avatar  = $user->avatar;
+            $userObj->account = $user->account;
+            $userObj->name    = isset($user->name) ? $user->name : (isset($user->realname) ? $user->realname : $user->account);
             $user = $userObj;
         }
 
@@ -262,23 +262,40 @@ class html extends baseHTML
         $extraClassName = $hasImage ? ' has-img' : ' has-text';
         $style = '';
 
-        if($size)
-        {
-            if(is_numeric($size)) $style .= "width: $size" . "px; height: $size" . "px; line-height: $size" . 'px;';
+        if ($size) {
+            if (is_numeric($size)) $style .= "width: $size" . "px; height: $size" . "px; line-height: $size" . 'px;';
             $extraClassName .= " avatar-$size";
         }
 
-        if(!$hasImage)
-        {
+        if (!$hasImage) {
             $colorHue = (html::stringToCode($user->account) * $hueDistance) % 360;
             $style   .= "background: hsl($colorHue, $saturation, $lightness);";
-            if(is_numeric($size)) $style .= 'font-size: ' . round($size * 2 / 3) . 'px;';
+            if (is_numeric($size)) $style .= 'font-size: ' . round($size / 2) . 'px;';
         }
 
-        if(!empty($style)) $style = "style='$style'";
+        if (!empty($style)) $style = "style='$style'";
 
         $html  = "<$tag class='avatar$extraClassName $className' $attrib $style>";
-        $html .= $hasImage ? html::image($user->avatar) : '<span>' . strtoupper($user->account[0]) . '</span>';
+        if ($hasImage) {
+            $html .= html::image($user->avatar);
+        } else {
+            $mbLength = mb_strlen($user->name, 'utf-8');
+            $strLength = strlen($user->name);
+
+            $text = '';
+            if ($strLength === $mbLength) {
+                /* Pure alphabet or numbers 纯英文情况 */
+                $text .= strtoupper($user->name[0]);
+            } else if ($strLength % $mbLength == 0 && $strLength % 3 == 0) {
+                /* Pure chinese characters 纯中文的情况 */
+                $text .= $mbLength <= 2 ? $user->name : mb_substr($user->name, $mbLength - 2, $mbLength, 'utf-8');
+            } else {
+                /* Mix of Chinese and English 中英文混合的情况 */
+                $text .= $mbLength <= 2 ? $user->name : mb_substr($user->name, 0, 2, 'utf-8');
+            }
+            $textLength = mb_strlen($text, 'utf-8');
+            $html .= "<span class='text text-len-$textLength'>$text</span>";
+        }
         $html .= "</$tag>";
 
         return $html;
@@ -298,6 +315,22 @@ class html extends baseHTML
     static public function smallAvatar($user, $className = 'avatar-circle', $attrib = '', $tag = 'div')
     {
         return html::avatar($user, 'sm', $className, $attrib, $tag);
+    }
+
+    /**
+     * Create a middle size user avatar.
+     *
+     * @param  string|object $user      User object or user avatar url or user account
+     * @param  string        $className Avatar element class name, default is "avatar-circle"
+     * @param  string        $attrib    Extra attributes on avatar element
+     * @param  string        $tag       Avatar element tag name, default is "div"
+     * @static
+     * @access public
+     * @return string
+     */
+    static public function middleAvatar($user, $className = 'avatar-circle', $attrib = '', $tag = 'div')
+    {
+        return html::avatar($user, 'md', $className, $attrib, $tag);
     }
 
     /**

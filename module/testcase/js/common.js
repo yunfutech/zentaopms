@@ -1,11 +1,8 @@
-$(function()
-{
+$(function () {
     $('#subNavbar a[data-toggle=dropdown]').parent().addClass('dropdown dropdown-hover');
 
-    if(window.flow != 'full')
-    {
-        $('.querybox-toggle').click(function()
-        {
+    if (window.flow != 'full') {
+        $('.querybox-toggle').click(function () {
             $(this).parent().toggleClass('active');
         });
     }
@@ -19,8 +16,7 @@ var newRowID = 0;
  * @access public
  * @return void
  */
-function loadAll(productID)
-{
+function loadAll (productID) {
     loadProductBranches(productID)
 }
 
@@ -30,10 +26,9 @@ function loadAll(productID)
  * @access public
  * @return void
  */
-function loadBranch()
-{
+function loadBranch () {
     var branch = $('#branch').val();
-    if(typeof(branch) == 'undefined') branch = 0;
+    if (typeof (branch) == 'undefined') branch = 0;
     loadProductModules($('#product').val(), branch);
     setStories();
 }
@@ -45,17 +40,14 @@ function loadBranch()
  * @access public
  * @return void
  */
-function loadProductBranches(productID)
-{
+function loadProductBranches (productID) {
     var param = '';
-    if(page == 'create') param = 'active';
+    if (page == 'create') param = 'active';
     $('#branch').remove();
     var param = "productID=" + productID + "&oldBranch=0&param=" + param;
-    if(typeof(tab) != 'undefined' && (tab == 'execution' || tab == 'project')) param += "&projectID=" + objectID;
-    $.get(createLink('branch', 'ajaxGetBranches', param), function(data)
-    {
-        if(data)
-        {
+    if (typeof (tab) != 'undefined' && (tab == 'execution' || tab == 'project')) param += "&projectID=" + objectID;
+    $.get(createLink('branch', 'ajaxGetBranches', param), function (data) {
+        if (data) {
             $('#product').closest('.input-group').append(data);
             $('#branch').css('width', config.currentMethod == 'create' ? '120px' : '95px');
         }
@@ -71,8 +63,7 @@ function loadProductBranches(productID)
  * @access public
  * @return void
  */
-function loadModuleRelated()
-{
+function loadModuleRelated () {
     setStories();
 }
 
@@ -83,17 +74,15 @@ function loadModuleRelated()
  * @access public
  * @return void
  */
-function loadProductModules(productID, branch)
-{
-    if(typeof(branch) == 'undefined') branch = $('#branch').val();
-    if(!branch) branch = 0;
+function loadProductModules (productID, branch) {
+    if (typeof (branch) == 'undefined') branch = $('#branch').val();
+    if (!branch) branch = 0;
     var currentModuleID = config.currentMethod == 'edit' ? $('#module').val() : 0;
     link = createLink('tree', 'ajaxGetOptionMenu', 'productID=' + productID + '&viewtype=case&branch=' + branch + '&rootModuleID=0&returnType=html&fieldID=&needManage=true&extra=&currentModuleID=' + currentModuleID);
-    $('#moduleIdBox').load(link, function()
-    {
+    $('#moduleIdBox').load(link, function () {
         var $inputGroup = $(this);
         $inputGroup.find('select').chosen()
-        if(typeof(caseModule) == 'string') $('#moduleIdBox').prepend("<span class='input-group-addon'>" + caseModule + "</span>");
+        if (typeof (caseModule) == 'string') $('#moduleIdBox').prepend("<span class='input-group-addon'>" + caseModule + "</span>");
         $inputGroup.fixInputGroup();
     });
     setStories();
@@ -106,15 +95,13 @@ function loadProductModules(productID, branch)
  * @access public
  * @return void
  */
-function loadLibModules(libID, branch)
-{
-    if(typeof(branch) == 'undefined') branch = 0;
-    if(!branch) branch = 0;
+function loadLibModules (libID, branch) {
+    if (typeof (branch) == 'undefined') branch = 0;
+    if (!branch) branch = 0;
     link = createLink('tree', 'ajaxGetOptionMenu', 'rootID=' + libID + '&viewtype=caselib&branch=' + branch + '&rootModuleID=0&returnType=html&fieldID=&needManage=true');
-    $('#moduleIdBox').load(link, function()
-    {
+    $('#moduleIdBox').load(link, function () {
         $(this).find('select').chosen()
-        if(typeof(caseModule) == 'string') $('#moduleIdBox').prepend("<span class='input-group-addon'>" + caseModule + "</span>")
+        if (typeof (caseModule) == 'string') $('#moduleIdBox').prepend("<span class='input-group-addon'>" + caseModule + "</span>")
     });
 }
 
@@ -124,18 +111,16 @@ function loadLibModules(libID, branch)
  * @access public
  * @return void
  */
-function setStories()
-{
-    moduleID  = $('#module').val();
+function setStories () {
+    moduleID = $('#module').val();
     productID = $('#product').val();
-    branch    = $('#branch').val();
-    if(typeof(branch) == 'undefined') branch = 0;
+    branch = $('#branch').val();
+    if (typeof (branch) == 'undefined') branch = 0;
     link = createLink('story', 'ajaxGetProductStories', 'productID=' + productID + '&branch=' + branch + '&moduleID=' + moduleID + '&storyID=0&onlyOption=false&status=noclosed&limit=50&type=full&hasParent=1&executionID=' + executionID);
 
-    $.get(link, function(stories)
-    {
+    $.get(link, function (stories) {
         var value = $('#story').val();
-        if(!stories) stories = '<select id="story" name="story"></select>';
+        if (!stories) stories = '<select id="story" name="story"></select>';
         $('#story').replaceWith(stories);
         $('#story').val(value);
         $('#story_chosen').remove();
@@ -151,57 +136,47 @@ function setStories()
  * @access public
  * @return void
  */
-function initSteps(selector)
-{
+function initSteps (selector) {
     /* Fix task #4832. Auto adjust textarea height. */
-    $('textarea.autosize').each(function()
-    {
+    $('textarea.autosize').each(function () {
         $.autoResizeTextarea(this);
     });
 
     var $steps = $(selector || '#steps');
     var $stepTemplate = $('#stepTemplate').detach().removeClass('template').attr('id', null);
     var groupNameText = $steps.data('groupName');
-    var insertStepRow = function($row, count, type, notFocus)
-    {
-        if(count === undefined) count = 1;
+    var insertStepRow = function ($row, count, type, notFocus) {
+        if (count === undefined) count = 1;
         var $step;
-        for(var i = 0; i < count; ++i)
-        {
+        for (var i = 0; i < count; ++i) {
             $step = $stepTemplate.clone();
-            if($row) $row.after($step);
+            if ($row) $row.after($step);
             else $steps.append($step);
             $step.addClass('step-new');
-            if(type) $step.find('.step-type').val(type);
+            if (type) $step.find('.step-type').val(type);
         }
-        if(!notFocus && $step) setTimeout(function(){$step.find('.step-steps').focus();}, 10);
+        if (!notFocus && $step) setTimeout(function () { $step.find('.step-steps').focus(); }, 10);
     };
-    var updateStepType = function($step, type)
-    {
-        var targetIsGroup = type =='group';
+    var updateStepType = function ($step, type) {
+        var targetIsGroup = type == 'group';
         $step.attr('data-type', type).find('.step-steps').addClass('autosize').attr('placeholder', targetIsGroup ? groupNameText : null);
     };
-    var getStepsElements = function()
-    {
+    var getStepsElements = function () {
         return $steps.children('.step:not(.drag-shadow)');
     };
-    var refreshSteps = function(skipAutoAddStep)
-    {
+    var refreshSteps = function (skipAutoAddStep) {
         var parentId = 1, childId = 0;
-        getStepsElements().each(function(idx)
-        {
+        getStepsElements().each(function (idx) {
             var $step = $(this).attr('data-index', idx + 1);
             var type = $step.find('.step-type').val();
             var stepID;
-            if(type == 'group')
-            {
+            if (type == 'group') {
                 $step.removeClass('step-item').removeClass('step-step').addClass('step-group');
                 stepID = parentId++;
                 $step.find('.step-id').text(stepID);
                 childId = 1;
             }
-            else if(type == 'step')
-            {
+            else if (type == 'step') {
                 $step.removeClass('step-item').removeClass('step-group').addClass('step-step');
                 stepID = parentId++;
                 $step.find('.step-id').text(stepID);
@@ -209,7 +184,7 @@ function initSteps(selector)
             }
             else // step type is not set
             {
-                if(childId) // type as child
+                if (childId) // type as child
                 {
                     stepID = (parentId - 1) + '.' + (childId++);
                     $step.removeClass('step-step').removeClass('step-group').addClass('step-item').find('.step-item-id').text(stepID);
@@ -221,43 +196,37 @@ function initSteps(selector)
                     $step.find('.step-id').text(stepID);
                 }
             }
-            $step.find('[name^="steps["]').attr('name', "steps[" +stepID + ']');
-            $step.find('[name^="stepType["]').attr('name', "stepType[" +stepID + ']');
-            $step.find('[name^="expects["]').attr('name', "expects[" +stepID + ']');
+            $step.find('[name^="steps["]').attr('name', "steps[" + stepID + ']');
+            $step.find('[name^="stepType["]').attr('name', "stepType[" + stepID + ']');
+            $step.find('[name^="expects["]').attr('name', "expects[" + stepID + ']');
 
             updateStepType($step, type);
         });
 
         /* Auto insert step to group without any steps */
-        if(!skipAutoAddStep)
-        {
+        if (!skipAutoAddStep) {
             var needRefresh = false;
-            getStepsElements().each(function(idx)
-            {
+            getStepsElements().each(function (idx) {
                 var $step = $(this).attr('data-index', idx + 1);
-                if($step.attr('data-type') !== 'group') return;
+                if ($step.attr('data-type') !== 'group') return;
                 var $nextStep = $step.next('.step:not(.drag-shadow)');
-                if(!$nextStep.length || $nextStep.attr('data-type') !== 'item')
-                {
+                if (!$nextStep.length || $nextStep.attr('data-type') !== 'item') {
                     insertStepRow($step, 1, 'item', true);
                     needRefresh = true;
                 }
             });
 
-            if(needRefresh) refreshSteps(true);
+            if (needRefresh) refreshSteps(true);
         }
     };
-    var initSortable = function()
-    {
+    var initSortable = function () {
         var isMouseDown = false;
         var $moveStep = null, moveOrder = 0;
-        $steps.on('mousedown', '.btn-step-move', function()
-        {
+        $steps.on('mousedown', '.btn-step-move', function () {
             isMouseDown = true;
             $moveStep = $(this).closest('.step').addClass('drag-row');
 
-            $(document).off('.sortable').one('mouseup.sortable', function()
-            {
+            $(document).off('.sortable').one('mouseup.sortable', function () {
                 isMouseDown = false;
                 $moveStep.removeClass('drag-row');
                 $steps.removeClass('sortable-sorting');
@@ -265,44 +234,36 @@ function initSteps(selector)
                 refreshSteps();
             });
             $steps.addClass('sortable-sorting');
-        }).on('mouseenter', '.step:not(.drag-row)', function()
-        {
-            if(!isMouseDown) return;
+        }).on('mouseenter', '.step:not(.drag-row)', function () {
+            if (!isMouseDown) return;
             var $targetStep = $(this);
-            getStepsElements().each(function(idx)
-            {
+            getStepsElements().each(function (idx) {
                 $(this).data('order', idx);
             });
             moveOrder = $moveStep.data('order');
             var targetOrder = $targetStep.data('order');
-            if(moveOrder === targetOrder) return;
-            else if(targetOrder > moveOrder)
-            {
+            if (moveOrder === targetOrder) return;
+            else if (targetOrder > moveOrder) {
                 $targetStep.after($moveStep);
             }
-            else if(targetOrder < moveOrder)
-            {
+            else if (targetOrder < moveOrder) {
                 $targetStep.before($moveStep);
             }
         });
     }
-    $steps.on('click', '.btn-step-add', function()
-    {
+    $steps.on('click', '.btn-step-add', function () {
         insertStepRow($(this).closest('.step'));
         refreshSteps();
-    }).on('click', '.btn-step-delete', function()
-    {
-        if($steps.children('.step').length == 1) return;
+    }).on('click', '.btn-step-delete', function () {
+        if ($steps.children('.step').length == 1) return;
         $(this).closest('.step').remove();
         refreshSteps();
-    }).on('change', '.step-group-toggle', function()
-    {
+    }).on('change', '.step-group-toggle', function () {
         var $checkbox = $(this);
         var $step = $checkbox.closest('.step');
         var isChecked = $checkbox.is(':checked');
         var suggestType = isChecked ? 'group' : 'item';
-        if(!isChecked)
-        {
+        if (!isChecked) {
             var $prevStep = $step.prev('.step:not(.drag-shadow)');
             var suggestChild = $prevStep.length && $prevStep.is('.step-group') && $step.next('.step:not(.drag-shadow)').length;
             suggestType = suggestChild ? 'item' : 'step';
@@ -310,26 +271,21 @@ function initSteps(selector)
         $step.find('.step-type').val(suggestType);
 
         /* Auto insert step to group without any steps */
-        if(suggestType === 'group')
-        {
+        if (suggestType === 'group') {
             var $nextStep = $step.next('.step:not(.drag-shadow)');
-            if(!$nextStep.length || $nextStep.find('.step-type').val() !== 'item')
-            {
+            if (!$nextStep.length || $nextStep.find('.step-type').val() !== 'item') {
                 insertStepRow($step, 1, 'item', true);
             }
         }
 
         refreshSteps();
-    }).on('change', '.form-control', function()
-    {
+    }).on('change', '.form-control', function () {
         var $control = $(this);
-        if($control.val())
-        {
+        if ($control.val()) {
             var $step = $control.closest('.step');
-            if($step.data('index') === getStepsElements().length)
-            {
+            if ($step.data('index') === getStepsElements().length) {
                 insertStepRow($step, 1, 'step', true);
-                if($step.is('.step-item,.step-group')) insertStepRow($step, 1, 'item', true);
+                if ($step.is('.step-item,.step-group')) insertStepRow($step, 1, 'item', true);
                 refreshSteps();
             }
         }
@@ -344,10 +300,9 @@ function initSteps(selector)
  * @access public
  * @return void
  */
-function updateStepID()
-{
+function updateStepID () {
     var i = 1;
-    $('.stepID').each(function(){$(this).html(i ++)});
+    $('.stepID').each(function () { $(this).html(i++) });
 }
 
 /**
@@ -359,18 +314,20 @@ function updateStepID()
  * @access public
  * @return void
  */
-function loadStories(productID, moduleID, num)
-{
+function loadStories (productID, moduleID, num) {
     var branchIDName = config.currentMethod == 'batchcreate' ? '#branch' : '#branches';
-    var branchID     = $(branchIDName + num).val();
-    var storyLink    = createLink('story', 'ajaxGetProductStories', 'productID=' + productID + '&branch=' + branchID + '&moduleID=' + moduleID + '&storyID=0&onlyOption=false&status=noclosed&limit=50&type=full&hasParent=1&executionID=0&number=' + num);
-    $.get(storyLink, function(stories)
-    {
-        if(!stories) modules = '<select id="story' + num + '" name="story[' + num + ']" class="form-control"></select>';
-        $('#story' + num).replaceWith(stories);
-        $('#story' + num + "_chosen").remove();
-        $('#story' + num).next('.picker').remove();
-        $('#story' + num).attr('name', 'story[' + num + ']');
-        $('#story' + num).chosen();
+    var branchID = $(branchIDName + num).val();
+    var storyLink = createLink('story', 'ajaxGetProductStories', 'productID=' + productID + '&branch=' + branchID + '&moduleID=' + moduleID + '&storyID=0&onlyOption=false&status=noclosed&limit=50&type=full&hasParent=1&executionID=0&number=' + num);
+    $.get(storyLink, function (stories) {
+        if (!stories) modules = '<select id="story' + num + '" name="story[' + num + ']" class="form-control"></select>';
+        for (var i = num; i < 10; i++) {
+            if (i != num && $('#module' + i).val() != 'ditto') break;
+            var nowStories = stories.replaceAll('story' + num, 'story' + i);
+            $('#story' + i).replaceWith(nowStories);
+            $('#story' + i + "_chosen").remove();
+            $('#story' + i).next('.picker').remove();
+            $('#story' + i).attr('name', 'story[' + i + ']');
+            $('#story' + i).chosen();
+        }
     });
 }

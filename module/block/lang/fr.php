@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The fr file of block module of ZenTaoPMS.
  *
@@ -67,8 +68,8 @@ $lang->block->createdDocs         = 'Docs Created';
 $lang->block->allExecutions       = 'All ' . $lang->executionCommon;
 $lang->block->doingExecution      = 'Doning ' . $lang->executionCommon;
 $lang->block->finishExecution     = 'Finish ' . $lang->executionCommon;
-$lang->block->estimatedHours      = 'Estimated Hours';
-$lang->block->consumedHours       = 'Consumed Hours';
+$lang->block->estimatedHours      = 'Estimated';
+$lang->block->consumedHours       = 'Cost';
 $lang->block->time                = 'No';
 $lang->block->week                = 'Week';
 $lang->block->month               = 'Month';
@@ -93,15 +94,15 @@ $lang->block->cannotPlaceInLeft  = 'Impossible de placer le bloc à gauche.';
 $lang->block->cannotPlaceInRight = 'Impossible de placer le bloc à droite.';
 
 $lang->block->productName  = $lang->productCommon . ' Name';
-$lang->block->totalStory   = 'The Total ' . $lang->SRCommon;
-$lang->block->totalBug     = 'The Total Bug';
+$lang->block->totalStory   = 'Total';
+$lang->block->totalBug     = 'Total Bug';
 $lang->block->totalRelease = 'Release The Number';
 
 $lang->block->totalInvestment = 'Total investment';
 $lang->block->totalPeople     = 'Total number';
 $lang->block->spent           = 'Has Been Spent';
 $lang->block->budget          = 'Budget';
-$lang->block->left            = 'Residuals';
+$lang->block->left            = 'Remain';
 
 $lang->block->default['waterfall']['project']['3']['title']  = 'Plan Gantt Chart';
 $lang->block->default['waterfall']['project']['3']['block']  = 'waterfallgantt';
@@ -252,8 +253,7 @@ $lang->block->default['full']['my']['3']['grid']            = 4;
 $lang->block->default['full']['my']['3']['source']          = 'todo';
 $lang->block->default['full']['my']['3']['params']['count'] = '20';
 
-if($config->systemMode == 'new')
-{
+if ($config->systemMode == 'new') {
     $lang->block->default['full']['my']['4']['title']           = 'Project Statistic';
     $lang->block->default['full']['my']['4']['block']           = 'statistic';
     $lang->block->default['full']['my']['4']['source']          = 'project';
@@ -284,8 +284,7 @@ $lang->block->default['full']['my']['7']['params']['issueCount']   = '20';
 $lang->block->default['full']['my']['7']['params']['storyCount']   = '20';
 $lang->block->default['full']['my']['7']['params']['meetingCount'] = '20';
 
-if($config->systemMode == 'new')
-{
+if ($config->systemMode == 'new') {
     $lang->block->default['full']['my']['8']['title']  = 'Human Input';
     $lang->block->default['full']['my']['8']['block']  = 'projectteam';
     $lang->block->default['full']['my']['8']['source'] = 'project';
@@ -320,7 +319,7 @@ $lang->block->availableBlocks->risk      = 'My Risks';
 $lang->block->availableBlocks->issue     = 'My Issues';
 $lang->block->availableBlocks->meeting   = 'My Meetings';
 
-if($config->systemMode == 'new') $lang->block->moduleList['project'] = 'Project';
+if ($config->systemMode == 'new') $lang->block->moduleList['project'] = 'Project';
 $lang->block->moduleList['product']   = $lang->productCommon;
 $lang->block->moduleList['execution'] = $lang->execution->common;
 $lang->block->moduleList['qa']        = 'Test';
@@ -331,7 +330,7 @@ $lang->block->modules['project']->availableBlocks = new stdclass();
 $lang->block->modules['project']->availableBlocks->project       = 'Project List';
 $lang->block->modules['project']->availableBlocks->recentproject = 'Recent Projects';
 $lang->block->modules['project']->availableBlocks->statistic     = 'Project Statistic';
-if($config->systemMode == 'new') $lang->block->modules['project']->availableBlocks->projectteam = 'Project Human Input';
+if ($config->systemMode == 'new') $lang->block->modules['project']->availableBlocks->projectteam = 'Project Human Input';
 
 $lang->block->modules['scrum']['index'] = new stdclass();
 $lang->block->modules['scrum']['index']->availableBlocks = new stdclass();

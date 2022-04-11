@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The task entry point of ZenTaoPMS.
  *
@@ -27,44 +28,39 @@ class taskEntry extends Entry
 
         $data = $this->getData();
 
-        if(!$data or !isset($data->status)) return $this->send400('error');
-        if(isset($data->status) and $data->status == 'fail') return $this->sendError(zget($data, 'code', 400), $data->message);
+        if (!$data or !isset($data->status)) return $this->send400('error');
+        if (isset($data->status) and $data->status == 'fail') return $this->sendError(zget($data, 'code', 400), $data->message);
 
         $task = $data->data->task;
 
-        if(!empty($task->children)) $task->children = array_values((array)$task->children);
-        if($task->parent > 0) $task->parentPri = $this->dao->select('pri')->from(TABLE_TASK)->where('id')->eq($task->parent)->fetch('pri');
+        if (!empty($task->children)) $task->children = array_values((array)$task->children);
+        if ($task->parent > 0) $task->parentPri = $this->dao->select('pri')->from(TABLE_TASK)->where('id')->eq($task->parent)->fetch('pri');
 
         /* Set execution name */
         $task->executionName = $data->data->execution->name;
 
         /* Set module title */
         $moduleTitle = '';
-        if(empty($task->module)) $moduleTitle = '/';
-        if($task->module)
-        {
+        if (empty($task->module)) $moduleTitle = '/';
+        if ($task->module) {
             $modulePath = $data->data->modulePath;
-            foreach($modulePath as $key => $module)
-            {
+            foreach ($modulePath as $key => $module) {
                 $moduleTitle .= $module->name;
-                if(isset($modulePath[$key + 1])) $moduleTitle .= '/';
+                if (isset($modulePath[$key + 1])) $moduleTitle .= '/';
             }
         }
         $task->moduleTitle = $moduleTitle;
 
         $queryAccounts = array();
-        if($task->assignedTo) $queryAccounts[$task->assignedTo] = $task->assignedTo;
-        if(!empty($task->team))
-        {
-            foreach($task->team as $account => $team) $queryAccounts[$account] = $account;
+        if ($task->assignedTo) $queryAccounts[$task->assignedTo] = $task->assignedTo;
+        if (!empty($task->team)) {
+            foreach ($task->team as $account => $team) $queryAccounts[$account] = $account;
         }
         $usersWithAvatar = $this->loadModel('user')->getListByAccounts($queryAccounts, 'account');
 
-        if(!empty($task->team))
-        {
+        if (!empty($task->team)) {
             $teams = array();
-            foreach($task->team as $account => $team)
-            {
+            foreach ($task->team as $account => $team) {
                 $user = zget($usersWithAvatar, $account, '');
                 $team->realname = $user ? $user->realname : $account;
                 $team->avatar   = $user ? $user->avatar : '';
@@ -102,13 +98,14 @@ class taskEntry extends Entry
         $oldTask = $this->loadModel('task')->getByID($taskID);
 
         /* Set $_POST variables. */
-        $fields = 'name,type,assignedTo,estimate,left,consumed,story,parent,execution,module,closedReason,status,estStarted,deadline';
+        $fields = 'name,type,desc,assignedTo,pri,estimate,left,consumed,story,parent,execution,module,closedReason,status,estStarted,deadline,team,teamEstimate,multiple,mailto,uid';
         $this->batchSetPost($fields, $oldTask);
 
         $control = $this->loadController('task', 'edit');
         $control->edit($taskID);
 
-        $this->getData();
+        $data = $this->getData();
+        if (isset($data->status) and $data->status == 'fail') return $this->sendError(zget($data, 'code', 400), $data->message);
         $task = $this->task->getByID($taskID);
         $this->send(200, $this->format($task, 'deadline:date,openedBy:user,openedDate:time,assignedTo:user,assignedDate:time,realStarted:time,finishedBy:user,finishedDate:time,closedBy:user,closedDate:time,canceledBy:user,canceledDate:time,lastEditedBy:user,lastEditedDate:time,deleted:bool,mailto:userList'));
     }

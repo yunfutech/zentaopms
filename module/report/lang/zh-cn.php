@@ -231,5 +231,3 @@ $lang->report->executionProgress   = "执行进展";
 $lang->report->projectProgress     = "项目进展";
 $lang->report->yearProjectOverview = "年度项目总览";
 $lang->report->projectOverview     = "截止目前项目总览";
-
-$lang->report->taskboard = '任务看板';

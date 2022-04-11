@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The model file of release module of ZenTaoPMS.
  *
@@ -30,13 +31,13 @@ class projectreleaseModel extends model
             ->where('t1.id')->eq((int)$releaseID)
             ->orderBy('t1.id DESC')
             ->fetch();
-        if(!$release) return false;
+        if (!$release) return false;
 
         $this->loadModel('file');
         $release = $this->file->replaceImgURL($release, 'desc');
         $release->files = $this->file->getByObject('release', $releaseID);
-        if(empty($release->files))$release->files = $this->file->getByObject('build', $release->buildID);
-        if($setImgSize) $release->desc = $this->file->setImgSize($release->desc);
+        if (empty($release->files)) $release->files = $this->file->getByObject('build', $release->buildID);
+        if ($setImgSize) $release->desc = $this->file->setImgSize($release->desc);
         return $release;
     }
 
@@ -110,13 +111,12 @@ class projectreleaseModel extends model
         $projectID = $projectID ? $projectID : $this->session->project;
 
         /* Check build if build is required. */
-        if(strpos($this->config->release->create->requiredFields, 'build') !== false and $this->post->build == false) return dao::$errors[] = sprintf($this->lang->error->notempty, $this->lang->release->build);
+        if (strpos($this->config->release->create->requiredFields, 'build') !== false and $this->post->build == false) return dao::$errors[] = sprintf($this->lang->error->notempty, $this->lang->release->build);
 
         /* Check date must be not more than today. */
-        if($this->post->date > date('Y-m-d')) return dao::$errors[] = $this->lang->release->errorDate;
+        if ($this->post->date > date('Y-m-d')) return dao::$errors[] = $this->lang->release->errorDate;
 
-        if($this->post->build)
-        {
+        if ($this->post->build) {
             $build     = $this->loadModel('build')->getByID($this->post->build);
             $productID = $build->product;
             $branch    = $build->branch;
@@ -138,20 +138,16 @@ class projectreleaseModel extends model
             ->get();
 
         /* Auto create build when release is not link build. */
-        if(empty($release->build) and $release->name)
-        {
+        if (empty($release->build) and $release->name) {
             $build = $this->dao->select('*')->from(TABLE_BUILD)
                 ->where('deleted')->eq('0')
                 ->andWhere('name')->eq($release->name)
                 ->andWhere('product')->eq($productID)
                 ->andWhere('branch')->eq($branch)
                 ->fetch();
-            if($build)
-            {
+            if ($build) {
                 return dao::$errors['build'] = sprintf($this->lang->release->existBuild, $release->name);
-            }
-            else
-            {
+            } else {
                 $build = new stdclass();
                 $build->project   = $projectID;
                 $build->product   = (int)$productID;
@@ -168,19 +164,17 @@ class projectreleaseModel extends model
                     ->check('name', 'unique', "product = '{$productID}' AND branch = '{$branch}' AND deleted = '0'")
                     ->batchCheck('name', 'notempty')
                     ->exec();
-                if(dao::isError()) return false;
+                if (dao::isError()) return false;
 
                 $buildID = $this->dao->lastInsertID();
                 $release->build = $buildID;
             }
         }
 
-        if($release->build)
-        {
+        if ($release->build) {
             $buildInfo = $this->dao->select('branch, stories, bugs')->from(TABLE_BUILD)->where('id')->eq($release->build)->fetch();
             $release->branch = $buildInfo->branch;
-            if($this->post->sync == 'true')
-            {
+            if ($this->post->sync == 'true') {
                 $release->stories = $buildInfo->stories;
                 $release->bugs    = $buildInfo->bugs;
             }
@@ -192,24 +186,33 @@ class projectreleaseModel extends model
             ->batchCheck($this->config->release->create->requiredFields, 'notempty')
             ->check('name', 'unique', "product = {$release->product} AND branch = {$release->branch} AND deleted = '0'");
 
-        if(dao::isError())
-        {
-            if(!empty($buildID)) $this->dao->delete()->from(TABLE_BUILD)->where('id')->eq($buildID)->exec();
+        if (dao::isError()) {
+            if (!empty($buildID)) $this->dao->delete()->from(TABLE_BUILD)->where('id')->eq($buildID)->exec();
             return false;
         }
 
         $this->dao->exec();
 
-        if(dao::isError())
-        {
-            if(!empty($buildID)) $this->dao->delete()->from(TABLE_BUILD)->where('id')->eq($buildID)->exec();
-        }
-        else
-        {
+        if (dao::isError()) {
+            if (!empty($buildID)) $this->dao->delete()->from(TABLE_BUILD)->where('id')->eq($buildID)->exec();
+        } else {
             $releaseID = $this->dao->lastInsertID();
             $this->file->updateObjectID($this->post->uid, $releaseID, 'release');
             $this->file->saveUpload('release', $releaseID);
             $this->loadModel('score')->create('release', 'create', $releaseID);
+
+            /* Set stage to released. */
+            if ($release->stories) {
+                $this->loadModel('story');
+                $this->loadModel('action');
+
+                $storyIDList = array_filter(explode(',', $release->stories));
+                foreach ($storyIDList as $storyID) {
+                    $this->story->setStage($storyID);
+
+                    $this->action->create('story', $storyID, 'linked2release', '', $releaseID);
+                }
+            }
 
             return $releaseID;
         }
@@ -246,8 +249,7 @@ class projectreleaseModel extends model
             ->check('name', 'unique', "id != '$releaseID' AND product = '{$release->product}' AND branch = '$branch' AND deleted = '0'")
             ->where('id')->eq((int)$releaseID)
             ->exec();
-        if(!dao::isError())
-        {
+        if (!dao::isError()) {
             $this->file->updateObjectID($this->post->uid, $releaseID, 'release');
             return common::createChanges($oldRelease, $release);
         }
@@ -265,23 +267,20 @@ class projectreleaseModel extends model
         $release = $this->getByID($releaseID);
         $product = $this->loadModel('product')->getByID($release->product);
 
-        foreach($this->post->stories as $i => $storyID)
-        {
-            if(strpos(",{$release->stories},", ",{$storyID},") !== false) unset($_POST['stories'][$i]);
+        foreach ($this->post->stories as $i => $storyID) {
+            if (strpos(",{$release->stories},", ",{$storyID},") !== false) unset($_POST['stories'][$i]);
         }
 
         $release->stories .= ',' . join(',', $this->post->stories);
         $this->dao->update(TABLE_RELEASE)->set('stories')->eq($release->stories)->where('id')->eq((int)$releaseID)->exec();
 
-        if($release->stories)
-        {
+        if ($release->stories) {
             $this->loadModel('story');
             $this->loadModel('action');
-            foreach($this->post->stories as $storyID)
-            {
+            foreach ($this->post->stories as $storyID) {
                 /* Reset story stagedBy field for auto compute stage. */
                 $this->dao->update(TABLE_STORY)->set('stagedBy')->eq('')->where('id')->eq($storyID)->exec();
-                if($product->type != 'normal') $this->dao->update(TABLE_STORYSTAGE)->set('stagedBy')->eq('')->where('story')->eq($storyID)->andWhere('branch')->eq($release->branch)->exec();
+                if ($product->type != 'normal') $this->dao->update(TABLE_STORYSTAGE)->set('stagedBy')->eq('')->where('story')->eq($storyID)->andWhere('branch')->eq($release->branch)->exec();
 
                 $this->story->setStage($storyID);
 
@@ -320,32 +319,31 @@ class projectreleaseModel extends model
 
         $field = $type == 'bug' ? 'bugs' : 'leftBugs';
 
-        foreach($this->post->bugs as $i => $bugID)
-        {
-            if(strpos(",{$release->$field},", ",{$bugID},") !== false) unset($_POST['bugs'][$i]);
+        foreach ($this->post->bugs as $i => $bugID) {
+            if (strpos(",{$release->$field},", ",{$bugID},") !== false) unset($_POST['bugs'][$i]);
         }
 
         $release->$field .= ',' . join(',', $this->post->bugs);
         $this->dao->update(TABLE_RELEASE)->set($field)->eq($release->$field)->where('id')->eq((int)$releaseID)->exec();
 
         $this->loadModel('action');
-        foreach($this->post->bugs as $bugID) $this->action->create('bug', $bugID, 'linked2release', '', $releaseID);
+        foreach ($this->post->bugs as $bugID) $this->action->create('bug', $bugID, 'linked2release', '', $releaseID);
     }
 
     /**
-     * Judge btn is clickable or not. 
-     * 
-     * @param  int    $release 
-     * @param  string $action 
+     * Judge btn is clickable or not.
+     *
+     * @param  int    $release
+     * @param  string $action
      * @static
      * @access public
-     * @return bool 
+     * @return bool
      */
     public static function isClickable($release, $action)
     {
         $action = strtolower($action);
 
-        if($action == 'notify') return $release->bugs or $release->stories;
+        if ($action == 'notify') return $release->bugs or $release->stories;
         return true;
     }
 }

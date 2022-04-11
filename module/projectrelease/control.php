@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The control file of release module of ZenTaoPMS.
  *
@@ -41,17 +42,15 @@ class projectrelease extends control
      */
     public function commonAction($projectID = 0, $productID = 0, $branch = 0)
     {
-        $this->lang->product->switcherMenu = $this->product->getSwitcher($productID);
-
         /* Get product and product list by project. */
         $this->products = $this->product->getProductPairsByProject($projectID);
-        if(empty($this->products)) return print($this->locate($this->createLink('product', 'showErrorNone', 'moduleName=project&activeMenu=projectrelease&projectID=' . $projectID)));
-        if(!$productID) $productID = key($this->products);
+        if (empty($this->products)) return print($this->locate($this->createLink('product', 'showErrorNone', 'moduleName=project&activeMenu=projectrelease&projectID=' . $projectID)));
+        if (!$productID) $productID = key($this->products);
         $product = $this->product->getById($productID);
 
         $this->view->products = $this->products;
         $this->view->product  = $product;
-        $this->view->branches = (isset($product->type) and $product->type == 'normal') ? array() : $this->loadModel('branch')->getPairs($productID);
+        $this->view->branches = (isset($product->type) and $product->type == 'normal') ? array() : $this->loadModel('branch')->getPairs($productID, 'active');
         $this->view->branch   = $branch;
         $this->view->project  = $this->project->getByID($projectID);
     }
@@ -72,8 +71,8 @@ class projectrelease extends control
         $project   = $this->project->getById($projectID);
         $execution = $this->loadModel('execution')->getById($executionID);
 
-        if($projectID) $this->project->setMenu($projectID);
-        if($executionID) $this->loadModel('execution')->setMenu($executionID, $this->app->rawModule, $this->app->rawMethod);
+        if ($projectID) $this->project->setMenu($projectID);
+        if ($executionID) $this->loadModel('execution')->setMenu($executionID, $this->app->rawModule, $this->app->rawMethod);
 
         $objectName = isset($project->name) ? $project->name : $execution->name;
 
@@ -105,14 +104,13 @@ class projectrelease extends control
         $this->config->projectrelease->create = $this->config->release->create;
         $this->app->loadLang('release');
 
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $releaseID = $this->projectrelease->create($projectID);
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
             $this->loadModel('action')->create('release', $releaseID, 'opened');
 
             $this->executeHooks($releaseID);
-            if($this->viewType == 'json') return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'id' => $releaseID));
+            if ($this->viewType == 'json') return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'id' => $releaseID));
 
             return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => inlink('view', "releaseID=$releaseID")));
         }
@@ -121,9 +119,9 @@ class projectrelease extends control
         $this->commonAction($projectID);
 
         /* Get the builds that can select. */
-        $builds         = $this->build->getBuildPairs(key($this->products), 0, 'notrunk,withbranch', $projectID, 'project');
+        $builds         = $this->build->getBuildPairs(array_keys($this->products), 'all', 'notrunk,withbranch', $projectID, 'project');
         $releasedBuilds = $this->projectrelease->getReleasedBuilds($projectID);
-        foreach($releasedBuilds as $build) unset($builds[$build]);
+        foreach ($releasedBuilds as $build) unset($builds[$build]);
         unset($builds['trunk']);
 
         $this->view->title       = $this->view->project->name . $this->lang->colon . $this->lang->release->create;
@@ -150,17 +148,15 @@ class projectrelease extends control
         $this->app->loadConfig('release');
         $this->config->projectrelease->create = $this->config->release->create;
 
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $changes = $this->projectrelease->update($releaseID);
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
             $files = $this->loadModel('file')->saveUpload('release', $releaseID);
-            if($changes or $files)
-            {
+            if ($changes or $files) {
                 $fileAction = '';
-                if(!empty($files)) $fileAction = $this->lang->addFiles . join(',', $files) . "\n" ;
+                if (!empty($files)) $fileAction = $this->lang->addFiles . join(',', $files) . "\n";
                 $actionID = $this->loadModel('action')->create('release', $releaseID, 'Edited', $fileAction);
-                if(!empty($changes)) $this->action->logHistory($actionID, $changes);
+                if (!empty($changes)) $this->action->logHistory($actionID, $changes);
             }
             $this->executeHooks($releaseID);
             return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => inlink('view', "releaseID=$releaseID")));
@@ -174,9 +170,8 @@ class projectrelease extends control
         /* Get the builds that can select. */
         $builds         = $this->build->getBuildPairs($release->product, $release->branch, 'notrunk|withbranch', $release->project, 'project');
         $releasedBuilds = $this->projectrelease->getReleasedBuilds($release->project);
-        foreach($releasedBuilds as $releasedBuild)
-        {
-            if($releasedBuild != $build->id) unset($builds[$releasedBuild]);
+        foreach ($releasedBuilds as $releasedBuild) {
+            if ($releasedBuild != $build->id) unset($builds[$releasedBuild]);
         }
         unset($builds['trunk']);
 
@@ -217,24 +212,23 @@ class projectrelease extends control
 
         /* Load pager. */
         $this->app->loadClass('pager', $static = true);
-        if($this->app->getViewType() == 'mhtml') $recPerPage = 10;
+        if ($this->app->getViewType() == 'mhtml') $recPerPage = 10;
 
         $release = $this->projectrelease->getByID((int)$releaseID, true);
-        if(!$release)
-        {
-            if(defined('RUN_MODE') && RUN_MODE == 'api') return $this->send(array('status' => 'fail', 'message' => '404 Not found'));
+        if (!$release) {
+            if (defined('RUN_MODE') && RUN_MODE == 'api') return $this->send(array('status' => 'fail', 'message' => '404 Not found'));
             return print(js::error($this->lang->notFound) . js::locate('back'));
         }
 
         $storyPager = new pager($type == 'story' ? $recTotal : 0, $recPerPage, $type == 'story' ? $pageID : 1);
         $stories = $this->dao->select('*')->from(TABLE_STORY)->where('id')->in($release->stories)->andWhere('deleted')->eq(0)
-                ->beginIF($type == 'story')->orderBy($orderBy)->fi()
-                ->page($storyPager)
-                ->fetchAll('id');
+            ->beginIF($type == 'story')->orderBy($orderBy)->fi()
+            ->page($storyPager)
+            ->fetchAll('id');
 
         $this->loadModel('common')->saveQueryCondition($this->dao->get(), 'story');
         $stages = $this->dao->select('*')->from(TABLE_STORYSTAGE)->where('story')->in($release->stories)->andWhere('branch')->eq($release->branch)->fetchPairs('story', 'stage');
-        foreach($stages as $storyID => $stage)$stories[$storyID]->stage = $stage;
+        foreach ($stages as $storyID => $stage) $stories[$storyID]->stage = $stage;
 
         $bugPager = new pager($type == 'bug' ? $recTotal : 0, $recPerPage, $type == 'bug' ? $pageID : 1);
         $bugs = $this->dao->select('*')->from(TABLE_BUG)->where('id')->in($release->bugs)->andWhere('deleted')->eq(0)
@@ -287,10 +281,8 @@ class projectrelease extends control
      */
     public function notify($releaseID)
     {
-        if($_POST)
-        {
-            if(isset($_POST['notify']))
-            {
+        if ($_POST) {
+            if (isset($_POST['notify'])) {
                 $notify = implode(',', $this->post->notify);
                 $this->dao->update(TABLE_RELEASE)->set('notify')->eq($notify)->where('id')->eq($releaseID)->exec();
 
@@ -316,30 +308,23 @@ class projectrelease extends control
      */
     public function delete($releaseID, $confirm = 'no')
     {
-        if($confirm == 'no')
-        {
+        if ($confirm == 'no') {
             return print(js::confirm($this->lang->release->confirmDelete, $this->createLink('projectrelease', 'delete', "releaseID=$releaseID&confirm=yes")));
-        }
-        else
-        {
+        } else {
             $this->release->delete(TABLE_RELEASE, $releaseID);
 
             $release = $this->dao->select('*')->from(TABLE_RELEASE)->where('id')->eq((int)$releaseID)->fetch();
             $build   = $this->dao->select('*')->from(TABLE_BUILD)->where('id')->eq((int)$release->build)->fetch();
-            if(empty($build->execution)) $this->loadModel('build')->delete(TABLE_BUILD, $build->id);
+            if (empty($build->execution)) $this->loadModel('build')->delete(TABLE_BUILD, $build->id);
 
             $this->executeHooks($releaseID);
 
             /* if ajax request, send result. */
-            if($this->server->ajax)
-            {
-                if(dao::isError())
-                {
+            if ($this->server->ajax) {
+                if (dao::isError()) {
                     $response['result']  = 'fail';
                     $response['message'] = dao::getError();
-                }
-                else
-                {
+                } else {
                     $response['result']  = 'success';
                     $response['message'] = '';
                     $release = $this->release->getById($releaseID);
@@ -359,13 +344,11 @@ class projectrelease extends control
      */
     public function export()
     {
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $type = $this->post->type;
             $html = '';
 
-            if($type == 'story' or $type == 'all')
-            {
+            if ($type == 'story' or $type == 'all') {
                 $html .= "<h3>{$this->lang->release->stories}</h3>";
                 $this->loadModel('story');
 
@@ -373,19 +356,17 @@ class projectrelease extends control
                     ->beginIF($this->session->storyOrderBy != false)->orderBy($this->session->storyOrderBy)->fi()
                     ->fetchAll('id');
 
-                foreach($stories as $story) $story->title = "<a href='" . common::getSysURL() . $this->createLink('story', 'view', "storyID=$story->id") . "' target='_blank'>$story->title</a>";
+                foreach ($stories as $story) $story->title = "<a href='" . common::getSysURL() . $this->createLink('story', 'view', "storyID=$story->id") . "' target='_blank'>$story->title</a>";
 
                 $fields = array('id' => $this->lang->story->id, 'title' => $this->lang->story->title);
                 $rows   = $stories;
 
                 $html .= '<table><tr>';
-                foreach($fields as $fieldLabel) $html .= "<th><nobr>$fieldLabel</nobr></th>\n";
+                foreach ($fields as $fieldLabel) $html .= "<th><nobr>$fieldLabel</nobr></th>\n";
                 $html .= '</tr>';
-                foreach($rows as $row)
-                {
+                foreach ($rows as $row) {
                     $html .= "<tr valign='top'>\n";
-                    foreach($fields as $fieldName => $fieldLabel)
-                    {
+                    foreach ($fields as $fieldName => $fieldLabel) {
                         $fieldValue = isset($row->$fieldName) ? $row->$fieldName : '';
                         $html .= "<td><nobr>$fieldValue</nobr></td>\n";
                     }
@@ -394,8 +375,7 @@ class projectrelease extends control
                 $html .= '</table>';
             }
 
-            if($type == 'bug' or $type == 'all')
-            {
+            if ($type == 'bug' or $type == 'all') {
                 $html .= "<h3>{$this->lang->release->bugs}</h3>";
                 $this->loadModel('bug');
 
@@ -403,19 +383,17 @@ class projectrelease extends control
                     ->beginIF($this->session->bugOrderBy != false)->orderBy($this->session->bugOrderBy)->fi()
                     ->fetchAll('id');
 
-                foreach($bugs as $bug) $bug->title = "<a href='" . common::getSysURL() . $this->createLink('bug', 'view', "bugID=$bug->id") . "' target='_blank'>$bug->title</a>";
+                foreach ($bugs as $bug) $bug->title = "<a href='" . common::getSysURL() . $this->createLink('bug', 'view', "bugID=$bug->id") . "' target='_blank'>$bug->title</a>";
 
                 $fields = array('id' => $this->lang->bug->id, 'title' => $this->lang->bug->title);
                 $rows   = $bugs;
 
                 $html .= '<table><tr>';
-                foreach($fields as $fieldLabel) $html .= "<th><nobr>$fieldLabel</nobr></th>\n";
+                foreach ($fields as $fieldLabel) $html .= "<th><nobr>$fieldLabel</nobr></th>\n";
                 $html .= '</tr>';
-                foreach($rows as $row)
-                {
+                foreach ($rows as $row) {
                     $html .= "<tr valign='top'>\n";
-                    foreach($fields as $fieldName => $fieldLabel)
-                    {
+                    foreach ($fields as $fieldName => $fieldLabel) {
                         $fieldValue = isset($row->$fieldName) ? $row->$fieldName : '';
                         $html .= "<td><nobr>$fieldValue</nobr></td>\n";
                     }
@@ -424,27 +402,24 @@ class projectrelease extends control
                 $html .= '</table>';
             }
 
-            if($type == 'leftbug' or $type == 'all')
-            {
+            if ($type == 'leftbug' or $type == 'all') {
                 $html .= "<h3>{$this->lang->release->generatedBugs}</h3>";
 
                 $bugs = $this->dao->select('id, title')->from(TABLE_BUG)->where($this->session->leftBugsQueryCondition)
                     ->beginIF($this->session->bugOrderBy != false)->orderBy($this->session->bugOrderBy)->fi()
                     ->fetchAll('id');
 
-                foreach($bugs as $bug) $bug->title = "<a href='" . common::getSysURL() . $this->createLink('bug', 'view', "bugID=$bug->id") . "' target='_blank'>$bug->title</a>";
+                foreach ($bugs as $bug) $bug->title = "<a href='" . common::getSysURL() . $this->createLink('bug', 'view', "bugID=$bug->id") . "' target='_blank'>$bug->title</a>";
 
                 $fields = array('id' => $this->lang->bug->id, 'title' => $this->lang->bug->title);
                 $rows   = $bugs;
 
                 $html .= '<table><tr>';
-                foreach($fields as $fieldLabel) $html .= "<th><nobr>$fieldLabel</nobr></th>\n";
+                foreach ($fields as $fieldLabel) $html .= "<th><nobr>$fieldLabel</nobr></th>\n";
                 $html .= '</tr>';
-                foreach($rows as $row)
-                {
+                foreach ($rows as $row) {
                     $html .= "<tr valign='top'>\n";
-                    foreach($fields as $fieldName => $fieldLabel)
-                    {
+                    foreach ($fields as $fieldName => $fieldLabel) {
                         $fieldValue = isset($row->$fieldName) ? $row->$fieldName : '';
                         $html .= "<td><nobr>$fieldValue</nobr></td>\n";
                     }
@@ -474,8 +449,7 @@ class projectrelease extends control
      */
     public function linkStory($releaseID = 0, $browseType = '', $param = 0, $recTotal = 0, $recPerPage = 100, $pageID = 1)
     {
-        if(!empty($_POST['stories']))
-        {
+        if (!empty($_POST['stories'])) {
             $this->projectrelease->linkStory($releaseID);
             return print(js::locate(inlink('view', "releaseID=$releaseID&type=story"), 'parent'));
         }
@@ -502,13 +476,10 @@ class projectrelease extends control
         $this->config->product->search['params']['plan']['values']   = $this->loadModel('productplan')->getPairsForStory($release->product, $release->branch, 'skipParent|withMainPlan');
         $this->config->product->search['params']['module']['values'] = $this->loadModel('tree')->getOptionMenu($release->product, 'story', 0, $release->branch);;
         $this->config->product->search['params']['status'] = array('operator' => '=', 'control' => 'select', 'values' => $this->lang->story->statusList);
-        if($release->productType == 'normal')
-        {
+        if ($release->productType == 'normal') {
             unset($this->config->product->search['fields']['branch']);
             unset($this->config->product->search['params']['branch']);
-        }
-        else
-        {
+        } else {
             $this->config->product->search['fields']['branch'] = sprintf($this->lang->product->branch, $this->lang->product->branchName[$release->productType]);
             $branchName = $this->loadModel('branch')->getById($release->branch);
             $branches   = array('' => '', BRANCH_MAIN => $this->lang->branch->main, $release->branch => $branchName);
@@ -516,12 +487,9 @@ class projectrelease extends control
         }
         $this->loadModel('search')->setSearchParams($this->config->product->search);
 
-        if($browseType == 'bySearch')
-        {
+        if ($browseType == 'bySearch') {
             $allStories = $this->story->getBySearch($release->product, $release->branch, $queryID, 'id', $build->execution ? $build->execution : '', 'story', $release->stories, $pager);
-        }
-        else
-        {
+        } else {
             $allStories = $this->story->getExecutionStories($build->execution, $release->product, 0, 't1.`order`_desc', 'byBranch', $release->branch, 'story', $release->stories, $pager);
         }
 
@@ -549,15 +517,11 @@ class projectrelease extends control
         $this->projectrelease->unlinkStory($releaseID, $storyID);
 
         /* if ajax request, send result. */
-        if($this->server->ajax)
-        {
-            if(dao::isError())
-            {
+        if ($this->server->ajax) {
+            if (dao::isError()) {
                 $response['result']  = 'fail';
                 $response['message'] = dao::getError();
-            }
-            else
-            {
+            } else {
                 $response['result']  = 'success';
                 $response['message'] = '';
             }
@@ -594,8 +558,7 @@ class projectrelease extends control
      */
     public function linkBug($releaseID = 0, $browseType = '', $param = 0, $type = 'bug', $recTotal = 0, $recPerPage = 100, $pageID = 1)
     {
-        if(!empty($_POST['bugs']))
-        {
+        if (!empty($_POST['bugs'])) {
             $this->projectrelease->linkBug($releaseID, $type);
             return print(js::locate(inlink('view', "releaseID=$releaseID&type=$type"), 'parent'));
         }
@@ -623,13 +586,10 @@ class projectrelease extends control
         $this->config->bug->search['params']['execution']['values']     = $this->loadModel('product')->getExecutionPairsByProduct($release->product, $release->branch, 'id_desc', $release->project);
         $this->config->bug->search['params']['openedBuild']['values']   = $this->loadModel('build')->getBuildPairs($release->product, $branch = 0, $params = '');
         $this->config->bug->search['params']['resolvedBuild']['values'] = $this->config->bug->search['params']['openedBuild']['values'];
-        if($release->productType == 'normal')
-        {
+        if ($release->productType == 'normal') {
             unset($this->config->bug->search['fields']['branch']);
             unset($this->config->bug->search['params']['branch']);
-        }
-        else
-        {
+        } else {
             $this->config->bug->search['fields']['branch'] = sprintf($this->lang->product->branch, $this->lang->product->branchName[$release->productType]);
             $branchName = $this->loadModel('branch')->getById($release->branch);
             $branches   = array('' => '', BRANCH_MAIN => $this->lang->branch->main, $release->branch => $branchName);
@@ -639,18 +599,12 @@ class projectrelease extends control
 
         $allBugs     = array();
         $releaseBugs = $type == 'bug' ? $release->bugs : $release->leftBugs;
-        if($browseType == 'bySearch')
-        {
+        if ($browseType == 'bySearch') {
             $allBugs = $this->bug->getBySearch($release->product, $release->branch, $queryID, 'id_desc', $releaseBugs, $pager);
-        }
-        elseif($build->execution)
-        {
-            if($type == 'bug')
-            {
+        } elseif ($build->execution) {
+            if ($type == 'bug') {
                 $allBugs = $this->bug->getReleaseBugs($build->id, $release->product, $release->branch, $releaseBugs, $pager);
-            }
-            elseif($type == 'leftBug')
-            {
+            } elseif ($type == 'leftBug') {
                 $allBugs = $this->bug->getProductLeftBugs($build->id, $release->product, $release->branch, $releaseBugs, $pager);
             }
         }
@@ -680,15 +634,11 @@ class projectrelease extends control
         $this->loadModel('release')->unlinkBug($releaseID, $bugID, $type);
 
         /* if ajax request, send result. */
-        if($this->server->ajax)
-        {
-            if(dao::isError())
-            {
+        if ($this->server->ajax) {
+            if (dao::isError()) {
                 $response['result']  = 'fail';
                 $response['message'] = dao::getError();
-            }
-            else
-            {
+            } else {
                 $response['result']  = 'success';
                 $response['message'] = '';
             }
@@ -722,7 +672,7 @@ class projectrelease extends control
     public function changeStatus($releaseID, $status)
     {
         $this->loadModel('release')->changeStatus($releaseID, $status);
-        if(dao::isError()) return print(js::error(dao::getError()));
+        if (dao::isError()) return print(js::error(dao::getError()));
         $actionID = $this->loadModel('action')->create('release', $releaseID, 'changestatus', '', $status);
         return print(js::reload('parent'));
     }

@@ -60,6 +60,7 @@ $lang->mr->approvalResultList['reject']  = '拒绝';
 $lang->mr->needApproved       = '需要通过评审才能合并';
 $lang->mr->needCI             = '需要通过构建才能合并';
 $lang->mr->removeSourceBranch = '合并后删除源分支';
+$lang->mr->squash             = '合并提交';
 
 $lang->mr->repeatedOperation = '请勿重复操作';
 
@@ -80,6 +81,7 @@ $lang->mr->statusList['merged'] = '已合并';
 $lang->mr->statusList['closed'] = '已关闭';
 
 $lang->mr->mergeStatusList = array();
+$lang->mr->mergeStatusList['unchecked']            = '未检查';
 $lang->mr->mergeStatusList['checking']             = '检查中';
 $lang->mr->mergeStatusList['can_be_merged']        = '可合并';
 $lang->mr->mergeStatusList['cannot_be_merged']     = '不可自动合并';

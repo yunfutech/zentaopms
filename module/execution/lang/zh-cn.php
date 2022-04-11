@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The execution module zh-cn file of ZenTaoMS.
  *
@@ -84,7 +85,7 @@ $lang->execution->delayed             = '已延期';
 $lang->execution->product             = $lang->execution->products;
 $lang->execution->readjustTime        = "调整{$lang->executionCommon}起止时间";
 $lang->execution->readjustTask        = '顺延任务的起止时间';
-$lang->execution->effort              = '日志';
+$lang->execution->effort              = '工时';
 $lang->execution->storyEstimate       = '需求估算';
 $lang->execution->newEstimate         = '新一轮估算';
 $lang->execution->reestimate          = '重新估算';
@@ -107,7 +108,7 @@ $lang->execution->unfoldClosed        = '展开已结束';
 $lang->execution->editName            = '编辑名称';
 $lang->execution->setWIP              = '在制品数量设置（WIP）';
 $lang->execution->sortColumn          = '看板列卡片排序';
-$lang->execution->batchCreateStroy    = "批量新建{$lang->SRCommon}";
+$lang->execution->batchCreateStory    = "批量新建{$lang->SRCommon}";
 $lang->execution->batchCreateTask     = '批量建任务';
 $lang->execution->kanbanNoLinkProduct = "看板没有关联{$lang->productCommon}";
 
@@ -117,8 +118,8 @@ $lang->execution->estimate = '预计';
 $lang->execution->consumed = '消耗';
 $lang->execution->left     = '剩余';
 
-if($this->config->systemMode == 'new') $lang->execution->copyTeamTip = "可以选择复制项目或{$lang->execution->common}团队的成员";
-if($this->config->systemMode == 'classic') $lang->execution->copyTeamTip = "可以选择复制{$lang->executionCommon}团队的成员";
+if ($this->config->systemMode == 'new') $lang->execution->copyTeamTip = "可以选择复制项目或{$lang->execution->common}团队的成员";
+if ($this->config->systemMode == 'classic') $lang->execution->copyTeamTip = "可以选择复制{$lang->executionCommon}团队的成员";
 
 $lang->execution->start    = "开始";
 $lang->execution->activate = "激活";
@@ -161,13 +162,10 @@ $lang->execution->statusList['suspended'] = '已挂起';
 $lang->execution->statusList['closed']    = '已关闭';
 
 global $config;
-if($config->systemMode == 'new')
-{
+if ($config->systemMode == 'new') {
     $lang->execution->aclList['private'] = "私有（团队成员和项目负责人、干系人可访问）";
     $lang->execution->aclList['open']    = "继承项目访问权限（能访问当前项目，即可访问）";
-}
-else
-{
+} else {
     $lang->execution->aclList['private'] = "私有（团队成员和{$lang->executionCommon}负责人可访问）";
     $lang->execution->aclList['open']    = "公开（有{$lang->executionCommon}视图权限即可访问）";
 }
@@ -227,7 +225,7 @@ $lang->execution->copy              = "复制{$lang->executionCommon}";
 $lang->execution->delete            = "删除{$lang->executionCommon}";
 $lang->execution->deleteAB          = "删除{$lang->execution->common}";
 $lang->execution->browse            = "浏览{$lang->execution->common}";
-$lang->execution->edit              = "编辑{$lang->executionCommon}";
+$lang->execution->edit              = "设置{$lang->executionCommon}";
 $lang->execution->editAction        = "编辑{$lang->execution->common}";
 $lang->execution->batchEdit         = "编辑";
 $lang->execution->batchEditAction   = "批量编辑";
@@ -292,46 +290,47 @@ $lang->execution->aboveAllProduct   = "以上所有{$lang->productCommon}";
 $lang->execution->aboveAllExecution = "以上所有{$lang->executionCommon}";
 
 /* 页面提示。*/
-$lang->execution->linkStoryByPlanTips = "此操作会将所选计划下面的{$lang->SRCommon}全部关联到此{$lang->executionCommon}中";
-$lang->execution->selectExecution     = "请选择{$lang->execution->common}";
-$lang->execution->beginAndEnd         = '起止时间';
-$lang->execution->lblStats            = '工时统计';
-$lang->execution->stats               = '可用工时 <strong>%s</strong> 工时，总共预计 <strong>%s</strong> 工时，已经消耗 <strong>%s</strong> 工时，预计剩余 <strong>%s</strong> 工时';
-$lang->execution->taskSummary         = "本页共 <strong>%s</strong> 个任务，未开始 <strong>%s</strong>，进行中 <strong>%s</strong>，总预计 <strong>%s</strong> 工时，已消耗 <strong>%s</strong> 工时，剩余 <strong>%s</strong> 工时。";
-$lang->execution->pageSummary         = "本页共 <strong>%total%</strong> 个任务，未开始 <strong>%wait%</strong>，进行中 <strong>%doing%</strong>，总预计 <strong>%estimate%</strong> 工时，已消耗 <strong>%consumed%</strong> 工时，剩余 <strong>%left%</strong> 工时。";
-$lang->execution->checkedSummary      = "选中 <strong>%total%</strong> 个任务，未开始 <strong>%wait%</strong>，进行中 <strong>%doing%</strong>，总预计 <strong>%estimate%</strong> 工时，已消耗 <strong>%consumed%</strong> 工时，剩余 <strong>%left%</strong> 工时。";
-$lang->execution->memberHoursAB       = "<div>%s有 <strong>%s</strong> 工时</div>";
-$lang->execution->memberHours         = '<div class="table-col"><div class="clearfix segments"><div class="segment"><div class="segment-title">%s可用工时</div><div class="segment-value">%s</div></div></div></div>';
-$lang->execution->countSummary        = '<div class="table-col"><div class="clearfix segments"><div class="segment"><div class="segment-title">总任务</div><div class="segment-value">%s</div></div><div class="segment"><div class="segment-title">进行中</div><div class="segment-value"><span class="label label-dot label-primary"></span> %s</div></div><div class="segment"><div class="segment-title">未开始</div><div class="segment-value"><span class="label label-dot label-primary muted"></span> %s</div></div></div></div>';
-$lang->execution->timeSummary         = '<div class="table-col"><div class="clearfix segments"><div class="segment"><div class="segment-title">总预计</div><div class="segment-value">%s</div></div><div class="segment"><div class="segment-title">已消耗</div><div class="segment-value text-red">%s</div></div><div class="segment"><div class="segment-title">剩余</div><div class="segment-value">%s</div></div></div></div>';
-$lang->execution->groupSummaryAB      = "<div>总任务 <strong>%s : </strong><span class='text-muted'>未开始</span> %s &nbsp; <span class='text-muted'>进行中</span> %s</div><div>总预计 <strong>%s : </strong><span class='text-muted'>已消耗</span> %s &nbsp; <span class='text-muted'>剩余</span> %s</div>";
-$lang->execution->wbs                 = "分解任务";
-$lang->execution->batchWBS            = "批量分解";
-$lang->execution->howToUpdateBurn     = "<a href='https://api.zentao.net/goto.php?item=burndown&lang=zh-cn' target='_blank' title='如何更新燃尽图？' class='btn btn-link'>帮助 <i class='icon icon-help'></i></a>";
-$lang->execution->whyNoStories        = "看起来没有{$lang->SRCommon}可以关联。请检查下{$lang->executionCommon}关联的{$lang->productCommon}中有没有{$lang->SRCommon}，而且要确保它们已经审核通过。";
-$lang->execution->productStories      = "{$lang->executionCommon}关联的{$lang->SRCommon}是{$lang->productCommon}{$lang->SRCommon}的子集，并且只有评审通过的{$lang->SRCommon}才能关联。请<a href='%s'>关联{$lang->SRCommon}</a>。";
-$lang->execution->haveDraft           = "有%s条草稿状态的{$lang->SRCommon}无法关联到该{$lang->executionCommon}";
-$lang->execution->doneExecutions      = '已结束';
-$lang->execution->selectDept          = '选择部门';
-$lang->execution->selectDeptTitle     = '选择一个部门的成员';
-$lang->execution->copyTeam            = '复制团队';
-$lang->execution->copyFromTeam        = "复制自{$lang->execution->common}团队： <strong>%s</strong>";
-$lang->execution->noMatched           = "找不到包含'%s'的{$lang->execution->common}";
-$lang->execution->copyTitle           = "请选择一个{$lang->execution->common}来复制";
-$lang->execution->copyNoExecution     = "没有可用的{$lang->execution->common}来复制";
-$lang->execution->copyFromExecution   = "复制自{$lang->execution->common} <strong>%s</strong>";
-$lang->execution->cancelCopy          = '取消复制';
-$lang->execution->byPeriod            = '按时间段';
-$lang->execution->byUser              = '按用户';
-$lang->execution->noExecution         = "暂时没有{$lang->executionCommon}。";
-$lang->execution->noExecutions        = "暂时没有{$lang->execution->common}。";
-$lang->execution->noPrintData         = "暂无数据可打印";
-$lang->execution->noMembers           = '暂时没有团队成员。';
-$lang->execution->workloadTotal       = "工作量占比累计不应当超过100, 当前产品下的工作量之和为%s";
+$lang->execution->linkStoryByPlanTips  = "此操作会将所选计划下面的{$lang->SRCommon}全部关联到此{$lang->executionCommon}中";
+$lang->execution->batchCreateStoryTips = '请选择需要批量新建研发需求的产品';
+$lang->execution->selectExecution      = "请选择{$lang->execution->common}";
+$lang->execution->beginAndEnd          = '起止时间';
+$lang->execution->lblStats             = '工时统计';
+$lang->execution->stats                = '可用工时 <strong>%s</strong> 工时，总共预计 <strong>%s</strong> 工时，已经消耗 <strong>%s</strong> 工时，预计剩余 <strong>%s</strong> 工时';
+$lang->execution->taskSummary          = "本页共 <strong>%s</strong> 个任务，未开始 <strong>%s</strong>，进行中 <strong>%s</strong>，总预计 <strong>%s</strong> 工时，已消耗 <strong>%s</strong> 工时，剩余 <strong>%s</strong> 工时。";
+$lang->execution->pageSummary          = "本页共 <strong>%total%</strong> 个任务，未开始 <strong>%wait%</strong>，进行中 <strong>%doing%</strong>，总预计 <strong>%estimate%</strong> 工时，已消耗 <strong>%consumed%</strong> 工时，剩余 <strong>%left%</strong> 工时。";
+$lang->execution->checkedSummary       = "选中 <strong>%total%</strong> 个任务，未开始 <strong>%wait%</strong>，进行中 <strong>%doing%</strong>，总预计 <strong>%estimate%</strong> 工时，已消耗 <strong>%consumed%</strong> 工时，剩余 <strong>%left%</strong> 工时。";
+$lang->execution->memberHoursAB        = "<div>%s有 <strong>%s</strong> 工时</div>";
+$lang->execution->memberHours          = '<div class="table-col"><div class="clearfix segments"><div class="segment"><div class="segment-title">%s可用工时</div><div class="segment-value">%s</div></div></div></div>';
+$lang->execution->countSummary         = '<div class="table-col"><div class="clearfix segments"><div class="segment"><div class="segment-title">总任务</div><div class="segment-value">%s</div></div><div class="segment"><div class="segment-title">进行中</div><div class="segment-value"><span class="label label-dot label-primary"></span> %s</div></div><div class="segment"><div class="segment-title">未开始</div><div class="segment-value"><span class="label label-dot label-primary muted"></span> %s</div></div></div></div>';
+$lang->execution->timeSummary          = '<div class="table-col"><div class="clearfix segments"><div class="segment"><div class="segment-title">总预计</div><div class="segment-value">%s</div></div><div class="segment"><div class="segment-title">已消耗</div><div class="segment-value text-red">%s</div></div><div class="segment"><div class="segment-title">剩余</div><div class="segment-value">%s</div></div></div></div>';
+$lang->execution->groupSummaryAB       = "<div>总任务 <strong>%s : </strong><span class='text-muted'>未开始</span> %s &nbsp; <span class='text-muted'>进行中</span> %s</div><div>总预计 <strong>%s : </strong><span class='text-muted'>已消耗</span> %s &nbsp; <span class='text-muted'>剩余</span> %s</div>";
+$lang->execution->wbs                  = "分解任务";
+$lang->execution->batchWBS             = "批量分解";
+$lang->execution->howToUpdateBurn      = "<a href='https://api.zentao.net/goto.php?item=burndown&lang=zh-cn' target='_blank' title='如何更新燃尽图？' class='btn btn-link'>帮助 <i class='icon icon-help'></i></a>";
+$lang->execution->whyNoStories         = "看起来没有{$lang->SRCommon}可以关联。请检查下{$lang->executionCommon}关联的{$lang->productCommon}中有没有{$lang->SRCommon}，而且要确保它们已经审核通过。";
+$lang->execution->productStories       = "{$lang->executionCommon}关联的{$lang->SRCommon}是{$lang->productCommon}{$lang->SRCommon}的子集，并且只有评审通过的{$lang->SRCommon}才能关联。请<a href='%s'>关联{$lang->SRCommon}</a>。";
+$lang->execution->haveDraft            = "有%s条草稿状态的{$lang->SRCommon}无法关联到该{$lang->executionCommon}";
+$lang->execution->doneExecutions       = '已结束';
+$lang->execution->selectDept           = '选择部门';
+$lang->execution->selectDeptTitle      = '选择一个部门的成员';
+$lang->execution->copyTeam             = '复制团队';
+$lang->execution->copyFromTeam         = "复制自{$lang->execution->common}团队： <strong>%s</strong>";
+$lang->execution->noMatched            = "找不到包含'%s'的{$lang->execution->common}";
+$lang->execution->copyTitle            = "请选择一个{$lang->execution->common}来复制";
+$lang->execution->copyNoExecution      = "没有可用的{$lang->execution->common}来复制";
+$lang->execution->copyFromExecution    = "复制自{$lang->execution->common} <strong>%s</strong>";
+$lang->execution->cancelCopy           = '取消复制';
+$lang->execution->byPeriod             = '按时间段';
+$lang->execution->byUser               = '按用户';
+$lang->execution->noExecution          = "暂时没有{$lang->executionCommon}。";
+$lang->execution->noExecutions         = "暂时没有{$lang->execution->common}。";
+$lang->execution->noPrintData          = "暂无数据可打印";
+$lang->execution->noMembers            = '暂时没有团队成员。';
+$lang->execution->workloadTotal        = "工作量占比累计不应当超过100, 当前产品下的工作量之和为%s";
 // $lang->execution->linkProjectStoryTip = "(关联{$lang->SRCommon}来源于项目下所关联的{$lang->SRCommon})";
-$lang->execution->linkAllStoryTip     = "(项目下还未关联{$lang->SRCommon}，可直接关联该{$lang->execution->common}所关联产品的{$lang->SRCommon})";
-if($config->systemMode == 'classic') $lang->execution->copyTeamTitle = "选择一个{$lang->execution->common}团队来复制";
-if($config->systemMode == 'new')     $lang->execution->copyTeamTitle = "选择一个{$lang->project->common}或{$lang->execution->common}团队来复制";
+$lang->execution->linkAllStoryTip      = "(项目下还未关联{$lang->SRCommon}，可直接关联该{$lang->execution->common}所关联产品的{$lang->SRCommon})";
+if ($config->systemMode == 'classic') $lang->execution->copyTeamTitle = "选择一个{$lang->execution->common}团队来复制";
+if ($config->systemMode == 'new')     $lang->execution->copyTeamTitle = "选择一个{$lang->project->common}或{$lang->execution->common}团队来复制";
 
 /* 交互提示。*/
 $lang->execution->confirmDelete               = "您确定删除{$lang->executionCommon}[%s]吗？";
@@ -346,6 +345,8 @@ $lang->execution->errorSameProducts           = "{$lang->executionCommon}不能�
 $lang->execution->errorSameBranches           = "{$lang->executionCommon}不能关联多个相同的分支。";
 $lang->execution->errorBegin                  = "{$lang->executionCommon}的开始时间不能小于所属项目的开始时间%s。";
 $lang->execution->errorEnd                    = "{$lang->executionCommon}的截止时间不能大于所属项目的结束时间%s。";
+$lang->execution->errorLetterProject          = "阶段的计划开始时间不能小于所属项目的计划开始时间%s。";
+$lang->execution->errorGreaterProject         = "阶段的计划完成时间不能大于所属项目的计划完成时间%s。";
 $lang->execution->accessDenied                = "您无权访问该{$lang->executionCommon}！";
 $lang->execution->tips                        = '提示';
 $lang->execution->afterInfo                   = "{$lang->executionCommon}添加成功，您现在可以进行以下操作：";

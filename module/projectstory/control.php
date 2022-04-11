@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The control file of projectStory module of ZenTaoPMS.
  *
@@ -37,7 +38,7 @@ class projectStory extends control
     public function story($projectID = 0, $productID = 0, $branch = 0, $browseType = '', $param = 0, $storyType = 'story', $orderBy = '', $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
         $this->products = $this->loadModel('product')->getProductPairsByProject($projectID);
-        if(empty($this->products)) die($this->locate($this->createLink('product', 'showErrorNone', 'moduleName=project&activeMenu=story&projectID=' . $projectID)));
+        if (empty($this->products)) return print($this->locate($this->createLink('product', 'showErrorNone', 'moduleName=project&activeMenu=story&projectID=' . $projectID)));
         echo $this->fetch('product', 'browse', "productID=$productID&branch=$branch&browseType=$browseType&param=$param&storyType=$storyType&orderBy=$orderBy&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID&projectID=$projectID");
     }
 
@@ -55,7 +56,7 @@ class projectStory extends control
     public function track($projectID = 0, $productID = 0, $branch = 0, $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
         $products = $this->loadModel('product')->getProductPairsByProject($projectID);
-        if(empty($productID)) $productID = key($products);
+        if (empty($productID)) $productID = key($products);
 
         echo $this->fetch('story', 'track', "productID=$productID&branch=$branch&projectID=$projectID&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID");
     }
@@ -110,7 +111,7 @@ class projectStory extends control
      * Batch unlink story.
      *
      * @param  int    $projectID
-     * @param  string $stroyIdList
+     * @param  string $storyIdList
      * @access public
      * @return string
      */
@@ -120,11 +121,10 @@ class projectStory extends control
         $executionStories = $this->projectstory->getExecutionStories($projectID, $storyIdList);
         $html             = '';
 
-        foreach($executionStories as $story)
-        {
+        foreach ($executionStories as $story) {
             $storyLink     = $this->createLink('story', 'view', "storyID={$story->id}");
             $executionLink = $this->createLink('execution', 'story', "executionID={$story->executionID}");
-            $html         .=<<<ETO
+            $html         .= <<<ETO
 <tr>
   <td class='c-name w-500px'><a href="$storyLink" title={$story->title} style='color:#5988e2'>{$story->title}</a></td>
   <td class='c-name w-200px'><a href="$executionLink" title={$story->execution} style='color:#32579c'>{$story->execution}</a></td>
@@ -133,14 +133,13 @@ ETO;
         }
 
         $this->loadModel('execution');
-        foreach($storyIdList as $storyID)
-        {
-            if(isset($executionStories[$storyID])) continue;
+        foreach ($storyIdList as $storyID) {
+            if (isset($executionStories[$storyID])) continue;
             $this->execution->unlinkStory($projectID, $storyID);
         }
 
-        if(!dao::isError()) $this->loadModel('score')->create('ajax', 'batchOther');
-        die($html);
+        if (!dao::isError()) $this->loadModel('score')->create('ajax', 'batchOther');
+        echo $html;
     }
 
     /**
@@ -157,4 +156,3 @@ ETO;
         echo $this->fetch('execution', 'importPlanStories', "projectID=$projectID&planID=$planID&productID=$productID");
     }
 }
-

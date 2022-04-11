@@ -1,4 +1,5 @@
 <?php
+
 /**
  * ZenTaoPHP的control类。
  * The control class file of ZenTaoPHP framework.
@@ -35,66 +36,54 @@ class control extends baseControl
 
         $this->app->setOpenApp();
 
-        if(defined('IN_USE') or (defined('RUN_MODE') and RUN_MODE != 'api')) $this->setPreference();
+        if (defined('IN_USE') or (defined('RUN_MODE') and RUN_MODE != 'api')) $this->setPreference();
 
-        if(!isset($this->config->bizVersion)) return false;
+        if (!isset($this->config->bizVersion)) return false;
 
         /* Code for task #9224. Set requiredFields for workflow. */
-        if($this->dbh and (defined('IN_USE') or (defined('RUN_MODE') and RUN_MODE == 'api')))
-        {
+        if ($this->dbh and (defined('IN_USE') or (defined('RUN_MODE') and RUN_MODE == 'api'))) {
             $this->checkRequireFlowField();
 
-            if(isset($this->config->{$this->moduleName}) and strpos($this->methodName, 'export') !== false)
-            {
-                if(isset($this->config->{$this->moduleName}->exportFields) or isset($this->config->{$this->moduleName}->list->exportFields))
-                {
+            if (isset($this->config->{$this->moduleName}) and strpos($this->methodName, 'export') !== false) {
+                if (isset($this->config->{$this->moduleName}->exportFields) or isset($this->config->{$this->moduleName}->list->exportFields)) {
                     $exportFields = $this->dao->select('*')->from(TABLE_WORKFLOWFIELD)->where('module')->eq($this->moduleName)->andWhere('canExport')->eq('1')->andWhere('buildin')->eq('0')->fetchAll('field');
 
-                    if(isset($this->config->{$this->moduleName}->exportFields))
-                    {
-                        foreach($exportFields  as $field) $this->config->{$this->moduleName}->exportFields .= ",{$field->field}";
+                    if (isset($this->config->{$this->moduleName}->exportFields)) {
+                        foreach ($exportFields  as $field) $this->config->{$this->moduleName}->exportFields .= ",{$field->field}";
                     }
 
-                    if(isset($this->config->{$this->moduleName}->list->exportFields))
-                    {
-                        foreach($exportFields  as $field) $this->config->{$this->moduleName}->list->exportFields .= ",{$field->field}";
+                    if (isset($this->config->{$this->moduleName}->list->exportFields)) {
+                        foreach ($exportFields  as $field) $this->config->{$this->moduleName}->list->exportFields .= ",{$field->field}";
                     }
                 }
             }
 
             /* Append editor field to this module config from workflow. */
             $textareaFields = $this->dao->select('*')->from(TABLE_WORKFLOWFIELD)->where('module')->eq($this->moduleName)->andWhere('control')->eq('richtext')->andWhere('buildin')->eq('0')->fetchAll('field');
-            if($textareaFields)
-            {
+            if ($textareaFields) {
                 $editorIdList = array();
-                foreach($textareaFields as $textareaField) $editorIdList[] = $textareaField->field;
+                foreach ($textareaFields as $textareaField) $editorIdList[] = $textareaField->field;
 
-                if(!isset($this->config->{$this->moduleName})) $this->config->{$this->moduleName} = new stdclass();
-                if(!isset($this->config->{$this->moduleName}->editor)) $this->config->{$this->moduleName}->editor = new stdclass();
-                if(!isset($this->config->{$this->moduleName}->editor->{$this->methodName})) $this->config->{$this->moduleName}->editor->{$this->methodName} = array('id' => '', 'tools' => 'simpleTools');
+                if (!isset($this->config->{$this->moduleName})) $this->config->{$this->moduleName} = new stdclass();
+                if (!isset($this->config->{$this->moduleName}->editor)) $this->config->{$this->moduleName}->editor = new stdclass();
+                if (!isset($this->config->{$this->moduleName}->editor->{$this->methodName})) $this->config->{$this->moduleName}->editor->{$this->methodName} = array('id' => '', 'tools' => 'simpleTools');
                 $this->config->{$this->moduleName}->editor->{$this->methodName}['id'] .= ',' . join(',', $editorIdList);
                 trim($this->config->{$this->moduleName}->editor->{$this->methodName}['id'], ',');
             }
 
             /* If workflow is created by a normal user, set priv. */
-            if(isset($this->app->user) and !$this->app->user->admin)
-            {
+            if (isset($this->app->user) and !$this->app->user->admin) {
                 $actions = $this->dao->select('module, action')->from(TABLE_WORKFLOWACTION)->where('createdBy')->eq($this->app->user->account)->andWhere('buildin')->eq('0')->fetchGroup('module');
                 $labels  = $this->dao->select('module, code')->from(TABLE_WORKFLOWLABEL)->where('createdBy')->eq($this->app->user->account)->andWhere('buildin')->eq('0')->fetchGroup('module');
-                if(!empty($actions))
-                {
-                    foreach($actions as $module => $actionObj)
-                    {
-                        foreach($actionObj as $action) $this->app->user->rights['rights'][$module][$action->action] = 1;
+                if (!empty($actions)) {
+                    foreach ($actions as $module => $actionObj) {
+                        foreach ($actionObj as $action) $this->app->user->rights['rights'][$module][$action->action] = 1;
                     }
                 }
 
-                if(!empty($labels))
-                {
-                    foreach($labels as $module => $codeObj)
-                    {
-                        foreach($codeObj as $code)
-                        {
+                if (!empty($labels)) {
+                    foreach ($labels as $module => $codeObj) {
+                        foreach ($codeObj as $code) {
                             $code = str_replace('browse', '', $code->code);
                             $this->app->user->rights['rights'][$module][$code] = 1;
                         }
@@ -112,13 +101,12 @@ class control extends baseControl
      */
     public function setPreference()
     {
-        if(empty($this->app->user->account)) return true;
-        if($this->app->getModuleName() == 'user' and strpos("login,logout", $this->app->getMethodName()) !== false) return true;
-        if($this->app->getModuleName() == 'my' and $this->app->getMethodName() == 'changepassword') return true;
-        if($this->app->getModuleName() == 'my' and $this->app->getMethodName() == 'preference') return true;
+        if (empty($this->app->user->account)) return true;
+        if ($this->app->getModuleName() == 'user' and strpos("login,logout", $this->app->getMethodName()) !== false) return true;
+        if ($this->app->getModuleName() == 'my' and $this->app->getMethodName() == 'changepassword') return true;
+        if ($this->app->getModuleName() == 'my' and $this->app->getMethodName() == 'preference') return true;
 
-        if(!isset($this->config->preferenceSetted))
-        {
+        if (!isset($this->config->preferenceSetted) and $this->config->vision == 'rnd') {
             $this->locate(helper::createLink('my', 'preference'));
         }
     }
@@ -160,8 +148,7 @@ class control extends baseControl
         $mainViewFile = $modulePath . 'view' . DS . $this->devicePrefix . $methodName . '.' . $viewType . '.php';
 
         /* If the main view file doesn't exist, set the device prefix to empty and reset the main view file. */
-        if(!file_exists($mainViewFile) and $this->app->clientDevice != 'mobile')
-        {
+        if (!file_exists($mainViewFile) and $this->app->clientDevice != 'mobile') {
             $originalPrefix     = $this->devicePrefix;
             $this->devicePrefix = '';
             $mainViewFile = $modulePath . 'view' . DS . $this->devicePrefix . $methodName . '.' . $viewType . '.php';
@@ -170,24 +157,42 @@ class control extends baseControl
 
         $viewFile = $mainViewFile;
 
-        if(!empty($viewExtPath))
-        {
+        if (!empty($viewExtPath)) {
             $commonExtViewFile = $viewExtPath['common'] . $this->devicePrefix . $methodName . ".{$viewType}.php";
+            $xuanExtViewFile   = $viewExtPath['xuan']   . $this->devicePrefix . $methodName . ".{$viewType}.php";
+            $visionExtViewFile = $viewExtPath['vision'] . $this->devicePrefix . $methodName . ".{$viewType}.php";
+            $customExtViewFile = $viewExtPath['custom'] . $this->devicePrefix . $methodName . ".{$viewType}.php";
             $siteExtViewFile   = empty($viewExtPath['site']) ? '' : $viewExtPath['site'] . $this->devicePrefix . $methodName . ".{$viewType}.php";
 
-            $viewFile = file_exists($commonExtViewFile) ? $commonExtViewFile : $mainViewFile;
-            $viewFile = (!empty($siteExtViewFile) and file_exists($siteExtViewFile)) ? $siteExtViewFile : $viewFile;
-            if(!is_file($viewFile))
-            {
-                die(js::error($this->lang->notPage) . js::locate('back'));
+            /* Get ext files, site > custom > vision > common. */
+            if (!empty($siteExtViewFile) and file_exists($siteExtViewFile)) {
+                $viewFile = $siteExtViewFile;
+            } else if (file_exists($customExtViewFile)) {
+                $viewFile = $customExtViewFile;
+            } else if (!empty($viewExtPath['vision']) and file_exists($visionExtViewFile)) {
+                $viewFile = $visionExtViewFile;
+            } else if (file_exists($xuanExtViewFile)) {
+                $viewFile = $xuanExtViewFile;
+            } else if (file_exists($commonExtViewFile)) {
+                $viewFile = $commonExtViewFile;
             }
 
-            $commonExtHookFiles = glob($viewExtPath['common'] . $this->devicePrefix . $methodName . ".*.{$viewType}.hook.php");
-            $siteExtHookFiles   = empty($viewExtPath['site']) ? '' : glob($viewExtPath['site'] . $this->devicePrefix . $methodName . ".*.{$viewType}.hook.php");
-            $extHookFiles       = array_merge((array) $commonExtHookFiles, (array) $siteExtHookFiles);
+            if (!is_file($viewFile)) die(js::error($this->lang->notPage) . js::locate('back'));
+
+            /* Get ext hook files. */
+            if (empty($viewExtPath['vision'])) {
+                $commonExtHookFiles = glob($viewExtPath['common'] . $this->devicePrefix . $methodName . ".*.{$viewType}.hook.php");
+            } else {
+                $commonExtHookFiles = glob($viewExtPath['vision'] . $this->devicePrefix . $methodName . ".*.{$viewType}.hook.php");
+            }
+            $xuanExtHookFiles   = glob($viewExtPath['xuan']   . $this->devicePrefix . $methodName . ".*.{$viewType}.hook.php");
+            $customExtHookFiles = glob($viewExtPath['custom'] . $this->devicePrefix . $methodName . ".*.{$viewType}.hook.php");
+
+            $siteExtHookFiles = empty($viewExtPath['site']) ? '' : glob($viewExtPath['site'] . $this->devicePrefix . $methodName . ".*.{$viewType}.hook.php");
+            $extHookFiles     = array_merge((array)$commonExtHookFiles, (array)$xuanExtHookFiles, (array)$customExtHookFiles, (array)$siteExtHookFiles);
         }
 
-        if(!empty($extHookFiles)) return array('viewFile' => $viewFile, 'hookFiles' => $extHookFiles);
+        if (!empty($extHookFiles)) return array('viewFile' => $viewFile, 'hookFiles' => $extHookFiles);
         return $viewFile;
     }
 
@@ -208,7 +213,7 @@ class control extends baseControl
          */
         $results  = $this->setViewFile($moduleName, $methodName);
         $viewFile = $results;
-        if(is_array($results)) extract($results);
+        if (is_array($results)) extract($results);
 
         /**
          * 获得当前页面的CSS和JS。
@@ -217,16 +222,15 @@ class control extends baseControl
         $css = $this->getCSS($moduleName, $methodName);
         $js  = $this->getJS($moduleName, $methodName);
         /* If the js or css file doesn't exist, set the device prefix to empty and reset the js or css file. */
-        if($this->viewType == 'xhtml')
-        {
+        if ($this->viewType == 'xhtml') {
             $originalPrefix = $this->devicePrefix;
             $this->devicePrefix = '';
             $css .= $this->getCSS($moduleName, $methodName);
             $js  .= $this->getJS($moduleName, $methodName);
             $this->devicePrefix = $originalPrefix;
         }
-        if($css) $this->view->pageCSS = $css;
-        if($js)  $this->view->pageJS  = $js;
+        if ($css) $this->view->pageCSS = $css;
+        if ($js)  $this->view->pageJS  = $js;
 
         /**
          * 切换到视图文件所在的目录，以保证视图文件里面的include语句能够正常运行。
@@ -242,7 +246,7 @@ class control extends baseControl
         extract((array)$this->view);
         ob_start();
         include $viewFile;
-        if(isset($hookFiles)) foreach($hookFiles as $hookFile) if(file_exists($hookFile)) include $hookFile;
+        if (isset($hookFiles)) foreach ($hookFiles as $hookFile) if (file_exists($hookFile)) include $hookFile;
         $this->output .= ob_get_contents();
         ob_end_clean();
 
@@ -262,7 +266,7 @@ class control extends baseControl
      */
     public function executeHooks($objectID)
     {
-        if(!isset($this->config->bizVersion)) return false;
+        if (!isset($this->config->bizVersion)) return false;
 
         $moduleName = $this->moduleName;
         return $this->$moduleName->executeHooks($objectID);
@@ -278,7 +282,7 @@ class control extends baseControl
      */
     public function buildOperateMenu($object, $displayOn = 'view')
     {
-        if(!isset($this->config->bizVersion)) return false;
+        if (!isset($this->config->bizVersion)) return false;
 
         $flow = $this->loadModel('workflow')->getByModule($this->moduleName);
         return $this->loadModel('flow')->buildOperateMenu($flow, $object, $displayOn);
@@ -299,7 +303,7 @@ class control extends baseControl
      */
     public function printExtendFields($object, $type, $extras = '')
     {
-        if(!isset($this->config->bizVersion)) return false;
+        if (!isset($this->config->bizVersion)) return false;
 
         echo $this->loadModel('flow')->printFields($this->moduleName, $this->methodName, $object, $type, $extras);
     }
@@ -327,8 +331,12 @@ class control extends baseControl
      */
     public function checkRequireFlowField()
     {
-        if(!isset($this->config->bizVersion)) return false;
-        if(empty($_POST)) return false;
+        if ($this->config->edition == 'open') return false;
+        if (empty($_POST)) return false;
+
+        $action = $this->dao->select('*')->from(TABLE_WORKFLOWACTION)->where('module')->eq($this->moduleName)->andWhere('action')->eq($this->methodName)->fetch();
+        if (empty($action)) return false;
+        if ($action->extensionType == 'none' and $action->buildin == 1) return false;
 
         $flow    = $this->dao->select('*')->from(TABLE_WORKFLOW)->where('module')->eq($this->moduleName)->fetch();
         $fields  = $this->loadModel('workflowaction')->getFields($this->moduleName, $this->methodName);
@@ -339,87 +347,68 @@ class control extends baseControl
         $mustPostFields = '';
         $numberFields   = '';
         $message        = array();
-        foreach($fields as $field)
-        {
-            if(!empty($field->buildin)) continue;
-            if(empty($field->show)) continue;
-            if(!isset($layouts[$field->field])) continue;
+        foreach ($fields as $field) {
+            if (!empty($field->buildin)) continue;
+            if (empty($field->show)) continue;
+            if (!isset($layouts[$field->field])) continue;
 
             $fieldRules = explode(',', trim($field->rules, ','));
             $fieldRules = array_unique($fieldRules);
-            foreach($fieldRules as $ruleID)
-            {
-                if(!isset($rules[$ruleID])) continue;
-                if(!empty($_POST[$field->field]) and !is_string($_POST[$field->field])) continue;
+            foreach ($fieldRules as $ruleID) {
+                if (!isset($rules[$ruleID])) continue;
+                if (!empty($_POST[$field->field]) and !is_string($_POST[$field->field])) continue;
 
                 $rule = $rules[$ruleID];
-                if($rule->type == 'system' and $rule->rule == 'notempty')
-                {
+                if ($rule->type == 'system' and $rule->rule == 'notempty') {
                     $requiredFields .= ",{$field->field}";
-                    if($field->control == 'radio' or $field->control == 'checkbox') $mustPostFields .= ",{$field->field}";
-                    if(strpos($field->type, 'int') !== false and $field->control == 'select') $numberFields .= ",{$field->field}";
-                }
-                elseif($rule->type == 'system' and isset($_POST[$field->field]))
-                {
+                    if ($field->control == 'radio' or $field->control == 'checkbox') $mustPostFields .= ",{$field->field}";
+                    if (strpos($field->type, 'int') !== false and $field->control == 'select') $numberFields .= ",{$field->field}";
+                } elseif ($rule->type == 'system' and isset($_POST[$field->field])) {
                     $pass = true;
-                    if($rule->rule == 'unique')
-                    {
-                        if(!empty($_POST[$field->field]))
-                        {
+                    if ($rule->rule == 'unique') {
+                        if (!empty($_POST[$field->field])) {
                             $sqlClass = new sql();
                             $sql      = "SELECT COUNT(*) AS count FROM $flow->table WHERE `$field->field` = " . $sqlClass->quote(fixer::input('post')->get($field->field));
-                            if(isset($_POST['id'])) $sql .= ' AND `id` != ' . (int)$_POST['id'];
+                            if (isset($_POST['id'])) $sql .= ' AND `id` != ' . (int)$_POST['id'];
 
                             $row = $this->dbh->query($sql)->fetch();
-                            if($row->count != 0) $pass = false;
+                            if ($row->count != 0) $pass = false;
                         }
-                    }
-                    else
-                    {
+                    } else {
                         $checkFunc = 'check' . $rule->rule;
-                        if(validater::$checkFunc($_POST[$field->field]) === false) $pass = false;
+                        if (validater::$checkFunc($_POST[$field->field]) === false) $pass = false;
                     }
 
-                    if(!$pass)
-                    {
+                    if (!$pass) {
                         $error = zget($this->lang->error, $rule->rule, '');
-                        if($rule->rule == 'unique') $error = sprintf($error, $field->name, $_POST[$field->field]);
-                        if($error) $error = sprintf($error, $field->name);
-                        if(empty($error)) $error = sprintf($this->lang->error->reg, $field->name, $rule->rule);
+                        if ($rule->rule == 'unique') $error = sprintf($error, $field->name, $_POST[$field->field]);
+                        if ($error) $error = sprintf($error, $field->name);
+                        if (empty($error)) $error = sprintf($this->lang->error->reg, $field->name, $rule->rule);
 
                         $message[$field->field][] = $error;
                     }
-                }
-                elseif($rule->type == 'regex' and isset($_POST[$field->field]))
-                {
-                    if(validater::checkREG($_POST[$field->field], $rule->rule) === false) $message[$field->field][] = sprintf($this->lang->error->reg, $field->name, $rule->rule);
+                } elseif ($rule->type == 'regex' and isset($_POST[$field->field])) {
+                    if (validater::checkREG($_POST[$field->field], $rule->rule) === false) $message[$field->field][] = sprintf($this->lang->error->reg, $field->name, $rule->rule);
                 }
             }
         }
 
-        if($requiredFields)
-        {
-            if(isset($this->config->{$this->moduleName}->{$this->methodName}->requiredFields)) $requiredFields .= ',' . $this->config->{$this->moduleName}->{$this->methodName}->requiredFields;
+        if ($requiredFields) {
+            if (isset($this->config->{$this->moduleName}->{$this->methodName}->requiredFields)) $requiredFields .= ',' . $this->config->{$this->moduleName}->{$this->methodName}->requiredFields;
 
-            foreach(explode(',', $requiredFields) as $requiredField)
-            {
-                if(empty($requiredField)) continue;
-                if(!isset($fields[$requiredField])) continue;
-                if(isset($_POST[$requiredField]) and $_POST[$requiredField] === '')
-                {
+            foreach (explode(',', $requiredFields) as $requiredField) {
+                if (empty($requiredField)) continue;
+                if (!isset($fields[$requiredField])) continue;
+                if (isset($_POST[$requiredField]) and $_POST[$requiredField] === '') {
                     $message[$requiredField][] = sprintf($this->lang->error->notempty, $fields[$requiredField]->name);
-                }
-                elseif(strpos(",{$numberFields},", ",{$requiredField},") !== false and empty($_POST[$requiredField]))
-                {
+                } elseif (strpos(",{$numberFields},", ",{$requiredField},") !== false and empty($_POST[$requiredField])) {
                     $message[$requiredField][] = sprintf($this->lang->error->notempty, $fields[$requiredField]->name);
-                }
-                elseif(strpos(",{$mustPostFields},", ",{$requiredField},") !== false and !isset($_POST[$requiredField]))
-                {
+                } elseif (strpos(",{$mustPostFields},", ",{$requiredField},") !== false and !isset($_POST[$requiredField])) {
                     $message[$requiredField][] = sprintf($this->lang->error->notempty, $fields[$requiredField]->name);
                 }
             }
         }
-        if($message) $this->send(array('result' => 'fail', 'message' => $message));
+        if ($message) $this->send(array('result' => 'fail', 'message' => $message));
     }
 
     /**
@@ -431,7 +420,7 @@ class control extends baseControl
      */
     public function printViewFile($viewFile)
     {
-        if(!file_exists($viewFile)) return false;
+        if (!file_exists($viewFile)) return false;
 
         $currentPWD = getcwd();
         chdir(dirname($viewFile));

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The search module English file of ZenTaoPMS.
  *
@@ -29,6 +30,7 @@ $lang->search->me            = 'Me';
 $lang->search->noQuery       = 'No query is saved yet!';
 $lang->search->onMenuBar     = 'Show in Menu';
 $lang->search->custom        = 'Custom';
+$lang->search->setCommon     = 'Set as public query criteria';
 
 $lang->search->account  = 'Account';
 $lang->search->module   = 'Module';
@@ -73,6 +75,7 @@ $lang->search->result            = 'Search Results';
 $lang->search->buildSuccessfully = 'Search index initialized.';
 $lang->search->executeInfo       = '%s search results for you in %s seconds.';
 $lang->search->buildResult       = "Create index %s and created <strong class='%scount'>%s</strong> records.";
+$lang->search->queryTips         = "Separate ids with comma";
 
 $lang->search->modules['all']         = 'All';
 $lang->search->modules['task']        = 'Task';

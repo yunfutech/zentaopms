@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The upgrade module English file of ZenTaoPMS.
  *
@@ -27,7 +28,7 @@ $lang->upgrade->warnningContent = <<<EOT
 2. Use mysqlCommand to backup.
    $> mysqldump -u <span class='text-danger'>username</span> -p <span class='text-danger'>dbname</span> > <span class='text-danger'>filename</span>
    Change the red text into corresponding Username and Database name.
-   e.g. mysqldump -u root -p zentao >zentao.bak
+   e.g. mysqldump -u root -p zentao > zentao.bak
 </pre>
 EOT;
 
@@ -87,7 +88,8 @@ $lang->upgrade->mergeProgramDesc = <<<EOD
 <h4>2. Independent {$lang->projectCommon}</h4>
 <p>Choose several {$lang->projectCommon}s and migrate them to one Program, or migrate them separately.</p>
 <h4>4. Link {$lang->projectCommon}s of several {$lang->productCommon}s</h4>
-<p>You can set {$lang->projectCommon}s as one new project.</p>
+<p>After selecting a historical {$lang->projectCommon} as a project upgrade, the user can select the program to which this project belongs or create a new program.</p>
+<p>After selecting a historical {$lang->projectCommon} as the iterative upgrade, the user can select the project and program to which the execution belongs or create a new project and program.</p>
 EOD;
 
 $lang->upgrade->to15Mode['classic'] = 'Keep the classic mode';
@@ -96,23 +98,26 @@ $lang->upgrade->to15Mode['new']     = 'Use the program mode';
 $lang->upgrade->selectedModeTips['classic'] = 'You can also switch to the Program mode in the Admin-Custom-Custom later.';
 $lang->upgrade->selectedModeTips['new']     = 'Switching to the program management mode requires merging the previous data, and the system will guide you to complete this operation.';
 
-$lang->upgrade->line          = 'Product Line';
-$lang->upgrade->allLines      = "All Product Lines";
-$lang->upgrade->program       = 'Merge Project';
-$lang->upgrade->existProgram  = 'Existing programs';
-$lang->upgrade->existProject  = 'Existing projects';
-$lang->upgrade->existLine     = 'Existing' . $lang->productCommon . ' lines';
-$lang->upgrade->product       = $lang->productCommon;
-$lang->upgrade->project       = 'Iteration';
-$lang->upgrade->repo          = 'Repo';
-$lang->upgrade->mergeRepo     = 'Merge Repo';
-$lang->upgrade->setProgram    = 'Set the project to which the program belongs';
-$lang->upgrade->dataMethod    = 'Data migration method';
-$lang->upgrade->begin         = 'Begin Date';
-$lang->upgrade->end           = 'End Date';
-$lang->upgrade->selectProject = 'The target project';
-$lang->upgrade->programName   = 'Program Name';
-$lang->upgrade->projectName   = 'Project Name';
+$lang->upgrade->line           = 'Product Line';
+$lang->upgrade->allLines       = "All Product Lines";
+$lang->upgrade->program        = 'Merge Project';
+$lang->upgrade->existProgram   = 'Existing programs';
+$lang->upgrade->existProject   = 'Existing projects';
+$lang->upgrade->existLine      = 'Existing' . $lang->productCommon . ' lines';
+$lang->upgrade->product        = $lang->productCommon;
+$lang->upgrade->project        = 'Iteration';
+$lang->upgrade->repo           = 'Repo';
+$lang->upgrade->mergeRepo      = 'Merge Repo';
+$lang->upgrade->setProgram     = 'Set the project to which the program belongs';
+$lang->upgrade->dataMethod     = 'Data migration method';
+$lang->upgrade->begin          = 'Begin Date';
+$lang->upgrade->end            = 'End Date';
+$lang->upgrade->selectProject  = 'The target project';
+$lang->upgrade->programName    = 'Program Name';
+$lang->upgrade->projectName    = 'Project Name';
+$lang->upgrade->compatibleEXT  = 'Extension mechanism compatible';
+$lang->upgrade->fileName       = 'File Name';
+$lang->upgrade->next           = 'Next';
 
 $lang->upgrade->newProgram         = 'Create';
 $lang->upgrade->editedName         = 'New Name';
@@ -127,6 +132,12 @@ $lang->upgrade->needBuild4Add      = 'Full text retrieval has been added in this
 $lang->upgrade->errorEngineInnodb  = 'Your MySQL does not support InnoDB data table engine. Please modify it to MyISAM and try again.';
 $lang->upgrade->duplicateProject   = "Project name in the same program cannot be duplicate. Please adjust the duplicate names.";
 $lang->upgrade->upgradeTips        = "Historically deleted data cannot be upgraded, and restoration is not supported after the upgrade. Please be aware.";
+$lang->upgrade->moveEXTFileFail    = 'The migration file failed, please execute the above command and refresh!';
+$lang->upgrade->deleteDirTip       = 'After the upgrade, the following folders will affect the use of system functions, please delete them.';
+$lang->upgrade->moveExtFileTip     = <<<EOT
+<p>The new version will be compatible with the extension mechanism of the historical customization/plug-in. You need to migrate the customization/plug-in related files to extension/custom, otherwise the customization/plug-in function will not be available.</p>
+<p>Please confirm whether the system has been customized/plug-in. If no customization/plug-in has been done, you can uncheck the following files; Whether you have done customization/plug-in, you can also keep the file checked.</p>
+EOT;
 
 $lang->upgrade->projectType['project']   = "Upgrade the historical {$lang->projectCommon} as a project";
 $lang->upgrade->projectType['execution'] = "Upgrade the historical {$lang->projectCommon} as an execution";

@@ -35,7 +35,7 @@ class jenkins extends control
      */
     public function browse($orderBy = 'id_desc', $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
-        if(common::hasPriv('jenkins', 'create')) $this->lang->TRActions = html::a(helper::createLink('jenkins', 'create'), "<i class='icon icon-plus'></i> " . $this->lang->jenkins->create, '', "class='btn btn-primary'");
+        if (common::hasPriv('jenkins', 'create')) $this->lang->TRActions = html::a(helper::createLink('jenkins', 'create'), "<i class='icon icon-plus'></i> " . $this->lang->jenkins->create, '', "class='btn btn-primary'");
 
         $this->app->loadClass('pager', $static = true);
         $pager = new pager($recTotal, $recPerPage, $pageID);
@@ -59,11 +59,10 @@ class jenkins extends control
      */
     public function create()
     {
-        if($_POST)
-        {
+        if ($_POST) {
             $jenkinsID = $this->jenkins->create();
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
-            if($this->viewType == 'json') return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'id' => $jenkinsID));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if ($this->viewType == 'json') return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'id' => $jenkinsID));
             return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => inlink('browse')));
         }
 
@@ -84,10 +83,9 @@ class jenkins extends control
     public function edit($id)
     {
         $jenkins = $this->jenkins->getByID($id);
-        if($_POST)
-        {
+        if ($_POST) {
             $this->jenkins->update($id);
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
             return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => inlink('browse')));
         }
 
@@ -109,13 +107,13 @@ class jenkins extends control
      */
     public function delete($id, $confim = 'no')
     {
-        if($confim != 'yes') die(js::confirm($this->lang->jenkins->confirmDelete, inlink('delete', "id=$id&confirm=yes")));
+        if ($confim != 'yes') return print(js::confirm($this->lang->jenkins->confirmDelete, inlink('delete', "id=$id&confirm=yes")));
 
         $jobs = $this->dao->select('*')->from(TABLE_JOB)->where('server')->eq($id)->andWhere('engine')->eq('jenkins')->andWhere('deleted')->eq('0')->fetchAll();
-        if($jobs) die(js::alert($this->lang->jenkins->error->linkedJob));
+        if ($jobs) return print(js::alert($this->lang->jenkins->error->linkedJob));
 
         $this->jenkins->delete(TABLE_PIPELINE, $id);
-        die(js::reload('parent'));
+        echo js::reload('parent');
     }
 
     /**
@@ -127,9 +125,9 @@ class jenkins extends control
      */
     public function ajaxGetJenkinsTasks($id)
     {
-        if(empty($id)) die(json_encode(array('' => '')));
+        if (empty($id)) return print(json_encode(array('' => '')));
 
         $tasks = $this->jenkins->getTasks($id);
-        die(json_encode($tasks));
+        echo json_encode($tasks);
     }
 }

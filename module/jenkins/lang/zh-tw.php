@@ -11,7 +11,7 @@ $lang->jenkins->deleteAction = '刪除Jenkins';
 
 $lang->jenkins->id       = 'ID';
 $lang->jenkins->name     = '名稱';
-$lang->jenkins->url      = '伺服器地址';
+$lang->jenkins->url      = '服務地址';
 $lang->jenkins->token    = 'Token';
 $lang->jenkins->account  = '用戶名';
 $lang->jenkins->password = '密碼';

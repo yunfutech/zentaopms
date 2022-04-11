@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The en file of block module of ZenTaoPMS.
  *
@@ -69,8 +70,8 @@ $lang->block->createdDocs         = 'Docs Created';
 $lang->block->allExecutions       = 'All ' . $lang->executionCommon;
 $lang->block->doingExecution      = 'Doning ' . $lang->executionCommon;
 $lang->block->finishExecution     = 'Finish ' . $lang->executionCommon;
-$lang->block->estimatedHours      = 'Estimated Hours';
-$lang->block->consumedHours       = 'Consumed Hours';
+$lang->block->estimatedHours      = 'Estimated';
+$lang->block->consumedHours       = 'Cost';
 $lang->block->time                = 'No';
 $lang->block->week                = 'Week';
 $lang->block->month               = 'Month';
@@ -96,15 +97,16 @@ $lang->block->cannotPlaceInLeft  = 'Cannot place the block at left side.';
 $lang->block->cannotPlaceInRight = 'Cannot place the block at right side.';
 
 $lang->block->productName  = $lang->productCommon . ' Name';
-$lang->block->totalStory   = 'The Total ' . $lang->SRCommon;
-$lang->block->totalBug     = 'The Total Bug';
+$lang->block->totalStory   = 'Total Story';
+$lang->block->totalBug     = 'Total Bug';
 $lang->block->totalRelease = 'Release The Number';
+$lang->block->totalTask    = 'The Total ' . $lang->task->common;
 
 $lang->block->totalInvestment = 'Total investment';
 $lang->block->totalPeople     = 'Total number';
 $lang->block->spent           = 'Has Been Spent';
 $lang->block->budget          = 'Budget';
-$lang->block->left            = 'Residuals';
+$lang->block->left            = 'Remain';
 
 $lang->block->default['waterfall']['project']['3']['title']  = 'Plan Gantt Chart';
 $lang->block->default['waterfall']['project']['3']['block']  = 'waterfallgantt';
@@ -260,8 +262,7 @@ $lang->block->default['full']['my']['4']['grid']            = 4;
 $lang->block->default['full']['my']['4']['source']          = 'todo';
 $lang->block->default['full']['my']['4']['params']['count'] = '20';
 
-if($config->systemMode == 'new')
-{
+if ($config->systemMode == 'new') {
     $lang->block->default['full']['my']['5']['title']           = 'Project Statistic';
     $lang->block->default['full']['my']['5']['block']           = 'statistic';
     $lang->block->default['full']['my']['5']['source']          = 'project';
@@ -292,8 +293,7 @@ $lang->block->default['full']['my']['8']['params']['issueCount']   = '20';
 $lang->block->default['full']['my']['8']['params']['storyCount']   = '20';
 $lang->block->default['full']['my']['8']['params']['meetingCount'] = '20';
 
-if($config->systemMode == 'new')
-{
+if ($config->systemMode == 'new') {
     $lang->block->default['full']['my']['9']['title']  = 'Human Input';
     $lang->block->default['full']['my']['9']['block']  = 'projectteam';
     $lang->block->default['full']['my']['9']['source'] = 'project';
@@ -304,8 +304,7 @@ $lang->block->default['full']['my']['10']['title']  = 'Project List';
 $lang->block->default['full']['my']['10']['block']  = 'project';
 $lang->block->default['full']['my']['10']['source'] = 'project';
 $lang->block->default['full']['my']['10']['grid']   = 8;
-if($config->systemMode == 'classic')
-{
+if ($config->systemMode == 'classic') {
     $lang->block->default['full']['my']['10']['block']  = 'execution';
     $lang->block->default['full']['my']['10']['source'] = 'execution';
 }
@@ -333,7 +332,7 @@ $lang->block->availableBlocks->risk      = 'My Risks';
 $lang->block->availableBlocks->issue     = 'My Issues';
 $lang->block->availableBlocks->meeting   = 'My Meetings';
 
-if($config->systemMode == 'new') $lang->block->moduleList['project'] = 'Project';
+if ($config->systemMode == 'new') $lang->block->moduleList['project'] = 'Project';
 $lang->block->moduleList['product']   = $lang->productCommon;
 $lang->block->moduleList['execution'] = $lang->execution->common;
 $lang->block->moduleList['qa']        = 'Test';
@@ -344,7 +343,7 @@ $lang->block->modules['project']->availableBlocks = new stdclass();
 $lang->block->modules['project']->availableBlocks->project       = 'Project List';
 $lang->block->modules['project']->availableBlocks->recentproject = 'Recent Project';
 $lang->block->modules['project']->availableBlocks->statistic     = 'Project Statistic';
-if($config->systemMode == 'new') $lang->block->modules['project']->availableBlocks->projectteam = 'Project Human Input';
+if ($config->systemMode == 'new') $lang->block->modules['project']->availableBlocks->projectteam = 'Project Human Input';
 
 $lang->block->modules['scrum']['index'] = new stdclass();
 $lang->block->modules['scrum']['index']->availableBlocks = new stdclass();
@@ -471,7 +470,7 @@ $lang->block->typeList->case['openedbyme'] = 'CreatedByMe';
 $lang->block->typeList->story['assignedTo'] = 'AssignedToMe';
 $lang->block->typeList->story['openedBy']   = 'CreatedByMe';
 $lang->block->typeList->story['reviewedBy'] = 'ReviewedByMe';
-$lang->block->typeList->story['closedBy']   = 'ClosedByMe' ;
+$lang->block->typeList->story['closedBy']   = 'ClosedByMe';
 
 $lang->block->typeList->product['noclosed'] = 'Open';
 $lang->block->typeList->product['closed']   = 'Closed';
@@ -543,9 +542,30 @@ $lang->block->gridOptions[4] = 'Right';
 
 $lang->block->flowchart            = array();
 $lang->block->flowchart['admin']   = array('Administrator', 'Add Departments', 'Add Users', 'Maintain Privileges');
-if($config->systemMode == 'new') $lang->block->flowchart['program'] = array('Program Owner', 'Create Program', 'Link Product', "Create Project", "Budgeting and planning", 'Add Stakeholder');
+if ($config->systemMode == 'new') $lang->block->flowchart['program'] = array('Program Owner', 'Create Program', 'Link Product', "Create Project", "Budgeting and planning", 'Add Stakeholder');
 $lang->block->flowchart['product'] = array($lang->productCommon . ' Owner', 'Add ' . $lang->productCommon, 'Maintain Modules', 'Maintain Plans', 'Maintain Stories', 'Create Releases');
 $lang->block->flowchart['project'] = array('Project Manager', 'Add projects and ' . $lang->executionCommon . 's', 'Maintain Teams', 'Link Stories', 'Create Tasks', 'Track');
-if($config->systemMode == 'new') $lang->block->flowchart['project'] = array('Project Manager', 'Add ' . $lang->executionCommon . 's', 'Maintain Teams', 'Link Stories', 'Create Tasks', 'Track');
+if ($config->systemMode == 'new') $lang->block->flowchart['project'] = array('Project Manager', 'Add ' . $lang->executionCommon . 's', 'Maintain Teams', 'Link Stories', 'Create Tasks', 'Track');
 $lang->block->flowchart['dev']     = array('Dev Team', 'Claim Tasks/Bugs', 'Design', 'Update Status', 'Finish Tasks/Bugs', 'Commit Code');
 $lang->block->flowchart['tester']  = array('Test Team', 'Write Cases', 'Run Cases', 'Report Bugs', 'Verify Bugs', 'Close Bugs');
+
+$lang->block->zentaoapp = new stdclass();
+$lang->block->zentaoapp->thisYearInvestment   = 'Investment The Year';
+$lang->block->zentaoapp->sinceTotalInvestment = 'Total Investment';
+$lang->block->zentaoapp->myStory              = 'My Story';
+$lang->block->zentaoapp->allStorySum          = 'Total Stories';
+$lang->block->zentaoapp->storyCompleteRate    = 'Story CompleteRate';
+$lang->block->zentaoapp->latestExecution      = 'Latest Execution';
+$lang->block->zentaoapp->involvedExecution    = 'Involved Execution';
+$lang->block->zentaoapp->mangedProduct        = 'Manged Product';
+$lang->block->zentaoapp->involvedProject      = 'Involved Project';
+$lang->block->zentaoapp->customIndexCard      = 'Custom Index Cards';
+$lang->block->zentaoapp->createStory          = 'Story Create';
+$lang->block->zentaoapp->createEffort         = 'Effort Create';
+$lang->block->zentaoapp->createDoc            = 'Doc Create';
+$lang->block->zentaoapp->createTodo           = 'Todo Create';
+$lang->block->zentaoapp->workbench            = 'Workbench';
+$lang->block->zentaoapp->notSupportKanban     = 'The mobile terminal does not support the R&D Kanban mode';
+$lang->block->zentaoapp->notSupportVersion    = 'This version of ZenTao is not currently supported on the mobile terminal';
+$lang->block->zentaoapp->incompatibleVersion  = 'The current version of ZenTao is lower, please upgrade to the latest version and try again';
+$lang->block->zentaoapp->canNotGetVersion     = 'Failed to get ZenTao version, please confirm if the URL is correct';

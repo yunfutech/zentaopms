@@ -6,9 +6,8 @@
  * @access public
  * @return void
  */
-function changeValue(spaceID, type = '')
-{
-    if(type == '') type = spaceType;
+function changeValue (spaceID, type) {
+    if (typeof type === 'undefined') type = spaceType;
     location.href = createLink('kanban', 'create', 'spaceID=' + spaceID + '&type=' + type);
 }
 

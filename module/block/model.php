@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The model file of block module of ZenTaoPMS.
  *
@@ -38,20 +39,16 @@ class blockModel extends model
             ->remove('uid,actionLink,modules,moduleBlock')
             ->get();
 
-        if($this->post->moduleBlock)
-        {
+        if ($this->post->moduleBlock) {
             $data->source = $this->post->modules;
             $data->block  = $this->post->moduleBlock;
-        }
-        else
-        {
+        } else {
             $data->source = '';
             $data->block  = $this->post->modules;
         }
 
-        if($block) $data->height = $block->height;
-        if($type == 'html')
-        {
+        if ($block) $data->height = $block->height;
+        if ($type == 'html') {
             $uid  = $this->post->uid;
             $data = $this->loadModel('file')->processImgURL($data, 'html', $uid);
             $data->params['html'] = $data->html;
@@ -61,7 +58,7 @@ class blockModel extends model
 
         $data->params = helper::jsonEncode($data->params);
         $this->dao->replace(TABLE_BLOCK)->data($data)->exec();
-        if(!dao::isError()) $this->loadModel('score')->create('block', 'set');
+        if (!dao::isError()) $this->loadModel('score')->create('block', 'set');
     }
 
     /**
@@ -76,11 +73,11 @@ class blockModel extends model
         $block = $this->dao->select('*')->from(TABLE_BLOCK)
             ->where('id')->eq($blockID)
             ->fetch();
-        if(empty($block)) return false;
+        if (empty($block)) return false;
 
         $block->params = json_decode($block->params);
-        if(empty($block->params)) $block->params = new stdclass();
-        if($block->block == 'html') $block->params->html = $this->loadModel('file')->setImgSize($block->params->html);
+        if (empty($block->params)) $block->params = new stdclass();
+        if ($block->block == 'html') $block->params->html = $this->loadModel('file')->setImgSize($block->params->html);
         return $block;
     }
 
@@ -97,10 +94,10 @@ class blockModel extends model
             ->where('`id`')->eq($id)
             ->andWhere('account')->eq($this->app->user->account)
             ->fetch();
-        if(empty($block)) return false;
+        if (empty($block)) return false;
 
         $block->params = json_decode($block->params);
-        if(empty($block->params)) $block->params = new stdclass();
+        if (empty($block->params)) $block->params = new stdclass();
         return $block;
     }
 
@@ -133,6 +130,7 @@ class blockModel extends model
     {
         $blocks = $this->dao->select('*')->from(TABLE_BLOCK)->where('account')->eq($this->app->user->account)
             ->andWhere('module')->eq($module)
+            ->andWhere('vision')->eq($this->config->vision)
             ->andWhere('hidden')->eq(0)
             ->beginIF($type)->andWhere('type')->eq($type)->fi()
             ->orderBy('`order`')
@@ -175,6 +173,9 @@ class blockModel extends model
             ->markRight(1)
             ->andWhere('t1.deleted')->eq('0')
             ->andWhere('t3.deleted')->eq('0')
+            ->beginIF(!$this->app->user->admin)->andWhere('t1.execution')->in($this->app->user->view->sprints)->fi()
+            ->beginIF($this->config->vision)->andWhere('t1.vision')->eq($this->config->vision)->fi()
+            ->beginIF($this->config->vision)->andWhere('t3.vision')->eq($this->config->vision)->fi()
             ->fetchAll('id');
         $data['tasks']      = isset($tasks) ? count($tasks) : 0;
         $data['doneTasks']  = (int)$this->dao->select('count(*) AS count')->from(TABLE_TASK)->where('assignedTo')->eq($this->app->user->account)->andWhere('deleted')->eq(0)->andWhere('status')->eq('done')->fetch('count');
@@ -230,34 +231,32 @@ class blockModel extends model
     {
         $flow    = isset($this->config->global->flow) ? $this->config->global->flow : 'full';
         $account = $this->app->user->account;
-        if($module == 'project')
-        {
+        $vision  = $this->config->vision;
+
+        if ($module == 'project') {
             $blocks = $this->lang->block->default[$type]['project'];
 
             /* Mark project block has init. */
-            $this->loadModel('setting')->setItem("$account.$module.{$type}common.blockInited", true);
-        }
-        else
-        {
+            $this->loadModel('setting')->setItem("$account.$module.{$type}common.blockInited@$vision", true);
+        } else {
             $blocks = $module == 'my' ? $this->lang->block->default[$flow][$module] : $this->lang->block->default[$module];
 
             /* Mark this app has init. */
-            $this->loadModel('setting')->setItem("$account.$module.common.blockInited", true);
+            $this->loadModel('setting')->setItem("$account.$module.common.blockInited@$vision", true);
         }
 
         $this->loadModel('setting')->setItem("$account.$module.block.initVersion", $this->config->block->version);
-        foreach($blocks as $index => $block)
-        {
+        foreach ($blocks as $index => $block) {
             $block['order']   = $index;
             $block['module']  = $module;
             $block['type']    = $type;
             $block['account'] = $account;
             $block['params']  = isset($block['params']) ? helper::jsonEncode($block['params']) : '';
-            if(!isset($block['source'])) $block['source'] = $module;
+            $block['vision']  = $this->config->vision;
+            if (!isset($block['source'])) $block['source'] = $module;
 
             $this->dao->replace(TABLE_BLOCK)->data($block)->exec();
         }
-
         return !dao::isError();
     }
 
@@ -274,20 +273,15 @@ class blockModel extends model
     public function getAvailableBlocks($module = '', $dashboard = '', $model = '')
     {
         $blocks = $this->lang->block->availableBlocks;
-        if($dashboard == 'project')
-        {
+        if ($dashboard == 'project') {
             $blocks = $this->lang->block->modules[$model]['index']->availableBlocks;
-        }
-        else
-        {
-            if($module and isset($this->lang->block->modules[$module])) $blocks = $this->lang->block->modules[$module]->availableBlocks;
+        } else {
+            if ($module and isset($this->lang->block->modules[$module])) $blocks = $this->lang->block->modules[$module]->availableBlocks;
         }
 
-        if(isset($this->config->block->closed))
-        {
-            foreach($blocks as $blockKey => $blockName)
-            {
-                if(strpos(",{$this->config->block->closed},", ",{$module}|{$blockKey},") !== false) unset($blocks->$blockKey);
+        if (isset($this->config->block->closed)) {
+            foreach ($blocks as $blockKey => $blockName) {
+                if (strpos(",{$this->config->block->closed},", ",{$module}|{$blockKey},") !== false) unset($blocks->$blockKey);
             }
         }
         return json_encode($blocks);
@@ -302,9 +296,9 @@ class blockModel extends model
      */
     public function getListParams($module = '')
     {
-        if($module == 'product')   return $this->getProductParams();
-        if($module == 'project')   return $this->getProjectParams();
-        if($module == 'execution') return $this->getExecutionParams();
+        if ($module == 'product')   return $this->getProductParams();
+        if ($module == 'project')   return $this->getProjectParams();
+        if ($module == 'execution') return $this->getExecutionParams();
 
         $params = new stdclass();
         $params = $this->appendCountParams($params);
@@ -456,6 +450,7 @@ class blockModel extends model
     public function getProjectParams()
     {
         $this->app->loadLang('project');
+        $params = new stdclass();
         $params->type['name']    = $this->lang->block->type;
         $params->type['options'] = $this->lang->project->featureBar;
         $params->type['control'] = 'select';
@@ -476,6 +471,7 @@ class blockModel extends model
     public function getProjectTeamParams()
     {
         $this->app->loadLang('project');
+        $params = new stdclass();
         $params->type['name']    = $this->lang->block->type;
         $params->type['options'] = $this->lang->project->featureBar;
         $params->type['control'] = 'select';
@@ -506,6 +502,7 @@ class blockModel extends model
      */
     public function getProductParams()
     {
+        $params = new stdclass();
         $params->type['name']    = $this->lang->block->type;
         $params->type['options'] = $this->lang->block->typeList->product;
         $params->type['control'] = 'select';
@@ -521,10 +518,10 @@ class blockModel extends model
      */
     public function getStatisticParams($module = 'product')
     {
-        if($module == 'product')   return $this->getProductStatisticParams($module);
-        if($module == 'project')   return $this->getProjectStatisticParams($module);
-        if($module == 'execution') return $this->getExecutionStatisticParams($module);
-        if($module == 'qa')        return $this->getQaStatisticParams($module);
+        if ($module == 'product')   return $this->getProductStatisticParams($module);
+        if ($module == 'project')   return $this->getProjectStatisticParams($module);
+        if ($module == 'execution') return $this->getExecutionStatisticParams($module);
+        if ($module == 'qa')        return $this->getQaStatisticParams($module);
 
         $params = new stdclass();
         $params = $this->appendCountParams($params);
@@ -714,6 +711,7 @@ class blockModel extends model
      */
     public function getExecutionParams()
     {
+        $params = new stdclass();
         $params->type['name']    = $this->lang->block->type;
         $params->type['options'] = $this->lang->block->typeList->execution;
         $params->type['control'] = 'select';
@@ -729,6 +727,7 @@ class blockModel extends model
      */
     public function getAssignToMeParams()
     {
+        $params = new stdclass();
         $params->todoCount['name']    = $this->lang->block->todoCount;
         $params->todoCount['default'] = 20;
         $params->todoCount['control'] = 'input';
@@ -741,8 +740,7 @@ class blockModel extends model
         $params->bugCount['default'] = 20;
         $params->bugCount['control'] = 'input';
 
-        if(isset($this->config->maxVersion))
-        {
+        if ($this->config->edition == 'max') {
             $params->riskCount['name']    = $this->lang->block->riskCount;
             $params->riskCount['default'] = 20;
             $params->riskCount['control'] = 'input';
@@ -773,29 +771,25 @@ class blockModel extends model
     public function getClosedBlockPairs($closedBlock)
     {
         $blockPairs = array();
-        if(empty($closedBlock)) return $blockPairs;
+        if (empty($closedBlock)) return $blockPairs;
 
-        foreach(explode(',', $closedBlock) as $block)
-        {
+        foreach (explode(',', $closedBlock) as $block) {
             $block = trim($block);
-            if(empty($block)) continue;
+            if (empty($block)) continue;
 
             list($moduleName, $blockKey) = explode('|', $block);
-            if(empty($moduleName))
-            {
-                if(isset($this->lang->block->$blockKey)) $blockPairs[$block] = $this->lang->block->$blockKey;
-                if($blockKey == 'html')      $blockPairs[$block] = 'HTML';
-                if($blockKey == 'flowchart') $blockPairs[$block] = $this->lang->block->lblFlowchart;
-                if($blockKey == 'dynamic')   $blockPairs[$block] = $this->lang->block->dynamic;
-                if($blockKey == 'welcome')   $blockPairs[$block] = $this->lang->block->welcome;
-            }
-            else
-            {
+            if (empty($moduleName)) {
+                if (isset($this->lang->block->$blockKey)) $blockPairs[$block] = $this->lang->block->$blockKey;
+                if ($blockKey == 'html')      $blockPairs[$block] = 'HTML';
+                if ($blockKey == 'flowchart') $blockPairs[$block] = $this->lang->block->lblFlowchart;
+                if ($blockKey == 'dynamic')   $blockPairs[$block] = $this->lang->block->dynamic;
+                if ($blockKey == 'welcome')   $blockPairs[$block] = $this->lang->block->welcome;
+            } else {
                 $blockName = $blockKey;
-                if(isset($this->lang->block->modules[$moduleName]->availableBlocks->$blockKey)) $blockName = $this->lang->block->modules[$moduleName]->availableBlocks->$blockKey;
-                if(isset($this->lang->block->availableBlocks->$blockKey)) $blockName = $this->lang->block->availableBlocks->$blockKey;
-                if(isset($this->lang->block->modules['scrum']['index']->availableBlocks->$blockKey)) $blockName = $this->lang->block->modules['scrum']['index']->availableBlocks->$blockKey;
-                if(isset($this->lang->block->modules['waterfall']['index']->availableBlocks->$blockKey)) $blockName = $this->lang->block->modules['waterfall']['index']->availableBlocks->$blockKey;
+                if (isset($this->lang->block->modules[$moduleName]->availableBlocks->$blockKey)) $blockName = $this->lang->block->modules[$moduleName]->availableBlocks->$blockKey;
+                if (isset($this->lang->block->availableBlocks->$blockKey)) $blockName = $this->lang->block->availableBlocks->$blockKey;
+                if (isset($this->lang->block->modules['scrum']['index']->availableBlocks->$blockKey)) $blockName = $this->lang->block->modules['scrum']['index']->availableBlocks->$blockKey;
+                if (isset($this->lang->block->modules['waterfall']['index']->availableBlocks->$blockKey)) $blockName = $this->lang->block->modules['waterfall']['index']->availableBlocks->$blockKey;
 
                 $blockPairs[$block]  = isset($this->lang->block->moduleList[$moduleName]) ? "{$this->lang->block->moduleList[$moduleName]}|" : '';
                 $blockPairs[$block] .= $blockName;
@@ -814,7 +808,7 @@ class blockModel extends model
      */
     public function appendCountParams($params = '')
     {
-        if(empty($params)) $params = new stdclass();
+        if (empty($params)) $params = new stdclass();
 
         $params->count = array();
         $params->count['name']    = $this->lang->block->count;
@@ -833,7 +827,7 @@ class blockModel extends model
      */
     public function isLongBlock($block)
     {
-        if(empty($block)) return true;
+        if (empty($block)) return true;
         return $block->grid >= 6;
     }
 
@@ -846,7 +840,7 @@ class blockModel extends model
      */
     public function checkAPI($hash)
     {
-        if(empty($hash)) return false;
+        if (empty($hash)) return false;
 
         $key = $this->dao->select('value')->from(TABLE_CONFIG)
             ->where('owner')->eq('system')

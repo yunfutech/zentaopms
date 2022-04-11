@@ -44,8 +44,8 @@ $lang->kanban->assigntoCard        = 'Assign';
 $lang->kanban->setting             = 'Setting';
 $lang->kanban->enableArchived      = 'Enable Archived';
 $lang->kanban->archive             = 'Archive';
-$lang->kanban->performable         = 'Set done function';
-$lang->kanban->doneFunction        = 'Done function';
+$lang->kanban->performable         = 'Set progress management';
+$lang->kanban->manageProgress      = 'Manage Progress';
 $lang->kanban->splitColumn         = 'Split Column';
 $lang->kanban->createColumnOnLeft  = 'Create Column On Left';
 $lang->kanban->createColumnOnRight = 'Create Column On Right';
@@ -101,9 +101,10 @@ $lang->kanban->cardCount      = 'Card Count';
 $lang->kanban->createColumnOnLeft  = 'Create Column On Left';
 $lang->kanban->createColumnOnRight = 'Create Column On Right';
 
-$lang->kanban->accessDenied  = "You have no access to the kanban.";
-$lang->kanban->confirmDelete = 'Do you want to delete this?';
-$lang->kanban->cardCountTip  = 'Please enter the number of cards';
+$lang->kanban->accessDenied        = "You have no access to the kanban.";
+$lang->kanban->confirmDeleteSpace  = 'Do you want to delete this Space?';
+$lang->kanban->confirmDeleteKanban = 'Do you want to delete this Kanban?';
+$lang->kanban->cardCountTip        = 'Please enter the number of cards';
 
 $lang->kanban->selectedKanban  = 'Please select Kanban';
 $lang->kanban->selectedProduct = 'Please select Product';
@@ -120,8 +121,8 @@ $lang->kanban->aclList['private'] = 'Private (For the kanban team, whitelist mem
 $lang->kanban->archiveList['0'] = 'Disable';
 $lang->kanban->archiveList['1'] = 'Enable';
 
-$lang->kanban->enableFinished['0'] = 'Disable';
-$lang->kanban->enableFinished['1'] = 'Enable';
+$lang->kanban->enableList['0'] = 'Disable';
+$lang->kanban->enableList['1'] = 'Enable';
 
 $lang->kanban->type = array();
 $lang->kanban->type['all']   = "All KanBan";
@@ -184,10 +185,11 @@ $lang->kanban->my                 = 'My';
 $lang->kanban->other              = 'Other';
 
 $lang->kanban->error = new stdclass();
-$lang->kanban->error->mustBeInt       = 'The WIPs must be positive integer.';
-$lang->kanban->error->parentLimitNote = 'The WIPs in the parent column cannot be < the sum of the WIPs in the child column.';
-$lang->kanban->error->childLimitNote  = 'The sum of products in the child column cannot be > the number of products in the parent column.';
+$lang->kanban->error->mustBeInt         = 'The WIPs must be positive integer.';
+$lang->kanban->error->parentLimitNote   = 'The WIPs in the parent column cannot be < the sum of the WIPs in the child column.';
+$lang->kanban->error->childLimitNote    = 'The sum of products in the child column cannot be > the number of products in the parent column.';
 $lang->kanban->error->importObjNotEmpty = 'Please select at least one import object.';
+$lang->kanban->error->childLimitEmpty   = 'Please set the WIP quantity of the sub column before operation.';
 
 $lang->kanban->importList = array();
 $lang->kanban->importList['off'] = 'Import is not enabled';
@@ -271,6 +273,10 @@ $lang->kanbanspace->featureBar['cooperation'] = 'Cooperation Space';
 $lang->kanbanspace->featureBar['public']      = 'Public Space';
 $lang->kanbanspace->featureBar['involved']    = 'Involved';
 
+$lang->kanbanspace->typeList['private']     = 'Private Space';
+$lang->kanbanspace->typeList['cooperation'] = 'Cooperation Space';
+$lang->kanbanspace->typeList['public']      = 'Public Space';
+
 $lang->kanbancolumn = new stdclass();
 $lang->kanbancolumn->name       = $lang->kanban->columnName;
 $lang->kanbancolumn->limit      = $lang->kanban->WIPCount;
@@ -328,6 +334,7 @@ $lang->kanbancard->name            = 'Card Name';
 $lang->kanbancard->legendBasicInfo = 'Basic Info';
 $lang->kanbancard->legendLifeTime  = 'Card Life';
 $lang->kanbancard->space           = 'Space';
+$lang->kanbancard->region          = 'Region';
 $lang->kanbancard->kanban          = 'Kanban';
 $lang->kanbancard->lane            = 'Lane';
 $lang->kanbancard->column          = 'Column';
@@ -336,6 +343,7 @@ $lang->kanbancard->beginAndEnd     = 'Begin & End';
 $lang->kanbancard->begin           = 'Begin';
 $lang->kanbancard->end             = 'End';
 $lang->kanbancard->pri             = 'Priority';
+$lang->kanbancard->progress        = 'Progress';
 $lang->kanbancard->desc            = 'Description';
 $lang->kanbancard->estimate        = 'Estimate';
 $lang->kanbancard->createdBy       = 'Created By';
@@ -369,5 +377,6 @@ $lang->kanbancard->colorList['#cfa227'] = 'Warning';
 $lang->kanbancard->colorList['#2a5f29'] = 'Urgent';
 
 $lang->kanbancard->error = new stdClass();
-$lang->kanbancard->error->recordMinus = 'Estimate cannot be negative!';
-$lang->kanbancard->error->endSmall    = '"End Date" cannot be less than "Begin Date"';
+$lang->kanbancard->error->recordMinus     = 'Estimate cannot be negative!';
+$lang->kanbancard->error->endSmall        = '"End Date" cannot be less than "Begin Date"';
+$lang->kanbancard->error->progressIllegal = 'Please input correct progress.';

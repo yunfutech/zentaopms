@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The testtask module zh-cn file of ZenTaoPMS.
  *
@@ -14,7 +15,7 @@ $lang->testtask->create           = "提交测试";
 $lang->testtask->reportChart      = '报表统计';
 $lang->testtask->delete           = "删除测试单";
 $lang->testtask->importUnitResult = "导入单元测试结果";
-$lang->testtask->importunitresult = "导入单元测试"; //Fix bug custom required testtask.
+$lang->testtask->importUnit       = "导入单元测试"; //Fix bug custom required testtask.
 $lang->testtask->browseUnits      = "单元测试列表";
 $lang->testtask->unitCases        = "单元测试用例";
 $lang->testtask->view             = "概况";
@@ -183,14 +184,6 @@ $lang->testtask->report->charts['testTaskPerRunResult'] = '按用例结果统计
 $lang->testtask->report->charts['testTaskPerType']      = '按用例类型统计';
 $lang->testtask->report->charts['testTaskPerModule']    = '按用例模块统计';
 $lang->testtask->report->charts['testTaskPerRunner']    = '按用例执行人统计';
-$lang->testtask->report->charts['bugSeverityGroups']    = 'Bug严重级别分布';
-$lang->testtask->report->charts['bugStatusGroups']      = 'Bug状态分布';
-$lang->testtask->report->charts['bugOpenedByGroups']    = 'Bug创建者分布';
-$lang->testtask->report->charts['bugResolvedByGroups']  = 'Bug解决者分布';
-$lang->testtask->report->charts['bugResolutionGroups']  = 'Bug解决方案分布';
-$lang->testtask->report->charts['bugModuleGroups']      = 'Bug模块分布';
-$lang->testtask->report->charts['bugStageGroups']       = 'Bug重要程度阶段分布';
-$lang->testtask->report->charts['bugHandleGroups']      = 'Bug每日处理情况分布';
 
 $lang->testtask->report->options = new stdclass();
 $lang->testtask->report->options->graph  = new stdclass();

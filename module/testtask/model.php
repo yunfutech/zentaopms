@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The model file of test task module of ZenTaoPMS.
  *
@@ -22,8 +23,7 @@ class testtaskModel extends model
      */
     function create($projectID = 0)
     {
-        if($this->post->execution)
-        {
+        if ($this->post->execution) {
             $execution = $this->loadModel('execution')->getByID($this->post->execution);
             $projectID = $execution->project;
         }
@@ -46,8 +46,7 @@ class testtaskModel extends model
             ->checkIF($task->end != '', 'end', 'ge', $task->begin)
             ->exec();
 
-        if(!dao::isError())
-        {
+        if (!dao::isError()) {
             $taskID = $this->dao->lastInsertID();
             $this->file->updateObjectID($this->post->uid, $taskID, 'testtask');
             $this->file->saveUpload('testtask', $taskID);
@@ -68,9 +67,10 @@ class testtaskModel extends model
      * @access public
      * @return array
      */
-    public function getProductTasks($productID, $branch = 0, $orderBy = 'id_desc', $pager = null, $scopeAndStatus = array(), $beginTime = 0, $endTime = 0)
+    public function getProductTasks($productID, $branch = 'all', $orderBy = 'id_desc', $pager = null, $scopeAndStatus = array(), $beginTime = 0, $endTime = 0)
     {
         $products = $scopeAndStatus[0] == 'all' ? $this->app->user->view->products : array();
+        $branch   = $scopeAndStatus[0] == 'all' ? 'all' : $branch;
 
         return $this->dao->select("t1.*, t2.name AS productName, t3.name AS executionName, t4.name AS buildName, t4.branch AS branch")
             ->from(TABLE_TESTTASK)->alias('t1')
@@ -106,9 +106,9 @@ class testtaskModel extends model
     public function getProductUnitTasks($productID, $browseType = '', $orderBy = 'id_desc', $pager = null)
     {
         $beginAndEnd = $this->loadModel('action')->computeBeginAndEnd($browseType);
-        if(empty($beginAndEnd)) $beginAndEnd = array('begin' => '', 'end' => '');
+        if (empty($beginAndEnd)) $beginAndEnd = array('begin' => '', 'end' => '');
 
-        if($browseType == 'newest') $orderBy = 'end_desc,' . $orderBy;
+        if ($browseType == 'newest') $orderBy = 'end_desc,' . $orderBy;
         $tasks = $this->dao->select("t1.*, t2.name AS productName, t3.name AS executionName, t4.name AS buildName")
             ->from(TABLE_TESTTASK)->alias('t1')
             ->leftJoin(TABLE_PRODUCT)->alias('t2')->on('t1.product = t2.id')
@@ -131,17 +131,15 @@ class testtaskModel extends model
             ->where('t1.task')->in(array_keys($tasks))
             ->fetchGroup('task', 'run');
 
-        foreach($tasks as $taskID => $task)
-        {
+        foreach ($tasks as $taskID => $task) {
             $results = zget($resultGroups, $taskID, array());
 
             $task->caseCount = count($results);
             $task->passCount = 0;
             $task->failCount = 0;
-            foreach($results as $result)
-            {
-                if($result->caseResult == 'pass') $task->passCount ++;
-                if($result->caseResult == 'fail') $task->failCount ++;
+            foreach ($results as $result) {
+                if ($result->caseResult == 'pass') $task->passCount++;
+                if ($result->caseResult == 'fail') $task->failCount++;
             }
         }
 
@@ -212,8 +210,8 @@ class testtaskModel extends model
             ->orderBy('id_desc')
             ->fetchPairs('id', 'name');
 
-        if($appendIdList) $pairs += $this->dao->select('id,name')->from(TABLE_TESTTASK)->where('id')->in($appendIdList)->fetchPairs('id', 'name');
-        if(strpos($params, 'noempty') === false) $pairs = array(0 => '') + $pairs;
+        if ($appendIdList) $pairs += $this->dao->select('id,name')->from(TABLE_TESTTASK)->where('id')->in($appendIdList)->fetchPairs('id', 'name');
+        if (strpos($params, 'noempty') === false) $pairs = array(0 => '') + $pairs;
 
         return $pairs;
     }
@@ -241,8 +239,7 @@ class testtaskModel extends model
     public function getById($taskID, $setImgSize = false)
     {
         $task = $this->dao->select("*")->from(TABLE_TESTTASK)->where('id')->eq((int)$taskID)->fetch();
-        if($task)
-        {
+        if ($task) {
             $product = $this->dao->select('name,type')->from(TABLE_PRODUCT)->where('id')->eq($task->product)->fetch();
             $task->productName   = $product->name;
             $task->productType   = $product->type;
@@ -250,24 +247,22 @@ class testtaskModel extends model
             $task->executionName = '';
             $task->buildName     = '';
 
-            if($task->execution)
-            {
+            if ($task->execution) {
                 $task->executionName = $this->dao->select('name')->from(TABLE_EXECUTION)->where('id')->eq($task->execution)->fetch('name');
                 $task->branch        = $this->dao->select('branch')->from(TABLE_PROJECTPRODUCT)->where('project')->eq($task->execution)->andWhere('product')->eq($task->product)->fetch('branch');
             }
 
             $build = $this->dao->select('branch,name')->from(TABLE_BUILD)->where('id')->eq($task->build)->fetch();
-            if($build)
-            {
+            if ($build) {
                 $task->buildName = $build->name;
                 $task->branch    = $build->branch;
             }
         }
 
-        if(!$task) return false;
+        if (!$task) return false;
 
         $task = $this->loadModel('file')->replaceImgURL($task, 'desc');
-        if($setImgSize) $task->desc = $this->loadModel('file')->setImgSize($task->desc);
+        if ($setImgSize) $task->desc = $this->loadModel('file')->setImgSize($task->desc);
         $task->files = $this->loadModel('file')->getByObject('testtask', $task->id);
         return $task;
     }
@@ -325,19 +320,19 @@ class testtaskModel extends model
      */
     public function getLinkableCases($productID, $task, $taskID, $type, $param, $pager)
     {
-        if($this->session->testcaseQuery == false) $this->session->set('testcaseQuery', ' 1 = 1');
+        if ($this->session->testcaseQuery == false) $this->session->set('testcaseQuery', ' 1 = 1');
         $query = $this->session->testcaseQuery;
         $allProduct = "`product` = 'all'";
-        if(strpos($query, '`product` =') === false && $type != 'bysuite') $query .= " AND `product` = $productID";
-        if(strpos($query, $allProduct) !== false) $query = str_replace($allProduct, '1', $query);
+        if (strpos($query, '`product` =') === false && $type != 'bysuite') $query .= " AND `product` = $productID";
+        if (strpos($query, $allProduct) !== false) $query = str_replace($allProduct, '1', $query);
 
         $cases = array();
         $linkedCases = $this->dao->select('`case`')->from(TABLE_TESTRUN)->where('task')->eq($taskID)->fetchPairs('case');
-        if($type == 'all')     $cases = $this->getAllLinkableCases($task, $query, $linkedCases, $pager);
-        if($type == 'bystory') $cases = $this->getLinkableCasesByStory($productID, $task, $query, $linkedCases, $pager);
-        if($type == 'bybug')   $cases = $this->getLinkableCasesByBug($productID, $task, $query, $linkedCases, $pager);
-        if($type == 'bysuite') $cases = $this->getLinkableCasesBySuite($productID, $task, $query, $param, $linkedCases, $pager);
-        if($type == 'bybuild') $cases = $this->getLinkableCasesByTestTask($param, $linkedCases, $query, $pager);
+        if ($type == 'all')     $cases = $this->getAllLinkableCases($task, $query, $linkedCases, $pager);
+        if ($type == 'bystory') $cases = $this->getLinkableCasesByStory($productID, $task, $query, $linkedCases, $pager);
+        if ($type == 'bybug')   $cases = $this->getLinkableCasesByBug($productID, $task, $query, $linkedCases, $pager);
+        if ($type == 'bysuite') $cases = $this->getLinkableCasesBySuite($productID, $task, $query, $param, $linkedCases, $pager);
+        if ($type == 'bybuild') $cases = $this->getLinkableCasesByTestTask($param, $linkedCases, $query, $pager);
 
         return $cases;
     }
@@ -355,14 +350,14 @@ class testtaskModel extends model
     public function getAllLinkableCases($task, $query, $linkedCases, $pager)
     {
         return $this->dao->select('*')->from(TABLE_CASE)->where($query)
-                ->andWhere('id')->notIN($linkedCases)
-                ->andWhere('status')->ne('wait')
-                ->andWhere('type')->ne('unit')
-                ->beginIF($task->branch !== '')->andWhere('branch')->in("0,$task->branch")->fi()
-                ->andWhere('deleted')->eq(0)
-                ->orderBy('id desc')
-                ->page($pager)
-                ->fetchAll();
+            ->andWhere('id')->notIN($linkedCases)
+            ->andWhere('status')->ne('wait')
+            ->andWhere('type')->ne('unit')
+            ->beginIF($task->branch !== '')->andWhere('branch')->in("0,$task->branch")->fi()
+            ->andWhere('deleted')->eq(0)
+            ->orderBy('id desc')
+            ->page($pager)
+            ->fetchAll();
     }
 
     /**
@@ -380,8 +375,7 @@ class testtaskModel extends model
     {
         $stories = $this->dao->select('stories')->from(TABLE_BUILD)->where('id')->eq($task->build)->fetch('stories');
         $cases   = array();
-        if($stories)
-        {
+        if ($stories) {
             $cases = $this->dao->select('*')->from(TABLE_CASE)
                 ->where($query)
                 ->beginIF($this->config->systemMode == 'new' and $this->lang->navGroup->testtask != 'qa')->andWhere('project')->eq($this->session->project)->fi()
@@ -414,8 +408,7 @@ class testtaskModel extends model
     {
         $bugs = $this->dao->select('bugs')->from(TABLE_BUILD)->where('id')->eq($task->build)->fetch('bugs');
         $cases = array();
-        if($bugs)
-        {
+        if ($bugs) {
             $cases = $this->dao->select('*')->from(TABLE_CASE)->where($query)
                 ->beginIF($this->config->systemMode == 'new' and $this->lang->navGroup->testtask != 'qa')->andWhere('project')->eq($this->session->project)->fi()
                 ->andWhere('product')->eq($productID)
@@ -446,20 +439,20 @@ class testtaskModel extends model
      */
     public function getLinkableCasesBySuite($productID, $task, $query, $suite, $linkedCases, $pager)
     {
-        if(strpos($query, '`product`') !== false) $query = str_replace('`product`', 't1.`product`', $query);
+        if (strpos($query, '`product`') !== false) $query = str_replace('`product`', 't1.`product`', $query);
         return $this->dao->select('t1.*,t2.version as version')->from(TABLE_CASE)->alias('t1')
-                ->leftJoin(TABLE_SUITECASE)->alias('t2')->on('t1.id=t2.case')
-                ->where($query)
-                ->beginIF($this->config->systemMode == 'new' and $this->lang->navGroup->testtask != 'qa')->andWhere('t1.project')->eq($this->session->project)->fi()
-                ->andWhere('t2.suite')->eq((int)$suite)
-                ->andWhere('t1.product')->eq($productID)
-                ->andWhere('status')->ne('wait')
-                ->beginIF($linkedCases)->andWhere('t1.id')->notIN($linkedCases)->fi()
-                ->beginIF($task->branch !== '')->andWhere('t1.branch')->in("0,$task->branch")->fi()
-                ->andWhere('deleted')->eq(0)
-                ->orderBy('id desc')
-                ->page($pager)
-                ->fetchAll();
+            ->leftJoin(TABLE_SUITECASE)->alias('t2')->on('t1.id=t2.case')
+            ->where($query)
+            ->beginIF($this->config->systemMode == 'new' and $this->lang->navGroup->testtask != 'qa')->andWhere('t1.project')->eq($this->session->project)->fi()
+            ->andWhere('t2.suite')->eq((int)$suite)
+            ->andWhere('t1.product')->eq($productID)
+            ->andWhere('status')->ne('wait')
+            ->beginIF($linkedCases)->andWhere('t1.id')->notIN($linkedCases)->fi()
+            ->beginIF($task->branch !== '')->andWhere('t1.branch')->in("0,$task->branch")->fi()
+            ->andWhere('deleted')->eq(0)
+            ->orderBy('id desc')
+            ->page($pager)
+            ->fetchAll();
     }
 
     /**
@@ -500,9 +493,9 @@ class testtaskModel extends model
      */
     public function getTestReportPairsByBuild($build = '')
     {
-        if(empty($build)) return array();
+        if (empty($build)) return array();
 
-        return $this->dao->select('id,title')->from(TABLE_TESTREPORT)->where("CONCAT(',', builds, ',')")->like("%,$build,%")->fetchPairs('id','title');
+        return $this->dao->select('id,title')->from(TABLE_TESTREPORT)->where("CONCAT(',', builds, ',')")->like("%,$build,%")->fetchPairs('id', 'title');
     }
 
     /**
@@ -545,10 +538,10 @@ class testtaskModel extends model
             ->orderBy('value DESC')
             ->fetchAll('name');
 
-        if(!$datas) return array();
+        if (!$datas) return array();
 
         $this->app->loadLang('testcase');
-        foreach($datas as $result => $data) $data->name = isset($this->lang->testcase->resultList[$result])? $this->lang->testcase->resultList[$result] : $this->lang->testtask->unexecuted;
+        foreach ($datas as $result => $data) $data->name = isset($this->lang->testcase->resultList[$result]) ? $this->lang->testcase->resultList[$result] : $this->lang->testtask->unexecuted;
 
         return $datas;
     }
@@ -569,9 +562,9 @@ class testtaskModel extends model
             ->groupBy('name')
             ->orderBy('value desc')
             ->fetchAll('name');
-        if(!$datas) return array();
+        if (!$datas) return array();
 
-        foreach($datas as $result => $data) if(isset($this->lang->testcase->typeList[$result])) $data->name = $this->lang->testcase->typeList[$result];
+        foreach ($datas as $result => $data) if (isset($this->lang->testcase->typeList[$result])) $data->name = $this->lang->testcase->typeList[$result];
 
         return $datas;
     }
@@ -592,10 +585,10 @@ class testtaskModel extends model
             ->groupBy('name')
             ->orderBy('value desc')
             ->fetchAll('name');
-        if(!$datas) return array();
+        if (!$datas) return array();
 
         $modules = $this->loadModel('tree')->getModulesName(array_keys($datas));
-        foreach($datas as $moduleID => $data) $data->name = isset($modules[$moduleID]) ? $modules[$moduleID] : '/';
+        foreach ($datas as $moduleID => $data) $data->name = isset($modules[$moduleID]) ? $modules[$moduleID] : '/';
 
         return $datas;
     }
@@ -616,9 +609,9 @@ class testtaskModel extends model
             ->groupBy('name')
             ->orderBy('value DESC')
             ->fetchAll('name');
-        if(!$datas) return array();
+        if (!$datas) return array();
         $users = $this->loadModel('user')->getPairs('noclosed|noletter');
-        foreach($datas as $result => $data) $data->name = $result ? zget($users, $result, $result) : $this->lang->testtask->unexecuted;
+        foreach ($datas as $result => $data) $data->name = $result ? zget($users, $result, $result) : $this->lang->testtask->unexecuted;
 
         return $datas;
     }
@@ -637,16 +630,15 @@ class testtaskModel extends model
 
         $severityGroups = $statusGroups = $openedByGroups = $resolvedByGroups = $resolutionGroups = $moduleGroups = array();
         $resolvedBugs   = 0;
-        foreach($foundBugs as $bug)
-        {
+        foreach ($foundBugs as $bug) {
             $severityGroups[$bug->severity] = isset($severityGroups[$bug->severity]) ? $severityGroups[$bug->severity] + 1 : 1;
             $statusGroups[$bug->status]     = isset($statusGroups[$bug->status])     ? $statusGroups[$bug->status]     + 1 : 1;
             $openedByGroups[$bug->openedBy] = isset($openedByGroups[$bug->openedBy]) ? $openedByGroups[$bug->openedBy] + 1 : 1;
             $moduleGroups[$bug->module]     = isset($moduleGroups[$bug->module])     ? $moduleGroups[$bug->module]     + 1 : 1;
 
-            if($bug->resolvedBy) $resolvedByGroups[$bug->resolvedBy] = isset($resolvedByGroups[$bug->resolvedBy]) ? $resolvedByGroups[$bug->resolvedBy] + 1 : 1;
-            if($bug->resolution) $resolutionGroups[$bug->resolution] = isset($resolutionGroups[$bug->resolution]) ? $resolutionGroups[$bug->resolution] + 1 : 1;
-            if($bug->status == 'resolved' or $bug->status == 'closed') $resolvedBugs ++;
+            if ($bug->resolvedBy) $resolvedByGroups[$bug->resolvedBy] = isset($resolvedByGroups[$bug->resolvedBy]) ? $resolvedByGroups[$bug->resolvedBy] + 1 : 1;
+            if ($bug->resolution) $resolutionGroups[$bug->resolution] = isset($resolutionGroups[$bug->resolution]) ? $resolutionGroups[$bug->resolution] + 1 : 1;
+            if ($bug->status == 'resolved' or $bug->status == 'closed') $resolvedBugs++;
         }
 
         $bugInfo['bugConfirmedRate']    = empty($resolvedBugs) ? 0 : round((zget($resolutionGroups, 'fixed', 0) + zget($resolutionGroups, 'postponed', 0)) / $resolvedBugs * 100, 2);
@@ -655,8 +647,7 @@ class testtaskModel extends model
         $this->app->loadLang('bug');
         $users = $this->loadModel('user')->getPairs('noclosed|noletter|nodeleted');
         $data  = array();
-        foreach($severityGroups as $severity => $count)
-        {
+        foreach ($severityGroups as $severity => $count) {
             $data[$severity] = new stdclass();
             $data[$severity]->name  = zget($this->lang->bug->severityList, $severity);
             $data[$severity]->value = $count;
@@ -664,8 +655,7 @@ class testtaskModel extends model
         $bugInfo['bugSeverityGroups'] = $data;
 
         $data = array();
-        foreach($statusGroups as $status => $count)
-        {
+        foreach ($statusGroups as $status => $count) {
             $data[$status] = new stdclass();
             $data[$status]->name  = zget($this->lang->bug->statusList, $status);
             $data[$status]->value = $count;
@@ -673,8 +663,7 @@ class testtaskModel extends model
         $bugInfo['bugStatusGroups'] = $data;
 
         $data = array();
-        foreach($resolutionGroups as $resolution => $count)
-        {
+        foreach ($resolutionGroups as $resolution => $count) {
             $data[$resolution] = new stdclass();
             $data[$resolution]->name  = zget($this->lang->bug->resolutionList, $resolution);
             $data[$resolution]->value = $count;
@@ -682,8 +671,7 @@ class testtaskModel extends model
         $bugInfo['bugResolutionGroups'] = $data;
 
         $data = array();
-        foreach($openedByGroups as $openedBy => $count)
-        {
+        foreach ($openedByGroups as $openedBy => $count) {
             $data[$openedBy] = new stdclass();
             $data[$openedBy]->name  = zget($users, $openedBy);
             $data[$openedBy]->value = $count;
@@ -693,8 +681,7 @@ class testtaskModel extends model
         $this->loadModel('tree');
         $modules = $this->tree->getOptionMenu($productID, $viewType = 'bug');
         $data    = array();
-        foreach($moduleGroups as $moduleID => $count)
-        {
+        foreach ($moduleGroups as $moduleID => $count) {
             $data[$moduleID] = new stdclass();
             $data[$moduleID]->name  = zget($modules, $moduleID);
             $data[$moduleID]->value = $count;
@@ -702,8 +689,7 @@ class testtaskModel extends model
         $bugInfo['bugModuleGroups'] = $data;
 
         $data = array();
-        foreach($resolvedByGroups as $resolvedBy => $count)
-        {
+        foreach ($resolvedByGroups as $resolvedBy => $count) {
             $data[$resolvedBy] = new stdclass();
             $data[$resolvedBy]->name  = zget($users, $resolvedBy);
             $data[$resolvedBy]->value = $count;
@@ -713,7 +699,7 @@ class testtaskModel extends model
         return $bugInfo;
     }
 
-     /**
+    /**
      * Merge the default chart settings and the settings of current chart.
      *
      * @param  string    $chartType
@@ -725,14 +711,14 @@ class testtaskModel extends model
         $chartOption  = isset($this->lang->testtask->report->$chartType) ? $this->lang->testtask->report->$chartType : new stdclass();
         $commonOption = $this->lang->testtask->report->options;
 
-        if(!isset($chartOption->graph)) $chartOption->graph = new stdclass();
+        if (!isset($chartOption->graph)) $chartOption->graph = new stdclass();
         $chartOption->graph->caption = $this->lang->testtask->report->charts[$chartType];
-        if(!isset($chartOption->type))    $chartOption->type  = $commonOption->type;
-        if(!isset($chartOption->width))  $chartOption->width  = $commonOption->width;
-        if(!isset($chartOption->height)) $chartOption->height = $commonOption->height;
+        if (!isset($chartOption->type))    $chartOption->type  = $commonOption->type;
+        if (!isset($chartOption->width))  $chartOption->width  = $commonOption->width;
+        if (!isset($chartOption->height)) $chartOption->height = $commonOption->height;
 
         /* 合并配置。*/
-        foreach($commonOption->graph as $key => $value) if(!isset($chartOption->graph->$key)) $chartOption->graph->$key = $value;
+        foreach ($commonOption->graph as $key => $value) if (!isset($chartOption->graph->$key)) $chartOption->graph->$key = $value;
         return $chartOption;
     }
 
@@ -754,8 +740,7 @@ class testtaskModel extends model
             ->checkIF($task->end != '', 'end', 'ge', $task->begin)
             ->where('id')->eq($taskID)
             ->exec();
-        if(!dao::isError())
-        {
+        if (!dao::isError()) {
             $this->file->updateObjectID($this->post->uid, $taskID, 'testtask');
             $this->file->saveUpload('testtask', $taskID);
             return common::createChanges($oldTask, $task);
@@ -781,7 +766,7 @@ class testtaskModel extends model
             ->where('id')->eq((int)$taskID)
             ->exec();
 
-        if(!dao::isError()) return common::createChanges($oldTesttask, $testtask);
+        if (!dao::isError()) return common::createChanges($oldTesttask, $testtask);
     }
 
     /**
@@ -800,13 +785,11 @@ class testtaskModel extends model
             ->remove('comment,uid')
             ->get();
 
-        if($testtask->realFinishedDate <= $oldTesttask->begin)
-        {
+        if ($testtask->realFinishedDate <= $oldTesttask->begin) {
             dao::$errors[] = sprintf($this->lang->testtask->finishedDateLess, $oldTesttask->begin);
             return false;
         }
-        if($testtask->realFinishedDate > date("Y-m-d 00:00:00", strtotime("+1 day")))
-        {
+        if ($testtask->realFinishedDate > date("Y-m-d 00:00:00", strtotime("+1 day"))) {
             dao::$errors[] = $this->lang->testtask->finishedDateMore;
             return false;
         }
@@ -817,8 +800,7 @@ class testtaskModel extends model
             ->where('id')->eq((int)$taskID)
             ->exec();
 
-        if(!dao::isError())
-        {
+        if (!dao::isError()) {
             $this->file->updateObjectID($this->post->uid, $taskID, 'testtask');
             return common::createChanges($oldTesttask, $testtask);
         }
@@ -843,7 +825,7 @@ class testtaskModel extends model
             ->where('id')->eq((int)$taskID)
             ->exec();
 
-        if(!dao::isError()) return common::createChanges($oldTesttask, $testtask);
+        if (!dao::isError()) return common::createChanges($oldTesttask, $testtask);
     }
 
     /**
@@ -865,7 +847,7 @@ class testtaskModel extends model
             ->where('id')->eq((int)$taskID)
             ->exec();
 
-        if(!dao::isError()) return common::createChanges($oldTesttask, $testtask);
+        if (!dao::isError()) return common::createChanges($oldTesttask, $testtask);
     }
 
     /**
@@ -878,24 +860,22 @@ class testtaskModel extends model
      */
     public function linkCase($taskID, $type)
     {
-        if($this->post->cases == false) return;
+        if ($this->post->cases == false) return;
         $postData = fixer::input('post')->get();
 
-        if($type == 'bybuild') $assignedToPairs = $this->dao->select('`case`, assignedTo')->from(TABLE_TESTRUN)->where('`case`')->in($postData)->fetchPairs('case', 'assignedTo');
-        foreach($postData->cases as $caseID)
-        {
+        if ($type == 'bybuild') $assignedToPairs = $this->dao->select('`case`, assignedTo')->from(TABLE_TESTRUN)->where('`case`')->in($postData)->fetchPairs('case', 'assignedTo');
+        foreach ($postData->cases as $caseID) {
             $row = new stdclass();
             $row->task       = $taskID;
             $row->case       = $caseID;
             $row->version    = $postData->versions[$caseID];
             $row->assignedTo = '';
             $row->status     = 'normal';
-            if($type == 'bybuild') $row->assignedTo = zget($assignedToPairs, $caseID, '');
+            if ($type == 'bybuild') $row->assignedTo = zget($assignedToPairs, $caseID, '');
             $this->dao->replace(TABLE_TESTRUN)->data($row)->exec();
 
             /* When the cases linked the testtask, the cases link to the project. */
-            if($this->app->tab != 'qa')
-            {
+            if ($this->app->tab != 'qa') {
                 $lastOrder = (int)$this->dao->select('*')->from(TABLE_PROJECTCASE)->where('project')->eq($projectID)->orderBy('order_desc')->limit(1)->fetch('order');
                 $project   = $this->app->tab == 'project' ? $this->session->project : $this->session->execution;
 
@@ -904,7 +884,7 @@ class testtaskModel extends model
                 $data->product = $this->session->product;
                 $data->case    = $caseID;
                 $data->version = 1;
-                $data->order   = ++ $lastOrder;
+                $data->order   = ++$lastOrder;
                 $this->dao->replace(TABLE_PROJECTCASE)->data($data)->exec();
                 $this->loadModel('action')->create('case', $caseID, 'linked2testtask', '', $taskID);
             }
@@ -986,23 +966,16 @@ class testtaskModel extends model
         $browseType = ($browseType == 'bymodule' and $this->session->taskCaseBrowseType and $this->session->taskCaseBrowseType != 'bysearch') ? $this->session->taskCaseBrowseType : $browseType;
         $browseType = strtolower($browseType);
 
-        if($browseType == 'bymodule' or $browseType == 'all')
-        {
+        if ($browseType == 'bymodule' or $browseType == 'all') {
             $runs = $this->getRuns($task->id, $modules, $sort, $pager);
-        }
-        elseif($browseType == 'assignedtome')
-        {
+        } elseif ($browseType == 'assignedtome') {
             $runs = $this->getUserRuns($task->id, $this->session->user->account, $modules, $sort, $pager);
         }
-        /* By search. */
-        elseif($browseType == 'bysearch')
-        {
-            if($this->session->testtaskQuery == false) $this->session->set('testtaskQuery', ' 1 = 1');
-            if($queryID)
-            {
+        /* By search. */ elseif ($browseType == 'bysearch') {
+            if ($this->session->testtaskQuery == false) $this->session->set('testtaskQuery', ' 1 = 1');
+            if ($queryID) {
                 $query = $this->loadModel('search')->getQuery($queryID);
-                if($query)
-                {
+                if ($query) {
                     $this->session->set('testtaskQuery', $query->sql);
                     $this->session->set('testtaskForm', $query->form);
                 }
@@ -1011,8 +984,7 @@ class testtaskModel extends model
             $queryProductID = $productID;
             $allProduct     = "`product` = 'all'";
             $caseQuery      = $this->session->testtaskQuery;
-            if(strpos($this->session->testtaskQuery, $allProduct) !== false)
-            {
+            if (strpos($this->session->testtaskQuery, $allProduct) !== false) {
                 $caseQuery = str_replace($allProduct, '1', $this->session->testtaskQuery);
                 $caseQuery = $caseQuery . ' AND `product` ' . helper::dbIN($this->app->user->view->products);
                 $queryProductID = 'all';
@@ -1067,9 +1039,8 @@ class testtaskModel extends model
             ->query();
 
         $testtaskPairs = array();
-        while($testtask = $stmt->fetch())
-        {
-            if($testtask->execution) $testtask->execution .= " / ";
+        while ($testtask = $stmt->fetch()) {
+            if ($testtask->execution) $testtask->execution .= " / ";
             $testtaskPairs[$testtask->id] = $testtask->execution . $testtask->name;
         }
         return $testtaskPairs;
@@ -1107,13 +1078,10 @@ class testtaskModel extends model
          * */
         $postData   = fixer::input('post')->get();
         $caseResult = isset($postData->result) ? $postData->result : 'pass';
-        if(isset($postData->steps) and $postData->steps)
-        {
-            foreach($postData->steps as $stepID => $stepResult)
-            {
-                if($stepResult != 'pass' and $stepResult != 'n/a') $caseResult = $stepResult;
-                if($stepResult == 'fail')
-                {
+        if (isset($postData->steps) and $postData->steps) {
+            foreach ($postData->steps as $stepID => $stepResult) {
+                if ($stepResult != 'pass' and $stepResult != 'n/a') $caseResult = $stepResult;
+                if ($stepResult == 'fail') {
                     $caseResult = $stepResult;
                     break;
                 }
@@ -1121,8 +1089,7 @@ class testtaskModel extends model
         }
 
         /* Create result of every step. */
-        foreach($postData->steps as $stepID =>$stepResult)
-        {
+        foreach ($postData->steps as $stepID => $stepResult) {
             $step['result'] = $stepResult;
             $step['real']   = $postData->reals[$stepID];
             $stepResults[$stepID] = $step;
@@ -1141,26 +1108,22 @@ class testtaskModel extends model
             ->get();
 
         /* Remove files and labels field when uploading files for case result or step result. */
-        foreach($result as $fieldName => $field)
-        {
-            if((strpos($fieldName, 'files') !== false) or (strpos($fieldName, 'labels') !== false)) unset($result->$fieldName);
+        foreach ($result as $fieldName => $field) {
+            if ((strpos($fieldName, 'files') !== false) or (strpos($fieldName, 'labels') !== false)) unset($result->$fieldName);
         }
 
         $this->dao->insert(TABLE_TESTRESULT)->data($result)->autoCheck()->exec();
 
         /* Save upload files for case result or step result. */
-        if(!dao::isError())
-        {
+        if (!dao::isError()) {
             $resultID = $this->dao->lastInsertID();
-            foreach($stepResults as $stepID => $stepResult) $this->loadModel('file')->saveUpload('stepResult', $resultID, $stepID, "files{$stepID}", "labels{$stepID}");
+            foreach ($stepResults as $stepID => $stepResult) $this->loadModel('file')->saveUpload('stepResult', $resultID, $stepID, "files{$stepID}", "labels{$stepID}");
         }
         $this->dao->update(TABLE_CASE)->set('lastRunner')->eq($this->app->user->account)->set('lastRunDate')->eq($now)->set('lastRunResult')->eq($caseResult)->where('id')->eq($postData->case)->exec();
 
-        if($runID)
-        {
+        if ($runID) {
             /* Update testRun's status. */
-            if(!dao::isError())
-            {
+            if (!dao::isError()) {
                 $runStatus = $caseResult == 'blocked' ? 'blocked' : 'normal';
                 $this->dao->update(TABLE_TESTRUN)
                     ->set('lastRunResult')->eq($caseResult)
@@ -1172,7 +1135,7 @@ class testtaskModel extends model
             }
         }
 
-        if(!dao::isError()) $this->loadModel('score')->create('testtask', 'runCase', $runID);
+        if (!dao::isError()) $this->loadModel('score')->create('testtask', 'runCase', $runID);
 
         return $caseResult;
     }
@@ -1189,8 +1152,7 @@ class testtaskModel extends model
         $runs = array();
         $postData   = fixer::input('post')->get();
         $caseIdList = isset($postData->caseIDList) ? array_keys($postData->caseIDList) : array_keys($postData->results);
-        if($runCaseType == 'testtask')
-        {
+        if ($runCaseType == 'testtask') {
             $runs = $this->dao->select('id, `case`')->from(TABLE_TESTRUN)
                 ->where('`case`')->in($caseIdList)
                 ->beginIF($taskID)->andWhere('task')->eq($taskID)->fi()
@@ -1205,8 +1167,7 @@ class testtaskModel extends model
             ->fetchGroup('case', 'id');
 
         $now = helper::now();
-        foreach($postData->results as $caseID => $result)
-        {
+        foreach ($postData->results as $caseID => $result) {
             $runID       = isset($runs[$caseID]) ? $runs[$caseID] : (isset($postData->caseIDList) ? $caseID : 0);
             $version     = $postData->version[$caseID];
             $dbSteps     = isset($stepGroups[$caseID]) ? $stepGroups[$caseID] : array();
@@ -1215,18 +1176,14 @@ class testtaskModel extends model
 
             $caseResult  = $result ? $result : 'pass';
             $stepResults = array();
-            if($dbSteps)
-            {
-                foreach($dbSteps as $stepID => $step)
-                {
+            if ($dbSteps) {
+                foreach ($dbSteps as $stepID => $step) {
                     $step           = array();
                     $step['result'] = $caseResult == 'pass' ? $caseResult : $postSteps[$stepID];
                     $step['real']   = $caseResult == 'pass' ? '' : $postReals[$stepID];
                     $stepResults[$stepID] = $step;
                 }
-            }
-            else
-            {
+            } else {
                 $step           = array();
                 $step['result'] = $caseResult;
                 $step['real']   = $caseResult == 'pass' ? '' : $postReals[0];
@@ -1234,7 +1191,7 @@ class testtaskModel extends model
             }
 
             /* Replace caseID if caseID is runID. */
-            if(isset($postData->caseIDList[$caseID])) $caseID = $postData->caseIDList[$caseID];
+            if (isset($postData->caseIDList[$caseID])) $caseID = $postData->caseIDList[$caseID];
 
             $result              = new stdClass();
             $result->run         = $runID;
@@ -1247,11 +1204,9 @@ class testtaskModel extends model
             $this->dao->insert(TABLE_TESTRESULT)->data($result)->autoCheck()->exec();
             $this->dao->update(TABLE_CASE)->set('lastRunner')->eq($this->app->user->account)->set('lastRunDate')->eq($now)->set('lastRunResult')->eq($caseResult)->where('id')->eq($caseID)->exec();
 
-            if($runID)
-            {
+            if ($runID) {
                 /* Update testRun's status. */
-                if(!dao::isError())
-                {
+                if (!dao::isError()) {
                     $runStatus = $caseResult == 'blocked' ? 'blocked' : 'normal';
                     $this->dao->update(TABLE_TESTRUN)
                         ->set('lastRunResult')->eq($caseResult)
@@ -1275,21 +1230,17 @@ class testtaskModel extends model
      */
     public function getResults($runID, $caseID = 0)
     {
-        if($runID > 0)
-        {
+        if ($runID > 0) {
             $results = $this->dao->select('*')->from(TABLE_TESTRESULT)->where('run')->eq($runID)->orderBy('id desc')->fetchAll('id');
-        }
-        else
-        {
+        } else {
             $results = $this->dao->select('*')->from(TABLE_TESTRESULT)->where('`case`')->eq($caseID)->orderBy('id desc')->fetchAll('id');
         }
 
-        if(!$results) return array();
+        if (!$results) return array();
 
         $relatedVersions = array();
         $runIdList       = array();
-        foreach($results as $result)
-        {
+        foreach ($results as $result) {
             $runIdList[$result->run] = $result->run;
             $relatedVersions[]       = $result->version;
             $runCaseID               = $result->case;
@@ -1315,33 +1266,25 @@ class testtaskModel extends model
             ->fetchAll();
         $resultFiles = array();
         $stepFiles   = array();
-        foreach($files as $file)
-        {
+        foreach ($files as $file) {
             $pathName = $this->file->getRealPathName($file->pathname);
             $file->webPath  = $this->file->webPath . $pathName;
             $file->realPath = $this->file->savePath . $pathName;
-            if($file->objectType == 'caseResult')
-            {
+            if ($file->objectType == 'caseResult') {
                 $resultFiles[$file->objectID][$file->id] = $file;
-            }
-            elseif($file->objectType == 'stepResult' and $file->extra !== '')
-            {
+            } elseif ($file->objectType == 'stepResult' and $file->extra !== '') {
                 $stepFiles[$file->objectID][(int)$file->extra][$file->id] = $file;
             }
         }
-        foreach($results as $resultID => $result)
-        {
+        foreach ($results as $resultID => $result) {
             $result->stepResults = unserialize($result->stepResults);
             $result->build       = $result->run ? zget($runs, $result->run, 0) : 0;
             $result->files       = zget($resultFiles, $resultID, array()); //Get files of case result.
-            if(isset($relatedSteps[$result->version]))
-            {
+            if (isset($relatedSteps[$result->version])) {
                 $relatedStep = $relatedSteps[$result->version];
-                foreach($relatedStep as $stepID => $step)
-                {
+                foreach ($relatedStep as $stepID => $step) {
                     $relatedStep[$stepID] = (array)$step;
-                    if(isset($result->stepResults[$stepID]))
-                    {
+                    if (isset($result->stepResults[$stepID])) {
                         $relatedStep[$stepID]['result'] = $result->stepResults[$stepID]['result'];
                         $relatedStep[$stepID]['real']   = $result->stepResults[$stepID]['real'];
                     }
@@ -1350,7 +1293,7 @@ class testtaskModel extends model
             }
 
             /* Get files of step result. */
-            foreach($result->stepResults as $stepID => $stepResult) $result->stepResults[$stepID]['files'] = isset($stepFiles[$resultID][$stepID]) ? $stepFiles[$resultID][$stepID] : array();
+            foreach ($result->stepResults as $stepID => $stepResult) $result->stepResults[$stepID]['files'] = isset($stepFiles[$resultID][$stepID]) ? $stepFiles[$resultID][$stepID] : array();
         }
         return $results;
     }
@@ -1367,12 +1310,12 @@ class testtaskModel extends model
     {
         $action = strtolower($action);
 
-        if($action == 'start')    return $testtask->status  == 'wait';
-        if($action == 'block')    return ($testtask->status == 'doing'   || $testtask->status == 'wait');
-        if($action == 'activate') return ($testtask->status == 'blocked' || $testtask->status == 'done');
-        if($action == 'close')    return $testtask->status != 'done';
-        if($action == 'runcase' and isset($testtask->auto) and $testtask->auto == 'unit')  return false;
-        if($action == 'runcase')  return isset($testtask->caseStatus) ? $testtask->caseStatus != 'wait' : $testtask->status != 'wait';
+        if ($action == 'start')    return $testtask->status  == 'wait';
+        if ($action == 'block')    return ($testtask->status == 'doing'   || $testtask->status == 'wait');
+        if ($action == 'activate') return ($testtask->status == 'blocked' || $testtask->status == 'done');
+        if ($action == 'close')    return $testtask->status != 'done';
+        if ($action == 'runcase' and isset($testtask->auto) and $testtask->auto == 'unit')  return false;
+        if ($action == 'runcase')  return isset($testtask->caseStatus) ? $testtask->caseStatus != 'wait' : $testtask->status != 'wait';
         return true;
     }
 
@@ -1403,146 +1346,130 @@ class testtaskModel extends model
         $caseChanged = $run->version < $run->caseVersion;
         $fromCaseID  = $run->fromCaseID;
 
-        if($col->show)
-        {
+        if ($col->show) {
             $class = "c-$id ";
-            if($id == 'status') $class .= $run->status;
-            if($id == 'title')  $class .= ' text-left';
-            if($id == 'id')     $class .= ' cell-id';
-            if($id == 'lastRunResult') $class .= " $run->lastRunResult";
-            if($id == 'assignedTo' && $run->assignedTo == $account) $class .= ' red';
-            if($id == 'actions') $class .= 'c-actions';
+            if ($id == 'status') $class .= $run->status;
+            if ($id == 'title')  $class .= ' text-left';
+            if ($id == 'id')     $class .= ' cell-id';
+            if ($id == 'lastRunResult') $class .= " $run->lastRunResult";
+            if ($id == 'assignedTo' && $run->assignedTo == $account) $class .= ' red';
+            if ($id == 'actions') $class .= 'c-actions';
 
-            echo "<td class='" . $class . "'" . ($id=='title' ? "title='{$run->title}'":'') . ">";
-            if(isset($this->config->bizVersion)) $this->loadModel('flow')->printFlowCell('testcase', $run, $id);
-            switch ($id)
-            {
-            case 'id':
-                if($canBatchAction)
-                {
-                    echo html::checkbox('caseIDList', array($run->case => sprintf('%03d', $run->case)));
-                }
-                else
-                {
-                    printf('%03d', $run->case);
-                }
-                break;
-            case 'pri':
-                echo "<span class='label-pri label-pri-" . $run->pri . "' title='" . zget($this->lang->testcase->priList, $run->pri, $run->pri) . "'>";
-                echo zget($this->lang->testcase->priList, $run->pri, $run->pri);
-                echo "</span>";
-                break;
-            case 'title':
-                if(!empty($branches)) echo "<span class='label label-badge label-outline'>{$branches[$run->branch]}</span>";
-                if($canView)
-                {
-                    if($fromCaseID)
-                    {
-                        echo html::a($caseLink, $run->title, null, "style='color: $run->color'") . html::a(helper::createLink('testcase', 'view', "caseID=$fromCaseID"), "[<i class='icon icon-share' title='{$this->lang->testcase->fromCase}'></i>#$fromCaseID]");
+            echo "<td class='" . $class . "'" . ($id == 'title' ? "title='{$run->title}'" : '') . ">";
+            if ($this->config->edition != 'open') $this->loadModel('flow')->printFlowCell('testcase', $run, $id);
+            switch ($id) {
+                case 'id':
+                    if ($canBatchAction) {
+                        echo html::checkbox('caseIDList', array($run->case => sprintf('%03d', $run->case)));
+                    } else {
+                        printf('%03d', $run->case);
                     }
-                    else
-                    {
-                        echo html::a($caseLink, $run->title, null, "style='color: $run->color'");
-                    }
-                }
-                else
-                {
-                    echo "<span style='color: $run->color'>$run->title</span>";
-                }
-                break;
-            case 'branch':
-                echo $branches[$run->branch];
-                break;
-            case 'type':
-                echo $this->lang->testcase->typeList[$run->type];
-                break;
-            case 'stage':
-                foreach(explode(',', trim($run->stage, ',')) as $stage) echo $this->lang->testcase->stageList[$stage] . '<br />';
-                break;
-            case 'status':
-                if($caseChanged)
-                {
-                    echo "<span title='{$this->lang->testcase->changed}' class='warning'>{$this->lang->testcase->changed}</span>";
-                }
-                else
-                {
-                    $status = $this->processStatus('testcase', $run);
-                    if($run->status == $status) $status = $this->processStatus('testtask', $run);
-                    echo $status;
-                }
-                break;
-            case 'precondition':
-                echo $run->precondition;
-                break;
-            case 'keywords':
-                echo $run->keywords;
-                break;
-            case 'version':
-                echo $run->version;
-                break;
-            case 'openedBy':
-                echo zget($users, $run->openedBy);
-                break;
-            case 'openedDate':
-                echo substr($run->openedDate, 5, 11);
-                break;
-            case 'reviewedBy':
-                echo zget($users, $run->reviewedBy);
-                break;
-            case 'reviewedDate':
-                echo substr($run->reviewedDate, 5, 11);
-                break;
-            case 'lastEditedBy':
-                echo zget($users, $run->lastEditedBy);
-                break;
-            case 'lastEditedDate':
-                echo substr($run->lastEditedDate, 5, 11);
-                break;
-            case 'lastRunner':
-                echo zget($users, $run->lastRunner);
-                break;
-            case 'lastRunDate':
-                if(!helper::isZeroDate($run->lastRunDate)) echo date(DT_MONTHTIME1, strtotime($run->lastRunDate));
-                break;
-            case 'lastRunResult':
-                $lastRunResultText = $run->lastRunResult ? zget($this->lang->testcase->resultList, $run->lastRunResult, $run->lastRunResult) : $this->lang->testcase->unexecuted;
-                $class = 'result-' . $run->lastRunResult;
-                echo "<span class='$class'>" . $lastRunResultText . "</span>";
-                break;
-            case 'story':
-                if($run->story and $run->storyTitle) echo html::a(helper::createLink('story', 'view', "storyID=$run->story"), $run->storyTitle);
-                break;
-            case 'assignedTo':
-                echo zget($users, $run->assignedTo);
-                break;
-            case 'bugs':
-                echo (common::hasPriv('testcase', 'bugs') and $run->bugs) ? html::a(helper::createLink('testcase', 'bugs', "runID={$run->id}&caseID={$run->case}"), $run->bugs, '', "class='iframe'") : $run->bugs;
-                break;
-            case 'results':
-                echo (common::hasPriv('testtask', 'results') and $run->results) ? html::a(helper::createLink('testtask', 'results', "runID={$run->id}&caseID={$run->case}"), $run->results, '', "class='iframe'") : $run->results;
-                break;
-            case 'stepNumber':
-                echo $run->stepNumber;
-                break;
-            case 'actions':
-                if($caseChanged)
-                {
-                    common::printIcon('testcase', 'confirmChange', "id=$run->case&taskID=$run->task&from=list", $run, 'list', 'search', 'hiddenwin');
                     break;
-                }
+                case 'pri':
+                    echo "<span class='label-pri label-pri-" . $run->pri . "' title='" . zget($this->lang->testcase->priList, $run->pri, $run->pri) . "'>";
+                    echo zget($this->lang->testcase->priList, $run->pri, $run->pri);
+                    echo "</span>";
+                    break;
+                case 'title':
+                    if (!empty($branches)) echo "<span class='label label-badge label-outline'>{$branches[$run->branch]}</span>";
+                    if ($canView) {
+                        if ($fromCaseID) {
+                            echo html::a($caseLink, $run->title, null, "style='color: $run->color'") . html::a(helper::createLink('testcase', 'view', "caseID=$fromCaseID"), "[<i class='icon icon-share' title='{$this->lang->testcase->fromCase}'></i>#$fromCaseID]");
+                        } else {
+                            echo html::a($caseLink, $run->title, null, "style='color: $run->color'");
+                        }
+                    } else {
+                        echo "<span style='color: $run->color'>$run->title</span>";
+                    }
+                    break;
+                case 'branch':
+                    echo $branches[$run->branch];
+                    break;
+                case 'type':
+                    echo $this->lang->testcase->typeList[$run->type];
+                    break;
+                case 'stage':
+                    foreach (explode(',', trim($run->stage, ',')) as $stage) echo $this->lang->testcase->stageList[$stage] . '<br />';
+                    break;
+                case 'status':
+                    if ($caseChanged) {
+                        echo "<span title='{$this->lang->testcase->changed}' class='warning'>{$this->lang->testcase->changed}</span>";
+                    } else {
+                        $status = $this->processStatus('testcase', $run);
+                        if ($run->status == $status) $status = $this->processStatus('testtask', $run);
+                        echo $status;
+                    }
+                    break;
+                case 'precondition':
+                    echo $run->precondition;
+                    break;
+                case 'keywords':
+                    echo $run->keywords;
+                    break;
+                case 'version':
+                    echo $run->version;
+                    break;
+                case 'openedBy':
+                    echo zget($users, $run->openedBy);
+                    break;
+                case 'openedDate':
+                    echo substr($run->openedDate, 5, 11);
+                    break;
+                case 'reviewedBy':
+                    echo zget($users, $run->reviewedBy);
+                    break;
+                case 'reviewedDate':
+                    echo substr($run->reviewedDate, 5, 11);
+                    break;
+                case 'lastEditedBy':
+                    echo zget($users, $run->lastEditedBy);
+                    break;
+                case 'lastEditedDate':
+                    echo substr($run->lastEditedDate, 5, 11);
+                    break;
+                case 'lastRunner':
+                    echo zget($users, $run->lastRunner);
+                    break;
+                case 'lastRunDate':
+                    if (!helper::isZeroDate($run->lastRunDate)) echo date(DT_MONTHTIME1, strtotime($run->lastRunDate));
+                    break;
+                case 'lastRunResult':
+                    $lastRunResultText = $run->lastRunResult ? zget($this->lang->testcase->resultList, $run->lastRunResult, $run->lastRunResult) : $this->lang->testcase->unexecuted;
+                    $class = 'result-' . $run->lastRunResult;
+                    echo "<span class='$class'>" . $lastRunResultText . "</span>";
+                    break;
+                case 'story':
+                    if ($run->story and $run->storyTitle) echo html::a(helper::createLink('story', 'view', "storyID=$run->story"), $run->storyTitle);
+                    break;
+                case 'assignedTo':
+                    echo zget($users, $run->assignedTo);
+                    break;
+                case 'bugs':
+                    echo (common::hasPriv('testcase', 'bugs') and $run->bugs) ? html::a(helper::createLink('testcase', 'bugs', "runID={$run->id}&caseID={$run->case}"), $run->bugs, '', "class='iframe'") : $run->bugs;
+                    break;
+                case 'results':
+                    echo (common::hasPriv('testtask', 'results') and $run->results) ? html::a(helper::createLink('testtask', 'results', "runID={$run->id}&caseID={$run->case}"), $run->results, '', "class='iframe'") : $run->results;
+                    break;
+                case 'stepNumber':
+                    echo $run->stepNumber;
+                    break;
+                case 'actions':
+                    if ($caseChanged) {
+                        common::printIcon('testcase', 'confirmChange', "id=$run->case&taskID=$run->task&from=list", $run, 'list', 'search', 'hiddenwin');
+                        break;
+                    }
 
-                common::printIcon('testcase', 'createBug', "product=$run->product&branch=$run->branch&extra=executionID=$task->execution,buildID=$task->build,caseID=$run->case,version=$run->version,runID=$run->id,testtask=$task->id", $run, 'list', 'bug', '', 'iframe', '', "data-width='90%'");
+                    common::printIcon('testcase', 'createBug', "product=$run->product&branch=$run->branch&extra=executionID=$task->execution,buildID=$task->build,caseID=$run->case,version=$run->version,runID=$run->id,testtask=$task->id", $run, 'list', 'bug', '', 'iframe', '', "data-width='90%'");
 
-                common::printIcon('testtask', 'results', "id=$run->id", $run, 'list', '', '', 'iframe', '', "data-width='90%'");
-                common::printIcon('testtask', 'runCase', "id=$run->id", $run, 'list', 'play', '', 'runCase iframe', false, "data-width='95%'");
+                    common::printIcon('testtask', 'results', "id=$run->id", $run, 'list', '', '', 'iframe', '', "data-width='90%'");
+                    common::printIcon('testtask', 'runCase', "id=$run->id", $run, 'list', 'play', '', 'runCase iframe', false, "data-width='95%'");
 
-                if(common::hasPriv('testtask', 'unlinkCase', $run))
-                {
-                    $unlinkURL = helper::createLink('testtask', 'unlinkCase', "caseID=$run->id&confirm=yes");
-                    echo html::a("javascript:void(0)", '<i class="icon-unlink"></i>', '', "title='{$this->lang->testtask->unlinkCase}' class='btn' onclick='ajaxDelete(\"$unlinkURL\", \"casesForm\", confirmUnlink)'");
-                }
+                    if (common::hasPriv('testtask', 'unlinkCase', $run)) {
+                        $unlinkURL = helper::createLink('testtask', 'unlinkCase', "caseID=$run->id&confirm=yes");
+                        echo html::a("javascript:void(0)", '<i class="icon-unlink"></i>', '', "title='{$this->lang->testtask->unlinkCase}' class='btn' onclick='ajaxDelete(\"$unlinkURL\", \"casesForm\", confirmUnlink)'");
+                    }
 
-                break;
+                    break;
             }
             echo '</td>';
         }
@@ -1561,16 +1488,12 @@ class testtaskModel extends model
         $toList   = $testtask->owner;
         $ccList   = str_replace(' ', '', trim($testtask->mailto, ','));
 
-        if(empty($toList))
-        {
-            if(empty($ccList)) return false;
-            if(strpos($ccList, ',') === false)
-            {
+        if (empty($toList)) {
+            if (empty($ccList)) return false;
+            if (strpos($ccList, ',') === false) {
                 $toList = $ccList;
                 $ccList = '';
-            }
-            else
-            {
+            } else {
                 $commaPos = strpos($ccList, ',');
                 $toList   = substr($ccList, 0, $commaPos);
                 $ccList   = substr($ccList, $commaPos + 1);
@@ -1589,8 +1512,7 @@ class testtaskModel extends model
     public function importUnitResult($productID)
     {
         $file = $this->loadModel('file')->getUpload('resultFile');
-        if(empty($file))
-        {
+        if (empty($file)) {
             dao::$errors[] = $this->lang->testtask->unitXMLFormat;
             return print(js::error(dao::getError()));
         }
@@ -1598,8 +1520,7 @@ class testtaskModel extends model
         $file     = $file[0];
         $fileName = $this->file->savePath . $this->file->getSaveName($file['pathname']);
         move_uploaded_file($file['tmpname'], $fileName);
-        if(simplexml_load_file($fileName) === false)
-        {
+        if (simplexml_load_file($fileName) === false) {
             dao::$errors[] = $this->lang->testtask->cannotBeParsed;
             return print(js::error(dao::getError()));
         }
@@ -1608,7 +1529,7 @@ class testtaskModel extends model
         unset($_POST['frame']);
 
         $data     = $this->parseXMLResult($fileName, $productID, $frame);
-        if($frame == 'cppunit' and empty($data['cases'])) $data = $this->parseCppXMLResult($fileName, $productID, $frame);
+        if ($frame == 'cppunit' and empty($data['cases'])) $data = $this->parseCppXMLResult($fileName, $productID, $frame);
 
         /* Create task. */
         $this->post->set('auto', 'unit');
@@ -1616,7 +1537,7 @@ class testtaskModel extends model
 
         unlink($fileName);
         unset($_SESSION['resultFile']);
-        if(dao::isError()) return false;
+        if (dao::isError()) return false;
 
         return $this->processAutoResult($testtaskID, $productID, $data['suites'], $data['cases'], $data['results'], $data['suiteNames'], $data['caseTitles'], 'unit');
     }
@@ -1637,30 +1558,24 @@ class testtaskModel extends model
      */
     public function processAutoResult($testtaskID, $productID, $suites, $cases, $results, $suiteNames = array(), $caseTitles = array(), $auto = 'unit')
     {
-        if(empty($cases)) return print(js::alert($this->lang->testtask->noImportData));
+        if (empty($cases)) return print(js::alert($this->lang->testtask->noImportData));
 
         /* Import cases and link task and insert result. */
         $this->loadModel('action');
         $existSuites = $this->dao->select('*')->from(TABLE_TESTSUITE)->where('name')->in($suiteNames)->andWhere('product')->eq($productID)->andWhere('type')->eq($auto)->andWhere('deleted')->eq(0)->fetchPairs('name', 'id');
-        foreach($suites as $suiteIndex => $suite)
-        {
+        foreach ($suites as $suiteIndex => $suite) {
             $suiteID = 0;
-            if($suite)
-            {
-                if(!isset($existSuites[$suite->name]))
-                {
+            if ($suite) {
+                if (!isset($existSuites[$suite->name])) {
                     $this->dao->insert(TABLE_TESTSUITE)->data($suite)->exec();
                     $suiteID = $this->dao->lastInsertID();
                     $this->action->create('testsuite', $suiteID, 'opened');
-                }
-                else
-                {
+                } else {
                     $suiteID = $existSuites[$suite->name];
                 }
             }
 
-            if($suiteID)
-            {
+            if ($suiteID) {
                 $existCases = $this->dao->select('t1.*')->from(TABLE_CASE)->alias('t1')
                     ->leftJoin(TABLE_SUITECASE)->alias('t2')->on('t1.id=t2.case')
                     ->where('t1.title')->in($caseTitles[$suiteIndex])
@@ -1669,9 +1584,7 @@ class testtaskModel extends model
                     ->andWhere('t1.deleted')->eq(0)
                     ->orderBy('id')
                     ->fetchPairs('title', 'id');
-            }
-            else
-            {
+            } else {
                 $existCases = $this->dao->select('*')->from(TABLE_CASE)
                     ->where('title')->in($caseTitles[$suiteIndex])
                     ->beginIF($auto == 'unit')->andWhere('auto')->eq($auto)->fi()
@@ -1681,10 +1594,8 @@ class testtaskModel extends model
                     ->fetchPairs('title', 'id');
             }
 
-            foreach($cases[$suiteIndex] as $i => $case)
-            {
-                if(isset($case->id))
-                {
+            foreach ($cases[$suiteIndex] as $i => $case) {
+                if (isset($case->id)) {
                     unset($case->steps);
 
                     $caseID  = $case->id;
@@ -1692,26 +1603,20 @@ class testtaskModel extends model
                     $this->dao->update(TABLE_CASE)->data($case)->where('id')->eq($caseID)->exec();
 
                     $changes = common::createChanges($oldCase, $case);
-                    if($changes)
-                    {
+                    if ($changes) {
                         $actionID = $this->action->create('case', $caseID, 'Edited');
                         $this->action->logHistory($actionID, $changes);
                     }
-                }
-                elseif(!isset($existCases[$case->title]))
-                {
+                } elseif (!isset($existCases[$case->title])) {
                     $this->dao->insert(TABLE_CASE)->data($case, 'steps')->exec();
                     $caseID = $this->dao->lastInsertID();
-                    foreach($case->steps as $caseStep)
-                    {
+                    foreach ($case->steps as $caseStep) {
                         $caseStep->case    = $caseID;
                         $caseStep->version = 1;
                         $this->dao->insert(TABLE_CASESTEP)->data($caseStep)->exec();
                     }
                     $this->action->create('case', $caseID, 'Opened');
-                }
-                else
-                {
+                } else {
                     $caseID = $existCases[$case->title];
                 }
 
@@ -1727,8 +1632,7 @@ class testtaskModel extends model
                 $this->dao->replace(TABLE_TESTRUN)->data($testrun)->exec();
                 $runID = $this->dao->lastInsertID();
 
-                if($suiteID)
-                {
+                if ($suiteID) {
                     $suitecase = new stdclass();
                     $suitecase->suite   = $suiteID;
                     $suitecase->case    = $caseID;
@@ -1765,7 +1669,7 @@ class testtaskModel extends model
         $failNodes  = $parsedXML->xpath('FailedTests/FailedTest');
         $passNodes  = $parsedXML->xpath('SuccessfulTests/Test');
         $matchNodes = array_merge($failNodes, $passNodes);
-        if(count($matchNodes) == 0) return array('suites' => array(), 'cases' => array(), 'results' => array(), 'suiteNames' => array(), 'caseTitles' => array());
+        if (count($matchNodes) == 0) return array('suites' => array(), 'cases' => array(), 'results' => array(), 'suiteNames' => array(), 'caseTitles' => array());
 
         /* Get cases and results by parsed node. */
         $now        = helper::now();
@@ -1775,8 +1679,7 @@ class testtaskModel extends model
         $suiteNames = array();
         $suiteIndex = 0;
         $suites     = array($suiteIndex => '');
-        foreach($matchNodes as $caseIndex => $matchNode)
-        {
+        foreach ($matchNodes as $caseIndex => $matchNode) {
             $case = new stdclass();
             $case->product    = $productID;
             $case->title      = (string)$matchNode->Name;
@@ -1800,8 +1703,7 @@ class testtaskModel extends model
             $result->xml        = $matchNode->asXML();
             $result->stepResults[0]['result'] = 'pass';
             $result->stepResults[0]['real']   = '';
-            if(isset($matchNode->Message))
-            {
+            if (isset($matchNode->Message)) {
                 $result->caseResult = 'fail';
                 $result->stepResults[0]['result'] = 'fail';
                 $result->stepResults[0]['real']   = (string)$matchNode->Message;
@@ -1843,18 +1745,16 @@ class testtaskModel extends model
         $aliasSuite = zget($rules, 'aliasSuite', array());
         $aliasName  = zget($rules, 'aliasName', array());
         $matchNodes = array();
-        foreach($matchPaths as $matchPath)
-        {
+        foreach ($matchPaths as $matchPath) {
             $matchNodes = $parsedXML->xpath($matchPath);
-            if(count($matchNodes) != 0) break;
+            if (count($matchNodes) != 0) break;
         }
-        if(count($matchNodes) == 0) return array('suites' => array(), 'cases' => array(), 'results' => array(), 'suiteNames' => array(), 'caseTitles' => array());
+        if (count($matchNodes) == 0) return array('suites' => array(), 'cases' => array(), 'results' => array(), 'suiteNames' => array(), 'caseTitles' => array());
 
         $parentPath  = '';
         $caseNode    = $matchPath;
         $parentNodes = array($parsedXML);
-        if(strpos($matchPath, '/') !== false)
-        {
+        if (strpos($matchPath, '/') !== false) {
             $explodedPath = explode('/', $matchPath);
             $caseNode     = array_pop($explodedPath);
             $parentPath   = implode('/', $explodedPath);
@@ -1868,13 +1768,11 @@ class testtaskModel extends model
         $suites     = array();
         $caseTitles = array();
         $suiteNames = array();
-        foreach($parentNodes as $suiteIndex => $parentNode)
-        {
+        foreach ($parentNodes as $suiteIndex => $parentNode) {
             $caseNodes  = $parentNode->xpath($caseNode);
             $attributes = $parentNode->attributes();
             $suite      = '';
-            if(isset($attributes[$suiteField]))
-            {
+            if (isset($attributes[$suiteField])) {
                 $suite = new stdclass();
                 $suite->product   = $productID;
                 $suite->name      = (string)$attributes[$suiteField];
@@ -1882,14 +1780,10 @@ class testtaskModel extends model
                 $suite->addedBy   = $this->app->user->account;
                 $suite->addedDate = $now;
                 $suiteNames[]     = $suite->name;
-            }
-            else
-            {
+            } else {
                 $attributes = $caseNodes[0]->attributes();
-                foreach($aliasSuite as $alias)
-                {
-                    if(isset($attributes[$alias]))
-                    {
+                foreach ($aliasSuite as $alias) {
+                    if (isset($attributes[$alias])) {
                         $suite = new stdclass();
                         $suite->product   = $productID;
                         $suite->name      = (string)$attributes[$alias];
@@ -1903,8 +1797,7 @@ class testtaskModel extends model
             }
             $suites[$suiteIndex] = $suite;
 
-            foreach($caseNodes as $caseIndex => $matchNode)
-            {
+            foreach ($caseNodes as $caseIndex => $matchNode) {
                 $case = new stdclass();
                 $case->product    = $productID;
                 $case->title      = '';
@@ -1919,22 +1812,19 @@ class testtaskModel extends model
                 $case->frame      = $frame ? $frame : 'junit';
 
                 $attributes = $matchNode->attributes();
-                foreach($nameFields as $field)
-                {
-                    if(!isset($attributes[$field])) continue;
+                foreach ($nameFields as $field) {
+                    if (!isset($attributes[$field])) continue;
                     $case->title .= (string)$attributes[$field] . ' ';
                 }
                 $case->title = trim($case->title);
-                if(empty($case->title))
-                {
-                    foreach($aliasName as $field)
-                    {
-                        if(!isset($attributes[$field])) continue;
+                if (empty($case->title)) {
+                    foreach ($aliasName as $field) {
+                        if (!isset($attributes[$field])) continue;
                         $case->title .= (string)$attributes[$field] . ' ';
                     }
                     $case->title = trim($case->title);
                 }
-                if(empty($case->title)) continue;
+                if (empty($case->title)) continue;
 
                 $result = new stdclass();
                 $result->case       = 0;
@@ -1946,26 +1836,18 @@ class testtaskModel extends model
                 $result->xml        = $matchNode->asXML();
                 $result->stepResults[0]['result'] = 'pass';
                 $result->stepResults[0]['real']   = '';
-                if(isset($matchNode->$failure))
-                {
+                if (isset($matchNode->$failure)) {
                     $result->caseResult = 'fail';
                     $result->stepResults[0]['result'] = 'fail';
-                    if(is_string($matchNode->$failure))
-                    {
+                    if (is_string($matchNode->$failure)) {
                         $result->stepResults[0]['real'] = (string)$matchNode->$failure;
-                    }
-                    elseif(isset($matchNode->{$failure}[0]))
-                    {
+                    } elseif (isset($matchNode->{$failure}[0])) {
                         $result->stepResults[0]['real'] = (string)$matchNode->{$failure}[0];
-                    }
-                    else
-                    {
+                    } else {
                         $failureAttrs = $matchNode->$failure->attributes();
                         $result->stepResults[0]['real'] = (string)$failureAttrs['message'];
                     }
-                }
-                elseif(isset($matchNode->$skipped))
-                {
+                } elseif (isset($matchNode->$skipped)) {
                     $result->caseResult = 'n/a';
                     $result->stepResults[0]['result'] = 'n/a';
                     $result->stepResults[0]['real']   = '';
@@ -2004,11 +1886,9 @@ class testtaskModel extends model
         $caseTitles = array();
         $suiteNames = array();
         $suiteIndex = 0;
-        foreach($caseResults as $caseIndex => $caseResult)
-        {
+        foreach ($caseResults as $caseIndex => $caseResult) {
             $suite = '';
-            if(isset($caseResult->testSuite) and !isset($suiteNames[$caseResult->testSuite]))
-            {
+            if (isset($caseResult->testSuite) and !isset($suiteNames[$caseResult->testSuite])) {
                 $suite = new stdclass();
                 $suite->product   = $productID;
                 $suite->name      = $caseResult->testSuite;
@@ -2017,9 +1897,9 @@ class testtaskModel extends model
                 $suite->addedDate = $now;
 
                 $suiteNames[$suite->name] = $suite->name;
-                $suiteIndex ++;
+                $suiteIndex++;
             }
-            if(!isset($suites[$suiteIndex])) $suites[$suiteIndex] = $suite;
+            if (!isset($suites[$suiteIndex])) $suites[$suiteIndex] = $suite;
 
             $case = new stdclass();
             $case->product    = $productID;
@@ -2045,8 +1925,7 @@ class testtaskModel extends model
             $result->duration   = zget($caseResult, 'duration', 0);
             $result->stepResults[0]['result'] = 'pass';
             $result->stepResults[0]['real']   = '';
-            if(!empty($caseResult->failure))
-            {
+            if (!empty($caseResult->failure)) {
                 $result->caseResult = 'fail';
                 $result->stepResults[0]['result'] = 'fail';
                 $result->stepResults[0]['real']   = zget($caseResult->failure, 'desc', '');
@@ -2084,14 +1963,13 @@ class testtaskModel extends model
         $caseTitles = array();
         $suiteNames = array();
         $suiteIndex = 0;
-        foreach($caseResults as $caseIndex => $caseResult)
-        {
+        foreach ($caseResults as $caseIndex => $caseResult) {
             $suite = '';
-            if(!isset($suites[$suiteIndex])) $suites[$suiteIndex] = $suite;
+            if (!isset($suites[$suiteIndex])) $suites[$suiteIndex] = $suite;
 
             $case = new stdclass();
-            if(isset($caseResult->id)) $case->id = $caseResult->id;
-            if(!isset($caseResult->id)) $case->product = $productID;
+            if (isset($caseResult->id)) $case->id = $caseResult->id;
+            if (!isset($caseResult->id)) $case->product = $productID;
             $case->title      = $caseResult->title;
             $case->pri        = 3;
             $case->type       = 'feature';
@@ -2114,15 +1992,13 @@ class testtaskModel extends model
             $result->date       = $now;
             $result->stepResults[0]['result'] = 'pass';
             $result->stepResults[0]['real']   = '';
-            if(!empty($caseResult->steps))
-            {
+            if (!empty($caseResult->steps)) {
                 $result->stepResults = array();
                 $stepStatus = 'pass';
-                foreach($caseResult->steps as $i => $step)
-                {
+                foreach ($caseResult->steps as $i => $step) {
                     $result->stepResults[$i]['result'] = $step->status ? 'pass' : 'fail';
                     $result->stepResults[$i]['real']   = $step->checkPoints[0]->actual;
-                    if(!$step->status) $stepStatus = 'fail';
+                    if (!$step->status) $stepStatus = 'fail';
 
                     $caseStep = new stdclass();
                     $caseStep->type   = 'step';

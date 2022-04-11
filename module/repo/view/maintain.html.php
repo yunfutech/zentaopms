@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The browse view file of repo module of ZenTaoPMS.
  *
@@ -10,10 +11,10 @@
  * @link        http://www.zentao.net
  */
 ?>
-<?php include '../../common/view/header.html.php';?>
+<?php include '../../common/view/header.html.php'; ?>
 <div id="mainMenu" class="clearfix">
   <div class='pull-right'>
-    <?php if(common::hasPriv('repo', 'create')) echo html::a(helper::createLink('repo', 'create'), "<i class='icon icon-plus'></i> " . $this->lang->repo->create, '', "class='btn btn-primary'");?>
+    <?php if (common::hasPriv('repo', 'create')) echo html::a(helper::createLink('repo', 'create'), "<i class='icon icon-plus'></i> " . $this->lang->repo->create, '', "class='btn btn-primary'"); ?>
   </div>
 </div>
 <div id='mainContent'>
@@ -31,50 +32,46 @@
         </tr>
       </thead>
       <tbody>
-        <?php foreach($repoList as $repo):?>
-        <tr>
-          <td class='text-center'><?php echo $repo->id; ?></td>
-          <td class='text'><?php echo zget($lang->repo->scmList, $repo->SCM); ?></td>
-          <td class='text' title='<?php echo $repo->name; ?>'><?php echo html::a($this->createLink('repo', 'browse', "repoID={$repo->id}&branchID=&objectID=$objectID"), $repo->name);?></td>
-          <td class='text'>
-          <?php
-          $productList = explode(',', str_replace(' ', '', $repo->product));
-          if(isset($productList) and $productList[0])
-          {
-              foreach($productList as $productID)
-              {
-                  if(!isset($products[$productID])) continue;
-                  echo ' ' . html::a($this->createLink('product', 'browse', "productID=$productID"), zget($products, $productID, $productID));
-              }
-          }
-          ?>
-          </td>
-          <td class='text' title='<?php echo $repo->path; ?>'><?php echo $repo->path; ?></td>
-          <td class='text-left c-actions'>
+        <?php foreach ($repoList as $repo) : ?>
+          <tr>
+            <td class='text-center'><?php echo $repo->id; ?></td>
+            <td class='text'><?php echo zget($lang->repo->scmList, $repo->SCM); ?></td>
+            <td class='text' title='<?php echo $repo->name; ?>'><?php echo html::a($this->createLink('repo', 'browse', "repoID={$repo->id}&branchID=&objectID=$objectID"), $repo->name); ?></td>
             <?php
-            common::printIcon('repo', 'edit', "repoID=$repo->id&objectID=$objectID", '', 'list', 'edit');
-            if(strtolower($repo->SCM) == "gitlab")
-            {
+            $productNames = '';
+            $productList  = explode(',', str_replace(' ', '', $repo->product));
+            if (isset($productList) and $productList[0]) {
+              foreach ($productList as $productID) {
+                if (!isset($products[$productID])) continue;
+                $productNames .= ' ' . zget($products, $productID, $productID);
+              }
+            }
+            ?>
+            <td class='text' title='<?php echo $productNames; ?>'><?php echo $productNames; ?></td>
+            <td class='text' title='<?php echo $repo->path; ?>'><?php echo $repo->path; ?></td>
+            <td class='text-left c-actions'>
+              <?php
+              common::printIcon('repo', 'edit', "repoID=$repo->id&objectID=$objectID", '', 'list', 'edit');
+              if (strtolower($repo->SCM) == "gitlab") {
                 common::printIcon('gitlab', 'manageProjectMembers', "repo={$repo->id}", '', 'list', 'team');
                 common::printIcon('gitlab', 'createWebhook', "repoID=$repo->id", '', 'list', 'change', 'hiddenwin');
                 common::printIcon('gitlab', 'importIssue', "repo={$repo->id}", '', 'list', 'link');
-            }
-            if(isset($sonarRepoList[$repo->id]))
-            {
+              }
+              if (isset($sonarRepoList[$repo->id])) {
                 $jobID = $sonarRepoList[$repo->id]->id;
                 common::printIcon('sonarqube', 'execJob', "jobID=$jobID", '', 'list', 'sonarqube', 'hiddenwin');
-                if(in_array($jobID, $successJobs)) common::printIcon('sonarqube', 'reportView', "jobID=$jobID", '', 'list', 'audit', '', 'iframe', true);
-            }
-            common::printIcon('repo', 'delete', "repoID=$repo->id&objectID=$objectID", '', 'list', 'trash', 'hiddenwin');
-            ?>
-          </td>
-        </tr>
-        <?php endforeach;?>
+                if (in_array($jobID, $successJobs)) common::printIcon('sonarqube', 'reportView', "jobID=$jobID", '', 'list', 'audit', '', 'iframe', true);
+              }
+              common::printIcon('repo', 'delete', "repoID=$repo->id&objectID=$objectID", '', 'list', 'trash', 'hiddenwin');
+              ?>
+            </td>
+          </tr>
+        <?php endforeach; ?>
       </tbody>
     </table>
-    <?php if($repoList):?>
-    <div class='table-footer'><?php $pager->show('right', 'pagerjs');?></div>
-    <?php endif;?>
+    <?php if ($repoList) : ?>
+      <div class='table-footer'><?php $pager->show('right', 'pagerjs'); ?></div>
+    <?php endif; ?>
   </form>
 </div>
 <?php include '../../common/view/footer.html.php'; ?>

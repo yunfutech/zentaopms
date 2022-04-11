@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The doc module english file of ZenTaoPMS.
  *
@@ -89,6 +90,7 @@ $lang->doc->diffAction       = 'Diff Document';
 $lang->doc->sort             = 'Rank Document';
 $lang->doc->manageType       = 'Manage Category';
 $lang->doc->editType         = 'Edit';
+$lang->doc->editChildType    = 'Manage';
 $lang->doc->deleteType       = 'Delete';
 $lang->doc->addType          = 'Add';
 $lang->doc->childType        = 'Directory';
@@ -122,9 +124,11 @@ $lang->doc->allProduct    = 'All' . $lang->productCommon . 's';
 $lang->doc->allExecutions = 'All' . $lang->executionCommon . 's';
 
 $lang->doc->libTypeList['product']   = $lang->productCommon . ' Library';
-if($config->systemMode == 'new') $lang->doc->libTypeList['project'] = 'Project Library';
+if ($config->systemMode == 'new') $lang->doc->libTypeList['project'] = 'Project Library';
 $lang->doc->libTypeList['execution'] = $lang->execution->common . ' Library';
 $lang->doc->libTypeList['custom']    = 'Custom Library';
+
+$lang->doc->libGlobalList['api'] = 'Api Libray';
 
 $lang->doc->libIconList['product']   = 'icon-product';
 $lang->doc->libIconList['execution'] = 'icon-stack';
@@ -193,7 +197,7 @@ $lang->doc->noDoc                = 'No documents. ';
 $lang->doc->noArticle            = 'No articles.';
 $lang->doc->noLib                = 'No libraries. ';
 $lang->doc->noBook               = 'The WIKI library has not created a manual, please create a new one :)';
-$lang->doc->cannotCreateOffice   = 'Sorry, %s can only be created in ZenTao Enterprise. Contact us at renee@easysoft.ltd to try ZenTao Enterprise.';
+$lang->doc->cannotCreateOffice   = 'Sorry, %s file can only be created in ZenTao Biz Series or above. Contact Philip@easysoft.ltd to know more about ZenTao Biz Series and ZenTao Max Series.';
 $lang->doc->notSetOffice         = "<p>To create a %s document, you need to configure <a href='%s'>office convert</a>.<p>";
 $lang->doc->noSearchedDoc        = 'No documents found.';
 $lang->doc->noEditedDoc          = 'You have not edited any documents.';
@@ -202,6 +206,7 @@ $lang->doc->noCollectedDoc       = 'You have not favorited any documents.';
 $lang->doc->errorEmptyLib        = 'No data in document library.';
 $lang->doc->confirmUpdateContent = 'You have a document that is not saved from last time. Do you want to continue editing it?';
 $lang->doc->selectLibType        = 'Please select a type of doc library.';
+$lang->doc->noLibreOffice        = 'You does not have access to office conversion settings!';
 
 $lang->doc->noticeAcl['lib']['product']['default']   = 'Users who can access the selected product can access it.';
 $lang->doc->noticeAcl['lib']['product']['custom']    = 'Users who can access the selected product or users in the whiltelist can access it.';
@@ -227,15 +232,16 @@ $lang->doc->ge      = ':';
 $lang->doc->point   = '.';
 
 $lang->doclib = new stdclass();
-$lang->doclib->name      = 'Name';
-$lang->doclib->control   = 'Access Control';
-$lang->doclib->group     = 'Group';
-$lang->doclib->user      = 'User';
-$lang->doclib->files     = 'Attachments';
-$lang->doclib->all       = 'All Libraries';
-$lang->doclib->select    = 'Select';
-$lang->doclib->execution = $lang->executionCommon . ' Library';
-$lang->doclib->product   = $lang->productCommon . ' Library';
+$lang->doclib->name       = 'Name';
+$lang->doclib->control    = 'Access Control';
+$lang->doclib->group      = 'Group';
+$lang->doclib->user       = 'User';
+$lang->doclib->files      = 'Attachments';
+$lang->doclib->all        = 'All Libraries';
+$lang->doclib->select     = 'Select';
+$lang->doclib->execution  = $lang->executionCommon . ' Library';
+$lang->doclib->product    = $lang->productCommon . ' Library';
+$lang->doclib->apiLibName = 'Api Library Name';
 
 $lang->doclib->aclListA['default'] = 'Default';
 $lang->doclib->aclListA['custom']  = 'Custom';

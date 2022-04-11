@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The model file of ci module of ZenTaoPMS.
  * @author      Chenqi <chenqi@cnezsoft.com>
@@ -48,7 +49,7 @@ class ciModel extends model
             ->andWhere('compileStatus')->eq('created')
             ->fetchPairs();
 
-        foreach($compiles as $compile) $this->syncCompileStatus($compile, $notCompileMR);
+        foreach ($compiles as $compile) $this->syncCompileStatus($compile, $notCompileMR);
     }
 
     /**
@@ -59,21 +60,20 @@ class ciModel extends model
      * @access public
      * @return void
      */
-    public function syncCompileStatus($compile, $notCompileMR)
+    public function syncCompileStatus($compile, $notCompileMR = array())
     {
         $MRID = array_search($compile->job, $notCompileMR);
 
         /* Max retry times is: 3. */
-        if($compile->times >= 3)
-        {
+        if ($compile->times >= 3) {
             $this->updateBuildStatus($compile, 'failure');
 
             /* Added merge request result push to xuanxuan. */
-            if($MRID) $this->loadModel('message')->send('mr', $MRID, 'compilefail', 0);
+            if ($MRID) $this->loadModel('message')->send('mr', $MRID, 'compilefail', 0);
             return false;
         }
 
-        if($compile->engine == 'gitlab') return $this->syncGitlabTaskStatus($compile);
+        if ($compile->engine == 'gitlab') return $this->syncGitlabTaskStatus($compile);
         $jenkinsServer   = $compile->url;
         $jenkinsUser     = $compile->account;
         $jenkinsPassword = $compile->token ? $compile->token : base64_decode($compile->password);
@@ -83,43 +83,35 @@ class ciModel extends model
         $response = common::http($queueUrl, '', array(CURLOPT_USERPWD => $userPWD));
         $result   = '';
 
-        if($compile->engine != 'gitlab') $this->dao->update(TABLE_COMPILE)->set('times = times + 1')->where('id')->eq($compile->id)->exec();
-        if(strripos($response, "404") > -1)
-        {
+        if ($compile->engine != 'gitlab') $this->dao->update(TABLE_COMPILE)->set('times = times + 1')->where('id')->eq($compile->id)->exec();
+        if (strripos($response, "404") > -1) {
             $infoUrl  = sprintf("%s/job/%s/api/xml?tree=builds[id,number,result,queueId]&xpath=//build[queueId=%s]", $jenkinsServer, $compile->pipeline, $compile->queue);
             $response = common::http($infoUrl, '', array(CURLOPT_USERPWD => $userPWD));
-            if($response)
-            {
+            if ($response) {
                 $buildInfo   = simplexml_load_string($response);
                 $buildNumber = strtolower($buildInfo->number);
-                if(empty($buildNumber)) return false;
+                if (empty($buildNumber)) return false;
 
                 $result = strtolower($buildInfo->result);
-                if(empty($result)) return false;
+                if (empty($result)) return false;
                 $this->updateBuildStatus($compile, $result);
 
                 $logUrl   = sprintf('%s/job/%s/%s/consoleText', $jenkinsServer, $compile->pipeline, $buildNumber);
                 $response = common::http($logUrl, '', array(CURLOPT_USERPWD => $userPWD));
                 $this->dao->update(TABLE_COMPILE)->set('logs')->eq($response)->where('id')->eq($compile->id)->exec();
             }
-        }
-        else
-        {
+        } else {
             $queueInfo = json_decode($response);
-            if(!empty($queueInfo->executable))
-            {
+            if (!empty($queueInfo->executable)) {
                 $buildUrl  = $queueInfo->executable->url . 'api/json?pretty=true';
                 $response  = common::http($buildUrl, '', array(CURLOPT_USERPWD => $userPWD));
                 $buildInfo = json_decode($response);
 
-                if($buildInfo->building)
-                {
+                if ($buildInfo->building) {
                     $this->updateBuildStatus($compile, 'building');
-                }
-                else
-                {
+                } else {
                     $result = strtolower($buildInfo->result);
-                    if(empty($result)) return false;
+                    if (empty($result)) return false;
                     $this->updateBuildStatus($compile, $result);
 
                     $logUrl   = $buildInfo->url . 'logText/progressiveText/api/json';
@@ -129,8 +121,7 @@ class ciModel extends model
             }
         }
 
-        if($MRID && in_array($result, array('success', 'failure')))
-        {
+        if ($MRID && in_array($result, array('success', 'failure'))) {
             $actionType = $result == 'success' ? 'compilepass' : 'compilefail';
             $this->loadModel('message')->send('mr', $MRID, $actionType, 0);
         }
@@ -154,8 +145,7 @@ class ciModel extends model
         $compile->project = isset($pipeline->project) ? $pipeline->project : $compile->pipeline;
 
         $pipeline = $this->gitlab->apiGetSinglePipeline($compile->server, $compile->project, $compile->queue);
-        if(!isset($pipeline->id) or isset($pipeline->message)) /* The pipeline is not available. */
-        {
+        if (!isset($pipeline->id) or isset($pipeline->message)) /* The pipeline is not available. */ {
             $pipeline->status = 'create_fail'; /* Set the status to fail. */
             $this->dao->update(TABLE_JOB)->set('lastExec')->eq($now)->set('lastStatus')->eq($pipeline->status)->where('id')->eq($compile->job)->exec();
             return false;
@@ -166,9 +156,8 @@ class ciModel extends model
         $data->status     = $pipeline->status;
         $data->updateDate = $now;
 
-        foreach($jobs as $job)
-        {
-            if(empty($job->duration) or $job->duration == '') $job->duration = '-';
+        foreach ($jobs as $job) {
+            if (empty($job->duration) or $job->duration == '') $job->duration = '-';
             $data->logs  = "<font style='font-weight:bold'>&gt;&gt;&gt; Job: $job->name, Stage: $job->stage, Status: $job->status, Duration: $job->duration Sec\r\n </font>";
             $data->logs .= "Job URL: <a href=\"$job->web_url\" target='_blank'>$job->web_url</a> \r\n";
             $data->logs .= $this->transformAnsiToHtml($this->gitlab->apiGetJobLog($compile->server, $compile->project, $job->id));
@@ -179,10 +168,9 @@ class ciModel extends model
 
         /* Send mr message by compile status. */
         $relateMR = $this->dao->select('*')->from(TABLE_MR)->where('compileID')->eq($compile->id)->fetch();
-        if($relateMR)
-        {
-            if($data->status == 'success') $this->loadModel('action')->create('mr', $relateMR->id, 'compilePass');
-            if($data->status == 'failed')  $this->loadModel('action')->create('mr', $relateMR->id, 'compileFail');
+        if ($relateMR) {
+            if ($data->status == 'success') $this->loadModel('action')->create('mr', $relateMR->id, 'compilePass');
+            if ($data->status == 'failed')  $this->loadModel('action')->create('mr', $relateMR->id, 'compileFail');
         }
     }
 
@@ -219,13 +207,12 @@ class ciModel extends model
         $this->dao->update(TABLE_COMPILE)->set('status')->eq($status)->where('id')->eq($build->id)->exec();
         $this->dao->update(TABLE_JOB)->set('lastExec')->eq(helper::now())->set('lastStatus')->eq($status)->where('id')->eq($build->job)->exec();
 
-        if($status == 'building') return;
+        if ($status == 'building') return;
 
         $relateMR = $this->dao->select('*')->from(TABLE_MR)->where('compileID')->eq($build->id)->fetch();
-        if(empty($relateMR)) return;
+        if (empty($relateMR)) return;
 
-        if(isset($relateMR->synced) and $relateMR->synced == '0' and $status == 'success')
-        {
+        if (isset($relateMR->synced) and $relateMR->synced == '0' and $status == 'success') {
             $newMR = new stdclass();
             $newMR->mergeStatus   = 'can_be_merged';
             $newMR->compileStatus = $status;
@@ -238,35 +225,29 @@ class ciModel extends model
             $MRObject->title                = $relateMR->title;
             $MRObject->description          = $relateMR->description;
             $MRObject->remove_source_branch = $relateMR->removeSourceBranch == '1' ? true : false;
-            if($relateMR->assignee)
-            {
+            if ($relateMR->assignee) {
                 $gitlabAssignee = $this->gitlab->getUserIDByZentaoAccount($relateMR->gitlabID, $relateMR->assignee);
-                if($gitlabAssignee) $MRObject->assignee_ids = $gitlabAssignee;
+                if ($gitlabAssignee) $MRObject->assignee_ids = $gitlabAssignee;
             }
 
             $rawMR = $this->loadModel('mr')->apiCreateMR($relateMR->gitlabID, $relateMR->sourceProject, $MRObject);
 
             /**
-            * Another open merge request already exists for this source branch.
-            * The type of variable `$rawMR->message` is array.
-            */
-            if(isset($rawMR->message) and !isset($rawMR->iid))
-            {
+             * Another open merge request already exists for this source branch.
+             * The type of variable `$rawMR->message` is array.
+             */
+            if (isset($rawMR->message) and !isset($rawMR->iid)) {
                 $errorMessage = $rawMR->message;
                 $rawMR        = $this->mr->apiGetSameOpened($relateMR->gitlabID, $relateMR->sourceProject, $MRObject->source_branch, $MRObject->target_project_id, $MRObject->target_branch);
-                if(empty($rawMR) or !isset($rawMR->iid))
-                {
+                if (empty($rawMR) or !isset($rawMR->iid)) {
                     $errorMessage     = $this->mr->convertApiError($errorMessage);
                     $newMR->syncError = sprintf($this->lang->mr->apiError->createMR, $errorMessage);
                 }
-            }
-            elseif(!isset($rawMR->iid))
-            {
+            } elseif (!isset($rawMR->iid)) {
                 $newMR->syncError = $this->lang->mr->createFailedFromAPI;
             }
 
-            if(!empty($rawMR->iid))
-            {
+            if (!empty($rawMR->iid)) {
                 $newMR->mriid     = $rawMR->iid;
                 $newMR->status    = $rawMR->state;
                 $newMR->synced    = '1';
@@ -274,9 +255,7 @@ class ciModel extends model
             }
 
             $this->dao->update(TABLE_MR)->data($newMR)->where('id')->eq($relateMR->id)->exec();
-        }
-        elseif($status != 'success')
-        {
+        } elseif ($status != 'success') {
             $newMR = new stdclass();
             $newMR->status        = 'closed';
             $newMR->mergeStatus   = 'cannot_merge_by_fail';
@@ -297,9 +276,9 @@ class ciModel extends model
      */
     public function sendRequest($url, $data, $userPWD = '')
     {
-        if(!empty($data->PARAM_TAG)) $data->PARAM_REVISION = '';
+        if (!empty($data->PARAM_TAG)) $data->PARAM_REVISION = '';
         $response = common::http($url, $data, array(CURLOPT_HEADER => true, CURLOPT_USERPWD => $userPWD));
-        if(preg_match("!Location: .*item/(.*)/!", $response, $matches)) return $matches[1];
+        if (preg_match("!Location: .*item/(.*)/!", $response, $matches)) return $matches[1];
         return 0;
     }
 }

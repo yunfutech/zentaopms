@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The model file of branch module of ZenTaoCMS.
  *
@@ -22,15 +23,14 @@ class branchModel extends model
      */
     public function getById($branchID, $productID = 0, $field = 'name')
     {
-        if(empty($branchID))
-        {
-            if(empty($productID)) $productID = $this->session->product;
+        if (empty($branchID)) {
+            if (empty($productID)) $productID = $this->session->product;
             $product = $this->loadModel('product')->getById($productID);
-            if(empty($product) or !isset($this->lang->product->branchName[$product->type])) return false;
+            if (empty($product) or !isset($this->lang->product->branchName[$product->type])) return false;
             return $this->lang->branch->main;
         }
 
-        if(empty($field)) return $this->dao->select('*')->from(TABLE_BRANCH)->where('id')->eq($branchID)->fetch();
+        if (empty($field)) return $this->dao->select('*')->from(TABLE_BRANCH)->where('id')->eq($branchID)->fetch();
 
         return htmlspecialchars_decode($this->dao->select('*')->from(TABLE_BRANCH)->where('id')->eq($branchID)->fetch($field));
     }
@@ -49,13 +49,12 @@ class branchModel extends model
     public function getList($productID, $executionID = 0, $browseType = 'active', $orderBy = 'order', $pager = null)
     {
         $executionBranches = array();
-        if($executionID)
-        {
+        if ($executionID) {
             $executionBranches = $this->dao->select('branch')->from(TABLE_PROJECTPRODUCT)
                 ->where('project')->eq($executionID)
                 ->andWhere('product')->eq($productID)
                 ->fetchAll('branch');
-            if(empty($executionBranches)) return array();
+            if (empty($executionBranches)) return array();
         }
 
         $branchList = $this->dao->select('*')->from(TABLE_BRANCH)
@@ -67,11 +66,11 @@ class branchModel extends model
             ->page($pager)
             ->fetchAll('id');
 
-        if($browseType == 'closed') return $branchList;
+        if ($browseType == 'closed') return $branchList;
 
         $product       = $this->loadModel('product')->getById($productID);
         $defaultBranch = BRANCH_MAIN;
-        foreach($branchList as $branch) $defaultBranch = $branch->default ? $branch->id : $defaultBranch;
+        foreach ($branchList as $branch) $defaultBranch = $branch->default ? $branch->id : $defaultBranch;
 
         /* Display the main branch under all and active page. */
         $mainBranch = new stdclass();
@@ -85,8 +84,6 @@ class branchModel extends model
         $mainBranch->desc        = sprintf($this->lang->branch->mainBranch, $this->lang->product->branchName[$product->type]);
         $mainBranch->order       = 0;
 
-        if($productID) $product = $this->loadModel('product')->getById($productID);
-        if(isset($product) and $product->type == 'normal') return $branchList;
         return array($mainBranch) + $branchList;
     }
 
@@ -103,13 +100,12 @@ class branchModel extends model
     public function getPairs($productID, $params = '', $executionID = 0, $mergedBranches = '')
     {
         $executionBranches = array();
-        if($executionID)
-        {
+        if ($executionID) {
             $executionBranches = $this->dao->select('branch')->from(TABLE_PROJECTPRODUCT)
                 ->where('project')->eq($executionID)
                 ->andWhere('product')->eq($productID)
                 ->fetchAll('branch');
-            if(empty($executionBranches)) return array();
+            if (empty($executionBranches)) return array();
         }
 
         $branches = $this->dao->select('*')->from(TABLE_BRANCH)
@@ -120,23 +116,20 @@ class branchModel extends model
             ->beginIF(!empty($mergedBranches))->andWhere('id')->notIN($mergedBranches)->fi()
             ->orderBy('`order`')
             ->fetchPairs('id', 'name');
-        foreach($branches as $branchID => $branchName) $branches[$branchID] = htmlspecialchars_decode($branchName);
+        foreach ($branches as $branchID => $branchName) $branches[$branchID] = htmlspecialchars_decode($branchName);
 
-        if($executionID)
-        {
-            if(isset($executionBranches['0'])) $branches = array('0' => $this->lang->branch->main) + $branches;
+        if ($executionID) {
+            if (isset($executionBranches['0'])) $branches = array('0' => $this->lang->branch->main) + $branches;
             return $branches;
         }
 
-        if(strpos($params, 'noempty') === false)
-        {
+        if (strpos($params, 'noempty') === false) {
             $product = $this->loadModel('product')->getById($productID);
-            if(!$product or $product->type == 'normal') return array();
+            if (!$product or $product->type == 'normal') return array();
             $branches = array('0' => $this->lang->branch->main) + $branches;
         }
 
-        if(strpos($params, 'all') !== false)
-        {
+        if (strpos($params, 'all') !== false) {
             $branches = array('all' => $this->lang->branch->all) + $branches;
         }
         return $branches;
@@ -155,18 +148,16 @@ class branchModel extends model
         $products     = $this->loadModel('product')->getByIdList(array_keys($branchGroups));
 
         $branchPairs = array();
-        foreach($branchGroups as $productID => $branches)
-        {
-            if(empty($products[$productID])) continue;
+        foreach ($branchGroups as $productID => $branches) {
+            if (empty($products[$productID])) continue;
 
             $product = $products[$productID];
-            foreach($branches as $branch)
-            {
+            foreach ($branches as $branch) {
                 $branchPairs[$branch->id] = $product->name . '/' . htmlspecialchars_decode($branch->name);
             }
         }
 
-        if(strpos($params, 'noempty') === false) $branchPairs = array('0' => $this->lang->branch->main) + $branchPairs;
+        if (strpos($params, 'noempty') === false) $branchPairs = array('0' => $this->lang->branch->main) + $branchPairs;
         return $branchPairs;
     }
 
@@ -199,7 +190,7 @@ class branchModel extends model
             ->checkIF(!empty($branch->name), 'name', 'unique', "product = $productID")
             ->exec();
 
-        if(!dao::isError()) return $this->dao->lastInsertID();
+        if (!dao::isError()) return $this->dao->lastInsertID();
         return false;
     }
 
@@ -227,7 +218,7 @@ class branchModel extends model
             ->checkIF(!empty($newBranch->name) and $newBranch->name != $oldBranch->name, 'name', 'unique', "product = $oldBranch->product")
             ->exec();
 
-        if(!dao::isError()) return common::createChanges($oldBranch, $newBranch);
+        if (!dao::isError()) return common::createChanges($oldBranch, $newBranch);
         return false;
     }
 
@@ -247,17 +238,13 @@ class branchModel extends model
         $productType = $this->dao->select('`type`')->from(TABLE_PRODUCT)->where('id')->eq($productID)->fetch('type');
         $this->lang->error->unique = str_replace('@branch@', $this->lang->product->branchName[$productType], $this->lang->branch->existName);
 
-        foreach($branchIDList as $branchID)
-        {
-            if($branchID == BRANCH_MAIN)
-            {
+        foreach ($branchIDList as $branchID) {
+            if ($branchID == BRANCH_MAIN) {
                 $newMainBranch = new stdClass();
                 $newMainBranch->default = (isset($data->default) and $data->default == BRANCH_MAIN) ? 1 : 0;
 
                 $changes[$branchID] = common::createChanges($oldBranchList[BRANCH_MAIN], $newMainBranch);
-            }
-            else
-            {
+            } else {
                 $branch = new stdclass();
                 $branch->name       = $data->name[$branchID];
                 $branch->desc       = $data->desc[$branchID];
@@ -271,13 +258,13 @@ class branchModel extends model
                     ->where('id')->eq($branchID)
                     ->exec();
 
-                if(dao::isError()) die(js::error('branch#' . $branchID . dao::getError(true)));
+                if (dao::isError()) return print(js::error('branch#' . $branchID . dao::getError(true)));
 
                 $changes[$branchID] = common::createChanges($oldBranchList[$branchID], $branch);
             }
         }
 
-        if(isset($data->default)) $this->setDefault($productID, $data->default);
+        if (isset($data->default)) $this->setDefault($productID, $data->default);
 
         return $changes;
     }
@@ -327,40 +314,126 @@ class branchModel extends model
         $oldBranches = $this->getPairs($productID, 'noempty');
         $data        = fixer::input('post')->get();
 
-        if(isset($data->branch))
-        {
-            foreach($data->branch as $branchID => $branch)
-            {
-                if(!$branch) die(js::alert($this->lang->branch->nameNotEmpty));
-                if($oldBranches[$branchID] != $branch) $this->dao->update(TABLE_BRANCH)->set('name')->eq($branch)->where('id')->eq($branchID)->exec();
+        if (isset($data->branch)) {
+            foreach ($data->branch as $branchID => $branch) {
+                if (!$branch) return print(js::alert($this->lang->branch->nameNotEmpty));
+                if ($oldBranches[$branchID] != $branch) $this->dao->update(TABLE_BRANCH)->set('name')->eq($branch)->where('id')->eq($branchID)->exec();
             }
         }
 
         $branches = array();
-        foreach($data->newbranch as $i => $branch)
-        {
-            if(empty($branch)) continue;
+        foreach ($data->newbranch as $i => $branch) {
+            if (empty($branch)) continue;
             $this->dao->insert(TABLE_BRANCH)->set('name')->eq($branch)->set('product')->eq($productID)->set('`order`')->eq(count($data->branch) + $i + 1)->exec();
             $branches[] = $this->dao->lastInsertId();
         }
 
-        if(dao::isError()) return false;
+        if (dao::isError()) return false;
         return $branches;
     }
 
     /**
      * Unlink branches for projects when product type is normal.
      *
-     * @param  int    $productIDList
+     * @param  int|array $productIDList
      * @access public
      * @return void
      */
     public function unlinkBranch4Project($productIDList)
     {
+        $productLinkedProject = $this->dao->select('*')->from(TABLE_PROJECTPRODUCT)
+            ->where('product')->in($productIDList)
+            ->andWhere('branch')->gt(0)
+            ->fetchGroup('product', 'project');
+
         $this->dao->delete()->from(TABLE_PROJECTPRODUCT)
             ->where('product')->in($productIDList)
             ->andWhere('branch')->gt(0)
             ->exec();
+
+        foreach ($productLinkedProject as $productID => $projectList) {
+            foreach ($projectList as $projectID => $project) {
+                $data = new stdClass();
+                $data->product = $productID;
+                $data->project = $projectID;
+                $data->branch  = 0;
+                $data->plan    = 0;
+
+                $this->dao->replace(TABLE_PROJECTPRODUCT)->data($data)->exec();
+            }
+        }
+    }
+
+    /**
+     * Link branches for projects when product type is not normal.
+     *
+     * @param  int    $productID
+     * @access public
+     * @return void
+     */
+    public function linkBranch4Project($productID)
+    {
+        if (is_array($productID)) {
+            foreach ($productID as $id) $this->linkBranch4Project($id);
+        }
+
+        $linkedBranchProject = array();
+
+        $storyLinkedBranchProject = $this->dao->select('project,branch')->from(TABLE_PROJECTSTORY)
+            ->where('product')->eq($productID)
+            ->andWhere('branch')->gt(0)
+            ->fetchGroup('project', 'branch');
+        foreach ($storyLinkedBranchProject as $projectID => $branchList) {
+            foreach ($branchList as $branchID => $branch) $linkedBranchProject[$projectID][$branchID] = $branchID;
+        }
+
+        $bugLinkedBranchProject = $this->dao->select('project,branch')->from(TABLE_BUG)
+            ->where('product')->eq($productID)
+            ->andWhere('branch')->gt(0)
+            ->andWhere('project')->ne(0)
+            ->fetchGroup('project', 'branch');
+        foreach ($bugLinkedBranchProject as $projectID => $branchList) {
+            foreach ($branchList as $branchID => $branch) $linkedBranchProject[$projectID][$branchID] = $branchID;
+        }
+
+        $bugLinkedBranchExecution = $this->dao->select('execution,branch')->from(TABLE_BUG)
+            ->where('product')->eq($productID)
+            ->andWhere('branch')->gt(0)
+            ->andWhere('execution')->ne(0)
+            ->fetchGroup('execution', 'branch');
+        foreach ($bugLinkedBranchExecution as $executionID => $branchList) {
+            foreach ($branchList as $branchID => $branch) $linkedBranchProject[$executionID][$branchID] = $branchID;
+        }
+
+        $caseLinkedBranchProject = $this->dao->select('project,branch')->from(TABLE_CASE)
+            ->where('product')->eq($productID)
+            ->andWhere('branch')->gt(0)
+            ->andWhere('project')->ne(0)
+            ->fetchGroup('project', 'branch');
+        foreach ($caseLinkedBranchProject as $projectID => $branchList) {
+            foreach ($branchList as $branchID => $branch) $linkedBranchProject[$projectID][$branchID] = $branchID;
+        }
+
+        $caseLinkedBranchExecution = $this->dao->select('execution,branch')->from(TABLE_CASE)
+            ->where('product')->eq($productID)
+            ->andWhere('branch')->gt(0)
+            ->andWhere('execution')->ne(0)
+            ->fetchGroup('execution', 'branch');
+        foreach ($caseLinkedBranchExecution as $executionID => $branchList) {
+            foreach ($branchList as $branchID => $branch) $linkedBranchProject[$executionID][$branchID] = $branchID;
+        }
+
+        foreach ($linkedBranchProject as $projectID => $branchList) {
+            foreach ($branchList as $branchID) {
+                $data = new stdClass();
+                $data->product = $productID;
+                $data->project = $projectID;
+                $data->branch  = $branchID;
+                $data->plan    = 0;
+
+                $this->dao->replace(TABLE_PROJECTPRODUCT)->data($data)->exec();
+            }
+        }
     }
 
     /**
@@ -381,29 +454,24 @@ class branchModel extends model
             ->orderBy('`order`')
             ->fetchAll('id');
 
-        if(!empty($appendBranch)) $branches += $this->dao->select('*')->from(TABLE_BRANCH)->where('id')->in($appendBranch)->orderBy('`order`')->fetchAll('id');
+        if (!empty($appendBranch)) $branches += $this->dao->select('*')->from(TABLE_BRANCH)->where('id')->in($appendBranch)->orderBy('`order`')->fetchAll('id');
         $products = $this->loadModel('product')->getByIdList($products);
 
         $branchGroups = array();
-        foreach($branches as $branch)
-        {
-            if($products[$branch->product]->type == 'normal')
-            {
-                if(strpos($params, 'ignoreNormal') === false) $branchGroups[$branch->product][0] = '';
-            }
-            else
-            {
+        foreach ($branches as $branch) {
+            if ($products[$branch->product]->type == 'normal') {
+                if (strpos($params, 'ignoreNormal') === false) $branchGroups[$branch->product][0] = '';
+            } else {
                 $branchGroups[$branch->product][0] = $this->lang->branch->main;
                 $branchGroups[$branch->product][$branch->id] = htmlspecialchars_decode($branch->name);
             }
         }
 
-        foreach($products as $product)
-        {
-            if($product->type == 'normal') continue;
+        foreach ($products as $product) {
+            if ($product->type == 'normal') continue;
 
-            if(!isset($branchGroups[$product->id]))  $branchGroups[$product->id] = array();
-            if(strpos($params, 'noempty') === false) $branchGroups[$product->id] = array('0' => $this->lang->branch->main) + $branchGroups[$product->id];
+            if (!isset($branchGroups[$product->id]))  $branchGroups[$product->id] = array();
+            if (strpos($params, 'noempty') === false) $branchGroups[$product->id] = array('0' => $this->lang->branch->main) + $branchGroups[$product->id];
         }
         return $branchGroups;
     }
@@ -434,14 +502,13 @@ class branchModel extends model
         $orderBy      = $this->post->orderBy;
         $branchIDList = explode(',', trim($this->post->branches, ','));
 
-        if(strpos($orderBy, 'order') === false) return false;
-        if(in_array(BRANCH_MAIN, $branchIDList)) unset($branchIDList[array_search(BRANCH_MAIN, $branchIDList)]);
+        if (strpos($orderBy, 'order') === false) return false;
+        if (in_array(BRANCH_MAIN, $branchIDList)) unset($branchIDList[array_search(BRANCH_MAIN, $branchIDList)]);
 
         $branches = $this->dao->select('id,`order`')->from(TABLE_BRANCH)->where('id')->in($branchIDList)->orderBy($orderBy)->fetchPairs('order', 'id');
-        foreach($branches as $order => $id)
-        {
+        foreach ($branches as $order => $id) {
             $newID = array_shift($branchIDList);
-            if($id == $newID) continue;
+            if ($id == $newID) continue;
             $this->dao->update(TABLE_BRANCH)->set('`order`')->eq($order)->where('id')->eq($newID)->exec();
         }
     }
@@ -501,7 +568,7 @@ class branchModel extends model
             ->where('product')->eq($productID)
             ->exec();
 
-        if($branchID) $this->dao->update(TABLE_BRANCH)->set('`default`')->eq('1')->where('id')->eq($branchID)->exec();
+        if ($branchID) $this->dao->update(TABLE_BRANCH)->set('`default`')->eq('1')->where('id')->eq($branchID)->exec();
     }
 
     /**
@@ -523,7 +590,7 @@ class branchModel extends model
 
         $projectProduct = $this->dao->select('*')->from(TABLE_PROJECTPRODUCT)->where('project')->eq($projectID)->andWhere('product')->eq($productID)->fetchAll('branch');
 
-        if(isset($projectProduct[BRANCH_MAIN])) $branches = array(BRANCH_MAIN => $this->lang->branch->main) + $branches;
+        if (isset($projectProduct[BRANCH_MAIN])) $branches = array(BRANCH_MAIN => $this->lang->branch->main) + $branches;
 
         return $branches;
     }
@@ -540,21 +607,17 @@ class branchModel extends model
     public function showBranch($productID, $moduleID = 0, $executionID = 0)
     {
         $this->loadModel('product');
-        if(empty($productID) and empty($moduleID))
-        {
+        if (empty($productID) and empty($moduleID)) {
             $productPairs = $this->product->getProductPairsByProject($executionID);
-            if($this->app->tab != 'project') $productID = count($productPairs) == 1 ? key($productPairs) : 0;
-        }
-        elseif(empty($productID) and !empty($moduleID))
-        {
+            if ($this->app->tab != 'project') $productID = count($productPairs) == 1 ? key($productPairs) : 0;
+        } elseif (empty($productID) and !empty($moduleID)) {
             $module    = $this->loadModel('tree')->getById($moduleID);
             $productID = $module->type != 'task' ? $module->root : 0;
         }
 
         $product = $productID ? $this->product->getById($productID) : '';
 
-        if($product and $product->type != 'normal')
-        {
+        if ($product and $product->type != 'normal') {
             $this->app->loadLang('datatable');
             $this->lang->datatable->showBranch = sprintf($this->lang->datatable->showBranch, $this->lang->product->branchName[$product->type]);
             return true;
@@ -573,7 +636,7 @@ class branchModel extends model
     public function changeBranchLanguage($productID)
     {
         $product = $this->loadModel('product')->getByID($productID);
-        if($product->type == 'normal') return;
+        if ($product->type == 'normal') return;
 
         $productType = $product->type;
 
@@ -610,7 +673,7 @@ class branchModel extends model
 
         /* Get the target branch. */
         $targetBranch = $data->createBranch ? $this->create($productID, true) : $data->targetBranch;
-        if($data->createBranch) $this->loadModel('action')->create('branch', $targetBranch, 'Opened');
+        if ($data->createBranch) $this->loadModel('action')->create('branch', $targetBranch, 'Opened');
 
         /* Branch. */
         $this->dao->delete()->from(TABLE_BRANCH)->where('id')->in($mergedBranches)->exec();
@@ -644,16 +707,12 @@ class branchModel extends model
             ->fetchGroup('project');
 
         $this->dao->delete()->from(TABLE_PROJECTPRODUCT)->where('branch')->in($mergedBranches . ",$targetBranch")->exec();
-        foreach($linkedProject as $projectID => $projectProducts)
-        {
+        foreach ($linkedProject as $projectID => $projectProducts) {
             $plan = 0;
-            if(!$data->createBranch)
-            {
+            if (!$data->createBranch) {
                 /* Get the linked plan of the target branch. */
-                foreach($projectProducts as $projectProduct)
-                {
-                    if($projectProduct->branch == $targetBranch)
-                    {
+                foreach ($projectProducts as $projectProduct) {
+                    if ($projectProduct->branch == $targetBranch) {
                         $plan = $projectProduct->plan;
                         break;
                     }

@@ -37,18 +37,15 @@ class api extends control
         $libs = $this->doc->getApiLibs();
 
         /* Generate bread crumbs dropMenu. */
-        if($libs)
-        {
-            if($libID == 0) $libID = key($libs);
+        if ($libs) {
+            if ($libID == 0) $libID = key($libs);
             $this->lang->modulePageNav = $this->generateLibsDropMenu($libs, $libID, $release);
         }
 
         /* Get an api doc. */
-        if($apiID > 0)
-        {
+        if ($apiID > 0) {
             $api = $this->api->getLibById($apiID, $version, $release);
-            if($api)
-            {
+            if ($api) {
                 $moduleID  = $api->module;
                 $libID     = $api->lib;
                 $api->desc = htmlspecialchars_decode($api->desc);
@@ -59,9 +56,7 @@ class api extends control
                 $this->view->typeList = $this->api->getTypeList($api->lib);
                 $this->view->actions  = $apiID ? $this->action->getList('api', $apiID) : array();
             }
-        }
-        else
-        {
+        } else {
             /* Get module api list. */
             $apiList = $this->api->getListByModuleId($libID, $moduleID, $release);
 
@@ -118,14 +113,11 @@ class api extends control
      */
     public function deleteRelease($libID, $id = 0, $confirm = 'no')
     {
-        if($confirm == 'no')
-        {
+        if ($confirm == 'no') {
             return print(js::confirm($this->lang->custom->notice->confirmDelete, $this->createLink('api', 'deleteRelease', "libID=$libID&id=$id&confirm=yes"), ''));
-        }
-        else
-        {
+        } else {
             $this->api->deleteRelease($id);
-            if(dao::isError()) return $this->sendError(dao::getError());
+            if (dao::isError()) return $this->sendError(dao::getError());
             return print(js::locate(inlink('releases', "libID=$libID"), 'parent'));
         }
     }
@@ -141,8 +133,7 @@ class api extends control
     {
         $lib = $this->doc->getLibById($libID);
 
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $data = fixer::input('post')
                 ->add('lib', $libID)
                 ->add('addedBy', $this->app->user->account)
@@ -150,12 +141,11 @@ class api extends control
                 ->get();
 
             /* Check version is exist. */
-            if(!empty($data->version) and $this->api->getReleaseByVersion($libID, $data->version))
-            {
+            if (!empty($data->version) and $this->api->getReleaseByVersion($libID, $data->version)) {
                 return $this->sendError($this->lang->api->noUniqueVersion);
             }
             $this->api->publishLib($data);
-            if(dao::isError()) return $this->sendError(dao::getError());
+            if (dao::isError()) return $this->sendError(dao::getError());
 
             return $this->sendSuccess(array('locate' => $this->createLink('api', 'index', "libID=$libID")));
         }
@@ -208,8 +198,7 @@ class api extends control
     public function createStruct($libID = 0)
     {
         common::setMenuVars('doc', $libID);
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $now    = helper::now();
             $userId = $this->app->user->account;
             $data   = fixer::input('post')
@@ -225,13 +214,12 @@ class api extends control
             $id = $this->api->createStruct($data);
             $this->action->create('apistruct', $id, 'Created');
 
-            if(dao::isError()) return $this->sendError(dao::getError());
+            if (dao::isError()) return $this->sendError(dao::getError());
             return $this->sendSuccess(array('locate' => helper::createLink('api', 'struct', "libID=$libID")));
         }
 
         $options = array();
-        foreach($this->lang->api->paramsTypeOptions as $key => $item)
-        {
+        foreach ($this->lang->api->paramsTypeOptions as $key => $item) {
             $options[] = array('label' => $item, 'value' => $key);
         }
         $this->view->typeOptions = $options;
@@ -254,8 +242,7 @@ class api extends control
         common::setMenuVars('doc', $libID);
         $struct = $this->api->getStructByID($structID);
 
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $now    = helper::now();
             $userId = $this->app->user->account;
             $data   = fixer::input('post')
@@ -266,15 +253,14 @@ class api extends control
                 ->get();
 
             $changes = $this->api->updateStruct($structID, $data);
-            if(dao::isError()) return $this->sendError(dao::getError());
+            if (dao::isError()) return $this->sendError(dao::getError());
             $actionID = $this->action->create('apistruct', $structID, 'Edited');
             $this->action->logHistory($actionID, $changes);
             return $this->sendSuccess(array('locate' => helper::createLink('api', 'struct', "libID={$struct->lib}")));
         }
 
         $options = array();
-        foreach($this->lang->api->paramsTypeOptions as $key => $item)
-        {
+        foreach ($this->lang->api->paramsTypeOptions as $key => $item) {
             $options[] = array('label' => $item, 'value' => $key);
         }
 
@@ -295,14 +281,11 @@ class api extends control
      */
     public function deleteStruct($libID, $structID = 0, $confirm = 'no')
     {
-        if($confirm == 'no')
-        {
+        if ($confirm == 'no') {
             return print(js::confirm($this->lang->custom->notice->confirmDelete, $this->createLink('api', 'deleteStruct', "libID=$libID&structID=$structID&confirm=yes"), ''));
-        }
-        else
-        {
+        } else {
             $this->api->deleteStruct($structID);
-            if(dao::isError()) return $this->sendError(dao::getError());
+            if (dao::isError()) return $this->sendError(dao::getError());
             $this->action->create('apistruct', $structID, 'Deleted');
             return print(js::locate(inlink('struct', "libID=$libID"), 'parent'));
         }
@@ -317,26 +300,15 @@ class api extends control
      */
     public function createLib($type = 'normal')
     {
-        if(!empty($_POST))
-        {
-            if($type == 'demo')
-            {
+        if (!empty($_POST)) {
+            if ($type == 'demo') {
                 $libID = $this->api->createDemoData($this->post->name, $this->post->baseUrl);
                 return $this->sendSuccess(array('locate' => $this->createLink('api', 'index', "libID=$libID")));
             }
 
-            $lib = fixer::input('post')
-                ->join('groups', ',')
-                ->join('users', ',')
-                ->get();
-
-            if($lib->acl == 'private') $lib->users = $this->app->user->account;
-            if($lib->acl == 'custom' && strpos($lib->users, $this->app->user->account) === false) $lib->users .= ',' . $this->app->user->account;
-
             /* save api doc library */
-            $libID = $this->doc->createApiLib($lib);
-            if(dao::isError())
-            {
+            $libID = $this->doc->createApiLib();
+            if (dao::isError()) {
                 return $this->sendError(dao::getError());
             }
             $this->action->create('docLib', $libID, 'Created');
@@ -363,14 +335,13 @@ class api extends control
     {
         $doc = $this->doc->getLibById($id);
 
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $lib = fixer::input('post')->join('groups', ',')->join('users', ',')->get();
 
-            if($lib->acl == 'private') $lib->users = $this->app->user->account;
+            if ($lib->acl == 'private') $lib->users = $this->app->user->account;
             $this->doc->updateApiLib($id, $doc, $lib);
 
-            if(dao::isError()) return $this->sendError(dao::getError());
+            if (dao::isError()) return $this->sendError(dao::getError());
 
             $res = array(
                 'message'    => $this->lang->saveSuccess,
@@ -395,15 +366,11 @@ class api extends control
      */
     public function deleteLib($libID, $confirm = 'no')
     {
-        if($confirm == 'no')
-        {
+        if ($confirm == 'no') {
             return print(js::confirm($this->lang->api->confirmDeleteLib, $this->createLink('api', 'deleteLib', "libID=$libID&confirm=yes")));
-        }
-        else
-        {
+        } else {
             $this->doc->delete(TABLE_DOCLIB, $libID);
-            if(isonlybody())
-            {
+            if (isonlybody()) {
                 unset($_GET['onlybody']);
                 return print(js::locate($this->createLink('api', 'index'), 'parent.parent'));
             }
@@ -421,13 +388,11 @@ class api extends control
      */
     public function edit($apiID)
     {
-        if(helper::isAjaxRequest() && !empty($_POST))
-        {
+        if (helper::isAjaxRequest() && !empty($_POST)) {
             $changes = $this->api->update($apiID);
-            if(dao::isError()) return $this->sendError(dao::getError());
+            if (dao::isError()) return $this->sendError(dao::getError());
 
-            if($changes)
-            {
+            if ($changes) {
                 $actionID = $this->action->create('api', $apiID, 'edited');
                 $this->action->logHistory($actionID, $changes);
             }
@@ -436,8 +401,7 @@ class api extends control
         }
 
         $api = $this->api->getLibById($apiID);
-        if($api)
-        {
+        if ($api) {
             $this->view->api  = $api;
             $this->view->edit = true;
         }
@@ -465,8 +429,7 @@ class api extends control
      */
     public function create($libID, $moduleID = 0)
     {
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $now    = helper::now();
             $params = fixer::input('post')
                 ->trim('title,path')
@@ -481,14 +444,14 @@ class api extends control
                 ->get();
 
             $apiID = $this->api->create($params);
-            if(empty($apiID)) return $this->sendError(dao::getError());
+            if (empty($apiID)) return $this->sendError(dao::getError());
 
             $this->action->create('api', $apiID, 'Created');
             return $this->sendSuccess(array('locate' => helper::createLink('api', 'index', "libID={$params->lib}&moduleID=0&apiID=$apiID")));
         }
 
         $libs = $this->doc->getLibs('api', '', $libID);
-        if(!$libID and !empty($libs)) $libID = key($libs);
+        if (!$libID and !empty($libs)) $libID = key($libs);
 
         $this->setMenu($libID);
 
@@ -518,22 +481,16 @@ class api extends control
      */
     public function delete($apiID, $confirm = 'no')
     {
-        if($confirm == 'no')
-        {
+        if ($confirm == 'no') {
             $tips = $this->lang->api->confirmDelete;
             return print(js::confirm($tips, inlink('delete', "apiID=$apiID&confirm=yes")));
-        }
-        else
-        {
+        } else {
             $api = $this->api->getLibById($apiID);
             $this->api->delete(TABLE_API, $apiID);
 
-            if(dao::isError())
-            {
+            if (dao::isError()) {
                 $this->sendError(dao::getError());
-            }
-            else
-            {
+            } else {
                 $this->sendSuccess(array('locate' => $this->createLink('api', 'index', "libID=$api->lib&module=$api->module")));
             }
         }
@@ -548,8 +505,7 @@ class api extends control
     public function ajaxGetParamsTypeOptions()
     {
         $options = array();
-        foreach($this->lang->api->paramsTypeOptions as $key => $item)
-        {
+        foreach ($this->lang->api->paramsTypeOptions as $key => $item) {
             $options[] = array('label' => $item, 'value' => $key);
         }
         $this->sendSuccess(array('data' => $options));
@@ -567,9 +523,8 @@ class api extends control
         $res = $this->api->getStructListByLibID($libID);
 
         $options = array();
-        foreach($res as $item)
-        {
-            if($item->id == $structID)
+        foreach ($res as $item) {
+            if ($item->id == $structID)
                 continue;
             $options[$item->id] = $item->name;
         }
@@ -619,29 +574,25 @@ class api extends control
         /* Global struct link. */
         $menu = '';
 
-        if($libID and common::hasPriv('api', 'createRelease'))
-        {
+        if ($libID and common::hasPriv('api', 'createRelease')) {
             $menu .= html::a(helper::createLink('api', 'createRelease', "libID=$libID"), $this->lang->api->createRelease, '', 'class="btn btn-link iframe"');
         }
 
         /* page of index menu. */
-        if(common::hasPriv('api', 'create') or common::hasPriv('api', 'createLib'))
-        {
+        if (common::hasPriv('api', 'create') or common::hasPriv('api', 'createLib')) {
             $menu .= "<div class='dropdown' id='createDropdown'>";
             $menu .= "<button class='btn btn-primary' type='button' data-toggle='dropdown'><i class='icon icon-plus'></i> " . $this->lang->api->createAB . " <span class='caret'></span></button>";
             $menu .= "<ul class='dropdown-menu pull-right'>";
 
             /* check has permission create api doc */
-            if(intval($libID) > 0 and common::hasPriv('api', 'create'))
-            {
+            if (intval($libID) > 0 and common::hasPriv('api', 'create')) {
                 $menu .= "<li>";
                 $menu .= html::a(helper::createLink('api', 'create', "libID=$libID&moduleID=$moduleID"), "<i class='icon-rich-text icon'></i> " . $this->lang->api->apiDoc, '', "data-app='{$this->app->tab}'");
                 $menu .= "</li>";
             }
 
             /* check has permission create api doc lib */
-            if(common::hasPriv('api', 'createLib'))
-            {
+            if (common::hasPriv('api', 'createLib')) {
                 $menu .= '<li>' . html::a(helper::createLink('api', 'createLib'), "<i class='icon-doc-lib icon'></i> " . $this->lang->api->createLib, '', "class='iframe' data-width='70%'") . '</li>';
 
                 $menu .= '<li class="divider"></li>';
@@ -665,8 +616,8 @@ class api extends control
      */
     private function generateLibsDropMenu($libs, $libID, $version = 0)
     {
-        if(empty($libs)) return '';
-        if(!isset($libs[$libID])) return '';
+        if (empty($libs)) return '';
+        if (!isset($libs[$libID])) return '';
 
         $libName = $libs[$libID]->name;
         $output  = <<<EOT
@@ -683,8 +634,7 @@ class api extends control
       <div class='table-col'>
         <div class='list-group'>
 EOT;
-        foreach($libs as $key => $lib)
-        {
+        foreach ($libs as $key => $lib) {
             $selected = $key == $libID ? 'selected' : '';
             $output   .= html::a(inlink('index', "libID=$key"), $lib->name, '', "class='$selected' data-app='{$this->app->tab}'");
         }
@@ -692,8 +642,7 @@ EOT;
 
         /* Get lib version */
         $versions = $this->api->getReleaseListByApi($libID);
-        if(!empty($versions))
-        {
+        if (!empty($versions)) {
             $versionName = $version > 0 ? $versions[$version]->version : $this->lang->api->defaultVersion;
             $output      .= <<<EOT
 <div class='btn-group angle-btn'>
@@ -711,8 +660,7 @@ EOT;
 EOT;
             $selected    = $version > 0 ? '' : 'selected';
             $output      .= html::a(inlink('index', "libID=$libID&moduleID=0&apiID=0&version=0&release=0"), $this->lang->api->defaultVersion, '', "class='$selected'");
-            foreach($versions as $key => $item)
-            {
+            foreach ($versions as $key => $item) {
                 $selected = $key == $version ? 'selected' : '';
                 $output   .= html::a(inlink('index', "libID=$libID&moduleID=0&apiID=0&version=0&release=$key"), $item->version, '', "class='$selected' data-app='{$this->app->tab}'");
             }
@@ -748,12 +696,11 @@ EOT;
      */
     public function getModel($moduleName, $methodName, $params = '')
     {
-        if(!$this->config->features->apiGetModel) return printf($this->lang->api->error->disabled, '$config->features->apiGetModel');
+        if (!$this->config->features->apiGetModel) return printf($this->lang->api->error->disabled, '$config->features->apiGetModel');
 
         $params    = explode(',', $params);
         $newParams = array_shift($params);
-        foreach($params as $param)
-        {
+        foreach ($params as $param) {
             $sign      = strpos($param, '=') !== false ? '&' : ',';
             $newParams .= $sign . $param;
         }
@@ -761,7 +708,7 @@ EOT;
         parse_str($newParams, $params);
         $module = $this->loadModel($moduleName);
         $result = call_user_func_array(array(&$module, $methodName), $params);
-        if(dao::isError()) return print(json_encode(dao::getError()));
+        if (dao::isError()) return print(json_encode(dao::getError()));
         $output['status'] = $result ? 'success' : 'fail';
         $output['data']   = json_encode($result);
         $output['md5']    = md5($output['data']);
@@ -780,17 +727,13 @@ EOT;
     public function debug($filePath, $action)
     {
         $filePath = helper::safe64Decode($filePath);
-        if($action == 'extendModel')
-        {
+        if ($action == 'extendModel') {
             $method = $this->api->getMethod($filePath, 'Model');
-        }
-        elseif($action == 'extendControl')
-        {
+        } elseif ($action == 'extendControl') {
             $method = $this->api->getMethod($filePath);
         }
 
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $result  = $this->api->request($method->className, $method->methodName, $action);
             $content = json_decode($result['content']);
             $status  = $content->status;
@@ -818,7 +761,7 @@ EOT;
      */
     public function sql($keyField = '')
     {
-        if(!$this->config->features->apiSQL) return printf($this->lang->api->error->disabled, '$config->features->apiSQL');
+        if (!$this->config->features->apiSQL) return printf($this->lang->api->error->disabled, '$config->features->apiSQL');
 
         $sql    = isset($_POST['sql']) ? $this->post->sql : '';
         $output = $this->api->sql($sql, $keyField);
@@ -838,15 +781,13 @@ EOT;
     private function getTypeOptions($libID)
     {
         $options = array();
-        foreach($this->lang->api->paramsTypeOptions as $key => $item)
-        {
+        foreach ($this->lang->api->paramsTypeOptions as $key => $item) {
             $options[] = array('label' => $item, 'value' => $key);
         }
 
         /* Get all struct by libID. */
         $structs = $this->api->getStructListByLibID($libID);
-        foreach($structs as $struct)
-        {
+        foreach ($structs as $struct) {
             $options[] = array('label' => $struct->name, 'value' => $struct->id);
         }
         $this->view->typeOptions = $options;

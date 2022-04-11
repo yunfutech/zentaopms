@@ -45,12 +45,24 @@ $routes['/projects/:id/stories']   = 'projectStories';
 $routes['/executions/:id/stories'] = 'executionStories';
 $routes['/stories/:id']            = 'story';
 $routes['/stories/:id/change']     = 'storyChange';
+$routes['/stories/:id/close']      = 'storyClose';
+$routes['/stories/:id/active']     = 'storyActive';
+$routes['/stories/:id/assign']     = 'storyAssignto';
+$routes['/stories/:id/estimate']   = 'storyRecordEstimate';
+$routes['/stories/:id/child']      = 'storyChild';
+$routes['/stories/:id/recall']     = 'storyRecall';
+$routes['/stories/:id/review']     = 'storyReview';
+
+$routes['/module/:id/stories'] = 'moduleStories';
 
 $routes['/products/:id/bugs']   = 'bugs';
 $routes['/projects/:id/bugs']   = 'projectBugs';
 $routes['/executions/:id/bugs'] = 'executionBugs';
 $routes['/bugs']                = 'bugs';
 $routes['/bugs/:id']            = 'bug';
+$routes['/bugs/:id/close']      = 'bugClose';
+$routes['/bugs/:id/assign']     = 'bugAssign';
+$routes['/bugs/:id/confirm']    = 'bugConfirm';
 
 $routes['/programs/:id/projects'] = 'projects';
 $routes['/products/:id/projects'] = 'productProjects';
@@ -61,12 +73,18 @@ $routes['/projects/:id/executions'] = 'executions';
 $routes['/executions']              = 'executions';
 $routes['/executions/:id']          = 'execution';
 
+$routes['/executions/:id/tasks/batchCreate'] = 'taskBatchCreate';
+$routes['/tasks/batchCreate']                = 'taskBatchCreate';
+
 $routes['/executions/:id/tasks'] = 'tasks';
 $routes['/tasks']                = 'tasks';
 $routes['/tasks/:id']            = 'task';
 $routes['/tasks/:id/assignto']   = 'taskAssignTo';
 $routes['/tasks/:id/start']      = 'taskStart';
+$routes['/tasks/:id/pause']      = 'taskPause';
 $routes['/tasks/:id/finish']     = 'taskFinish';
+$routes['/tasks/:id/close']      = 'taskClose';
+$routes['/tasks/:id/estimate']   = 'taskRecordEstimate';
 
 $routes['/users']     = 'users';
 $routes['/users/:id'] = 'user';
@@ -95,8 +113,14 @@ $routes['/builds/:id']            = 'build';
 $routes['/products/:id/testcases']   = 'testcases';
 $routes['/projects/:id/testcases']   = 'projectCases';
 $routes['/executions/:id/testcases'] = 'executionCases';
+$routes['/executions/:id/members']   = 'executionMembers';
 $routes['/testcases']                = 'testcases';
 $routes['/testcases/:id']            = 'testcase';
+$routes['/testcases/:id/results']    = 'testresults';
+
+$routes['/products/:id/testsuites'] = 'testsuites';
+$routes['/testsuites']              = 'testsuites';
+$routes['/testsuites/:id']          = 'testsuite';
 
 $routes['/projects/:projectID/testtasks'] = 'testtasks';
 $routes['/testtasks']                     = 'testtasks';
@@ -120,6 +144,8 @@ $routes['/docs/:id']     = 'doc';
 
 $routes['/repos']       = 'repos';
 $routes['/repos/rules'] = 'reporules';
+
+$routes['/modules'] = 'modules';
 
 $routes['/reports'] = 'reports';
 

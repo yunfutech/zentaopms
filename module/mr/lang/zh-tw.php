@@ -105,30 +105,25 @@ $lang->mr->apiError->createMR = "通過API創建合併請求失敗，失敗原�
 $lang->mr->apiError->sudo     = "無法以當前用戶綁定的GitLab賬戶進行操作，失敗原因：%s";
 
 $lang->mr->createFailedFromAPI = "創建合併請求失敗。";
-$lang->mr->hasSameOpenedMR     = "存在重複並且未關閉的合併請求: ID%u";
 $lang->mr->accessGitlabFailed  = "當前無法連接到GitLab伺服器。";
 $lang->mr->reopenSuccess       = "已重新打開合併請求。";
 $lang->mr->closeSuccess        = "已關閉合併請求。";
 
 $lang->mr->apiErrorMap[1] = "You can't use same project/branch for source and target";
 $lang->mr->apiErrorMap[2] = "/Another open merge request already exists for this source branch: !([0-9]+)/";
-$lang->mr->apiErrorMap[3] = "401 Unauthorized";
-$lang->mr->apiErrorMap[4] = "403 Forbidden";
 
 $lang->mr->errorLang[1] = '源項目分支與目標項目分支不能相同';
-$lang->mr->errorLang[2] = '存在另外一個同樣的合併請求在源項目分支中: ID%u';
-$lang->mr->errorLang[3] = '權限不足';
-$lang->mr->errorLang[4] = '權限不足';
+$lang->mr->errorLang[2] = '存在另外一個同樣的合併請求在源項目分支中: !%u';
 
 $lang->mr->from = "從";
 $lang->mr->to   = "合併到";
 $lang->mr->at   = "于";
 
-$lang->mr->pipeline         = "流水綫";
-$lang->mr->pipelineSuccess  = "已通過";
-$lang->mr->pipelineFailed   = "未通過";
+$lang->mr->pipeline        = "流水綫";
+$lang->mr->pipelineSuccess = "已通過";
+$lang->mr->pipelineFailed  = "未通過";
 $lang->mr->pipelineCanceled = "已取消";
-$lang->mr->pipelineUnknown  = "未知";
+$lang->mr->pipelineUnknown = "未知";
 
 $lang->mr->pipelineStatus = array();
 $lang->mr->pipelineStatus['success']  = "已通過";

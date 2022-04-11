@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The control file of kanban module of ZenTaoPMS.
  *
@@ -48,11 +49,10 @@ class kanban extends control
      */
     public function createSpace($type = 'private')
     {
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $spaceID = $this->kanban->createSpace($type);
 
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
             $this->loadModel('action')->create('kanbanSpace', $spaceID, 'created');
             return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'parent'));
@@ -74,14 +74,13 @@ class kanban extends control
      * @access public
      * @return void
      */
-    public function editSpace($spaceID)
+    public function editSpace($spaceID, $type = '')
     {
         $this->loadModel('action');
-        if(!empty($_POST))
-        {
-            $changes = $this->kanban->updateSpace($spaceID);
+        if (!empty($_POST)) {
+            $changes = $this->kanban->updateSpace($spaceID, $type);
 
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
             $actionID = $this->action->create('kanbanSpace', $spaceID, 'edited');
             $this->action->logHistory($actionID, $changes);
@@ -89,8 +88,24 @@ class kanban extends control
             return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'parent'));
         }
 
-        $this->view->space = $this->kanban->getSpaceById($spaceID);
-        $this->view->users = $this->loadModel('user')->getPairs('noclosed');
+        $space = $this->kanban->getSpaceById($spaceID);
+
+        $typeList = $this->lang->kanbanspace->typeList;
+        if ($space->type == 'cooperation' or $space->type == 'public') unset($typeList['private']);
+
+        if ($space->type == 'private' and ($type == 'cooperation' or $type == 'public')) {
+            $team = $space->whitelist;
+        } else {
+            $team = $space->team;
+        }
+
+        $this->view->spaceID     = $spaceID;
+        $this->view->space       = $space;
+        $this->view->users       = $this->loadModel('user')->getPairs('noclosed');
+        $this->view->typeList    = $typeList;
+        $this->view->type        = $type;
+        $this->view->team        = $team;
+        $this->view->defaultType = $type == '' ? $space->type : $type;
 
         $this->display();
     }
@@ -106,16 +121,15 @@ class kanban extends control
     {
         $this->loadModel('action');
 
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $changes = $this->kanban->closeSpace($spaceID);
 
-            if(dao::isError()) die(js::error(dao::getError()));
+            if (dao::isError()) return print(js::error(dao::getError()));
 
             $actionID = $this->action->create('kanbanSpace', $spaceID, 'closed', $this->post->comment);
             $this->action->logHistory($actionID, $changes);
 
-            die(js::reload('parent.parent'));
+            return print(js::reload('parent.parent'));
         }
 
         $this->view->space   = $this->kanban->getSpaceById($spaceID);
@@ -135,14 +149,11 @@ class kanban extends control
      */
     public function deleteSpace($spaceID, $confirm = 'no')
     {
-        if($confirm == 'no')
-        {
-            die(js::confirm($this->lang->kanban->confirmDelete, $this->createLink('kanban', 'deleteSpace', "spaceID=$spaceID&confirm=yes")));
-        }
-        else
-        {
+        if ($confirm == 'no') {
+            return print(js::confirm($this->lang->kanban->confirmDeleteSpace, $this->createLink('kanban', 'deleteSpace', "spaceID=$spaceID&confirm=yes")));
+        } else {
             $this->kanban->delete(TABLE_KANBANSPACE, $spaceID);
-            die(js::reload('parent'));
+            return print(js::reload('parent'));
         }
     }
 
@@ -156,11 +167,10 @@ class kanban extends control
      */
     public function create($spaceID = 0, $type = 'private')
     {
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $kanbanID = $this->kanban->create();
 
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
             $this->loadModel('action')->create('kanban', $kanbanID, 'created');
             return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'parent'));
@@ -193,11 +203,10 @@ class kanban extends control
     public function edit($kanbanID = 0)
     {
         $this->loadModel('action');
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $changes = $this->kanban->update($kanbanID);
 
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
             $actionID = $this->action->create('kanban', $kanbanID, 'edited');
             $this->action->logHistory($actionID, $changes);
@@ -231,16 +240,15 @@ class kanban extends control
     {
         $this->loadModel('action');
 
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $changes = $this->kanban->close($kanbanID);
 
-            if(dao::isError()) die(js::error(dao::getError()));
+            if (dao::isError()) return print(js::error(dao::getError()));
 
             $actionID = $this->action->create('kanban', $kanbanID, 'closed', $this->post->comment);
             $this->action->logHistory($actionID, $changes);
 
-            die(js::reload('parent.parent'));
+            return print(js::reload('parent.parent'));
         }
 
         $this->view->kanban  = $this->kanban->getByID($kanbanID);
@@ -250,7 +258,7 @@ class kanban extends control
         $this->display();
     }
 
-     /**
+    /**
      * View a kanban.
      *
      * @param  int    $kanbanID
@@ -262,14 +270,13 @@ class kanban extends control
         $kanban = $this->kanban->getByID($kanbanID);
         $users  = $this->loadModel('user')->getPairs('noletter|nodeleted');
 
-        if(!$kanban)
-        {
-            if(defined('RUN_MODE') && RUN_MODE == 'api') return $this->send(array('status' => 'fail', 'code' => 404, 'message' => '404 Not found'));
-            die(js::error($this->lang->notFound) . js::locate($this->createLink('kanban', 'space')));
+        if (!$kanban) {
+            if (defined('RUN_MODE') && RUN_MODE == 'api') return $this->send(array('status' => 'fail', 'code' => 404, 'message' => '404 Not found'));
+            return print(js::error($this->lang->notFound) . js::locate($this->createLink('kanban', 'space')));
         }
 
         $kanbanIdList = $this->kanban->getCanViewObjects();
-        if(!$this->app->user->admin and !in_array($kanbanID, $kanbanIdList)) die(js::error($this->lang->kanban->accessDenied) . js::locate('back'));
+        if (!$this->app->user->admin and !in_array($kanbanID, $kanbanIdList)) return print(js::error($this->lang->kanban->accessDenied) . js::locate('back'));
 
         $space = $this->kanban->getSpaceByID($kanban->space);
 
@@ -278,9 +285,8 @@ class kanban extends control
 
         $userList    = array();
         $avatarPairs = $this->dao->select('account, avatar')->from(TABLE_USER)->where('deleted')->eq(0)->fetchPairs();
-        foreach($avatarPairs as $account => $avatar)
-        {
-            if(!$avatar) continue;
+        foreach ($avatarPairs as $account => $avatar) {
+            if (!$avatar) continue;
             $userList[$account]['avatar'] = $avatar;
         }
 
@@ -303,14 +309,11 @@ class kanban extends control
      */
     public function delete($kanbanID, $confirm = 'no')
     {
-        if($confirm == 'no')
-        {
-            die(js::confirm($this->lang->kanban->confirmDelete, $this->createLink('kanban', 'delete', "kanbanID=$kanbanID&confirm=yes")));
-        }
-        else
-        {
+        if ($confirm == 'no') {
+            return print(js::confirm($this->lang->kanban->confirmDeleteKanban, $this->createLink('kanban', 'delete', "kanbanID=$kanbanID&confirm=yes")));
+        } else {
             $this->kanban->delete(TABLE_KANBAN, $kanbanID);
-            die(js::locate($this->createLink('kanban', 'space'), 'parent'));
+            return print(js::locate($this->createLink('kanban', 'space'), 'parent'));
         }
     }
 
@@ -324,22 +327,20 @@ class kanban extends control
      */
     public function createRegion($kanbanID, $from = 'kanban')
     {
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $kanban       = $from == 'execution' ? $this->loadModel('execution')->getByID($kanbanID) : $this->kanban->getByID($kanbanID);
             $copyRegionID = (int)$_POST['region'];
             unset($_POST['region']);
 
             $regionID = $this->kanban->createRegion($kanban, '', $copyRegionID, $from);
 
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
             return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'parent'));
         }
 
         $regions     = $this->kanban->getRegionPairs($kanbanID, 0, $from);
         $regionPairs = array();
-        foreach($regions as $regionID => $region)
-        {
+        foreach ($regions as $regionID => $region) {
             $regionPairs[$regionID] = $this->lang->kanban->copy . $region . $this->lang->kanban->styleCommon;
         }
 
@@ -357,11 +358,10 @@ class kanban extends control
     public function editRegion($regionID = 0)
     {
         $this->loadModel('action');
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $changes = $this->kanban->updateRegion($regionID);
 
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
             $actionID = $this->action->create('kanbanregion', $regionID, 'edited');
             $this->action->logHistory($actionID, $changes);
@@ -383,17 +383,16 @@ class kanban extends control
      */
     public function sortRegion($regions = '')
     {
-        if(empty($regions)) return;
+        if (empty($regions)) return;
         $regionIdList = explode(',', trim($regions, ','));
 
         $order = 1;
-        foreach($regionIdList as $regionID)
-        {
+        foreach ($regionIdList as $regionID) {
             $this->dao->update(TABLE_KANBANREGION)->set('`order`')->eq($order)->where('id')->eq($regionID)->exec();
             $order++;
         }
 
-        if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+        if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
         return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess));
     }
 
@@ -408,10 +407,10 @@ class kanban extends control
     public function sortGroup($region, $groups)
     {
         $groups = array_filter(explode(',', trim($groups, ',')));
-        if(empty($groups)) return $this->send(array('result' => 'fail', 'message' => 'No groups to sort.'));
+        if (empty($groups)) return $this->send(array('result' => 'fail', 'message' => 'No groups to sort.'));
 
         $this->kanban->sortGroup($region, $groups);
-        if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+        if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
         return $this->send(array('result' => 'success'));
     }
@@ -426,14 +425,11 @@ class kanban extends control
      */
     public function deleteRegion($regionID, $confirm = 'no')
     {
-        if($confirm == 'no')
-        {
-            die(js::confirm($this->lang->kanbanregion->confirmDelete, $this->createLink('kanban', 'deleteRegion', "regionID=$regionID&confirm=yes")));
-        }
-        else
-        {
+        if ($confirm == 'no') {
+            return print(js::confirm($this->lang->kanbanregion->confirmDelete, $this->createLink('kanban', 'deleteRegion', "regionID=$regionID&confirm=yes")));
+        } else {
             $this->kanban->delete(TABLE_KANBANREGION, $regionID);
-            die(js::reload('parent'));
+            return print(js::reload('parent'));
         }
     }
 
@@ -448,10 +444,9 @@ class kanban extends control
      */
     public function createLane($kanbanID, $regionID, $from = 'kanban')
     {
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $laneID = $this->kanban->createLane($kanbanID, $regionID, $lane = null);
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
             $this->loadModel('action')->create('kanbanLane', $laneID, 'created');
             return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'parent'));
@@ -461,8 +456,8 @@ class kanban extends control
         $this->view->from     = $from;
         $this->view->regionID = $regionID;
 
-        if($from == 'kanban') $this->display();
-        if($from == 'execution') $this->display('kanban', 'createexeclane');
+        if ($from == 'kanban') $this->display();
+        if ($from == 'execution') $this->display('kanban', 'createexeclane');
     }
 
     /**
@@ -475,16 +470,15 @@ class kanban extends control
      */
     public function sortLane($regionID, $lanes = '')
     {
-        if(empty($lanes)) return;
+        if (empty($lanes)) return;
         $lanes = explode(',', trim($lanes, ','));
 
         $order = 1;
-        foreach($lanes as $laneID)
-        {
+        foreach ($lanes as $laneID) {
             $this->dao->update(TABLE_KANBANLANE)->set('`order`')->eq($order)->where('id')->eq($laneID)->andWhere('region')->eq($regionID)->exec();
             $order++;
         }
-        if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+        if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
         return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess));
     }
 
@@ -499,15 +493,15 @@ class kanban extends control
      */
     public function sortColumn($regionID, $kanbanID, $columns = '')
     {
-        if(empty($columns)) return;
+        if (empty($columns)) return;
         $columns =  explode(',', trim($columns, ','));
 
         $order = 1;
-        foreach($columns as $columnID) $this->dao->update(TABLE_KANBANCOLUMN)->set('`order`')->eq($order++)->where('id')->eq($columnID)->andWhere('region')->eq($regionID)->exec();
+        foreach ($columns as $columnID) $this->dao->update(TABLE_KANBANCOLUMN)->set('`order`')->eq($order++)->where('id')->eq($columnID)->andWhere('region')->eq($regionID)->exec();
 
         $kanbanGroup = $this->kanban->getKanbanData($kanbanID);
 
-        if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+        if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
         return print(json_encode($kanbanGroup));
     }
 
@@ -521,11 +515,10 @@ class kanban extends control
      */
     public function setLaneHeight($kanbanID, $from = 'kanban')
     {
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $this->kanban->setLaneHeight($kanbanID, $from);
 
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
             return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'parent'));
         }
@@ -548,11 +541,10 @@ class kanban extends control
      */
     public function setColumnWidth($kanbanID, $from = 'kanban')
     {
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $this->kanban->setColumnWidth($kanbanID, $from);
 
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
             return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'parent'));
         }
@@ -574,17 +566,14 @@ class kanban extends control
      */
     public function deleteLane($laneID, $confirm = 'no')
     {
-        if($confirm == 'no')
-        {
+        if ($confirm == 'no') {
             $laneType   = $this->kanban->getLaneById($laneID)->type;
             $confirmTip = in_array($laneType, array('story', 'task', 'bug')) ? sprintf($this->lang->kanbanlane->confirmDeleteTip, $this->lang->{$laneType}->common) : $this->lang->kanbanlane->confirmDelete;
 
-            die(js::confirm($confirmTip, $this->createLink('kanban', 'deleteLane', "laneID=$laneID&confirm=yes"), ''));
-        }
-        else
-        {
+            return print(js::confirm($confirmTip, $this->createLink('kanban', 'deleteLane', "laneID=$laneID&confirm=yes"), ''));
+        } else {
             $this->kanban->delete(TABLE_KANBANLANE, $laneID);
-            die(js::reload('parent'));
+            return print(js::reload('parent'));
         }
     }
 
@@ -600,11 +589,10 @@ class kanban extends control
     {
         $column = $this->kanban->getColumnByID($columnID);
 
-        if($_POST)
-        {
+        if ($_POST) {
             $order    = $position == 'left' ? $column->order : $column->order + 1;
             $columnID = $this->kanban->createColumn($column->region, null, $order, $column->parent);
-            if(dao::isError()) $this->send(array('message' => dao::getError(), 'result' => 'fail'));
+            if (dao::isError()) $this->send(array('message' => dao::getError(), 'result' => 'fail'));
 
             $this->loadModel('action')->create('kanbanColumn', $columnID, 'Created');
             $this->send(array('message' => $this->lang->saveSuccess, 'result' => 'success', 'locate' => 'parent'));
@@ -624,10 +612,9 @@ class kanban extends control
      */
     public function splitColumn($columnID)
     {
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $this->kanban->splitColumn($columnID);
-            if(dao::isError()) $this->send(array('message' => dao::getError(), 'result' => 'fail'));
+            if (dao::isError()) $this->send(array('message' => dao::getError(), 'result' => 'fail'));
             $this->send(array('message' => $this->lang->saveSuccess, 'result' => 'success', 'locate' => 'parent'));
         }
 
@@ -644,15 +631,11 @@ class kanban extends control
      */
     public function archiveColumn($columnID, $confirm = 'no')
     {
-        if($confirm == 'no')
-        {
-            die(js::confirm($this->lang->kanbancolumn->confirmArchive, $this->createLink('kanban', 'archiveColumn', "columnID=$columnID&confirm=yes")));
-        }
-        else
-        {
+        if ($confirm == 'no') {
+            return print(js::confirm($this->lang->kanbancolumn->confirmArchive, $this->createLink('kanban', 'archiveColumn', "columnID=$columnID&confirm=yes")));
+        } else {
             $column = $this->kanban->getColumnById($columnID);
-            if($column->parent)
-            {
+            if ($column->parent) {
                 $children = $this->dao->select('count(*) as count')->from(TABLE_KANBANCOLUMN)
                     ->where('parent')->eq($column->parent)
                     ->andWhere('id')->ne($column->id)
@@ -660,16 +643,16 @@ class kanban extends control
                     ->andWhere('archived')->eq('0')
                     ->fetch('count');
 
-                if(!$children) $this->dao->update(TABLE_KANBANCOLUMN)->set('parent')->eq(0)->where('id')->eq($column->parent)->exec();
+                if (!$children) $this->dao->update(TABLE_KANBANCOLUMN)->set('parent')->eq(0)->where('id')->eq($column->parent)->exec();
             }
 
             $this->kanban->archiveColumn($columnID);
-            if(dao::isError()) die(js::error(dao::getError()));
+            if (dao::isError()) return print(js::error(dao::getError()));
 
             $this->loadModel('action')->create('kanbancolumn', $columnID, 'archived');
 
-            if(isonlybody()) die(js::reload('parent.parent'));
-            die(js::reload('parent'));
+            if (isonlybody()) return print(js::reload('parent.parent'));
+            return print(js::reload('parent'));
         }
     }
 
@@ -683,17 +666,14 @@ class kanban extends control
      */
     public function restoreColumn($columnID, $confirm = 'no')
     {
-        if($confirm == 'no')
-        {
-            die(js::confirm($this->lang->kanbancolumn->confirmRestore, $this->createLink('kanban', 'restoreColumn', "columnID=$columnID&confirm=yes"), ''));
-        }
-        else
-        {
+        if ($confirm == 'no') {
+            return print(js::confirm($this->lang->kanbancolumn->confirmRestore, $this->createLink('kanban', 'restoreColumn', "columnID=$columnID&confirm=yes"), ''));
+        } else {
             $this->kanban->restoreColumn($columnID);
-            if(dao::isError()) die(js::error(dao::getError()));
+            if (dao::isError()) return print(js::error(dao::getError()));
 
             $this->loadModel('action')->create('kanbancolumn', $columnID, 'restore');
-            die(js::reload('parent'));
+            return print(js::reload('parent'));
         }
     }
 
@@ -708,17 +688,13 @@ class kanban extends control
     {
         $columns     = $this->kanban->getColumnsByObject('region', $regionID, '');
         $columnsData = array();
-        foreach($columns as $column)
-        {
-            if($column->archived == 0) continue;
-            if($column->parent > 0 and isset($columns[$column->parent]))
-            {
-                if(empty($columnsData[$column->parent])) $columnsData[$column->parent] = $columns[$column->parent];
+        foreach ($columns as $column) {
+            if ($column->archived == 0) continue;
+            if ($column->parent > 0 and isset($columns[$column->parent])) {
+                if (empty($columnsData[$column->parent])) $columnsData[$column->parent] = $columns[$column->parent];
                 $columnsData[$column->parent]->child[$column->id] = $column;
-            }
-            elseif($column->parent <= 0)
-            {
-                if(empty($columnsData[$column->id])) $columnsData[$column->id] = $column;
+            } elseif ($column->parent <= 0) {
+                if (empty($columnsData[$column->id])) $columnsData[$column->id] = $column;
             }
         }
 
@@ -738,18 +714,15 @@ class kanban extends control
     public function deleteColumn($columnID, $confirm = 'no')
     {
         $column = $this->kanban->getColumnById($columnID);
-        if($confirm == 'no')
-        {
+        if ($confirm == 'no') {
             $confirmLang = $column->parent > 0 ? $this->lang->kanbancolumn->confirmDeleteChild : $this->lang->kanbancolumn->confirmDelete;
-            die(js::confirm($confirmLang, $this->createLink('kanban', 'deleteColumn', "columnID=$columnID&confirm=yes")));
-        }
-        else
-        {
-            if($column->parent > 0) $this->kanban->processCards($column);
+            return print(js::confirm($confirmLang, $this->createLink('kanban', 'deleteColumn', "columnID=$columnID&confirm=yes")));
+        } else {
+            if ($column->parent > 0) $this->kanban->processCards($column);
 
             $this->dao->delete()->from(TABLE_KANBANCOLUMN)->where('id')->eq($columnID)->exec();
 
-            die(js::reload('parent'));
+            return print(js::reload('parent'));
         }
     }
 
@@ -765,10 +738,9 @@ class kanban extends control
      */
     public function createCard($kanbanID = 0, $regionID = 0, $groupID = 0, $columnID = 0)
     {
-        if($_POST)
-        {
+        if ($_POST) {
             $cardID = $this->kanban->createCard($kanbanID, $regionID, $groupID, $columnID);
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
             $this->loadModel('action')->create('kanbancard', $cardID, 'created');
 
             return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'parent'));
@@ -801,23 +773,18 @@ class kanban extends control
         $backLink = $this->createLink('kanban', 'view', "kanbanID=$kanbanID");
         $this->kanban->setSwitcher($kanban);
 
-        if($_POST)
-        {
+        if ($_POST) {
             $this->kanban->batchCreateCard($kanbanID, $regionID, $groupID, $columnID);
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
             return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => $backLink));
         }
 
         $kanbanUsers = $kanbanID == 0 ? ',' : trim($kanban->owner) . ',' . trim($kanban->team);
         $users       = $this->loadModel('user')->getPairs('noclosed|nodeleted', '', 0, $kanbanUsers);
 
-        $lanePairs = $this->kanban->getLanePairsByGroup($groupID);
-
-        $lanePairs['ditto'] = $this->lang->kanbancard->ditto;
-
         $this->view->title     = $this->lang->kanban->batchCreateCard;
         $this->view->users     = $users;
-        $this->view->lanePairs = $lanePairs;
+        $this->view->lanePairs = $this->kanban->getLanePairsByGroup($groupID);
 
         $this->display();
     }
@@ -832,11 +799,10 @@ class kanban extends control
     public function editCard($cardID)
     {
         $this->loadModel('action');
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $changes = $this->kanban->updateCard($cardID);
 
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
             $actionID = $this->action->create('kanbanCard', $cardID, 'edited');
             $this->action->logHistory($actionID, $changes);
@@ -852,6 +818,7 @@ class kanban extends control
         $this->view->card     = $card;
         $this->view->actions  = $this->action->getList('kanbancard', $cardID);
         $this->view->users    = $users;
+        $this->view->kanban   = $kanban;
 
         $this->display();
     }
@@ -869,17 +836,17 @@ class kanban extends control
         $this->loadModel('action');
 
         $oldCard = $this->kanban->getCardByID($cardID);
-        $this->dao->update(TABLE_KANBANCARD)->set('status')->eq('done')->where('id')->eq($cardID)->exec();
+        $this->dao->update(TABLE_KANBANCARD)->set('progress')->eq(100)->set('status')->eq('done')->where('id')->eq($cardID)->exec();
         $card = $this->kanban->getCardByID($cardID);
 
         $changes = common::createChanges($oldCard, $card);
 
-        if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+        if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
         $actionID = $this->action->create('kanbanCard', $cardID, 'finished');
         $this->action->logHistory($actionID, $changes);
 
-        if(isonlybody()) return print(js::reload('parent.parent'));
+        if (isonlybody()) return print(js::reload('parent.parent'));
 
         $kanbanGroup = $this->kanban->getKanbanData($kanbanID);
         return print(json_encode($kanbanGroup));
@@ -896,22 +863,25 @@ class kanban extends control
     public function activateCard($cardID, $kanbanID)
     {
         $this->loadModel('action');
+        if (!empty($_POST)) {
+            $oldCard = $this->kanban->getCardByID($cardID);
+            $this->kanban->activateCard($cardID);
+            $card = $this->kanban->getCardByID($cardID);
 
-        $oldCard = $this->kanban->getCardByID($cardID);
-        $this->dao->update(TABLE_KANBANCARD)->set('status')->eq('doing')->where('id')->eq($cardID)->exec();
-        $card = $this->kanban->getCardByID($cardID);
+            $changes = common::createChanges($oldCard, $card);
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
-        $changes = common::createChanges($oldCard, $card);
+            $actionID = $this->action->create('kanbanCard', $cardID, 'activated');
+            $this->action->logHistory($actionID, $changes);
 
-        if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'parent'));
+        }
 
-        $actionID = $this->action->create('kanbanCard', $cardID, 'activated');
-        $this->action->logHistory($actionID, $changes);
+        $this->view->card    = $this->kanban->getCardByID($cardID);
+        $this->view->actions = $this->action->getList('kanbancard', $cardID);
+        $this->view->users   = $this->loadModel('user')->getPairs('noclosed|nodeleted');
 
-        if(isonlybody()) return print(js::reload('parent.parent'));
-
-        $kanbanGroup = $this->kanban->getKanbanData($kanbanID);
-        return print(json_encode($kanbanGroup));
+        $this->display();
     }
 
     /**
@@ -954,9 +924,9 @@ class kanban extends control
     public function moveCard($cardID, $fromColID, $toColID, $fromLaneID, $toLaneID, $kanbanID = 0)
     {
         $this->kanban->moveCard($cardID, $fromColID, $toColID, $fromLaneID, $toLaneID, $kanbanID);
-        if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+        if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
         $kanbanGroup = $this->kanban->getKanbanData($kanbanID);
-        die(json_encode($kanbanGroup));
+        echo json_encode($kanbanGroup);
     }
 
     /**
@@ -981,13 +951,11 @@ class kanban extends control
 
         $cards2Imported = $this->kanban->getCards2Import($selectedKanbanID, $kanbanID, $pager);
 
-        if($_POST)
-        {
+        if ($_POST) {
             $importedIDList = $this->kanban->importCard($kanbanID, $regionID, $groupID, $columnID);
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
-            foreach($importedIDList as $cardID)
-            {
+            foreach ($importedIDList as $cardID) {
                 $this->loadModel('action')->create('kanbancard', $cardID, 'importedcard', '', $cards2Imported[$cardID]->kanban);
             }
 
@@ -1028,13 +996,11 @@ class kanban extends control
      */
     public function importPlan($kanbanID = 0, $regionID = 0, $groupID = 0, $columnID = 0, $selectedProductID = 0, $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
-        if($_POST)
-        {
+        if ($_POST) {
             $importedIDList = $this->kanban->importObject($kanbanID, $regionID, $groupID, $columnID, 'productplan');
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
-            foreach($importedIDList as $cardID => $planID)
-            {
+            foreach ($importedIDList as $cardID => $planID) {
                 $this->loadModel('action')->create('kanbancard', $cardID, 'importedProductplan', '', $planID);
             }
 
@@ -1080,13 +1046,11 @@ class kanban extends control
      */
     public function importRelease($kanbanID = 0, $regionID = 0, $groupID = 0, $columnID = 0, $selectedProductID = 0, $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
-        if($_POST)
-        {
+        if ($_POST) {
             $importedIDList = $this->kanban->importObject($kanbanID, $regionID, $groupID, $columnID, 'release');
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
-            foreach($importedIDList as $cardID => $releaseID)
-            {
+            foreach ($importedIDList as $cardID => $releaseID) {
                 $this->loadModel('action')->create('kanbancard', $cardID, 'importedRelease', '', $releaseID);
             }
 
@@ -1129,13 +1093,11 @@ class kanban extends control
      */
     public function importBuild($kanbanID = 0, $regionID = 0, $groupID = 0, $columnID = 0, $selectedProjectID = 0, $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
-        if($_POST)
-        {
+        if ($_POST) {
             $importedIDList = $this->kanban->importObject($kanbanID, $regionID, $groupID, $columnID, 'build');
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
-            foreach($importedIDList as $cardID => $buildID)
-            {
+            foreach ($importedIDList as $cardID => $buildID) {
                 $this->loadModel('action')->create('kanbancard', $cardID, 'importedBuild', '', $buildID);
             }
 
@@ -1150,13 +1112,10 @@ class kanban extends control
 
         $builds2Imported = array();
         $projects        = array($this->lang->kanban->allProjects);
-        if($this->config->systemMode == 'classic')
-        {
+        if ($this->config->systemMode == 'classic') {
             $projects        += $this->loadModel('execution')->getPairs();
             $builds2Imported  = $this->build->getExecutionBuilds($selectedProjectID, '', '', 't1.date_desc,t1.id_desc', $pager);
-        }
-        else
-        {
+        } else {
             $projects        += $this->loadModel('project')->getPairsByProgram('', 'all', false, 'order_asc', 'kanban');
             $builds2Imported  = $this->build->getProjectBuilds($selectedProjectID, 'all', 0, 't1.date_desc,t1.id_desc', $pager);
         }
@@ -1191,13 +1150,11 @@ class kanban extends control
      */
     public function importExecution($kanbanID = 0, $regionID = 0, $groupID = 0, $columnID = 0, $selectedProjectID = 0, $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
-        if($_POST)
-        {
+        if ($_POST) {
             $importedIDList = $this->kanban->importObject($kanbanID, $regionID, $groupID, $columnID, 'execution');
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
-            foreach($importedIDList as $cardID => $executionID)
-            {
+            foreach ($importedIDList as $cardID => $executionID) {
                 $this->loadModel('action')->create('kanbancard', $cardID, 'importedExecution', '', $executionID);
             }
 
@@ -1237,9 +1194,9 @@ class kanban extends control
     public function setCardColor($cardID, $color, $kanbanID)
     {
         $this->kanban->updateCardColor($cardID, $color);
-        if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+        if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
         $kanbanGroup = $this->kanban->getKanbanData($kanbanID);
-        die(json_encode($kanbanGroup));
+        echo json_encode($kanbanGroup);
     }
 
     /**
@@ -1254,11 +1211,11 @@ class kanban extends control
      */
     public function sortCard($kanbanID, $laneID, $columnID, $cards = '')
     {
-        if(empty($cards)) return;
+        if (empty($cards)) return;
 
         $this->dao->update(TABLE_KANBANCELL)->set('cards')->eq(",$cards,")->where('kanban')->eq($kanbanID)->andWhere('lane')->eq($laneID)->andWhere('`column`')->eq($columnID)->exec();
 
-        if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+        if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
         return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess));
     }
 
@@ -1272,20 +1229,17 @@ class kanban extends control
      */
     public function archiveCard($cardID, $confirm = 'no')
     {
-        if($confirm == 'no')
-        {
-            die(js::confirm($this->lang->kanbancard->confirmArchive, $this->createLink('kanban', 'archiveCard', "cardID=$cardID&confirm=yes")));
-        }
-        else
-        {
+        if ($confirm == 'no') {
+            return print(js::confirm($this->lang->kanbancard->confirmArchive, $this->createLink('kanban', 'archiveCard', "cardID=$cardID&confirm=yes")));
+        } else {
             $changes = $this->kanban->archiveCard($cardID);
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
             $actionID = $this->loadModel('action')->create('kanbancard', $cardID, 'archived');
             $this->action->logHistory($actionID, $changes);
 
-            if(isonlybody()) die(js::reload('parent.parent'));
-            die(js::reload('parent'));
+            if (isonlybody()) return print(js::reload('parent.parent'));
+            echo js::reload('parent');
         }
     }
 
@@ -1298,6 +1252,9 @@ class kanban extends control
      */
     public function viewArchivedCard($regionID)
     {
+        $region = $this->kanban->getRegionByID($regionID);
+
+        $this->view->kanban      = $this->kanban->getByID($region->kanban);
         $this->view->cards       = $this->kanban->getCardsByObject('region', $regionID, 1);
         $this->view->users       = $this->loadModel('user')->getPairs('noletter|nodeleted');
         $this->view->userIdPairs = $this->user->getPairs('noletter|nodeleted|showid');
@@ -1316,49 +1273,68 @@ class kanban extends control
      */
     public function restoreCard($cardID, $confirm = 'no')
     {
-        if($confirm == 'no')
-        {
-            $card   = $this->kanban->getCardByID($cardID);
-            $column = $this->dao->select('*')->from(TABLE_KANBANCOLUMN)->where('id')->eq($card->column)->fetch();
-            if($column->archived or $column->deleted) die(js::alert(sprintf($this->lang->kanbancard->confirmRestoreTip, $column->name)));
+        if ($confirm == 'no') {
+            $column = $this->dao->select('t2.*')->from(TABLE_KANBANCELL)->alias('t1')
+                ->leftJoin(TABLE_KANBANCOLUMN)->alias('t2')->on('t1.column=t2.id')
+                ->where('t1.cards')->like("%,$cardID,%")
+                ->andWhere('t1.type')->eq('common')
+                ->fetch();
+            if ($column->archived or $column->deleted) return print(js::alert(sprintf($this->lang->kanbancard->confirmRestoreTip, $column->name)));
 
-            die(js::confirm(sprintf($this->lang->kanbancard->confirmRestore, $column->name), $this->createLink('kanban', 'restoreCard', "cardID=$cardID&confirm=yes"), ''));
-        }
-        else
-        {
+            return print(js::confirm(sprintf($this->lang->kanbancard->confirmRestore, $column->name), $this->createLink('kanban', 'restoreCard', "cardID=$cardID&confirm=yes"), ''));
+        } else {
             $this->kanban->restoreCard($cardID);
 
             $changes = $this->kanban->restoreCard($cardID);
-            if(dao::isError()) die(js::error(dao::getError()));
+            if (dao::isError()) return print(js::error(dao::getError()));
 
             $actionID = $this->loadModel('action')->create('kanbancard', $cardID, 'restore');
             $this->action->logHistory($actionID, $changes);
 
-            die(js::reload('parent'));
+            return print(js::reload('parent'));
         }
     }
 
-	/**
-	 * Delete a card.
-	 *
-	 * @param  int    $cardID
-	 * @param  string $confirm no|yes
-	 * @access public
-	 * @return void
-	 */
+    /**
+     * Delete a card.
+     *
+     * @param  int    $cardID
+     * @param  string $confirm no|yes
+     * @access public
+     * @return void
+     */
     public function deleteCard($cardID, $confirm = 'no')
     {
-        if($confirm == 'no')
-        {
-            die(js::confirm($this->lang->kanbancard->confirmDelete, $this->createLink('kanban', 'deleteCard', "cardID=$cardID&confirm=yes")));
-        }
-        else
-        {
+        if ($confirm == 'no') {
+            return print(js::confirm($this->lang->kanbancard->confirmDelete, $this->createLink('kanban', 'deleteCard', "cardID=$cardID&confirm=yes")));
+        } else {
             $this->kanban->delete(TABLE_KANBANCARD, $cardID);
 
-            if(isonlybody()) die(js::reload('parent.parent'));
-            die(js::reload('parent'));
+            if (isonlybody()) return print(js::reload('parent.parent'));
+            return print(js::reload('parent'));
         }
+    }
+
+    /**
+     * Delete a card.
+     *
+     * @param  string $objectType story|task|bug
+     * @param  int    $objectID
+     * @param  int    $regionID
+     * @access public
+     * @return void
+     */
+    public function deleteObjectCard($objectType, $objectID, $regionID)
+    {
+        if (!($objectType == 'task' or $objectType == 'story' or $objectType == 'bug')) return false;
+        $table = 'TABLE_' . strtoupper($objectType);
+        $this->loadModel($objectType)->delete(constant($table), $objectID);
+        if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+
+        $kanbanID = $this->kanban->getKanbanIDByregion($regionID);
+        $kanbanGroup = $this->kanban->getRDKanban($kanbanID);
+
+        return print(json_encode($kanbanGroup));
     }
 
     /**
@@ -1373,16 +1349,14 @@ class kanban extends control
     public function setWIP($columnID, $executionID = 0, $from = 'kanban')
     {
         $column = $this->kanban->getColumnById($columnID);
-        if($_POST)
-        {
+        if ($_POST) {
             $this->kanban->setWIP($columnID);
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
             $this->loadModel('action')->create('kanbancolumn', $columnID, 'Edited', '', $executionID);
 
-            if($from == 'RDKanban')
-            {
-                if(dao::isError()) return $this->sendError(dao::getError());
+            if ($from == 'RDKanban') {
+                if (dao::isError()) return $this->sendError(dao::getError());
                 $regionID   = $column->region;
                 $kanbanData = $this->loadModel('kanban')->getRDKanban($executionID, $this->session->execLaneType ? $this->session->execLaneType : 'all', 'id_desc', $regionID);
                 $kanbanData = json_encode($kanbanData);
@@ -1395,7 +1369,7 @@ class kanban extends control
 
         $this->app->loadLang('story');
 
-        if(!$column) die(js::error($this->lang->notFound) . js::locate($this->createLink('execution', 'kanban', "executionID=$executionID")));
+        if (!$column) return print(js::error($this->lang->notFound) . js::locate($this->createLink('execution', 'kanban', "executionID=$executionID")));
 
         $title  = isset($column->parentName) ? $column->parentName . '/' . $column->name : $column->name;
 
@@ -1403,7 +1377,7 @@ class kanban extends control
         $this->view->column = $column;
         $this->view->from   = $from;
 
-        if($from != 'kanban') $this->view->status = zget($this->config->kanban->{$column->laneType . 'ColumnStatusList'}, $column->type);
+        if ($from != 'kanban') $this->view->status = zget($this->config->kanban->{$column->laneType . 'ColumnStatusList'}, $column->type);
         $this->display();
     }
 
@@ -1418,10 +1392,9 @@ class kanban extends control
      */
     public function setLane($laneID, $executionID = 0, $from = 'kanban')
     {
-        if($_POST)
-        {
+        if ($_POST) {
             $this->kanban->setLane($laneID);
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
             $this->loadModel('action')->create('kanbanlane', $laneID, 'Edited', '', $executionID);
 
@@ -1429,7 +1402,7 @@ class kanban extends control
         }
 
         $lane = $this->kanban->getLaneById($laneID);
-        if(!$lane) die(js::error($this->lang->notFound) . js::locate($this->createLink('execution', 'kanban', "executionID=$executionID")));
+        if (!$lane) return print(js::error($this->lang->notFound) . js::locate($this->createLink('execution', 'kanban', "executionID=$executionID")));
 
         $this->view->title = $from == 'kanban' ? $this->lang->edit . '“' . $lane->name . '”' . $this->lang->kanbanlane->common : zget($this->lang->kanban->laneTypeList, $lane->type) . $this->lang->colon . $this->lang->kanban->setLane;
         $this->view->lane  = $lane;
@@ -1451,19 +1424,16 @@ class kanban extends control
     {
         $column = $this->kanban->getColumnByID($columnID);
 
-        if($_POST)
-        {
+        if ($_POST) {
             $changes = $this->kanban->updateLaneColumn($columnID, $column);
-            if(dao::isError()) return $this->sendError(dao::getError());
-            if($changes)
-            {
+            if (dao::isError()) return $this->sendError(dao::getError());
+            if ($changes) {
                 $actionID = $this->loadModel('action')->create('kanbancolumn', $columnID, 'Edited', '', $executionID);
                 $this->action->logHistory($actionID, $changes);
             }
 
-            if($from == 'RDKanban')
-            {
-                if(dao::isError()) return $this->sendError(dao::getError());
+            if ($from == 'RDKanban') {
+                if (dao::isError()) return $this->sendError(dao::getError());
                 $regionID   = $column->region;
                 $kanbanData = $this->loadModel('kanban')->getRDKanban($executionID, $this->session->execLaneType ? $this->session->execLaneType : 'all', 'id_desc', $regionID);
                 $kanbanData = json_encode($kanbanData);
@@ -1474,8 +1444,9 @@ class kanban extends control
             return $this->sendSuccess(array('locate' => 'parent'));
         }
 
-        $this->view->column = $column;
-        $this->view->title  = $column->name . $this->lang->colon . $this->lang->kanban->setColumn;
+        $this->view->canEdit = $from == 'RDKanban' ? 0 : 1;
+        $this->view->column  = $column;
+        $this->view->title   = $column->name . $this->lang->colon . $this->lang->kanban->setColumn;
         $this->display();
     }
 
@@ -1488,11 +1459,10 @@ class kanban extends control
      */
     public function performable($kanbanID)
     {
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $this->dao->update(TABLE_KANBAN)->set('performable')->eq($_POST['performable'])->exec();
 
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
             return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'parent'));
         }
 
@@ -1510,11 +1480,10 @@ class kanban extends control
      */
     public function enableArchived($kanbanID)
     {
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $this->dao->update(TABLE_KANBAN)->set('archived')->eq($_POST['archived'])->exec();
 
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
             return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'parent'));
         }
 
@@ -1538,24 +1507,19 @@ class kanban extends control
         $column   = $this->dao->select('parent,cards')->from(TABLE_KANBANCOLUMN)->where('id')->eq($columnID)->fetch();
 
         /* Get the cards of the kanban column. */
-        if($column->parent == -1)
-        {
+        if ($column->parent == -1) {
             $childColumns = $this->dao->select('id,cards')->from(TABLE_KANBANCOLUMN)->where('parent')->eq($columnID)->fetchAll();
-            foreach($childColumns as $childColumn)
-            {
+            foreach ($childColumns as $childColumn) {
                 $oldCards[$childColumn->id] = $childColumn->cards;
             }
-        }
-        else
-        {
+        } else {
             $oldCards[$columnID] = $column->cards;
         }
 
         /* Update Kanban column card order. */
         $table = $this->config->objectTables[$laneType];
-        foreach($oldCards as $colID => $cards)
-        {
-            if(empty($cards)) continue;
+        foreach ($oldCards as $colID => $cards) {
+            if (empty($cards)) continue;
             $objects = $this->dao->select('id')->from($table)
                 ->where('id')->in($cards)
                 ->orderBy($orderBy)
@@ -1614,7 +1578,7 @@ class kanban extends control
             ->exec();
 
         $kanbanGroup = $regionID == 0 ? $this->kanban->getExecutionKanban($executionID, $browseType, $groupBy) : $this->kanban->getRDKanban($executionID, $browseType, $orderBy, $regionID, $groupBy);
-        die(json_encode($kanbanGroup));
+        echo json_encode($kanbanGroup);
     }
 
     /**
@@ -1628,17 +1592,16 @@ class kanban extends control
      */
     public function laneMove($executionID, $currentType, $targetType)
     {
-        if(empty($targetType)) return false;
+        if (empty($targetType)) return false;
 
         $this->kanban->updateLaneOrder($executionID, $currentType, $targetType);
 
-        if(!dao::isError())
-        {
+        if (!dao::isError()) {
             $laneID = $this->dao->select('id')->from(TABLE_KANBANLANE)->where('execution')->eq($executionID)->andWhere('type')->eq($currentType)->fetch('id');
             $this->loadModel('action')->create('kanbanlane', $laneID, 'Moved');
         }
 
-        die(js::locate($this->createLink('execution', 'kanban', 'executionID=' . $executionID . '&type=all'), 'parent'));
+        echo js::locate($this->createLink('execution', 'kanban', 'executionID=' . $executionID . '&type=all'), 'parent');
     }
 
     /**
@@ -1655,7 +1618,7 @@ class kanban extends control
 
         $users = $this->user->getPairs('devfirst|nodeleted|noclosed', $list ? $list->userList : '', $this->config->maxCount);
 
-        if(!$contactListID) return print(html::select('team[]', $users, '', "class='form-control chosen' multiple"));
+        if (!$contactListID) return print(html::select('team[]', $users, '', "class='form-control chosen' multiple"));
 
         return print(html::select('team[]', $users, $list->userList, "class='form-control chosen' multiple"));
     }
@@ -1692,15 +1655,19 @@ class kanban extends control
      *
      * @param  int    $regionID
      * @param  string $type all|story|task|bug
+     * @param  string $field otherLane|lane
+     * @param  int    $i
      * @access public
      * @return string
      */
-    public function ajaxGetLanes($regionID, $type = 'all')
+    public function ajaxGetLanes($regionID, $type = 'all', $field = 'otherLane', $i = 0)
     {
         $lanes = $this->kanban->getLanePairsByRegion($regionID, $type);
 
-        if(empty($lanes)) return;
-        return print(html::select('otherLane', $lanes, '', "class='form-control'"));
+        if (empty($lanes)) return;
+        if ($i) return print(html::select($field . "[$i]", $lanes, '', "class='form-control'"));
+
+        return print(html::select($field, $lanes, '', "class='form-control'"));
     }
 
     /**
@@ -1712,11 +1679,10 @@ class kanban extends control
      */
     public function import($kanbanID)
     {
-        if(!empty($_POST))
-        {
+        if (!empty($_POST)) {
             $this->kanban->import($kanbanID);
 
-            if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            if (dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
             return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'parent'));
         }

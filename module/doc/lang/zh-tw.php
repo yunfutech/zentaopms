@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The doc module zh-tw file of ZenTaoPMS.
  *
@@ -106,7 +107,7 @@ $lang->doc->custom         = '自定義文檔庫';
 $lang->doc->customAB       = '自定義庫';
 $lang->doc->createLib      = '創建文檔庫';
 $lang->doc->allLibs        = '文檔庫列表';
-$lang->doc->objectLibs     = "文檔庫文檔詳情";
+$lang->doc->objectLibs     = "{$lang->productCommon}/{$lang->executionCommon}庫列表";
 $lang->doc->showFiles      = '附件庫';
 $lang->doc->editLib        = '編輯文檔庫';
 $lang->doc->deleteLib      = '刪除文檔庫';
@@ -122,7 +123,7 @@ $lang->doc->allProduct    = '所有' . $lang->productCommon;
 $lang->doc->allExecutions = '所有' . $lang->executionCommon;
 
 $lang->doc->libTypeList['product']   = $lang->productCommon . '文檔庫';
-if($config->systemMode == 'new') $lang->doc->libTypeList['project'] = '項目文檔庫';
+if ($config->systemMode == 'new') $lang->doc->libTypeList['project'] = '項目文檔庫';
 $lang->doc->libTypeList['execution'] = $lang->execution->common . '文檔庫';
 $lang->doc->libTypeList['custom']    = '自定義文檔庫';
 
@@ -206,9 +207,7 @@ $lang->doc->selectLibType        = '請選擇文檔庫類型';
 $lang->doc->noticeAcl['lib']['product']['default']   = '有所選產品訪問權限的用戶可以訪問。';
 $lang->doc->noticeAcl['lib']['product']['custom']    = '有所選產品訪問權限或白名單裡的用戶可以訪問。';
 $lang->doc->noticeAcl['lib']['project']['default']   = "有所選項目訪問權限的用戶可以訪問。";
-$lang->doc->noticeAcl['lib']['project']['open']      = "有所選項目訪問權限的用戶可以訪問。";
-$lang->doc->noticeAcl['lib']['project']['private']   = "有所選項目訪問權限或白名單裡的用戶可以訪問。";
-$lang->doc->noticeAcl['lib']['project']['custom']    = "白名單的用戶可以訪問。";
+$lang->doc->noticeAcl['lib']['project']['custom']    = "有所選項目訪問權限或白名單裡的用戶可以訪問。";
 $lang->doc->noticeAcl['lib']['execution']['default'] = "有所選{$lang->executionCommon}訪問權限的用戶可以訪問。";
 $lang->doc->noticeAcl['lib']['execution']['custom']  = "有所選{$lang->executionCommon}訪問權限或白名單裡的用戶可以訪問。";
 $lang->doc->noticeAcl['lib']['custom']['open']       = '所有人都可以訪問。';

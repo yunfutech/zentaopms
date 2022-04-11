@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The bugs entry point of ZenTaoPMS.
  *
@@ -20,25 +21,23 @@ class bugsEntry extends entry
      */
     public function get($productID = 0)
     {
-        if(empty($productID)) $productID = $this->param('product', 0);
-        if(empty($productID)) return $this->sendError(400, 'Need product id.');
+        if (empty($productID)) $productID = $this->param('product', 0);
+        if (empty($productID)) return $this->sendError(400, 'Need product id.');
 
         $control = $this->loadController('bug', 'browse');
         $control->browse($productID, $this->param('branch', 'all'), $this->param('status', ''), 0, $this->param('order', 'id_desc'), 0, $this->param('limit', 20), $this->param('page', 1));
 
         $data = $this->getData();
 
-        if(isset($data->status) and $data->status == 'success')
-        {
+        if (isset($data->status) and $data->status == 'success') {
             $bugs   = $data->data->bugs;
             $pager  = $data->data->pager;
             $result = array();
-            foreach($bugs as $bug)
-            {
+            foreach ($bugs as $bug) {
                 $status = array('code' => $bug->status, 'name' => $this->lang->bug->statusList[$bug->status]);
-                if($bug->status == 'active' and $bug->confirmed) $status = array('code' => 'confirmed', 'name' => $this->lang->bug->labelConfirmed);
-                if($bug->resolution == 'postponed') $status = array('code' => 'postponed', 'name' => $this->lang->bug->labelPostponed);
-                if(!empty($bug->delay)) $status = array('code' => 'delay', 'name' => $this->lang->bug->overdueBugs);
+                if ($bug->status == 'active' and $bug->confirmed) $status = array('code' => 'confirmed', 'name' => $this->lang->bug->labelConfirmed);
+                if ($bug->resolution == 'postponed') $status = array('code' => 'postponed', 'name' => $this->lang->bug->labelPostponed);
+                if (!empty($bug->delay)) $status = array('code' => 'delay', 'name' => $this->lang->bug->overdueBugs);
                 $bug->status     = $status['code'];
                 $bug->statusName = $status['name'];
 
@@ -51,8 +50,7 @@ class bugsEntry extends entry
                 ->andWhere('t1.story')->ne('0')
                 ->andWhere('t1.storyVersion != t2.version')
                 ->fetchPairs('id', 'id');
-            foreach($storyChangeds as $bugID)
-            {
+            foreach ($storyChangeds as $bugID) {
                 $status = array('code' => 'storyChanged', 'name' => $this->lang->bug->changed);
                 $result[$bugID]->status     = $status['code'];
                 $result[$bugID]->statusName = $status['name'];
@@ -61,7 +59,7 @@ class bugsEntry extends entry
             return $this->send(200, array('page' => $pager->pageID, 'total' => $pager->recTotal, 'limit' => $pager->recPerPage, 'bugs' => array_values($result)));
         }
 
-        if(isset($data->status) and $data->status == 'fail') return $this->sendError(zget($data, 'code', 400), $data->message);
+        if (isset($data->status) and $data->status == 'fail') return $this->sendError(zget($data, 'code', 400), $data->message);
 
         return $this->sendError(400, 'error');
     }
@@ -75,11 +73,11 @@ class bugsEntry extends entry
      */
     public function post($productID = 0)
     {
-        if(!$productID) $productID = $this->param('product');
-        if(!$productID and isset($this->requestBody->product)) $productID = $this->requestBody->product;
-        if(!$productID) return $this->sendError(400, 'Need product id.');
+        if (!$productID) $productID = $this->param('product');
+        if (!$productID and isset($this->requestBody->product)) $productID = $this->requestBody->product;
+        if (!$productID) return $this->sendError(400, 'Need product id.');
 
-        $fields = 'title,project,execution,openedBuild,assignedTo,pri,severity,type,story';
+        $fields = 'title,project,execution,openedBuild,assignedTo,pri,module,severity,type,story,task,mailto,keywords,steps';
         $this->batchSetPost($fields);
 
         $this->setPost('product', $productID);
@@ -91,8 +89,8 @@ class bugsEntry extends entry
         $control->create($productID);
 
         $data = $this->getData();
-        if(isset($data->result) and $data->result == 'fail') return $this->sendError(400, $data->message);
-        if(isset($data->result) and !isset($data->id)) return $this->sendError(400, $data->message);
+        if (isset($data->result) and $data->result == 'fail') return $this->sendError(400, $data->message);
+        if (isset($data->result) and !isset($data->id)) return $this->sendError(400, $data->message);
 
         $bug = $this->loadModel('bug')->getByID($data->id);
 

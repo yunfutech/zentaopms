@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The doc module zh-cn file of ZenTaoPMS.
  *
@@ -89,6 +90,7 @@ $lang->doc->diffAction       = '对比文档';
 $lang->doc->sort             = '文档排序';
 $lang->doc->manageType       = '维护目录';
 $lang->doc->editType         = '编辑目录';
+$lang->doc->editChildType    = '维护子目录';
 $lang->doc->deleteType       = '删除目录';
 $lang->doc->addType          = '增加目录';
 $lang->doc->childType        = '子目录';
@@ -122,9 +124,11 @@ $lang->doc->allProduct    = '所有' . $lang->productCommon;
 $lang->doc->allExecutions = '所有' . $lang->executionCommon;
 
 $lang->doc->libTypeList['product']   = $lang->productCommon . '文档库';
-if($config->systemMode == 'new') $lang->doc->libTypeList['project'] = '项目文档库';
+if ($config->systemMode == 'new') $lang->doc->libTypeList['project'] = '项目文档库';
 $lang->doc->libTypeList['execution'] = $lang->execution->common . '文档库';
 $lang->doc->libTypeList['custom']    = '自定义文档库';
+
+$lang->doc->libGlobalList['api'] = '接口文档库';
 
 $lang->doc->libIconList['product']   = 'icon-product';
 $lang->doc->libIconList['execution'] = 'icon-stack';
@@ -194,7 +198,7 @@ $lang->doc->noArticle            = '暂时没有文章。';
 $lang->doc->noLib                = '暂时没有文档库。';
 $lang->doc->noBook               = 'WIKI库还未创建手册，请新建 ：）';
 $lang->doc->cannotCreateOffice   = '<p>对不起，企业版才能创建%s文档。<p><p>试用企业版，请联系我们：4006-8899-23 &nbsp; 0532-86893032。</p>';
-$lang->doc->notSetOffice         = "<p>创建%s文档，需要配置<a href='%s'>Office转换设置</a>。<p>";
+$lang->doc->notSetOffice         = "创建%s文档，需要配置<a href='%s'>Office转换设置</a>。";
 $lang->doc->noSearchedDoc        = '没有搜索到任何文档。';
 $lang->doc->noEditedDoc          = '您还没有编辑任何文档。';
 $lang->doc->noOpenedDoc          = '您还没有创建任何文档。';
@@ -202,6 +206,7 @@ $lang->doc->noCollectedDoc       = '您还没有收藏任何文档。';
 $lang->doc->errorEmptyLib        = '文档库暂无数据。';
 $lang->doc->confirmUpdateContent = '检查到您有未保存的文档内容，是否继续编辑？';
 $lang->doc->selectLibType        = '请选择文档库类型';
+$lang->doc->noLibreOffice        = '您还没有office转换设置访问权限!';
 
 $lang->doc->noticeAcl['lib']['product']['default']   = '有所选产品访问权限的用户可以访问。';
 $lang->doc->noticeAcl['lib']['product']['custom']    = '有所选产品访问权限或白名单里的用户可以访问。';
@@ -227,15 +232,16 @@ $lang->doc->ge      = '个';
 $lang->doc->point   = '、';
 
 $lang->doclib = new stdclass();
-$lang->doclib->name      = '文档库名称';
-$lang->doclib->control   = '访问控制';
-$lang->doclib->group     = '分组';
-$lang->doclib->user      = '用户';
-$lang->doclib->files     = '附件库';
-$lang->doclib->all       = '所有文档库';
-$lang->doclib->select    = '选择文档库';
-$lang->doclib->execution = $lang->executionCommon . '库';
-$lang->doclib->product   = $lang->productCommon . '库';
+$lang->doclib->name       = '文档库名称';
+$lang->doclib->control    = '访问控制';
+$lang->doclib->group      = '分组';
+$lang->doclib->user       = '用户';
+$lang->doclib->files      = '附件库';
+$lang->doclib->all        = '所有文档库';
+$lang->doclib->select     = '选择文档库';
+$lang->doclib->execution  = $lang->executionCommon . '库';
+$lang->doclib->product    = $lang->productCommon . '库';
+$lang->doclib->apiLibName = '接口库名称';
 
 $lang->doclib->aclListA['default'] = '默认';
 $lang->doclib->aclListA['custom']  = '自定义';
