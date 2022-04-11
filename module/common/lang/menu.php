@@ -445,6 +445,7 @@ $lang->report->menu->product = array('link' => "{$lang->product->common}|report|
 $lang->report->menu->project = array('link' => "{$lang->project->common}|report|projectdeviation");
 $lang->report->menu->test    = array('link' => "{$lang->qa->common}|report|bugcreate", 'alias' => 'bugassign');
 $lang->report->menu->staff   = array('link' => "{$lang->system->common}|report|workload");
+$lang->report->menu->task   = array('link' => "{$lang->task->common}|report|taskboard");
 
 /* Report menu order. */
 $lang->report->menuOrder[5]  = 'annual';

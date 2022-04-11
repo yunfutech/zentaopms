@@ -902,55 +902,6 @@ class product extends control
     }
 
     /**
-     * AJAX: get executions of a product in html select.
-     *
-     * @param  int    $productID
-     * @param  int    $projectID
-     * @param  int    $branch
-     * @param  string $number
-     * @param  int    $executionID
-     * @access public
-     * @return void
-     */
-    public function ajaxGetExecutions($productID, $projectID = 0, $branch = 0, $number = '', $executionID = 0)
-    {
-        if ($this->app->tab == 'execution' and $this->session->execution) {
-            $execution = $this->loadModel('execution')->getByID($this->session->execution);
-            if ($execution->type == 'kanban') $projectID = $execution->project;
-        }
-
-        $executions = $this->product->getExecutionPairsByProduct($productID, $branch, 'id_desc', $projectID, empty($this->config->CRExecution) ? 'noclosed' : '');
-        if ($this->app->getViewType() == 'json') return print(json_encode($executions));
-
-        die(html::select('project', $projects, $projectID, "class='form-control' onchange='loadProductExecutions({$productID}, this.value)'"));
-    }
-
-    /**
-     * AJAX: get executions of a product in html select.
-     *
-     * @param  int    $productID
-     * @param  int    $projectID
-     * @param  int    $branch
-     * @param  string $number
-     * @param  int    $executionID
-     * @access public
-     * @return void
-     */
-    public function ajaxGetExecutions($productID, $projectID = 0, $branch = 0, $number = '', $executionID = 0)
-    {
-        $executions = $this->product->getExecutionPairsByProduct($productID, $branch, 'id_desc', $projectID);
-        if ($this->app->getViewType() == 'json') die(json_encode($executions));
-
-        if ($number === '') {
-            return print(html::select('execution', array('' => '') + $executions, $executionID, "class='form-control' onchange='loadExecutionRelated(this.value)'"));
-        } else {
-            $executionsName = "executions[$number]";
-            $executions     = empty($executions) ? array('' => '') : $executions;
-            return print(html::select($executionsName, $executions, '', "class='form-control' onchange='loadExecutionBuilds($productID, this.value, $number)'"));
-        }
-    }
-
-    /**
      * AJAX: get plans of a product in html select.
      *
      * @param  int    $productID
@@ -1021,50 +972,6 @@ class product extends control
         $reviewers = $this->loadModel('user')->getPairs('noclosed|nodeleted', $storyReviewers, 0, $productReviewers);
 
         echo html::select("reviewer[]", $reviewers, $storyReviewers, "class='form-control chosen' multiple");
-    }
-
-    /**
-     * Ajax get product lines.
-     *
-     * @param  int    $programID
-     * @param  int    $productID
-     * @access public
-     * @return void
-     */
-    public function ajaxGetLine($programID, $productID = 0)
-    {
-        $lines = array();
-        if (empty($productID) or $programID) $lines = $this->product->getLinePairs($programID);
-
-        if ($productID)  die(html::select("lines[$productID]", array('' => '') + $lines, '', "class='form-control picker-select'"));
-        if (!$productID) die(html::select('line', array('' => '') + $lines, '', "class='form-control chosen'"));
-    }
-
-    /**
-     * Ajax get reviewers.
-     *
-     * @param  int    $productID
-     * @param  int    $storyID
-     * @access public
-     * @return void
-     */
-    public function ajaxGetReviewers($productID, $storyID = 0)
-    {
-        /* Get product reviewers. */
-        $product          = $this->product->getByID($productID);
-        $productReviewers = $product->reviewer;
-        if (!$productReviewers and $product->acl != 'open') $productReviewers = $this->loadModel('user')->getProductViewListUsers($product, '', '', '');
-
-        $storyReviewers = '';
-        if ($storyID) {
-            $story          = $this->loadModel('story')->getByID($storyID);
-            $storyReviewers = $this->story->getReviewerPairs($story->id, $story->version);
-            $storyReviewers = implode(',', array_keys($storyReviewers));
-        }
-
-        $reviewers = $this->loadModel('user')->getPairs('noclosed|nodeleted', $storyReviewers, 0, $productReviewers);
-
-        die(html::select("reviewer[]", $reviewers, $storyReviewers, "class='form-control chosen' multiple"));
     }
 
     /**
