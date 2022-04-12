@@ -286,7 +286,7 @@ class project extends control
      * @access public
      * @return void
      */
-    public function browse($programID = 0, $browseType = 'doing', $param = 0, $orderBy = 'order_asc', $recTotal = 0, $recPerPage = 15, $pageID = 1)
+    public function browse($programID = 0, $browseType = 'doing', $param = 0, $orderBy = 'end_desc', $recTotal = 0, $recPerPage = 15, $pageID = 1)
     {
         $this->loadModel('datatable');
         $this->loadModel('execution');
