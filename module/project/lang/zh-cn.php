@@ -29,7 +29,7 @@ $lang->project->manageGroupMember  = '维护分组用户';
 $lang->project->moduleSetting      = '列表设置';
 $lang->project->moduleOpen         = '显示项目集名';
 $lang->project->dynamic            = '动态';
-$lang->project->execution          = '执行列表';
+$lang->project->execution          = '迭代列表';
 $lang->project->qa                 = '测试仪表盘';
 $lang->project->bug                = 'Bug列表';
 $lang->project->testcase           = '用例列表';
@@ -168,7 +168,7 @@ $lang->project->typeList['other'] = '其他项目';
 
 $lang->project->waitProjects    = '未开始的项目';
 $lang->project->doingProjects   = '进行中的项目';
-$lang->project->doingExecutions = '进行中的执行(最近1个)';
+$lang->project->doingExecutions = '进行中的迭代(最近1个)';
 $lang->project->closedProjects  = '已关闭的项目(最近2个)';
 $lang->project->noProgram       = '无项目集归属项目';
 
@@ -183,7 +183,7 @@ $lang->project->multiLinkedProductsTip = '该项目关联的如下产品还关�
 $lang->project->linkStoryByPlanTips    = "此操作会将所选计划下面的{$lang->SRCommon}全部关联到此项目中";
 $lang->project->createExecution        = "该项目下没有{$lang->executionCommon}，请先创建{$lang->executionCommon}";
 $lang->project->unlinkExecutionMember  = "该用户参与了%s%s%s个{$lang->execution->common}，是否同时将其移除？（该用户所产生的数据不会受影响。）";
-$lang->project->unlinkExecutionMembers = "移除的团队成员还参与了项目下的执行，是否同步从执行团队中移除？";
+$lang->project->unlinkExecutionMembers = "移除的团队成员还参与了项目下的迭代，是否同步从迭代团队中移除？";
 
 $lang->project->tenThousand = '万';
 

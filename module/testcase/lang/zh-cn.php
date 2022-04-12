@@ -12,7 +12,7 @@
 $lang->testcase->id               = '用例编号';
 $lang->testcase->product          = "所属{$lang->productCommon}";
 $lang->testcase->project          = '所属项目';
-$lang->testcase->execution        = '所属执行';
+$lang->testcase->execution        = '所属迭代';
 $lang->testcase->module           = '所属模块';
 $lang->testcase->auto             = '自动化测试用例';
 $lang->testcase->frame            = '自动化测试框架';

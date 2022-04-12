@@ -92,7 +92,7 @@ $lang->action->objectTypes['productplan']      = '计划';
 $lang->action->objectTypes['release']          = '发布';
 $lang->action->objectTypes['program']          = '项目集';
 $lang->action->objectTypes['project']          = '项目';
-$lang->action->objectTypes['execution']        = $config->systemMode == 'new' ? '执行' : $lang->executionCommon;
+$lang->action->objectTypes['execution']        = $config->systemMode == 'new' ? '迭代' : $lang->executionCommon;
 $lang->action->objectTypes['task']             = '任务';
 $lang->action->objectTypes['build']            = '版本';
 $lang->action->objectTypes['job']              = '构建';
@@ -613,7 +613,7 @@ $lang->action->label->program     = "项目集|program|product|programID=%s";
 $lang->action->label->project     = "项目|project|index|projectID=%s";
 if($config->systemMode == 'new')
 {
-    $lang->action->label->execution = "执行|execution|task|executionID=%s";
+    $lang->action->label->execution = "迭代|execution|task|executionID=%s";
 }
 else
 {
@@ -655,7 +655,7 @@ $lang->action->search->objectTypeList['']            = '';
 $lang->action->search->objectTypeList['product']     = $lang->productCommon;
 $lang->action->search->objectTypeList['program']     = '项目集';
 $lang->action->search->objectTypeList['project']     = '项目';
-$lang->action->search->objectTypeList['execution']   = '执行';
+$lang->action->search->objectTypeList['execution']   = '迭代';
 $lang->action->search->objectTypeList['bug']         = 'Bug';
 $lang->action->search->objectTypeList['case']        = '用例';
 $lang->action->search->objectTypeList['caseresult']  = '用例结果';

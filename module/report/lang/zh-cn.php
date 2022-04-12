@@ -221,13 +221,15 @@ $lang->report->outputTotal         = "产出总数";
 $lang->report->storyOutput         = "需求产出";
 $lang->report->planOutput          = "计划产出";
 $lang->report->releaseOutput       = "发布产出";
-$lang->report->executionOutput     = "执行产出";
+$lang->report->executionOutput     = "迭代产出";
 $lang->report->taskOutput          = "任务产出";
 $lang->report->bugOutput           = "Bug产出";
 $lang->report->caseOutput          = "用例产出";
 $lang->report->bugProgress         = "Bug进展";
 $lang->report->productProgress     = "产品进展";
-$lang->report->executionProgress   = "执行进展";
+$lang->report->executionProgress   = "迭代进展";
 $lang->report->projectProgress     = "项目进展";
 $lang->report->yearProjectOverview = "年度项目总览";
 $lang->report->projectOverview     = "截止目前项目总览";
+
+$lang->report->taskboard = '任务看板';

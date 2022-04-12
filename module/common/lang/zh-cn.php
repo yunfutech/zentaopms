@@ -156,7 +156,7 @@ $lang->my->common         = '地盘';
 $lang->program->common    = '项目集';
 $lang->product->common    = '产品';
 $lang->project->common    = '项目';
-$lang->execution->common  = $config->systemMode == 'new' ? '执行' : $lang->executionCommon;
+$lang->execution->common  = $config->systemMode == 'new' ? '迭代' : $lang->executionCommon;
 $lang->kanban->common     = '看板';
 $lang->qa->common         = '测试';
 $lang->devops->common     = 'DevOps';

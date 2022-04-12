@@ -58,7 +58,7 @@ $lang->product->moreProduct = "更多产品";
 $lang->product->projectInfo = "所有与此产品关联的项目";
 $lang->product->progress    = "产品完成度";
 
-$lang->product->currentExecution      = "当前执行";
+$lang->product->currentExecution      = "当前迭代";
 $lang->product->activeStories         = "激活{$lang->SRCommon}";
 $lang->product->activeStoriesTitle    = "激活{$lang->SRCommon}";
 $lang->product->changedStories        = "已变更{$lang->SRCommon}";
@@ -148,7 +148,7 @@ $lang->product->unclosedProduct       = '未关闭的' . $lang->productCommon;
 $lang->product->unexpiredPlan         = '未过期的计划';
 $lang->product->doing                 = '进行中';
 $lang->product->doingProject          = '进行中的项目';
-$lang->product->doingExecution        = '进行中的执行';
+$lang->product->doingExecution        = '进行中的迭代';
 $lang->product->doingClassicExecution = '进行中的' . $lang->executionCommon;
 $lang->product->normalRelease         = '正常的发布';
 $lang->product->emptyProgram          = '无项目集归属产品';
