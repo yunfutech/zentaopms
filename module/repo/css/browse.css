@@ -1,0 +1,13 @@
+#mainMenu > .btn-toolbar {height: 35px; line-height: 35px;}
+#mainMenu > .pull-right {padding-right: 1%;}
+#sidebar>.sidebar-toggle>.icon {right: -2px; left: auto;}
+.main-row {width: 99%;}
+.btn-toolbar > .last-sync-time {display: inline-block; float: left; margin-right: 10px;}
+.dropdown-menu > li.selected > a:after {content: '';}
+
+.c-name {min-width: 150px;}
+.c-checkbox {width: 40px;}
+.c-version {width: 80px;}
+.c-commit {width: 70px;}
+.c-committer {width: 100px;}
+.c-icon {width: 30px;}
