@@ -1,1 +1,0 @@
-ALTER TABLE `zt_project` ADD `director` VARCHAR(30) NULL COMMENT '项目负责人' AFTER `suspendedDate`, ADD `counselor` VARCHAR(30) NULL COMMENT '项目顾问' AFTER `director`;
