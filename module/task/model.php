@@ -1690,11 +1690,11 @@ class taskModel extends model
             return false;
         }
 
-        if(!$this->post->realStarted)
-        {
-            dao::$errors[] = $this->lang->task->error->realStartedEmpty;
-            return false;
-        }
+        // if(!$this->post->realStarted)
+        // {
+        //     dao::$errors[] = $this->lang->task->error->realStartedEmpty;
+        //     return false;
+        // }
 
         if(!$this->post->finishedDate)
         {
@@ -1702,7 +1702,7 @@ class taskModel extends model
             return false;
         }
 
-        if($this->post->realStarted > $this->post->finishedDate)
+        if($this->post->realStarted and $this->post->realStarted > $this->post->finishedDate)
         {
             dao::$errors[] = $this->lang->task->error->finishedDateSmall;
             return false;

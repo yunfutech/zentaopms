@@ -2271,4 +2271,19 @@ class projectModel extends model
             ->fetch();
         return $result;
     }
+
+    /**
+     * 获取全部项目
+     */
+    public function getAll($mode = '', $director = '', $type = 'project')
+    {
+        $projects = $this->dao->select('*,  IF(INSTR(" closed", status) < 2, 0, 1) AS isClosed')
+            ->from(TABLE_PROJECT)
+            ->where('deleted')->eq(0)
+            ->andWhere('type')->eq($type)
+            ->beginIF(strpos($mode, 'noclosed') !== false)->andWhere('status')->ne('closed')->fi()
+            ->beginIF($director != '')->andWhere('director')->eq($director)->fi()
+            ->fetchPairs('id', 'name');
+        return $projects;
+    }
 }
