@@ -995,6 +995,7 @@ class bug extends control
         $bugIDList = array_unique($this->post->bugIDList);
         $bugs      = $this->dao->select('*')->from(TABLE_BUG)->where('id')->in($bugIDList)->fetchAll('id');
 
+        $modules         = array();
         /* The bugs of a product. */
         if ($productID) {
             $product = $this->product->getByID($productID);
@@ -1007,7 +1008,6 @@ class bug extends control
             /* Set branches and modules. */
             $branches        = 0;
             $branchTagOption = array();
-            $modules         = array();
             if ($product->type != 'normal') {
                 $branches = $this->loadModel('branch')->getList($productID, 0, 'all');
                 foreach ($branches as $branchInfo) $branchTagOption[$productID][$branchInfo->id] = $branchInfo->name . ($branchInfo->status == 'closed' ? ' (' . $this->lang->branch->statusList['closed'] . ')' : '');
@@ -2046,65 +2046,6 @@ class bug extends control
         $severity = $this->lang->bug->severityList;
 
         return print(json_encode(array('modules' => $modules, 'categories' => $type, 'versions' => $builds, 'severities' => $severity, 'priorities' => $pri)));
-    }
-
-    /**
-     * Drop menu page.
-     *
-     * @param  int    $productID
-     * @param  string $module
-     * @param  string $method
-     * @param  string $extra
-     * @access public
-     * @return void
-     */
-    public function ajaxGetDropMenu($productID, $module, $method, $extra = '')
-    {
-        $products = array();
-        if (!empty($extra)) $products = $this->product->getProducts($extra, $this->config->CRProduct ? 'all' : 'noclosed', 'program desc, line desc, ');
-
-        $this->view->link      = $this->product->getProductLink($module, $method, $extra);
-        $this->view->productID = $productID;
-        $this->view->module    = $module;
-        $this->view->method    = $method;
-        $this->view->extra     = $extra;
-        $this->view->products  = $products;
-        $this->view->projectID = $this->session->project;
-        $this->view->programs  = $this->loadModel('program')->getPairs(true);
-        $this->view->lines     = $this->product->getLinePairs();
-        $this->display();
-    }
-
-    /**
-     * Ajax get project team members.
-     *
-     * @param  int    $projectID
-     * @param  string $$selectedUser
-     * @access public
-     * @return string
-     */
-    public function ajaxGetProjectTeamMembers($projectID, $selectedUser = '')
-    {
-        $users       = $this->loadModel('user')->getPairs('noclosed');
-        $teamMembers = empty($projectID) ? array() : $this->loadModel('project')->getTeamMemberPairs($projectID);
-        foreach ($teamMembers as $account => $member) $teamMembers[$account] = $users[$account];
-
-        return print(html::select('assignedTo', $teamMembers, $selectedUser, 'class="form-control"'));
-    }
-
-
-    /**
-     * Ajax get execution lang.
-     *
-     * @param  int  $projectID
-     * @access public
-     * @return string
-     */
-    public function ajaxGetExecutionLang($projectID)
-    {
-        $project = $this->loadModel('project')->getByID($projectID);
-        if ($project->model == 'kanban') return print($this->lang->bug->kanban);
-        return print($this->lang->bug->execution);
     }
 
     /**

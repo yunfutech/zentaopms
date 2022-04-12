@@ -873,6 +873,7 @@ class testcase extends control
         if ($this->app->tab == 'qa')        $this->testcase->setMenu($this->products, $productID, $branch);
         if ($this->app->tab == 'execution') $this->loadModel('execution')->setMenu($this->session->execution);
 
+        $modules         = array();
         /* The cases of a product. */
         if ($productID) {
             /* Get the edited cases. */
@@ -898,7 +899,6 @@ class testcase extends control
                 /* Set branches and modules. */
                 $branches        = array();
                 $branchTagOption = array();
-                $modules         = array();
                 if ($product->type != 'normal') {
                     $branches = $this->loadModel('branch')->getList($productID, 0, 'all');
                     foreach ($branches as $branchInfo) {
@@ -1948,17 +1948,6 @@ class testcase extends control
         $status = $this->testcase->getStatus($methodName, $case);
         if ($methodName == 'update') $status = zget($status, 1, '');
         echo $status;
-    }
-
-    /**
-     * Ajax: Get count of need review casese.
-     *
-     * @access public
-     * @return int
-     */
-    public function ajaxGetReviewCount()
-    {
-        echo $this->dao->select('count(id) as count')->from(TABLE_CASE)->where('status')->eq('wait')->fetch('count');
     }
 
     /**
