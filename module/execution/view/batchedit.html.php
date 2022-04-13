@@ -54,6 +54,7 @@
             <th class='c-project required' style="width:100%"><?php echo $lang->execution->projectName;?></th>
             <?php endif;?>
             <th class='required <?php echo $minWidth?>' style="width:100%"><?php echo $lang->execution->$name;?></th>
+            <th class='w-70px c-pri<?php echo zget($requiredFields, 'pri',     '', ' required');?>'><?php echo $lang->priAB?></th>
             <th class='c-code required'><?php echo $lang->execution->$code;?></th>
             <th class='c-user<?php echo zget($visibleFields, 'PM',       ' hidden') . zget($requiredFields, 'PM',     '', ' required');?>'><?php echo $lang->execution->$PM;?></th>
             <th class='c-user<?php echo zget($visibleFields, 'PO',       ' hidden') . zget($requiredFields, 'PO',     '', ' required');?>'><?php echo $lang->execution->PO;?></th>
@@ -86,6 +87,7 @@
             <td class='text-left' style='overflow:visible'><?php echo html::select("projects[$executionID]", $allProjects, $executions[$executionID]->project, "class='form-control picker-select'");?></td>
             <?php endif;?>
             <td title='<?php echo $executions[$executionID]->name?>'><?php echo html::input("names[$executionID]", $executions[$executionID]->name, "class='form-control'");?></td>
+            <td title='<?php echo $executions[$executionID]->pri?>'><?php echo html::select("pris[$executionID]", $lang->execution->priList, $executions[$executionID]->pri, "class='form-control'");?></td>
             <td><?php echo html::input("codes[$executionID]",     $executions[$executionID]->code, "class='form-control'");?></td>
             <td class='text-left<?php echo zget($visibleFields, 'PM',  ' hidden')?>' style='overflow:visible'><?php echo html::select("PMs[$executionID]", $pmUsers, $executions[$executionID]->PM, "class='form-control picker-select'");?></td>
             <td class='text-left<?php echo zget($visibleFields, 'PO', ' hidden')?>' style='overflow:visible'><?php echo html::select("POs[$executionID]", $poUsers, $executions[$executionID]->PO, "class='form-control picker-select'");?></td>

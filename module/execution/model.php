@@ -615,6 +615,7 @@ class executionModel extends model
             $executions[$executionID] = new stdClass();
             $executions[$executionID]->name           = $executionName;
             $executions[$executionID]->code           = $executionCode;
+            $executions[$executionID]->pri            = $data->pris[$executionID];
             $executions[$executionID]->PM             = $data->PMs[$executionID];
             $executions[$executionID]->PO             = $data->POs[$executionID];
             $executions[$executionID]->QD             = $data->QDs[$executionID];

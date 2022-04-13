@@ -99,7 +99,7 @@ class programModel extends model
      *
      * @param  int  $programID
      * @access public
-     * @return array
+     * @return object
      */
     public function getByID($programID = 0)
     {
@@ -440,7 +440,7 @@ class programModel extends model
      * @param  int       $involved
      * @param  bool      $queryAll
      * @access public
-     * @return object
+     * @return array
      */
     public function getProjectList($programID = 0, $browseType = 'all', $queryID = 0, $orderBy = 'id_desc', $pager = null, $programTitle = 0, $involved = 0, $queryAll = false)
     {

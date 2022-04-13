@@ -1209,6 +1209,7 @@ class projectModel extends model
             if(isset($data->parents[$projectID])) $projects[$projectID]->parent = $data->parents[$projectID];
             $projects[$projectID]->name           = $projectName;
             $projects[$projectID]->PM             = $data->PMs[$projectID];
+            $projects[$projectID]->pri             = $data->pris[$projectID];
             $projects[$projectID]->begin          = $data->begins[$projectID];
             $projects[$projectID]->end            = isset($data->ends[$projectID]) ? $data->ends[$projectID] : LONG_TIME;
             $projects[$projectID]->days           = $data->dayses[$projectID];
@@ -1238,7 +1239,7 @@ class projectModel extends model
 
                 $projects[$projectID]->{$extendField->field} = htmlSpecialString($projects[$projectID]->{$extendField->field});
                 $message = $this->checkFlowRule($extendField, $projects[$projectID]->{$extendField->field});
-                if($message) hepler::end(js::alert($message));
+                if($message) helper::end(js::alert($message));
             }
         }
         if(dao::isError()) helper::end(js::error(dao::getError()));
@@ -1669,6 +1670,11 @@ class projectModel extends model
                         printf('%03d', $project->id);
                     }
                     break;
+                case 'pri':
+                    echo "<span class='label-pri label-pri-" . $project->pri . "' title='" . zget($this->lang->project->priList, $project->pri, $project->pri) . "'>";
+                    echo zget($this->lang->project->priList, $project->pri, $project->pri);
+                    echo "</span>";
+                    break;
                 case 'name':
                     $prefix = '';
                     $suffix = '';
@@ -1937,7 +1943,7 @@ class projectModel extends model
      * @param  string  $orderBy
      * @param  object  $pager
      * @access public
-     * @return void
+     * @return array
      */
     public function getStats($projectID = 0, $status = 'undone', $productID = 0, $branch = 0, $itemCounts = 30, $orderBy = 'id_asc', $pager = null)
     {

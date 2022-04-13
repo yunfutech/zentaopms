@@ -475,3 +475,9 @@ $lang->execution->statusColorList['suspended'] = '#fdc137';
 $lang->execution->statusColorList['closed']    = '#838A9D';
 
 $lang->execution->boardColorList = array('#32C5FF', '#006AF1', '#9D28B2', '#FF8F26', '#7FBB00', '#424BAC', '#66c5f8', '#EC2761');
+
+$lang->execution->priList[0] = '';
+$lang->execution->priList[1] = '1';
+$lang->execution->priList[2] = '2';
+$lang->execution->priList[3] = '3';
+$lang->execution->priList[4] = '4';

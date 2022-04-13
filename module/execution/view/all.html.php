@@ -77,6 +77,7 @@
             <?php endif;?>
             <?php common::printOrderLink('id', $orderBy, $vars, $lang->idAB);?>
           </th>
+          <th class='c-pri'><?php common::printOrderLink('pri', $orderBy, $vars, $lang->priAB);?></th>
           <th><?php common::printOrderLink('name', $orderBy, $vars, ($from == 'execution' and $config->systemMode == 'new') ? $lang->execution->execName : $lang->execution->name);?></th>
           <?php if(!$isStage):?>
           <th class='c-code'><?php common::printOrderLink('code', $orderBy, $vars, ($from == 'execution' and $config->systemMode == 'new') ? $lang->execution->execCode : $lang->execution->code);?></th>
@@ -124,6 +125,7 @@
             <?php endif;?>
             <?php printf('%03d', $execution->id);?>
           </td>
+          <td class='c-pri'><span class='label-pri label-pri-<?php echo $execution->pri?>' title='<?php echo zget($lang->execution->priList, $execution->pri);?>'><?php echo zget($lang->execution->priList, $execution->pri)?></span></td>
           <td class='text-left c-name <?php if(!empty($execution->children)) echo 'has-child';?> flex' title='<?php echo $execution->name?>'>
             <?php if($config->systemMode == 'new'):?>
             <span class='project-type-label label label-outline <?php echo $execution->type == 'stage' ? 'label-warning' : 'label-info';?>'><?php echo $lang->execution->typeList[$execution->type]?></span>

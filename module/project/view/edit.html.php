@@ -64,6 +64,10 @@
           <td><?php echo html::input('code', $project->code, "class='form-control' required");?></td>
         </tr>
         <tr>
+          <th><?php echo $lang->project->pri;?></th>
+          <td><?php echo html::select('pri', $lang->project->priList, $project->pri, "class='form-control' required");?></td>
+        </tr>
+        <tr>
           <th><?php echo $lang->project->PM;?></th>
           <td><?php echo html::select('PM', $PMUsers, $project->PM, "class='form-control chosen'" . (strpos($requiredFields, 'PM') !== false ? ' required' : ''));?></td>
         </tr>

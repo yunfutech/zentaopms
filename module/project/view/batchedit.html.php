@@ -24,6 +24,7 @@
       <thead>
         <tr>
           <th class='c-id'><?php echo $lang->idAB;?></th>
+          <th class='c-pri w-100px'><?php echo $lang->priAB;?></th>
           <th class='c-parent'><?php echo $lang->project->parent;?></th>
           <th class='c-name required'><?php echo $lang->project->name;?></th>
           <th class="c-user-box <?php echo strpos($requiredFields, 'PM') !== false ?  'required' : '';?>"> <?php echo $lang->project->PM;?></th>
@@ -41,6 +42,7 @@
         <?php $aclList = $project->parent ? $lang->program->subAcls : $lang->project->acls;?>
         <tr>
           <td><?php echo sprintf('%03d', $projectID) . html::hidden("projectIdList[$projectID]", $projectID);?></td>
+          <td><?php echo html::select("pris[$projectID]", $lang->project->priList, $project->pri, "class='form-control chosen'");?></td>
           <?php if(isset($unauthorizedPrograms[$project->parent])):?>
           <td><?php echo html::select("parents[$projectID]", $unauthorizedPrograms, $project->parent, "class='form-control chosen' data-id='$projectID' data-name='{$project->name}' data-parent='{$project->parent}' disabled");?></td>
           <?php else:?>

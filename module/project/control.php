@@ -77,7 +77,7 @@ class project extends control
                 }
             }
 
-            if($this->config->edition != 'open') list($fields, $projectStats) = $this->loadModel('workflowfield')->appendDataFromFlow($fields, $projectStats);
+            if($this->config->edition != 'open') list($fields, $projects) = $this->loadModel('workflowfield')->appendDataFromFlow($fields, $projects);
 
             $this->post->set('fields', $fields);
             $this->post->set('rows', $projects);
