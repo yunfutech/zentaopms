@@ -5,10 +5,6 @@
  */
 class myTask extends task
 {
-    public function __construct($module = '', $method = '')
-    {
-        parent::__construct($module, $method);
-    }
 
     public function remind($sendWx = 1, $sendMail=1)
     {
