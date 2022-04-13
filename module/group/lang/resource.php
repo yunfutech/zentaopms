@@ -870,6 +870,7 @@ $lang->resource->task->editEstimate       = 'editEstimate';
 $lang->resource->task->deleteEstimate     = 'deleteEstimate';
 $lang->resource->task->report             = 'reportChart';
 $lang->resource->task->remind             = 'remind';
+$lang->resource->task->generateTasks      = 'generateTasks';
 
 $lang->task->methodOrder[5]   = 'create';
 $lang->task->methodOrder[10]  = 'batchCreate';
