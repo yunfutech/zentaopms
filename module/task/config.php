@@ -53,7 +53,7 @@ $config->task->datatable->defaultField = array('id', 'pri', 'name', 'status', 'a
 global $lang;
 $config->task->datatable->fieldList['id']['title']    = 'idAB';
 $config->task->datatable->fieldList['id']['fixed']    = 'left';
-$config->task->datatable->fieldList['id']['width']    = '70';
+$config->task->datatable->fieldList['id']['width']    = '100';
 $config->task->datatable->fieldList['id']['required'] = 'yes';
 
 $config->task->datatable->fieldList['pri']['title']    = 'priAB';
