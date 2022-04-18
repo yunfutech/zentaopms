@@ -277,7 +277,7 @@ class mailModel extends model
     public function send($toList, $subject, $body = '', $ccList = '', $includeMe = false, $emails = array())
     {
         if(!$this->config->mail->turnon) return;
-        if(!empty($this->config->mail->async)) return $this->addQueue($toList, $subject, $body, $ccList, $includeMe);
+        // if(!empty($this->config->mail->async)) return $this->addQueue($toList, $subject, $body, $ccList, $includeMe);
 
         ob_start();
 

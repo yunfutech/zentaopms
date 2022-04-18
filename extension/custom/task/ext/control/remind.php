@@ -96,7 +96,6 @@ class myTask extends task
         $this->view->deleyTasksRank = $deleyTasksRank;
         $this->view->delayProjects = $delayProjects;
         $this->view->delayProjectsNum = $this->config->exerciseNum->delayProject;
-        $this->loadModel('mail');
         $this->display();
 
         if (intval($sendWx) == 1) {
@@ -105,21 +104,28 @@ class myTask extends task
         }
 
         if (intval($sendMail) == 1) {
-            $subject = '禅道日报';
-            $modulePath = $this->app->getModulePath($appName = '', 'task');
-            $viewFile   = $modulePath . 'view/remind.html.php';
+            $this->loadModel('mail');
+
+            $viewFile = $this->app->getExtensionRoot() . 'custom/task/ext/view/remind.html.php';
             ob_start();
             include $viewFile;
             $mailContent = ob_get_contents();
             ob_end_clean();
 
-            $this->mail->send($this->config->task->remind->mailToList, $subject, $mailContent);
+            $to_mail = $this->config->task->remind->to;
+
+            $emails[$to_mail] = new stdClass();
+            $emails[$to_mail]->realname = $this->config->task->remind->from;
+            $emails[$to_mail]->email = $this->config->task->remind->email;
+
+            $this->mail->send($to_mail, $this->config->task->remind->subject, $mailContent, '', false, $emails);
 
             if ($this->mail->isError()) {
                 echo "发送失败: \n";
                 a($this->mail->getError());
+            } else {
+                echo "发送成功\n";
             }
-            echo "发送成功\n";
         }
     }
 
