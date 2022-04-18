@@ -15,7 +15,7 @@ $config->exerciseNum->delayTask = 20;
 $config->task->remind->subject = '禅道日报';
 $config->task->remind->from = '云孚';
 $config->task->remind->to = 'all';
-$config->task->remind->email = 'all@yunfutech.com';
+$config->task->remind->email = 'zhouhao@yunfutech.com';
 
-// $config->task->remind->wsGroup = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=ed3405d3-f80b-401d-a32b-af217fda97ba'; # 测试
-$config->task->remind->wsGroup = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=67754c4e-8a3d-4170-8907-f962de0ea662'; # 全体群
+$config->task->remind->wsGroup = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=ed3405d3-f80b-401d-a32b-af217fda97ba'; # 测试
+// $config->task->remind->wsGroup = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=67754c4e-8a3d-4170-8907-f962de0ea662'; # 全体群
