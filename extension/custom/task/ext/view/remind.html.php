@@ -51,7 +51,7 @@
               <td class="text-center"><?php echo $key + 1; ?></td>
               <td><?php echo $value->realname; ?></td>
               <td class='text-center'><?php echo $value->cnt; ?></td>
-              <td><?php echo '+' . strval(intval($value->cnt) * $delayProjectsNum); ?></td>
+              <td><?php echo '+' . strval(intval($value->cnt) * $config->exerciseNum->delayProject); ?></td>
               <td><?php echo $value->projects; ?></td>
             </tr>
           <?php endforeach; ?>

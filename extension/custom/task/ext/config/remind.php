@@ -10,7 +10,7 @@ $config->task->remind->overtime = 10;
 $config->exerciseNum = new stdClass();
 $config->exerciseNum->delayProject = 20;
 $config->exerciseNum->lackEstimate = 20;
-$config->exerciseNum->delayTask = 20;
+$config->exerciseNum->delayTask = 10;
 
 $config->task->remind->subject = '禅道日报';
 $config->task->remind->from = '云孚';
