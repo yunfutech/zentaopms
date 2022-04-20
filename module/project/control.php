@@ -1894,4 +1894,18 @@ class project extends control
         }
         echo json_encode($response);
     }
+
+    /**
+     * AJAX: Check products.
+     *
+     * @param  int    $programID
+     * @param  int    $projectID
+     * @access public
+     * @return void
+     */
+    public function weekly($projectID = 0, $isGenerate = false)
+    {
+        $this->project->setMenu($projectID);
+        $this->display();
+    }
 }
