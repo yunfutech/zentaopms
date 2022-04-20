@@ -11,7 +11,7 @@ $config->project->editor->activate = array('id' => 'comment', 'tools' => 'simple
 $config->project->editor->view     = array('id' => 'lastComment', 'tools' => 'simpleTools');
 
 $config->project->list = new stdclass();
-$config->project->list->exportFields = 'id,parent,code,name,pri,linkedProducts,status,begin,end,budget,PM,end,desc';
+$config->project->list->exportFields = 'id,parent,code,name,pri,linkedProducts,status,begin,end,budget,PP,PC,PM,end,desc';
 
 $config->project->create = new stdclass();
 $config->project->edit   = new stdclass();
@@ -33,7 +33,7 @@ $config->project->sortFields->budget = 'budget';
 
 global $lang;
 $config->project->datatable = new stdclass();
-$config->project->datatable->defaultField = array('id', 'pri', 'name', 'PM', 'status', 'begin', 'end', 'budget', 'progress', 'actions');
+$config->project->datatable->defaultField = array('id', 'pri', 'name', 'PP', 'PC', 'PM', 'status', 'begin', 'end', 'budget', 'progress', 'actions');
 
 $config->project->datatable->fieldList['id']['title']    = 'ID';
 $config->project->datatable->fieldList['id']['fixed']    = 'left';
@@ -62,6 +62,20 @@ $config->project->datatable->fieldList['code']['minWidth'] = '180';
 $config->project->datatable->fieldList['code']['required'] = 'no';
 $config->project->datatable->fieldList['code']['sort']     = 'no';
 $config->project->datatable->fieldList['code']['pri']      = '1';
+
+$config->project->datatable->fieldList['PP']['title']    = 'PP';
+$config->project->datatable->fieldList['PP']['fixed']    = 'no';
+$config->project->datatable->fieldList['PP']['width']    = '80';
+$config->project->datatable->fieldList['PP']['required'] = 'yes';
+$config->project->datatable->fieldList['PP']['sort']     = 'no';
+$config->project->datatable->fieldList['PP']['pri']      = '2';
+
+$config->project->datatable->fieldList['PC']['title']    = 'PC';
+$config->project->datatable->fieldList['PC']['fixed']    = 'no';
+$config->project->datatable->fieldList['PC']['width']    = '80';
+$config->project->datatable->fieldList['PC']['required'] = 'yes';
+$config->project->datatable->fieldList['PC']['sort']     = 'no';
+$config->project->datatable->fieldList['PC']['pri']      = '2';
 
 $config->project->datatable->fieldList['PM']['title']    = 'PM';
 $config->project->datatable->fieldList['PM']['fixed']    = 'no';
