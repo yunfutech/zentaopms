@@ -900,7 +900,10 @@ class projectModel extends model
 
             /* Set team of project. */
             $members = isset($_POST['teamMembers']) ? $_POST['teamMembers'] : array();
+            array_push($members, $project->PP, $project->openedBy);
+            array_push($members, $project->PC, $project->openedBy);
             array_push($members, $project->PM, $project->openedBy);
+
             $members = array_unique($members);
             $roles   = $this->loadModel('user')->getUserRoles(array_values($members));
 
@@ -1691,6 +1694,20 @@ class projectModel extends model
                 case 'code':
                     echo $project->code;
                     break;
+                case 'PP':
+                    $user     = $this->loadModel('user')->getByID($project->PP, 'account');
+                    $userID   = !empty($user) ? $user->id : '';
+                    $PPLink   = helper::createLink('user', 'profile', "userID=$userID", '', true);
+                    $userName = zget($users, $project->PP);
+                    echo empty($project->PP) ? '' : html::a($PPLink, $userName, '', "title='{$userName}' data-toggle='modal' data-type='iframe' data-width='600'");
+                    break;
+                case 'PC':
+                    $user     = $this->loadModel('user')->getByID($project->PC, 'account');
+                    $userID   = !empty($user) ? $user->id : '';
+                    $PCLink   = helper::createLink('user', 'profile', "userID=$userID", '', true);
+                    $userName = zget($users, $project->PC);
+                    echo empty($project->PC) ? '' : html::a($PCLink, $userName, '', "title='{$userName}' data-toggle='modal' data-type='iframe' data-width='600'");
+                    break;
                 case 'PM':
                     $user     = $this->loadModel('user')->getByID($project->PM, 'account');
                     $userID   = !empty($user) ? $user->id : '';
@@ -2292,4 +2309,20 @@ class projectModel extends model
             ->fetchPairs('id', 'name');
         return $projects;
     }
+
+        /**
+         * 获取部分项目（项目负责人过滤）
+         */
+        public function getProjectsFilterPP($mode = '', $director = '', $type = 'project', $pp = '')
+        {
+            $projects = $this->dao->select('*,  IF(INSTR(" closed", status) < 2, 0, 1) AS isClosed')
+                ->from(TABLE_PROJECT)
+                ->where('deleted')->eq(0)
+                ->andWhere('type')->eq($type)
+                ->andWhere('PP')->eq($pp)
+                ->beginIF(strpos($mode, 'noclosed') !== false)->andWhere('status')->ne('closed')->fi()
+                ->beginIF($director != '')->andWhere('director')->eq($director)->fi()
+                ->fetchPairs('id', 'name');
+            return $projects;
+        }
 }
