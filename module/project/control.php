@@ -487,6 +487,8 @@ class project extends control
         $this->view->position[] = $this->lang->project->create;
 
         $this->view->gobackLink          = (isset($output['from']) and $output['from'] == 'global') ? $this->createLink('project', 'browse') : '';
+        $this->view->ppUsers             = $this->loadModel('user')->getPairs('noclosed|nodeleted|ppfirst');
+        $this->view->pcUsers             = $this->loadModel('user')->getPairs('noclosed|nodeleted|pcfirst');
         $this->view->pmUsers             = $this->loadModel('user')->getPairs('noclosed|nodeleted|pmfirst');
         $this->view->users               = $this->user->getPairs('noclosed|nodeleted');
         $this->view->copyProjects        = $this->project->getPairsByModel($model);
@@ -612,6 +614,8 @@ class project extends control
         $this->view->title      = $this->lang->project->edit;
         $this->view->position[] = $this->lang->project->edit;
 
+        $this->view->PPUsers                  = $this->user->getPairs('noclosed|nodeleted|ppfirst',  $project->PM);
+        $this->view->PCUsers                  = $this->user->getPairs('noclosed|nodeleted|pcfirst',  $project->PM);
         $this->view->PMUsers                  = $this->user->getPairs('noclosed|nodeleted|pmfirst',  $project->PM);
         $this->view->users                    = $this->user->getPairs('noclosed|nodeleted');
         $this->view->project                  = $project;
