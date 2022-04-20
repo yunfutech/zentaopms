@@ -376,7 +376,7 @@ class report extends control
     /**
      * 任务看板
      */
-    public function taskboard($date = 0, $dept = -1, $director = '', $project = 0)
+    public function taskboard($date = 0, $dept = -1, $director = '', $project = 0, $pp = 0)
     {
         $this->app->loadLang('task');
         if ($_POST) {
@@ -397,8 +397,12 @@ class report extends control
 
         # TODO: 项目负责人
         // $directors = ['' => '全部'] + $this->loadModel('product')->getDirectors();
-
-        $projects = [0 => '全部'] + $this->loadModel('project')->getAll();
+        if ($pp == '') {
+            $projects = [0 => '全部'] + $this->loadModel('project')->getAll();
+        } else {
+            $projects = [0 => '全部'] + $this->loadModel('project')->getProjectsFilterPP(
+                $mode = '', $director = '', $type = 'project', $pp = $pp);
+        }
 
         // if ($director == '' && $product == 0) {
         //     $independentProjects = $this->loadModel('project')->getIndependentProjects();
@@ -416,6 +420,7 @@ class report extends control
         $this->view->exceed = $result['exceed'];
 
         $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
+        $this->view->pp  = $pp;
 
         $this->view->date = $date;
         $this->view->toady = date('Ymd');

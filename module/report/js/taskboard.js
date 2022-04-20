@@ -3,6 +3,7 @@ function changeParams (obj) {
   var dept = $('#conditions').find('#dept').val();
   var project = $('#conditions').find('#project').val();
   var director = $('#conditions').find('#director').val();
+  var pp = $('#conditions').find('#pp').val();
   if (date.indexOf('-') != -1) {
       var beginarray = date.split("-");
       var date = '';
@@ -10,7 +11,7 @@ function changeParams (obj) {
           date = date + beginarray[i];
       }
   }
-  var link = createLink('report', 'taskboard', 'date=' + date + '&dept=' + dept) + '&director=' + director + '&project=' + project;
+  var link = createLink('report', 'taskboard', 'date=' + date + '&dept=' + dept) + '&director=' + director + '&project=' + project + '&pp=' + pp;
   location.href = link;
 }
 

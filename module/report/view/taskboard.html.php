@@ -14,6 +14,12 @@
           </div>
           <div class='col-sm-2'>
             <div class='input-group'>
+              <span class='input-group-addon'><?php echo $lang->report->PP; ?></span>
+              <?php echo html::select('pp', $users, $pp, "class='form-control chosen' onchange='changeParams(this)'"); ?>
+            </div>
+          </div>
+          <div class='col-sm-2'>
+            <div class='input-group'>
               <span class='input-group-addon'><?php echo $lang->report->project; ?></span>
               <?php echo html::select('project', $projects, $project, "class='form-control chosen' onchange='changeParams(this)'"); ?>
             </div>
