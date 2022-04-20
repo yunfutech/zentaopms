@@ -19,12 +19,13 @@ public function getUserTaskEstimate($account, $date)
 {
     $result =  $this->dao->select('sum(t1.estimate) as sum')
         ->from(TABLE_TASK)->alias('t1')
-        ->leftJoin(TABLE_PROJECT)->alias('t2')
+        ->leftJoin(TABLE_EXECUTION)->alias('t2')
         ->on('t1.execution = t2.id')
         ->where('t1.status')->notin('cancel, closed')
         ->andWhere('t1.deadline')->eq($date)
         ->andWhere('t1.assignedTo')->eq($account)
         ->andWhere('t1.deleted')->ne(1)
+        ->andWhere('t2.deleted')->ne(1)
         ->andWhere('t2.status')->notin('cancel, closed')
         ->fetch();
     return round($result->sum, 1);
@@ -37,13 +38,14 @@ public function getUserDelayTasksCount($account, $date)
 {
     $result = $this->dao->select('count(t1.id) as cnt')
         ->from(TABLE_TASK)->alias('t1')
-        ->leftJoin(TABLE_PROJECT)->alias('t2')
+        ->leftJoin(TABLE_EXECUTION)->alias('t2')
         ->on('t1.execution = t2.id')
         ->where('t1.status')->notin('cancel, closed, done')
         ->andWhere('t1.deadline')->lt($date)
         ->andWhere('t1.assignedTo')->eq($account)
         ->andWhere('t2.status')->notin('cancel, closed')
         ->andWhere('t1.deleted')->ne(1)
+        ->andWhere('t2.deleted')->ne(1)
         ->fetch();
     return $result->cnt;
 }
