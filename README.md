@@ -10,6 +10,7 @@
 | 2022-04-20 | “项目设置”页面增加项目顾问和项目经理成员<br />修复团队中未存储项目负责人和项目经理的问题 | module/project/view/view.html.php<br />module/project/control.php<br />module/project/model.php                                                                     | 王鑫鹏 |
 | 2022-04-20 | “统计->任务”增加“项目负责人”筛选                                                       | module/report/control.php<br />module/report/js/taskboard.js<br />module/report/lang/zh-cn.php<br />module/report/view/taskboard.html.php                           | 王鑫鹏 |
 | 2022-04-21 | 增加周报表和周报菜单                                                                       | config/zentaopms.php<br />db/yunfu/2022_04_18_projectweekly.sql<br />module/common/lang/menu.php<br />module/project/control.php<br />module/project/lang/zh-cn.php | 王鑫鹏 |
+| 2022-04-21 | 增加周报模块                                                                               | extension/projectweekly/                                                                                                                                            | 王鑫鹏 |
 
 ### 详细描述
 
@@ -35,3 +36,10 @@
     - 新增周报表格
   - module/common/lang/menu.php
     - 增加周报菜单
+- 增加周报模块
+  - extension/projectweekly/lang/
+    - 周报模块中文配置
+  - extension/projectweekly/view/
+    - 周报模块html文件
+  - extension/projectweekly/config.php
+    - 周报模块配置
