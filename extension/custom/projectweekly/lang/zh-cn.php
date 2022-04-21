@@ -1,5 +1,6 @@
 <?php
 $lang->projectweekly->common             = '项目周报';
+$lang->projectweekly->projectweeklylist  = '项目周报列表';
 $lang->projectweekly->generateWeekly     = '生成项目周报';
 $lang->projectweekly->generateSuccess    = '创建成功';
 $lang->projectweekly->weekly             = '周报';

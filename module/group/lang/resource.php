@@ -1793,4 +1793,10 @@ $lang->dev->methodOrder[10] = 'db';
 $lang->dev->methodOrder[15] = 'editor';
 $lang->dev->methodOrder[20] = 'translate';
 
+$lang->resource->projectweekly = new stdclass();
+$lang->resource->projectweekly->projectweeklylist = 'projectweeklylist';
+$lang->resource->projectweekly->generateWeekly    = 'generateWeekly';
+$lang->resource->projectweekly->edit              = 'edit';
+$lang->resource->projectweekly->view              = 'view';
+
 include (dirname(__FILE__) . '/changelog.php');
