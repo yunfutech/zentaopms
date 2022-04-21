@@ -209,6 +209,7 @@ $lang->scrum->menu->devops    = array('link' => "{$lang->repo->common}|repo|brow
 $lang->scrum->menu->build     = array('link' => "{$lang->build->common}|project|build|project=%s");
 $lang->scrum->menu->release   = array('link' => "{$lang->release->common}|projectrelease|browse|project=%s", 'subModule' => 'projectrelease');
 $lang->scrum->menu->dynamic   = array('link' => "$lang->dynamic|project|dynamic|project=%s");
+$lang->scrum->menu->weekly    = array('link' => "周报|projectweekly|projectweeklylist|projectID=%s");
 $lang->scrum->menu->settings  = array('link' => "$lang->settings|project|view|project=%s", 'subModule' => 'stakeholder', 'alias' => 'edit,manageproducts,group,managemembers,manageview,managepriv,whitelist,addwhitelist,team');
 
 $lang->scrum->dividerMenu = ',execution,programplan,doc,settings,';

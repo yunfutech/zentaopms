@@ -162,7 +162,6 @@ $lang->project->branch             = '所属分支';
 $lang->project->plan               = '所属计划';
 $lang->project->createKanban       = '添加看板';
 $lang->project->kanban             = '看板';
-$lang->project->generateWeekly       = '生成项目周报';
 
 /* Project Kanban. */
 $lang->project->typeList = array();
