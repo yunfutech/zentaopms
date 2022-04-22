@@ -16,4 +16,12 @@ $lang->projectweekly->question           = '项目问题';
 $lang->projectweekly->weekjob            = '本周完成工作';
 $lang->projectweekly->weekplan           = '下周工作计划';
 $lang->projectweekly->view               = '查看项目周报';
+$lang->projectweekly->weeklyboard        = '项目周报看板';
+$lang->projectweekly->all                = '所有';
+$lang->projectweekly->lastWeek           = '上一周';
+$lang->projectweekly->thisWeek           = '本周';
+$lang->projectweekly->nextWeek           = '下一周';
+$lang->projectweekly->week               = '第几周';
+$lang->projectweekly->project            = '项目';
+$lang->projectweekly->productDirector    = '项目负责人';
 ?>

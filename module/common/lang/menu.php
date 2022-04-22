@@ -451,6 +451,7 @@ $lang->report->menu->project = array('link' => "{$lang->project->common}|report|
 $lang->report->menu->test    = array('link' => "{$lang->qa->common}|report|bugcreate", 'alias' => 'bugassign');
 $lang->report->menu->staff   = array('link' => "{$lang->system->common}|report|workload");
 $lang->report->menu->taskboard   = array('link' => "{$lang->task->common}|report|taskboard");
+$lang->report->menu->projectweekly  = array('link' => "{$lang->report->projectweekly}|projectweekly|weeklyboard");
 
 /* Report menu order. */
 $lang->report->menuOrder[5]  = 'annual';
