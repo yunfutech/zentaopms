@@ -8,7 +8,7 @@ $config->task->start    = new stdclass();
 $config->task->finish   = new stdclass();
 $config->task->activate = new stdclass();
 
-$config->task->create->requiredFields      = 'execution,name,type';
+$config->task->create->requiredFields      = 'execution,name,type,assignedTo,deadline';
 $config->task->edit->requiredFields        = $config->task->create->requiredFields;
 $config->task->finish->requiredFields      = 'finishedDate,currentConsumed';
 $config->task->activate->requiredFields    = 'left';
