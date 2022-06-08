@@ -1,0 +1,1 @@
+ALTER TABLE `zt_story` ADD `progress` INT NOT NULL DEFAULT 0;

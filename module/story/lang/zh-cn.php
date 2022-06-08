@@ -48,6 +48,7 @@ $lang->story->taskCount          = '任务数';
 $lang->story->bugCount           = 'Bug数';
 $lang->story->caseCount          = '用例数';
 $lang->story->taskCountAB        = 'T';
+$lang->story->progress           = '进度';
 $lang->story->bugCountAB         = 'B';
 $lang->story->caseCountAB        = 'C';
 $lang->story->linkStory          = "关联{$lang->SRCommon}";

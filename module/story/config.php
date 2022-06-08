@@ -49,7 +49,7 @@ $config->story->custom->batchCreateFields = 'module,plan,spec,pri,estimate,revie
 $config->story->custom->batchEditFields   = 'branch,module,plan,estimate,pri,source,stage,closedBy,closedReason';
 
 $config->story->datatable = new stdclass();
-$config->story->datatable->defaultField = array('id', 'pri', 'title', 'plan', 'openedBy', 'assignedTo', 'estimate', 'status', 'stage', 'taskCount', 'actions');
+$config->story->datatable->defaultField = array('id', 'pri', 'title', 'plan', 'openedBy', 'assignedTo', 'estimate', 'status', 'stage', 'taskCount', 'progress', 'actions');
 
 $config->story->datatable->fieldList['id']['title']    = 'idAB';
 $config->story->datatable->fieldList['id']['fixed']    = 'left';
@@ -199,6 +199,13 @@ $config->story->datatable->fieldList['taskCount']['width']    = '30';
 $config->story->datatable->fieldList['taskCount']['required'] = 'no';
 $config->story->datatable->fieldList['taskCount']['sort']     = 'no';
 $config->story->datatable->fieldList['taskCount']['name']     = $lang->story->taskCount;
+
+$config->story->datatable->fieldList['progress']['title']    = 'progress';
+$config->story->datatable->fieldList['progress']['fixed']    = 'no';
+$config->story->datatable->fieldList['progress']['width']    = '40';
+$config->story->datatable->fieldList['progress']['required'] = 'no';
+$config->story->datatable->fieldList['progress']['sort']     = 'no';
+$config->story->datatable->fieldList['progress']['name']     = $lang->story->taskCount;
 
 $config->story->datatable->fieldList['bugCount']['title']    = 'B';
 $config->story->datatable->fieldList['bugCount']['fixed']    = 'no';

@@ -4026,6 +4026,9 @@ class storyModel extends model
                 $tasksLink = helper::createLink('story', 'tasks', "storyID=$story->id", '', 'class="iframe"');
                 $storyTasks[$story->id] > 0 ? print(html::a($tasksLink, $storyTasks[$story->id], '', 'class="iframe"')) : print(0);
                 break;
+            case 'progress':
+                echo html::ring($story->progress);
+                break;
             case 'bugCount':
                 $bugsLink = helper::createLink('story', 'bugs', "storyID=$story->id");
                 $storyBugs[$story->id] > 0 ? print(html::a($bugsLink, $storyBugs[$story->id], '', 'class="iframe"')) : print(0);

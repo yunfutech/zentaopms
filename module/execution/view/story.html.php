@@ -210,6 +210,7 @@
             <th title='<?php echo $lang->story->taskCount?>' class='c-count'><?php echo $lang->story->taskCountAB;?></th>
             <th title='<?php echo $lang->story->bugCount?>'  class='c-count'><?php echo $lang->story->bugCountAB;?></th>
             <th title='<?php echo $lang->story->caseCount?>' class='c-count'><?php echo $lang->story->caseCountAB;?></th>
+            <th title='<?php echo $lang->story->progress?>' class='c-progress'><?php echo $lang->story->progress ?></th>
             <th class='c-actions-7 text-center {sorter:false}'><?php echo $lang->actions;?></th>
           </tr>
         </thead>
@@ -263,6 +264,9 @@
               $casesLink = $this->createLink('story', 'cases', "storyID=$story->id&executionID=$execution->id");
               $storyCases[$story->id] > 0 ? print(html::a($casesLink, $storyCases[$story->id], '', 'class="iframe"')) : print(0);
               ?>
+            </td>
+            <td class='c-progress'>
+              <?php echo html::ring($story->progress); ?>
             </td>
             <td class='c-actions'>
               <?php
