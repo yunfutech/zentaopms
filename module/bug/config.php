@@ -7,7 +7,7 @@ $config->bug->removeFields = 'objectTypeList,productList,executionList,gitlabID,
 $config->bug->create  = new stdclass();
 $config->bug->edit    = new stdclass();
 $config->bug->resolve = new stdclass();
-$config->bug->create->requiredFields  = 'title,openedBuild,assignedTo';
+$config->bug->create->requiredFields  = 'title,openedBuild,assignedTo,project,execution,module,deadline';
 $config->bug->edit->requiredFields    = $config->bug->create->requiredFields;
 $config->bug->resolve->requiredFields = 'resolution';
 
@@ -39,7 +39,7 @@ $config->bug->list->exportFields = 'id, product, branch, module, project, execut
     lastEditedDate, files';
 
 $config->bug->list->customCreateFields      = 'execution,story,task,pri,severity,os,browser,deadline,mailto,keywords';
-$config->bug->list->customBatchCreateFields = 'execution,steps,type,pri,deadline,severity,os,browser,keywords';
+$config->bug->list->customBatchCreateFields = 'project,execution,steps,type,pri,deadline,severity,os,browser,keywords';
 $config->bug->list->customBatchEditFields   = 'type,severity,pri,productplan,assignedTo,deadline,resolvedBy,resolution,os,browser,keywords';
 
 $config->bug->custom = new stdclass();

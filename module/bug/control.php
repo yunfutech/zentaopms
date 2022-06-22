@@ -470,7 +470,7 @@ class bug extends control
         $os          = '';
         $browser     = '';
         $assignedTo  = '';
-        $deadline    = '';
+        $deadline    = helper::today();
         $mailto      = '';
         $keywords    = '';
         $severity    = 3;
@@ -701,8 +701,12 @@ class bug extends control
                 $execution = $this->loadModel('execution')->getByID($executionID);
                 if($execution->type == 'kanban' and $this->app->tab == 'execution')
                 {
-                    $kanbanData = $this->loadModel('kanban')->getRDKanban($executionID, $this->session->execLaneType ? $this->session->execLaneType : 'all');
-                    $kanbanData = json_encode($kanbanData);
+                    $execLaneType  = $this->session->execLaneType ? $this->session->execLaneType : 'all';
+                    $execGroupBy   = $this->session->execGroupBy ? $this->session->execGroupBy : 'default';
+                    $rdSearchValue = $this->session->rdSearchValue ? $this->session->rdSearchValue : '';
+                    $kanbanData    = $this->loadModel('kanban')->getRDKanban($executionID, $execLaneType, 'id_desc', 0, $execGroupBy, $rdSearchValue);
+                    $kanbanData    = json_encode($kanbanData);
+
                     return print(js::closeModal('parent.parent', '', "parent.parent.updateKanban($kanbanData)"));
                 }
                 else
@@ -730,9 +734,9 @@ class bug extends control
             {
                 $this->loadModel('kanban');
                 $regionPairs = $this->kanban->getRegionPairs($executionID, 0, 'execution');
-                $regionID    = isset($output['regionID']) ? $output['regionID'] : key($regionPairs);
+                $regionID    = !empty($output['regionID']) ? $output['regionID'] : key($regionPairs);
                 $lanePairs   = $this->kanban->getLanePairsByRegion($regionID, 'bug');
-                $laneID      = isset($output['laneID']) ? $output['laneID'] : key($lanePairs);
+                $laneID      = !empty($output['laneID']) ? $output['laneID'] : key($lanePairs);
 
                 $this->view->executionType = $execution->type;
                 $this->view->regionID      = $regionID;
@@ -809,6 +813,8 @@ class bug extends control
         $this->view->stories          = $stories;
         $this->view->builds           = $builds;
         $this->view->users            = $this->user->getPairs('devfirst|noclosed');
+        $this->view->projects         = array('' => '') + $this->product->getProjectPairsByProduct($productID, $branch ? "0,$branch" : 0, 'id_desc', $projectID);
+        $this->view->projectID        = $projectID;
         $this->view->executions       = array('' => '') + $this->product->getExecutionPairsByProduct($productID, $branch ? "0,$branch" : 0, 'id_desc', $projectID);
         $this->view->executionID      = $executionID;
         $this->view->moduleOptionMenu = $this->tree->getOptionMenu($productID, $viewType = 'bug', $startModuleID = 0, $branch === 'all' ? 0 : $branch);
@@ -1260,13 +1266,13 @@ class bug extends control
                 }
             }
             if(defined('RUN_MODE') && RUN_MODE == 'api')
-            {    
+            {
                 return $this->send(array('status' => 'success', 'data' => $bugID));
-            }    
-            else 
-            {    
+            }
+            else
+            {
                 return print(js::locate($this->createLink('bug', 'view', "bugID=$bugID"), 'parent'));
-            }    
+            }
         }
 
         if($this->app->tab == 'project')

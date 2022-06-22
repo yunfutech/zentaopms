@@ -3,24 +3,31 @@
  * The batch create view of story module of ZenTaoPMS.
  *
  * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Yangyang Shi <shiyangyang@cnezsoft.com>
  * @package     story
  * @version     $Id$
  * @link        http://www.zentao.net
  */
 ?>
-<?php include '../../common/view/header.html.php';?>
+<?php
+include '../../common/view/header.html.php';
+js::set('requiredFields', $config->bug->create->requiredFields);
+?>
 <div id='mainContent' class='main-content fade'>
   <div class='main-header'>
     <h2>
       <?php echo $lang->bug->batchCreate;?>
     </h2>
     <div class="pull-right btn-toolbar">
-      <?php if(common::hasPriv('file', 'uploadImages')) echo html::a($this->createLink('file', 'uploadImages', 'module=bug&params=' . helper::safe64Encode("productID=$productID&executionID=$executionID&moduleID=$moduleID")), $lang->uploadImages, '', "data-toggle='modal' data-type='iframe' class='btn btn-primary' data-width='70%'")?>
+      <?php if(common::hasPriv('file', 'uploadImages')) echo html::a($this->createLink('file', 'uploadImages', 'module=bug&params=' . helper::safe64Encode("productID=$productID&branch=$branch&executionID=$executionID&moduleID=$moduleID")), $lang->uploadImages, '', "data-toggle='modal' data-type='iframe' class='btn btn-primary' data-width='70%'")?>
       <button type='button' data-toggle='modal' data-target="#importLinesModal" class="btn btn-primary"><?php echo $lang->pasteText;?></button>
       <?php $customLink = $this->createLink('custom', 'ajaxSaveCustomFields', 'module=bug&section=custom&key=batchCreateFields')?>
       <?php include '../../common/view/customfield.html.php';?>
+      <?php if(isonlybody()):?>
+      <div class="divider"></div>
+      <button id="closeModal" type="button" class="btn btn-link" data-dismiss="modal"><i class="icon icon-close"></i></button>
+      <?php endif;?>
     </div>
   </div>
 
@@ -48,9 +55,13 @@
             <th class='c-id'><?php echo $lang->idAB;?></th>
             <th class='c-branch<?php echo zget($visibleFields, $product->type, ' hidden')?>'> <?php echo $lang->product->branch;?></th>
             <th class='c-module<?php echo zget($requiredFields, 'module', '', ' required');?>'> <?php echo $lang->bug->module;?></th>
+            <?php if($config->systemMode == 'new'):?>
+            <th class='c-project<?php echo zget($visibleFields, 'project', ' hidden') . zget($requiredFields, 'project', '', ' required');?>'><?php echo (isset($project->model) and $project->model == 'kanban') ? $lang->bug->kanban : $lang->bug->project;?></th>
+            <?php endif;?>
             <th class='c-execution<?php echo zget($visibleFields, 'execution', ' hidden') . zget($requiredFields, 'execution', '', ' required');?>'><?php echo (isset($project->model) and $project->model == 'kanban') ? $lang->bug->kanban : $lang->bug->execution;?></th>
             <th class='c-build required'><?php echo $lang->bug->openedBuild;?></th>
             <th class='c-title required'><?php echo $lang->bug->title;?></th>
+            <th class='c-assigned<?php echo zget($requiredFields, 'assignedTo', '', ' required');?>'><?php echo $lang->bug->assignedTo;?></th>
             <?php if(isset($executionType) and $executionType == 'kanban'):?>
             <th class='c-execution'><?php echo $lang->kanbancard->region;?></th>
             <th class='c-execution'><?php echo $lang->kanbancard->lane;?></th>
@@ -65,13 +76,18 @@
             <th class='c-keywords<?php echo zget($visibleFields, 'keywords', ' hidden') . zget($requiredFields, 'keywords', '', ' required');?>'><?php echo $lang->bug->keywords;?></th>
             <?php
             $extendFields = $this->bug->getFlowExtendFields();
-            foreach($extendFields as $extendField) echo "<th class='c-extend'>{$extendField->name}</th>";
+            foreach($extendFields as $extendField)
+            {
+                $required = strpos(",$extendField->rules,", ',1,') !== false ? 'required' : '';
+                echo "<th class='c-extend $required'>{$extendField->name}</th>";
+            }
             ?>
           </tr>
         </thead>
         <tbody>
           <?php
           $moduleOptionMenu       += array('ditto' => $lang->bug->ditto);
+          $projects               += array('ditto' => $lang->bug->ditto);
           $executions             += array('ditto' => $lang->bug->ditto);
           $lang->bug->typeList    += array('ditto' => $lang->bug->ditto);
           $lang->bug->priList     += array('ditto' => $lang->bug->ditto);
@@ -82,7 +98,11 @@
           <?php if(!empty($titles)):?>
           <?php foreach($titles as $bugTitle => $fileName):?>
           <?php
+          if(!empty($this->config->user->moreLink)) $this->config->moreLinks["assignedTos[$bugID]"] = $this->config->user->moreLink;
+          ?>
+          <?php
           $moduleID    = $i == 1 ? $moduleID : 'ditto';
+          $projectID   = $i == 1 ? $projectID : 'ditto';
           $executionID = $i == 1 ? $executionID : 'ditto';
           $type        = $i == 1 ? '' : 'ditto';
           $pri         = $i == 1 ? 0  : 'ditto';
@@ -93,6 +113,9 @@
             <td class='text-center'><?php echo $i;?></td>
             <td class='<?php echo zget($visibleFields, $product->type, ' hidden')?>' style='overflow:visible'><?php echo html::select("branches[$i]", $branches, $branch, "class='form-control chosen' onchange='setBranchRelated(this.value, $productID, $i)'");?></td>
             <td><?php echo html::select("modules[$i]", $moduleOptionMenu, $moduleID, "class='form-control chosen'");?></td>
+            <?php if($config->systemMode == 'new'):?>
+            <td class='<?php echo zget($visibleFields, 'project', ' hidden')?>' style='overflow:visible'>12312312312<?php echo html::select("projects[$i]", $projects, $projectID, "class='form-control chosen' onchange = 'loadProductExecutionsByProject($productID, this.value, $i)'");?></td>
+            <?php endif;?>
             <td class='<?php echo zget($visibleFields, 'execution', ' hidden')?>' style='overflow:visible'><?php echo html::select("executions[$i]", $executions, $executionID, "class='form-control chosen' onchange='loadExecutionBuilds($productID, this.value, $i)'");?></td>
             <td id='buildBox<?php echo $i;?>'><?php echo html::select("openedBuilds[$i][]", $builds, 'trunk', "class='form-control chosen' multiple");?></td>
             <td>
@@ -109,6 +132,7 @@
                 </div>
               </div>
             </td>
+            <td><?php echo html::select("assignedTos[$bugID]", $users, $bug->assignedTo, "class='form-control chosen'");?></td>
             <?php if(isset($executionType) and $executionType == 'kanban'):?>
             <td><?php echo html::select("regions[$i]", $regionPairs, $regionID, "class='form-control chosen'");?></td>
             <td><?php echo html::select("lanes[$i]", $lanePairs, $laneID, "class='form-control chosen'");?></td>
@@ -121,7 +145,10 @@
             <td class='<?php echo zget($visibleFields, 'os', 'hidden')?>' style='overflow:visible'>      <?php echo html::select("oses[$i]", $lang->bug->osList, $os, "class='form-control chosen'");?></td>
             <td class='<?php echo zget($visibleFields, 'browser', 'hidden')?>' style='overflow:visible'> <?php echo html::select("browsers[$i]", $lang->bug->browserList, $browser, "class='form-control chosen'");?></td>
             <td class='<?php echo zget($visibleFields, 'keywords', 'hidden')?>'><?php echo html::input("keywords[$i]", '', "class='form-control'");?></td>
-            <?php foreach($extendFields as $extendField) echo "<td" . (($extendField->control == 'select' or $extendField->control == 'multi-select') ? " style='overflow:visible'" : '') . ">" . $this->loadModel('flow')->getFieldControl($extendField, '', $extendField->field . "[$i]") . "</td>";?>
+            <?php
+            $this->loadModel('flow');
+            foreach($extendFields as $extendField) echo "<td" . (($extendField->control == 'select' or $extendField->control == 'multi-select') ? " style='overflow:visible'" : '') . ">" . $this->flow->getFieldControl($extendField, '', $extendField->field . "[$i]") . "</td>";
+            ?>
           </tr>
           <?php $i++;?>
           <?php endforeach;?>
@@ -130,6 +157,7 @@
           <?php for($i = $nextStart; $i <= $config->bug->batchCreate; $i++):?>
           <?php
           $moduleID    = $i - $nextStart == 0 ? $moduleID : 'ditto';
+          $projectID   = $i - $nextStart == 0 ? $projectID : 'ditto';
           $executionID = $i - $nextStart == 0 ? $executionID : 'ditto';
           $type        = $i - $nextStart == 0 ? '' : 'ditto';
           $pri         = $i - $nextStart == 0 ? 0  : 'ditto';
@@ -140,6 +168,9 @@
             <td><?php echo $i;?></td>
             <td class='<?php echo zget($visibleFields, $product->type, ' hidden')?>' style='overflow:visible'><?php echo html::select("branches[$i]", $branches, $branch, "class='form-control chosen' onchange='setBranchRelated(this.value, $productID, $i)'");?></td>
             <td><?php echo html::select("modules[$i]", $moduleOptionMenu, $moduleID, "class='form-control chosen'");?></td>
+            <?php if($config->systemMode == 'new'):?>
+            <td class='<?php echo zget($visibleFields, 'project', ' hidden')?>' style='overflow:visible'><?php echo html::select("projects[$i]", $projects, $projectID, "class='form-control chosen' onchange = 'loadProductExecutionsByProject($productID, this.value, $i)'");?></td>
+            <?php endif;?>
             <td class='<?php echo zget($visibleFields, 'execution', ' hidden')?>' style='overflow:visible'><?php echo html::select("executions[$i]", $executions, $executionID, "class='form-control chosen' onchange='loadExecutionBuilds($productID, this.value, $i)'");?></td>
             <td id='buildBox<?php echo $i;?>'><?php echo html::select("openedBuilds[$i][]", $builds, '', "class='form-control chosen' multiple");?></td>
             <td>
@@ -156,6 +187,7 @@
                 </div>
               </div>
             </td>
+            <td style='overflow:visible'><?php echo html::select("assignedTos[$i]", $users, $bug->assignedTo, "class='form-control chosen'");?></td>
             <?php if(isset($executionType) and $executionType == 'kanban'):?>
             <td><?php echo html::select("regions[$i]", $regionPairs, $regionID, "class='form-control chosen' onchange='setLane(this.value, $i)'");?></td>
             <td><?php echo html::select("lanes[$i]", $lanePairs, $laneID, "class='form-control chosen'");?></td>
@@ -168,9 +200,13 @@
             <td class='<?php echo zget($visibleFields, 'os', 'hidden')?>' style='overflow:visible'>      <?php echo html::select("oses[$i]", $lang->bug->osList, $os, "class='form-control chosen'");?></td>
             <td class='<?php echo zget($visibleFields, 'browser', 'hidden')?>' style='overflow:visible'> <?php echo html::select("browsers[$i]", $lang->bug->browserList, $browser, "class='form-control chosen'");?></td>
             <td class='<?php echo zget($visibleFields, 'keywords', 'hidden')?>'><?php echo html::input("keywords[$i]", '', "class='form-control'");?></td>
-            <?php foreach($extendFields as $extendField) echo "<td" . (($extendField->control == 'select' or $extendField->control == 'multi-select') ? " style='overflow:visible'" : '') . ">" . $this->loadModel('flow')->getFieldControl($extendField, '', $extendField->field . "[$i]") . "</td>";?>
+            <?php
+            $this->loadModel('flow');
+            foreach($extendFields as $extendField) echo "<td" . (($extendField->control == 'select' or $extendField->control == 'multi-select') ? " style='overflow:visible'" : '') . ">" . $this->flow->getFieldControl($extendField, '', $extendField->field . "[$i]") . "</td>";
+            ?>
           </tr>
           <?php endfor;?>
+          <?php if(isset($this->config->moreLinks["assignedTos[$bugID]"])) unset($this->config->moreLinks["assignedTos[$bugID]"]);?>
         </tbody>
         <tfoot>
           <tr>
@@ -190,6 +226,9 @@
       <td>%s</td>
       <td class='<?php echo zget($visibleFields, $product->type, ' hidden')?>' style='overflow:visible'><?php echo html::select("branches[%s]", $branches, $branch, "class='form-control chosen' onchange='setBranchRelated(this.value, $productID, \"%s\")'");?></td>
       <td><?php echo html::select("modules[%s]", $moduleOptionMenu, $moduleID, "class='form-control'");?></td>
+      <?php if($config->systemMode == 'new'):?>
+      <td class='<?php echo zget($visibleFields, 'project', ' hidden')?>' style='overflow:visible'><?php echo html::select("projects[%s]", $projects, $projectID, "class='form-control chosen' onchange = 'loadProductExecutionsByProject($productID, this.value, \"%s\")'");?></td>
+      <?php endif;?>
       <td class='<?php echo zget($visibleFields, 'execution', ' hidden')?>' style='overflow:visible'><?php echo html::select("executions[%s]", $executions, $executionID, "class='form-control chosen' onchange='loadExecutionBuilds($productID, this.value, \"%s\")'");?></td>
       <td id='buildBox%s'><?php echo html::select("openedBuilds[%s][]", $builds, '', "class='form-control chosen' multiple");?></td>
       <td>
@@ -214,10 +253,26 @@
       <td class='<?php echo zget($visibleFields, 'os', 'hidden')?>' style='overflow:visible'>      <?php echo html::select("oses[%s]", $lang->bug->osList, $os, "class='form-control chosen'");?></td>
       <td class='<?php echo zget($visibleFields, 'browser', 'hidden')?>' style='overflow:visible'> <?php echo html::select("browsers[%s]", $lang->bug->browserList, $browser, "class='form-control chosen'");?></td>
       <td class='<?php echo zget($visibleFields, 'keywords', 'hidden')?>'><?php echo html::input("keywords[%s]", '', "class='form-control'");?></td>
-      <?php foreach($extendFields as $extendField) echo "<td" . (($extendField->control == 'select' or $extendField->control == 'multi-select') ? " style='overflow:visible'" : '') . ">" . $this->loadModel('flow')->getFieldControl($extendField, '', $extendField->field . "[%s]") . "</td>";?>
+      <?php
+      $this->loadModel('flow');
+      foreach($extendFields as $extendField) echo "<td" . (($extendField->control == 'select' or $extendField->control == 'multi-select') ? " style='overflow:visible'" : '') . ">" . $this->flow->getFieldControl($extendField, '', $extendField->field . "[%s]") . "</td>";
+      ?>
     </tr>
   </tbody>
 </table>
 <?php js::set('branch', $branch)?>
+<?php if(isonlybody()):?>
+<style>
+.body-modal .main-header {padding-right: 0px;}
+.btn-toolbar > .dropdown {margin: 0px;}
+</style>
+<script>
+$(function()
+{
+    parent.$('#triggerModal .modal-content .modal-header .close').hide();
+    $('#closeModal').on('click', function(){window.parent.$.closeModal();})
+})
+</script>
+<?php endif;?>
 <?php include '../../common/view/pastetext.html.php';?>
 <?php include '../../common/view/footer.html.php';?>
