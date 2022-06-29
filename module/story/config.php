@@ -49,7 +49,7 @@ $config->story->custom->batchCreateFields = 'module,plan,spec,pri,estimate,revie
 $config->story->custom->batchEditFields   = 'branch,module,plan,estimate,pri,source,stage,closedBy,closedReason';
 
 $config->story->datatable = new stdclass();
-$config->story->datatable->defaultField = array('id', 'pri', 'title', 'plan', 'openedBy', 'assignedTo', 'estimate', 'status', 'stage', 'taskCount', 'progress', 'actions');
+$config->story->datatable->defaultField = array('id', 'pri', 'title', 'plan', 'openedBy', 'assignedTo', 'estimate', 'consumed', 'status', 'stage', 'taskCount', 'progress', 'actions');
 
 $config->story->datatable->fieldList['id']['title']    = 'idAB';
 $config->story->datatable->fieldList['id']['fixed']    = 'left';
@@ -106,6 +106,12 @@ $config->story->datatable->fieldList['estimate']['title']    = 'estimateAB';
 $config->story->datatable->fieldList['estimate']['fixed']    = 'no';
 $config->story->datatable->fieldList['estimate']['width']    = '50';
 $config->story->datatable->fieldList['estimate']['required'] = 'no';
+
+$config->story->datatable->fieldList['consumed']['title']    = 'consumed';
+$config->story->datatable->fieldList['consumed']['fixed']    = 'no';
+$config->story->datatable->fieldList['consumed']['width']    = '50';
+$config->story->datatable->fieldList['consumed']['sort']     = 'yes';
+$config->story->datatable->fieldList['consumed']['name']     = $lang->story->consumed;
 
 $config->story->datatable->fieldList['stage']['title']    = 'stageAB';
 $config->story->datatable->fieldList['stage']['fixed']    = 'no';

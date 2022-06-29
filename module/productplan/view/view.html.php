@@ -169,6 +169,8 @@
                 <th class='w-70px' title='<?php echo $lang->pri;?>'> <?php common::printOrderLink('pri', $orderBy, $vars, $lang->priAB);?></th>
                 <th class='w-150px text-left'><?php common::printOrderLink('module',     $orderBy, $vars, $lang->story->module);?></th>
                 <th class='text-left'><?php common::printOrderLink('title',      $orderBy, $vars, $lang->story->title);?></th>
+                <th class='w-80px'> <?php common::printOrderLink('progress',   $orderBy, $vars, $lang->story->progress);?></th>
+                <th class='w-80px'> <?php common::printOrderLink('consumed',   $orderBy, $vars, $lang->story->consumed);?></th>
                 <th class='c-user'> <?php common::printOrderLink('openedBy',   $orderBy, $vars, $lang->openedByAB);?></th>
                 <th class='c-user'> <?php common::printOrderLink('assignedTo', $orderBy, $vars, $lang->assignedToAB);?></th>
                 <th class='w-70px text-right'> <?php common::printOrderLink('estimate',   $orderBy, $vars, $lang->story->estimateAB);?></th>
@@ -221,6 +223,8 @@
                   echo html::a($viewLink , $story->title);
                   ?>
                 </td>
+                <td><?php echo $story->progress;?></td>
+                <td><?php echo ($story->consumed ? round($story->consumed, 2) : 0) . $config->hourUnit;?></td>
                 <td><?php echo zget($users, $story->openedBy);?></td>
                 <td><?php echo zget($users, $story->assignedTo);?></td>
                 <td class='text-right' title="<?php echo $story->estimate . ' ' . $lang->hourCommon;?>"><?php echo $story->estimate . $config->hourUnit;?></td>
