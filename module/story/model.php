@@ -2852,8 +2852,6 @@ class storyModel extends model
         foreach($stories as $story)
         {
             if(empty($story->branch) and $story->productType != 'normal') $branches[$story->productBranch][$story->id] = $story->id;
-            $consumed = $this->dao->select('sum(consumed) as consumed')->from(TABLE_TASK)->where('story')->eq($story->id)->fetch('consmed');
-            $story->consumed = $consumed;
         }
         foreach($branches as $branchID => $storyIdList)
         {
@@ -2862,7 +2860,24 @@ class storyModel extends model
         }
 
         $this->dao->sqlobj->sql = $query;
+        $stories = $this->getStoriesConsumed($stories);
         return $this->mergePlanTitle($productID, $stories, $branch, $type);
+    }
+
+    private function getStoriesConsumed($stories)
+    {
+        $stories_ids = array_column($stories, 'id');
+        $id2consumed = $this->dao->select('t1.id, sum(t2.consumed) as consumed')->from(TABLE_STORY)->alias('t1')
+            ->leftJoin(TABLE_TASK)->alias('t2')->on('t2.story = t1.id and t2.deleted = "0" and t2.status!="cancel"')
+            ->where('t1.deleted')->eq(0)
+            ->andWhere('t1.id')->in($stories_ids)
+            ->groupBy('t1.id')
+            ->fetchAll('id');
+        foreach($stories as $story) {
+            $consumed = $id2consumed[$story->id]->consumed;
+            $story->consumed = round($consumed ? $consumed : 0, 2);
+        }
+        return $stories;
     }
 
     /**
