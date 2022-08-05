@@ -419,8 +419,8 @@ class report extends control
         $this->view->short = $result['short'];
         $this->view->exceed = $result['exceed'];
 
-        // $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
-        $this->view->users = $pps;
+        $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
+        $this->view->pps  = $pps;
         $this->view->pp  = $pp;
 
         $this->view->date = $date;
