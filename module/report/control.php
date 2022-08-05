@@ -396,7 +396,7 @@ class report extends control
         }
 
         # TODO: 项目负责人
-        // $directors = ['' => '全部'] + $this->loadModel('product')->getDirectors();
+        $pps = ['' => '全部'] + $this->loadModel('project')->getPPs();
         if ($pp == '') {
             $projects = [0 => '全部'] + $this->loadModel('project')->getAll();
         } else {
@@ -419,7 +419,8 @@ class report extends control
         $this->view->short = $result['short'];
         $this->view->exceed = $result['exceed'];
 
-        $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
+        // $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
+        $this->view->users = $pps;
         $this->view->pp  = $pp;
 
         $this->view->date = $date;
@@ -429,7 +430,6 @@ class report extends control
 
         $this->view->depts = $this->loadModel('dept')->getOptionMenu();
         $this->view->projects = $projects;
-        // $this->view->directors = $directors;
 
         $this->view->dept = $dept;
         $this->view->project = $project;

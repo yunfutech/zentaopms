@@ -2310,19 +2310,33 @@ class projectModel extends model
         return $projects;
     }
 
-        /**
-         * 获取部分项目（项目负责人过滤）
-         */
-        public function getProjectsFilterPP($mode = '', $director = '', $type = 'project', $pp = '')
-        {
-            $projects = $this->dao->select('*,  IF(INSTR(" closed", status) < 2, 0, 1) AS isClosed')
-                ->from(TABLE_PROJECT)
-                ->where('deleted')->eq(0)
-                ->andWhere('type')->eq($type)
-                ->andWhere('PP')->eq($pp)
-                ->beginIF(strpos($mode, 'noclosed') !== false)->andWhere('status')->ne('closed')->fi()
-                ->beginIF($director != '')->andWhere('director')->eq($director)->fi()
-                ->fetchPairs('id', 'name');
-            return $projects;
-        }
+    /**
+     * 获取部分项目（项目负责人过滤）
+     */
+    public function getProjectsFilterPP($mode = '', $director = '', $type = 'project', $pp = '')
+    {
+        $projects = $this->dao->select('*,  IF(INSTR(" closed", status) < 2, 0, 1) AS isClosed')
+            ->from(TABLE_PROJECT)
+            ->where('deleted')->eq(0)
+            ->andWhere('type')->eq($type)
+            ->andWhere('PP')->eq($pp)
+            ->beginIF(strpos($mode, 'noclosed') !== false)->andWhere('status')->ne('closed')->fi()
+            ->beginIF($director != '')->andWhere('director')->eq($director)->fi()
+            ->fetchPairs('id', 'name');
+        return $projects;
+    }
+
+
+    /**
+     * 获取全部项目负责人
+     */
+    public function getPPs() {
+        $PPs = $this->dao->select('t1.PP, t2.realname')
+            ->from(TABLE_PROJECT)->alias('t1')
+            ->leftJoin(TABLE_USER)->alias('t2')->on('t1.PP= t2.account')
+            ->where('t1.deleted')->eq(0)
+            ->andWhere('t2.deleted')->eq(0)
+            ->fetchPairs('PP');
+        return $PPs;
+    }
 }
