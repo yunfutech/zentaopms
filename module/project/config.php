@@ -163,3 +163,5 @@ $config->project->excludedPriv['repo']       = array('edit', 'delete', 'maintain
 $config->project->excludedPriv['testreport'] = array('browse');
 $config->project->excludedPriv['auditplan']  = array('delete');
 if($config->edition != 'max') $config->project->excludedPriv['stakeholder'] = array('issue', 'viewIssue', 'userIssue');
+
+$config->project->ppExcludes = [3]; # 任务看板负责人排除

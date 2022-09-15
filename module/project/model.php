@@ -2336,6 +2336,7 @@ class projectModel extends model
             ->leftJoin(TABLE_USER)->alias('t2')->on('t1.PP= t2.account')
             ->where('t1.deleted')->eq(0)
             ->andWhere('t2.deleted')->eq(0)
+            ->andWhere('t2.id')->notin($this->config->project->ppExcludes)
             ->fetchPairs('PP');
         return $PPs;
     }
