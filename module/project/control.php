@@ -61,6 +61,8 @@ class project extends control
             foreach($projects as $i => $project)
             {
                 $project->PM       = zget($users, $project->PM);
+                $project->PC       = zget($users, $project->PC);
+                $project->PP       = zget($users, $project->PP);
                 $project->status   = $this->processStatus('project', $project);
                 $project->model    = zget($projectLang->modelList, $project->model);
                 $project->product  = zget($projectLang->productList, $project->product);
