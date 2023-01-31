@@ -66,14 +66,14 @@ $config->project->datatable->fieldList['code']['pri']      = '1';
 $config->project->datatable->fieldList['PP']['title']    = 'PP';
 $config->project->datatable->fieldList['PP']['fixed']    = 'no';
 $config->project->datatable->fieldList['PP']['width']    = '80';
-$config->project->datatable->fieldList['PP']['required'] = 'yes';
+$config->project->datatable->fieldList['PP']['required'] = 'no';
 $config->project->datatable->fieldList['PP']['sort']     = 'no';
 $config->project->datatable->fieldList['PP']['pri']      = '2';
 
 $config->project->datatable->fieldList['PC']['title']    = 'PC';
 $config->project->datatable->fieldList['PC']['fixed']    = 'no';
 $config->project->datatable->fieldList['PC']['width']    = '80';
-$config->project->datatable->fieldList['PC']['required'] = 'yes';
+$config->project->datatable->fieldList['PC']['required'] = 'no';
 $config->project->datatable->fieldList['PC']['sort']     = 'no';
 $config->project->datatable->fieldList['PC']['pri']      = '2';
 
