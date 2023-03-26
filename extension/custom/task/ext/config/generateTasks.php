@@ -9,14 +9,14 @@ $config->task->generateTask->blacklist = [];
 $config->task->generateTask->deptArr = [
     9 => [
         'project' => 706,   # 管理层 => 项目管理2022,
-        'execution' => 552,
+        'execution' => 907,
     ],
     10 => [
         'project' => 707,   # 销售部 => 云孚销售2022
-        'execution' => 547,
+        'execution' => 917,
     ],
     19 => [
         'project' => 704,   # 市场部 => 市场工作2022
-        'execution' => 550,
+        'execution' => 911,
     ]
 ];
