@@ -17,23 +17,15 @@ $lang->stakeholder->add          = 'Create';
 $lang->stakeholder->communicate  = 'Communications';
 $lang->stakeholder->expect       = 'Expectation';
 $lang->stakeholder->progress     = 'Progress';
-$lang->stakeholder->expectation  = 'Manage Expectation';
-$lang->stakeholder->createExpect = 'Add Expectation';
-$lang->stakeholder->deleteExpect = 'Delete Expectation';
-$lang->stakeholder->editExpect   = 'Edit Expectation';
-$lang->stakeholder->viewExpect   = 'Expectation Info';
-$lang->stakeholder->issue        = 'Issue Management';
-$lang->stakeholder->viewIssue    = 'Active Issues';
 $lang->stakeholder->userIssue    = 'Stakeholder Issues';
 $lang->stakeholder->deleted      = 'Deleted';
 
-$lang->stakeholder->viewAction      = 'View Stakeholder';
-$lang->stakeholder->viewIssueAction = 'Issue List';
+$lang->stakeholder->viewAction = 'View Stakeholder';
 
 /* Fields. */
 $lang->stakeholder->id          = 'ID';
 $lang->stakeholder->user        = 'User';
-$lang->stakeholder->type        = 'Type';
+$lang->stakeholder->type        = 'User Type';
 $lang->stakeholder->name        = 'Name';
 $lang->stakeholder->phone       = 'Mobile';
 $lang->stakeholder->qq          = 'QQ';
@@ -42,7 +34,7 @@ $lang->stakeholder->email       = 'EMail';
 $lang->stakeholder->isKey       = 'Key Stakeholder';
 $lang->stakeholder->inside      = 'Internal Stakeholder';
 $lang->stakeholder->outside     = 'External Stakeholder';
-$lang->stakeholder->from        = 'Type';
+$lang->stakeholder->from        = 'Stakeholder Type';
 $lang->stakeholder->company     = 'Company';
 $lang->stakeholder->nature      = 'Personality';
 $lang->stakeholder->analysis    = 'Impact Analysis';
@@ -59,7 +51,7 @@ $lang->stakeholder->keyList[1] = 'Yes';
 $lang->stakeholder->typeList['inside']  = 'Internal';
 $lang->stakeholder->typeList['outside'] = 'External';
 
-$lang->stakeholder->fromList['team']    = 'Project Team';
+$lang->stakeholder->fromList['team']    = $lang->projectCommon . ' Team';
 $lang->stakeholder->fromList['company'] = 'Internal';
 $lang->stakeholder->fromList['outside'] = 'External';
 

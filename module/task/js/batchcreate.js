@@ -2,8 +2,22 @@
 $(function()
 {
     removeDitto();
-    if($('th.c-name').width() < 200) $('th.c-name').width(200);
-    if(taskConsumed > 0) alert(addChildTask);
+    $name = $('th.c-name');
+    if($name.width() < 165) $name.width(165);
+    if(taskConsumed > 0) bootbox.alert(addChildTask);
+    $('#customField').on('click', function(){$('#tableBody .chosen-with-drop').removeClass('chosen-with-drop chosen-container-active')});
+
+    $('#customField').click(function()
+    {
+        hiddenRequireFields();
+    });
+
+    /* Implement a custom form without feeling refresh. */
+    $('#formSettingForm .btn-primary').click(function()
+    {
+        saveCustomFields('batchCreateFields', 9, $name, 165);
+        return false;
+    });
 });
 
 $(document).on('change', "[name^='estStarted'], [name^='deadline']", function()
@@ -70,13 +84,29 @@ function setStories(moduleID, executionID, num)
 function copyStoryTitle(num)
 {
     var storyTitle = $('#story' + num).find('option:selected').text();
+    var storyValue = $('#story' + num).find('option:selected').val();
+
+    if(storyValue === 'ditto')
+    {
+        for(var i = num; i <= num && i >= 1; i--)
+        {
+            var selectedValue = $('select[id="story' + i +'"]').val();
+            var selectedTitle = $('select[id="story' + i +'"]').find('option:selected').text();
+            if(selectedValue !== 'ditto')
+            {
+                storyTitle = selectedTitle;
+                break;
+            }
+        }
+    }
+
     startPosition  = storyTitle.indexOf(':') + 1;
     endPosition    = storyTitle.lastIndexOf('[');
     storyTitle     = storyTitle.substr(startPosition, endPosition - startPosition);
 
-    $('#name\\[' + num + '\\]').val(storyTitle);
-    $('#estimate\\[' + num + '\\]').val($('#storyEstimate' + num).val());
-    $('#desc\\[' + num + '\\]').val(($('#storyDesc' + num).val()).replace(/<[^>]+>/g,'').replace(/(\n)+\n/g, "\n").replace(/^\n/g, '').replace(/\t/g, ''));
+    $('#name' + num).val(storyTitle);
+    $('#estimate' + num).val($('#storyEstimate' + num).val());
+    $('#desc' + num).val(($('#storyDesc' + num).val()).replace(/<[^>]+>/g,'').replace(/(\n)+\n/g, "\n").replace(/^\n/g, '').replace(/\t/g, ''));
 
     var storyPri = $('#storyPri' + num).val();
     if(storyPri == 0) $('#pri' + num ).val('3');
@@ -98,7 +128,8 @@ function setStoryRelated(num)
  */
 function setPreview(num)
 {
-    var storyID = $('#story' + num).val();
+    var storyID   = $('#story' + num).val();
+    var storyLink = '#';
     if(storyID != 0  && storyID != 'ditto')
     {
         var link = createLink('story', 'ajaxGetInfo', 'storyID=' + storyID);
@@ -113,15 +144,21 @@ function setPreview(num)
         });
 
         storyLink  = createLink('story', 'view', "storyID=" + storyID);
-        var concat = config.requestType != 'GET' ? '?'  : '&';
-        storyLink  = storyLink + concat + 'onlybody=yes';
+        if(!isonlybody)
+        {
+            var concat = storyLink.indexOf('?') >= 0 ? '&' : '?';
+            storyLink  = storyLink + concat + 'onlybody=yes';
+        }
+
         $('#preview' + num).removeAttr('disabled');
+        $('#preview' + num).modalTrigger({type:'iframe'});
+        $('#preview' + num).css('pointer-events', 'auto');
         $('#preview' + num).attr('href', storyLink);
     }
     else
     {
-        storyLink  = '#';
         $('#preview' + num).attr('disabled', true);
+        $('#preview' + num).css('pointer-events', 'none');
         $('#preview' + num).attr('href', storyLink);
     }
 }

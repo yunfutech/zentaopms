@@ -2,7 +2,7 @@
 /**
  * The diff view file of repo module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2012 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
+ * @copyright   Copyright 2009-2012 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
  * @author      Wang Yidong, Zhu Jinyong
  * @package     repo
  * @version     $Id: browse.html.php $
@@ -11,6 +11,11 @@
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/form.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
+<?php
+$browser = helper::getBrowser();
+js::set('browser', $browser['name']);
+js::set('edition', $config->edition);
+?>
 <?php if(!isonlybody()):?>
 <div id='mainMenu' class='clearfix'>
   <div class='btn-toolbar pull-left'>
@@ -32,7 +37,7 @@
       $paths          = explode('/', $entry);
       $fileName       = array_pop($paths);
       $postPath       = '';
-      $base64BranchID = base64_encode($branchID);
+      $base64BranchID = helper::safe64Encode(base64_encode($branchID));
       foreach($paths as $pathName)
       {
           $postPath .= $pathName . '/';
@@ -55,6 +60,7 @@
   </div>
 </div>
 <?php endif;?>
+<?php if($browser['name'] == 'ie'):?>
 <div class="repo panel">
   <div class='panel-heading'>
     <form method='post'>
@@ -101,8 +107,8 @@
       <?php if($arrange == 'inline'):?>
       <?php foreach($content->lines as $line):?>
       <tr data-line='<?php echo $line->newlc ?>'>
-        <th class='w-num text-right'><?php if($line->type != 'new') echo $line->oldlc?></th>
-        <th class='w-num text-left'><?php if($line->type != 'old') echo $line->newlc?></th>
+        <th class='w-num text'><?php if($line->type != 'new' and $line->oldlc) echo $line->oldlc?></th>
+        <th class='w-num text'><?php if($line->type != 'old' and $line->newlc) echo $line->newlc?></th>
         <td class='line-<?php echo $line->type?> code'><?php
         $line->line = $repo->SCM == 'Subversion' ? htmlSpecialString($line->line) : $line->line;
         echo $line->type == 'old' ? preg_replace('/^\-/', '&ndash;', $line->line) : ($line->type == 'new' ? $line->line : ' ' . $line->line);
@@ -117,7 +123,7 @@
         {
             $oldlc = $line->oldlc;
             $newlc = '';
-            if(isset($content->new[$oldlc]))
+            if(isset($content->new[$oldlc]) and !isset($content->new[$oldlc - 1]))
             {
                 $newlc = $line->oldlc;
                 $line->type = 'custom';
@@ -125,18 +131,18 @@
         }
         else
         {
-            $oldlc = $line->oldlc;
+            $oldlc = $line->oldlc > 0 ? $line->oldlc : ' ';
             $newlc = $line->newlc;
             if(!isset($content->new[$newlc])) continue;
         }
         ?>
-        <th class='w-num text-right'><?php echo $oldlc?></th>
+        <th class='w-num text-center'><?php echo $oldlc?></th>
         <td class='w-code line-<?php if($line->type != 'new')echo $line->type?> <?php if($line->type == 'custom') echo "line-old"?> code'><?php
         if(!isset($content->old[$oldlc])) $content->old[$oldlc] = '';
         $content->old[$oldlc] = $repo->SCM == 'Subversion' ? htmlSpecialString($content->old[$oldlc]) : $content->old[$oldlc];
         if(!empty($oldlc)) echo $line->type != 'all' ? preg_replace('/^\-/', '&ndash;', $content->old[$oldlc]) : ' ' . $content->old[$oldlc];
         ?></td>
-        <th class='w-num text-right'><?php echo $newlc?></th>
+        <th class='w-num text-center'><?php echo $newlc?></th>
         <td class='w-code line-<?php if($line->type != 'old') echo $line->type?> <?php if($line->type == 'custom') echo "line-new"?> code'><?php
         if(!isset($content->new[$newlc])) $content->new[$newlc] = '';
         $content->new[$newlc] = $repo->SCM == 'Subversion' ? htmlSpecialString($content->new[$newlc]) : $content->new[$newlc];
@@ -154,6 +160,9 @@
   </div>
   <?php endforeach?>
 </div>
+<?php elseif($diffs):?>
+<?php include 'diffeditor.html.php';?>
+<?php endif;?>
 <div class='revisions hidden'>
   <?php
   if(strpos($repo->SCM, 'Subversion') === false)

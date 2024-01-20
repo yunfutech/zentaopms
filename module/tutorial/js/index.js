@@ -168,6 +168,9 @@ $(function()
             container = null;
         }
 
+        if($(ele).hasClass('create-bug-btn') || $(ele).hasClass('create-story-btn')) container = '#mainMenu'; // Fix bug #21092.
+        if(!container && $(ele).hasClass('form-control')) container = '.table-form'; // Fix bug #21093
+
         $e.closest('body').find('.tooltip-tutorial').tooltip('destroy');
         var offset   = $e.offset();
         var winWidth = $(window).width();
@@ -357,7 +360,8 @@ $(function()
             else
             {
                 var menuModule = task.nav.menuModule || task.nav['module'];
-                var $navbar = $$('#navbar');
+                var $navbar    = $$('#navbar');
+                if(task.nav.app == 'admin') $navbar = $$('.settings-list');
                 var $navbarItem = $navbar.find('[data-id="' + menuModule + '"]');
                 var targetPageTip = lang.targetPageTip.replace('%s', task.nav.targetPageName || lang.target);
                 if($navbarItem.length && !$navbarItem.hasClass('active'))
@@ -405,6 +409,7 @@ $(function()
                     else
                     {
                         var $modulemenu = $$('#subNavbar');
+                        if(task.nav.app == 'admin') $modulemenu = $$('#navbar');
                         var $modulemenuItem = $modulemenu.find('[data-id="' + task.nav.menu + '"]');
                         if($modulemenuItem.length && !$modulemenuItem.hasClass('active'))
                         {

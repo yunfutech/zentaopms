@@ -2,8 +2,8 @@
 /**
  * The control file of report module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     report
  * @version     $Id: control.php 4622 2013-03-28 01:09:02Z chencongzhi520@gmail.com $
@@ -44,168 +44,7 @@ class report extends control
      */
     public function index()
     {
-        $this->locate(inlink('productSummary'));
-    }
-
-    /**
-     * Project deviation report.
-     *
-     * @access public
-     * @return void
-     */
-    public function projectDeviation($begin = 0, $end = 0)
-    {
-        $this->session->set('executionList', $this->app->getURI(true), 'execution');
-
-        $begin = $begin ? date('Y-m-d', strtotime($begin)) : '';
-        $end   = $end   ? date('Y-m-d', strtotime($end))   : '';
-
-        $this->view->title      = $this->lang->report->projectDeviation;
-        $this->view->position[] = $this->lang->report->projectDeviation;
-
-        $this->view->executions = $this->report->getExecutions($begin, $end);
-        $this->view->begin      = $begin;
-        $this->view->end        = $end;
-        $this->view->submenu    = 'project';
-        $this->display();
-    }
-
-    /**
-     * Product information report.
-     *
-     * @params string $conditions
-     * @access public
-     * @return void
-     */
-    public function productSummary($conditions = '')
-    {
-        $this->app->loadLang('story');
-        $this->app->loadLang('product');
-        $this->app->loadLang('productplan');
-        $this->session->set('productList', $this->app->getURI(true), 'product');
-
-        $this->view->title      = $this->lang->report->productSummary;
-        $this->view->position[] = $this->lang->report->productSummary;
-        $this->view->products   = $this->report->getProducts($conditions);
-        $this->view->users      = $this->loadModel('user')->getPairs('noletter|noclosed');
-        $this->view->submenu    = 'product';
-        $this->view->conditions = $conditions;
-        $this->display();
-    }
-
-    /**
-     * Bug create report.
-     *
-     * @param  int    $begin
-     * @param  int    $end
-     * @param  int    $product
-     * @param  int    $execution
-     * @access public
-     * @return void
-     */
-    public function bugCreate($begin = 0, $end = 0, $product = 0, $execution = 0)
-    {
-        $this->app->loadLang('bug');
-        $begin = $begin == 0 ? date('Y-m-d', strtotime('last month', strtotime(date('Y-m',time()) . '-01 00:00:01'))) : date('Y-m-d', strtotime($begin));
-        $end   = $end == 0   ? date('Y-m-d', strtotime('now')) : $end = date('Y-m-d', strtotime($end));
-
-        $this->view->title      = $this->lang->report->bugCreate;
-        $this->view->position[] = $this->lang->report->bugCreate;
-        $this->view->begin      = $begin;
-        $this->view->end        = $end;
-        $this->view->bugs       = $this->report->getBugs($begin, $end, $product, $execution);
-        $this->view->users      = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
-        $this->view->executions = array('' => '') + $this->report->getProjectExecutions();
-        $this->view->products   = array('' => '') + $this->loadModel('product')->getPairs();
-        $this->view->execution  = $execution;
-        $this->view->product    = $product;
-        $this->view->submenu    = 'test';
-        $this->display();
-    }
-
-    /**
-     * Bug assign report.
-     *
-     * @access public
-     * @return void
-     */
-    public function bugAssign()
-    {
-        $this->session->set('productList', $this->app->getURI(true), 'product');
-
-        $this->view->title      = $this->lang->report->bugAssign;
-        $this->view->position[] = $this->lang->report->bugAssign;
-        $this->view->submenu    = 'test';
-        $this->view->assigns    = $this->report->getBugAssign();
-        $this->view->users      = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
-        $this->display();
-    }
-
-    /**
-     * Workload report.
-     *
-     * @param string $begin
-     * @param string $end
-     * @param int    $days
-     * @param int    $workday
-     * @param int    $dept
-     * @param int    $assign
-     *
-     * @access public
-     * @return void
-     */
-    public function workload($begin = '', $end = '', $days = 0, $workday = 0, $dept = 0, $assign = 'assign')
-    {
-        if($_POST)
-        {
-            $data    = fixer::input('post')->get();
-            $begin   = $data->begin;
-            $end     = $data->end;
-            $dept    = $data->dept;
-            $days    = $data->days;
-            $assign  = $data->assign;
-            $workday = $data->workday;
-        }
-
-        $this->app->loadConfig('execution');
-        $this->session->set('executionList', $this->app->getURI(true), 'execution');
-
-        $begin  = $begin ? strtotime($begin) : time();
-        $end    = $end   ? strtotime($end)   : time() + (7 * 24 * 3600);
-        $end   += 24 * 3600;
-        $beginWeekDay = date('w', $begin);
-        $begin  = date('Y-m-d', $begin);
-        $end    = date('Y-m-d', $end);
-
-        if(empty($workday))$workday = $this->config->execution->defaultWorkhours;
-        $diffDays = helper::diffDate($end, $begin);
-        if($days > $diffDays) $days = $diffDays;
-        if(empty($days))
-        {
-            $weekDay = $beginWeekDay;
-            $days    = $diffDays;
-            for($i = 0; $i < $diffDays; $i++,$weekDay++)
-            {
-                $weekDay = $weekDay % 7;
-                if(($this->config->execution->weekend == 2 and $weekDay == 6) or $weekDay == 0) $days --;
-            }
-        }
-
-        $this->view->title      = $this->lang->report->workload;
-        $this->view->position[] = $this->lang->report->workload;
-
-        $this->view->workload = $this->report->getWorkload($dept, $assign);
-        $this->view->users    = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
-        $this->view->depts    = $this->loadModel('dept')->getOptionMenu();
-        $this->view->begin    = $begin;
-        $this->view->end      = date('Y-m-d', strtotime($end) - 24 * 3600);
-        $this->view->days     = $days;
-        $this->view->workday  = $workday;
-        $this->view->dept     = $dept;
-        $this->view->assign   = $assign;
-        $this->view->allHour  = $days * $workday;
-        $this->view->submenu  = 'staff';
-        $this->display();
+        $this->locate(inlink('annualData'));
     }
 
     /**
@@ -289,6 +128,10 @@ class report extends control
         $this->app->loadLang('task');
         $this->app->loadLang('bug');
         $this->app->loadLang('testcase');
+        $this->loadModel('dept');
+        $this->loadModel('user');
+
+        $super = common::hasPriv('report', 'allAnnualData');
 
         $firstAction = $this->dao->select('*')->from(TABLE_ACTION)->orderBy('id')->limit(1)->fetch();
         $currentYear = date('Y');
@@ -311,29 +154,35 @@ class report extends control
         }
 
         /* Get users and depts. */
-        $users     = $this->loadModel('user')->getPairs('noletter|useid|noclosed');
-        $users[''] = $this->lang->report->annualData->allUser;
-
-        $depts = $this->loadModel('dept')->getOptionMenu();
-        $depts = array('' => $this->lang->report->annualData->allDept) + $depts;
-        if(empty($userID)) unset($depts[0]);
-
         $accounts = array();
-        if($dept) $accounts = $this->loadModel('dept')->getDeptUserPairs($dept);
         if($userID)
         {
-            $user = $this->loadModel('user')->getById($userID, 'id');
-            $dept = $user->dept;
+            $user     = $this->user->getById($userID, 'id');
+            $dept     = $user->dept;
+            $users    = array('' => $this->lang->report->annualData->allUser) + $this->dept->getDeptUserPairs($dept, 'id');
             $accounts = array($user->account => ($user->realname ? $user->realname : $user->account));
         }
-        if(empty($accounts)) $accounts = $this->user->getPairs('noletter|noclosed');
-        if($accounts) $accounts = array_keys($accounts);
-
-        if($dept)
+        else
         {
-            $users = $this->loadModel('dept')->getDeptUserPairs($dept, 'id');
-            $users = array('' => $this->lang->report->annualData->allUser) + $users;
+            $users    = array('' => $this->lang->report->annualData->allUser) + $this->dept->getDeptUserPairs($dept, 'id');
+            $accounts = $this->dept->getDeptUserPairs($dept);
         }
+
+        $noDepartment = array('0' => '/' . $this->lang->dept->noDepartment);
+        $depts        = $this->dept->getOptionMenu();
+        if(!$super)
+        {
+            $depts = ($dept and isset($depts[$dept])) ? array($dept => $depts[$dept]) : $noDepartment;
+        }
+        else
+        {
+            $depts = array('' => $this->lang->report->annualData->allDept) + $depts;
+
+            unset($depts[0]);
+            $depts += $noDepartment;
+        }
+
+        if($accounts) $accounts = array_keys($accounts);
 
         /* Get annual data. */
         $data = array();
@@ -345,6 +194,7 @@ class report extends control
         {
             $data['logins'] = $this->report->getUserYearLogins($accounts, $year);
         }
+
         $data['actions']       = $this->report->getUserYearActions($accounts, $year);
         $data['todos']         = $this->report->getUserYearTodos($accounts, $year);
         $data['contributions'] = $this->report->getUserYearContributions($accounts, $year);
@@ -360,15 +210,49 @@ class report extends control
 
         if(empty($dept) and empty($userID)) $data['statusStat'] = $this->report->getAllTimeStatusStat();
 
-        $this->view->title  = sprintf($this->lang->report->annualData->title, ($userID ? zget($users, $userID, '') : ($dept ? substr($depts[$dept], strrpos($depts[$dept], '/') + 1) : $depts[''])), $year);
-        $this->view->data   = $data;
-        $this->view->year   = $year;
-        $this->view->users  = $users;
-        $this->view->depts  = $depts;
-        $this->view->years  = $years;
-        $this->view->dept   = $dept;
-        $this->view->userID = $userID;
-        $this->view->months = $this->report->getYearMonths($year);
+        $contributionGroups = array();
+        $maxCount           = 0;
+        $contributions      = 0;
+        foreach($years as $yearValue)
+        {
+            $contributionList  = $this->report->getUserYearContributions($accounts, $yearValue);
+            $contributionCount = 0;
+            $max               = 0;
+            $radarData         = array('product' => 0, 'execution' => 0, 'devel' => 0, 'qa' => 0, 'other' => 0);
+            foreach($contributionList as $objectType => $objectContributions)
+            {
+                $sum = array_sum($objectContributions);
+                if($sum > $max) $max = $sum;
+                $contributionCount += $sum;
+
+                foreach($objectContributions as $actionName => $count)
+                {
+                    $radarTypes = isset($this->config->report->annualData['radar'][$objectType][$actionName]) ? $this->config->report->annualData['radar'][$objectType][$actionName] : array('other');
+                    foreach($radarTypes as $radarType) $radarData[$radarType] += $count;
+                }
+                $contributionGroups[$yearValue] = $radarData;
+            }
+
+            if($yearValue == $year)
+            {
+                $maxCount      = $max;
+                $contributions = $contributionCount;
+            }
+        }
+
+        $this->view->title  = sprintf($this->lang->report->annualData->title, ($userID ? zget($users, $userID, '') : (($dept !== '') ? substr($depts[$dept], strrpos($depts[$dept], '/') + 1) : $depts[''])), $year);
+        $this->view->data               = $data;
+        $this->view->year               = $year;
+        $this->view->users              = $users;
+        $this->view->depts              = $depts;
+        $this->view->years              = $years;
+        $this->view->dept               = $dept;
+        $this->view->userID             = $userID;
+        $this->view->months             = $this->report->getYearMonths($year);
+        $this->view->contributionGroups = $contributionGroups;
+        $this->view->radarData          = $contributionGroups[$year];
+        $this->view->maxCount           = $maxCount;
+        $this->view->contributions      = $contributions;
 
         $this->display();
     }

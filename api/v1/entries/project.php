@@ -2,8 +2,8 @@
 /**
  * The project entry point of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2021 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2021 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     entries
  * @version     1
@@ -16,7 +16,7 @@ class projectEntry extends entry
      *
      * @param  int    $projectID
      * @access public
-     * @return void
+     * @return string
      */
     public function get($projectID)
     {
@@ -62,6 +62,11 @@ class projectEntry extends entry
 
                     $project->teams = $teams;
                     break;
+                case "products":
+                    $project->products = array();
+                    $productList = $this->loadModel('product')->getProducts($projectID, $this->param('status', 'all'));
+                    foreach($productList as $product) $project->products[] = $product;
+                    break;
                 case "stat":
                     $project->stat = $data->data->statData;
                     break;
@@ -89,7 +94,7 @@ class projectEntry extends entry
      *
      * @param  int    $projectID
      * @access public
-     * @return void
+     * @return string
      */
     public function put($projectID)
     {
@@ -97,7 +102,7 @@ class projectEntry extends entry
         $linkedProducts = $this->loadModel('product')->getProducts($projectID);
 
         /* Set $_POST variables. */
-        $fields = 'name,begin,end,acl,parent,desc,PM,whitelist';
+        $fields = 'name,code,begin,end,acl,parent,desc,PM,whitelist,model';
         $this->batchSetPost($fields, $oldProject);
 
         $products = array();
@@ -118,7 +123,7 @@ class projectEntry extends entry
         if(!isset($data->result)) return $this->sendError(400, 'error');
 
         $project = $this->project->getByID($projectID);
-        $this->send(200, $this->format($project, 'openedBy:user,openedDate:time,lastEditedBy:user,lastEditedDate:time,closedBy:user,closedDate:time,canceledBy:user,canceledDate:time,realBegan:date,realEnd:date,PM:user,whitelist:userList,deleted:bool'));
+        return $this->send(200, $this->format($project, 'openedBy:user,openedDate:time,lastEditedBy:user,lastEditedDate:time,closedBy:user,closedDate:time,canceledBy:user,canceledDate:time,realBegan:date,realEnd:date,PM:user,whitelist:userList,deleted:bool'));
     }
 
     /**
@@ -126,7 +131,7 @@ class projectEntry extends entry
      *
      * @param  int    $projectID
      * @access public
-     * @return void
+     * @return string
      */
     public function delete($projectID)
     {
@@ -134,6 +139,6 @@ class projectEntry extends entry
         $control->delete($projectID, 'yes');
 
         $this->getData();
-        $this->sendSuccess(200, 'success');
+        return $this->sendSuccess(200, 'success');
     }
 }

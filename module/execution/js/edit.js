@@ -37,40 +37,106 @@ $().ready(function()
 
 $(function()
 {
-    /* If the story of the product which linked the execution under the project, you don't allow to remove the product. */
-    $("#productsBox select[name^='products']").each(function()
+    $(document).on('change', '[name*=products]', function()
     {
-        var isExistedProduct = $.inArray($(this).attr('data-last'), unmodifiableProducts);
-        var productType      = $(this).attr('data-type');
-        if(isExistedProduct != -1 && productType == 'normal')
-        {
-            $(this).prop('disabled', true).trigger("chosen:updated");
-            $(this).siblings('div').find('span').attr('title', tip);
-        }
-    });
+        var current    = $(this).val();
+        var last       = $(this).attr('data-last');
+        var lastBranch = $(this).attr('data-lastBranch') !== undefined ? $(this).attr('data-lastBranch') : 0;
 
-    $("#productsBox select[name^='branch']").each(function()
-    {
-        var isExistedBranch = $.inArray($(this).attr('data-last'), unmodifiableBranches);
-        if(isExistedBranch != -1)
+        $(this).attr('data-last', current);
+
+        var $branch = $(this).closest('.has-branch').find("[name^='branch']");
+        if($branch.length)
         {
-            var $product = $(this).closest('.has-branch').find("[name^='products']");
-            if($.inArray($product.val(), unmodifiableProducts) != -1)
+            var branchID = $branch.val();
+            $(this).attr('data-lastBranch', branchID);
+        }
+        else
+        {
+            $(this).removeAttr('data-lastBranch');
+        }
+
+        if(current != last && $.inArray(last, unmodifiableProducts) != -1)
+        {
+            if(lastBranch != 0)
             {
-                $(this).prop('disabled', true).trigger("chosen:updated");
-                $product.prop('disabled', true).trigger("chosen:updated");
-                $product.siblings('div').find('span').attr('title', tip);
+                if($.inArray(lastBranch, unmodifiableBranches) != -1)
+                {
+                    if(linkedStoryIDList[last][lastBranch]) bootbox.alert(unLinkProductTip.replace("%s", allProducts[last] + branchGroups[last][lastBranch]));
+                }
+            }
+            else
+            {
+                bootbox.alert(unLinkProductTip.replace("%s", allProducts[last]));
             }
         }
     });
 
-    oldProject = $("#project").val();
-    $('#project').change(function()
+    $(document).on('change', '[name*=branch]', function()
     {
-        if($('#submit').closest('td').find('#syncStories').length == 0)
+        var current = $(this).val();
+        var last    = $(this).attr('data-last');
+        $(this).attr('data-last', current);
+
+        var $product = $(this).closest('.has-branch').find("[name^='products']");
+        $product.attr('data-lastBranch', current);
+
+        if($.inArray(last, unmodifiableBranches) != -1)
         {
-            $('#submit').after("<input type='hidden' id='syncStories' name='syncStories' value='no' />");
+            var productID = $product.val();
+            if($.inArray(productID, unmodifiableProducts) != -1 && linkedStoryIDList[productID][last])
+            {
+                bootbox.alert(tip.replace('%s', linkedStoryIDList[productID][last]));
+            }
         }
-        $("#syncStories").val(confirm(confirmSyncStories) ? 'yes' : 'no');
     });
+
+    /* Init. */
+    $("select[id^=branch]").each(disableSelectedBranch);
+    disableSelectedProduct();
+
+    /* Check the all products and branches control when uncheck the product. */
+    $(document).on('change', "select[id^='products']", function()
+    {
+        if($(this).val() == 0)
+        {
+            $("select[id^='branch']").each(disableSelectedBranch);
+
+            disableSelectedProduct();
+        }
+    });
+
+    $(document).on('change', "select[id^='branch']", disableSelectedBranch);
+
+    if($('.disabledBranch').length > 0)
+    {
+        $('.disabledBranch div[id^="branch"]').addClass('chosen-disabled');
+    }
+
+    $('[data-toggle="popover"]').popover();
+
+    if(isWaterfall)
+    {
+        hidePlanBox(executionAttr);
+    }
 })
+var lastProjectID = $("#project").val();
+
+function changeProject(projectID)
+{
+    if($('#submit').closest('td').find('#syncStories').length == 0)
+    {
+        $('#submit').after("<input type='hidden' id='syncStories' name='syncStories' value='no' />");
+    }
+
+    var confirmVal = confirm(confirmSync);
+    $("#syncStories").val(confirmVal ? 'yes' : 'no');
+
+    if(!confirmVal)
+    {
+        $('#project').val(lastProjectID).trigger("chosen:updated");
+        return false;
+    }
+
+    lastProjectID = projectID;
+};

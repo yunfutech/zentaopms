@@ -1,5 +1,35 @@
 $(function()
 {
+    if($('#storyList thead th.c-title').width() < 150) $('#storyList thead th.c-title').width(150);
+
+    if(isDropMenu)
+    {
+        $('#navbar .nav li').removeClass('active');
+        $("#navbar .nav li[data-id=" + storyType + ']').addClass('active');
+
+        $('#navbar .nav>li[data-id=story]').addClass('active');
+        $('#navbar .nav>li[data-id=story]>a').html($('.active [data-id=' + storyType + ']').text() + '<span class="caret"></span>');
+    }
+
+    $('#storyList td.has-child .story-toggle').each(function()
+    {
+        var $td = $(this).closest('td');
+        var labelWidth = 0;
+        if($td.find('.label').length > 0) labelWidth = $td.find('.label').width();
+        $td.find('a').eq(0).css('max-width', $td.width() - labelWidth - 60);
+    });
+
+    $(document).on('click', '.story-toggle', function(e)
+    {   
+        var $toggle = $(this);
+        var id = $(this).data('id');
+        var isCollapsed = $toggle.toggleClass('collapsed').hasClass('collapsed');
+        $toggle.closest('[data-ride="table"]').find('tr.parent-' + id).toggle(!isCollapsed);
+
+        e.stopPropagation();
+        e.preventDefault();
+    });
+
     $('#storyList').on('sort.sortable', function(e, data)
     {
         var list = '';
@@ -9,8 +39,8 @@ $(function()
             var $target = $(data.element[0]);
             $target.hide();
             $target.fadeIn(1000);
-            order = 'order_asc'
-            history.pushState({}, 0, createLink('project', 'story', "executionID=" + executionID + '&orderBy=' + order));
+            order = 'order_desc'
+            history.pushState({}, 0, createLink('execution', 'story', "executionID=" + executionID + '&orderBy=' + order));
         });
     });
 
@@ -25,12 +55,12 @@ $(function()
         var planID = $('#plan').val();
         if(planID)
         {
-            parent.location.href = createLink('execution', 'importPlanStories', 'executionID=' + executionID + '&planID=' + planID);
+            location.href = createLink('execution', 'importPlanStories', 'executionID=' + executionID + '&planID=' + planID);
         }
     })
 
     /* Get checked stories. */
-    $('#batchToTaskButton').on('click', function()
+    $(document).on('click', '#batchToTaskButton', function()
     {
         storyIdList      = '';
         linedTaskIdList  = '';
@@ -47,10 +77,34 @@ $(function()
             }
             storyIdList += $(this).val() + ',';
         });
+
+        $('#type').val('').trigger("chosen:updated");
+        $('#hourPointValue').val('');
+        $('input[name^=fields]').prop('checked', true);
     });
 
     $('#submit').click(function()
     {
+        var taskType  = $('#type').val();
+        var hourPoint = $('#hourPointValue').val();
+        if(taskType.length == 0)
+        {
+            alert(typeNotEmpty);
+            return false;
+        }
+
+        if(hourPoint == 0)
+        {
+            alert(hourPointNotEmpty);
+            return false;
+        }
+        else if(typeof(hourPoint) != 'undefined' && (isNaN(hourPoint) || hourPoint < 0))
+        {
+            alert(hourPointNotError);
+            return false;
+        }
+        hourPoint = typeof(hourPoint) == 'undefined' ? 0 : hourPoint;
+
         if(linedTaskIdList)
         {
             confirmStoryToTask = confirmStoryToTask.replace('%s', linedTaskIdList);
@@ -60,6 +114,8 @@ $(function()
             }
             else
             {
+                if(!unlinkTaskIdList) return false;
+
                 $('#storyIdList').val(unlinkTaskIdList);
             }
         }
@@ -70,6 +126,13 @@ $(function()
     });
 
     $('.sorter-false a').unwrap();
+
+    /* The display of the adjusting sidebarHeader is synchronized with the sidebar. */
+    $(".sidebar-toggle").click(function()
+    {
+        $("#sidebarHeader").toggle("fast");
+    });
+    if($("main").is(".hide-sidebar")) $("#sidebarHeader").hide();
 });
 
 /**

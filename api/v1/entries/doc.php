@@ -2,8 +2,8 @@
 /**
  * The doc entry point of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2021 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2021 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     entries
  * @version     1
@@ -16,7 +16,7 @@ class docEntry extends entry
      *
      * @param  int    $docID
      * @access public
-     * @return void
+     * @return string
      */
     public function get($docID)
     {
@@ -43,7 +43,7 @@ class docEntry extends entry
         $doc->preAndNext['pre']  = $preAndNext->pre  ? $preAndNext->pre->id : '';
         $doc->preAndNext['next'] = $preAndNext->next ? $preAndNext->next->id : '';
 
-        $this->send(200, $this->format($doc, 'addedBy:user,addedDate:time,assignedTo:user,assignedDate:date,editedBy:user,editedDate:time,mailto:userList'));
+        return $this->send(200, $this->format($doc, 'addedBy:user,addedDate:time,assignedTo:user,assignedDate:date,editedBy:user,editedDate:time,mailto:userList'));
     }
 
     /**
@@ -51,7 +51,7 @@ class docEntry extends entry
      *
      * @param  int    $storyID
      * @access public
-     * @return void
+     * @return string
      */
     public function put($storyID)
     {
@@ -67,7 +67,7 @@ class docEntry extends entry
 
         $this->getData();
         $story = $this->story->getByID($storyID);
-        $this->sendSuccess(200, $this->format($story, 'openedDate:time,assignedDate:time,reviewedDate:time,lastEditedDate:time,closedDate:time,deleted:bool'));
+        return $this->sendSuccess(200, $this->format($story, 'openedDate:time,assignedDate:time,reviewedDate:time,lastEditedDate:time,closedDate:time,deleted:bool'));
     }
 
     /**
@@ -75,7 +75,7 @@ class docEntry extends entry
      *
      * @param  int    $storyID
      * @access public
-     * @return void
+     * @return string
      */
     public function delete($storyID)
     {
@@ -83,6 +83,6 @@ class docEntry extends entry
         $control->delete($storyID, 'yes');
 
         $this->getData();
-        $this->sendSuccess(200, 'success');
+        return $this->sendSuccess(200, 'success');
     }
 }

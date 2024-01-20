@@ -2,8 +2,8 @@
 /**
  * The project view file of dashboard module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     dashboard
  * @version     $Id: project.html.php 4129 2013-01-18 01:58:14Z wwccss $
@@ -33,12 +33,12 @@
         <?php foreach($executions as $execution):?>
         <?php $executionLink = $this->createLink('execution', 'view', "executionID=$execution->id");?>
         <tr>
-          <td><?php echo html::a($executionLink, $execution->id);?></td>
+          <td><?php echo html::a($executionLink, $execution->id, '', "data-app='execution'");?></td>
           <td>
             <?php if($this->config->edition == 'max'):?>
             <span class='project-type-label label label-info label-outline'><?php echo zget($lang->user->executionTypeList, $execution->type);?></span>
             <?php endif;?>
-            <?php echo html::a($executionLink, $execution->name);?>
+            <?php echo html::a($executionLink, $execution->name, '', "data-app='execution'");?>
           </td>
           <?php if(isset($execution->delay)):?>
           <td class='project-delay'><?php echo $lang->execution->delayed;?></td>

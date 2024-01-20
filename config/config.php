@@ -16,14 +16,15 @@ if(!class_exists('config')){class config{}}
 if(!function_exists('getWebRoot')){function getWebRoot(){}}
 
 /* 基本设置。Basic settings. */
-$config->version       = '16.5';               // ZenTaoPHP的版本。 The version of ZenTaoPHP. Don't change it.
-$config->liteVersion   = '1.0';                // 迅捷版版本。      The version of Lite.
+$config->version       = '18.4.alpha1';        // ZenTaoPHP的版本。 The version of ZenTaoPHP. Don't change it.
+$config->liteVersion   = '1.2';                // 迅捷版版本。      The version of Lite.
 $config->charset       = 'UTF-8';              // ZenTaoPHP的编码。 The encoding of ZenTaoPHP.
 $config->cookieLife    = time() + 2592000;     // Cookie的生存时间。The cookie life time.
 $config->timezone      = 'Asia/Shanghai';      // 时区设置。        The time zone setting, for more see http://www.php.net/manual/en/timezones.php.
 $config->webRoot       = '';                   // URL根目录。       The root path of the url.
 $config->customSession = false;                // 是否开启自定义session的存储路径。Whether custom the session save path.
 $config->edition       = 'open';               // 设置系统的edition，可选值：open|biz|max。Set edition, optional: open|biz|max.
+$config->tabSession    = false;                 // 是否开启浏览器新标签独立session.
 
 /* 框架路由相关设置。Routing settings. */
 $config->requestType = 'PATH_INFO';               // 请求类型：PATH_INFO|PATHINFO2|GET。    The request type: PATH_INFO|PATH_INFO2|GET.
@@ -40,8 +41,8 @@ $config->themes['default'] = 'default';
 $config->langs['zh-cn']    = '简体';
 $config->langs['zh-tw']    = '繁體';
 $config->langs['en']       = 'English';
-//$config->langs['de']       = 'Deutsch';
-//$config->langs['fr']       = 'Français';
+$config->langs['de']       = 'Deutsch';
+$config->langs['fr']       = 'Français';
 //$config->langs['vi']       = 'Tiếng Việt';
 //$config->langs['ja']       = '日本語';
 
@@ -96,6 +97,11 @@ $config->domainPostfix .= "|international|house|coffee|florist|rich|ceo|camp|edu
 $config->CSPs = array();
 $config->CSPs[] = "form-action 'self';connect-src 'self'";
 
+/* Config for kanban col setting */
+$config->colWidth    = 264;
+$config->minColWidth = 200;
+$config->maxColWidth = 384;
+
 /* 系统框架配置。Framework settings. */
 $config->framework = new stdclass();
 $config->framework->autoConnectDB   = true;  // 是否自动连接数据库。              Whether auto connect database or not.
@@ -124,9 +130,9 @@ $config->framework->sendXDO         = true;   // Send X-Download-Options header.
 $config->framework->detectDevice['zh-cn'] = true; // 在zh-cn语言情况下，是否启用设备检测功能。 Whether enable device detect or not.
 $config->framework->detectDevice['zh-tw'] = true; // 在zh-tw语言情况下，是否启用设备检测功能。 Whether enable device detect or not.
 $config->framework->detectDevice['en']    = true; // 在en语言情况下，是否启用设备检测功能。    Whether enable device detect or not.
-$config->framework->detectDevice['de']    = true; // 在en语言情况下，是否启用设备检测功能。    Whether enable device detect or not.
-$config->framework->detectDevice['fr']    = true; // 在en语言情况下，是否启用设备检测功能。    Whether enable device detect or not.
-$config->framework->detectDevice['vi']    = true; // 在en语言情况下，是否启用设备检测功能。    Whether enable device detect or not.
+$config->framework->detectDevice['de']    = true; // 在de语言情况下，是否启用设备检测功能。    Whether enable device detect or not.
+$config->framework->detectDevice['fr']    = true; // 在fr语言情况下，是否启用设备检测功能。    Whether enable device detect or not.
+$config->framework->detectDevice['vi']    = true; // 在vi语言情况下，是否启用设备检测功能。    Whether enable device detect or not.
 
 /* IP white list settings.*/
 $config->ipWhiteList   = '*';
@@ -146,7 +152,7 @@ $config->file->allowed     = 'txt,doc,docx,dot,wps,wri,pdf,ppt,pptx,xls,xlsx,ett
 $config->file->storageType = 'fs';         // fs or s3
 
 /* Upload settings. */
-$config->allowedTags = '<p><span><h1><h2><h3><h4><h5><em><u><strong><br><ol><ul><li><img><a><b><font><hr><pre><div><table><td><th><tr><tbody><embed><style>';
+$config->allowedTags = '<p><span><h1><h2><h3><h4><h5><em><u><strong><br><ol><ul><li><img><a><b><font><hr><pre><div><table><td><th><tr><tbody><embed><style><s>';
 $config->accountRule = '|^[a-zA-Z0-9_]{1}[a-zA-Z0-9_\.]{1,}[a-zA-Z0-9_]{1}$|';
 $config->checkVersion = true;              // Auto check for new version or not.
 
@@ -172,6 +178,10 @@ if(file_exists($myConfig)) include $myConfig;
 /* 禅道配置文件。zentaopms settings. */
 $zentaopmsConfig = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'zentaopms.php';
 if(file_exists($zentaopmsConfig)) include $zentaopmsConfig;
+
+/* 数据表格操作配置文件。dtable actions settings. */
+$actionsMapConfig = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'actionsmap.php';
+if(file_exists($actionsMapConfig)) include $actionsMapConfig;
 
 /* API路由配置。API route settings. */
 $routesConfig = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'routes.php';

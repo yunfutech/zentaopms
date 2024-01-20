@@ -2,8 +2,8 @@
 /**
  * The batch create view of story module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Yangyang Shi <shiyangyang@cnezsoft.com>
  * @package     story
  * @version     $Id$
@@ -11,18 +11,46 @@
  */
 ?>
 <?php include '../../common/view/header.html.php';?>
+<?php $browseLink = $this->createLink('gitlab', 'browse', ""); ?>
+<?php js::set('zentaoUsers', $zentaoUsers);?>
 <div id="mainContent" class="main-content">
-  <div class="main-header">
-    <h2><?php echo $lang->gitlab->bindUser;?></h2>
+  <div class="main-header gitlab-bind">
+    <?php 
+    echo html::linkButton('<i class="icon icon-back icon-sm"></i> ' . $lang->goback, $browseLink, 'self', "data-app='{$app->tab}'", 'btn btn-secondary');
+
+    $allLink     = $this->createLink('gitlab', 'binduser', "gitlabID={$gitlabID}&type=all");
+    $bindedLink  = $this->createLink('gitlab', 'binduser', "gitlabID={$gitlabID}&type=binded");
+    $notBindLink = $this->createLink('gitlab', 'binduser', "gitlabID={$gitlabID}&type=notBind");
+    if($type == 'all')
+    {
+        echo html::linkButton('' . $lang->gitlab->all . "<span class='gitlab-bind-all'>" . count($gitlabUsers) . "</span>", $allLink, 'self', "data-app='{$app->tab}'", 'btn btn-info active');
+        echo html::linkButton('' . $lang->gitlab->notBind, $notBindLink, 'self', "data-app='{$app->tab}'", 'btn btn-info');
+        echo html::linkButton('' . $lang->gitlab->binded, $bindedLink, 'self', "data-app='{$app->tab}'", 'btn btn-info');
+    }
+    else if($type == 'binded')
+    {
+        echo html::linkButton('' . $lang->gitlab->all, $allLink, 'self', "data-app='{$app->tab}'", 'btn btn-info');
+        echo html::linkButton('' . $lang->gitlab->notBind, $notBindLink, 'self', "data-app='{$app->tab}'", 'btn btn-info');
+        echo html::linkButton('' . $lang->gitlab->binded . "<span class='gitlab-bind-all'>" . count($gitlabUsers) . "</span>", $bindedLink, 'self', "data-app='{$app->tab}'", 'btn btn-info active');
+    }
+    else
+    {
+        echo html::linkButton('' . $lang->gitlab->all, $allLink, 'self', "data-app='{$app->tab}'", 'btn btn-info');
+        echo html::linkButton('' . $lang->gitlab->notBind . "<span class='gitlab-bind-all'>" . count($gitlabUsers) . "</span>", $notBindLink, 'self', "data-app='{$app->tab}'", 'btn btn-info active');
+        echo html::linkButton('' . $lang->gitlab->binded, $bindedLink, 'self', "data-app='{$app->tab}'", 'btn btn-info');
+    }
+    ?>
   </div>
   <form method='post' class='load-indicator main-form form-ajax' enctype='multipart/form-data'>
     <div class="table-responsive">
-      <table class="table table-borderless w-600px">
+      <table class="table table-borderless">
         <thead>
           <tr>
-            <th colspan='2'><?php echo $lang->gitlab->gitlabAccount;?></th>
-            <th class='w-150px'><?php echo $lang->gitlab->zentaoAccount;?></th>
-            <th class='w-150px'><?php echo $lang->gitlab->bindingStatus;?></th>
+            <th><?php echo $lang->gitlab->gitlabAccount;?></th>
+            <th><?php echo $lang->gitlab->gitlabEmail;?></th>
+            <th><?php echo $lang->gitlab->zentaoEmail;?></th>
+            <th class="w-400px"><?php echo $lang->gitlab->zentaoAccount;?> <span class="gitlab-account-desc"><?php echo $lang->gitlab->accountDesc;?></span></th>
+            <th><?php echo $lang->gitlab->bindingStatus;?></th>
           </tr>
         </thead>
         <tbody>
@@ -30,31 +58,29 @@
           <?php if(isset($gitlabUser->zentaoAccount)) continue;?>
           <?php echo html::hidden("gitlabUserNames[$gitlabUser->id]", $gitlabUser->realname);?>
           <tr>
-            <td class='w-60px'><?php echo html::image($gitlabUser->avatar, "height=40");?></td>
-            <td class='text-left'>
-              <strong><?php echo $gitlabUser->realname;?></strong>
-              <br>
-              <?php echo $gitlabUser->account;?>
-              <?php if($gitlabUser->email) echo " &lt;" . $gitlabUser->email . "&gt;";?>
+            <td>
+              <?php echo html::image($gitlabUser->avatar, "height=20 width=20 class='img-circle'");?>
+              <?php echo $gitlabUser->realname . '@' . $gitlabUser->account;?>
             </td>
-            <td><?php echo html::select("zentaoUsers[$gitlabUser->id]", $userPairs, '', "class='form-control select chosen'" );?></td>
-            <td><?php echo $lang->gitlab->notBind;?></td>
+            <td><?php echo $gitlabUser->email;?></td>
+            <td class="email"><?php echo !empty($matchedResult[$gitlabUser->email]) ? $matchedResult[$gitlabUser->email]['email'] : '';?></td>
+            <td class='gitlab-user-select'><?php echo html::select("zentaoUsers[$gitlabUser->id]", $userPairs, '', "class='form-control select chosen gitlab-user-bind'" );?></td>
+            <td><?php echo '<span class="text-red">' . $lang->gitlab->notBind . '</span>';?></td>
           </tr>
           <?php endforeach;?>
           <?php foreach($gitlabUsers as $gitlabUser):?>
           <?php if(!isset($gitlabUser->zentaoAccount)) continue;?>
           <?php echo html::hidden("gitlabUserNames[$gitlabUser->id]", $gitlabUser->realname);?>
           <tr>
-            <td class='w-60px'><?php echo html::image($gitlabUser->avatar, "height=40");?></td>
             <td>
-              <strong><?php echo $gitlabUser->realname;?></strong>
-              <br>
-              <?php echo $gitlabUser->account;?>
-              <?php if($gitlabUser->email) echo " &lt;" . $gitlabUser->email . "&gt;";?>
+              <?php echo html::image($gitlabUser->avatar, "height=20 width=20 class='img-circle'");?>
+              <?php echo $gitlabUser->realname . '@' . $gitlabUser->account;?>
             </td>
-            <td><?php echo html::select("zentaoUsers[$gitlabUser->id]", $userPairs, $gitlabUser->zentaoAccount, "class='form-control select chosen'" );?></td>
+            <td><?php echo $gitlabUser->email;?></td>
+            <td class="email"><?php echo !empty($matchedResult[$gitlabUser->email]) ? $matchedResult[$gitlabUser->email]['email'] : '';?></td>
+            <td class='gitlab-user-select'><?php echo html::select("zentaoUsers[$gitlabUser->id]", $userPairs, $gitlabUser->zentaoAccount, "class='form-control select chosen gitlab-user-bind'" );?></td>
             <td>
-              <?php if(isset($bindedUsers[$gitlabUser->zentaoAccount])):?>
+              <?php if(in_array($gitlabUser->id, $bindedUsers)):?>
               <?php $zentaoAccount = zget($userPairs, $gitlabUser->zentaoAccount, '');?>
               <?php if(!empty($zentaoAccount)):?>
               <?php echo $lang->gitlab->binded;?>
@@ -62,7 +88,7 @@
               <?php echo '<span class="text-red">' . $lang->gitlab->bindedError . '</span>';?>
               <?php endif;?>
               <?php else:?>
-              <?php echo $lang->gitlab->notBind;?>
+              <?php echo '<span class="text-red">' . $lang->gitlab->notBind . '</span>';?>
               <?php endif;?>
             </td>
           </tr>
@@ -70,7 +96,7 @@
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="3" class="text-center form-actions">
+            <td colspan="5" class="text-center form-actions">
               <?php echo html::submitButton();?>
               <?php if(!isonlybody()) echo html::a(inlink('browse', ""), $lang->goback, '', 'class="btn btn-wide"');?>
             </td>

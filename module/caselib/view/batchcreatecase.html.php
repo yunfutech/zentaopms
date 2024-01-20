@@ -2,8 +2,8 @@
 /**
  * The batch create case view of caselib module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Yidong Wang <yidong@cnezsoft.com>
  * @package     caselib
  * @version     $Id$
@@ -25,20 +25,25 @@
       <thead>
         <tr class='text-center'>
           <th class='c-id'><?php echo $lang->idAB;?></th>
-          <th class='c-module'><?php echo $lang->testcase->module;?></th>
+          <th class='c-module<?php echo strpos($config->testcase->create->requiredFields, 'module') !== false ? ' required' : '';?>'><?php echo $lang->testcase->module;?></th>
           <th class='required'><?php echo $lang->testcase->title;?></th>
           <th class='c-status required'><?php echo $lang->testcase->type;?></th>
-          <th class='c-status'><?php echo $lang->testcase->pri;?></th>
-          <th class='c-text'><?php echo $lang->testcase->precondition;?></th>
-          <th class='c-text'><?php echo $lang->testcase->keywords;?></th>
-          <th class='c-text'><?php echo $lang->testcase->stage;?></th>
+          <th class='c-status<?php  echo strpos($config->testcase->create->requiredFields, 'pri') !== false ? ' required' : '';?>'><?php echo $lang->testcase->pri;?></th>
+          <th class='c-text<?php  echo strpos($config->testcase->create->requiredFields, 'precondition') !== false ? ' required' : '';?>'><?php echo $lang->testcase->precondition;?></th>
+          <th class='c-text<?php  echo strpos($config->testcase->create->requiredFields, 'keywords') !== false ? ' required' : '';?>'><?php echo $lang->testcase->keywords;?></th>
+          <th class='c-text<?php  echo strpos($config->testcase->create->requiredFields, 'stage') !== false ? ' required' : '';?>'><?php echo $lang->testcase->stage;?></th>
         </tr>
       </thead>
       <tbody>
       <?php unset($lang->testcase->typeList['']);?>
       <?php for($i = 0; $i < $config->testcase->batchCreate; $i++):?>
       <?php
-      if($i != 0) $currentModuleID = 'ditto';
+      if($i != 0)
+      {
+          $currentModuleID = 'ditto';
+          $moduleOptionMenu['ditto'] = $this->lang->testcase->ditto;
+      }
+
       if($i != 0) $lang->testcase->typeList['ditto'] = $lang->testcase->ditto;
       if($i != 0) $lang->testcase->priList['ditto']  = $lang->testcase->ditto;
       $type = $i == 0 ? 'feature' : 'ditto';

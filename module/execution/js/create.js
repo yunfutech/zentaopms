@@ -5,7 +5,11 @@ function setCopyProject(executionID)
 
 $(function()
 {
-    $('#copyProjects a').click(function(){setCopyProject($(this).data('id')); $('#copyProjectModal').modal('hide')});
+    $(document).on('click', '#copyProjects a', function()
+    {
+        setCopyProject($(this).data('id')); $('#copyProjectModal').modal('hide');
+    });
+
     $('#begin').on('change', function()
     {
        $("#end").val('');
@@ -33,34 +37,34 @@ $(function()
     /* Assign value to the manage products by the different request type.*/
     var $product = $('#products0');
     if(copyExecutionID) productID = $product.val();
-    $product.val(productID);
-    $product.trigger("chosen:updated");
+    if(productID)
+    {
+        $product.val(productID);
+        $product.trigger("chosen:updated");
+    }
 
     var adjustMainCol = function()
     {
-        if(!isStage) $('.main-form .col-main').css('width', Math.max(250, Math.floor(($('#productsBox').outerWidth() - 50)/3) + 10));
+        $('.main-form .col-main').css('width', Math.max(250, Math.floor(($('#tplBoxWrapper').parent('td').outerWidth() - 50)/3) + 10));
     };
     adjustMainCol();
     $(window).on('resize', adjustMainCol);
 
     $('#teams_chosen').click(function()
     {
-        if(systemMode == 'new')
+        $('#teams_chosen ul li').each(function(index)
         {
-            $('#teams_chosen ul li').each(function(index)
+            if(index == 0)
             {
-                if(index == 0)
-                {
-                    var projectName = subString($(this).text(), 56);
-                    $(this).text(projectName);
-                    $(this).append(' <label class="label">' + projectCommon + '</label>');
-                }
-                else
-                {
-                    $(this).prepend('&nbsp;&nbsp;&nbsp;');
-                }
-            })
-        }
+                var projectName = subString($(this).text(), 56);
+                $(this).text(projectName);
+                $(this).append(' <label class="label">' + projectCommon + '</label>');
+            }
+            else
+            {
+                $(this).prepend('&nbsp;&nbsp;&nbsp;');
+            }
+        })
     })
 
     $('#teams').change(function()
@@ -69,11 +73,22 @@ $(function()
         $.get(createLink('execution', 'ajaxGetTeamMembers', 'objectID=' + objectID), function(data)
         {
             $('#teamMembers').parent().html(data);
-            $('#teamMembers').chosen();
+            $('#teamMembers').picker({chosenMode: true});
         });
     })
 
-    if(copyExecutionID != 0) $('#teams').change();
+    if(isStage)
+    {
+        $('#attribute').change(function()
+        {
+            var attribute = $(this).val();
+            hidePlanBox(attribute);
+        })
+
+        $('#attribute').change();
+    }
+
+    if(copyExecutionID != 0 || projectID != 0) $('#teams').change();
 
     var acl = $("[name^='acl']:checked").val();
     setWhite(acl);
@@ -109,6 +124,30 @@ $(function()
             return false;
         }
     });
+
+    /* Init for copy execution. */
+    $("select[id^=branch]").each(disableSelectedBranch);
+    disableSelectedProduct();
+
+    /* Check the all products and branches control when uncheck the product. */
+    $(document).on('change', "select[id^='products']", function()
+    {
+        if($(this).val() == 0)
+        {
+            $("select[id^='branch']").each(disableSelectedBranch);
+
+            disableSelectedProduct();
+        }
+    });
+
+    $(document).on('change', "select[id^='branch']", disableSelectedBranch);
+
+    if($('.disabledBranch').length > 0)
+    {
+        $('.disabledBranch div[id^="branch"]').addClass('chosen-disabled');
+    }
+
+    $('[data-toggle="popover"]').popover();
 });
 
 function showLifeTimeTips()
@@ -137,6 +176,18 @@ function refreshPage(projectID)
 }
 
 /**
+ * Refresh page.
+ *
+ * @param  object $projectID
+ * @access public
+ * @return void
+ */
+function setType(type)
+{
+    location.href = createLink('execution', 'create', 'projectID=' + projectID + '&executionID=0&copyExecutionID=&planID=0&confirm=no&productID=0&extra=type=' + type);
+}
+
+/**
  * Cut a string of letters and characters with the same length.
  *
  * @param  string $title
@@ -161,4 +212,44 @@ function subString(title, stringLength)
     }
 
     return title;
+}
+
+/**
+ * Load project executions.
+ *
+ * @param  int    $projectID
+ * @access public
+ * @return void
+ */
+function loadProjectExecutions(projectID)
+{
+    $.get(createLink('execution', 'ajaxGetCopyProjectExecutions', 'projectID=' + projectID), function(data)
+    {
+        if(data != '[]')
+        {
+            $('#copyProjectModal .alert').replaceWith("<div id='copyProjects' class='row'>");
+            $("#copyProjects > div[data-id != '']").remove();
+            $(".model-body").remove();
+            var data = JSON.parse(data);
+            if(copyExecutionID != 0)
+            {
+                $('#copyProjects').append("<div class='col-md-4 col-sm-6'><a href='javascript:;' data-id='' class='cancel'><i class='icon-ban-circle'></i>" + cancelCopy + "</a></div>");
+            }
+            $.each(data, function(id, execution)
+            {
+                var type    = execution.type == 'stage' ? 'waterfall' : execution.type;
+                var active  = copyExecutionID == id ? ' active' : '';
+                $('#copyProjects').append("<div class='col-md-4 col-sm-6'><a href='javascript:;' data-id='" + id + "' class='nobr " + active + "'><i class='icon-" + type + " text-muted'></i>" + execution.name + "</a></div>");
+            });
+        }
+        else if(data == '[]' && copyExecutionID == 0)
+        {
+            $('#copyProjects').replaceWith("<div class='alert with-icon'><i class='icon-exclamation-sign'></i><div class='content'>" + copyNoExecution + "</div>");
+        }
+        else if(data == '[]' && copyExecutionID != 0)
+        {
+            $("#copyProjects > div[data-id != '']").remove();
+            $('#copyProjects').append("<div class='col-md-4 col-sm-6'><a href='javascript:;' data-id='' class='cancel'><i class='icon-ban-circle'></i>" + cancelCopy + "</a></div>");
+        }
+    });
 }

@@ -2,8 +2,8 @@
 /**
  * The report view file of testtask module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     testtask
  * @version     $Id: report.html.php 4657 2013-04-17 02:01:26Z chencongzhi520@gmail.com $
@@ -13,7 +13,7 @@
 <?php include '../../common/view/header.html.php';?>
 <div id="mainMenu" class="clearfix">
   <div class="btn-toolbar pull-left">
-    <?php common::printBack(inlink('cases', "taskID=$taskID&browseType=$browseType"), 'btn btn-link');?>
+    <?php echo html::backButton('<i class="icon-goback icon-back"></i>  ' . $lang->goback, "data-app='{$app->tab}'", 'btn btn-link');?>
     <div class='divider'></div>
     <div class='page-title'>
       <span class='text'><?php echo $lang->testtask->report->common;?></span>
@@ -27,7 +27,7 @@
         <div class='panel-title'><?php echo $lang->testtask->report->select;?></div>
       </div>
       <div class='panel-body'>
-        <form method='post' id='chartTypesForm'>
+        <form method='post' id='chartTypesForm' class='no-stash'>
           <div class='checkboxes'>
             <?php echo html::checkBox('charts', $lang->testtask->report->charts, $checkedCharts, '', 'block');?>
           </div>
@@ -47,12 +47,24 @@
         <?php endforeach;?>
       </div>
       <?php $this->app->loadLang('testcase');?>
-      <div class='text-muted' style='padding-top:5px'><?php echo str_replace('%tab%', $lang->testcase->featureBar['browse']['wait'] . $lang->testcase->common, $lang->report->notice->help);?></div>
+      <div class='text-muted' style='padding-top:5px'><?php echo str_replace('%tab%', $lang->testtask->wait . $lang->testcase->common, $lang->report->notice->help);?></div>
       <?php foreach($charts as $chartType => $chartOption):?>
       <div class='table-row chart-row'>
         <div class='main-col'>
           <div class='chart-wrapper text-center'>
-            <h4><?php echo $lang->testtask->report->charts[$chartType];?></h4>
+            <h4>
+            <?php echo $lang->testtask->report->charts[$chartType];?>
+            <?php if($chartType  == 'testTaskPerRunResult'):?>
+              <?php
+              $total = 0;
+              foreach($datas['testTaskPerRunResult'] as $key => $data) $total += $data->value;
+              $pass   = isset($datas['testTaskPerRunResult']['pass']) ? $datas['testTaskPerRunResult']['pass']->value : 0;
+              $noExec = isset($datas['testTaskPerRunResult']['']) ? $datas['testTaskPerRunResult']['']->value : 0;
+              $fail   = isset($datas['testTaskPerRunResult']['fail']) ? $datas['testTaskPerRunResult']['fail']->value : 0;
+              ?>
+              <a data-toggle='tooltip' title='<?php echo sprintf($lang->testtask->report->testTaskPerRunResultTip, $total, $pass, $noExec, $fail);?>'><i class='icon-help'></i></a>
+            <?php endif;?>
+            </h4>
             <div class='chart-canvas'><canvas id='chart-<?php echo $chartType ?>' width='<?php echo $chartOption->width;?>' height='<?php echo $chartOption->height;?>' data-responsive='true'></canvas></div>
           </div>
         </div>

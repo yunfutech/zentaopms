@@ -4,6 +4,12 @@
 */
 
 $baseDir = dirname(dirname(__FILE__));
+include $baseDir . '/framework/helper.class.php';
+
+//$miniCSSTool = getenv('MINIFY_CSS_PATH');
+//$miniJSTool  = getenv('MINIFY_JS_PATH');
+$miniCSSTool = '/home/z/ci/minify/minifyCSS.php';
+$miniJSTool  = '/home/z/ci/minify/minifyJS.php';
 
 //--------------------------------- PROCESS JS FILES ------------------------------ //
 
@@ -25,7 +31,7 @@ foreach($jsFiles as $jsFile) $jsCode .= "\n". str_replace('/*!', '/*', file_get_
 file_put_contents($allJSFile, $jsCode);
 
 /* Compress it. */
-`java -jar ~/bin/yuicompressor/build/yuicompressor.jar --type js $allJSFile -o $allJSFile`;
+`php $miniJSTool $allJSFile $allJSFile`;
 
 //-------------------------------- PROCESS CSS FILES ------------------------------ //
 
@@ -78,6 +84,6 @@ foreach($langs as $lang)
         file_put_contents($cssFile, $cssCode);
 
         /* Compress it. */
-        `java -jar ~/bin/yuicompressor/build/yuicompressor.jar --type css $cssFile -o $cssFile`;
+        `php $miniCSSTool $cssFile $cssFile`;
     }
 }

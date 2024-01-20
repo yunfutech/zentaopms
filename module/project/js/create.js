@@ -1,5 +1,26 @@
 $(function()
 {
+    $('[name=hasProduct]').change(function()
+    {
+        const hasProduct = $('[name=hasProduct]:checked').val();
+
+        $('#productTitle, #linkPlan').closest('tr').toggle(hasProduct == 1);
+
+        if(hasProduct == 0) $('.division').addClass('hide');
+
+        if(hasProduct == 1)
+        {
+            var chosenProducts = 0;
+            $(".productsBox select[name^='products']").each(function()
+            {
+                if($(this).val() > 0) chosenProducts ++;
+            });
+            if(chosenProducts > 1) $('.division').removeClass('hide');
+        }
+    });
+
+    $('[name=hasProduct]').change();
+
     $('#copyProjects a').click(function()
     {
         setCopyProject($(this).data('id'));
@@ -8,16 +29,16 @@ $(function()
 
     setAclList($("#parent").val());
 
-    if(typeof(currentPlanID) == 'undefined')
+    if(typeof(currentPlanID) == 'undefined' && copyProjectID == 0)
     {
-        $('#productsBox select[id^="products"]').each(function()
+        $('.productsBox select[id^="products"]').each(function()
         {
-            var branchID = 0;
-            if($(this).closest('.input-group').find('select[id^="branch"]').size() > 0)
+            var branch = 0;
+            if($(this).closest('.table-row').find('select[name^="branch"]').size() > 0)
             {
-                var branchID = $(this).closest('.input-group').find('select[id^="branch"]').val();
+                var branch = $(this).closest('.table-row').find('select[name^="branch"]');
             }
-            loadPlans($(this), branchID);
+            loadPlans($(this), branch);
         });
     }
 
@@ -31,8 +52,18 @@ $(function()
         var products      = new Array();
         var existedBranch = false;
 
+        /* Remove init tips. */
+        $('#name').removeClass('has-info');
+        $('#nameLabelInfo').remove();
+        $('#code').removeClass('has-info');
+        $('#codeLabelInfo').remove();
+        $('#end').removeClass('has-info');
+        $('#endLabelInfo').remove();
+        $('#days').removeClass('has-info');
+        $('#daysLabelInfo').remove();
+
         /* Determine whether the products of the same branch are linked. */
-        $("#productsBox select[name^='products']").each(function()
+        $(".productsBox select[name^='products']").each(function()
         {
             var productID = $(this).val();
             if(typeof(products[productID]) == 'undefined') products[productID] = new Array();
@@ -65,18 +96,102 @@ $(function()
 
         loadBranches($('#products0'), selectedBranchID);
     }
+
+    /* Init for copy execution. */
+    disableSelectedProduct();
+
+    /* Check the all products and branches control when uncheck the product. */
+    $(document).on('change', "select[id^='products']", function()
+    {
+        if($(this).val() == 0)
+        {
+            disableSelectedProduct();
+        }
+    });
+
+    if(copyProjectID > 0 && copyType != 'previous')
+    {
+        $('#name').addClass('has-info')
+        $('#name').after('<div id="nameLabelInfo" class="text-info">' + nameTips + '</div>')
+        $('#code').addClass('has-info')
+        $('#code').after('<div id="codeLabelInfo" class="text-info">' + codeTips + '</div>')
+        $('#end').addClass('has-info')
+        $('#end').parent().after('<div id="endLabelInfo" class="text-info">' + endTips + '</div>')
+        $('#days').addClass('has-info')
+        $('#days').parent().after('<div id="daysLabelInfo" class="text-info">' + daysTips + '</div>')
+    }
+
+    $("[name='multiple']").change(function()
+    {
+        $('#endList #delta999').closest('.radio-inline').toggle($(this).val() != 0);
+        if($('#endList #delta999').prop('checked') && $(this).val() == 0)
+        {
+            $('#endList #delta999').prop('checked', false);
+            $('#dateBox #end').val('');
+            $('#daysBox').removeClass('hidden');
+        }
+    })
+
+    var hasProduct = $('[name=hasProduct]:checked').val();
+    if(hasProduct == 0) $('.productsBox').parent().addClass('hidden')
 });
 
 /**
  * Set parent program.
  *
- * @param  $parentProgram
- * @access public
+ * @param  int    $parentProgram ParentProgram is the ID of the currently selected program.
  * @return void
  */
 function setParentProgram(parentProgram)
 {
-    location.href = createLink('project', 'create', 'model=' + model + '&programID=' + parentProgram);
+    var lastSelectedID     = $('#parent').attr('data-lastSelected');
+    var lastSelectedParent = 0;
+    var selectedParent     = 0;
+
+    if(parentProgram == 0) $('#budgetBox').find('input').removeAttr("placeholder");
+
+    $.get(createLink('project', 'ajaxGetObjectInfo', 'objectType=program&objectID=' + lastSelectedID + "&selectedProgramID=" + parentProgram), function(data)
+    {
+        var data = JSON.parse(data);
+        selectedParent     = parentProgram != 0 ? data.selectedProgramPath[1] : 0;
+        lastSelectedParent = lastSelectedID != 0 ? data.objectPath[1] : 0;
+
+        var hasProduct = $('[name=hasProduct]:checked').val();
+
+        if((selectedParent != lastSelectedParent) && hasProduct == 1)
+        {
+            $('#budget').val('');
+
+            var productSelectHtml = data.allProducts;
+            var planSelectHtml    = data.plans;
+
+            $('.productsBox .row .col-sm-6 .input-group').each(function(index)
+            {
+                var selectedProduct = $(this).find('[name^=products]').val();
+                var selectedBranch  = $(this).find('[name^=branch]').val();
+                var selectedPlan    = $('#plan' + index ).find('[name^=plans]').val();
+
+                $(this).find('[name^=products]').html(productSelectHtml);
+                $(this).find('[name^=products]').attr('name', 'products[' + index + ']').attr('id', 'products' + index).attr('data-branch', selectedBranch).attr('data-plan', selectedPlan);
+                $(this).find('[name^=products]').val(selectedProduct).chosen().change();
+            });
+        }
+
+        if(parentProgram != 0)
+        {
+            $('.aclBox').html($('#programAcl').html());
+        }
+        else
+        {
+            $('.aclBox').html($('#projectAcl').html());
+        }
+
+        budgetOverrunTips();
+        outOfDateTip();
+        refreshBudgetUnit(data);
+    });
+
+    $('#parent').attr('data-lastSelected', parentProgram);
 }
 
 /**
@@ -102,20 +217,38 @@ function addNewProduct(obj)
 {
     if($(obj).attr('checked'))
     {
+        /* Hide product and plan dropdown controls. */
+        $('.newLine').addClass('hidden');
+        $('.productsBox .row').addClass('hidden');
+        $('.productsBox .row .input-group').find('select').attr('disabled', true).trigger("chosen:updated");
+        $('.division').addClass('hide');
+
+        /* Displays the input box for creating a product. */
+        $(obj).closest('td').attr('colspan', 1);
+        $("[name^='newProduct']").prop('checked', true);
         $('#productName').removeAttr('disabled', true);
-        $('#productName').closest('tr').removeClass('hidden');
-        $('#plansBox .col-sm-4').find('select').attr('disabled', true).trigger("chosen:updated");
-        $('#plansBox').closest('tr').addClass('hidden');
-        $('#productsBox .col-sm-4 .input-group').find('select').attr('disabled', true).trigger("chosen:updated");
+        $('.productsBox .addProduct').removeClass('hidden');
+        $('#productTitle').html(productName);
     }
     else
     {
+        /* Show product and product dropdown controls. */
+        $('.newLine').removeClass('hidden');
+        $('.productsBox .row').removeClass('hidden');
+        $('.productsBox .row .input-group').find('select').removeAttr('disabled').trigger("chosen:updated");
+        if($('.productsBox').find("select[name^=products]").length > 1) $('.division').removeClass('hide');
+
+        /* Hide the input box for creating a product. */
+        $(obj).closest('td').attr('colspan', 3);
+        $("[name^='newProduct']").prop('checked', false);
         $('#productName').attr('disabled', true);
-        $('#productName').closest('tr').addClass('hidden');
-        $('#plansBox .col-sm-4').find('select').removeAttr('disabled', true).trigger("chosen:updated");
-        $('#plansBox').closest('tr').removeClass('hidden');
-        $('#productsBox .col-sm-4 .input-group').find('select').removeAttr('disabled').trigger("chosen:updated");
+        $('.productsBox .addProduct').addClass('hidden');
+
+        $('#productTitle').html(manageProductPlan);
     }
+
+    $('.productsBox div + .text-danger.help-text').remove();
+    disableSelectedProduct();
 }
 
 /**
@@ -141,15 +274,20 @@ function setAclList(programID)
  * Load branches.
  *
  * @param  int $product
- * @param  int $branchID
  * @access public
  * @return void
  */
-function loadBranches(product, branchID)
+function loadBranches(product)
 {
-    $("#productsBox select[name^='products']").each(function()
+    /* When selecting a product, delete a plan that is empty by default. */
+    $("#planDefault").remove();
+
+    var chosenProducts = [];
+    $(".productsBox select[name^='products']").each(function()
     {
-        var $product = $(product);
+        var $product  = $(product);
+        var productID = $(this).val();
+        if(productID > 0 && chosenProducts.indexOf(productID) == -1) chosenProducts.push(productID);
         if($product.val() != 0 && $product.val() == $(this).val() && $product.attr('id') != $(this).attr('id') && !multiBranchProducts[$product.val()])
         {
             bootbox.alert(errorSameProducts);
@@ -159,103 +297,113 @@ function loadBranches(product, branchID)
         }
     });
 
-    if($('#productsBox .input-group:last select:first').val() != 0)
-    {
-        var length = $('#productsBox .input-group').size();
-        var $html  = $('#productsBox .col-sm-4:last').html();
-        $('#productsBox .col-sm-4:last').find('.input-group-addon').remove();
-        $('#productsBox .row').append('<div class="col-sm-4">' + $html + '</div>');
-        if($('#productsBox .input-group:last select').size() >= 2) $('#productsBox .input-group:last select:last').remove();
-        $('#productsBox .input-group:last .chosen-container').remove();
-        $('#productsBox .input-group:last select:first').attr('name', 'products[' + length + ']').attr('id', 'products' + length);
-        $('#productsBox .input-group:last .chosen').chosen();
+    (chosenProducts.length > 1 && (model == 'waterfall' || model == 'waterfallplus')) ? $('.division').removeClass('hide') : $('.division').addClass('hide');
 
-        adjustProductBoxMargin();
+    var $tableRow = $(product).closest('.table-row');
+    var index     = $tableRow.find('select:first').attr('id').replace('products' , '');
+    var oldBranch = $(product).attr('data-branch') !== undefined ? $(product).attr('data-branch') : 0;
+    if($(product).val() != 0)
+    {
+        $(product).closest('tr').find('.newProduct').addClass('hidden')
+    }
+    else
+    {
+        $(product).closest('tr').find('.newProduct').removeClass('hidden')
     }
 
-    var $inputgroup = $(product).closest('.input-group');
-    if($inputgroup.find('select').size() >= 2) $inputgroup.removeClass('has-branch').find('select:last').remove();
-    if($inputgroup.find('.chosen-container').size() >= 2) $inputgroup.find('.chosen-container:last').remove();
+    if(!multiBranchProducts[$(product).val()])
+    {
+        $tableRow.find('.table-col:last select').val('').trigger('chosen:updated');
+        $tableRow.find('.table-col:last').addClass('hidden');
+    }
 
-    var oldBranchID = typeof(branchID) == 'undefined' ? 0 : branchID;
-    var index       = $inputgroup.find('select:first').attr('id').replace('products' , '');
-    $.get(createLink('branch', 'ajaxGetBranches', "productID=" + $(product).val() + "&oldBranch=" + oldBranchID + "&param=active"), function(data)
+    $.get(createLink('branch', 'ajaxGetBranches', "productID=" + $(product).val() + "&oldBranch=" + oldBranch + "&param=active"), function(data)
     {
         if(data)
         {
-            $inputgroup.addClass('has-branch').append(data);
-            $inputgroup.find('select:last').attr('name', 'branch[' + index + ']').attr('id', 'branch' + index).attr('onchange', "loadPlans('#products" + index + "', this.value)").chosen();
-        }
-    });
+            $tableRow.find("select[name^='branch']").replaceWith(data);
+            $tableRow.find('.table-col:last .chosen-container').remove();
+            $tableRow.find('.table-col:last').removeClass('hidden');
+            $tableRow.find("select[name^='branch']").attr('multiple', '').attr('name', 'branch[' + index + '][]').attr('id', 'branch' + index).attr('onchange', "loadPlans('#products" + index + "', this)").chosen();
 
-    loadPlans(product, oldBranchID);
+            disableSelectedProduct();
+        }
+
+        var branch = $('#branch' + index);
+        loadPlans(product, branch);
+    });
 }
 
 /**
  * Load plans.
  *
  * @param  obj $product
- * @param  int $branchID
+ * @param  obj $branchID
  * @access public
  * @return void
  */
-function loadPlans(product, branchID)
+function loadPlans(product, branch)
 {
-    if($('#plansBox').size() == 0) return false;
-
     var productID = $(product).val();
-    var branchID  = typeof(branchID) == 'undefined' ? 0 : branchID;
+    var branchID  = $(branch).val() == null ? 0 : '0,' + $(branch).val();
+    var planID    = $(product).attr('data-plan') !== undefined ? $(product).attr('data-plan') : 0;
     var index     = $(product).attr('id').replace('products', '');
 
-    if(productID != 0)
+    $.get(createLink('product', 'ajaxGetPlans', "productID=" + productID + '&branch=' + branchID + '&planID=' + planID + '&fieldID&needCreate=&expired=unexpired,noclosed&param=skipParent,multiple'), function(data)
     {
-        $.get(createLink('product', 'ajaxGetPlans', "productID=" + productID + '&branch=0,' + branchID + '&planID=0&fieldID&needCreate=&expired=unexpired&param=skipParent'), function(data)
+        if(data)
         {
-            if(data)
-            {
-                if($("div#plan" + index).size() == 0) $("#plansBox .row").append('<div class="col-sm-4" id="plan' + index + '"></div>');
-                $("div#plan" + index).html(data).find('select').attr('name', 'plans[' + productID + '][' + branchID + ']').attr('id', 'plans' + productID).chosen();
-
-                adjustPlanBoxMargin();
-            }
-        });
-    }
+            $("div#plan" + index).find("select[name^='plans']").replaceWith(data);
+            $("div#plan" + index).find('.chosen-container').remove();
+            $("div#plan" + index).find('select').attr('name', 'plans[' + productID + ']' + '[]').attr('id', 'plans' + productID).chosen();
+        }
+    });
 }
 
 /**
- * Adjust product box margin.
+ * Add new line for link product.
  *
+ * @param  obj $obj
  * @access public
  * @return void
  */
-function adjustProductBoxMargin()
+function addNewLine(obj)
 {
-    var productRows = Math.ceil($('#productsBox > .row > .col-sm-4').length / 3);
-    if(productRows > 1)
+    var newLine = $(obj).closest('tr').clone();
+    var index   = 0;
+    $(".productsBox select[name^='products']").each(function()
     {
-        for(i = 1; i <= productRows - 1; i++)
-        {
-            $('#productsBox .col-sm-4:lt(' + (i * 3) + ')').css('margin-bottom', '10px');
-        }
-    }
+        var id = $(this).attr('id').replace('products' , '');
+
+        id = parseInt(id);
+        id ++;
+
+        index = id > index ? id : index;
+    })
+
+    newLine.find('.newProduct').remove();
+    newLine.find('.addProduct').remove();
+    newLine.addClass('newLine');
+    newLine.find('th').html('');
+    newLine.find('.removeLine').css('visibility', 'visible');
+    newLine.find('.chosen-container').remove();
+    newLine.find('.productsBox .table-col:last').addClass('hidden');
+    newLine.find("select[name^='products']").attr('name', 'products[' + index + ']').attr('id', 'products' + index).val('').chosen();
+    newLine.find("select[name^='plans']").attr('name', 'plans[' + index + '][' + 0 + '][]').chosen();
+    newLine.find("div[id^='plan']").attr('id', 'plan' + index);
+
+    $(obj).closest('tr').after(newLine);
+    var product = newLine.find("select[name^='products']");
+    var branch  = newLine.find("select[name^='branch']");
+    loadPlans(product, branch);
+    disableSelectedProduct();
 }
 
-/**
- * Adjust plan box margin.
- *
- * @access public
- * @return void
- */
-function adjustPlanBoxMargin()
+function removeLine(obj)
 {
-    var planRows = Math.ceil($('#plansBox > .row > .col-sm-4').length / 3);
-    if(planRows > 1)
-    {
-        for(j = 1; j <= planRows - 1; j++)
-        {
-            $('#plansBox .col-sm-4:lt(' + (j * 3) + ')').css('margin-bottom', '10px');
-        }
-    }
+    $(obj).closest('tr').remove();
+    disableSelectedProduct();
+    if($("select[name^='products']").length < 2) $('.division').addClass('hide');
 }
 
 /**
@@ -269,7 +417,7 @@ $('#projectName').on('keyup', function()
     var name = $(this).val();
     name = name.replace(/\s+/g, '');
     link = createLink('project', 'ajaxGetCopyProjects');
-    $.post(link, {name: name, cpoyProjectID : copyProjectID}, function(data)
+    $.post(link, {name: name, cpoyProjectID: copyProjectID, model: model}, function(data)
     {
         $('#copyProjects').html(data);
         $('#copyProjects a').click(function()
@@ -279,3 +427,32 @@ $('#projectName').on('keyup', function()
         });
     })
 })
+
+/* Click remove tips.  */
+$("#name").click(function()
+{
+    $('#name').removeClass('has-info');
+    $('#nameLabelInfo').remove();
+});
+$("#code").click(function()
+{
+    $('#code').removeClass('has-info');
+    $('#codeLabelInfo').remove();
+});
+$("#end").click(function()
+{
+    $('#end').removeClass('has-info');
+    $('#endLabelInfo').remove();
+});
+$("#days").click(function()
+{
+    $('#days').removeClass('has-info');
+    $('#daysLabelInfo').remove();
+});
+$("#endList input[type=radio]").click(function()
+{
+    $('#end').removeClass('has-info');
+    $('#endLabelInfo').remove();
+    $('#days').removeClass('has-info');
+    $('#daysLabelInfo').remove();
+});

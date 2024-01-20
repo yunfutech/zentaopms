@@ -2,14 +2,14 @@
 /**
  * The html template file of deny method of user module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     ZenTaoPMS
  * @version     $Id: deny.html.php 4129 2013-01-18 01:58:14Z wwccss $
  */
 ?>
-<?php include 'header.html.php';?>
+<?php include $app->getModuleRoot() . 'common/view/header.html.php';?>
 <?php if(isset($this->config->conceptSetted)):?>
 <div id='mainContent' class='main-content'>
   <div class='main-header'>
@@ -26,20 +26,22 @@
 <?php endif;?>
   <form class='form-ajax' method='post'>
     <div class='modal-body'>
-      <div class="form-group">
-        <label><?php echo $lang->custom->conceptQuestions['overview']?></label>
-        <div class="checkbox"> <?php echo html::radio('sprintConcept', $lang->custom->sprintConceptList, zget($this->config->custom, 'sprintConcept', '0'))?> </div>
-      </div>
-      <div class="form-group">
-        <label><?php echo $lang->custom->conceptQuestions['URAndSR']?></label>
-        <div class="checkbox"> <?php echo html::radio('URAndSR', $lang->custom->conceptOptions->URAndSR, zget($this->config->custom, 'URAndSR', '0'));?></div>
-      </div>
-      <?php if($this->config->edition != 'max'):?>
-      <div class="form-group">
-        <label id='storypoint'><?php echo $lang->custom->conceptQuestions['storypoint'];?></label>
-        <div class="checkbox"> <?php echo html::radio('hourPoint', $lang->custom->conceptOptions->hourPoint, zget($this->config->custom, 'hourPoint'))?> </div>
-      </div>
-      <?php endif;?>
+      <ol>
+        <li>
+          <div class="form-group">
+            <label><?php echo $lang->custom->conceptQuestions['overview']?></label>
+            <div class="checkbox"> <?php echo html::radio('sprintConcept', $lang->custom->sprintConceptList, zget($this->config->custom, 'sprintConcept', '0'))?> </div>
+          </div>
+        </li>
+        <?php if($this->config->edition != 'max'):?>
+        <li>
+          <div class="form-group">
+            <label id='storypoint'><?php echo $lang->custom->conceptQuestions['storypoint'];?></label>
+            <div class="checkbox"> <?php echo html::radio('hourPoint', $lang->custom->conceptOptions->hourPoint, zget($this->config->custom, 'hourPoint'))?> </div>
+          </div>
+        </li>
+        <?php endif;?>
+      </ol>
       <div class="form-group">
         <label></label>
         <div><?php echo html::submitButton();?></div>

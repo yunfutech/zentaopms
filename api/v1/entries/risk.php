@@ -2,21 +2,21 @@
 /**
  * The risk entry point of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2021 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2021 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     entries
  * @version     1
  * @link        http://www.zentao.net
  */
-class riskEntry extends Entry
+class riskEntry extends entry
 {
     /**
      * GET method.
      *
      * @param  int    $riskID
      * @access public
-     * @return void
+     * @return string
      */
     public function get($riskID)
     {
@@ -36,7 +36,7 @@ class riskEntry extends Entry
      *
      * @param  int    $riskID
      * @access public
-     * @return void
+     * @return string
      */
     public function put($riskID)
     {
@@ -54,7 +54,7 @@ class riskEntry extends Entry
         if(isset($data->status) and $data->status == 'fail') return $this->sendError(400, $data->message);
 
         $risk = $this->risk->getByID($riskID);
-        $this->send(200, $this->format($risk, 'createdDate:time,editedDate:time'));
+        return $this->send(200, $this->format($risk, 'createdDate:time,editedDate:time'));
     }
 
     /**
@@ -62,7 +62,7 @@ class riskEntry extends Entry
      *
      * @param  int    $riskID
      * @access public
-     * @return void
+     * @return string
      */
     public function delete($riskID)
     {
@@ -70,6 +70,6 @@ class riskEntry extends Entry
         $control->delete($riskID, 'true');
 
         $this->getData();
-        $this->sendSuccess(200, 'success');
+        return $this->sendSuccess(200, 'success');
     }
 }

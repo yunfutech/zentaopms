@@ -2,8 +2,8 @@
 /**
  * The html product kanban file of kanban method of product module of ZenTaoPMS.
  *
- * @copyright   Copyright 2021-2021 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2021-2021 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Hao Sun <sunhao@easycorp.ltd>
  * @package     ZenTaoPMS
  * @version     $Id
@@ -11,6 +11,12 @@
 ?>
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/kanban.html.php';?>
+<?php if($this->config->systemMode == 'light'):?>
+<style>
+.kanban-lane-name{display:none;}
+.kanban-header-cols{left:0px !important;}
+ </style>
+<?php endif;?>
 <?php js::set('kanbanGroup', $kanbanGroup);?>
 <?php if(empty($kanbanGroup)):?>
 <div class="table-empty-tip cell">

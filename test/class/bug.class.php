@@ -1165,10 +1165,9 @@ class bugTest
      */
     public function activateObject($bugID)
     {
-        $change = $this->objectModel->activate($bugID, '');
-        $_POST['assignedTo'] = 'admin';
+        $changes = $this->objectModel->activate($bugID, '');
 
-        if($change == array()) $change = '没有数据更新';
+        if($changes == array()) $changes = '没有数据更新';
 
         if(dao::isError())
         {
@@ -1176,7 +1175,10 @@ class bugTest
         }
         else
         {
-            return $change;
+            foreach($changes as $change)
+            {
+                if($change['field'] == 'activatedCount') return $change;
+            }
         }
     }
 
@@ -1391,13 +1393,14 @@ class bugTest
     /**
      * Test get bug pairs of a product.
      *
-     * @param  int    $productID
+     * @param  int        $productID
+     * @param  int|string $branch
      * @access public
      * @return string
      */
-    public function getProductBugPairsTest($productID)
+    public function getProductBugPairsTest($productID, $branch = '')
     {
-        $array = $this->objectModel->getProductBugPairs($productID);
+        $array = $this->objectModel->getProductBugPairs($productID, $branch);
 
         $title = '';
         foreach($array as $bug) $title .= ',' . $bug;
@@ -2022,6 +2025,149 @@ class bugTest
         else
         {
             return $array;
+        }
+    }
+
+    /**
+     * Test get bug query.
+     *
+     * @param  string $bugQuery
+     * @access public
+     * @return array
+     */
+    public function getBugQueryTest($bugQuery)
+    {
+        $array = $this->objectModel->getBugQuery($bugQuery);
+
+        if(dao::isError())
+        {
+            return dao::getError();
+        }
+        else
+        {
+            return $array;
+        }
+    }
+
+    /**
+     * Test get bugs of assigned by me.
+     *
+     * @param  string $productIDList
+     * @param  string $moduleIDList
+     * @access public
+     * @return string
+     */
+    public function getByAssignedbymeTest($productIDList, $moduleIDList)
+    {
+        global $tester;
+        $executions = $tester->loadModel('execution')->getPairs('0', 'all', 'empty|withdelete');
+
+        $bugs = $this->objectModel->getByAssignedbyme($productIDList, 'all', $moduleIDList, $executions, 'id_desc', null, 0);
+
+        $title = '';
+        foreach($bugs as $bug)
+        {
+            $title .= ',' . $bug->title;
+        }
+        $title = trim($title, ',');
+        $title = str_replace("'", '', $title);
+
+        if(dao::isError())
+        {
+            return dao::getError();
+        }
+        else
+        {
+            return $title;
+        }
+    }
+
+    /**
+     * Test get statistic.
+     *
+     * @param  int    $productID
+     * @access public
+     * @return string
+     */
+    public function getStatisticTest($productID = 0)
+    {
+        $dates = $this->objectModel->getStatistic($productID);
+        $returns = array();
+        $today   = date('m/d', time());
+        foreach($dates as $dateType => $dateList)
+        {
+            $returns[$dateType] = $dateList[$today];
+        }
+
+        if(dao::isError())
+        {
+            return dao::getError();
+        }
+        else
+        {
+            return $returns;
+        }
+    }
+
+    /**
+     * Test get bugs to review.
+     *
+     * @param  array       $productIDList
+     * @param  int|string  $branch
+     * @param  array       $modules
+     * @param  array       $executions
+     * @param  string      $orderBy
+     * @access public
+     * @return string
+     */
+    public function getReviewBugsTest($productIDList, $branch, $modules, $executions, $orderBy)
+    {
+        $bugs = $this->objectModel->getReviewBugs($productIDList, $branch, $modules, $executions, $orderBy);
+        $ids  = '';
+        foreach($bugs as $bug)
+        {
+            $ids .= ",$bug->id";
+        }
+        $ids = trim($ids, ',');
+
+        if(dao::isError())
+        {
+            return dao::getError();
+        }
+        else
+        {
+            return $ids;
+        }
+    }
+
+    /**
+     * Test get related objects id lists.
+     *
+     * @param  array       $productIDList
+     * @param  int|string  $branch
+     * @param  array       $modules
+     * @param  array       $executions
+     * @param  string      $orderBy
+     * @access public
+     * @return string
+     */
+    public function getRelatedObjectsTest($object, $pairs)
+    {
+        $objects = $this->objectModel->getRelatedObjects($object, $pairs);
+        $ids     = '';
+        foreach($objects as $objectID => $object)
+        {
+            $ids .= ",$objectID:$object";
+        }
+        $ids = trim($ids, ',');
+
+        if(dao::isError())
+        {
+            return dao::getError();
+        }
+        else
+        {
+            return $ids;
         }
     }
 }

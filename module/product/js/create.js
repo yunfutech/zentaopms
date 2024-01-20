@@ -1,7 +1,9 @@
 $(function()
 {
-    if(programID || systemMode == 'classic') $('#line_chosen').addClass('hidden');
     $('#lineName').css('border-left-color', '');
+    $('[name=newLine]').change();
+
+    if(programID == 0) $("#line").closest('tr').addClass('hidden');
 })
 /**
   * Load product Lines.
@@ -34,12 +36,13 @@ function setParentProgram(parentProgram)
 $('#program').change(function()
 {
     var programID = $(this).val();
+    if(programID > 0) $("#line").closest('tr').removeClass('hidden');
 
     $.get(createLink('product', 'ajaxGetLine', 'programID=' + programID), function(data)
     {
-        $('#line_chosen').remove();
         $('#line').replaceWith(data);
-        $('#line').chosen();
+        $('#line').siblings('.picker').remove();
+        $('#line').picker();
     })
 })
 

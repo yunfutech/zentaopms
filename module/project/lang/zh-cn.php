@@ -10,6 +10,7 @@ $lang->project->view               = '项目概况';
 $lang->project->batchEdit          = '批量编辑';
 $lang->project->browse             = '项目列表';
 $lang->project->all                = '所有项目';
+$lang->project->involved            = "我参与的{$lang->projectCommon}";
 $lang->project->start              = '启动项目';
 $lang->project->finish             = '完成项目';
 $lang->project->suspend            = '挂起项目';
@@ -41,6 +42,8 @@ $lang->project->whitelist          = '项目白名单';
 $lang->project->addWhitelist       = '项目添加白名单';
 $lang->project->unbindWhitelist    = '项目删除白名单';
 $lang->project->manageProducts     = '关联产品';
+$lang->project->manageOtherProducts = "关联其他{$lang->productCommon}";
+$lang->project->manageProductPlan   = "关联{$lang->productCommon}和计划";
 $lang->project->copyTitle          = '请选择要复制的项目';
 $lang->project->errorSameProducts  = '项目不能关联多个相同的产品。';
 $lang->project->errorSameBranches  = '项目不能关联多个相同的分支。';
@@ -58,11 +61,25 @@ $lang->project->unlinkMember       = '移除成员';
 $lang->project->copyTeamTitle      = '选择一个项目团队来复制';
 $lang->project->daysGreaterProject = '可用工日不能大于项目的可用工日『%s』';
 $lang->project->errorHours         = '可用工时/天不能大于『24』';
+$lang->project->workdaysExceed      = '可用工作日不能超过『%s』天';
+$lang->project->teamMembersCount    = '，团队成员共%s人。';
+$lang->project->budgetNumber        = '『预算』金额必须为数字。';
+$lang->project->budgetGe0           = '『预算』金额必须大于等于0。';
+$lang->project->allProjects         = "所有{$lang->projectCommon}";
+$lang->project->ignore              = '忽略';
+$lang->project->disableExecution    = "不启用{$lang->executionCommon}的{$lang->projectCommon}";
+$lang->project->selectProduct       = "选择{$lang->productCommon}";
+$lang->project->manageRepo          = '关联代码库';
+$lang->project->linkedRepo          = '已关联代码库';
+$lang->project->unlinkedRepo        = '未关联代码库';
+$lang->project->executionCount      = '执行数';
+$lang->project->storyCount          = '需求规模';
+$lang->project->invested            = '已投入';
 
 /* Fields. */
-$lang->project->common             = '项目';
-$lang->project->id                 = '项目编号';
-$lang->project->project            = '所属项目';
+$lang->project->common             = "{$lang->projectCommon}";
+$lang->project->id                 = "{$lang->projectCommon}ID";
+$lang->project->project            = "所属{$lang->projectCommon}";
 $lang->project->stage              = '阶段';
 $lang->project->model              = '项目管理方式';
 $lang->project->PP                 = '项目负责人';
@@ -71,17 +88,18 @@ $lang->project->PM                 = '项目经理';
 $lang->project->PO                 = '项目负责人';
 $lang->project->QD                 = '测试负责人';
 $lang->project->RD                 = '发布负责人';
-$lang->project->name               = '项目名称';
-$lang->project->category           = '项目类型';
-$lang->project->desc               = '项目描述';
-$lang->project->code               = '项目代号';
-$lang->project->copy               = '复制项目';
+$lang->project->name               = "{$lang->projectCommon}名称";
+$lang->project->category           = "{$lang->projectCommon}类型";
+$lang->project->desc               = "{$lang->projectCommon}描述";
+$lang->project->code               = "{$lang->projectCommon}代号";
+$lang->project->hasProduct         = "是否关联{$lang->productCommon}";
+$lang->project->copy               = "复制{$lang->projectCommon}";
 $lang->project->begin              = '计划开始';
 $lang->project->end                = '计划完成';
 $lang->project->status             = '状态';
 $lang->project->subStatus          = '子状态';
-$lang->project->type               = '项目类型';
-$lang->project->lifetime           = '项目周期';
+$lang->project->type               = "{$lang->projectCommon}类型";
+$lang->project->lifetime           = "{$lang->projectCommon}周期";
 $lang->project->attribute          = '阶段类型';
 $lang->project->percent            = '工作量占比';
 $lang->project->milestone          = '里程碑';
@@ -107,17 +125,23 @@ $lang->project->teamAction         = '团队列表';
 $lang->project->order              = '排序';
 $lang->project->budget             = '预算';
 $lang->project->budgetUnit         = '预算单位';
-$lang->project->template           = '项目模板';
+$lang->project->suspendedDate      = '暂停日期';
+$lang->project->vision             = '界面';
+$lang->project->displayCards       = '每列最大卡片数';
+$lang->project->fluidBoard         = '列宽度';
+$lang->project->template           = "{$lang->projectCommon}模板";
 $lang->project->estimate           = '预计';
 $lang->project->consume            = '消耗';
 $lang->project->surplus            = '剩余';
 $lang->project->progress           = '进度';
-$lang->project->dateRange          = '起止日期';
+$lang->project->weekProgress       = '本周进度';
+$lang->project->dateRange          = '计划起止日期';
 $lang->project->to                 = '至';
 $lang->project->realBeganAB        = '实际开始';
 $lang->project->realEndAB          = '实际完成';
 $lang->project->realBegan          = '实际开始日期';
 $lang->project->realEnd            = '实际完成日期';
+$lang->project->division           = '阶段类型';
 $lang->project->bygrid             = '看板';
 $lang->project->bylist             = '列表';
 $lang->project->bycard             = '卡片';
@@ -132,13 +156,13 @@ $lang->project->leftStories        = '剩余需求';
 $lang->project->leftTasks          = '剩余任务';
 $lang->project->leftBugs           = '剩余Bug';
 $lang->project->leftHours          = '剩余工时';
-$lang->project->children           = '子项目';
+$lang->project->children           = "子{$lang->projectCommon}";
 $lang->project->parent             = '所属项目集';
 $lang->project->allStories         = '总需求';
 $lang->project->doneStories        = '已完成';
 $lang->project->doneProjects       = '已结束';
-$lang->project->allInput           = '项目总投入';
-$lang->project->weekly             = '项目周报';
+$lang->project->allInput           = "{$lang->projectCommon}总投入";
+$lang->project->weekly             = "{$lang->projectCommon}周报";
 $lang->project->pv                 = 'PV';
 $lang->project->ev                 = 'EV';
 $lang->project->sv                 = 'SV';
@@ -153,20 +177,32 @@ $lang->project->teamCount          = '人数';
 $lang->project->teamSumCount       = '共%s人';
 $lang->project->longTime           = '长期';
 $lang->project->future             = '待定';
-$lang->project->moreProject        = '更多项目';
+$lang->project->moreProject        = "更多{$lang->projectCommon}";
 $lang->project->days               = '可用工作日';
 $lang->project->mailto             = '抄送给';
 $lang->project->etc                = "等";
-$lang->project->product            = '所属产品';
-$lang->project->branch             = '所属分支';
+$lang->project->product            = "所属{$lang->productCommon}";
+$lang->project->branch             = '平台/分支';
 $lang->project->plan               = '所属计划';
 $lang->project->createKanban       = '添加看板';
-$lang->project->kanban             = '看板';
+$lang->project->kanban             = '项目看板';
+$lang->project->moreActions        = '更多操作';
+
+/* Project Kanban. */
+$lang->project->projectTypeList = array();
+$lang->project->projectTypeList[1] = "{$lang->productCommon}型{$lang->projectCommon}";
+$lang->project->projectTypeList[0] = "{$lang->projectCommon}型{$lang->projectCommon}";
 
 /* Project Kanban. */
 $lang->project->typeList = array();
-$lang->project->typeList['my']    = '我负责的项目';
-$lang->project->typeList['other'] = '其他项目';
+$lang->project->typeList['my']    = "我负责的{$lang->projectCommon}";
+$lang->project->typeList['other'] = "其他{$lang->projectCommon}";
+
+$lang->project->divisionList['0'] = "按{$lang->projectCommon}创建";
+$lang->project->divisionList['1'] = "按{$lang->productCommon}创建";
+
+$lang->project->divisionSwitchList['0'] = '关闭';
+$lang->project->divisionSwitchList['1'] = "开启";
 
 $lang->project->waitProjects    = '未开始的项目';
 $lang->project->doingProjects   = '进行中的项目';
@@ -176,23 +212,43 @@ $lang->project->noProgram       = '无项目集归属项目';
 
 $lang->project->laneColorList = array('#32C5FF', '#006AF1', '#9D28B2', '#FF8F26', '#FFC20E', '#00A78E', '#7FBB00', '#424BAC', '#C0E9FF', '#EC2761');
 
-$lang->project->productNotEmpty        = '请关联产品或创建产品。';
-$lang->project->existProductName       = '产品名称已存在。';
+$lang->project->productNotEmpty        = "请关联{$lang->productCommon}或创建{$lang->productCommon}。";
+$lang->project->existProductName       = "{$lang->productCommon}名称已存在。";
 $lang->project->changeProgram          = '%s > 修改项目集';
-$lang->project->changeProgramTip       = '修改项目集后，该项目关联产品的项目集也会被修改，请确认是否修改。';
-$lang->project->linkedProjectsTip      = '关联的项目如下';
-$lang->project->multiLinkedProductsTip = '该项目关联的如下产品还关联了其他项目，请取消关联后再操作';
-$lang->project->linkStoryByPlanTips    = "此操作会将所选计划下面的{$lang->SRCommon}全部关联到此项目中";
-$lang->project->createExecution        = "该项目下没有{$lang->executionCommon}，请先创建{$lang->executionCommon}";
+$lang->project->changeProgramTip       = "修改项目集后，该{$lang->projectCommon}关联{$lang->productCommon}的项目集也会被修改，请确认是否修改。";
+$lang->project->linkedProjectsTip      = "关联的{$lang->projectCommon}如下";
+$lang->project->multiLinkedProductsTip = "该{$lang->projectCommon}关联的如下{$lang->productCommon}还关联了其他{$lang->projectCommon}，请取消关联后再操作";
+$lang->project->noticeDivsion          = "当前{$lang->projectCommon}为单套阶段，点击[开启]可以变为多套阶段，每套阶段只关联一个{$lang->productCommon}。";
+$lang->project->linkStoryByPlanTips    = "此操作会将所选计划下面的{$lang->SRCommon}全部关联到此{$lang->projectCommon}中";
+$lang->project->createExecution        = "该{$lang->projectCommon}下没有{$lang->executionCommon}，请先创建{$lang->executionCommon}";
 $lang->project->unlinkExecutionMember  = "该用户参与了%s%s%s个{$lang->execution->common}，是否同时将其移除？（该用户所产生的数据不会受影响。）";
 $lang->project->unlinkExecutionMembers = "移除的团队成员还参与了项目下的迭代，是否同步从迭代团队中移除？";
+$lang->project->productTip             = "点击新建{$lang->productCommon}后，{$lang->projectCommon}将不会关联已选中的{$lang->productCommon}。";
+$lang->project->noDevStage             = "该{$lang->projectCommon}下没有研发类型的阶段，或者您没有权限访问，暂时不支持创建版本。";
+$lang->project->budgetOverrun          = "{$lang->projectCommon}的预算超出了父项目集的剩余预算：";
+$lang->project->disabledInputTip       = '请先取消%s';
+$lang->project->linkRepoFailed         = '关联代码库失败';
+$lang->project->unLinkProductTip       = "您确认要取消与%s的关联关系吗？（不影响已关联的需求）";
+$lang->project->summary                = "本页共 <strong>%s</strong> 个{$lang->projectCommon}。";
+$lang->project->allSummary             = "本页共 <strong>%s</strong> 个{$lang->projectCommon}，未开始 <strong>%s</strong>，进行中 <strong>%s</strong>，已挂起 <strong>%s</strong>，已关闭 <strong>%s</strong> 。";
+$lang->project->checkedSummary         = "选中 <strong>%total%</strong> 个{$lang->projectCommon}。";
+$lang->project->checkedAllSummary      = "选中 <strong>%total%</strong> 个{$lang->projectCommon}，未开始 <strong>%wait%</strong>，进行中 <strong>%doing%</strong>，已挂起 <strong>%suspended%</strong>，已关闭 <strong>%closed%</strong> 。";
 
-$lang->project->tenThousand = '万';
+$lang->project->tip = new stdclass();
+$lang->project->tip->closed     = '该项目已是关闭状态，无须关闭。';
+$lang->project->tip->notSuspend = '该项目已关闭，不可进行挂起操作。';
+$lang->project->tip->suspended  = '该项目已是挂起状态，无须挂起。';
+$lang->project->tip->actived    = '该项目已是激活状态，无须激活。';
+$lang->project->tip->group      = '该项目是看板项目，无法进行项目权限分组。';
+$lang->project->tip->whitelist  = '该项目是公开项目，无须维护白名单。';
+
+$lang->project->tenThousand    = '万';
+$lang->project->hundredMillion = '亿';
 
 $lang->project->unitList['CNY'] = '人民币';
 $lang->project->unitList['USD'] = '美元';
 $lang->project->unitList['HKD'] = '港元';
-$lang->project->unitList['NTD'] = '台元';
+$lang->project->unitList['NTD'] = '台币';
 $lang->project->unitList['EUR'] = '欧元';
 $lang->project->unitList['DEM'] = '马克';
 $lang->project->unitList['CHF'] = '瑞士法郎';
@@ -225,29 +281,79 @@ $lang->project->currencySymbol['NZD'] = 'NZ$';
 $lang->project->currencySymbol['THB'] = '฿';
 $lang->project->currencySymbol['SGD'] = 'S$';
 
-$lang->project->modelList['scrum']     = "Scrum";
-$lang->project->modelList['waterfall'] = "瀑布";
-$lang->project->modelList['kanban']    = "看板";
+$lang->project->modelList['']            = "";
+$lang->project->modelList['scrum']       = "Scrum";
+if(helper::hasFeature('waterfall')) $lang->project->modelList['waterfall'] = "瀑布";
+$lang->project->modelList['kanban']      = "看板";
+$lang->project->modelList['agileplus']   = "融合敏捷";
+if(helper::hasFeature('waterfallplus')) $lang->project->modelList['waterfallplus'] = "融合瀑布";
 
-$lang->project->featureBar['all']       = '所有';
-$lang->project->featureBar['doing']     = '进行中';
-$lang->project->featureBar['wait']      = '未开始';
-$lang->project->featureBar['suspended'] = '已挂起';
-$lang->project->featureBar['closed']    = '已关闭';
+$lang->project->featureBar['browse']['all']       = '全部';
+$lang->project->featureBar['browse']['undone']    = '未完成';
+$lang->project->featureBar['browse']['wait']      = '未开始';
+$lang->project->featureBar['browse']['doing']     = '进行中';
+$lang->project->featureBar['browse']['exceeded']  = '已逾期';
+$lang->project->featureBar['browse']['risky']     = '有风险';
+$lang->project->featureBar['browse']['more']      = '更多';
 
-$lang->project->aclList['private'] = "私有 (只有项目负责人、团队成员和干系人可访问)";
-$lang->project->aclList['open']    = "公开 (有项目视图权限即可访问)";
+$lang->project->featureBar['index']['all']       = '全部';
+$lang->project->featureBar['index']['undone']    = '未完成';
+$lang->project->featureBar['index']['wait']      = '未开始';
+$lang->project->featureBar['index']['doing']     = '进行中';
+$lang->project->featureBar['index']['suspended'] = '已挂起';
+$lang->project->featureBar['index']['closed']    = '已关闭';
+
+$lang->project->featureBar['execution']['all']       = '全部';
+$lang->project->featureBar['execution']['undone']    = '未完成';
+$lang->project->featureBar['execution']['wait']      = '未开始';
+$lang->project->featureBar['execution']['doing']     = '进行中';
+$lang->project->featureBar['execution']['suspended'] = '已挂起';
+$lang->project->featureBar['execution']['closed']    = '已关闭';
+
+$lang->project->featureBar['bug']['all']        = '全部';
+$lang->project->featureBar['bug']['unresolved'] = '未解决';
+
+$lang->project->featureBar['testcase']['all']         = '所有';
+$lang->project->featureBar['testcase']['wait']        = '待评审';
+$lang->project->featureBar['testcase']['needconfirm'] = "需求变动";
+$lang->project->featureBar['testcase']['group']       = '分组查看';
+$lang->project->featureBar['testcase']['zerocase']    = "零用例{$lang->SRCommon}";
+$lang->project->featureBar['testcase']['suite']       = '套件';
+$lang->project->featureBar['testcase']['autocase']    = '自动化';
+
+$lang->project->featureBar['build']['all'] = '全部版本';
+
+$lang->project->aclList['private'] = "私有 (只有{$lang->projectCommon}负责人、团队成员和干系人可访问)";
+$lang->project->aclList['open']    = "公开 (有{$lang->projectCommon}视图权限即可访问)";
+
+$lang->project->multipleList['1'] = '是';
+$lang->project->multipleList['0'] = '否';
 
 $lang->project->acls['private'] = '私有';
 $lang->project->acls['open']    = '公开';
 
-$lang->project->subAclList['private'] = "私有 (只有项目负责人、团队成员和干系人可访问)";
-$lang->project->subAclList['open']    = "公开 (有项目视图权限即可访问)";
-$lang->project->subAclList['program'] = '项目集内公开（所有上级项目集负责人和干系人、项目负责人、团队成员和干系人可访问）';
+$lang->project->subAclList['private'] = "私有 (只有{$lang->projectCommon}负责人、团队成员和干系人可访问)";
+$lang->project->subAclList['open']    = "公开 (有{$lang->projectCommon}视图权限即可访问)";
+$lang->project->subAclList['program'] = "项目集内公开（所有上级项目集负责人和干系人、{$lang->projectCommon}负责人、团队成员和干系人可访问）";
 
-$lang->project->authList['extend'] = '继承 (取系统权限与项目权限的合集)';
-$lang->project->authList['reset']  = '重新定义 (只取项目权限)';
+$lang->project->kanbanAclList['private'] = "私有 (只有{$lang->projectCommon}负责人、团队成员可访问)";
+$lang->project->kanbanAclList['open']    = "公开 (有{$lang->projectCommon}视图权限即可访问)";
 
+$lang->project->kanbanSubAclList['private'] = "私有 (只有{$lang->projectCommon}负责人、团队成员可访问)";
+$lang->project->kanbanSubAclList['open']    = "公开 (有{$lang->projectCommon}视图权限即可访问)";
+$lang->project->kanbanSubAclList['program'] = "项目集内公开（所有上级项目集负责人和干系人、{$lang->projectCommon}负责人、团队成员可访问）";
+
+global $config;
+if($config->systemMode == 'light')
+{
+    unset($lang->project->subAclList['program']);
+    unset($lang->project->kanbanSubAclList['program']);
+}
+
+$lang->project->authList['extend'] = "继承 (取系统权限与{$lang->projectCommon}权限的合集)";
+$lang->project->authList['reset']  = "重新定义 (只取{$lang->projectCommon}权限)";
+
+$lang->project->statusList['']          = '';
 $lang->project->statusList['wait']      = '未开始';
 $lang->project->statusList['doing']     = '进行中';
 $lang->project->statusList['suspended'] = '已挂起';
@@ -260,11 +366,14 @@ $lang->project->endList[186] = '半年';
 $lang->project->endList[365] = '一年';
 $lang->project->endList[999] = '长期';
 
-$lang->project->scrumTitle     = '敏捷开发全流程项目管理';
-$lang->project->waterfallTitle = '瀑布式项目管理';
-$lang->project->kanbanTitle    = '专业研发看板项目管理';
+$lang->project->scrumTitle         = "敏捷开发全流程{$lang->projectCommon}管理";
+$lang->project->waterfallTitle     = "瀑布式{$lang->projectCommon}管理";
+$lang->project->kanbanTitle        = "专业研发看板{$lang->projectCommon}管理";
+$lang->project->agileplusTitle     = "敏捷+看板{$lang->projectCommon}管理";
+$lang->project->waterfallplusTitle = "瀑布+敏捷+看板{$lang->projectCommon}管理";
+$lang->project->moreModelTitle     = '更多模型敬请期待...';
 
-$lang->project->empty                  = '暂时没有项目';
+$lang->project->empty                  = "暂时没有{$lang->projectCommon}";
 $lang->project->nextStep               = '下一步';
 $lang->project->hoursUnit              = '%s 工时';
 $lang->project->membersUnit            = '%s人';
@@ -273,36 +382,42 @@ $lang->project->lastKanban             = '近期看板';
 $lang->project->ongoingStage           = '进行中的阶段';
 $lang->project->scrum                  = 'Scrum';
 $lang->project->waterfall              = '瀑布';
-$lang->project->cannotCreateChild      = '该项目已经有实际的内容，无法直接添加子项目。您可以为当前项目创建一个父项目，然后在新的父项目下面添加子项目。';
-$lang->project->confirmDelete          = "您确定要删除吗？";
+$lang->project->agileplus              = '融合敏捷';
+$lang->project->waterfallplus          = '融合瀑布';
+$lang->project->cannotCreateChild      = "该{$lang->projectCommon}已经有实际的内容，无法直接添加子{$lang->projectCommon}。您可以为当前{$lang->projectCommon}创建一个父{$lang->projectCommon}，然后在新的父{$lang->projectCommon}下面添加子{$lang->projectCommon}。";
 $lang->project->emptyPM                = '暂无';
-$lang->project->cannotChangeToCat      = "该项目已经有实际的内容，无法修改为父项目";
-$lang->project->cannotCancelCat        = "该项目下已经有子项目，无法取消父项目标记";
-$lang->project->parentBeginEnd         = "父项目起止时间：%s ~ %s";
-$lang->project->childLongTime          = "子项目中有长期项目，父项目也应该是长期项目";
-$lang->project->readjustTime           = '重新调整项目起止时间';
-$lang->project->notAllowRemoveProducts = "该产品中的需求与项目进行了关联或者项目下的{$lang->execution->common}关联了该产品，请取消关联后再操作。";
+$lang->project->emptyBranch            = '分支不能为空！';
+$lang->project->cannotChangeToCat      = "该{$lang->projectCommon}已经有实际的内容，无法修改为父{$lang->projectCommon}";
+$lang->project->cannotCancelCat        = "该{$lang->projectCommon}下已经有子{$lang->projectCommon}，无法取消父{$lang->projectCommon}标记";
+$lang->project->parentBeginEnd         = "父{$lang->projectCommon}起止时间：%s ~ %s";
+$lang->project->childLongTime          = "子{$lang->projectCommon}中有长期{$lang->projectCommon}，父{$lang->projectCommon}也应该是长期{$lang->projectCommon}";
+$lang->project->readjustTime           = "重新调整{$lang->projectCommon}起止时间";
+$lang->project->notAllowRemoveProducts = "该{$lang->productCommon}中的需求与{$lang->projectCommon}进行了关联或者{$lang->projectCommon}下的{$lang->execution->common}关联了该{$lang->productCommon}，请取消关联后再操作。";
 $lang->project->ge                     = "『%s』应当不小于实际开始时间『%s』。";
 
 $lang->project->programTitle['0']    = '不显示';
 $lang->project->programTitle['base'] = '只显示一级项目集';
 $lang->project->programTitle['end']  = '只显示最后一级项目集';
 
-$lang->project->accessDenied        = '您无权访问该项目！';
-$lang->project->chooseProgramType   = '选择项目管理方式';
-$lang->project->cannotCreateChild   = '该项目已经有实际的内容，无法直接添加子项目。您可以为当前项目创建一个父项目，然后在新的父项目下面添加子项目。';
-$lang->project->hasChildren         = '该项目有子项目存在，不能删除。';
-$lang->project->confirmDelete       = "您确定删除项目[%s]吗？";
-$lang->project->cannotChangeToCat   = "该项目已经有实际的内容，无法修改为父项目";
-$lang->project->cannotCancelCat     = "该项目下已经有子项目，无法取消父项目标记";
-$lang->project->parentBeginEnd      = "父项目起止时间：%s ~ %s";
-$lang->project->parentBudget        = "父项目预算：";
-$lang->project->beginLetterParent   = "父项目的开始日期：%s，开始日期不能小于父项目的开始日期";
-$lang->project->endGreaterParent    = "父项目的完成日期：%s，完成日期不能大于父项目的完成日期";
-$lang->project->beginGreateChild    = "项目集的最小开始日期：%s，项目的开始日期不能小于项目集的最小开始日期";
-$lang->project->endLetterChild      = "项目集的最大完成日期：%s，项目的完成日期不能大于项目集的最大完成日期";
-$lang->project->childLongTime       = "子项目中有长期项目，父项目也应该是长期项目";
-$lang->project->confirmUnlinkMember = "您确定从该项目中移除该用户吗？";
+$lang->project->accessDenied         = "您无权访问该{$lang->projectCommon}！";
+$lang->project->chooseProgramType    = "选择{$lang->projectCommon}管理方式";
+$lang->project->cannotCreateChild    = "该{$lang->projectCommon}已经有实际的内容，无法直接添加子{$lang->projectCommon}。您可以为当前{$lang->projectCommon}创建一个父{$lang->projectCommon}，然后在新的父{$lang->projectCommon}下面添加子{$lang->projectCommon}。";
+$lang->project->hasChildren          = "该{$lang->projectCommon}有子{$lang->projectCommon}存在，不能删除。";
+$lang->project->confirmDelete        = "您确定删除{$lang->projectCommon}“%s”吗？";
+$lang->project->cannotChangeToCat    = "该{$lang->projectCommon}已经有实际的内容，无法修改为父{$lang->projectCommon}";
+$lang->project->cannotCancelCat      = "该{$lang->projectCommon}下已经有子{$lang->projectCommon}，无法取消父{$lang->projectCommon}标记";
+$lang->project->parentBeginEnd       = "父{$lang->projectCommon}起止时间：%s ~ %s";
+$lang->project->parentBudget         = "父项目集预算：";
+$lang->project->beginLetterParent    = "{$lang->projectCommon}的开始日期小于了父项目集的开始日期：";
+$lang->project->endGreaterParent     = "{$lang->projectCommon}的完成日期大于了父项目集的完成日期：";
+$lang->project->dateExceedParent     = "{$lang->projectCommon}的起止日期已超出父项目集的起止日期：";
+$lang->project->beginGreateChild     = "{$lang->projectCommon}的开始日期应大于等于项目集的最小开始日期：%s";
+$lang->project->endLetterChild       = "{$lang->projectCommon}的完成日期应小于等于项目集的最大完成日期：%s";
+$lang->project->begigLetterExecution = "{$lang->projectCommon}的开始日期应小于等于执行的最小开始日期：%s";
+$lang->project->endGreateExecution   = "{$lang->projectCommon}的完成日期应大于等于执行的最大完成日期：%s";
+$lang->project->childLongTime        = "子{$lang->projectCommon}中有长期{$lang->projectCommon}，父{$lang->projectCommon}也应该是长期{$lang->projectCommon}";
+$lang->project->confirmUnlinkMember  = "您确定从该{$lang->projectCommon}中移除该用户吗？";
+$lang->project->divisionTips         = "按{$lang->projectCommon}创建为单套阶段，阶段关联所有{$lang->productCommon}；按{$lang->productCommon}创建为多套阶段，每套阶段关联一个{$lang->productCommon}。";
 
 $lang->project->action = new stdclass();
 $lang->project->action->managed = '$date, 由 <strong>$actor</strong> 维护。$extra' . "\n";
@@ -312,3 +427,37 @@ $lang->project->priList[1] = '1';
 $lang->project->priList[2] = '2';
 $lang->project->priList[3] = '3';
 $lang->project->priList[4] = '4';
+
+$lang->project->multiple = "启用{$lang->executionCommon}";
+
+$lang->project->copyProject = new stdClass();
+$lang->project->copyProject->nameTips           = "『{$lang->projectCommon}名称』不可重复需要修改。";
+$lang->project->copyProject->codeTips           = "『{$lang->projectCommon}代号』不可重复需要修改。";
+$lang->project->copyProject->endTips            = '『计划完成』不能为空。';
+$lang->project->copyProject->daysTips           = '『可用工作日』应当是数字。';
+
+$lang->project->linkBranchStoryByPlanTips = "{$lang->projectCommon}按计划关联需求时，只导入本{$lang->projectCommon}所关联%s的激活状态的需求。";
+$lang->project->linkNormalStoryByPlanTips = "{$lang->projectCommon}按计划关联需求时，只导入激活状态的需求。";
+$lang->project->cannotManageProducts      = "该{$lang->projectCommon}为{$lang->projectCommon}型{$lang->projectCommon}，不能关联{$lang->productCommon}。";
+
+$lang->project->featureBar['dynamic']['all']       = '全部';
+$lang->project->featureBar['dynamic']['today']     = '今天';
+$lang->project->featureBar['dynamic']['yesterday'] = '昨天';
+$lang->project->featureBar['dynamic']['thisWeek']  = '本周';
+$lang->project->featureBar['dynamic']['lastWeek']  = '上周';
+$lang->project->featureBar['dynamic']['thisMonth'] = '本月';
+$lang->project->featureBar['dynamic']['lastMonth'] = '上月';
+
+$lang->project->moreSelects = array();
+$lang->project->moreSelects['suspended'] = '已挂起';
+$lang->project->moreSelects['closed']    = '已关闭';
+
+$lang->project->manDay            = '人天';
+$lang->project->day               = '天';
+$lang->project->newProduct        = '新产品';
+$lang->project->associatePlan     = '关联计划';
+$lang->project->editorPlaceholder = '可以在编辑器直接贴图。快捷键：Command C+V';
+$lang->project->tenThousandYuan   = '万元';
+$lang->project->planDate          = '计划日期';
+$lang->project->inputProjectName  = '输入项目名称';
+$lang->project->inputProjectCode  = '输入项目代号';

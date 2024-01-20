@@ -42,51 +42,120 @@ class buildTest
         return $objects;
     }
 
-    public function getProjectBuildsTest($projectID = 0, $type = 'all', $param = 0, $orderBy = 't1.date_desc,t1.id_desc', $pager = null)
+    /**
+     * function getProjectBuilds test by build
+     *
+     * @param  int    $count
+     * @param  int    $projectID
+     * @param  string $type
+     * @param  string $param
+     * @param  string $orderBy
+     * @param  string $pager
+     * @access public
+     * @return array
+     */
+    public function getProjectBuildsTest($count, $projectID, $type = 'all', $param = 0, $orderBy = 't1.date_desc,t1.id_desc', $pager = null)
     {
-        $objects = $this->objectModel->getProjectBuilds($projectID = 0, $type = 'all', $param = 0, $orderBy = 't1.date_desc,t1.id_desc', $pager = null);
+        $objects = $this->objectModel->getProjectBuilds($projectID, $type, $param, $orderBy, $pager);
 
         if(dao::isError()) return dao::getError();
+        if($count == '1')  return count($objects);
 
         return $objects;
     }
 
-    public function getProjectBuildsBySearchTest($projectID, $queryID)
+    /**
+     * function getProjectBuildsBySearch test by build
+     *
+     * @param  string $count
+     * @param  string $projectID
+     * @param  string $queryID
+     * @access public
+     * @return array
+     */
+    public function getProjectBuildsBySearchTest($count, $projectID, $queryID)
     {
         $objects = $this->objectModel->getProjectBuildsBySearch($projectID, $queryID);
 
         if(dao::isError()) return dao::getError();
+        if($count == '1')  return count($objects);
 
         return $objects;
     }
 
-    public function getExecutionBuildsTest($executionID, $type = '', $param = '', $orderBy = 't1.date_desc,t1.id_desc', $pager = null)
+    /**
+     * function getExecutionBuilds test by build
+     *
+     * @param  int    $count
+     * @param  int    $executionID
+     * @param  string $type
+     * @param  string $param
+     * @param  string $orderBy
+     * @param  string $pager
+     * @access public
+     * @return array
+     */
+    public function getExecutionBuildsTest($count, $executionID, $type = '', $param = '', $orderBy = 't1.date_desc,t1.id_desc', $pager = null)
     {
-        $objects = $this->objectModel->getExecutionBuilds($executionID, $type = '', $param = '', $orderBy = 't1.date_desc,t1.id_desc', $pager = null);
+        $objects = $this->objectModel->getExecutionBuilds($executionID, $type, $param, $orderBy, $pager);
 
         if(dao::isError()) return dao::getError();
+        if($count == '1')  return count($objects);
 
         return $objects;
     }
 
-    public function getExecutionBuildsBySearchTest($executionID, $queryID)
+    /**
+     * function getExecutionBuildsBySearch test by build
+     *
+     * @param  int $count
+     * @param  int $executionID
+     * @param  int $queryID
+     * @access public
+     * @return arraty
+     */
+    public function getExecutionBuildsBySearchTest($count, $executionID, $queryID)
     {
         $objects = $this->objectModel->getExecutionBuildsBySearch($executionID, $queryID);
 
         if(dao::isError()) return dao::getError();
+        if($count == '1')  return count($objects);
+
 
         return $objects;
     }
 
-    public function getBuildPairsTest($products, $branch = 'all', $params = 'noterminate, nodone', $objectID = 0, $objectType = 'execution', $buildIdList = '', $replace = true)
+    /**
+     * Function getBuildPairs test by build
+     *
+     * @param  int    $count
+     * @param  array  $products
+     * @param  string $branch
+     * @param  string $params
+     * @param  int    $objectID
+     * @param  string $objectType
+     * @param  string $buildIdList
+     * @param  string $replace
+     * @access public
+     * @return array
+     */
+    public function getBuildPairsTest($count, $products, $branch = 'all', $params = 'noterminate, nodone', $objectID = 0, $objectType = 'execution', $buildIdList = '', $replace = true)
     {
-        $objects = $this->objectModel->getBuildPairs($products, $branch = 'all', $params = 'noterminate, nodone', $objectID = 0, $objectType = 'execution', $buildIdList = '', $replace = true);
+        $objects = $this->objectModel->getBuildPairs($products, $branch, $params, $objectID, $objectType, $buildIdList, $replace);
 
         if(dao::isError()) return dao::getError();
+        if($count == '1')  return count($objects);
 
         return $objects;
     }
 
+    /**
+     * Function getLast test by build
+     *
+     * @param  string $executionID
+     * @access public
+     * @return array
+     */
     public function getLastTest($executionID)
     {
         $objects = $this->objectModel->getLast($executionID);
@@ -96,81 +165,264 @@ class buildTest
         return $objects;
     }
 
-    public function createTest($executionID)
+    /**
+     * Function create test by build
+     *
+     * @param  int   $executionID
+     * @param  array $param
+     * @access public
+     * @return array
+     */
+    public function createTest($executionID, $param = array())
     {
-        $objects = $this->objectModel->create($executionID);
+        $toData = date('Y-m-d');
+        $labels = array();
+        $files  = array();
+
+        $createFields = array('product' => '', 'name' => '', 'builder' => 'admin', 'date' => $toData, 'scmPath' => '', 'filePath' => '',
+            'labels' => $labels, 'files' => $files, 'desc' => '');
+
+        foreach($createFields as $field => $defaultValue) $_POST[$field] = $defaultValue;
+        foreach($param as $key => $value) $_POST[$key] = $value;
+
+        $objectID = $this->objectModel->create($executionID);
+
+        unset($_POST);
 
         if(dao::isError()) return dao::getError();
 
+        $objects = $this->objectModel->getByID($objectID);
         return $objects;
     }
 
-    public function updateTest($buildID)
+    /**
+     * Function update test by build
+     *
+     * @param  int   $buildID
+     * @param  array $param
+     * @access public
+     * @return array
+     */
+    public function updateTest($buildID, $param = array())
     {
+        $toData = date('Y-m-d');
+        $labels = array();
+        $files  = array();
+
+        $createFields = array('name' => '', 'builder' => 'admin', 'date' => $toData, 'scmPath' => '', 'filePath' => '',
+            'labels' => $labels, 'files' => $files, 'desc' => '');
+
+        foreach($createFields as $field => $defaultValue) $_POST[$field] = $defaultValue;
+        foreach($param as $key => $value) $_POST[$key] = $value;
+
         $objects = $this->objectModel->update($buildID);
 
-        if(dao::isError()) return dao::getError();
-
-        return $objects;
-    }
-
-    public function updateLinkedBugTest($build)
-    {
-        $objects = $this->objectModel->updateLinkedBug($build);
+        unset($_POST);
 
         if(dao::isError()) return dao::getError();
 
         return $objects;
     }
 
-    public function linkStoryTest($buildID)
+    /**
+     * Function updateLinkedBug test by build
+     *
+     * @param  int   $buildID
+     * @param  array $param
+     * @access public
+     * @return array
+     */
+    public function updateLinkedBugTest($buildID, $param = array())
     {
-        $objects = $this->objectModel->linkStory($buildID);
+        global $tester;
+
+        $build = $this->objectModel->getByID($buildID);
+        $bugs  = array();
+
+        $createFields = array('bugs' => $bugs);
+
+        foreach($createFields as $field => $defaultValue) $_POST[$field] = $defaultValue;
+        foreach($param as $key => $value) $_POST[$key] = $value;
+
+        $build->bugs .= ',' . join(',', $_POST['bugs']);
+
+        $this->objectModel->updateLinkedBug($build);
+
+        $objects = $tester->dao->select('*')->from(TABLE_BUG)->where('id')->in(join(',', $_POST['bugs']))->fetchAll('id');
+
+        unset($_POST);
 
         if(dao::isError()) return dao::getError();
 
         return $objects;
     }
 
-    public function unlinkStoryTest($buildID, $storyID)
+    /**
+     * Function linkStory test by build
+     *
+     * @param  int   $buildID
+     * @param  array $param
+     * @access public
+     * @return array
+     */
+    public function linkStoryTest($buildID, $param = array())
     {
-        $objects = $this->objectModel->unlinkStory($buildID, $storyID);
+        global $tester;
+
+        $stories = array();
+
+        $createFields = array('stories' => $stories);
+
+        foreach($createFields as $field => $defaultValue) $_POST[$field] = $defaultValue;
+        foreach($param as $key => $value) $_POST[$key] = $value;
+
+        $this->objectModel->linkStory($buildID);
+
+        $objects = $tester->dao->select('*')->from(TABLE_BUILD)->where('id')->in($buildID)->fetchAll('id');
+
+        unset($_POST);
 
         if(dao::isError()) return dao::getError();
 
         return $objects;
     }
 
-    public function batchUnlinkStoryTest($buildID)
+    /**
+     * Function unlinkStory test by build
+     *
+     * @param  int   $buildID
+     * @param  array $stories
+     * @param  int  $storyID
+     * @access public
+     * @return array
+     */
+    public function unlinkStoryTest($buildID, $stories = array(), $storyID = 0)
     {
-        $objects = $this->objectModel->batchUnlinkStory($buildID);
+        global $tester;
+
+        $createFields = array('stories' => $stories);
+
+        foreach($createFields as $field => $defaultValue) $_POST[$field] = $defaultValue;
+
+        $this->objectModel->linkStory($buildID);
+        $this->objectModel->unlinkStory($buildID, $storyID);
+
+        $objects = $tester->dao->select('*')->from(TABLE_BUILD)->where('id')->in($buildID)->fetchAll('id');
+
+        unset($_POST);
 
         if(dao::isError()) return dao::getError();
 
         return $objects;
     }
 
-    public function linkBugTest($buildID)
+    /**
+     * Functtion batchUnlinkStory test by build
+     *
+     * @param  int $buildID
+     * @param  array $stories
+     * @access public
+     * @return array
+     */
+    public function batchUnlinkStoryTest($buildID, $stories = array())
     {
-        $objects = $this->objectModel->linkBug($buildID);
+        global $tester;
+
+        $createFields = array('stories' => $stories);
+        foreach($createFields as $field => $defaultValue) $_POST[$field] = $defaultValue;
+        $this->objectModel->linkStory($buildID);
+
+        unset($_POST);
+
+        $newFields = array('unlinkStories' => $stories);
+        foreach($newFields as $field => $defaultValue) $_POST[$field] = $defaultValue;
+        $this->objectModel->batchUnlinkStory($buildID);
+
+        $objects = $tester->dao->select('*')->from(TABLE_BUILD)->where('id')->in($buildID)->fetchAll('id');
+
+        unset($_POST);
 
         if(dao::isError()) return dao::getError();
 
         return $objects;
     }
 
-    public function unlinkBugTest($buildID, $bugID)
+    /**
+     * Function linkBug test by build
+     *
+     * @param  int $buildID
+     * @param  array $param
+     * @access public
+     * @return array
+     */
+    public function linkBugTest($buildID, $param = array())
     {
-        $objects = $this->objectModel->unlinkBug($buildID, $bugID);
+        global $tester;
+
+        $bugs = array();
+
+        $createFields = array('bugs' => $bugs);
+
+        foreach($createFields as $field => $defaultValue) $_POST[$field] = $defaultValue;
+        foreach($param as $key => $value) $_POST[$key] = $value;
+
+        $this->objectModel->linkBug($buildID);
+
+        $objects = $tester->dao->select('*')->from(TABLE_BUILD)->where('id')->in($buildID)->fetchAll('id');
+
+        unset($_POST);
 
         if(dao::isError()) return dao::getError();
 
         return $objects;
     }
 
-    public function batchUnlinkBugTest($buildID)
+    /**
+     * Function unlinkBug test by build
+     *
+     * @param  int $buildID
+     * @param  array $bugs
+     * @param  int $bugID
+     * @access public
+     * @return array
+     */
+    public function unlinkBugTest($buildID, $bugs, $bugID)
     {
-        $objects = $this->objectModel->batchUnlinkBug($buildID);
+        global $tester;
+
+        $createFields = array('bugs' => $bugs);
+
+        foreach($createFields as $field => $defaultValue) $_POST[$field] = $defaultValue;
+
+        $this->objectModel->linkBug($buildID);
+        $this->objectModel->unlinkBug($buildID, $bugID);
+
+        $objects = $tester->dao->select('*')->from(TABLE_BUILD)->where('id')->in($buildID)->fetchAll('id');
+
+        unset($_POST);
+
+        if(dao::isError()) return dao::getError();
+
+        return $objects;
+    }
+
+    public function batchUnlinkBugTest($buildID, $bugs)
+    {
+        global $tester;
+
+        $createFields = array('bugs' => $bugs);
+        foreach($createFields as $field => $defaultValue) $_POST[$field] = $defaultValue;
+        $this->objectModel->linkBug($buildID);
+
+        unset($_POST);
+
+        $newFields = array('unlinkBugs' => $bugs);
+        foreach($newFields as $field => $defaultValue) $_POST[$field] = $defaultValue;
+        $this->objectModel->batchUnlinkBug($buildID);
+
+        $objects = $tester->dao->select('*')->from(TABLE_BUILD)->where('id')->in($buildID)->fetchAll('id');
+
+        unset($_POST);
 
         if(dao::isError()) return dao::getError();
 

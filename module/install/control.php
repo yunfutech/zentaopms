@@ -2,8 +2,8 @@
 /**
  * The control file of install currentModule of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     install
  * @version     $Id: control.php 4297 2013-01-27 07:51:45Z wwccss $
@@ -93,6 +93,18 @@ class install extends control
             $this->view->sessionInfo   = $sessionInfo;
         }
 
+        $notice = '';
+        if($this->config->framework->filterCSRF)
+        {
+            $httpType = (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == 'on') ? 'https' : 'http';
+            if(isset($_SERVER['HTTP_X_FORWARDED_PROTO']) and strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) == 'https') $httpType = 'https';
+            if(isset($_SERVER['REQUEST_SCHEME']) and strtolower($_SERVER['REQUEST_SCHEME']) == 'https') $httpType = 'https';
+
+            $httpHost = zget($_SERVER, 'HTTP_HOST', '');
+            if(empty($httpHost) or strpos($this->server->http_referer, "$httpType://$httpHost") !== 0) $notice = $this->lang->install->CSRFNotice;
+        }
+
+        $this->view->notice = $notice;
         $this->display();
     }
 
@@ -104,7 +116,22 @@ class install extends control
      */
     public function step2()
     {
+        $dbHost = $dbPort = $dbName = $dbUser = $dbPassword = '';
+
+        /* Get mysql env in docker container. */
+        if(getenv('MYSQL_HOST'))     $dbHost     = getenv('MYSQL_HOST');
+        if(getenv('MYSQL_PORT'))     $dbPort     = getenv('MYSQL_PORT');
+        if(getenv('MYSQL_DB'))       $dbName     = getenv('MYSQL_DB');
+        if(getenv('MYSQL_USER'))     $dbUser     = getenv('MYSQL_USER');
+        if(getenv('MYSQL_PASSWORD')) $dbPassword = getenv('MYSQL_PASSWORD');
+
         $this->view->title = $this->lang->install->setConfig;
+
+        $this->view->dbHost     = $dbHost ? $dbHost : '127.0.0.1';
+        $this->view->dbPort     = $dbPort ? $dbPort : '3306';
+        $this->view->dbName     = $dbName ? $dbName : 'zentao';
+        $this->view->dbUser     = $dbUser ? $dbUser : 'root';
+        $this->view->dbPassword = $dbPassword ? $dbPassword : '';
         $this->display();
     }
 
@@ -178,6 +205,7 @@ class install extends control
         if(!empty($_POST))
         {
             $this->loadModel('setting')->setItem('system.common.global.mode', $this->post->mode); // Update mode.
+            $this->loadModel('custom')->disableFeaturesByMode($this->post->mode);
             return print(js::locate(inlink('step5'), 'parent'));
         }
 
@@ -190,7 +218,13 @@ class install extends control
         {
             $this->app->loadLang('upgrade');
 
-            $this->view->title = $this->lang->install->introduction;
+            list($disabledFeatures, $enabledScrumFeatures, $disabledScrumFeatures) = $this->loadModel('custom')->computeFeatures();
+
+            $this->view->title                 = $this->lang->install->selectMode;
+            $this->view->edition               = $this->config->edition;
+            $this->view->disabledFeatures      = $disabledFeatures;
+            $this->view->enabledScrumFeatures  = $enabledScrumFeatures;
+            $this->view->disabledScrumFeatures = $disabledScrumFeatures;
             $this->display();
         }
     }
@@ -212,7 +246,17 @@ class install extends control
             if(dao::isError()) return print(js::error(dao::getError()));
 
             if($this->post->importDemoData) $this->install->importDemoData();
-            if(dao::isError()) echo js::alert($this->lang->install->errorImportDemoData);
+
+            $defaultProgram = $this->loadModel('setting')->getItem('owner=system&module=common&section=global&key=defaultProgram');
+            if($this->config->systemMode == 'light' and empty($defaultProgram))
+            {
+                /* Lean mode create default program. */
+                $programID = $this->loadModel('program')->createDefaultProgram();
+                /* Set default program config. */
+                $this->loadModel('setting')->setItem('system.common.global.defaultProgram', $programID);
+            }
+
+            if(dao::isError()) return print(js::alert($this->lang->install->errorImportDemoData));
 
             $this->loadModel('setting');
             $this->setting->updateVersion($this->config->version);
@@ -220,9 +264,13 @@ class install extends control
             $this->setting->setItem('system.common.global.flow', $this->post->flow);
             $this->setting->setItem('system.common.safe.mode', '1');
             $this->setting->setItem('system.common.safe.changeWeak', '1');
-            $this->setting->setItem('system.common.global.cron', 1);
+            $this->setting->setItem('system.common.global.cron', '1');
 
-            if(strpos($this->app->getClientLang(), 'zh') === 0) $this->loadModel('api')->createDemoData($this->lang->api->zentaoAPI, 'http://' . $_SERVER['HTTP_HOST'] . $this->app->config->webRoot . 'api.php/v1', '16.0');
+            $httpType = (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == 'on') ? 'https' : 'http';
+            if(isset($_SERVER['HTTP_X_FORWARDED_PROTO']) and strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) == 'https') $httpType = 'https';
+            if(isset($_SERVER['REQUEST_SCHEME']) and strtolower($_SERVER['REQUEST_SCHEME']) == 'https') $httpType = 'https';
+            if(strpos($this->app->getClientLang(), 'zh') === 0) $this->loadModel('api')->createDemoData($this->lang->api->zentaoAPI, "{$httpType}://{$_SERVER['HTTP_HOST']}" . $this->app->config->webRoot . 'api.php/v1', '16.0');
+            $this->loadModel('upgrade')->createDefaultDimension();
             return print(js::locate(inlink('step6'), 'parent'));
         }
 
@@ -248,13 +296,17 @@ class install extends control
      */
     public function step6()
     {
-        $installFileDeleted = unlink($this->app->getAppRoot() . 'www/install.php');
+        $canDelFile  = is_writable($this->app->getAppRoot() . 'www');
+        $installFile = $this->app->getAppRoot() . 'www/install.php';
+        $upgradeFile = $this->app->getAppRoot() . 'www/upgrade.php';
+        $installFileDeleted = $canDelFile && is_writable($installFile) ? unlink($installFile) : false;
+
+        if($canDelFile and is_writable($upgradeFile)) unlink($upgradeFile);
+        unset($_SESSION['installing']);
+        session_destroy();
+
         $this->view->installFileDeleted = $installFileDeleted;
         $this->view->title              = $this->lang->install->success;
         $this->display();
-
-        unlink($this->app->getAppRoot() . 'www/upgrade.php');
-        unset($_SESSION['installing']);
-        session_destroy();
     }
 }

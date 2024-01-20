@@ -2,8 +2,8 @@
 /**
  * The batch create view of story module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Yangyang Shi <shiyangyang@cnezsoft.com>
  * @package     story
  * @version     $Id$
@@ -19,7 +19,7 @@
     <h2><?php echo $lang->gitlab->importIssue;?></h2>
     <?php if(!isonlybody() and empty($importable)):?>
     <div class='pull-right'>
-      <?php echo html::linkButton($lang->goback, $this->createLink('repo', 'maintain'), 'self', '', 'btn btn-primary');?>
+      <?php echo html::backButton($lang->goback, "data-app='{$app->tab}'", 'btn btn-primary');?>
     </div>
     <?php endif;?>
   </div>
@@ -31,7 +31,7 @@
           <tr>
             <th class='c-issue'><?php echo $lang->gitlab->gitlabIssue;?></th>
             <th class='c-type'><?php echo $lang->gitlab->objectType;?></th>
-            <th class='c-product'><?php echo $lang->product->common;?></th>
+            <th class='c-product'><?php echo $lang->productCommon;?></th>
             <th class='c-execution'><?php echo $lang->execution->common;?></th>
           </tr>
         </thead>
@@ -51,7 +51,7 @@
           <tr>
             <td class='text-center form-actions' colspan='4'>
               <?php echo html::submitButton($lang->save);?>
-              <?php if(!isonlybody()) echo html::a($this->createLink('repo', 'maintain', ""), $lang->goback, '', 'class="btn btn-wide"');?>
+              <?php if(!isonlybody()) echo html::backButton($lang->goback, "data-app='{$app->tab}'", 'btn btn-wide');?>
             </td>
           </tr>
         </tfoot>

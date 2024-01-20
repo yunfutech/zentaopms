@@ -2,8 +2,8 @@
 /**
  * The setType view of stage module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     stage
  * @version     $Id: setType.html.php 4903 2013-06-26 05:32:59Z wyd621@gmail.com $
@@ -29,16 +29,6 @@ EOT;
 ?>
 <?php js::set('itemRow', $itemRow)?>
 <div id='mainContent' class='main-row'>
-  <div class='side-col'>
-    <div class='panel'>
-      <div class='panel-body'>
-        <div class="list-group">
-          <?php echo html::a(inlink('setType'), $lang->stage->setType, '', "class='selected'");?>
-          <?php echo html::a(inlink('browse'), $lang->stage->browse);?>
-        </div>
-      </div>
-    </div>
-  </div>
   <div class='main-col main-content'>
     <form class="load-indicator main-form form-ajax" method='post'>
       <table class='table table-form active-disabled table-condensed mw-600px'>
@@ -50,7 +40,7 @@ EOT;
           </tr>
         </thead>
         <tbody>
-          <?php foreach($lang->stage->typeList as $key => $value):?>
+          <?php foreach($fieldList as $key => $value):?>
           <tr class='text-center'>
             <td class='w-70px'>
             <?php echo $key;?>
@@ -64,8 +54,14 @@ EOT;
           </tr>
           <?php endforeach;?>
           <tr>
-            <td></td>
-            <td colspan='2' class='form-actions'><?php echo html::submitButton() . html::backButton();?></td>
+            <td colspan='3' class='text-center form-actions'>
+            <?php
+            $appliedTo = array($currentLang => $lang->custom->currentLang, 'all' => $lang->custom->allLang);
+            echo html::radio('lang', $appliedTo, $lang2Set);
+            echo html::submitButton();
+            if(common::hasPriv('custom', 'restore')) echo html::linkButton($lang->custom->restore, $this->createLink('custom', 'restore', "module=stage&field=typeList"), 'hiddenwin', '', 'btn btn-wide');
+            ?>
+            </td>
           </tr>
         </tbody>
       </table>

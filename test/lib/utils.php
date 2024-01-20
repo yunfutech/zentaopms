@@ -2,8 +2,8 @@
 /**
  * Utils for ZenTaoPMS testing.
  *
- * @copyright   Copyright 2009-2017 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2017 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Guanxing <guanxiying@easycorp.ltd>
  * @package     ZenTaoPMS
  * @version     $Id: $
@@ -12,6 +12,7 @@
 
 define('RUNTIME_ROOT', dirname(dirname(__FILE__)) . '/runtime/');
 define('LIB_ROOT', dirname(dirname(__FILE__)) . '/lib/');
+define('TEST_BASEHPATH', dirname(dirname(__FILE__)));
 
 include LIB_ROOT . 'init.php';
 
@@ -45,6 +46,15 @@ function ztfRun($dir)
     global $config;
 
     $ztfPath = RUNTIME_ROOT . 'ztf';
+    $modelPath = TEST_BASEHPATH . '/model';
+
+    $runTestPath = '';
+    if(is_array($dir))
+    {
+        foreach($dir as $model) $runTestPath .= " $modelPath/$model";
+    }
+
+    if($runTestPath) $dir = $runTestPath;
     $command = "$ztfPath $dir";
     system($command);
 }
@@ -61,7 +71,8 @@ function ztfExtract($dir)
     global $config;
 
     $ztfPath = RUNTIME_ROOT . 'ztf';
-    $command = "$ztfPath extract $dir";
+    $testPath = TEST_BASEHPATH;
+    $command = "$ztfPath extract $testPath/$dir";
     system($command);
 }
 
@@ -71,14 +82,22 @@ function ztfExtract($dir)
  * @access public
  * @return void
  */
-function zdRun()
+function zdRun($dataVersion = '', $dbFile = '')
 {
-    global $config, $dao;
+    global $config, $dao, $db;
 
     $frameworkRoot = dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR;
     include LIB_ROOT . 'spyc.php';
 
-    $zdRoot = dirname(dirname(__FILE__)) . '/data/';
+    if($dataVersion && $dbFile)
+    {
+        $db->replaceDBConfig($dbFile);
+        $zdRoot = dirname(dirname(__FILE__)) . "/data/{$dataVersion}/";
+    }
+    else
+    {
+        $zdRoot = dirname(dirname(__FILE__)) . '/data/';
+    }
     $zdPath = RUNTIME_ROOT . 'zd';
 
     set_time_limit(0);
@@ -99,7 +118,7 @@ function zdRun()
         $tmpCommonPath = RUNTIME_ROOT . 'tmp/common';
         if(file_exists($tmpCommonPath)) system("rm -rf $tmpCommonPath");
         system("cp -r {$zdRoot}common $tmpCommonPath");
-        system("rm {$zdRoot}sql/*");
+        if(file_exists("{$zdRoot}sql/")) system("find {$zdRoot}sql/ -type f -delete");
 
         /* Generate SQL files. */
         $tables = array();
@@ -205,6 +224,54 @@ function zdRun()
     catch (PDOException $e)
     {
         die('Error!: ' . $e->getMessage() . PHP_EOL);
+    }
+}
+
+/**
+ * copy init DB.
+ *
+ * @access public
+ * @return void
+ */
+function copyDB()
+{
+    global $config, $dao;
+    $sqlFile = TEST_BASEHPATH . DS . 'tmp/raw.sql';
+    if($config->db->host = 'localhost' and $config->db->port = '3306')
+    {
+        $dumpCommand = "mysqldump -u%s -p%s %s --add-drop-table=false > %s";
+        $dumpCommand  = sprintf($dumpCommand, $config->db->user, $config->db->password, $config->test->rawDB, $sqlFile);
+    }
+    else
+    {
+        $dumpCommand = "mysqldump -h%s -P%s -u%s -p%s %s --add-drop-table=false > %s";
+        $dumpCommand  = sprintf($dumpCommand, $config->db->host, $config->db->port, $config->db->user, $config->db->password, $config->test->rawDB, $sqlFile);
+    }
+
+    $currentDBNum = $dao->query("select count(*) as num from information_schema.SCHEMATA where SCHEMA_NAME like '" . $config->test->dbPrefix . "%'")->fetch();
+    shell_exec($dumpCommand);
+
+    $dbNum = $config->test->dbNum;
+
+    $dbUsed = array();
+    for($i = 1; $i <= $dbNum; $i++)
+    {
+        $dbUsed[] =  $config->test->dbPrefix . $i;
+    }
+
+    foreach($dbUsed as $db)
+    {
+        if($currentDBNum->num > 0) $dao->query('DROP DATABASE IF EXISTS ' . $db);
+        $dao->query('CREATE DATABASE ' . $db);
+        if($config->db->host = 'localhost' and $config->db->port = '3306')
+        {
+            shell_exec("mysql -u{$config->db->user} -p{$config->db->password} $db < $sqlFile");
+        }
+        else
+        {
+            shell_exec("mysql -h{$config->db->host} -P {$config->db->port} -u{$config->db->user} -p{$config->db->password} $db < $sqlFile");
+        }
+        echo '数据库<' . $db . '>复制成功！' . PHP_EOL;
     }
 }
 

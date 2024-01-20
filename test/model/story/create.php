@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 include dirname(dirname(dirname(__FILE__))) . '/lib/init.php';
 include dirname(dirname(dirname(__FILE__))) . '/class/story.class.php';
@@ -8,6 +9,11 @@ su('admin');
 title=测试 storyModel->create();
 cid=1
 pid=1
+
+不勾选由谁评审并且不传入评审人的情况，报错 >> 『由谁评审』不能为空。
+不勾选由谁评审传入评审人的情况，正常插入 >> 0,projected,1
+勾选由谁评审，不传入executionID的情况，阶段为wait >> 测试需求3,2,wait
+勾选由谁评审，传入executionID和fromBug的情况，阶段为projected >> 『研发需求名称』不能为空。
 
 */
 
@@ -42,4 +48,3 @@ r($result1[0]) && p()                        && e('『由谁评审』不能为�
 r($result2)    && p('fromBug,stage,product') && e('0,projected,1');              //不勾选由谁评审传入评审人的情况，正常插入
 r($result3)    && p('title,fromBug,stage')   && e('测试需求3,2,wait');           //勾选由谁评审，不传入executionID的情况，阶段为wait
 r($result4)    && p('title:0')               && e('『研发需求名称』不能为空。'); //勾选由谁评审，传入executionID和fromBug的情况，阶段为projected
-system("./ztest init");

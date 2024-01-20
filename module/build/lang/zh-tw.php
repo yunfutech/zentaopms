@@ -3,7 +3,7 @@
  * The build module zh-tw file of ZenTaoPMS.
  *
  * @copyright   Copyright 2009-2015 青島易軟天創網絡科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     build
  * @version     $Id: zh-tw.php 4129 2013-01-18 01:58:14Z wwccss $
@@ -31,6 +31,7 @@ $lang->build->id             = 'ID';
 $lang->build->product        = $lang->productCommon;
 $lang->build->project        = '所屬項目';
 $lang->build->branch         = '平台/分支';
+$lang->build->branchAll      = '所有關聯%s';
 $lang->build->branchName     = '所屬%s';
 $lang->build->execution      = '所屬' . $lang->executionCommon;
 $lang->build->name           = '名稱編號';

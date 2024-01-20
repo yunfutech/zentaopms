@@ -11,18 +11,18 @@ title=测试productModel->checkPriv();
 cid=1
 pid=1
 
-测试admin能否看到产品1        >> 1
-测试admin能否看到产品2        >> 1
-测试admin能否看到产品3        >> 1
-测试admin能否看到产品4        >> 1
-测试admin能否看到产品5        >> 1
+测试admin能否看到产品1 >> 1
+测试admin能否看到产品2 >> 1
+测试admin能否看到产品3 >> 1
+测试admin能否看到产品4 >> 1
+测试admin能否看到产品5 >> 1
 测试admin能否看到不存在的产品 >> 1
-测试po1能否看到产品1          >> 1
-测试po1能否看到产品2          >> 1
-测试po1能否看到产品3          >> 1
-测试po1能否看到产品4          >> 1
-测试po1能否看到产品5          >> 1
-测试po1能否看到不存在的产品   >> 2
+测试po1能否看到产品1 >> 1
+测试po1能否看到产品2 >> 1
+测试po1能否看到产品3 >> 1
+测试po1能否看到产品4 >> 1
+测试po1能否看到产品5 >> 1
+测试po1能否看到不存在的产品 >> 2
 
 */
 
@@ -44,4 +44,3 @@ r($productTest->checkPrivTest($productIDList[3])) && p() && e('1'); // 测试po1
 r($productTest->checkPrivTest($productIDList[4])) && p() && e('1'); // 测试po1能否看到产品5
 r($productTest->checkPrivTest($productIDList[5])) && p() && e('2'); // 测试po1能否看到不存在的产品
 
-system("./ztest init");

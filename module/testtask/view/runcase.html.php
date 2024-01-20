@@ -2,8 +2,8 @@
 /**
  * The runrun view file of testtask of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     testtask
  * @version     $Id: runcase.html.php 4723 2013-05-03 05:19:29Z chencongzhi520@gmail.com $
@@ -14,6 +14,7 @@
 <?php include '../../common/view/form.html.php';?>
 <?php js::set('caseResultSave', $lang->save);?>
 <?php js::set('tab', $app->tab);?>
+<?php js::set('confirm', $confirm);?>
 <div id='mainContent' class='main-content'>
   <div class='main-header'>
     <h2>
@@ -27,6 +28,7 @@
         <tr>
           <td colspan='5' style='word-break: break-all;'><strong><?php echo $lang->testcase->precondition;?></strong><br/><?php echo nl2br($run->case->precondition);?></td>
         </tr>
+        <?php if($confirm != 'yes'):?>
         <tr>
           <th class='w-50px'><?php echo $lang->testcase->stepID;?></th>
           <th class='w-p30'><?php  echo $lang->testcase->stepDesc;?></th>
@@ -34,7 +36,9 @@
           <th class='w-100px'><?php echo $lang->testcase->result;?></th>
           <th><?php echo $lang->testcase->real;?></th>
         </tr>
+        <?php endif;?>
       </thead>
+      <?php if($confirm != 'yes'):?>
       <?php
       if(empty($run->case->steps))
       {
@@ -81,11 +85,12 @@
       </tr>
       <?php $childId ++;?>
       <?php endforeach;?>
+      <?php endif;?>
       <tr class='text-center'>
         <td colspan='5' class='form-actions'>
           <?php
           if($preCase)  echo html::a(inlink('runCase', "runID={$preCase['runID']}&caseID={$preCase['caseID']}&version={$preCase['version']}"), $lang->testtask->pre, '', "id='pre' class='btn btn-wide'");
-          if($run->case->status != 'wait') echo html::submitButton();
+          if($run->case->status != 'wait' and $confirm != 'yes') echo html::submitButton();
           if($nextCase)  echo '&nbsp;' . html::a(inlink('runCase', "runID={$nextCase['runID']}&caseID={$nextCase['caseID']}&version={$nextCase['version']}"), $lang->testtask->next, '', "id='next' class='btn btn-wide'");
           echo html::hidden('case',    $run->case->id);
           echo html::hidden('version', $run->case->currentVersion);
@@ -116,11 +121,19 @@
 <script>
 $(function()
 {
-    $('#resultsContainer').load("<?php echo $this->createLink('testtask', 'results', "runID={$runID}&caseID=$caseID&version=$version");?> #casesResults", function()
+    loadResult();
+});
+function loadResult()
+{
+    $('#resultsContainer').load("<?php echo $this->createLink('testtask', 'results', "runID={$runID}&caseID=$caseID&version=$version&status=all");?> #casesResults", function()
     {
         $('.result-item').click(function()
         {
             var $this = $(this);
+            if($this.data('status') == 'running')
+            {
+                return;
+            }
             $this.toggleClass('show-detail');
             var show = $this.hasClass('show-detail');
             $this.next('.result-detail').toggleClass('hide', !show);
@@ -128,12 +141,34 @@ $(function()
         });
 
         $('#casesResults table caption .result-tip').html($('#resultTip').html());
+
+        if($('.result-item:first').data('status') == 'running')
+        {
+            var times = 0;
+            var id    = $('.result-item:first').data('id')
+            var link  = createLink('testtask', 'ajaxGetResult', 'resultID=' + id);
+
+            var resultInterval = setInterval(() => {
+                times++;
+                if(times > 600)
+                {
+                    clearInterval(resultInterval);
+                }
+
+                $.get(link, function(task)
+                {
+                    task = JSON.parse(task);
+                    task = task.data;
+                    if(task.ZTFResult != '')
+                    {
+                        clearInterval(resultInterval);
+                        loadResult();
+                    }
+                });
+            }, 1000);
+        }
     });
-});
-<?php
-$sessionString  = $config->requestType == 'PATH_INFO' ? '?' : '&';
-$sessionString .= session_name() . '=' . session_id();
-?>
-var sessionString = '<?php echo $sessionString;?>';
+}
+var sessionString = '<?php echo session_name() . '=' . session_id();?>';
 </script>
 <?php include '../../common/view/footer.lite.html.php';?>

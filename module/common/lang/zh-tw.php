@@ -3,7 +3,7 @@
  * The common simplified chinese file of ZenTaoPMS.
  *
  * @copyright   Copyright 2009-2015 青島易軟天創網絡科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     ZenTaoPMS
  * @version     $Id: zh-tw.php 5116 2013-07-12 06:37:48Z chencongzhi520@gmail.com $
@@ -136,7 +136,7 @@ $lang->workingHour = '工時';
 $lang->idAB         = 'ID';
 $lang->priAB        = 'P';
 $lang->statusAB     = '狀態';
-$lang->openedByAB   = '創建';
+$lang->openedByAB   = '創建者';
 $lang->assignedToAB = '指派';
 $lang->typeAB       = '類型';
 $lang->nameAB       = '名稱';
@@ -146,13 +146,14 @@ $lang->my->common         = '地盤';
 $lang->program->common    = '項目集';
 $lang->product->common    = '產品';
 $lang->project->common    = '項目';
-$lang->execution->common  = $config->systemMode == 'new' ? '執行' : $lang->executionCommon;
+$lang->execution->common  = '執行';
 $lang->kanban->common     = '看板';
 $lang->qa->common         = '測試';
 $lang->devops->common     = 'DevOps';
 $lang->doc->common        = '文檔';
 $lang->repo->common       = '代碼';
-$lang->report->common     = '統計';
+$lang->repo->codeRepo     = '代碼庫';
+$lang->report->common     = '统计';
 $lang->system->common     = '組織';
 $lang->admin->common      = '後台';
 $lang->task->common       = '任務';
@@ -162,7 +163,8 @@ $lang->testtask->common   = '測試單';
 $lang->score->common      = '我的積分';
 $lang->build->common      = '版本';
 $lang->testreport->common = '測試報告';
-$lang->automation->common = '自動化';
+$lang->automation->common = '自動化：';
+$lang->zahost->common     = '宿主機';
 $lang->team->common       = '團隊';
 $lang->user->common       = '用戶';
 $lang->custom->common     = '自定義';
@@ -181,6 +183,8 @@ $lang->stage->common      = '階段';
 $lang->stage->list        = '階段列表';
 $lang->execution->list    = "{$lang->executionCommon}列表";
 $lang->kanban->common     = '看板';
+$lang->app->common        = '應用';
+$lang->app->serverLink    = '服務器鏈接';
 
 $lang->personnel->common     = '人員';
 $lang->personnel->invest     = '投入人員';
@@ -254,7 +258,6 @@ $lang->product->kanban = $lang->productCommon . '看板';
 $lang->project->report = '報告';
 
 $lang->report->weekly       = '周報';
-$lang->report->annual       = '年度總結';
 $lang->report->notice       = new stdclass();
 $lang->report->notice->help = '註：統計報表的數據來源於列表頁面的檢索結果，生成統計報表前請先在列表頁面進行檢索。比如列表頁面我們檢索的是%tab%，那麼報表就是基于之前檢索的%tab%的結果集進行統計。';
 
@@ -262,7 +265,7 @@ $lang->testcase->case      = '用例';
 $lang->testcase->testsuite = '套件';
 $lang->testcase->caselib   = '用例庫';
 
-$lang->devops->compile  = '構建';
+$lang->devops->compile  = '流水線';
 $lang->devops->mr       = '合併請求';
 $lang->devops->repo     = '版本庫';
 $lang->devops->rules    = '指令';

@@ -1,13 +1,17 @@
 <?php
 $lang->backup->common      = 'Backup';
-$lang->backup->index       = 'Accueil Backup';
+$lang->backup->index       = 'Backup Home';
 $lang->backup->history     = 'Historique';
 $lang->backup->delete      = 'Suppression Backup';
 $lang->backup->backup      = 'Backup';
-$lang->backup->restore     = 'Restaurer';
+$lang->backup->restore     = 'Restore';
 $lang->backup->change      = 'Editer Expiration';
 $lang->backup->changeAB    = 'Editer';
 $lang->backup->rmPHPHeader = 'Enlever PHP header';
+$lang->backup->setting     = 'Paramétrage';
+
+$lang->backup->restoreAction = 'Restore Backup';
+$lang->backup->settingAction = 'Backup Settings';
 
 $lang->backup->time     = 'Date';
 $lang->backup->files    = 'Fichiers';
@@ -19,7 +23,6 @@ $lang->backup->status   = 'Statut';
 $lang->backup->statusList['success'] = 'Succès';
 $lang->backup->statusList['fail']    = 'Echec';
 
-$lang->backup->setting    = 'Paramétrage';
 $lang->backup->settingDir = 'Répertoire Backup';
 $lang->backup->settingList['nofile'] = 'Ne pas archiver fichiers et codes.';
 $lang->backup->settingList['nosafe'] = 'Ne pas prévenir du téléchargement par PHP file header.';
@@ -46,3 +49,4 @@ $lang->backup->error->restoreSQL  = "Echec pour restaurer la database library. E
 $lang->backup->error->restoreFile = "Echec pour restaurer le fichier. Erreur %s.";
 $lang->backup->error->backupFile  = "Echec pour sauvegarder le fichier. Erreur %s.";
 $lang->backup->error->backupCode  = "Echec pour sauvegarder le code. Erreur %s.";
+$lang->backup->error->timeout     = "Backup timeout.";

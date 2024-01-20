@@ -2,14 +2,18 @@
 /**
  * The search module English file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     search
  * @version     $Id: en.php 4129 2013-01-18 01:58:14Z wwccss $
  * @link        http://www.zentao.net
  */
 $lang->search->common        = 'Suche';
+$lang->search->id            = 'ID';
+$lang->search->editedDate    = 'Edited Date';
+$lang->search->key           = 'Key';
+$lang->search->value         = 'Value';
 $lang->search->reset         = 'Zurücksetzen';
 $lang->search->saveQuery     = 'Speichern';
 $lang->search->myQuery       = 'Meine Suchen';
@@ -25,6 +29,9 @@ $lang->search->me            = 'Ich';
 $lang->search->noQuery       = 'Keine Suche gespeichert';
 $lang->search->onMenuBar     = 'In Menü anzeigen';
 $lang->search->custom        = 'Eigene';
+$lang->search->setCommon     = 'Set as public query criteria';
+$lang->search->saveCondition = 'Save search options';
+$lang->search->setCondName   = 'Please enter a save condition name';
 
 $lang->search->account  = 'Konto';
 $lang->search->module   = 'Module';
@@ -69,6 +76,7 @@ $lang->search->result            = 'Search Results';
 $lang->search->buildSuccessfully = 'Search index initialized.';
 $lang->search->executeInfo       = '%s search results for you in %s seconds.';
 $lang->search->buildResult       = "Create index %s and created <strong class='%scount'>%s</strong> records.";
+$lang->search->queryTips         = "Separate ids with comma";
 
 $lang->search->modules['all']         = 'All';
 $lang->search->modules['task']        = 'Task';
@@ -86,13 +94,15 @@ $lang->search->modules['testsuite']   = 'Test Suite';
 $lang->search->modules['testreport']  = 'Testing Report';
 $lang->search->modules['productplan'] = 'Plan';
 $lang->search->modules['program']     = 'Program';
-$lang->search->modules['project']     = 'Project';
-$lang->search->modules['execution']   = $lang->executionCommon;
-$lang->search->modules['story']       = 'Story';
+$lang->search->modules['project']     = $lang->projectCommon;
+$lang->search->modules['execution']   = $lang->execution->common;
+$lang->search->modules['story']       = $lang->SRCommon;
+$lang->search->modules['requirement'] = $lang->URCommon;
 
 $lang->search->objectTypeList['story']            = $lang->SRCommon;
 $lang->search->objectTypeList['requirement']      = $lang->URCommon;
 $lang->search->objectTypeList['stage']            = 'stage';
-$lang->search->objectTypeList['sprint']           = $lang->executionCommon;
+$lang->search->objectTypeList['sprint']           = $lang->execution->common;
+$lang->search->objectTypeList['kanban']           = 'kanban';
 $lang->search->objectTypeList['commonIssue']      = 'Issue';
 $lang->search->objectTypeList['stakeholderIssue'] = 'Stakeholder Issue';

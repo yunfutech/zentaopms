@@ -27,18 +27,13 @@ UPDATE `zt_kanbancard` SET `progress`='100' WHERE `status` = 'done' and `fromtyp
 
 ALTER TABLE `zt_user` ADD `visions` varchar(20) NOT NULL DEFAULT 'rnd,lite' AFTER `visits`;
 UPDATE `zt_user` SET `visions`='rnd,lite';
-UPDATE `zt_group` SET `vision`='lite' WHERE `role` = 'feedback';
+UPDATE `zt_group` SET `vision`='lite', `project`='0' WHERE `role` = 'feedback';
 
 DELETE FROM `zt_group` WHERE `vision` = 'lite' AND `role` IN ('liteAdmin','liteProject','liteTeam');
 
-INSERT INTO `zt_group` (`vision`, `name`, `role`, `desc`) VALUES
-('lite', '管理员', 'liteAdmin', '迅捷版用户分组');
-
-INSERT INTO `zt_group` (`vision`, `name`, `role`, `desc`) VALUES
-('lite', '项目管理', 'liteProject', '迅捷版用户分组');
-
-INSERT INTO `zt_group` (`vision`, `name`, `role`, `desc`) VALUES
-('lite', '团队成员', 'liteTeam', '迅捷版用户分组');
+INSERT INTO `zt_group` (`vision`, `name`, `role`, `desc`) VALUES('lite', '管理员', 'liteAdmin', '运营管理界面用户分组');
+INSERT INTO `zt_group` (`vision`, `name`, `role`, `desc`) VALUES('lite', '项目管理', 'liteProject', '运营管理界面用户分组');
+INSERT INTO `zt_group` (`vision`, `name`, `role`, `desc`) VALUES('lite', '团队成员', 'liteTeam', '运营管理界面用户分组');
 
 ALTER TABLE `zt_productplan` ADD `closedReason` varchar(20) NOT NULL AFTER `order`;
 
@@ -50,9 +45,6 @@ ALTER TABLE `zt_kanbancard` CHANGE `order` `order` mediumint NOT NULL DEFAULT '0
 ALTER TABLE `zt_kanbanregion` CHANGE `order` `order` mediumint NOT NULL DEFAULT '0' AFTER `name`;
 ALTER TABLE `zt_kanbanspace` CHANGE `order` `order` mediumint NOT NULL DEFAULT '0' AFTER `status`;
 ALTER TABLE `zt_projectstory` CHANGE `branch` `branch` mediumint unsigned NOT NULL AFTER `product`;
-
-INSERT INTO `zt_config` (`vision`,`owner`, `module`, `section`, `key`, `value`) VALUES ('lite','system', 'project', '', 'unitList', 'CNY,USD');
-INSERT INTO `zt_config` (`vision`,`owner`, `module`, `section`, `key`, `value`) VALUES ('lite','system', 'project', '', 'defaultCurrency', 'CNY');
 
 ALTER TABLE `zt_apistruct` CHANGE `desc` `desc` text COLLATE 'utf8_general_ci' NOT NULL DEFAULT '' AFTER `type`;
 

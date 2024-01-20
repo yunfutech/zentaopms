@@ -3,7 +3,7 @@
  * The stage module zh-tw file of ZenTaoPMS.
  *
  * @copyright   Copyright 2009-2015 青島易軟天創網絡科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     stage
  * @version     $Id: zh-tw.php 4729 2013-05-03 07:53:55Z chencongzhi520@gmail.com $
@@ -25,6 +25,7 @@ $lang->stage->type    = '階段分類';
 $lang->stage->percent = '工作量占比';
 $lang->stage->setType = '階段類型';
 
+$lang->stage->typeList['mix']     = '綜合';
 $lang->stage->typeList['request'] = '需求';
 $lang->stage->typeList['design']  = '設計';
 $lang->stage->typeList['dev']     = '開發';

@@ -2,8 +2,8 @@
 /**
  * The view file of backup module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Yidong Wang <yidong@cnezsoft.com>
  * @package     backup
  * @version     $Id: view.html.php 2568 2012-02-09 06:56:35Z shiyangyangwork@yahoo.cn $
@@ -20,16 +20,6 @@
   <div class='btn-toolbar pull-left'><?php // common::printAdminSubMenu('system');?></div>
 </div>
 <div id='mainContent' class="main-row">
-  <div class='side-col' id='sidebar'>
-    <div class='cell'>
-      <div class='list-group'>
-        <?php
-        echo html::a($this->inLink('index'), $lang->backup->common, '', "class='active'");
-        echo html::a($this->createLink('action', 'trash'), $lang->action->trash);
-        ?>
-      </div>
-    </div>
-  </div>
   <div class="main-col main-content">
     <div class='main-header'>
       <h2>
@@ -37,7 +27,13 @@
       </h2>
       <div class='pull-right'>
         <?php common::printLink('backup', 'setting', '', "<i class='icon icon-cog'></i> " . $lang->backup->setting, '', "data-width='500' class='iframe btn btn-primary'");?>
-        <?php common::printLink('backup', 'backup', 'reload=yes', "<i class='icon icon-copy'></i> " . $lang->backup->backup, 'hiddenwin', "class='btn btn-primary backup'");?>
+        <?php
+        if(common::hasPriv('backup', 'backup'))
+        {
+            $backupLink = helper::createLink('backup', 'backup', 'reload=yes');
+            echo html::commonButton("<i class='icon icon-copy'> </i>" . $lang->backup->backup, "data-link='{$backupLink}'", 'btn btn-primary backup');
+        }
+        ?>
       </div>
     </div>
     <table class='table table-condensed table-bordered active-disabled table-fixed'>
@@ -124,4 +120,5 @@
 <?php js::set('rmPHPHeader', $lang->backup->rmPHPHeader);?>
 <?php js::set('confirmRestore', $lang->backup->confirmRestore);?>
 <?php js::set('restore', $lang->backup->restore);?>
+<?php js::set('backupTimeout', $lang->backup->error->timeout);?>
 <?php include '../../common/view/footer.html.php';?>

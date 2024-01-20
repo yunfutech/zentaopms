@@ -2,8 +2,8 @@
 /**
  * The batch create view of user module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Yangyang Shi <shiyangyang@cnezsoft.com>
  * @package     story
  * @version     $Id$
@@ -108,7 +108,7 @@
         </tr>
         <?php endforeach;?>
         <tr>
-          <th colspan='2'><?php echo $lang->user->verifyPassword?></th>
+          <th colspan='4'><?php echo $lang->user->verifyPassword?></th>
           <td colspan='2'>
             <div class="required required-wrapper"></div>
             <input type='text'     style="display:none"> <!-- for disable autocomplete all browser -->
@@ -119,7 +119,7 @@
         </tbody>
         <tfoot>
           <tr>
-            <td colspan="<?php echo count($visibleFields) + 4;?>" class="text-center form-actions">
+            <td colspan="<?php echo count($visibleFields) + 6;?>" class="text-center form-actions">
               <?php echo html::submitButton($lang->save);?>
               <?php echo html::backButton();?>
             </td>

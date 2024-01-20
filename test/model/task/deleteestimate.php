@@ -18,4 +18,3 @@ $estimateID = '1';
 
 $task = new taskTest();
 r($task->deleteEstimateTest($estimateID)) && p('0:field,old,new') && e('consumed,3,2'); // 根据estimateID查看预计工时
-system("./ztest init");

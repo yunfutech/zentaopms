@@ -2,8 +2,8 @@
 /**
  * The model file of message module of ZenTaoCMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Yidong Wang <yidong@cnezsoft.com>
  * @package     message
  * @version     $Id$
@@ -59,11 +59,16 @@ class messageModel extends model
      * @param  int    $objectID
      * @param  string $actionType
      * @param  int    $actionID
+     * @param  string $actor
+     * @param  string $extra
      * @access public
      * @return void
      */
-    public function send($objectType, $objectID, $actionType, $actionID, $actor = '')
+    public function send($objectType, $objectID, $actionType, $actionID, $actor = '', $extra = '')
     {
+        if(defined('TUTORIAL')) return;
+
+        $objectType     = strtolower($objectType);
         $messageSetting = $this->config->message->setting;
         if(is_string($messageSetting)) $messageSetting = json_decode($messageSetting, true);
 
@@ -88,8 +93,14 @@ class messageModel extends model
                     }
                 }
 
-                $moduleName = $objectType == 'case' ? 'testcase' : $objectType;
-                $this->loadModel('mail')->sendmail($objectID, $actionID);
+                if($objectType == 'feedback')
+                {
+                    $this->loadModel('feedback')->sendmail($objectID, $actionID);
+                }
+                else
+                {
+                    $this->loadModel('mail')->sendmail($objectID, $actionID);
+                }
 
                 if(defined('RUN_MODE') and RUN_MODE == 'api') $config->requestType = $requestType;
             }
@@ -103,7 +114,6 @@ class messageModel extends model
                 $this->loadModel('webhook')->send($objectType, $objectID, $actionType, $actionID, $actor);
             }
         }
-
         if(isset($messageSetting['message']))
         {
             $actions = $messageSetting['message']['setting'];
@@ -134,7 +144,7 @@ class messageModel extends model
         $table  = $this->config->objectTables[$objectType];
         $field  = $this->config->action->objectNameFields[$objectType];
         $object = $this->dao->select('*')->from($table)->where('id')->eq($objectID)->fetch();
-        $toList = $this->getToList($object, $objectType);
+        $toList = $this->getToList($object, $objectType, $actionID);
         if(empty($toList)) return false;
         if($toList == $actor) return false;
 
@@ -145,9 +155,12 @@ class messageModel extends model
         if($isonlybody) unset($_GET['onlybody']);
 
         $moduleName = $objectType == 'case' ? 'testcase' : $objectType;
-        $space = common::checkNotCN() ? ' ' : '';
-        $data  = $user->realname . $space . $this->lang->action->label->$actionType . $space . $this->lang->action->objectTypes[$objectType];
-        $data .= ' ' . html::a($sysURL . helper::createLink($moduleName, 'view', "id=$objectID"), "[#{$objectID}::{$object->$field}]");
+        $moduleName = $objectType == 'kanbancard' ? 'kanban' : $objectType;
+        $space      = common::checkNotCN() ? ' ' : '';
+        $data       = $user->realname . $space . $this->lang->action->label->$actionType . $space . $this->lang->action->objectTypes[$objectType];
+        $dataID     = $objectType == 'kanbancard' ? $object->kanban : $objectID;
+        $url        = helper::createLink($moduleName, 'view', "id=$dataID");
+        $data      .= ' ' . html::a((strpos($url, $sysURL) === 0 ? '' : $sysURL) . $url, "[#{$objectID}::{$object->$field}]");
 
         if($isonlybody) $_GET['onlybody'] = 'yes';
 
@@ -168,10 +181,11 @@ class messageModel extends model
      *
      * @param  object    $object
      * @param  string    $objectType
+     * @param  int       $actionID
      * @access public
      * @return string
      */
-    public function getToList($object, $objectType)
+    public function getToList($object, $objectType, $actionID = 0)
     {
         $toList = '';
         if(!empty($object->assignedTo)) $toList = $object->assignedTo;
@@ -183,12 +197,28 @@ class messageModel extends model
         {
             /* Get notifiy persons. */
             $notifyPersons = array();
-            if(!empty($object->notify)) $notifyPersons = $this->loadModel('release')->getNotifyPersons($object->notify, $object->product, $object->build, $object->id);
+            if(!empty($object->notify)) $notifyPersons = $this->loadModel('release')->getNotifyPersons($object);
 
             if(!empty($notifyPersons)) $toList = implode(',', $notifyPersons);
         }
+        if(empty($toList) and $objectType == 'task' and $object->mode == 'multi')
+        {
+            $teamMembers = $this->loadModel('task')->getTeamMembers($object->id);
+            $toList      = array_filter($teamMembers, function($account){
+                return $account != $this->app->user->account;
+            });
+            $toList     = implode(',', $toList);
+        }
 
         if($toList == 'closed') $toList = '';
+        if($objectType == 'feedback' and $object->status == 'replied') $toList = ',' . $object->openedBy . ',';
+        if($objectType == 'story' and $actionID)
+        {
+            $action = $this->loadModel('action')->getById($actionID);
+            list($toList, $ccList) = $this->loadModel($objectType)->getToAndCcList($object, $action->action);
+            $toList = $toList . $ccList;
+        }
+
         return $toList;
     }
 

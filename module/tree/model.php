@@ -2,15 +2,13 @@
 /**
  * The model file of tree module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     tree
  * @version     $Id: model.php 5149 2013-07-16 01:47:01Z zhujinyonging@gmail.com $
  * @link        http://www.zentao.net
  */
-?>
-<?php
 class treeModel extends model
 {
     /**
@@ -66,10 +64,12 @@ class treeModel extends model
      * @param  string     $type
      * @param  int        $startModule
      * @param  string|int $branch
+     * @param  string     $param
+     * @param  int        $grade
      * @access public
      * @return void
      */
-    public function buildMenuQuery($rootID, $type, $startModule = 0, $branch = 'all')
+    public function buildMenuQuery($rootID, $type, $startModule = 0, $branch = 'all', $param = 'nodeleted', $grade = 0)
     {
         /* Set the start module. */
         $startModulePath = '';
@@ -79,6 +79,10 @@ class treeModel extends model
             if($startModule) $startModulePath = $startModule->path . '%';
         }
 
+        /* If feedback module is merge add story module.*/
+        $syncConfig = $this->getSyncConfig($type);
+
+        if(($type == 'feedback' or $type == 'ticket') and strpos($param, 'noproduct') === false and isset($syncConfig[$rootID])) $type  = 'story,' . $type;
         if($this->isMergeModule($rootID, $type))
         {
             return $this->dao->select('*')->from(TABLE_MODULE)
@@ -86,27 +90,35 @@ class treeModel extends model
                 ->beginIF($type == 'task')->andWhere('type')->eq('task')->fi()
                 ->beginIF($type != 'task')->andWhere('type')->in("story,$type")->fi()
                 ->beginIF($startModulePath)->andWhere('path')->like($startModulePath)->fi()
-                ->beginIF($branch !== 'all' and $branch !== '' and $branch !== false)
+                ->beginIF($branch !== 'all' and $branch !== '' and $branch !== false and strpos($param, 'noMainBranch') === false)
                 ->andWhere("(branch")->eq(0)
                 ->orWhere('branch')->eq($branch)
                 ->markRight(1)
                 ->fi()
-                ->andWhere('deleted')->eq(0)
+                ->beginIF($branch !== 'all' and $branch !== '' and $branch !== false and strpos($param, 'noMainBranch') !== false)
+                ->andWhere('branch')->eq($branch)
+                ->fi()
+                ->beginIF(strpos($param, 'nodeleted') !== false)->andWhere('deleted')->eq(0)->fi()
                 ->orderBy('grade desc, `order`, type desc')
                 ->get();
         }
 
         /* $createdVersion < 4.1 or $type == 'story'. */
         return $this->dao->select('*')->from(TABLE_MODULE)
-            ->where('root')->eq((int)$rootID)
-            ->andWhere('type')->eq($type)
+            ->where('1=1')
+            ->beginIF($type != 'feedback' or !empty($rootID))->andwhere('root')->eq((int)$rootID)->fi()
+            ->andWhere('type')->in($type)
+            ->beginIF($grade)->andWhere('grade')->le($grade)->fi()
             ->beginIF($startModulePath)->andWhere('path')->like($startModulePath)->fi()
-            ->beginIF($branch !== 'all' and $branch !== '' and $branch !== false)
+            ->beginIF($branch !== 'all' and $branch !== '' and $branch !== false and strpos($param, 'noMainBranch') === false)
             ->andWhere('(branch')->eq(0)
             ->orWhere('branch')->eq($branch)
             ->markRight(1)
             ->fi()
-            ->andWhere('deleted')->eq(0)
+            ->beginIF($branch !== 'all' and $branch !== '' and $branch !== false and strpos($param, 'noMainBranch') !== false)
+            ->andWhere('branch')->eq($branch)
+            ->fi()
+            ->beginIF(strpos($param, 'nodeleted') !== false)->andWhere('deleted')->eq(0)->fi()
             ->orderBy('grade desc, `order`')
             ->get();
     }
@@ -118,27 +130,30 @@ class treeModel extends model
      * @param  string    $type
      * @param  int       $startModule
      * @param  int|array $branch
+     * @param  string    $param
+     * @param  string    $grade
+     * @param  string    $divide /|>
      * @access public
-     * @return string
+     * @return void
      */
-    public function getOptionMenu($rootID, $type = 'story', $startModule = 0, $branch = 0)
+    public function getOptionMenu($rootID, $type = 'story', $startModule = 0, $branch = 0, $param = 'nodeleted', $grade = 'all', $divide = '/')
     {
-        if(empty($branch)) $branch = 0;
+        if(empty($branch) and !is_array($branch)) $branch = 0;
         if(defined('TUTORIAL'))
         {
             $modulePairs = $this->loadModel('tutorial')->getModulePairs();
             if(!is_array($branch)) return $modulePairs;
 
             $modules = array();
-            foreach($branch as $b) $modules[$b] = $modulePairs;
+            foreach($branch as $branchID) $modules[$branchID] = $modulePairs;
             return $modules;
         }
 
         /* If type of $branch is array, get modules of these branches. */
-        if(gettype($branch) == 'array')
+        if(is_array($branch))
         {
             $modules = array();
-            foreach($branch as $b) $modules[$b] = $this->getOptionMenu($rootID, $type, $startModule, $b);
+            foreach($branch as $branchID) $modules[$branchID] = $this->getOptionMenu($rootID, $type, $startModule, $branchID, $param);
 
             return $modules;
         }
@@ -146,13 +161,13 @@ class treeModel extends model
         if($type == 'line') $rootID = 0;
 
         $branches = array($branch => '');
-        if(strpos('story|bug|case', $type) !== false)
+        if($branch != 'all' and strpos('story|bug|case', $type) !== false)
         {
             $product = $this->loadModel('product')->getById($rootID);
             if($product and $product->type != 'normal')
             {
                 $branchPairs = $this->loadModel('branch')->getPairs($rootID, 'all');
-                $branches    = $branch === 'all' ? $branchPairs : array($branch => $branchPairs[$branch]);
+                foreach(explode(',', $branch) as $branchID) $branches += array($branchID => $branchPairs[$branchID]);
             }
             elseif($product and $product->type == 'normal')
             {
@@ -160,23 +175,36 @@ class treeModel extends model
             }
         }
 
+        /* If feedback or ticket module is merge add story module.*/
+        $syncConfig = $this->getSyncConfig($type);
+
         $treeMenu = array();
         foreach($branches as $branchID => $branch)
         {
-            $stmt    = $this->dbh->query($this->buildMenuQuery($rootID, $type, $startModule, $branchID));
+            $stmt    = $this->dbh->query($this->buildMenuQuery($rootID, $type, $startModule, $branchID, $param));
             $modules = array();
-            while($module = $stmt->fetch()) $modules[$module->id] = $module;
+            while($module = $stmt->fetch())
+            {
+                /* If is feedback or ticket filter story module by grade.*/
+                if(($type == 'feedback' or $type == 'ticket') and $module->type == 'story')
+                {
+                    if(isset($syncConfig[$module->root]) and $module->grade > $syncConfig[$module->root]) continue;
+                }
+
+                if($grade != 'all' and $module->grade > $grade) continue;
+                $modules[$module->id] = $module;
+            }
 
             foreach($modules as $module)
             {
                 $branchName = (isset($product) and $product->type != 'normal' and $module->branch === BRANCH_MAIN) ? $this->lang->branch->main : $branch;
-                $this->buildTreeArray($treeMenu, $modules, $module, (empty($branchName)) ? '/' : "/$branchName/");
+                $this->buildTreeArray($treeMenu, $modules, $module, (empty($branchName)) ? '/' : "/$branchName/", $divide);
             }
         }
 
         ksort($treeMenu);
-        $topMenu = @array_shift($treeMenu);
-        $topMenu = explode("\n", trim($topMenu));
+        $topMenu = array_shift($treeMenu);
+        $topMenu = explode("\n", trim((string)$topMenu));
         $lastMenu[] = '/';
         foreach($topMenu as $menu)
         {
@@ -319,8 +347,8 @@ class treeModel extends model
                 }
 
                 ksort($treeMenu);
-                $topMenu = @array_shift($treeMenu);
-                $topMenu = explode("\n", trim($topMenu));
+                $topMenu = array_shift($treeMenu);
+                $topMenu = explode("\n", trim((string)$topMenu));
                 foreach($topMenu as $menu)
                 {
                     if(!strpos($menu, '|')) continue;
@@ -346,16 +374,16 @@ class treeModel extends model
      * @access public
      * @return void
      */
-    public function buildTreeArray(& $treeMenu, $modules, $module, $moduleName = '/')
+    public function buildTreeArray(& $treeMenu, $modules, $module, $moduleName = '/', $divide = '/')
     {
         $parentModules = explode(',', $module->path);
         foreach($parentModules as $parentModuleID)
         {
             if(empty($parentModuleID)) continue;
             if(empty($modules[$parentModuleID])) continue;
-            $moduleName .= $modules[$parentModuleID]->name . '/';
+            $moduleName .= $modules[$parentModuleID]->name . $divide;
         }
-        $moduleName = rtrim($moduleName, '/');
+        $moduleName = rtrim($moduleName, $divide);
         $moduleName .= "|$module->id\n";
 
         if(isset($treeMenu[$module->id]) and !empty($treeMenu[$module->id]))
@@ -419,10 +447,15 @@ class treeModel extends model
         {
             if($product->type != 'normal') $branches = array(BRANCH_MAIN => $this->lang->branch->main) + $this->loadModel('branch')->getPairs($rootID, 'noempty');
         }
-        elseif(($type == 'story' and $this->app->rawModule == 'projectstory') or ($type == 'case' and $this->app->tab == 'project'))
+        elseif(strpos(',case,bug,', ",$type,") !== false and $this->app->tab == 'execution')
         {
             if($product->type != 'normal' and $projectID) $branches += $this->branch->getPairs($product->id, 'noempty', $projectID);
-            if($onlyGetLinked) $executionModules = $this->getTaskTreeModules($projectID, true, $type);
+            if($onlyGetLinked) $executionModules = $this->getTaskTreeModules($projectID, true, $type, array('branchID' => $branch));
+        }
+        elseif(($type == 'story' and $this->app->rawModule == 'projectstory') or (strpos(',case,bug,', ",$type,") !== false and $this->app->tab == 'project'))
+        {
+            if($product->type != 'normal' and $projectID) $branches += $this->branch->getPairs($product->id, 'noempty', $projectID);
+            if($onlyGetLinked) $executionModules = $this->getTaskTreeModules($projectID, true, $type, $type == 'story' ? array() : array('branchID' => $branch));
         }
 
         /* Add for task #1945. check the module has case or no. */
@@ -437,9 +470,9 @@ class treeModel extends model
             {
                 $this->buildTree($treeMenu, $module, $type, $userFunc, $extra, $branch);
             }
-            elseif(isset($executionModules[$module->id]))
+            elseif(isset($executionModules[$module->id]) || !empty($product->shadow))
             {
-                $this->buildTree($treeMenu, $module, $type, $userFunc, $extra);
+                $this->buildTree($treeMenu, $module, $type, $userFunc, $extra, $branch);
             }
         }
         ksort($treeMenu);
@@ -645,10 +678,11 @@ class treeModel extends model
      */
     public function getBugTreeMenu($rootID, $productID = 0, $startModule = 0, $userFunc = '', $extra = '')
     {
-        $extra = array('executionID' => $rootID, 'productID' => $productID, 'tip' => true, 'extra' => $extra);
+        $extra += array('executionID' => $rootID, 'projectID' => $rootID, 'productID' => $productID, 'tip' => true);
+        $tab    = $this->app->tab;
 
         /* If createdVersion <= 4.1, go to getTreeMenu(). */
-        $products      = $this->loadModel('product')->getProductPairsByProject($rootID);
+        $products      = $tab == 'execution' ? $this->loadModel('product')->getProducts($rootID) : $this->loadModel('product')->getProductPairsByProject($rootID);
         $branchGroups  = $this->loadModel('branch')->getByProducts(array_keys($products));
 
         /* createdVersion > 4.1. */
@@ -662,44 +696,39 @@ class treeModel extends model
             if($startModule) $startModulePath = $startModule->path . '%';
         }
 
+        $executionModules = $this->getTaskTreeModules($rootID, true, 'bug');
+
         /* Get module according to product. */
         $productNum = count($products);
+        $moduleName = strpos(',project,execution,', ",$tab,") !== false ? $this->app->tab  : 'bug';
+        $methodName = strpos(',project,execution,', ",$tab,") !== false ? 'bug' : 'browse';
+        $param      = strpos(',project,execution,', ",$tab,") !== false ? "{$tab}ID={$rootID}&" : '';
         foreach($products as $id => $product)
         {
             $extra['productID'] = $id;
-            if($manage)
-            {
-                $link  = helper::createLink('bug', 'browse', "productID=$id");
-                $menu .= "<li>" . html::a($link, $product, '_self', "id='product$id'");
-            }
-            else
-            {
-                $link = helper::createLink('bug', 'browse', "productID=$productID");
-                if($productNum > 1) $menu .= "<li>" . html::a($link, $product, '_self', "id='product$id'");
-            }
+            $link  = helper::createLink($moduleName, $methodName, "{$param}productID=$id");
+            $menu .= "<li>" . html::a($link, is_object($product) ? $product->name : $product, '_self', "id='product$id'");
 
             /* tree menu. */
             $tree = '';
             if(empty($branchGroups[$id])) $branchGroups[$id]['0'] = '';
             foreach($branchGroups[$id] as $branch => $branchName)
             {
-                $treeMenu = array();
-                $query = $this->dao->select('*')->from(TABLE_MODULE)->where("((root = $id and type = 'bug') OR (root = $id and type = 'story' and branch ='$branch'))")
+                $query = $this->dao->select('*')->from(TABLE_MODULE)->where("((root = $id and type = 'bug' and branch='$branch') OR (root = $id and type = 'story' and branch ='$branch'))")
                     ->beginIF($startModulePath)->andWhere('path')->like($startModulePath)->fi()
                     ->andWhere('deleted')->eq(0)
                     ->orderBy('grade desc, `order`, type')
                     ->get();
-                $stmt = $this->dbh->query($query);
+                $treeMenu = array();
+                $stmt     = $this->dbh->query($query);
                 while($module = $stmt->fetch())
                 {
-                    if(!$manage and !isset($executionModules[$module->id]) and strpos($extra['extra'], 'allModule') === false) continue;
-                    $this->buildTree($treeMenu, $module, 'bug', $userFunc, $extra);
+                    if(isset($executionModules[$module->id])) $this->buildTree($treeMenu, $module, 'bug', $userFunc, $extra, $branch);
                 }
-                if(isset($treeMenu[0]) and $branch) $treeMenu[0] = "<li><a>$branchName</a><ul>{$treeMenu[0]}</ul></li>";
                 $tree .= isset($treeMenu[0]) ? $treeMenu[0] : '';
             }
 
-            if($tree && ($productNum > 1 or $manage)) $tree = "<ul>" . $tree . "</ul>\n</li>";
+            if($tree) $tree = "<ul>" . $tree . "</ul>\n</li>";
             $menu .= $tree;
         }
         $menu .= '</ul>';
@@ -719,10 +748,10 @@ class treeModel extends model
      */
     public function getCaseTreeMenu($rootID, $productID = 0, $startModule = 0, $userFunc = '', $extra = '')
     {
-        $extra = array('projectID' => $rootID, 'productID' => $productID, 'tip' => true, 'extra' => $extra);
+        $extra = array('projectID' => $rootID, 'executionID' => $rootID, 'productID' => $productID, 'tip' => true, 'extra' => $extra);
 
         /* If createdVersion <= 4.1, go to getTreeMenu(). */
-        $products     = $this->loadModel('product')->getProductPairsByProject($rootID);
+        $products     = $this->app->tab != 'execution' ? $this->loadModel('product')->getProductPairsByProject($rootID) : $this->loadModel('product')->getProducts($rootID);
         $branchGroups = $this->dao->select('t1.product as product,branch,t3.name')->from(TABLE_PROJECTPRODUCT)->alias('t1')
             ->leftJoin(TABLE_PRODUCT)->alias('t2')->on('t1.product=t2.id')
             ->leftJoin(TABLE_BRANCH)->alias('t3')->on('t1.branch=t3.id')
@@ -732,8 +761,10 @@ class treeModel extends model
             ->andWhere('t2.deleted')->eq('0')
             ->fetchGroup('product', 'branch');
 
+        $this->app->loadLang('branch');
         foreach($branchGroups as $productID => $branches)
         {
+            $branchGroups[$productID][0] = $this->lang->branch->main;
             foreach($branches as $branchID => $branchInfo)
             {
                 $branchGroups[$productID][$branchID] = $branchID == BRANCH_MAIN ? $this->lang->branch->main : $branchInfo->name;
@@ -754,15 +785,16 @@ class treeModel extends model
         $executionModules = $this->getTaskTreeModules($rootID, true, 'case');
 
         /* Get module according to product. */
-        $productNum   = count($products);
-        $moduleName   = $this->app->tab == 'project' ? 'project'  : 'testcase';
-        $methodName   = $this->app->tab == 'project' ? 'testcase' : 'browse';
-        $projectParam = $this->app->tab == 'project' ? "projectID={$this->session->project}&" : '';
+        $productNum = count($products);
+        $moduleName = strpos(',project,execution,', ",{$this->app->tab},") !== false ? $this->app->tab  : 'testcase';
+        $methodName = strpos(',project,execution,', ",{$this->app->tab},") !== false ? 'testcase' : 'browse';
+        $param      = $this->app->tab == 'project' ? "projectID={$this->session->project}&" : '';
+        $param      = $this->app->tab == 'execution' ? "executionID={$rootID}&" : $param;
         foreach($products as $id => $product)
         {
             $extra['productID'] = $id;
-            $link  = helper::createLink($moduleName, $methodName, $projectParam . "productID=$id");
-            $menu .= "<li>" . html::a($link, $product, '_self', "id='product$id' data-app='project'");
+            $link  = helper::createLink($moduleName, $methodName, $param . "productID=$id");
+            $menu .= "<li>" . html::a($link, is_object($product) ? $product->name : $product, '_self', "id='product$id' data-app='{$this->app->tab}'");
 
             /* tree menu. */
             $tree = '';
@@ -778,7 +810,7 @@ class treeModel extends model
                 $stmt = $this->dbh->query($query);
                 while($module = $stmt->fetch())
                 {
-                    if(isset($executionModules[$module->id])) $this->buildTree($treeMenu, $module, 'case', $userFunc, $extra);
+                    if(isset($executionModules[$module->id])) $this->buildTree($treeMenu, $module, 'case', $userFunc, $extra, $branch);
                 }
                 $tree .= isset($treeMenu[0]) ? $treeMenu[0] : '';
             }
@@ -824,7 +856,7 @@ class treeModel extends model
         {
             $extra['productID']   = $id;
             $projectProductLink   = helper::createLink('projectstory', 'story', "projectID=$rootID&productID=$id&branch=all");
-            $executionProductLink = helper::createLink('execution', 'story', "executionID=$rootID&ordery=&status=byProduct&praram=$id");
+            $executionProductLink = helper::createLink('execution', 'story', "executionID=$rootID&storyType=story&orderBy=&type=byProduct&praram=$id");
             $link = $this->app->rawModule == 'projectstory' ? $projectProductLink : $executionProductLink;
             if($productNum > 1) $menu .= "<li>" . html::a($link, $product, '_self', "id='product$id' title=$product");
 
@@ -943,10 +975,11 @@ class treeModel extends model
      * @param  int    $executionID
      * @param  bool   $parent
      * @param  string $linkObject
+     * @param  array  $extra
      * @access public
      * @return array
      */
-    public function getTaskTreeModules($executionID, $parent = false, $linkObject = 'story')
+    public function getTaskTreeModules($executionID, $parent = false, $linkObject = 'story', $extra = array())
     {
         $executionModules = array();
         $field = $parent ? 'path' : 'id';
@@ -964,15 +997,35 @@ class treeModel extends model
 
         if($linkObject)
         {
-            if(strpos(',story,case,', ",$linkObject,") === false) return array();
-
+            $branch = zget($extra, 'branchID', 0);
             /* Get object paths of this execution. */
-            $paths = $this->dao->select('DISTINCT t3.' . $field)->from($table1)->alias('t1')
-                ->leftJoin($table2)->alias('t2')->on('t1.' . $linkObject . ' = t2.id')
-                ->leftJoin(TABLE_MODULE)->alias('t3')->on('t2.module = t3.id')
-                ->where('t1.project')->eq($executionID)
-                ->andWhere('t3.deleted')->eq(0)
-                ->fetchPairs();
+            if(strpos(',story,case,', ",$linkObject,") !== false)
+            {
+                $paths = $this->dao->select('DISTINCT t3.' . $field)->from($table1)->alias('t1')
+                    ->leftJoin($table2)->alias('t2')->on('t1.' . $linkObject . ' = t2.id')
+                    ->leftJoin(TABLE_MODULE)->alias('t3')->on('t2.module = t3.id')
+                    ->leftJoin(TABLE_PROJECT)->alias('t4')->on('t1.project = t4.id')
+                    ->where('(t1.project')->eq($executionID)
+                    ->orWhere('t4.project')->eq($executionID)->markRight(1)
+                    ->andWhere('t3.deleted')->eq(0)
+                    ->andWhere('t2.deleted')->eq(0)
+                    ->beginIF(isset($extra['branchID']) and $branch !== 'all')->andWhere('t2.branch')->eq($branch)->fi()
+                    ->fetchPairs();
+            }
+            elseif($linkObject == 'bug' and strpos(',project,execution,', ",{$this->app->tab},") !== false)
+            {
+                $paths = $this->dao->select('DISTINCT t2.' . $field)->from(TABLE_BUG)->alias('t1')
+                    ->leftJoin(TABLE_MODULE)->alias('t2')->on('t1.module = t2.id')
+                    ->where('t1.deleted')->eq(0)
+                    ->andWhere('t2.deleted')->eq(0)
+                    ->beginIF(isset($extra['branchID']) and $branch !== 'all')->andWhere('t1.branch')->eq($branch)->fi()
+                    ->andWhere("t1.{$this->app->tab}")->eq($executionID)
+                    ->fetchPairs();
+            }
+            else
+            {
+                return array();
+            }
         }
         else
         {
@@ -991,15 +1044,17 @@ class treeModel extends model
             }
         }
 
-        /* Add task paths of this execution.*/
-        $paths += $this->dao->select($field)->from(TABLE_MODULE)
-            ->where('root')->eq($executionID)
-            ->andWhere('type')->eq('task')
-            ->andWhere('deleted')->eq(0)
-            ->fetchPairs();
+        if(strpos(',case,bug,', ",$linkObject,") === false)
+        {
+            /* Add task paths of this execution.*/
+            $paths += $this->dao->select($field)->from(TABLE_MODULE)
+                ->where('root')->eq($executionID)
+                ->andWhere('type')->eq('task')
+                ->andWhere('deleted')->eq(0)
+                ->fetchPairs();
 
-        /* Add task paths of this execution for has existed. */
-        $paths += $this->dao->select('DISTINCT t1.' . $field)->from(TABLE_MODULE)->alias('t1')
+            /* Add task paths of this execution for has existed. */
+            $paths += $this->dao->select('DISTINCT t1.' . $field)->from(TABLE_MODULE)->alias('t1')
             ->leftJoin(TABLE_TASK)->alias('t2')->on('t1.id=t2.module')
             ->where('t2.module')->ne(0)
             ->andWhere('t2.execution')->eq($executionID)
@@ -1007,6 +1062,7 @@ class treeModel extends model
             ->andWhere('t1.type')->eq('story')
             ->andWhere('t1.deleted')->eq(0)
             ->fetchPairs();
+        }
 
         /* Get all modules from paths. */
         foreach($paths as $path)
@@ -1032,16 +1088,44 @@ class treeModel extends model
         {
             $productID = zget($extra, 'productID', 0);
             $projectID = $extra['projectID'];
-            return html::a(helper::createLink('projectstory', 'story', "projectID=$projectID&productID=$productID&branch=&browseType=byModule&param={$module->id}"), $module->name, '_self', "id='module{$module->id}' title='{$module->name}'");
+            return html::a(helper::createLink('projectstory', 'story', "projectID=$projectID&productID=$productID&branch=&browseType=byModule&param={$module->id}&storyType=story"), $module->name, '_self', "id='module{$module->id}' title='{$module->name}'");
         }
         elseif(isset($extra['executionID']) and !empty($extra['executionID']))
         {
             $executionID = $extra['executionID'];
-            return html::a(helper::createLink('execution', 'story', "executionID=$executionID&orderBy=order_desc&type=byModule&param={$module->id}"), $module->name, '_self', "id='module{$module->id}' title='{$module->name}'");
+            return html::a(helper::createLink('execution', 'story', "executionID=$executionID&storyType=story&orderBy=order_desc&type=byModule&param={$module->id}"), $module->name, '_self', "id='module{$module->id}' title='{$module->name}'");
         }
         else
         {
-            return html::a(helper::createLink('product', 'browse', "root={$module->root}&branch={$extra['branchID']}&type=byModule&param={$module->id}"), $module->name, '_self', "id='module{$module->id}' title='{$module->name}'");
+            return html::a(helper::createLink('product', 'browse', "root={$module->root}&branch={$extra['branchID']}&type=byModule&param={$module->id}&storyType=story"), $module->name, '_self', "id='module{$module->id}' title='{$module->name}'");
+        }
+    }
+
+    /**
+     * Create link of requirement for waterfall.
+     *
+     * @param  string $type
+     * @param  object $module
+     * @param  array  $extra
+     * @access public
+     * @return string
+     */
+    public function createRequirementLink($type, $module, $extra = array())
+    {
+        if(isset($extra['projectID']) and !empty($extra['projectID']))
+        {
+            $productID = zget($extra, 'productID', 0);
+            $projectID = $extra['projectID'];
+            return html::a(helper::createLink('projectstory', 'story', "projectID=$projectID&productID=$productID&branch=&browseType=byModule&param={$module->id}&storyType=requirement"), $module->name, '_self', "id='module{$module->id}' title='{$module->name}'");
+        }
+        elseif(isset($extra['executionID']) and !empty($extra['executionID']))
+        {
+            $executionID = $extra['executionID'];
+            return html::a(helper::createLink('execution', 'story', "executionID=$executionID&storyType=requirement&orderBy=order_desc&type=byModule&param={$module->id}"), $module->name, '_self', "id='module{$module->id}' title='{$module->name}'");
+        }
+        else
+        {
+            return html::a(helper::createLink('product', 'browse', "root={$module->root}&branch={$extra['branchID']}&type=byModule&param={$module->id}&storyType=requirement"), $module->name, '_self', "id='module{$module->id}' title='{$module->name}'");
         }
     }
 
@@ -1090,19 +1174,6 @@ class treeModel extends model
     {
         $productID = $extra['productID'];
         return html::a(helper::createLink('projectstory', 'story', "projectID={$extra['executionID']}&productID=$productID&branch=&browseType=byModule&param={$module->id}"), $module->name, '_self', "id='module{$module->id}' title='{$module->name}'");
-    }
-
-    /**
-     * Create link of requirement for waterfall.
-     *
-     * @param  string $type
-     * @param  object $module
-     * @access public
-     * @return string
-     */
-    public function createRequirementLink($type, $module)
-    {
-        return html::a(helper::createLink($this->app->rawModule, $this->app->rawMethod, "root={$module->root}&branch=&type=byModule&param={$module->id}&storyType=requirement"), $module->name, '_self', "id='module{$module->id}' title='{$module->name}'");
     }
 
     /**
@@ -1180,13 +1251,22 @@ class treeModel extends model
     /**
      * Create link of a bug.
      *
-     * @param  object  $module
+     * @param  string $type
+     * @param  object $module
+     * @param  array  $extra
      * @access public
      * @return string
      */
-    public function createBugLink($type, $module)
+    public function createBugLink($type, $module, $extra = array())
     {
-        return html::a(helper::createLink('bug', 'browse', "root={$module->root}&branch=&type=byModule&param={$module->id}"), $module->name, '_self', "id='module{$module->id}' title='{$module->name}'");
+        $moduleName = strpos(',project,execution,', ",{$this->app->tab},") !== false ? $this->app->tab : 'bug';
+        $methodName = strpos(',project,execution,', ",{$this->app->tab},") !== false ? 'bug' : 'browse';
+        $param      = "root={$module->root}&branch=&type=byModule&param={$module->id}";
+
+        $extra['type'] = (isset($extra['type']) and $extra['type'] != 'bysearch') ? $extra['type'] : 'all';
+        if($this->app->tab == 'execution') $param = "execuitonID={$extra['projectID']}&productID={$module->root}&branch={$extra['branchID']}&orderBy={$extra['orderBy']}&build={$extra['build']}&type={$extra['type']}&param={$module->id}";
+        if($this->app->tab == 'project') $param = "projectID={$extra['projectID']}&productID={$module->root}&branch={$extra['branchID']}&orderBy={$extra['orderBy']}&build={$extra['build']}&type={$extra['type']}&param={$module->id}";
+        return html::a(helper::createLink($moduleName, $methodName, $param), $module->name, '_self', "id='module{$module->id}' title='{$module->name}'");
     }
 
     /**
@@ -1200,10 +1280,11 @@ class treeModel extends model
      */
     public function createCaseLink($type, $module, $extra = array())
     {
-        $moduleName   = $this->app->tab == 'project' ? 'project'  : 'testcase';
-        $methodName   = $this->app->tab == 'project' ? 'testcase' : 'browse';
-        $projectParam = $this->app->tab == 'project' ? "projectID={$this->session->project}&" : '';
-        return html::a(helper::createLink($moduleName, $methodName, $projectParam . "root={$module->root}&branch={$extra['branchID']}&type=byModule&param={$module->id}"), $module->name, '_self', "id='module{$module->id}' data-app='{$this->app->tab}' title='{$module->name}'");
+        $moduleName = strpos(',project,execution,', ",{$this->app->tab},") !== false ? $this->app->tab : 'testcase';
+        $methodName = strpos(',project,execution,', ",{$this->app->tab},") !== false ? 'testcase' : 'browse';
+        $param      = $this->app->tab == 'project' ? "projectID={$this->session->project}&" : "";
+        $param      = $this->app->tab == 'execution' ? "executionID={$extra['projectID']}&" : $param;
+        return html::a(helper::createLink($moduleName, $methodName, $param . "root={$module->root}&branch={$extra['branchID']}&type=byModule&param={$module->id}"), $module->name, '_self', "id='module{$module->id}' data-app='{$this->app->tab}' title='{$module->name}'");
     }
 
     /**
@@ -1262,10 +1343,24 @@ class treeModel extends model
     }
 
     /**
+     * Create link of ticket.
+     *
+     * @param  string $type
+     * @param  object $module
+     * @access public
+     * @return string
+     */
+    public function createTicketLink($type, $module)
+    {
+        return html::a(helper::createLink('ticket', $this->app->methodName, "type=byModule&param={$module->id}"), $module->name, '_self', "id='module{$module->id}' title='{$module->name}'");
+    }
+
+    /**
      * Create link of trainskill.
      *
      * @param  string $type
      * @param  object $module
+     * @param  string $extra
      * @access public
      * @return string
      */
@@ -1279,6 +1374,7 @@ class treeModel extends model
      *
      * @param  string $type
      * @param  object $module
+     * @param  string $extra
      * @access public
      * @return string
      */
@@ -1292,12 +1388,42 @@ class treeModel extends model
      *
      * @param  string $type
      * @param  object $module
+     * @param  string $extra
      * @access public
      * @return string
      */
     public function createTrainPostLink($type, $module, $extra = '')
     {
         return html::a(helper::createLink('trainpost', 'browse', "type=byModule&param={$module->id}"), $module->name, '', "id='module{$module->id}' title='{$module->name}'");
+    }
+
+    /**
+     * Create dashboard link.
+     *
+     * @param  string $type
+     * @param  object $module
+     * @param  string $extra
+     * @access public
+     * @return string
+     */
+    public function createDashboardLink($type, $module, $extra = '')
+    {
+        return html::a(helper::createLink('dashboard', 'browse', "type=bymodule&param={$module->id}"), $module->name, '', "id='module{$module->id}' title='{$module->name}'");
+    }
+
+    /**
+     * Create report link.
+     *
+     * @param  string $type
+     * @param  object $module
+     * @param  array  $extra
+     * @access public
+     * @return string
+     */
+    public function createReportLink($type, $module, $extra)
+    {
+        $dimension = zget($extra, 'dimension', 0);
+        return html::a(helper::createLink('report', 'browsereport', "dimension={$dimension}&module={$module->id}"), $module->name, '', "id='module{$module->id}' title='{$module->name}'");
     }
 
     /**
@@ -1312,15 +1438,19 @@ class treeModel extends model
      */
     public function getSons($rootID, $moduleID, $type = 'root', $branch = 0)
     {
-        if($type == 'line') $rootID = 0;
+        $syncConfig = $this->getSyncConfig($type);
+
+        if($type  == 'line') $rootID = 0;
+        if(($type == 'feedback' or $type == 'ticket') and isset($syncConfig[$rootID])) $type = "$type,story";
 
         /* if createVersion <= 4.1 or type == 'story', only get modules of its type. */
         if(!$this->isMergeModule($rootID, $type) or $type == 'story')
         {
+
             return $this->dao->select('*')->from(TABLE_MODULE)
                 ->where('root')->eq((int)$rootID)
                 ->andWhere('parent')->eq((int)$moduleID)
-                ->andWhere('type')->eq($type)
+                ->andWhere('type')->in($type)
                 ->beginIF($branch !== 'all')
                 ->andWhere("(branch")->eq(0)
                 ->orWhere("branch")->eq((int)$branch)
@@ -1395,7 +1525,7 @@ class treeModel extends model
         $module = $this->getById((int)$moduleID);
         if(empty($module)) return array();
 
-        return $this->dao->select('id')->from(TABLE_MODULE)->where('path')->like($module->path . '%')->andWhere('deleted')->eq(0)->fetchPairs();
+        return $this->dao->select('id')->from(TABLE_MODULE)->where("CONCAT(',', path, ',')")->like("%$module->path%")->andWhere('deleted')->eq(0)->fetchPairs();
     }
 
     /**
@@ -1533,7 +1663,7 @@ class treeModel extends model
     public function updateOrder($orders)
     {
         asort($orders);
-        $orderInfo = $this->dao->select('id,grade, parent, branch')->from(TABLE_MODULE)->where('id')->in(array_keys($orders))->andWhere('deleted')->eq(0)->fetchAll('id');
+        $orderInfo = $this->dao->select('*')->from(TABLE_MODULE)->where('id')->in(array_keys($orders))->andWhere('deleted')->eq(0)->fetchAll('id');
         $newOrders = array();
         foreach($orders as $moduleID => $order)
         {
@@ -1573,7 +1703,7 @@ class treeModel extends model
 
         foreach($childs as $moduleID => $moduleName)
         {
-            if(preg_match('/(^\s+$)/', $moduleName)) return print(js::alert($this->lang->tree->shouldNotBlank));
+            if(preg_match('/(^\s+$)/', $moduleName)) helper::end(js::alert($this->lang->tree->shouldNotBlank));
         }
 
         $module         = new stdClass();
@@ -1581,7 +1711,7 @@ class treeModel extends model
         $module->type   = $type;
         $module->parent = $parentModuleID;
         $repeatName     = $this->checkUnique($module, $childs);
-        if($repeatName) return print(js::alert(sprintf($this->lang->tree->repeatName, $repeatName)));
+        if($repeatName) helper::end(js::alert(sprintf($this->lang->tree->repeatName, $repeatName)));
 
         $parentModule = $this->getByID($parentModuleID);
 
@@ -1600,7 +1730,10 @@ class treeModel extends model
         }
         $i = 1;
 
-        $moduleIDList = array();
+        $oldModules = $this->getOptionMenu($rootID, 'story', 0, 'all');
+
+        $createIdList = array();
+        $editIdList   = array();
         foreach($childs as $moduleID => $moduleName)
         {
             if(empty($moduleName)) continue;
@@ -1629,7 +1762,7 @@ class treeModel extends model
                 $module->order  = $order;
                 $this->dao->insert(TABLE_MODULE)->data($module)->exec();
                 $moduleID       = $this->dao->lastInsertID();
-                $moduleIDList[] = $moduleID;
+                $createIdList[] = $moduleID;
                 $childPath      = $parentPath . "$moduleID,";
                 $this->dao->update(TABLE_MODULE)->set('path')->eq($childPath)->where('id')->eq($moduleID)->limit(1)->exec();
             }
@@ -1638,11 +1771,54 @@ class treeModel extends model
                 $short    = $shorts[$moduleID];
                 $order    = $orders[$moduleID];
                 $moduleID = str_replace('id', '', $moduleID);
-                $this->dao->update(TABLE_MODULE)->set('name')->eq(strip_tags(trim($moduleName)))->set('short')->eq($short)->set('order')->eq($order)->where('id')->eq($moduleID)->limit(1)->exec();
+
+                $oldModule = $this->getByID($moduleID);
+
+                $data = new stdClass();
+                $data->name  = strip_tags(trim($moduleName));
+                $data->short = $short;
+                $data->order = $order;
+
+                $this->setModuleLang();
+                $this->dao->update(TABLE_MODULE)->data($data)->autoCheck()->where('id')->eq($moduleID)->limit(1)->exec();
+
+                $newModule = $this->getByID($moduleID);
+                if(common::createChanges($oldModule, $newModule))
+                {
+                    $editIdList[]             = $moduleID;
+                    $moduleChanges[$moduleID] = common::createChanges($oldModule, $newModule);
+                }
             }
         }
 
-        return $moduleIDList;
+        if($type == 'story' or strpos($this->config->tree->groupTypes, ",$type,") !== false)
+        {
+            $objectType = $type == 'story' ? 'module' : 'chartgroup';
+            $this->loadModel('action');
+            if(!empty($createIdList)) $actionID = $this->action->create($objectType, $rootID, 'created', '', implode(',', $createIdList));
+
+            if(!empty($editIdList))
+            {
+                $changes    = array();
+                $newModules = $this->getOptionMenu($rootID, 'story', 0, 'all');
+                foreach($moduleChanges as $moduleID => $moduleChange)
+                {
+                    foreach($moduleChange as $change)
+                    {
+                        if($change['field'] == 'name')
+                        {
+                            $change['old']  = zget($oldModules, $moduleID);
+                            $change['new']  = zget($newModules, $moduleID);
+                            $change['diff'] = '';
+                        }
+                        $changes[] = $change;
+                    }
+                }
+                $actionID = $this->action->create($objectType, $rootID, 'edited', '', implode(',', $editIdList));
+                if(!empty($changes)) $this->action->logHistory($actionID, $changes);
+            }
+        }
+        return $createIdList;
     }
 
     /**
@@ -1656,10 +1832,36 @@ class treeModel extends model
     {
         $module = fixer::input('post')->get();
         $self   = $this->getById($moduleID);
+        $changes = common::createChanges($self, $module);
         if(!isset($_POST['branch'])) $module->branch = $self->branch;
 
+        if($self)
+        {
+            if($self->root and !isset($module->root)) $module->root = $self->root;
+            if($self->parent != $module->parent or $self->root != $module->root)
+            {
+                $maxOrder = $this->dao->select('MAX(`order`) AS `order`')->from(TABLE_MODULE)->where('parent')->eq($module->parent)->andWhere('root')->eq($module->root)->fetch('order');
+                $module->order = $maxOrder ? ++ $maxOrder : $self->order;
+            }
+
+            if($module->parent) $self->parent = $module->parent;
+        }
+
         $repeatName = $this->checkUnique($self, array("id{$self->id}" => $module->name), array("id{$self->id}" => $module->branch));
-        if($repeatName) return print(js::alert(sprintf($this->lang->tree->repeatName, $repeatName)));
+        if($repeatName)
+        {
+            $tips = in_array($self->type, array('doc', 'api')) ? $this->lang->tree->repeatDirName : $this->lang->tree->repeatName;
+            helper::end(js::alert(sprintf($tips, $repeatName)));
+        }
+
+        if((empty($module->root) or empty($module->name)) and in_array($self->type, array('doc', 'api')))
+        {
+            $this->app->loadLang('doc');
+            if(empty($module->root)) helper::end(js::alert(sprintf($this->lang->error->notempty, $this->lang->doc->lib)));
+            if(empty($module->name)) helper::end(js::alert(sprintf($this->lang->error->notempty, $this->lang->doc->catalogName)));
+        }
+
+        $modules = $self->type == 'story' ? $this->getOptionMenu($self->root, 'story', 0, 'all') : array();
 
         $parent = $this->getById($this->post->parent);
         $childs = $this->getAllChildId($moduleID);
@@ -1670,6 +1872,32 @@ class treeModel extends model
         $this->dao->update(TABLE_MODULE)->set('grade = grade + 1')->where('id')->in($childs)->andWhere('id')->ne($moduleID)->exec();
         $this->dao->update(TABLE_MODULE)->set('owner')->eq($this->post->owner)->where('id')->in($childs)->andWhere('owner')->eq('')->exec();
         $this->dao->update(TABLE_MODULE)->set('owner')->eq($this->post->owner)->where('id')->in($childs)->andWhere('owner')->eq($self->owner)->exec();
+
+        if($self->type == 'story' or strpos($this->config->tree->groupTypes, ",$self->type,") !== false)
+        {
+            $objectType = $self->type == 'story' ? 'module' : 'chartgroup';
+            $rootID     = isset($module->root) ? $module->root : $self->root;
+            $newModules = $this->getOptionMenu($rootID, 'story', 0, 'all');
+
+            foreach($changes as $id => $change)
+            {
+                if($change['field'] == 'name')
+                {
+                    $changes[$id]['old']  = zget($modules, $moduleID);
+                    $changes[$id]['new']  = zget($newModules, $moduleID);
+                    $changes[$id]['diff'] = '';
+                    break;
+                }
+            }
+            $actionID = $this->loadModel('action')->create($objectType, $self->root, 'edited', '', $moduleID);
+            if(!empty($changes)) $this->action->logHistory($actionID, $changes);
+            if(isset($module->root) and $module->root != $self->root)
+            {
+                $actionID = $this->action->create($objectType, $rootID, 'edited', '', $moduleID);
+                if(!empty($changes)) $this->action->logHistory($actionID, $changes);
+            }
+        }
+
         if(isset($module->root) and $module->root != $self->root)
         {
             $this->dao->update(TABLE_MODULE)->set('root')->eq($module->root)->where('id')->in($childs)->exec();
@@ -1705,6 +1933,7 @@ class treeModel extends model
         $this->dao->update(TABLE_STORY)->set('product')->eq($newRoot)->where('module')->in($childIdList)->exec();
         $this->dao->update(TABLE_BUG)->set('product')->eq($newRoot)->where('module')->in($childIdList)->exec();
         $this->dao->update(TABLE_CASE)->set('product')->eq($newRoot)->where('module')->in($childIdList)->exec();
+        $this->dao->update(TABLE_DOC)->set('lib')->eq($newRoot)->where('module')->in($childIdList)->exec();
 
         if($type != 'story') return;
 
@@ -1759,11 +1988,12 @@ class treeModel extends model
         $childs = $this->getAllChildId($moduleID);
         $childs[$moduleID] = $moduleID;
 
+        $objectType = (!empty($module->type) and strpos($this->config->tree->groupTypes, ",$module->type,") !== false) ? 'chartgroup' : 'module';
         /* Mark deletion when delete a module. */
         $this->dao->update(TABLE_MODULE)->set('deleted')->eq(1)->where('id')->in($childs)->exec();
         foreach($childs as $childID)
         {
-            $this->loadModel('action')->create('module', $childID, 'deleted', '', $extra = ACTIONMODEL::CAN_UNDELETED);
+            $this->loadModel('action')->create($objectType, $childID, 'deleted', '', $extra = ACTIONMODEL::CAN_UNDELETED);
         }
 
         $this->fixModulePath($module->root, $module->type);
@@ -1790,7 +2020,29 @@ class treeModel extends model
                 $this->dao->update(TABLE_TASK)->set('module')->eq($module->parent)->where('module')->in($childs)->exec();
                 $this->dao->update(TABLE_BUG)->set('module')->eq($module->parent)->where('module')->in($childs)->exec();
                 $this->dao->update(TABLE_CASE)->set('module')->eq($module->parent)->where('module')->in($childs)->exec();
+                $this->dao->update(TABLE_FEEDBACK)->set('module')->eq($module->parent)->where('module')->in($childs)->exec();
+                $this->dao->update(TABLE_TICKET)->set('module')->eq($module->parent)->where('module')->in($childs)->exec();
                 $cookieName = 'storyModule';
+                break;
+            case 'chart':
+                $this->dao->update(TABLE_CHART)->set('`group`')->eq($module->parent)->where('`group`')->in($childs)->exec();
+                break;
+            case 'report':
+                $this->dao->update(TABLE_REPORT)->set('`module`')->eq($module->parent)->where('`module`')->in($childs)->exec();
+                break;
+            case 'dataview':
+                $this->dao->update(TABLE_DATAVIEW)->set('`group`')->eq($module->parent)->where('`group`')->in($childs)->exec();
+                break;
+            case 'feedback':
+                $this->dao->update(TABLE_FEEDBACK)->set('module')->eq($module->parent)->where('module')->in($childs)->exec();
+                $cookieName = 'feedbackModule';
+                break;
+            case 'ticket':
+                $this->dao->update(TABLE_TICKET)->set('module')->eq($module->parent)->where('module')->in($childs)->exec();
+                $cookieName = 'ticketModule';
+                break;
+            case 'doc':
+                $this->dao->update(TABLE_DOC)->set('`module`')->eq($module->parent)->where('`module`')->in($childs)->exec();
                 break;
         }
         if(strpos($this->session->{$module->type . 'List'}, 'param=' . $moduleID)) $this->session->set($module->type . 'List', str_replace('param=' . $moduleID, 'param=0', $this->session->{$module->type . 'List'}));
@@ -1961,8 +2213,18 @@ class treeModel extends model
     public function getDataStructure($stmt, $viewType, $keepModules = array())
     {
         $parent = array();
+
+        /* If feedback or ticket module is merge add story module.*/
+        $syncConfig = $this->getSyncConfig($viewType);
+
         while($module = $stmt->fetch())
         {
+            /* If is feedback or ticket filter story module by grade.*/
+            if(($viewType == 'feedback' or $viewType == 'ticket') and $module->type == 'story')
+            {
+                if(isset($syncConfig[$module->root]) and $module->grade > $syncConfig[$module->root]) continue;
+            }
+
             /* Ignore useless module for task. */
             $allModule = (isset($this->config->execution->task->allModule) and ($this->config->execution->task->allModule == 1));
             if($keepModules and !isset($keepModules[$module->id]) and !$allModule) continue;
@@ -1977,6 +2239,7 @@ class treeModel extends model
         }
 
         if($viewType == 'task') $parentTypePairs = $this->dao->select('*')->from(TABLE_MODULE)->where('id')->in(array_keys($parent))->andWhere('deleted')->eq(0)->fetchPairs('id', 'type');
+
         $tree = array();
         foreach($parent as $module)
         {
@@ -2033,5 +2296,156 @@ class treeModel extends model
         }
 
         return $tree;
+    }
+
+    /**
+     * Get syncProduct module config.
+     *
+     * @param  string $type feedback|ticket
+     * @access public
+     * @return array
+     */
+    public function getSyncConfig($type = '')
+    {
+        /* If feedback or ticket module is merge add story module.*/
+        $syncConfig = json_decode($this->config->global->syncProduct, true);
+        $syncConfig = isset($syncConfig[$type]) ? $syncConfig[$type] : array();
+        return $syncConfig;
+    }
+
+    /**
+      * Load module language.
+      *
+      * @access public
+      * @return void
+      */
+    public function setModuleLang()
+    {
+        $this->lang->module        = new stdclass();
+        $this->lang->module->name  = $this->lang->tree->wordName;
+        $this->lang->module->short = $this->lang->tree->short;
+    }
+
+    /**
+     * Create module.
+     *
+     * @access public
+     * @return bool|object
+     */
+    public function createModule()
+    {
+        $data = fixer::input('post')
+            ->setDefault('name', '')
+            ->setDefault('createType', 'child')
+            ->setDefault('objectID', 0)
+            ->setDefault('order', 10)
+            ->get();
+
+        $module         = new stdClass();
+        $module->root   = zget($data, 'libID', 0);
+        $module->type   = zget($data, 'moduleType', 'doc');
+        $module->parent = zget($data, 'parentID', 0);
+        $module->name   = strip_tags(trim($data->name));
+        $module->branch = 0;
+        $module->short  = '';
+        $module->order  = $data->order;
+
+        if(empty($module->name))
+        {
+            dao::$errors[] = sprintf($this->lang->error->notempty, $this->lang->tree->dir);
+            return false;
+        }
+
+        if($data->createType == 'same')
+        {
+            $baseModule = $this->getByID($data->objectID);
+            if(!empty($baseModule))
+            {
+                $module->parent = $baseModule->parent;
+                $module->order  = $baseModule->order;
+            }
+        }
+        elseif($data->createType == 'child')
+        {
+            $maxOrder = $this->dao->select('`order`')->from(TABLE_MODULE)
+                ->where('root')->eq($module->root)
+                ->andWhere('parent')->eq($module->parent)
+                ->andWhere('type')->eq($module->type)
+                ->orderBy('order_desc')
+                ->limit(1)
+                ->fetch('order');
+
+            $module->order = (int)$maxOrder + 10;
+        }
+
+        $repeatName = $this->checkUnique($module);
+        if($repeatName)
+        {
+            dao::$errors[] = sprintf($this->lang->tree->repeatDirName, $repeatName);
+            return false;
+        }
+
+        $parent = $this->getByID($module->parent);
+        $module->grade = $module->parent ? $parent->grade + 1 : 1;
+        $this->dao->insert(TABLE_MODULE)->data($module)->exec();
+        $moduleID = $this->dao->lastInsertID();
+
+        if($data->createType == 'same')
+        {
+            $this->dao->update(TABLE_MODULE)
+                ->set('`order` = `order` + 10')
+                ->where('`root`')->eq($module->root)
+                ->andWhere('`parent`')->eq($module->parent)
+                ->andWhere('`type`')->eq($module->type)
+                ->andWhere('`order`')->gt($module->order)
+                ->exec();
+
+            $module->order += 10;
+        }
+
+        $modulePath = "$moduleID,";
+        if($module->parent) $modulePath = $parent->path . $modulePath;
+        $this->dao->update(TABLE_MODULE)->set('`path`')->eq($modulePath)->set('`order`')->eq($module->order)->where('id')->eq($moduleID)->limit(1)->exec();
+
+        return $this->getByID($moduleID);
+    }
+
+    /**
+     * Get group pairs.
+     *
+     * @param  int    $dimensionID
+     * @param  int    $parentGroup
+     * @param  int    $grade
+     * @param  string $type
+     * @access public
+     * @return array
+     */
+    public function getGroupPairs($dimensionID = 0, $parentGroup = 0, $grade = 2, $type = 'chart')
+    {
+        $groups = $this->dao->select('id,name,grade,parent')->from(TABLE_MODULE)
+            ->where('root')->eq($dimensionID)
+            ->beginIF(!empty($parentGroup))->andWhere('root')->eq($dimensionID)->fi()
+            ->andWhere('type')->eq($type)
+            ->andWhere('deleted')->eq(0)
+            ->orderBy('order')
+            ->fetchGroup('grade', 'id');
+
+        $groupPairs = array();
+        if(!empty($groups[1]))
+        {
+            foreach($groups[1] as $parentGroup)
+            {
+                if($grade == 1) $groupPairs[$parentGroup->id] = $parentGroup->name;
+                if($grade == 2 and !empty($groups[2]))
+                {
+                    foreach($groups[2] as $childGroup)
+                    {
+                        if($parentGroup->id == $childGroup->parent) $groupPairs[$childGroup->id] = '/' . $parentGroup->name . '/' . $childGroup->name;
+                    }
+                }
+            }
+        }
+
+        return $groupPairs;
     }
 }

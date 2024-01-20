@@ -2,8 +2,8 @@
 /**
  * The batchEdit view file of productplan module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Yidong Wang <yidong@cnezsoft.com>
  * @package     productplan
  * @version     $Id$
@@ -23,7 +23,7 @@
         <tr class='text-center'>
           <th class='c-id'><?php echo $lang->productplan->id?></th>
           <?php if($product->type != 'normal'):?>
-          <th class='c-branch'><?php echo $lang->productplan->branch;?></th>
+          <th class='required c-branch'><?php echo $lang->product->branch;?></th>
           <?php endif;?>
           <th class='required'><?php echo $lang->productplan->title?></th>
           <th class='c-status'><?php echo $lang->productplan->status?></th>
@@ -43,8 +43,18 @@
           <td class='text-center'><?php echo $plan->id . html::hidden("id[$plan->id]", $plan->id);?></td>
           <?php if($product->type != 'normal'):?>
           <td class='text-left'>
-            <?php $disabled = $plan->parent == -1 ? "disabled='disabled'" : '';?>
-            <?php echo html::select("branch[$plan->id]", $plan->parent == '-1' ? '' : $branchTagOption, $plan->branch, "onchange='getConflictStories($plan->id, this.value); 'class='form-control chosen' $disabled");?>
+            <?php
+            $disabled       = $plan->parent == -1 ? "disabled='disabled'" : '';
+            $parentBranches = array();
+            if($plan->parent > 0 and isset($parentList[$plan->parent]))
+            {
+                foreach($branchTagOption as $branchID => $branchName)
+                {
+                    if(strpos(",{$parentList[$plan->parent]->branch},", ",$branchID,") !== false) $parentBranches[$branchID] = $branchName;
+                }
+            }
+            echo html::select("branch[$plan->id][]", ($plan->parent > 0 and !empty($parentBranches)) ? $parentBranches : $branchTagOption, $plan->branch, "onchange='getConflictStories($plan->id); 'class='form-control chosen' multiple $disabled");
+            ?>
           </td>
           <?php endif;?>
           <td title='<?php echo $plan->title?>'><?php echo html::input("title[$plan->id]", $plan->title, "class='form-control'")?></td>

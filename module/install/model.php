@@ -2,8 +2,8 @@
 /**
  * The model file of install module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     install
  * @version     $Id: model.php 5006 2013-07-03 08:52:21Z wyd621@gmail.com $
@@ -49,24 +49,6 @@ class installModel extends model
     public function getPhpVersion()
     {
         return PHP_VERSION;
-    }
-
-    /**
-     * Get latest release.
-     *
-     * @access public
-     * @return string or bool
-     */
-    public function getLatestRelease()
-    {
-        if(!function_exists('json_decode')) return false;
-        $result = file_get_contents('https://www.zentao.net/misc-getlatestrelease.json');
-        if($result)
-        {
-            $result = json_decode($result);
-            if(isset($result->release) and $this->config->version != $result->release->version) return $result->release;
-        }
-        return false;
     }
 
     /**
@@ -312,20 +294,20 @@ class installModel extends model
             return $return;
         }
 
-        /* Get mysql version. */
-        $version = $this->getMysqlVersion();
+        /* Get database version. */
+        $version = $this->getDatabaseVersion();
 
         /* If database no exits, try create it. */
-        if(!$this->dbExists())
+        if(!$this->dbh->dbExists())
         {
-            if(!$this->createDB($version))
+            if(!$this->dbh->createDB($version))
             {
                 $return->result = 'fail';
                 $return->error  = $this->lang->install->errorCreateDB;
                 return $return;
             }
         }
-        elseif($this->tableExits() and $this->post->clearDB == false)
+        elseif($this->dbh->tableExits(TABLE_CONFIG) and $this->post->clearDB == false)
         {
             $return->result = 'fail';
             $return->error  = $this->lang->install->errorTableExists;
@@ -351,6 +333,7 @@ class installModel extends model
      */
     public function setDBParam()
     {
+        $this->config->db->driver   = $this->post->dbDriver;
         $this->config->db->host     = $this->post->dbHost;
         $this->config->db->name     = $this->post->dbName;
         $this->config->db->user     = $this->post->dbUser;
@@ -368,15 +351,9 @@ class installModel extends model
      */
     public function connectDB()
     {
-        $dsn = "mysql:host={$this->config->db->host}; port={$this->config->db->port}";
         try
         {
-            $dbh = new PDO($dsn, $this->config->db->user, $this->config->db->password);
-            $dbh->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
-            $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $dbh->exec("SET NAMES {$this->config->db->encoding}");
-            if(isset($this->config->db->strictMode) and $this->config->db->strictMode == false) $dbh->exec("SET @@sql_mode= ''");
-            return $dbh;
+            return new dbh($this->config->db, false);
         }
         catch (PDOException $exception)
         {
@@ -385,55 +362,18 @@ class installModel extends model
     }
 
     /**
-     * Check db exits or not.
-     *
-     * @access public
-     * @return bool
-     */
-    public function dbExists()
-    {
-        $sql = "SHOW DATABASES like '{$this->config->db->name}'";
-        return $this->dbh->query($sql)->fetch();
-    }
-
-    /**
-     * Check table exits or not.
-     *
-     * @access public
-     * @return void
-     */
-    public function tableExits()
-    {
-        $configTable = str_replace('`', "'", TABLE_CONFIG);
-        $sql = "SHOW TABLES FROM {$this->config->db->name} like $configTable";
-        return $this->dbh->query($sql)->fetch();
-    }
-
-    /**
-     * Get mysql version.
+     * Get database version.
      *
      * @access public
      * @return string
      */
-    public function getMysqlVersion()
+    public function getDatabaseVersion()
     {
+        if($this->config->db->driver != 'mysql') return 8;
+
         $sql = "SELECT VERSION() AS version";
         $result = $this->dbh->query($sql)->fetch();
         return substr($result->version, 0, 3);
-    }
-
-    /**
-     * Create database.
-     *
-     * @param  string    $version
-     * @access public
-     * @return bool
-     */
-    public function createDB($version)
-    {
-        $sql = "CREATE DATABASE `{$this->config->db->name}`";
-        if($version > 4.1) $sql .= " DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci";
-        return $this->dbh->query($sql);
     }
 
     /**
@@ -448,7 +388,7 @@ class installModel extends model
         /* Add exception handling to ensure that all SQL is executed successfully. */
         try
         {
-            $this->dbh->exec("USE {$this->config->db->name}");
+            $this->dbh->useDB($this->config->db->name);
 
             $dbFile = $this->app->getAppRoot() . 'db' . DS . 'zentao.sql';
             $tables = explode(';', file_get_contents($dbFile));
@@ -470,8 +410,7 @@ class installModel extends model
                 $tableToLower = strtolower($table);
                 if(strpos($tableToLower, 'fulltext') !== false and strpos($tableToLower, 'innodb') !== false and $version < 5.6)
                 {
-                    $this->lang->install->errorCreateTable = $this->lang->install->errorEngineInnodb;
-                    return false;
+                    $table = str_replace('ENGINE=InnoDB', 'ENGINE=MyISAM', $table);
                 }
 
                 $table = str_replace('__DELIMITER__', ';', $table);
@@ -483,7 +422,8 @@ class installModel extends model
                 $table = str_replace('`zt_', $this->config->db->name . '.`zt_', $table);
                 $table = str_replace('`ztv_', $this->config->db->name . '.`ztv_', $table);
                 $table = str_replace('zt_', $this->config->db->prefix, $table);
-                if(!$this->dbh->query($table)) return false;
+
+                $this->dbh->exec($table);
             }
         }
         catch (PDOException $exception)
@@ -515,6 +455,15 @@ class installModel extends model
                 return false;
             }
         }
+
+        $this->loadModel('user');
+        $this->app->loadConfig('admin');
+        /* Check password. */
+        if(!validater::checkReg($this->post->password, '|(.){6,}|')) dao::$errors['password'][] = $this->lang->error->passwordrule;
+        if($this->user->computePasswordStrength($this->post->password) < 1) dao::$errors['password'][] = $this->lang->user->placeholder->passwordStrengthCheck[1];
+        if(!isset($this->config->safe->weak)) $this->app->loadConfig('admin');
+        if(strpos(",{$this->config->safe->weak},", ",{$this->post->password},") !== false) dao::$errors['password'] = sprintf($this->lang->user->errorWeak, $this->config->safe->weak);
+        if(dao::isError()) return false;
 
         /* Insert a company. */
         $company = new stdclass();
@@ -556,6 +505,11 @@ class installModel extends model
             $this->dao->update(TABLE_CRON)->set('remark')->eq($remark)->where('command')->eq($command)->exec();
         }
 
+        foreach($this->lang->install->langList as $langInfo)
+        {
+            $this->dao->update(TABLE_LANG)->set('value')->eq($langInfo['value'])->where('module')->eq($langInfo['module'])->andWhere('`key`')->eq($langInfo['key'])->exec();
+        }
+
         /* Update lang,stage by lang. */
         $this->app->loadLang('stage');
         foreach($this->lang->stage->typeList as $key => $value)
@@ -587,6 +541,16 @@ class installModel extends model
                 $this->dao->update(TABLE_PROCESS)->set('name')->eq($name)->where('id')->eq($id)->exec();
             }
 
+            foreach($this->lang->install->activity as $id => $name)
+            {
+                $this->dao->update(TABLE_ACTIVITY)->set('name')->eq($name)->where('id')->eq($id)->exec();
+            }
+
+            foreach($this->lang->install->zoutput as $id => $name)
+            {
+                $this->dao->update(TABLE_ZOUTPUT)->set('name')->eq($name)->where('id')->eq($id)->exec();
+            }
+
             /* Update basicmeas by lang. */
             foreach($this->lang->install->basicmeasList as $id => $basic)
             {
@@ -614,8 +578,12 @@ class installModel extends model
             $table = str_replace('`zt_', $this->config->db->name . '.`zt_', $table);
             $table = str_replace('zt_', $this->config->db->prefix, $table);
             if(!$this->dbh->query($table)) return false;
+
+            /* Make the deleted user of demo data undeleted.*/
+            if($this->config->edition == 'open') $this->dao->update(TABLE_USER)->set('deleted')->eq('0')->where('deleted')->eq('1')->exec();
         }
 
+        $config = new stdclass();
         $config->module  = 'common';
         $config->owner   = 'system';
         $config->section = 'global';

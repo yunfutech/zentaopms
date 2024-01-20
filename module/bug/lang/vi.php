@@ -2,7 +2,7 @@
 /**
  * The bug module Vietnamese file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2021 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @copyright   Copyright 2009-2021 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
  * @license  ZPL (http://zpl.pub/page/zplv12.html)
  * @author   Nguyễn Quốc Nho <quocnho@gmail.com>
  * @package  bug
@@ -164,7 +164,7 @@ $lang->bug->createBuild   = 'Mới';
 $lang->bug->legendBasicInfo             = 'Thông tin cơ bản';
 $lang->bug->legendAttatch               = 'Files';
 $lang->bug->legendPRJExecStoryTask      = 'Project/' . $lang->executionCommon . '/Story/Task';
-$lang->bug->legendExecStoryTask         = $lang->executionCommon . '/Câu chuyện/Nhiệm vụ';
+$lang->bug->legendExecStoryTask         = 'Project/Câu chuyện/Nhiệm vụ';
 $lang->bug->lblTypeAndSeverity          = 'Loại/Mức độ';
 $lang->bug->lblSystemBrowserAndHardware = 'Hệ thống/Trình duyệt';
 $lang->bug->legendSteps                 = 'Các bước Repro';
@@ -172,6 +172,8 @@ $lang->bug->legendComment               = 'Ghi chú';
 $lang->bug->legendLife                  = 'Toàn bộ';
 $lang->bug->legendMisc                  = 'Khác';
 $lang->bug->legendRelated               = 'Thông tin liên quan';
+$lang->bug->linkMRs                     = 'Related MRs';
+$lang->bug->linkCommit                  = 'Related Commits';
 
 /* Button. */
 $lang->bug->buttonConfirm = 'Xác nhận';
@@ -192,6 +194,7 @@ $lang->bug->tplResult = "<p>[Kết quả]</p><br/>";
 $lang->bug->tplExpect = "<p>[Kỳ vọng]</p><br/>";
 
 /* Value list for each field. */
+$lang->bug->severityList[0] = '';
 $lang->bug->severityList[1] = '1';
 $lang->bug->severityList[2] = '2';
 $lang->bug->severityList[3] = '3';
@@ -265,8 +268,8 @@ $lang->bug->statusList['active']   = 'Kích hoạt';
 $lang->bug->statusList['resolved'] = 'Đã giải quyết';
 $lang->bug->statusList['closed']   = 'Đã đóng';
 
-$lang->bug->confirmedList[1] = 'Có';
-$lang->bug->confirmedList[0] = 'Không';
+$lang->bug->confirmedList[1] = 'đã xác nhận';
+$lang->bug->confirmedList[0] = 'chưa được xác nhận';
 
 $lang->bug->resolutionList['']           = '';
 $lang->bug->resolutionList['bydesign']   = 'Như thiết kế';
@@ -376,17 +379,19 @@ $lang->bug->report->bugHistories->graph->xAxisName          = 'Cột bước';
 
 /* Operating record. */
 $lang->bug->action = new stdclass();
-$lang->bug->action->resolved            = array('main' => '$date, được giải quyết bởi <strong>$actor</strong> và giải pháp là <strong>$extra</strong> $appendLink.', 'extra' => 'resolutionList');
-$lang->bug->action->tostory             = array('main' => '$date, được chuyển bởi <strong>$actor</strong> thành <strong>Story</strong> với ID <strong>$extra</strong>.');
-$lang->bug->action->totask              = array('main' => '$date, nhập bởi <strong>$actor</strong> như <strong>Task</strong> with ID <strong>$extra</strong>.');
-$lang->bug->action->linked2plan         = array('main' => '$date, liên kết bởi <strong>$actor</strong> cho kế hoạch <strong>$extra</strong>.');
-$lang->bug->action->unlinkedfromplan    = array('main' => '$date, được xóa bởi <strong>$actor</strong> từ kế hoạch <strong>$extra</strong>.');
-$lang->bug->action->linked2build        = array('main' => '$date, liên kết bởi <strong>$actor</strong> tới Bản dựng <strong>$extra</strong>.');
-$lang->bug->action->unlinkedfrombuild   = array('main' => '$date, bị hủy bởi <strong>$actor</strong> từ bản dựng <strong>$extra</strong>.');
-$lang->bug->action->linked2release      = array('main' => '$date, liên kết bởi <strong>$actor</strong> tới Phát hành <strong>$extra</strong>.');
-$lang->bug->action->unlinkedfromrelease = array('main' => '$date, bị hủy bởi <strong>$actor</strong> từ Phát hành <strong>$extra</strong>.');
-$lang->bug->action->linkrelatedbug      = array('main' => '$date, liên kết bởi <strong>$actor</strong> tới Bug <strong>$extra</strong>.');
-$lang->bug->action->unlinkrelatedbug    = array('main' => '$date, bị hủy bởi <strong>$actor</strong> từ Bug <strong>$extra</strong>.');
+$lang->bug->action->resolved             = array('main' => '$date, được giải quyết bởi <strong>$actor</strong> và giải pháp là <strong>$extra</strong> $appendLink.', 'extra' => 'resolutionList');
+$lang->bug->action->tostory              = array('main' => '$date, được chuyển bởi <strong>$actor</strong> thành <strong>Story</strong> với ID <strong>$extra</strong>.');
+$lang->bug->action->totask               = array('main' => '$date, nhập bởi <strong>$actor</strong> như <strong>Task</strong> with ID <strong>$extra</strong>.');
+$lang->bug->action->linked2plan          = array('main' => '$date, liên kết bởi <strong>$actor</strong> cho kế hoạch <strong>$extra</strong>.');
+$lang->bug->action->unlinkedfromplan     = array('main' => '$date, được xóa bởi <strong>$actor</strong> từ kế hoạch <strong>$extra</strong>.');
+$lang->bug->action->linked2build         = array('main' => '$date, liên kết bởi <strong>$actor</strong> tới Bản dựng <strong>$extra</strong>.');
+$lang->bug->action->unlinkedfrombuild    = array('main' => '$date, bị hủy bởi <strong>$actor</strong> từ bản dựng <strong>$extra</strong>.');
+$lang->bug->action->linked2release       = array('main' => '$date, liên kết bởi <strong>$actor</strong> tới Phát hành <strong>$extra</strong>.');
+$lang->bug->action->unlinkedfromrelease  = array('main' => '$date, bị hủy bởi <strong>$actor</strong> từ Phát hành <strong>$extra</strong>.');
+$lang->bug->action->linked2revision      = array('main' => '$date, linked by <strong>$actor</strong> to Revision <strong>$extra</strong>.');
+$lang->bug->action->unlinkedfromrevision = array('main' => '$date, unlinked by <strong>$actor</strong> to Revision <strong>$extra</strong>.');
+$lang->bug->action->linkrelatedbug       = array('main' => '$date, liên kết bởi <strong>$actor</strong> tới Bug <strong>$extra</strong>.');
+$lang->bug->action->unlinkrelatedbug     = array('main' => '$date, bị hủy bởi <strong>$actor</strong> từ Bug <strong>$extra</strong>.');
 
 $lang->bug->placeholder = new stdclass();
 $lang->bug->placeholder->chooseBuilds = 'Chọn bản dựng';

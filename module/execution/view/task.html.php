@@ -2,8 +2,8 @@
 /**
  * The task view file of execution module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     execution
  * @version     $Id: task.html.php 4894 2013-06-25 01:28:39Z wyd621@gmail.com $
@@ -19,6 +19,7 @@ js::set('moduleID', $moduleID);
 js::set('productID', $productID);
 js::set('executionID', $executionID);
 js::set('browseType', $browseType);
+js::set('extra', ($execution->lifetime == 'ops' or in_array($execution->attribute, array('request', 'review'))) ? 'unsetStory' : '');
 
 /* Set unfold parent taskID. */
 $unfoldTasks = isset($config->execution->task->unfoldTasks) ? json_decode($config->execution->task->unfoldTasks, true) : array();
@@ -59,9 +60,10 @@ body {margin-bottom: 25px;}
   </div>
   <div class="btn-toolbar pull-left">
     <?php
+    common::sortFeatureMenu();
     foreach(customModel::getFeatureMenu('execution', 'task') as $menuItem)
     {
-        if($execution->type == 'ops' && $menuItem->name == 'needconfirm') continue;
+        if(($execution->lifetime == 'ops' or in_array($execution->attribute, array('request', 'review'))) and $menuItem->name == 'needconfirm') continue;
         if(isset($menuItem->hidden)) continue;
         $menuType = $menuItem->name;
         if($menuType == 'QUERY')
@@ -84,14 +86,15 @@ body {margin-bottom: 25px;}
             $taskBrowseType = isset($status) ? $this->session->taskBrowseType : '';
             $current        = $menuItem->text;
             $active         = '';
-            if(isset($lang->execution->statusSelects[$taskBrowseType]))
+            $statusSelects  = isset($lang->execution->moreSelects['task']['status']) ? $lang->execution->moreSelects['task']['status'] : array();
+            if(isset($statusSelects[$taskBrowseType]))
             {
-                $current = "<span class='text'>{$lang->execution->statusSelects[$taskBrowseType]}</span> <span class='label label-light label-badge'>{$pager->recTotal}</span>";
+                $current = "<span class='text'>{$statusSelects[$taskBrowseType]}</span> <span class='label label-light label-badge'>{$pager->recTotal}</span>";
                 $active  = 'btn-active-text';
             }
             echo html::a('javascript:;', $current . " <span class='caret'></span>", '', "data-toggle='dropdown' class='btn btn-link $active'");
             echo "<ul class='dropdown-menu'>";
-            foreach($lang->execution->statusSelects as $key => $value)
+            foreach($statusSelects as $key => $value)
             {
                 if($key == '') continue;
                 echo '<li' . ($key == $taskBrowseType ? " class='active'" : '') . '>';
@@ -103,6 +106,7 @@ body {margin-bottom: 25px;}
     ?>
     <a class="btn btn-link querybox-toggle" id='bysearchTab'><i class="icon icon-search muted"></i> <?php echo $lang->product->searchStory;?></a>
   </div>
+  <?php $taskCreateLink = $this->createLink('task', 'create', "executionID=$executionID" . (isset($moduleID) ? "&storyID=0&moduleID=$moduleID" : ""));?>
   <?php if(!isonlybody()): ?>
   <div class="btn-toolbar pull-right">
     <?php
@@ -128,15 +132,21 @@ body {margin-bottom: 25px;}
       <button class="btn btn-link" data-toggle="dropdown"><i class="icon icon-import muted"></i> <span class="text"><?php echo $lang->import;?></span> <span class="caret"></span></button>
       <ul class="dropdown-menu pull-right" id='importActionMenu'>
         <?php
-        $class = common::hasPriv('execution', 'importTask') ? '' : "class=disabled";
-        $misc  = common::hasPriv('execution', 'importTask') ? "class='import'" : "class=disabled";
-        $link  = common::hasPriv('execution', 'importTask') ? $this->createLink('execution', 'importTask', "execution=$execution->id") : '#';
-        echo "<li $class>" . html::a($link, $lang->execution->importTask, '', $misc) . "</li>";
+        if($execution->multiple)
+        {
+            $class = common::hasPriv('execution', 'importTask') ? '' : "class=disabled";
+            $misc  = common::hasPriv('execution', 'importTask') ? "class='import'" : "class=disabled";
+            $link  = common::hasPriv('execution', 'importTask') ? $this->createLink('execution', 'importTask', "execution=$execution->id") : '#';
+            echo "<li $class>" . html::a($link, $lang->execution->importTask, '', $misc) . "</li>";
+        }
 
-        $class = common::hasPriv('execution', 'importBug') ? '' : "class=disabled";
-        $misc  = common::hasPriv('execution', 'importBug') ? "class='import'" : "class=disabled";
-        $link  = common::hasPriv('execution', 'importBug') ? $this->createLink('execution', 'importBug', "execution=$execution->id") : '#';
-        echo "<li $class>" . html::a($link, $lang->execution->importBug, '', $misc) . "</li>";
+        if($execution->lifetime != 'ops' and !in_array($execution->attribute, array('request', 'review')))
+        {
+            $class = common::hasPriv('execution', 'importBug') ? '' : "class=disabled";
+            $misc  = common::hasPriv('execution', 'importBug') ? "class='import'" : "class=disabled";
+            $link  = common::hasPriv('execution', 'importBug') ? $this->createLink('execution', 'importBug', "execution=$execution->id") : '#';
+            echo "<li $class>" . html::a($link, $lang->execution->importBug, '', $misc) . "</li>";
+        }
         ?>
       </ul>
     </div>
@@ -145,7 +155,6 @@ body {margin-bottom: 25px;}
     $checkObject = new stdclass();
     $checkObject->execution = $executionID;
     ?>
-    <?php if(!common::checkNotCN()):?>
     <?php if($canBeChanged and (common::hasPriv('task', 'batchCreate', $checkObject) or common::hasPriv('task', 'create', $checkObject))):?>
     <div class='btn-group dropdown'>
       <?php
@@ -153,10 +162,6 @@ body {margin-bottom: 25px;}
       {
           $wizardParams   = helper::safe64Encode("executionID=$executionID" . (isset($moduleID) ? "&storyID=0&moduleID=$moduleID" : ""));
           $taskCreateLink = $this->createLink('tutorial', 'wizard', "module=task&method=create&params=$wizardParams");
-      }
-      else
-      {
-          $taskCreateLink = $this->createLink('task', 'create', "executionID=$executionID" . (isset($moduleID) ? "&storyID=0&moduleID=$moduleID" : ""));
       }
       echo html::a($taskCreateLink, "<i class='icon icon-plus'></i> {$lang->task->create}", '', "class='btn btn-primary'");
       ?>
@@ -167,36 +172,14 @@ body {margin-bottom: 25px;}
       </ul>
     </div>
     <?php endif;?>
-    <?php else:?>
-    <?php
-    echo "<div class='btn-group dropdown-hover'>";
-    $link = $this->createLink('task', 'create', "execution=$executionID" . (isset($moduleID) ? "&storyID=0&moduleID=$moduleID" : ""));
-    if($canBeChanged and common::hasPriv('task', 'create', $checkObject)) echo html::a($link, "<i class='icon icon-plus'></i> {$lang->task->create} </span><span class='caret'>", '', "class='btn btn-primary'");
-    ?>
-    <ul class='dropdown-menu'>
-      <?php $disabled = common::hasPriv('task', 'batchCreate') ? '' : "class='disabled'";?>
-      <li <?php echo $disabled?>>
-      <?php
-        $batchLink = $this->createLink('task', 'batchCreate', "execution=$executionID" . (isset($moduleID) ? "&storyID=&moduleID=$moduleID" : ''));
-        echo "<li>" . html::a($batchLink, "<i class='icon icon-plus'></i> " . $lang->task->batchCreate) . "</li>";
-      ?>
-      </li>
-    </ul>
-    <?php echo "</div>";?>
-    <?php endif;?>
   </div>
-  <?php endif; ?>
+  <?php endif;?>
 </div>
 <?php if($this->app->getViewType() == 'xhtml'):?>
 <div id="xx-title">
   <strong>
   <?php echo $projectName;?>
   </strong>
-  <div class="linkButton" onclick="handleLinkButtonClick()">
-    <span title="<?php echo $lang->viewDetails;?>">
-      <i class="icon icon-import icon-rotate-270"></i>
-    </span>
-  </div>
 </div>
 <?php endif;?>
 <div id="mainContent" class="main-row fade">
@@ -216,7 +199,7 @@ body {margin-bottom: 25px;}
     <div class="table-empty-tip">
       <p>
         <span class="text-muted"><?php echo $lang->task->noTask;?></span>
-        <?php if($canBeChanged and common::hasPriv('task', 'create')):?>
+        <?php if($canBeChanged and common::hasPriv('task', 'create') and empty($allTasks)):?>
         <?php echo html::a($taskCreateLink, "<i class='icon icon-plus'></i> " . $lang->task->create, '', "class='btn btn-info'");?>
         <?php endif;?>
       </p>
@@ -234,7 +217,7 @@ body {margin-bottom: 25px;}
       if($useDatatable) include '../../common/view/datatable.html.php';
 
       $customFields = $this->datatable->getSetting('execution');
-      if($execution->type == 'ops')
+      if($execution->lifetime == 'ops' or in_array($execution->attribute, array('request', 'review')))
       {
           foreach($customFields as $id => $customField)
           {
@@ -286,7 +269,7 @@ body {margin-bottom: 25px;}
         </thead>
         <tbody>
           <?php foreach($tasks as $task):?>
-          <tr data-id='<?php echo $task->id;?>' data-status='<?php echo $task->status?>' data-estimate='<?php echo $task->estimate?>' data-consumed='<?php echo $task->consumed?>' data-left='<?php echo $task->left?>'>
+          <tr <?php if(!empty($task->children)) echo 'class="table-parent" '; ?>data-id='<?php echo $task->id;?>' data-status='<?php echo $task->status?>' data-estimate='<?php echo $task->estimate?>' data-consumed='<?php echo $task->consumed?>' data-left='<?php echo $task->left?>'>
             <?php if($this->app->getViewType() == 'xhtml'):?>
             <?php
             foreach($customFields as $field)
@@ -425,7 +408,7 @@ body {margin-bottom: 25px;}
 <script>
 $(function()
 {
-    // Update table summary text
+    /* Update table summary text. */
     var checkedSummary = '<?php echo $lang->execution->checkedSummary?>';
     var pageSummary    = '<?php echo $lang->execution->pageSummary?>';
     $('#executionTaskForm').table(
@@ -447,7 +430,7 @@ $(function()
             $rows.each(function()
             {
                 var $row = $(this);
-                if ($originTable)
+                if($originTable)
                 {
                     $row = $originTable.find('tbody>tr[data-id="' + $row.data('id') + '"]');
                 }
@@ -493,12 +476,6 @@ $(function()
 });
 
 <?php if($this->app->getViewType() == 'xhtml'):?>
-function handleLinkButtonClick()
-{
-  var xxcUrl = "xxc:openInApp/zentao-integrated/" + encodeURIComponent(window.location.href.replace(/.display=card/, '').replace(/\.xhtml/, '.html'));
-  window.open(xxcUrl);
-}
-
 $(function()
 {
     function handleClientReady()

@@ -2,8 +2,8 @@
 /**
  * The task module zh-cn file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     task
  * @version     $Id: zh-cn.php 5040 2013-07-06 06:22:18Z zhujinyonging@gmail.com $
@@ -61,7 +61,7 @@ $lang->task->confirmRecord         = '"剩余"为0，任务将标记为"已完�
 $lang->task->confirmTransfer       = '"当前剩余"为0，任务将被转交，您确定吗？';
 $lang->task->noTask                = '暂时没有任务。';
 $lang->task->kanbanDenied          = '请先创建看板';
-$lang->task->createDenied          = '你不能在该项目添加任务';
+$lang->task->createDenied          = "你不能在该{$lang->projectCommon}添加任务";
 $lang->task->cannotDeleteParent    = '不能删除父任务。';
 $lang->task->addChildTask          = '因该任务已经产生消耗，为保证数据一致性，我们会帮您创建一条同名子任务记录该消耗。';
 

@@ -2,7 +2,7 @@
 /**
  * The testsuite module en file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
  * @license  ZPL (http://zpl.pub/page/zplv12.html)
  * @author   Yidong Wang <yidong@cnezsoft.com>
  * @package  testsuite
@@ -45,9 +45,12 @@ $lang->testsuite->confirmUnlinkCase = 'Bạn có muốn hủy liên kết tình 
 $lang->testsuite->noticeNone        = 'Bạn chưa tạo suite nào';
 $lang->testsuite->noModule          = '<div>Chưa có Module.</div><div>Quản lý ngay.</div>';
 $lang->testsuite->noTestsuite       = 'Không có suites nào';
+$lang->testsuite->summary           = "Tổng <strong>%total%</strong> suites nào, Công khai: <strong>%public%</strong>, Riêng tư: <strong>%private%</strong>.";
 
 $lang->testsuite->lblCases      = 'Tình huống';
 $lang->testsuite->lblUnlinkCase = 'Hủy liên kết tình huống';
 
 $lang->testsuite->authorList['private'] = 'Riêng tư';
 $lang->testsuite->authorList['public']  = 'Công khai';
+
+$lang->testsuite->featureBar['browse']['all'] = 'Suite List';

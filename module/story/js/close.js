@@ -16,3 +16,14 @@ function setStory(reason)
         $('#childStoriesBox').hide();
     }
 }
+
+$(function()
+{
+    $('#duplicateStory').picker(
+    {
+        disableEmptySearch : true,
+        dropWidth : 'auto'
+    });
+    
+    $('[data-toggle="popover"]').popover();
+});

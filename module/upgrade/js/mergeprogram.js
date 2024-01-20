@@ -6,8 +6,6 @@ $(function()
     setProgramEnd(programEnd);
     setProjectPM();
 
-    setProgramByProduct($(':checkbox:checked[data-productid]'));
-
     /* Define drag to select relevant parameters. */
     var options = {
         selector: 'input',
@@ -158,7 +156,6 @@ $(function()
     /* Select all product events. */
     $('#checkAllProducts').click(function()
     {
-
         var lineID  = $('li.currentPage').attr('lineid');
         var checked = true;
         if($(this).is(':checked'))
@@ -178,6 +175,9 @@ $(function()
         {
             checked = false;
             $('#checkAllProjects').prop('checked', false);
+            $('form #newProgram0').removeAttr('disabled');
+            $('#programs').removeAttr('disabled');
+            $('#programID').val('');
             $('#programName').val('');
         }
 
@@ -369,7 +369,7 @@ $(function()
         $(target).removeClass('hidden');
 
         /* Replace program name. */
-        if($("[id^='productLines\[" + currentLine +"\]'").prop('checked')) $('#programName').val($(this).text());
+        if(!$('#programName').val() && $("[id^='productLines\[" + currentLine +"\]'").prop('checked')) $('#programName').val($(this).text());
 
         /* Replace project name. */
         var productID = $(target).find('.lineGroup .productList input[name*="product"]').val();
@@ -535,6 +535,7 @@ $(function()
     /* Toggles data migration mode events. */
     $('input[name="projectType"]').change(function()
     {
+        $('.programForm').show();
         $('.createProjectTip').toggleClass('hidden');
         $('.createExecutionTip').toggleClass('hidden');
         $('.projectName').toggleClass('hidden');
@@ -544,6 +545,7 @@ $(function()
 
         if($(this).val() == 'project')
         {
+            if(mode == 'light') $('.programForm').hide();
             $('[name=projectAcl]').attr('disabled', 'disabled');
             $('[name=programAcl]').removeAttr('disabled');
         }
@@ -576,6 +578,53 @@ $(function()
         $('[name=programAcl]').attr('disabled', 'disabled');
         $('[name=projectAcl]').removeAttr('disabled');
     }
+
+    $('#submit').click(function()
+    {
+        if(type == 'productline')
+        {
+            var checkedProductCount = $("input[name^='products']:checked").length;
+            if(checkedProductCount <= 0)
+            {
+                alert(errorNoProduct);
+                return false;
+            }
+        }
+        else if(type == 'product')
+        {
+            var checkedProductCount = $("input[name^='products']:checked").length;
+            if(checkedProductCount <= 0)
+            {
+                alert(errorNoProduct);
+                return false;
+            }
+
+            var executionCount        = 0;
+            var checkedExecutionCount = 0;
+            $("input[name^='products']:checked").each(function()
+            {
+                var productID = $(this).val()
+
+                executionCount        += $("[data-product='" + productID + "']").length;
+                checkedExecutionCount += $("[data-product='" + productID + "']:checked").length;
+            });
+
+            if(executionCount !== 0 && checkedExecutionCount === 0)
+            {
+                alert(errorNoExecution);
+                return false;
+            }
+        }
+        else
+        {
+            var checkedExecutionCount = $("input[name^='sprints']:checked").length;
+            if(checkedExecutionCount === 0)
+            {
+                alert(errorNoExecution);
+                return false;
+            }
+        }
+    })
 });
 
 /**
@@ -764,8 +813,10 @@ function toggleProject(obj)
  */
 function hiddenProject()
 {
+    $('#programBox').show();
     if($('[name^=sprints]:checked').length == 0)
     {
+        if(mode == 'light') $('#programBox').hide();
         $(".programParams input").attr('disabled' ,'disabled');
         $(".programParams select").attr('disabled' ,'disabled').trigger('chosen:updated');
         $('.programParams').hide();
@@ -786,6 +837,7 @@ function hiddenProject()
 
         if($('#newProject0').is(':checked')) $('#projects').attr('disabled', 'disabled');
 
+        $('.programForm').show();
         var projectType = $('input[name="projectType"]:checked').val();
         if(projectType == 'project')
         {
@@ -795,6 +847,7 @@ function hiddenProject()
             $('.projectStatus').addClass('hidden');
             $('[name=projectAcl]').attr('disabled', 'disabled');
             $('[name=programAcl]').removeAttr('disabled');
+            if(mode == 'light') $('.programForm').hide();
         }
 
         if(projectType == 'execution')
@@ -805,6 +858,12 @@ function hiddenProject()
             $('.projectStatus').removeClass('hidden');
             $('[name=programAcl]').attr('disabled', 'disabled');
             $('[name=projectAcl]').removeAttr('disabled');
+        }
+
+        if(mode == 'light')
+        {
+            $('form #newProgram0').prop('checked', false);
+            toggleProgram($('form #newProgram0'));
         }
     }
 }
@@ -858,7 +917,7 @@ function setProgramByProduct(product)
 
         getProjectByProgram($('#programs'));
     }
-    else
+    else if(programID && $(':checkbox:checked[data-programid=' + programID + ']').length == 0)
     {
         $('form #newProgram0').removeAttr('disabled');
         $('#programs').removeAttr('disabled');

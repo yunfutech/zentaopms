@@ -20,7 +20,11 @@
     <?php endif;?>
   </div>
   <style>
+  <?php if(common::checkNotCN()):?>
+  .gantt-product-tips {position: absolute; top: -32px; left: 280px; opacity: 0.5;}
+  <?php else:?>
   .gantt-product-tips {position: absolute; top: -32px; left: 240px; opacity: 0.5;}
+  <?php endif;?>
   .gantt-product-tips i {vertical-align: middle;}
   .block-waterfallgantt > .panel-body {overflow: visible!important}
   #<?php echo $waterfallGanttID; ?> {position: relative}
@@ -82,12 +86,12 @@
                 minTimeGap         = Math.min(minTimeGap, endDatetime - startDatetime);
                 item.tasks         = [];
                 item.completeTasks = [];
-                item.progress      = 0;
+                item.progress      = Number.parseFloat(item.taskProgress.replace('%', ''), 10);
                 plans.push(item);
             }
             else if(item.type === 'task')
             {
-                item.progress = Number.parseInt(item.taskProgress.replace('%', ''), 10);
+                item.progress = Number.parseFloat(item.taskProgress.replace('%', ''), 10);
                 tasks.push(item);
             }
         });
@@ -95,12 +99,12 @@
         $.each(tasks, function(index, task)
         {
             var plan = plansMap[task.parent];
+            if(typeof(plan) == 'undefined') return;
             while(plan.parent > 0)
             {
                 plan = plansMap[plan.parent];
                 if(typeof(plan) != 'object') return;
             }
-            plan.progress += task.progress;
             if(task.progress === 100) plan.completeTasks.push(task);
             plan.tasks.push(task);
         });
@@ -117,9 +121,8 @@
         /* Update gantt plans and bars */
         $.each(plans, function(index, plan)
         {
-            plan.progress = !plan.tasks.length ? 0 : plan.progress / plan.tasks.length;
             var $plan = $('<div class="gantt-plan"></div>');
-            $plan.append('<div class="strong" title="' + plan.text + '">' + plan.text + '</div>');
+            $plan.append('<div class="strong" title="' + plan.name + '">' + plan.text + '</div>');
             $plans.append($plan);
 
             var $bar = $('<div class="gantt-bar"></div>');

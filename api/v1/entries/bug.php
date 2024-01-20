@@ -2,8 +2,8 @@
 /**
  * The bug entry point of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2021 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2021 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     entries
  * @version     1
@@ -16,7 +16,7 @@ class bugEntry extends entry
      *
      * @param  int    $bugID
      * @access public
-     * @return void
+     * @return string
      */
     public function get($bugID)
     {
@@ -32,8 +32,9 @@ class bugEntry extends entry
 
         $bug = $data->data->bug;
 
-        /* Set product name */
-        $bug->productName = $data->data->product->name;
+        /* Set product name and status */
+        $bug->productName   = $data->data->product->name;
+        $bug->productStatus = $data->data->product->status;
 
         /* Set module title */
         $moduleTitle = '';
@@ -77,7 +78,7 @@ class bugEntry extends entry
         $bug->preAndNext['pre']  = $preAndNext->pre  ? $preAndNext->pre->id : '';
         $bug->preAndNext['next'] = $preAndNext->next ? $preAndNext->next->id : '';
 
-        $this->send(200, $this->format($bug, 'activatedDate:time,openedBy:user,openedDate:time,assignedTo:user,assignedDate:time,mailto:userList,resolvedBy:user,resolvedDate:time,closedBy:user,closedDate:time,lastEditedBy:user,lastEditedDate:time,deadline:date,deleted:bool'));
+        return $this->send(200, $this->format($bug, 'activatedDate:time,openedBy:user,openedDate:time,assignedTo:user,assignedDate:time,mailto:userList,resolvedBy:user,resolvedDate:time,closedBy:user,closedDate:time,lastEditedBy:user,lastEditedDate:time,deadline:date,deleted:bool'));
     }
 
     /**
@@ -85,14 +86,14 @@ class bugEntry extends entry
      *
      * @param  int    $bugID
      * @access public
-     * @return void
+     * @return string
      */
     public function put($bugID)
     {
         $oldBug = $this->loadModel('bug')->getByID($bugID);
 
         /* Set $_POST variables. */
-        $fields = 'title,project,execution,openedBuild,assignedTo,pri,severity,type,story,resolvedBy,closedBy,resolution,product,plan,task,module,steps,mailto,keywords';
+        $fields = 'uid,title,project,execution,openedBuild,assignedTo,pri,severity,type,story,resolvedBy,closedBy,resolution,product,plan,task,module,steps,mailto,keywords';
         $this->batchSetPost($fields, $oldBug);
         $this->setPost('notifyEmail', implode(',', $this->request('notifyEmail', array())));
 
@@ -105,7 +106,7 @@ class bugEntry extends entry
         if(!isset($data->status)) return $this->sendError(400, 'error');
 
         $bug = $this->bug->getByID($bugID);
-        $this->send(200, $this->format($bug, 'activatedDate:time,openedBy:user,openedDate:time,assignedTo:user,assignedDate:time,mailto:userList,resolvedBy:user,resolvedDate:time,closedBy:user,closedDate:time,lastEditedBy:user,lastEditedDate:time,deadline:date,deleted:bool'));
+        return $this->send(200, $this->format($bug, 'activatedDate:time,openedBy:user,openedDate:time,assignedTo:user,assignedDate:time,mailto:userList,resolvedBy:user,resolvedDate:time,closedBy:user,closedDate:time,lastEditedBy:user,lastEditedDate:time,deadline:date,deleted:bool'));
     }
 
     /**
@@ -113,7 +114,7 @@ class bugEntry extends entry
      *
      * @param  int    $bugID
      * @access public
-     * @return void
+     * @return string
      */
     public function delete($bugID)
     {
@@ -121,6 +122,6 @@ class bugEntry extends entry
         $control->delete($bugID, 'yes');
 
         $this->getData();
-        $this->sendSuccess(200, 'success');
+        return $this->sendSuccess(200, 'success');
     }
 }

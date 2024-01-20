@@ -2,18 +2,18 @@
 /**
  * The build contact lists view file of my module of ZentaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Fei Chen<chenfei@cnezsoft.com>
  * @package     my
  * @version     $Id$
  * @link        http://www.zentao.net
  */
 ?>
-<?php 
+<?php
 if($contactLists)
 {
-    echo html::select('contactListMenu', $contactLists, '', "class='form-control chosen' onchange=\"setMailto('$dropdownName', this.value)\"");
+    echo html::select('contactListMenu', $contactLists, '', "class='form-control chosen' $attr onchange=\"setMailto('$dropdownName', this.value)\"");
 }
 else
 {

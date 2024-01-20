@@ -2,8 +2,8 @@
 /**
  * The bug view file of dashboard module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     dashboard
  * @version     $Id: bug.html.php 5107 2013-07-12 01:46:12Z chencongzhi520@gmail.com $
@@ -18,16 +18,17 @@
   <div class="btn-toolbar pull-left">
     <?php
     $recTotalLabel = " <span class='label label-light label-badge'>{$pager->recTotal}</span>";
-    if($app->rawMethod == 'contribute')
+    foreach($lang->my->featureBar[$app->rawMethod]['bug'] as $typeKey => $name)
     {
-        echo html::a(inlink($app->rawMethod, "mode=$mode&type=openedBy"),   "<span class='text'>{$lang->bug->openedByMe}</span>" . ($type == 'openedBy'   ? $recTotalLabel : ''),   '', "class='btn btn-link" . ($type == 'openedBy'   ? ' btn-active-text' : '') . "'");
-        echo html::a(inlink($app->rawMethod, "mode=$mode&type=resolvedBy"), "<span class='text'>{$lang->bug->resolvedByMe}</span>" . ($type == 'resolvedBy' ? $recTotalLabel : ''), '', "class='btn btn-link" . ($type == 'resolvedBy' ? ' btn-active-text' : '') . "'");
-        echo html::a(inlink($app->rawMethod, "mode=$mode&type=closedBy"),   "<span class='text'>{$lang->bug->closedByMe}</span>" . ($type == 'closedBy'   ? $recTotalLabel : ''),   '', "class='btn btn-link" . ($type == 'closedBy'   ? ' btn-active-text' : '') . "'");
+        echo html::a(inlink($app->rawMethod, "mode=$mode&type=$typeKey"), "<span class='text'>{$name}</span>" . ($type == $typeKey ? $recTotalLabel : ''), '', "class='btn btn-link" . ($type == $typeKey ? ' btn-active-text' : '') . "'");
     }
     ?>
   </div>
+  <a class="btn btn-link querybox-toggle" id='bysearchTab'><i class="icon icon-search muted"></i> <?php echo $lang->my->byQuery;?></a>
 </div>
 <div id="mainContent">
+  <?php $dataModule = $app->rawMethod == 'work' ? 'workBug' : 'contributeBug';?>
+  <div class="cell<?php if($type == 'bySearch') echo ' show';?>" id="queryBox" data-module=<?php echo $dataModule;?>></div>
   <?php if(empty($bugs)):?>
   <div class="table-empty-tip">
     <p><span class="text-muted"><?php echo $lang->bug->noBug;?></span></p>
@@ -42,7 +43,8 @@
     $canBatchAction   = ($canBatchEdit or $canBatchConfirm or $canBatchClose or $canBatchAssignTo);
     ?>
     <table class="table has-sort-head table-fixed" id='bugList'>
-      <?php $vars = "mode=$mode&type=$type&orderBy=%s&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID"; ?>
+      <?php $vars = "mode=$mode&type=$type&param=myQueryID&orderBy=%s&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID"; ?>
+      <?php $type = $type == 'bySearch' ? $this->session->myBugType : $type;?>
       <thead>
         <tr>
           <th class="c-id">
@@ -53,27 +55,27 @@
             <?php endif;?>
             <?php common::printOrderLink('id', $orderBy, $vars, $lang->idAB);?>
           </th>
+          <th><?php common::printOrderLink('title', $orderBy, $vars, $lang->bug->title);?></th>
           <th class='c-severity' title='<?php echo $lang->bug->severity;?>'><?php common::printOrderLink('severity', $orderBy, $vars, $lang->bug->severityAB);?></th>
           <th class='c-pri' title='<?php echo $lang->bug->pri;?>'><?php common::printOrderLink('pri', $orderBy, $vars, $lang->priAB);?></th>
-          <th class='c-confirm' title='<?php echo $lang->bug->confirmedAB;?>'><?php common::printOrderLink('confirmed', $orderBy, $vars, $lang->bug->confirmedAB);?></th>
 
-          <th><?php common::printOrderLink('title', $orderBy, $vars, $lang->bug->title);?></th>
-          <th class='c-product'><?php common::printOrderLink('productName', $orderBy, $vars, $lang->bug->product);?></th>
-          <th class='c-type'><?php common::printOrderLink('type', $orderBy, $vars, $lang->typeAB);?></th>
+          <th class='c-type'><?php common::printOrderLink('type', $orderBy, $vars, $lang->bug->type);?></th>
+          <th class='c-product'><?php common::printOrderLink('product', $orderBy, $vars, $lang->bug->product);?></th>
           <?php if($type != 'openedBy'): ?>
-          <th class='c-user'><?php common::printOrderLink('openedBy', $orderBy, $vars, $lang->openedByAB);?></th>
+          <th class='c-user'><?php common::printOrderLink('openedBy', $orderBy, $vars, $lang->bug->openedByAB);?></th>
           <?php endif;?>
+          <th class='c-confirm' title='<?php echo $lang->bug->confirmedAB;?>'><?php common::printOrderLink('confirmed', $orderBy, $vars, $lang->bug->confirmedAB);?></th>
           <?php if($app->rawMethod == 'work'):?>
-          <th class='c-date text-center'><?php common::printOrderLink('deadline', $orderBy, $vars, $lang->bug->deadlineAB);?></th>
+          <th class='c-date text-center'><?php common::printOrderLink('deadline', $orderBy, $vars, $lang->bug->deadline);?></th>
           <?php endif;?>
           <?php if($type != 'assignedTo'): ?>
           <th class='c-user c-assignedTo'><?php common::printOrderLink('assignedTo', $orderBy, $vars, $lang->bug->assignedTo);?></th>
           <?php endif;?>
           <?php if($type != 'resolvedBy'): ?>
-          <th class='c-user'><?php common::printOrderLink('resolvedBy', $orderBy, $vars, $lang->bug->resolvedByAB);?></th>
+          <th class='c-user'><?php common::printOrderLink('resolvedBy', $orderBy, $vars, $lang->bug->resolvedBy);?></th>
           <?php endif;?>
           <th class='c-resolution'><?php common::printOrderLink('resolution', $orderBy, $vars, $lang->bug->resolutionAB);?></th>
-          <th class='c-actions-5'><?php echo $lang->actions;?></th>
+          <th class='c-actions-5 text-center'><?php echo $lang->actions;?></th>
         </tr>
       </thead>
       <?php
@@ -100,7 +102,11 @@
             <?php endif;?>
             <?php printf('%03d', $bug->id);?>
           </td>
-          <td>
+          <td class='text-left nobr'>
+            <?php echo html::a($this->createLink('bug', 'view', "bugID=$bug->id"), $bug->title, null, "style='color: $bug->color' title='{$bug->title}'");?>
+            <?php if($bug->case) echo html::a(helper::createLink('testcase', 'view', "caseID=$bug->case&version=$bug->caseVersion"), "[" . $this->lang->testcase->common . "#$bug->case]", '', "class='bug' title='$bug->case'");?>
+          </td>
+          <td class='c-severity'>
             <?php if($hasCustomSeverity):?>
             <span class='<?php echo 'label-severity-custom';?>' title='<?php echo zget($lang->bug->severityList, $bug->severity);?>' data-severity='<?php echo $bug->severity;?>'><?php echo zget($lang->bug->severityList, $bug->severity, $bug->severity);?></span>
             <?php else:?>
@@ -108,21 +114,27 @@
             <?php endif;?>
           </td>
           <td><span class='label-pri <?php echo 'label-pri-' . $bug->pri?>' title='<?php echo zget($lang->bug->priList, $bug->pri);?>'><?php echo zget($lang->bug->priList, $bug->pri)?></span></td>
-          <td class="text-center"><span class='<?php echo $bug->confirmed == '1' ? 'confirmed' : 'unconfirmed';?>' title='<?php echo zget($lang->bug->confirmedList, $bug->confirmed);?>'><?php echo zget($lang->bug->confirmedList, $bug->confirmed)?></span></td>
-          <td class='text-left nobr'><?php echo html::a($this->createLink('bug', 'view', "bugID=$bug->id"), $bug->title, null, "style='color: $bug->color' title='{$bug->title}'");?></td>
-          <?php $param = $config->productLink == 'product-all' ? '' : "productID=$bug->product";?>
+          <td title="<?php echo zget($lang->bug->typeList, $bug->type, '');?>"><?php echo zget($lang->bug->typeList, $bug->type, '');?></td>
           <td class='text-left nobr'>
             <?php
-            $productLink = explode('-', $config->productLink);
-            echo html::a($this->createLink('product', $productLink[1], $param), $bug->productName, null, "title={$bug->productName}");
+            if(isset($bug->shadow) and !empty($bug->shadow))
+            {
+                echo html::a($this->createLink('project', 'browse'), $bug->productName, null, "title={$bug->productName}");
+            }
+            else
+            {
+                $productLink = explode('-', $config->productLink);
+                $param       = $config->productLink == 'product-all' ? '' : "productID=$bug->product";
+                echo html::a($this->createLink('product', $productLink[1], $param), $bug->productName, null, "title={$bug->productName}");
+            }
             ?>
           </td>
-          <td title="<?php echo zget($lang->bug->typeList, $bug->type, '');?>"><?php echo zget($lang->bug->typeList, $bug->type, '');?></td>
           <?php if($type != 'openedBy'): ?>
           <td><?php echo zget($users, $bug->openedBy);?></td>
           <?php endif;?>
+          <td class="text-center"><span class='<?php echo $bug->confirmed == '1' ? 'confirmed' : 'unconfirmed';?>' title='<?php echo zget($lang->bug->confirmedList, $bug->confirmed);?>'><?php echo zget($lang->bug->confirmedList, $bug->confirmed)?></span></td>
           <?php if($app->rawMethod == 'work'):?>
-          <td class="text-center <?php echo (isset($bug->delay) and $bug->status == 'active') ? 'delayed' : '';?>"><?php if(substr($bug->deadline, 0, 4) > 0) echo substr($bug->deadline, 5, 6);?></td>
+          <td class="text-center <?php echo (isset($bug->delay) and $bug->status == 'active') ? 'delayed' : '';?>"><?php if(substr($bug->deadline, 0, 4) > 0) echo '<span>' . substr($bug->deadline, 5, 6) . '</span>';?></td>
           <?php endif;?>
           <?php if($type != 'assignedTo'): ?>
           <td class='c-assignedTo has-btn'><?php $this->bug->printAssignedHtml($bug, $users);?></td>

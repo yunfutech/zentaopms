@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 include dirname(dirname(dirname(__FILE__))) . '/lib/init.php';
 include dirname(dirname(dirname(__FILE__))) . '/class/story.class.php';
@@ -8,6 +9,10 @@ su('admin');
 title=测试 storyModel->getTestStories();
 cid=1
 pid=1
+
+获取和执行103关联的ID为9的测试类型的需求 >> 9
+获取和执行111关联的ID为41的测试类型的需求 >> 41
+获取和执行103关联的测试类型的需求,为空 >> 0
 
 */
 

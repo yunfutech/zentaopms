@@ -1,8 +1,20 @@
 <?php
 $lang->action->label->execution = "Kanban|execution|task|executionID=%s";
 $lang->action->label->task      = 'Task|task|view|taskID=%s';
+$lang->action->label->module    = 'Catalog|tree|browse|productid=%s&type=story&currentModuleID=0&branch=all';
 
-$lang->action->objectTypes['task'] = 'Task';
+/* Object type. */
+$lang->action->objectTypes['execution'] = $lang->projectCommon . $lang->executionCommon;
+
+$lang->action->search = new stdclass();
+$lang->action->search->objectTypeList['']            = '';
+$lang->action->search->objectTypeList['project']     = $lang->projectCommon;
+$lang->action->search->objectTypeList['execution']   = 'Kanban';
+$lang->action->search->objectTypeList['story']       = "$lang->SRCommon/$lang->URCommon";
+$lang->action->search->objectTypeList['task']        = 'Task';
+$lang->action->search->objectTypeList['user']        = 'User';
+$lang->action->search->objectTypeList['doc']         = 'Doc';
+$lang->action->search->objectTypeList['todo']        = 'Todo';
 
 unset($lang->action->dynamicAction->program);
 unset($lang->action->dynamicAction->product);
@@ -48,9 +60,9 @@ $lang->action->dynamicAction->task['linkchildtask']       = 'Link child Task';
 
 $lang->action->label->createchildrenstory   = "Create child story";
 $lang->action->label->linkchildstory        = "Link child story";
-$lang->action->label->unlinkchildrenstory   = "CanceledLink child story";
+$lang->action->label->unlinkchildrenstory   = "unlinked a child story";
 $lang->action->label->linkparentstory       = "Link parent story";
-$lang->action->label->unlinkparentstory     = "From parent storyCanceledLink";
+$lang->action->label->unlinkparentstory     = "CanceledLink from parent story ";
 $lang->action->label->deletechildrenstory   = "Deleted child story";
 
 $lang->action->search->label = array();
@@ -90,16 +102,11 @@ $lang->action->search->label['verified']              = $lang->action->label->ve
 $lang->action->search->label['login']                 = $lang->action->label->login;
 $lang->action->search->label['logout']                = $lang->action->label->logout;
 
-$lang->action->label->createchildrenstory   = "Create child story";
-$lang->action->label->linkchildstory        = "Link child story";
-$lang->action->label->unlinkchildrenstory   = "unlinked a child story";
-$lang->action->label->linkparentstory       = "Link parent story";
-$lang->action->label->unlinkparentstory     = "CanceledLink from parent story ";
-$lang->action->label->deletechildrenstory   = "Deleted child story";
-
 $lang->action->desc->createchildrenstory = '$date, <strong>$actor</strong> Create child story <strong>$extra</strong>。' . "\n";
 $lang->action->desc->linkchildstory      = '$date, <strong>$actor</strong> Link child story <strong>$extra</strong>。' . "\n";
 $lang->action->desc->unlinkchildrenstory = '$date, <strong>$actor</strong> Unlink child story <strong>$extra</strong>。' . "\n";
 $lang->action->desc->linkparentstory     = '$date, <strong>$actor</strong> Link from parent story <strong>$extra</strong>。' . "\n";
 $lang->action->desc->unlinkparentstory   = '$date, <strong>$actor</strong> From parent story<strong>$extra</strong>CanceledLink。' . "\n";
 $lang->action->desc->deletechildrenstory = '$date, <strong>$actor</strong> Deleted child story<strong>$extra</strong>。' . "\n";
+
+$lang->action->executionNoProject = "The execution does not belong to a {$lang->projectCommon},please restore the {$lang->projectCommon} first";

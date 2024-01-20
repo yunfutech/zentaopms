@@ -29,7 +29,9 @@ function deleteFile(fileID)
 function downloadFile(fileID, extension, imageWidth)
 {
     if(!fileID) return;
-    var url = createLink('file', 'download', 'fileID=' + fileID + '&mouse=left') + sessionString;
+    var url = createLink('file', 'download', 'fileID=' + fileID + '&mouse=left');
+    url    += url.indexOf('?') >= 0 ? '&' : '?';
+    url    += sessionString;
     window.open(url, '_blank');
     return false;
 }
@@ -53,7 +55,7 @@ $(document).ready(function()
 {
     // First unbind ajaxForm for form.
     $("#dataform").unbind('submit');
-    
+
     // Bind ajaxForm for form again.
     $('#dataform').ajaxForm(
     {
@@ -93,11 +95,15 @@ $(document).ready(function()
                         $("#submit").attr({"disabled":"disabled"});
                     });
                 }
+
+                if(typeof(window.parent.runCase) != 'undefined') window.parent.runCase = true;
             }
 
             return false;
         }
     });
+
+    window.parent.triggerHidden();
 
     $(document).on('click', ".step-group input[type='checkbox']", function()
     {
@@ -107,6 +113,18 @@ $(document).ready(function()
             var isChecked = $(this).prop('checked');
             $next.find("input[type='checkbox']").prop('checked', isChecked);
             $next = $next.next();
+        }
+    });
+
+    $('#resultsContainer').click(function(event)
+    {
+        if(event.target.id.indexOf('checkAll') !== -1)
+        {
+            var checkAll  = document.getElementById(event.target.id);
+            var checkAll  = $(checkAll);
+            var isChecked = checkAll.prop('checked');
+
+            checkAll.closest('tbody').children('tr').find('input[type=checkbox]').prop('checked', isChecked);
         }
     });
 });

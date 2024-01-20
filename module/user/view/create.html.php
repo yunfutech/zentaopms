@@ -2,8 +2,8 @@
 /**
  * The create view of user module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     user
  * @version     $Id: create.html.php 4728 2013-05-03 06:14:34Z chencongzhi520@gmail.com $
@@ -13,7 +13,7 @@
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/datepicker.html.php';?>
 <?php js::import($jsRoot . 'md5.js');?>
-<?php if(!empty($config->safe->mode)) $lang->user->placeholder->password1 = $lang->user->placeholder->passwordStrength[$config->safe->mode]?>
+<?php $lang->user->placeholder->password1 = zget($lang->user->placeholder->passwordStrength, !empty($config->safe->mode) ? $config->safe->mode : 0, '');?>
 <?php js::set('holders', $lang->user->placeholder);?>
 <?php js::set('roleGroup', $roleGroup);?>
 <?php
@@ -54,7 +54,7 @@ $showVisionList = count($visionList) > 1;
           <td>
             <input type='password' style="display:none"> <!-- for disable autocomplete all browser -->
             <span class='input-group'>
-              <?php echo html::password('password1', '', "class='form-control' onmouseup='checkPassword(this.value)' onkeyup='checkPassword(this.value)'");?>
+              <?php echo html::password('password1', '', "class='form-control' onkeyup='checkPassword(this.value)'");?>
               <span class='input-group-addon' id='passwordStrength'></span>
             </span>
           </td>
@@ -110,8 +110,9 @@ $showVisionList = count($visionList) > 1;
           <th></th>
           <td class='text-center form-actions'>
             <?php if(!$showVisionList) echo html::hidden("visions[]", $this->config->vision);?>
+            <?php echo html::hidden('passwordLength', 0);?>
             <?php echo html::submitButton();?>
-            <?php echo html::backButton();?>
+            <?php echo html::a($this->createLink('company', 'browse'), $lang->goback, '', "class='btn btn-wide'")?>
           </td>
         </tr>
       </table>

@@ -2,8 +2,8 @@
 /**
  * The manage view by group view of group module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Yidong Wang <yidong@cnezsoft.com>
  * @package     group
  * @version     $Id: managepriv.html.php 1517 2011-03-07 10:02:57Z wwccss $
@@ -47,12 +47,13 @@
           </div>
         </td>
       </tr>
+      <?php if($this->config->systemMode == 'ALM'):?>
       <tr id='programBox' style='display:none'>
         <th class='text-right'><?php echo $lang->group->programList?></th>
         <td>
           <?php if($programs):?>
           <div class='input-group'>
-            <?php echo html::select("actions[programs][]", $programs, isset($group->acl['programs']) ? join(',', $group->acl['programs']) : '', "class='form-control chosen' multiple")?>
+            <?php echo html::select("actions[programs][]", $programs, isset($group->acl['programs']) ? join(',', $group->acl['programs']) : '', "class='form-control picker-select' multiple")?>
             <span class='input-group-addon strong'><?php echo $lang->group->noticeVisit?></span>
           </div>
           <?php else:?>
@@ -60,12 +61,13 @@
           <?php endif;?>
         </td>
       </tr>
+      <?php endif;?>
       <tr id='productBox' style='display:none'>
         <th class='text-right'><?php echo $lang->group->productList?></th>
         <td>
           <?php if($products):?>
           <div class='input-group'>
-            <?php echo html::select("actions[products][]", $products, isset($group->acl['products']) ? join(',', $group->acl['products']) : '', "class='form-control chosen' multiple")?>
+            <?php echo html::select("actions[products][]", $products, isset($group->acl['products']) ? join(',', $group->acl['products']) : '', "class='form-control picker-select' multiple")?>
             <span class='input-group-addon strong'><?php echo $lang->group->noticeVisit?></span>
           </div>
           <?php else:?>
@@ -78,7 +80,7 @@
         <td>
           <?php if($projects):?>
           <div class='input-group'>
-            <?php echo html::select("actions[projects][]", $projects, isset($group->acl['projects']) ? join(',', $group->acl['projects']) : '', "class='form-control chosen' drop_direction='down' multiple")?>
+            <?php echo html::select("actions[projects][]", $projects, isset($group->acl['projects']) ? join(',', $group->acl['projects']) : '', "class='form-control picker-select' data-dropDirection='bottom' multiple")?>
             <span class='input-group-addon strong'><?php echo $lang->group->noticeVisit?></span>
           </div>
           <?php else:?>
@@ -91,7 +93,7 @@
         <td>
           <?php if($executions):?>
           <div class='input-group'>
-            <?php echo html::select("actions[sprints][]", $executions, isset($group->acl['sprints']) ? join(',', $group->acl['sprints']) : '', "class='form-control chosen' drop_direction='down' multiple")?>
+            <?php echo html::select("actions[sprints][]", $executions, isset($group->acl['sprints']) ? join(',', $group->acl['sprints']) : '', "class='form-control picker-select' data-dropDirection='bottom' multiple")?>
             <span class='input-group-addon strong'><?php echo $lang->group->noticeVisit?></span>
           </div>
           <?php else:?>

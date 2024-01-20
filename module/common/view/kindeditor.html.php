@@ -1,3 +1,7 @@
+<style>
+.ke-dialog-content .ke-dialog-body [name='widthType'], .ke-dialog-content .ke-dialog-body [name='heightType'] {width: 55px !important;}
+.ke-dialog-content .ke-dialog-body #keWidth + .fix-border.fix-padding {width: 0;}
+</style>
 <?php if($extView = $this->getExtViewFile(__FILE__)){include $extView; return helper::cd();}?>
 <?php
 $module = $this->moduleName;
@@ -11,6 +15,11 @@ $editorLang   = isset($editorLangs[$app->getClientLang()]) ? $editorLangs[$app->
 /* set uid for upload. */
 $uid = uniqid('');
 ?>
+<style>
+<?php foreach($editor['id'] as $editorID):?>
+<?php echo "textarea#{$editorID} {display:none}";?>
+<?php endforeach?>
+</style>
 <?php js::import($jsRoot . 'kindeditor/kindeditor.min.js'); ?>
 <?php js::import($jsRoot . "kindeditor/lang/{$editorLang}.js");?>
 <script>
@@ -36,7 +45,16 @@ $uid = uniqid('');
     'indent', 'outdent', 'subscript', 'superscript', '|',
     'table', 'code', 'pagebreak',
     'fullscreen', 'source', 'preview', 'about'];
-    var editorToolsMap = {fullTools: fullTools, simpleTools: simpleTools, bugTools: bugTools};
+    var docTools =
+    [ 'formatblock', 'fontname', 'fontsize', 'lineheight', '|', 'forecolor', 'hilitecolor', '|', 'bold', 'italic','underline', 'strikethrough', '|',
+    'justifyleft', 'justifycenter', 'justifyright', 'justifyfull', '|',
+    'insertorderedlist', 'insertunorderedlist', '|',
+    'emoticons', 'image', 'hr', '|', 'link', '|',
+    'undo', 'redo', '|', 'selectall', 'cut', 'copy', 'paste', '|', 'plainpaste', 'wordpaste', '|', 'removeformat', 'clearhtml','quickformat', '|',
+    'indent', 'outdent', 'subscript', 'superscript', '|',
+    'table', 'code', 'pagebreak',
+    'source'];
+    var editorToolsMap = {fullTools: fullTools, simpleTools: simpleTools, bugTools: bugTools, docTools: docTools};
 
     /* Kindeditor default options. */
     var editorDefaults =
@@ -91,6 +109,10 @@ $uid = uniqid('');
             items: editorTool,
             placeholder: $editor.attr('placeholder') || options.placeholder || '',
             pasteImage: {postUrl: createLink('file', 'ajaxPasteImg', 'uid=' + kuid), placeholder: $editor.attr('placeholder') || <?php echo json_encode($lang->noticePasteImg);?>},
+            afterChange: function()
+            {
+                $editor.closest('.main-form').trigger('change');
+            }
         });
 
         try

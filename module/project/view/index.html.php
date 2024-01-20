@@ -2,8 +2,8 @@
 /**
  * The html template file of index method of index module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     ZenTaoPMS
  * @version     $Id: index.html.php 5094 2013-07-10 08:46:15Z chencongzhi520@gmail.com $
@@ -16,7 +16,7 @@
 <div class='clearfix' id='mainMenu'>
   <div class='btn-toolbar pull-left'>
     <?php
-      foreach($lang->project->featureBar as $label => $labelName)
+      foreach($lang->project->featureBar['index'] as $label => $labelName)
       {
           $active = $browseType == $label ? 'btn-active-text' : '';
           echo html::a($this->createLink('project', 'index', "projectID=$project->id&browseType=" . $label), '<span class="text">' . $labelName . '</span> ' . ($browseType == $label ? "<span class='label label-light label-badge'>" . (int)count($kanbanList) . '</span>' : ''), '', "class='btn btn-link $active'");
@@ -24,7 +24,7 @@
     ?>
   </div>
   <div class='btn-toolbar pull-right'>
-    <?php common::printLink('execution', 'create', "projectID=$project->id", '<i class="icon icon-plus"></i> ' . $lang->project->createKanban, '', 'class="btn btn-primary"');?>
+    <?php common::printLink('execution', 'create', "projectID=$project->id", '<i class="icon icon-plus"></i> ' . $lang->project->createKanban, '', 'class="btn btn-primary" data-app="execution"');?>
   </div>
 </div>
 <div id="mainContent">
@@ -33,7 +33,7 @@
     <div class="table-empty-tip">
       <p>
         <span class="text-muted"><?php echo $lang->noData;?></span>
-        <?php common::printLink('execution', 'create', "projectID=$project->id", '<i class="icon icon-plus"></i> ' . $lang->project->createKanban, '', 'class="btn btn-info"');?>
+        <?php common::printLink('execution', 'create', "projectID=$project->id", '<i class="icon icon-plus"></i> ' . $lang->project->createKanban, '', 'class="btn btn-info" data-app="execution"');?>
       </p>
     </div>
     <?php else:?>
@@ -64,7 +64,7 @@
                  {
                      $this->app->loadLang('kanban');
                      echo '<li>';
-                     common::printLink('execution', 'edit', "executionID={$kanbanID}", '<i class="icon icon-edit"></i> ' . $lang->kanban->edit, '', "class='iframe' data-width='75%'", '', true);
+                     common::printLink('execution', 'edit', "executionID={$kanbanID}", '<i class="icon icon-edit"></i>' . $lang->kanban->edit, '', "class='iframe' data-width='75%'", '', true);
                      echo '</li>';
                  }
                  if(!empty($executionActions[$kanbanID]))
@@ -93,7 +93,7 @@
                 <?php if($count > 2) break;?>
                 <?php $count ++;?>
                 <div title="<?php echo $member->realname;?>">
-                  <?php echo html::smallAvatar(array('avatar' => $usersAvatar[$member->account], 'account' => $member->account, 'name' => $member->realname), 'avatar-circle avatar-' . zget($userIdPairs, $member->account)); ?>
+                  <?php echo html::smallAvatar(array('avatar' => zget($usersAvatar, $member->account, ''), 'account' => $member->account, 'name' => $member->realname), 'avatar-circle avatar-' . zget($userIdPairs, $member->account, '')); ?>
                 </div>
                 <?php endforeach;?>
                 <?php if(count($members) > 4):?>
@@ -120,6 +120,9 @@
       </div>
     </div>
     <?php endforeach;?>
+    <div class='col-xs-12' id='cardsFooter'>
+      <?php $pager->show('right', 'pagerjs');?>
+    </div>
     <?php endif;?>
   </div>
 </div>

@@ -36,7 +36,8 @@ function adjustPriBoxWidth()
     var boxWidth   = $('#ownerAndPriBox').width();
     var beginWidth = $("input[name='begin']").outerWidth();
     var addonWidth = $('#ownerAndPriBox .input-group-addon').outerWidth();
-    $('#pri,#pri_chosen .chosen-single').css('width', boxWidth - beginWidth -addonWidth);
+    var width      = boxWidth - beginWidth - addonWidth;
+    $('#pri,#pri_chosen .chosen-single').css('width', width > 0 ? width : '160px');
 }
 
 /**
@@ -67,7 +68,7 @@ function createBug(obj)
     }
     else
     {
-        window.open(link, '_parent');
+        window.open(link, '_blank');
     }
 
     config.onlybody = onlybody;
@@ -89,20 +90,18 @@ function loadExecutionRelated(executionID)
  * Load execution builds.
  *
  * @param  int $executionID
- * @param  int $selected
  * @access public
  * @return void
  */
-function loadExecutionBuilds(executionID, selected)
+function loadExecutionBuilds(executionID)
 {
-    selectedBuild = $('#build').val();
+    var selectedBuild = $('#build').val();
+
     if(!selectedBuild) selectedBuild = 0;
-    link = createLink('build', 'ajaxGetExecutionBuilds', 'executionID=' + executionID + '&productID=' + $('#product').val() + '&varName=testTaskBuild&build=' + selectedBuild, '', '', executionID);
-    if(executionID == 0) link = createLink('build', 'ajaxGetProductBuilds', 'productID=' + $('#product').val() + '&varName=resolvedBuild&build=' + selectedBuild);
+    var link = createLink('build', 'ajaxGetExecutionBuilds', 'executionID=' + executionID + '&productID=' + $('#product').val() + '&varName=testTaskBuild&build=' + selectedBuild);
+    if(executionID == 0) link = createLink('build', 'ajaxGetProjectBuilds', 'projectID=' + projectID + '&productID=' + $('#product').val() + '&varName=build&build=' + selectedBuild + '&branch=&index=&needCreate=&type=noempty,notrunk,withexecution');
     $('#buildBox').load(link, function()
     {
-        $('#resolvedBuild').attr('id', 'build').attr('name', 'build').find('option[value=trunk]').remove();
-        if(selected) $('#build').val(selected);
         $('#build').chosen();
     });
 }

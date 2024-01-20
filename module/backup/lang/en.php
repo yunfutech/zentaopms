@@ -1,6 +1,6 @@
 <?php
 $lang->backup->common      = 'Backup';
-$lang->backup->index       = 'Backup Home';
+$lang->backup->index       = 'Backup List';
 $lang->backup->history     = 'History';
 $lang->backup->delete      = 'Delete Backup';
 $lang->backup->backup      = 'Backup';
@@ -10,6 +10,7 @@ $lang->backup->changeAB    = 'Edit';
 $lang->backup->rmPHPHeader = 'Remove PHP header';
 $lang->backup->setting     = 'Settings';
 
+$lang->backup->restoreAction = 'Restore Backup';
 $lang->backup->settingAction = 'Backup Settings';
 
 $lang->backup->time     = 'Date';
@@ -48,3 +49,4 @@ $lang->backup->error->restoreSQL  = "Failed to restore the database library. Err
 $lang->backup->error->restoreFile = "Failed to restore the file. Error %s.";
 $lang->backup->error->backupFile  = "Failed to back up the file. Error %s.";
 $lang->backup->error->backupCode  = "Failed to back up the code. Error %s.";
+$lang->backup->error->timeout     = "Backup timeout.";

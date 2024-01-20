@@ -2,8 +2,8 @@
 /**
  * The resolve file of bug module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     bug
  * @version     $Id: resolve.html.php 4129 2013-01-18 01:58:14Z wwccss $
@@ -14,8 +14,10 @@
 <?php include '../../common/view/kindeditor.html.php';?>
 <?php include '../../common/view/datepicker.html.php';?>
 <?php
-js::set('page'      , 'resolve');
-js::set('productID' , $bug->product);
+js::set('page', 'resolve');
+js::set('productID', $bug->product);
+js::set('bugID', $bug->id);
+js::set('released', $lang->build->released);
 ?>
 <div id='mainContent' class='main-content'>
   <div class='center-block'>
@@ -38,14 +40,14 @@ js::set('productID' , $bug->product);
         </tr>
         <tr id='duplicateBugBox' class='hide'>
           <th><?php echo $lang->bug->duplicateBug;?></th>
-          <td class='required'><?php echo html::input('duplicateBug', '', "class='form-control'");?></td>
+          <td class='required'><?php echo html::select('duplicateBug', '', '', "class='form-control' placeholder='{$lang->bug->duplicateTip}'");?></td>
         </tr>
         <tr>
           <th><?php echo $lang->bug->resolvedBuild;?></th>
-          <td id='newBuildExecutionBox' class='hidden'>
+          <td id='newBuildExecutionBox' class='hidden required'>
             <div class='input-group'>
               <span class='input-group-addon'><?php echo (!empty($execution) and $execution->type == 'kanban') ? $lang->bug->kanban : $lang->build->execution;?></span>
-              <?php echo html::select('buildExecution', $executions, '', "class='form-control chosen'");?>
+              <?php echo html::select('buildExecution', $executions, $bug->execution, "class='form-control chosen'");?>
             </div>
           </td>
           <td>

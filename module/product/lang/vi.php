@@ -2,7 +2,7 @@
 /**
  * The product module English file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
  * @license  ZPL (http://zpl.pub/page/zplv12.html)
  * @author   Nguyễn Quốc Nho <quocnho@gmail.com>
  * @package  product
@@ -48,7 +48,6 @@ $lang->product->builds      = 'Bản dựng';
 $lang->product->roadmap     = "Lộ trình {$lang->productCommon}";
 $lang->product->doc         = "Tài liệu {$lang->productCommon}";
 $lang->product->project     = 'Danh sách '.$lang->executionCommon;
-$lang->product->build       = 'Danh sách bản dựng';
 $lang->product->moreProduct = "More Product";
 $lang->product->projectInfo = "Projects đã liên kết tới {$lang->productCommon} này được liệt kê bên dưới.";
 
@@ -86,6 +85,7 @@ $lang->product->id             = 'ID';
 $lang->product->program        = "Program";
 $lang->product->name           = "Tên {$lang->productCommon}";
 $lang->product->code           = 'Mã';
+$lang->product->shadow         = "Shadow {$lang->productCommon}";
 $lang->product->line           = "{$lang->productCommon} Line";
 $lang->product->lineName       = "{$lang->productCommon} Line Name";
 $lang->product->order          = 'Đánh giá';
@@ -115,19 +115,20 @@ $lang->product->iterationView  = 'Chi tiết';
 $lang->product->createdBy      = 'Người tạo';
 $lang->product->createdDate    = 'Ngày tạo';
 
-$lang->product->searchStory  = 'Tìm kiếm';
-$lang->product->assignedToMe = 'Giao cho bạn';
-$lang->product->openedByMe   = 'Tạo bởi bạn';
-$lang->product->reviewedByMe = 'Duyệt bởi bạn';
-$lang->product->closedByMe   = 'Đóng bởi bạn';
-$lang->product->draftStory   = 'Nháp';
-$lang->product->activeStory  = 'Đã kích hoạt';
-$lang->product->changedStory = 'Đã thay đổi';
-$lang->product->willClose    = 'Đã đóng';
-$lang->product->closedStory  = 'Đã đóng';
-$lang->product->unclosed     = 'Mở';
-$lang->product->unplan       = 'Chưa kế hoạch';
-$lang->product->viewByUser   = 'Theo người dùng';
+$lang->product->searchStory    = 'Tìm kiếm';
+$lang->product->assignedToMe   = 'Giao cho bạn';
+$lang->product->openedByMe     = 'Tạo bởi bạn';
+$lang->product->reviewedByMe   = 'Duyệt bởi bạn';
+$lang->product->closedByMe     = 'Đóng bởi bạn';
+$lang->product->draftStory     = 'Nháp';
+$lang->product->activeStory    = 'Đã kích hoạt';
+$lang->product->changingStory  = 'Biến';
+$lang->product->reviewingStory = 'Đang xem xét';
+$lang->product->willClose      = 'Đã đóng';
+$lang->product->closedStory    = 'Đã đóng';
+$lang->product->unclosed       = 'Mở';
+$lang->product->unplan         = 'Chưa kế hoạch';
+$lang->product->viewByUser     = 'Theo người dùng';
 
 $lang->product->allStory             = 'Tất cả ';
 $lang->product->allProduct           = 'Tất cả';
@@ -177,8 +178,9 @@ $lang->product->featureBar['all']['all']      = $lang->product->allProduct;
 $lang->product->featureBar['all']['noclosed'] = $lang->product->unclosed;
 $lang->product->featureBar['all']['closed']   = $lang->product->statusList['closed'];
 
-$lang->product->moreSelects['closedbyme']   = $lang->product->closedByMe;
-$lang->product->moreSelects['activestory']  = $lang->product->activeStory;
-$lang->product->moreSelects['changedstory'] = $lang->product->changedStory;
-$lang->product->moreSelects['willclose']    = $lang->product->willClose;
-$lang->product->moreSelects['closedstory']  = $lang->product->closedStory;
+$lang->product->moreSelects['closedbyme']     = $lang->product->closedByMe;
+$lang->product->moreSelects['activestory']    = $lang->product->activeStory;
+$lang->product->moreSelects['changingstory']  = $lang->product->changingStory;
+$lang->product->moreSelects['reviewingstory'] = $lang->product->reviewingStory;
+$lang->product->moreSelects['willclose']      = $lang->product->willClose;
+$lang->product->moreSelects['closedstory']    = $lang->product->closedStory;

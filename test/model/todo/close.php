@@ -10,9 +10,9 @@ title=测试 todoModel->close();
 cid=1
 pid=1
 
-关闭一个状态为wait的todo  >> closed
+关闭一个状态为wait的todo >> closed
 关闭一个状态为doing的todo >> closed
-关闭一个状态为done的todo  >> closed
+关闭一个状态为done的todo >> closed
 
 */
 
@@ -23,4 +23,3 @@ $todo = new todoTest();
 r($todo->closeTest($todoIDList[0])) && p('status') && e('closed'); // 关闭一个状态为wait的todo
 r($todo->closeTest($todoIDList[1])) && p('status') && e('closed'); // 关闭一个状态为doing的todo
 r($todo->closeTest($todoIDList[2])) && p('status') && e('closed'); // 关闭一个状态为done的todo
-system("./ztest init");

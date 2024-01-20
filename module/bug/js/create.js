@@ -1,27 +1,4 @@
 /**
-  * Load all users as assignedTo list.
-  *
-  * @access public
-  * @return void
-  */
-function loadAllUsers()
-{
-    var link = createLink('bug', 'ajaxLoadAllUsers', 'selectedUser=' + $('#assignedTo').val());
-    $.get(link, function(data)
-    {
-        if(data)
-        {
-            var moduleID  = $('#module').val();
-            var productID = $('#product').val();
-            setAssignedTo(moduleID, productID);
-            $('#assignedTo').replaceWith(data);
-            $('#assignedTo_chosen').remove();
-            $('#assignedTo').chosen();
-        }
-    });
-}
-
-/**
   * Load team members of the latest execution of a product as assignedTo list.
   *
   * @param  int    $productID
@@ -65,7 +42,6 @@ function loadModuleRelated()
  */
 function setLane(regionID)
 {
-    console.log(regionID);
     laneLink = createLink('kanban', 'ajaxGetLanes', 'regionID=' + regionID + '&type=bug&field=lane');
     $.get(laneLink, function(lane)
     {
@@ -74,44 +50,6 @@ function setLane(regionID)
         $("#lane" + "_chosen").remove();
         $("#lane").next('.picker').remove();
         $("#lane").chosen();
-    });
-}
-
-/**
- * Set the assignedTo field.
- *
- * @param  int    $moduleID
- * @param  int    $productID
- * @access public
- * @return void
- */
-function setAssignedTo(moduleID, productID)
-{
-    if(typeof(productID) == 'undefined') productID = $('#product').val();
-    if(typeof(moduleID) == 'undefined')  moduleID  = $('#module').val();
-    var link = createLink('bug', 'ajaxGetModuleOwner', 'moduleID=' + moduleID + '&productID=' + productID);
-    $.get(link, function(owner)
-    {
-        owner        = JSON.parse(owner);
-        var account  = owner[0];
-        var realName = owner[1];
-        var isExist  = false;
-        var count    = $('#assignedTo').find('option').length;
-        for(var i=0; i < count; i++)
-        {
-            if($('#assignedTo').get(0).options[i].value == account)
-            {
-                isExist = true;
-                break;
-            }
-        }
-        if(!isExist && account)
-        {
-            option = "<option title='" + realName + "' value='" + account + "'>" + realName + "</option>";
-            $("#assignedTo").append(option);
-        }
-        $('#assignedTo').val(account);
-        $("#assignedTo").trigger("chosen:updated");
     });
 }
 
@@ -186,34 +124,7 @@ $(function()
     });
 });
 
-/**
- * Ajax change execution name.
- *
- * @param  int $projectID
- * @access public
- * @return void
- */
-function changeAssignedTo(projectID)
+$(window).unload(function()
 {
-    if(parseInt(projectID))
-    {
-        loadProjectTeamMembers(projectID);
-        var link = createLink('bug', 'ajaxGetExecutionLang', 'projectID=' + projectID);
-        $.post(link, function(executionLang)
-        {
-            $('#executionBox').html(executionLang);
-        })
-    }
-    else if($('#execution').val() != 0)
-    {
-        loadAssignedTo($('#execution').val());
-    }
-    else
-    {
-        setAssignedTo();
-    }
-}
-
-$(window).unload(function(){
     if(blockID) window.parent.refreshBlock($('#block' + blockID));
 });

@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 include dirname(dirname(dirname(__FILE__))) . '/lib/init.php';
 su('admin');
@@ -7,6 +8,15 @@ su('admin');
 title=测试 storyModel->activate();
 cid=1
 pid=1
+
+查看激活之前的需求状态 >> active
+查看激活之前的需求状态 >> closed
+查看激活之前的需求状态 >> changed
+查看激活之前的需求状态 >> draft
+查看激活之后的需求状态 >> active
+查看激活之后的需求状态 >> active
+查看激活之后的需求状态 >> active
+查看激活之后的需求状态 >> active
 
 */
 
@@ -38,4 +48,3 @@ r($afterActivate63)   && p('status') && e('active');  //查看激活之后的需
 r($afterActivate100)  && p('status') && e('active');  //查看激活之后的需求状态
 r($afterActivate301)  && p('status') && e('active');  //查看激活之后的需求状态
 
-system("./ztest init");

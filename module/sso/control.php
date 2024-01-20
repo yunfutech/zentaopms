@@ -2,8 +2,8 @@
 /**
  * The control file of sso module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Yidong Wang <yidong@cnezsoft.com>
  * @package     sso
  * @version     $Id: control.php 4460 2013-02-26 02:28:02Z chencongzhi520@gmail.com $
@@ -26,7 +26,7 @@ class sso extends control
         $this->app->loadConfig('sso');
         if(!$this->config->sso->turnon) return print($this->locate($locate));
 
-        $userIP = $this->server->remote_addr;
+        $userIP = helper::getRemoteIp();
         $code   = $this->config->sso->code;
         $key    = $this->config->sso->key;
         if($type != 'return')
@@ -135,12 +135,12 @@ class sso extends control
         if($type != 'return')
         {
             $code   = $this->config->sso->code;
-            $userIP = $this->server->remote_addr;
+            $userIP = helper::getRemoteIp();
             $token  = $this->get->token;
             $key    = $this->config->sso->key;
             $auth   = md5($code . $userIP . $token . $key);
 
-            $callback = urlencode($common->getSysURL() . inlink('logout', "type=return"));
+            $callback = urlencode(common::getSysURL() . inlink('logout', "type=return"));
             $location = $this->config->sso->addr;
             if(strpos($location, '&') !== false)
             {
@@ -199,7 +199,7 @@ class sso extends control
         if(!$this->session->ssoData) return;
 
         $ssoData = $this->session->ssoData;
-        $userIP  = $this->server->remote_addr;
+        $userIP  = helper::getRemoteIp();
         $code    = $this->config->sso->code;
         $key     = $this->config->sso->key;
         if($ssoData->auth != md5($code . $userIP . $ssoData->token . $key)) return;

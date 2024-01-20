@@ -1,3 +1,9 @@
+window.ignoreTips = {
+    'beyondBudgetTip' : false,
+    'dateTip'         : false
+};
+var batchEditDateTips = new Array();
+
 /**
  * Access rights are equal to private, and the white list settings are displayed.
  *
@@ -95,6 +101,7 @@ function computeWorkDays(currentID)
     {
         computeEndDate();
     }
+    outOfDateTip(isBactchEdit ? index : 0);
 }
 
 /**
@@ -112,10 +119,13 @@ function computeEndDate(delta)
     delta     = parseInt(delta);
     if(delta == 999)
     {
-        $('#end').val(longTime);
+        $('#end').val(longTime).trigger('mousedown');
+        $('#daysBox').addClass('hidden');
+        $('#days').val(0).trigger('mousedown');
+        outOfDateTip();
         return false;
     }
-
+    $('#daysBox').removeClass('hidden');
     beginDate = convertStringToDate(beginDate);
     if((delta == 7 || delta == 14) && (beginDate.getDay() == 1))
     {
@@ -123,117 +133,9 @@ function computeEndDate(delta)
     }
 
     endDate = $.zui.formatDate(beginDate.addDays(delta - 1), 'yyyy-MM-dd');
-    $('#end').val(endDate).datetimepicker('update');
+    $('#end').val(endDate).datetimepicker('update').trigger('mousedown');
     computeWorkDays();
-}
-
-/**
- * Load branches.
- *
- * @param  object   product
- * @access public
- * @return void
- */
-function loadBranches(product)
-{
-    /* When selecting a product, delete a plan that is empty by default. */
-    $("#planDefault").remove();
-
-    $("#productsBox select[name^='products']").each(function()
-    {
-        var $product = $(product);
-        if($product.val() != 0 && $product.val() == $(this).val() && $product.attr('id') != $(this).attr('id') && !multiBranchProducts[$product.val()])
-        {
-            bootbox.alert(errorSameProducts);
-            $product.val(0);
-            $product.trigger("chosen:updated");
-            return false;
-        }
-    });
-
-    if($('#productsBox .input-group:last select:first').val() != 0)
-    {
-        var length = $('#productsBox .input-group').size();
-        $('#productsBox .row').append('<div class="col-sm-4">' + $('#productsBox .col-sm-4:last').html() + '</div>');
-        if($('#productsBox .input-group:last select').size() >= 2) $('#productsBox .input-group:last select:last').remove();
-        $('#productsBox .input-group:last .chosen-container').remove();
-        $('#productsBox .input-group:last select:first').attr('name', 'products[' + length + ']').attr('id', 'products' + length);
-        $('#productsBox .input-group:last .chosen').chosen();
-
-        adjustProductBoxMargin();
-    }
-
-    var $inputgroup = $(product).closest('.input-group');
-    if($inputgroup.find('select').size() >= 2) $inputgroup.removeClass('has-branch').find('select:last').remove();
-    if($inputgroup.find('.chosen-container').size() >= 2) $inputgroup.find('.chosen-container:last').remove();
-
-    var index = $inputgroup.find('select:first').attr('id').replace('products' , '');
-    $.get(createLink('branch', 'ajaxGetBranches', "productID=" + $(product).val() + "&oldBranch=0&param=active"), function(data)
-    {
-        if(data)
-        {
-            $inputgroup.addClass('has-branch').append(data);
-            $inputgroup.find('select:last').attr('name', 'branch[' + index + ']').attr('id', 'branch' + index).attr('onchange', "loadPlans('#products" + index + "', this.value)").chosen();
-        }
-    });
-
-    loadPlans(product);
-}
-
-function loadPlans(product, branchID)
-{
-    if($('#plansBox').size() == 0) return false;
-
-    var productID = $(product).val();
-    var branchID  = typeof(branchID) == 'undefined' ? 0 : branchID;
-    var index     = $(product).attr('id').replace('products', '');
-
-    $.get(createLink('product', 'ajaxGetPlans', "productID=" + productID + '&branch=0,' + branchID + '&planID=0&fieldID&needCreate=&expired=' + (config.currentMethod == 'create' ? 'unexpired' : '') + '&param=skipParent'), function(data)
-    {
-        if(data)
-        {
-            if($("div#plan" + index).size() == 0) $("#plansBox .row").append('<div class="col-sm-4" id="plan' + index + '"></div>');
-            $("div#plan" + index).html(data).find('select').attr('name', 'plans[' + productID + ']' + '[' + branchID + ']').attr('id', 'plans' + productID).chosen();
-
-            adjustPlanBoxMargin();
-        }
-    });
-}
-
-/**
- * Adjust the layout of product selection.
- *
- * @access public
- * @return void
- */
-function adjustProductBoxMargin()
-{
-    var productRows = Math.ceil($('#productsBox > .row > .col-sm-4').length / 3);
-    if(productRows > 1)
-    {
-        for(i = 1; i <= productRows - 1; i++)
-        {
-            $('#productsBox .col-sm-4:lt(' + (i * 3) + ')').css('margin-bottom', '10px');
-        }
-    }
-}
-
-/**
- * Adjust the layout of the plan selection.
- *
- * @access public
- * @return void
- */
-function adjustPlanBoxMargin()
-{
-    var planRows = Math.ceil($('#plansBox > .row > .col-sm-4').length / 3);
-    if(planRows > 1)
-    {
-        for(j = 1; j <= planRows - 1; j++)
-        {
-            $('#plansBox .col-sm-4:lt(' + (j * 3) + ')').css('margin-bottom', '10px');
-        }
-    }
+    $('#days').trigger('mousedown');
 }
 
 /**
@@ -273,6 +175,7 @@ $(function()
         if($(this).prop('checked'))
         {
             $('#budget').val('').attr('disabled', 'disabled');
+            if($('#beyondBudgetTip').length > 0) $('#beyondBudgetTip').parent().parent().remove();
         }
         else
         {
@@ -281,46 +184,143 @@ $(function()
     });
 })
 
-/**
- * Set budget tips and acl list.
- *
- * @param  int    $parentProgramID
- * @access public
- * @return void
- */
-function setBudgetTipsAndAclList(programID)
-{
-    if(programID != 0)
-    {
-        $.get(createLink('project', 'ajaxGetBudgetLeft', "programID=" + programID), function(budgetLeft)
-        {
-            parentProgram = PGMList[programID];
-            projectBudget = parentProgram.budget;
-            PGMBudgetUnit = currencySymbol[parentProgram.budgetUnit];
-
-            budgetNotes = projectBudget != 0 ? (PGMParentBudget + PGMBudgetUnit + budgetLeft) : '';
-            $('#budget').attr('placeholder', budgetNotes);
-        });
-        $('.aclBox').html($('#subPGMAcl').html());
-    }
-    else
-    {
-        $('#budget').removeAttr('placeholder');
-        $('.aclBox').html($('#PGMAcl').html());
-    }
-}
-
 $(document).on('change', "#plansBox select[name^='plans']", function()
 {
     var $plan = $(this);
     $("#plansBox select[name^='plans']").each(function()
     {
-        if($plan.val() != 0 && $plan.val() == $(this).val() && $plan.closest('div').attr('id') != $(this).closest('div').attr('id'))
+        var planIDList = $plan.val() == null ? 0 : $plan.val();
+        for(var i = 0; i < planIDList.length; i++)
         {
-            bootbox.alert(errorSamePlans);
-            $plan.val(0);
-            $plan.trigger("chosen:updated");
-            return false;
+            var planID = planIDList[i];
+            if(planID != 0 && $(this).val() && $(this).val().includes(planID) && $plan.closest('div').attr('id') != $(this).closest('div').attr('id'))
+            {
+                bootbox.alert(errorSamePlans);
+                $plan.val(0);
+                $plan.trigger("chosen:updated");
+                return false;
+            }
         }
     });
 });
+
+/**
+ * Append prompt when the budget exceeds the parent project set.
+ *
+ * @param  int    $projectID
+ * @access public
+ * @return void
+ */
+function budgetOverrunTips()
+{
+    if(window.ignoreTips['beyondBudgetTip']) return;
+
+    var selectedProgramID = $('#parent').val();
+    var budget            = $('#budget').val();
+
+    if(selectedProgramID == 0)
+    {
+        if($('#beyondBudgetTip').length > 0) $('#beyondBudgetTip').parent().parent().remove();
+        return false;
+    }
+
+    if(typeof(projectID) == 'undefined') projectID = 0;
+    $.get(createLink('project', 'ajaxGetObjectInfo', 'objectType=project&objectID=' + projectID + "&selectedProgramID=" + selectedProgramID), function(data)
+    {
+        var data = JSON.parse(data);
+        if(typeof(data.availableBudget) == 'undefined') return;
+
+        var tip = "";
+        if(budget != 0 && budget !== null && budget > data.availableBudget) tip = "<tr><td></td><td colspan='2'><span id='beyondBudgetTip' class='text-remind'><p>" + budgetOverrun + currencySymbol[data.budgetUnit] + data.availableBudget.toFixed(2) + "</p><p id='ignore' onclick='ignoreTip(this)'>" + ignore + "</p></span></td></tr>"
+        if($('#beyondBudgetTip').length > 0) $('#beyondBudgetTip').parent().parent().remove();
+        $('#budgetBox').parent().parent().after(tip);
+        $('#beyondBudgetTip').parent().css('line-height', '0');
+
+        var placeholder = '';
+        if(selectedProgramID) placeholder = parentBudget + currencySymbol[data.budgetUnit] + data.availableBudget.toFixed(2);
+        if($('#budget').attr('placeholder')) $('#budget').removeAttr('placeholder')
+        $('#budget').attr('placeholder', placeholder);
+    });
+}
+
+/**
+ *The date is out of the range of the parent project set, and a prompt is given.
+ *
+ * @param  string $currentID
+ * @access public
+ * @return void
+ */
+function outOfDateTip(currentID)
+{
+    if(window.ignoreTips['dateTip']) return;
+    if(typeof(systemMode) != 'undefined' && systemMode == 'light') return;
+    if(batchEditDateTips.includes(Number(currentID))) return;
+
+    var end   = currentID ? $('#ends\\[' + currentID + '\\]').val() : $('#end').val();
+    var begin = currentID ? $('#begins\\[' + currentID + '\\]').val() : $('#begin').val();
+    if($('#dateTip.text-remind').length > 0) $('#dateTip').parent().parent().remove();
+    if(currentID) $('#dateTip\\[' + currentID + '\\]').remove();
+
+    if(end == longTime) end = LONG_TIME;
+    if(end.length > 0 && begin.length > 0)
+    {
+        var selectedProgramID = currentID ? $("select[name='parents\[" + currentID + "\]']").val() : $('#parent').val();
+
+        if(selectedProgramID == 0 || selectedProgramID == undefined) return;
+
+        if(typeof(projectID) == 'undefined') projectID = 0;
+        projectID = currentID ? $('#projectIdList\\['+ currentID + '\\]').val() : projectID;
+        $.get(createLink('project', 'ajaxGetObjectInfo', 'objectType=project&objectID=' + projectID + '&selectedProgramID=' + selectedProgramID), function(data)
+        {
+            var data         = JSON.parse(data);
+            var parentEnd    = new Date(data.selectedProgramEnd);
+            var parentBegin  = new Date(data.selectedProgramBegin);
+            var projectEnd   = new Date(end);
+            var projectBegin = new Date(begin);
+
+            var beginLetterParentTip = beginLetterParent + data.selectedProgramBegin;
+            var endGreaterParentTip  = endGreaterParent + data.selectedProgramEnd;
+
+            if(projectBegin >= parentBegin && projectEnd <= parentEnd) return;
+
+            var dateTip = "";
+            if(projectBegin < parentBegin)
+            {
+                dateTip = currentID ? beginLetterParentTip + "'><p>" + beginLetterParentTip : beginLetterParentTip;
+            }
+            else if(projectEnd > parentEnd)
+            {
+                dateTip = currentID ? endGreaterParentTip + "'><p>" + endGreaterParentTip : endGreaterParentTip;
+            }
+
+            if(currentID)
+            {
+                $("#projects\\[" + currentID + "\\]").after("<tr><td colspan='5'></td><td class='c-name' colspan='3'><span id='dateTip" + currentID + "' class='text-remind' title='" + dateTip + "</p><p id='ignore' onclick='ignoreTip(this," + currentID + ")'>" + ignore + "</p></span></td></tr>");
+                $('#dateTip'+ currentID).parent().css('line-height', '0')
+            }
+            else
+            {
+                $('#dateRange').parent().after("<tr><td></td><td colspan='2'><span id='dateTip' class='text-remind'><p>" + dateTip + "</p><p id='ignore' onclick='ignoreTip(this)'>" + ignore + "</p></span></td><tr>");
+                $('#dateTip').parent().css('line-height', '0')
+            }
+        });
+    }
+}
+
+/**
+ * Make this prompt no longer appear.
+ *
+ * @param  string  $obj
+ * @param  string  $currentID
+ * @access public
+ * @return void
+ */
+function ignoreTip(obj, currentID)
+{
+    var parentID = obj.parentNode.id;
+    currentID ? $('#dateTip' + currentID).parent().parent().remove() : $('#' + parentID).parent().parent().remove();
+
+    if(parentID == 'dateTip') window.ignoreTips['dateTip'] = true;
+    if(parentID == 'dateTip' + currentID) batchEditDateTips.push(currentID);
+    if(parentID == 'beyondBudgetTip') window.ignoreTips['beyondBudgetTip'] = true;
+}

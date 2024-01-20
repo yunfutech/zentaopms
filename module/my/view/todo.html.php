@@ -2,8 +2,8 @@
 /**
  * The todo view file of dashboard module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     dashboard
  * @version     $Id: todo.html.php 4735 2013-05-03 08:30:02Z chencongzhi520@gmail.com $
@@ -15,7 +15,7 @@
 <?php js::set('confirmDelete', $lang->todo->confirmDelete)?>
 <div id="mainMenu" class="clearfix">
   <div class="btn-toolbar pull-left">
-    <?php foreach($lang->todo->periods as $period => $label):?>
+    <?php foreach($lang->my->featureBar['todo'] as $period => $label):?>
     <?php
     $vars = "date=$period";
     if($period == 'before') $vars .= "&userID={$app->user->id}&status=undone";
@@ -35,11 +35,31 @@
     </div>
   </div>
   <div class="btn-toolbar pull-right">
+    <?php if($config->edition != 'open' and !empty($app->user) and common::hasPriv('todo', 'calendar')):?>
+    <div class="btn-group panel-actions">
+      <?php echo html::a(helper::createLink('todo', 'calendar'), "<i class='icon-cards-view'></i> &nbsp;", '', "class='btn btn-icon' title='{$lang->todo->calendar}' id='switchButton'");?>
+      <?php echo html::a(helper::createLink('my', 'todo', "type=all"), "<i class='icon-list'></i> &nbsp;", '', "class='btn btn-icon text-primary' title='{$lang->todo->list}' id='switchButton'");?>
+    </div>
+    <?php endif;?>
     <?php if(common::hasPriv('todo', 'export')) echo html::a(helper::createLink('todo', 'export', "userID={$user->id}&orderBy=$orderBy", 'html', true), "<i class='icon-export muted'> </i> " . $lang->todo->export, '', "class='btn btn-link export' data-width='600px'");?>
-    <?php common::printLink('todo', 'batchCreate', '', "<i class='icon icon-plus'></i> " . $lang->todo->batchCreate, '', "id='batchCreate' class='btn btn-secondary iframe' data-width='80%'", '', 'true');?>
-    <?php common::printLink('todo', 'create', '', "<i class='icon icon-plus'></i> " . $lang->todo->create, '', "id='create' class='btn btn-primary iframe' data-width='80%' data-app='my'", '', 'true');?>
+    <?php if(common::hasPriv('todo', 'create') or common::hasPriv('todo', 'batchCreate')):?>
+    <div class='btn-group dropdown'>
+    <?php common::printLink('todo', common::hasPriv('todo', 'create') ? 'create' : 'batchCreate', '', "<i class='icon icon-plus'></i> " . (common::hasPriv('todo', 'create') ? $lang->todo->create : $lang->todo->batchCreate), '', "id='create' class='btn btn-primary iframe' data-width='80%' data-app='my'", '', 'true');?>
+    <?php if(common::hasPriv('todo', 'create') and common::hasPriv('todo', 'batchCreate')):?>
+    <button type='button' class='btn btn-primary dropdown-toggle' data-toggle='dropdown'><span class='caret'></span></button>
+    <ul class='dropdown-menu pull-right'>
+      <li><?php echo html::a($this->createLink('todo', 'create', '', '', true), $lang->todo->create, '', "class='iframe' data-width='80%'");?></li>
+      <li><?php echo html::a($this->createLink('todo', 'batchCreate', '', '', true), $lang->todo->batchCreate, '', "class='iframe' data-width='80%'");?></li>
+    </ul>
+    <?php endif;?>
+    </div>
+    <?php endif;?>
   </div>
 </div>
+<?php
+$waitCount  = 0;
+$doingCount = 0;
+?>
 <div id="mainContent">
   <?php if(empty($todos)):?>
   <div class="table-empty-tip">
@@ -51,7 +71,7 @@
     </p>
   </div>
   <?php else:?>
-  <form class="main-table table-todo" data-ride="table" method="post">
+  <form class="main-table table-todo" method="post" id='todoForm'>
     <?php
     $canBatchEdit   = common::hasPriv('todo', 'batchEdit');
     $canBatchFinish = common::hasPriv('todo', 'batchFinish');
@@ -71,21 +91,27 @@
             <?php endif;?>
             <?php common::printOrderLink('id', $orderBy, $vars, $lang->idAB);?>
           </th>
-          <th class="c-date">     <?php common::printOrderLink('date',       $orderBy, $vars, $lang->todo->date);?></th>
-          <th class="c-type">     <?php common::printOrderLink('type',       $orderBy, $vars, $lang->todo->type);?></th>
+          <th class="c-name">   <?php common::printOrderLink('name',       $orderBy, $vars, $lang->todo->name);?></th>
           <?php $style = $this->app->clientLang == 'en' ? "style='width:80px'" : '';?>
           <th class="c-pri" <?php echo $style;?> title=<?php echo $lang->todo->pri;?>> <?php common::printOrderLink('pri',    $orderBy, $vars, $lang->priAB);?></th>
-          <th class="c-name">     <?php common::printOrderLink('name',       $orderBy, $vars, $lang->todo->name);?></th>
-          <th class="c-user">     <?php common::printOrderLink('assignedBy', $orderBy, $vars, $lang->todo->assignedBy);?></th>
-          <th class="c-begin">    <?php common::printOrderLink('begin',      $orderBy, $vars, $lang->todo->beginAB);?></th>
-          <th class="c-end">      <?php common::printOrderLink('end',        $orderBy, $vars, $lang->todo->endAB);?></th>
-          <th class="c-status">   <?php common::printOrderLink('status',     $orderBy, $vars, $lang->todo->status);?></th>
-          <th class="c-actions-5"><?php echo $lang->actions;?></th>
+          <th class="c-date text-center"><?php common::printOrderLink('date',       $orderBy, $vars, $lang->todo->date);?></th>
+          <th class="c-status"> <?php common::printOrderLink('status',     $orderBy, $vars, $lang->todo->status);?></th>
+          <th class="c-type"><?php common::printOrderLink('type',       $orderBy, $vars, $lang->todo->type);?></th>
+          <?php if($type == 'assignedToOther'):?>
+          <th class="c-user">   <?php common::printOrderLink('assignedTo', $orderBy, $vars, $lang->todo->assignedTo);?></th>
+          <?php else:?>
+          <th class="c-user">   <?php common::printOrderLink('assignedBy', $orderBy, $vars, $lang->todo->assignedBy);?></th>
+          <?php endif;?>
+          <th class="c-begin">  <?php common::printOrderLink('begin',      $orderBy, $vars, $lang->todo->beginAB);?></th>
+          <th class="c-end">    <?php common::printOrderLink('end',        $orderBy, $vars, $lang->todo->endAB);?></th>
+          <th class="c-actions-5 text-center"><?php echo $lang->actions;?></th>
         </tr>
       </thead>
       <tbody>
         <?php foreach($todos as $todo):?>
-        <tr>
+        <?php if($todo->status == 'wait')  $waitCount ++;?>
+        <?php if($todo->status == 'doing') $doingCount ++;?>
+        <tr data-status='<?php echo $todo->status;?>'>
           <td class="c-id">
             <?php if($canbatchAction):?>
             <div class="checkbox-primary">
@@ -95,14 +121,18 @@
             <?php endif;?>
             <?php echo $todo->id?>
           </td>
-          <td class="c-date"><?php echo $todo->date == '2030-01-01' ? $lang->todo->periods['future'] : $todo->date;?></td>
-          <td class="c-type"><?php echo zget($lang->todo->typeList, $todo->type, '');?></td>
-          <td class="c-pri"><span title="<?php echo zget($lang->todo->priList, $todo->pri);?>" class='label-pri <?php echo 'label-pri-' . $todo->pri;?>' title='<?php echo zget($lang->todo->priList, $todo->pri, $todo->pri);?>'><?php echo zget($lang->todo->priList, $todo->pri)?></span></td>
           <td class="c-name" title="<?php echo $todo->name;?>"><?php echo html::a($this->createLink('todo', 'view', "id=$todo->id&from=my", '', true), $todo->name, '', "data-toggle='modal' data-width='80%' data-type='iframe' data-title='" . $lang->todo->view . "' data-icon='check'");?></td>
+          <td class="c-pri"><span title="<?php echo zget($lang->todo->priList, $todo->pri);?>" class='label-pri <?php echo 'label-pri-' . $todo->pri;?>' title='<?php echo zget($lang->todo->priList, $todo->pri, $todo->pri);?>'><?php echo zget($lang->todo->priList, $todo->pri)?></span></td>
+          <td class="c-date text-center"><?php echo $todo->date == '2030-01-01' ? $lang->todo->future : $todo->date;?></td>
+          <td class="c-status"><span class="status-todo status-<?php echo $todo->status;?>"><?php echo $lang->todo->statusList[$todo->status];?></span></td>
+          <td class="c-type"><?php echo zget($lang->todo->typeList, $todo->type, '');?></td>
+          <?php if($type == 'assignedToOther'):?>
+          <td><?php echo zget($users, $todo->assignedTo);?></td>
+          <?php else:?>
           <td><?php echo zget($users, $todo->assignedBy);?></td>
+          <?php endif;?>
           <td class="c-begin"><?php echo $todo->begin;?></td>
           <td class="c-end"><?php echo $todo->end;?></td>
-          <td class="c-status"><span class="status-todo status-<?php echo $todo->status;?>"><?php echo $lang->todo->statusList[$todo->status];?></span></td>
           <td class="c-actions">
             <?php
             common::printIcon('todo', 'start',  "id=$todo->id", $todo, 'list', 'play', 'hiddenwin');
@@ -162,16 +192,19 @@
           $actionLink = $this->createLink('todo', 'import2Today');
           echo "<div class='input-control has-icon-right space'>";
           echo '<input type="text" name="date" id="importDate" value="' . date('Y-m-d') . '" class="form-control form-date">';
-          echo '<label for="importDate" class="input-control-icon-right"><i class="icon icon-delay"></i></label>';
+          echo '<label for="importDate" class="input-control-icon-right iconCenter"><i class="icon icon-delay"></i></label>';
           echo '</div>';
-          echo html::commonButton($lang->todo->import, "onclick=\"setFormAction('$actionLink')\"");
+          echo html::commonButton($lang->todo->changeDate, "onclick=\"setFormAction('$actionLink')\"");
       }
       ?>
       </div>
+      <div class="table-statistic"><?php echo sprintf($lang->todo->summary, count($todos), $waitCount, $doingCount);?></div>
       <?php $pager->show('right', 'pagerjs');?>
     </div>
   </form>
   <?php endif;?>
 </div>
 <?php js::set('listName', 'todoList');?>
+<?php js::set('pageSummary', sprintf($lang->todo->summary, count($todos), $waitCount, $doingCount));?>
+<?php js::set('checkedSummary', $lang->todo->checkedSummary);?>
 <?php include '../../common/view/footer.html.php';?>

@@ -26,4 +26,3 @@ r($task->pauseTest($taskIDList[1])) && p('0:field,old,new') && e('status,doing,p
 r($task->pauseTest($taskIDList[2])) && p('0:field,old,new') && e('status,done,pause');   //done状态任务暂停
 r($task->pauseTest($taskIDList[3])) && p('0:field,old,new') && e('status,cancel,pause'); //cancel状态任务暂停
 r($task->pauseTest($taskIDList[4])) && p('0:field,old,new') && e('status,closed,pause'); //closed状态任务暂停
-system("./ztest init");

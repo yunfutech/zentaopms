@@ -1,3 +1,304 @@
+(function($)
+{
+    /**
+     * Save form Arr to $.zui.store.
+     *
+     * @access public
+     * @param {string} formID
+     * @param {array}  formData
+     * @return void
+     */
+    function storeFormData(formID, formData)
+    {
+        $.zui.store.set(formID, formData);
+    }
+
+    /**
+     * Handle the logic save form draft.
+     *
+     * @access public
+     * @return void
+     */
+    function handleSaveFormDraft()
+    {
+        if(config.currentModule.indexOf('workflow') !== -1) return;
+
+        var skipModules = ['repo', 'mr', 'job', 'dev', 'custom', 'editor'];
+        if(skipModules.indexOf(config.currentModule) !== -1) return;
+
+        var skipMethods = ['edit', 'import', 'login', 'export', 'finish', 'confirm', 'resolve', 'start', 'pause', 'cancel', 'report', 'close', 'activate', 'restart', 'suspend', 'putoff', 'browse', 'hangup', 'track', 'index', 'reply', 'manage', 'run', 'show'];
+        for(var i = 0; i < skipMethods.length; i++)
+        {
+            if(config.currentMethod.indexOf(skipMethods[i]) === 0) return;
+        };
+        var $messager = '';
+
+        setTimeout(function()
+        {
+            var form = $('form[method=post].main-form');
+            if(form.length)
+            {
+                if($(form).hasClass('no-stash') || $(form).data('ride') == 'table') return;
+                var target = $(form).attr('target');
+                if($(form).attr('target') == 'hiddenwin')
+                {
+                    var needSkip    = true;
+                    var keepModules = ['program', 'product', 'project', 'testcase', 'execution', 'caselib'];
+                    for(var i = 0; i < keepModules.length; i++)
+                    {
+                        if(needSkip && config.currentModule.indexOf(keepModules[i]) === 0) needSkip = false;
+                    };
+
+                    if(needSkip) return;
+                }
+
+                var formID         = config.currentMethod + '-' + config.currentModule + '-' + $(form).attr("id");
+                var formDataStored = $.zui.store.get(formID);
+                /* Clear form data for store. */
+                setTimeout(function() {
+                    $.zui.store.remove(formID);
+                }, 100);
+
+                if(formDataStored && formDataStored.length)
+                {
+                    message   = lang.confirmDraft.replace('%name%', lang[config.currentModule] ? lang[config.currentModule] : '');
+                    $messager = new $.zui.Messager(message, {
+                        close: true,
+                        type: 'info',
+                        placement: 'top',
+                        cssClass: 'mt-md messagger-zt ',
+                        time: 0,
+                        actions: [
+                            {
+                                name: 'undo',
+                                icon: 'undo',
+                                text: lang.resume,
+                                action: function()
+                                {
+                                    var valueMultiple = {};
+                                    for(var i = 0; i < formDataStored.length; i++)
+                                    {
+                                        var item = formDataStored[i];
+                                        /* formItem === checkbox or formItem === multipleSelect */
+                                        if(item.name.indexOf('[]') != -1)
+                                        {
+                                            if((item.name.indexOf(']') != -1) && (item.name.indexOf('[') != -1))
+                                            {
+                                                var formItem = $('#' + item.name.replace('[]', '').replace('[', '').replace(']', ''));
+                                            }
+                                            else
+                                            {
+                                                var formItem = $('#' + item.name.replace('[]', ''));
+                                            }
+                                        }
+                                        else if((item.name.indexOf(']') != -1) && (item.name.indexOf('[') != -1))
+                                        {
+                                            var formItem = $('#' + item.name.replace('[', '').replace(']', ''));
+                                        }
+                                        else
+                                        {
+                                            var formItem = $('[name^=' + item.name + ']');
+                                            if (!(formItem.length && (formItem.attr('type') === 'radio' || formItem.attr('type') === 'checkbox')))
+                                            formItem = $('#' + item.name);
+                                        }
+
+                                        var tagName = formItem.prop('tagName');
+                                        if(tagName === 'SELECT')
+                                        {
+                                            if($(formItem).attr('multiple'))
+                                            {
+                                                if(!valueMultiple[item.name]) valueMultiple[item.name] = [];
+                                                valueMultiple[item.name].push(item.value);
+                                                if($(formItem).hasClass('picker-select'))
+                                                {
+                                                    $(formItem).trigger('change');
+                                                    $(formItem).data('zui.picker').setValue(valueMultiple[item.name]);
+                                                }
+                                                else if($(formItem).hasClass('chosen'))
+                                                {
+                                                    formItem.val(valueMultiple[item.name]);
+                                                    $(formItem).trigger('change');
+                                                    $(formItem).trigger('chosen:updated');
+                                                }
+                                            }
+                                            else if($(formItem).hasClass('chosen'))
+                                            {
+                                                formItem.val(item.value);
+                                                $(formItem).trigger('chosen:updated');
+                                            }
+                                            else if($(formItem).hasClass('picker-select'))
+                                            {
+                                                $(formItem).data('zui.picker').setValue(item.value);
+                                            }
+                                        }
+                                        else if(tagName === 'TEXTAREA' && $(formItem).hasClass('kindeditor'))
+                                        {
+                                            KindEditor.remove('#' + item.name);
+                                            formItem.val(item.value);
+                                            $(formItem).kindeditor(
+                                            {
+                                                afterChange: function()
+                                                {
+                                                    $(formItem).closest('.main-form').trigger('change');
+                                                }
+                                            });
+                                        }
+                                        else
+                                        {
+                                            if($(formItem).attr('type') === 'checkbox')
+                                            {
+                                                $(formItem).prop('checked', true).trigger('change');
+                                            }
+                                            else if($(formItem).attr('type') === 'radio')
+                                            {
+                                                $('#' + item.name + item.value).prop('checked', true).trigger('change');
+                                            }
+                                            else
+                                            {
+                                                formItem.val(item.value);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+                        onAction: function(name, action, messager)
+                        {
+                            setTimeout(function () {
+                                $.zui.store.remove(formID);
+                            }, 100)
+                        }
+                    }).show();
+                }
+                form.on('input', function()
+                {
+                    storeFormData(formID, $(form).serializeArray())
+                }).on('change', function()
+                {
+                    storeFormData(formID, $(form).serializeArray())
+                }).on('success.form.zui', function(event, res)
+                {
+                    if(res.result === 'success' || res.status === 'success') $.zui.store.remove(formID);
+                })
+            }
+
+            $('body').one('click', function(e)
+            {
+                if($messager && $('.messager').length &&  !$.contains(e.target, $('.messager')))
+                $messager.destroy();
+            }).on('click', '#submit.form-stash-clear', function()
+            {
+                $.zui.store.remove(formID);
+            });
+        }, 500);
+    }
+
+    /* Tab session */
+    if(!config.tabSession) return;
+    /** Store current tab id */
+    var _tid = '';
+
+    /**
+     * Get current tab id
+     * @returns {string} Tab id
+     */
+    function getTid(){return _tid;}
+
+    /**
+     * Convert url with tab id
+     * @param {string}  url
+     * @param {string}  [tid]
+     * @param {boolean} [force]
+     * @returns {string} Tab id
+     */
+    function convertUrlWithTid(url, tid, force)
+    {
+        var link = $.parseLink(url);
+        if(!link.moduleName) return url;
+
+        tid = tid || _tid;
+        if(!force && link.tid === tid) return url;
+
+        link.tid = tid;
+        return $.createLink(link);
+    }
+
+    /** Init */
+    function init()
+    {
+        /* Check tid */
+        if(window.parent !== window)
+        {
+            if(window.parent.$.tabSession) _tid = window.parent.$.tabSession.getTid();
+        }
+        else
+        {
+            var isIndexOrLoginPage = (config.currentModule === 'index' && config.currentMethod === 'index') || (config.currentModule === 'user' && config.currentMethod === 'login');
+            var link = $.parseLink(window.location.href);
+
+            _tid = sessionStorage.getItem('TID');
+            if(!_tid)
+            {
+                if(link.tid && isIndexOrLoginPage)
+                {
+                    _tid = link.tid
+                }
+
+                if(!_tid)
+                {
+                    _tid = $.zui.uuid();
+                    _tid = _tid.substr(_tid.length - 8);
+                }
+            }
+            sessionStorage.setItem('TID', _tid);
+
+            if(isIndexOrLoginPage && !link.tid)
+            {
+                window.location.href = convertUrlWithTid(window.location.href, _tid);
+            }
+        }
+
+        $.tabSession =
+        {
+            getTid:            getTid,
+            convertUrlWithTid: convertUrlWithTid,
+        };
+
+        /* Handle all links in page */
+        $('a').each(function()
+        {
+            var $a         = $(this);
+            var url        = $a.attr('href');
+            var urlWithTid = convertUrlWithTid(url);
+
+            if(urlWithTid !== url) $a.attr('href', urlWithTid);
+        });
+        $('[data-url]').each(function()
+        {
+            var $e         = $(this);
+            var url        = $e.attr('data-url');
+            var urlWithTid = convertUrlWithTid(url);
+            if(urlWithTid !== url) $e.attr('data-url', urlWithTid);
+        });
+
+        if(config.debug > 2)
+        {
+            $(function()
+            {
+                $('#tid').prepend('<code class="bg-blue">localtid=' + _tid + '</code>');
+            });
+        }
+    }
+
+    init();
+
+    /* Hide context menu when window is scroll. */
+    $(window).on('scroll', function()
+    {
+        $.zui.ContextMenu.hide();
+    });
+}(jQuery));
+
 /**
  * Set the ping url.
  *
@@ -107,7 +408,7 @@ function setImageSize(image, maxWidth, maxHeight)
     setTimeout(function()
     {
         maxHeightStyle = $image.height() > 0 ? 'max-height:' + maxHeight + 'px' : '';
-        if($image.width() > 0 && $image.width() > maxWidth) $image.attr('width', maxWidth);
+        if(!document.getElementsByClassName('xxc-embed').length && $image.width() > 0 && $image.width() > maxWidth) $image.attr('width', maxWidth);
         $image.wrap('<a href="' + $image.attr('src') + '" style="display:inline-block;position:relative;overflow:hidden;' + maxHeightStyle + '" target="_blank"></a>');
         if($image.height() > 0 && $image.height() > maxHeight) $image.closest('a').append("<a href='###' class='showMoreImage' onclick='showMoreImage(this)'>" + lang.expand + " <i class='icon-angle-down'></i></a>");
     }, 50);
@@ -136,12 +437,16 @@ function showMoreImage(obj)
  */
 function setMailto(mailto, contactListID)
 {
-    link = createLink('user', 'ajaxGetContactUsers', 'listID=' + contactListID + '&dropdownName=' + mailto);
+    var oldUsers = $('#' + mailto).val() ? $('#' + mailto).val() : '';
+    link = createLink('user', 'ajaxGetContactUsers', 'listID=' + contactListID + '&dropdownName=' + mailto + '&oldUsers=' + oldUsers);
     $.get(link, function(users)
     {
+        var picker = $('#' + mailto).data('zui.picker');
+        if(picker) picker.destroy();
+
         $('#' + mailto).replaceWith(users);
         $('#' + mailto + '_chosen').remove();
-        $('.picker').remove();
+        $('#' + mailto).siblings('.picker').remove();
 
         if($("[data-pickertype='remote']").length == 0 && $('.picker-select').length == 0)
         {
@@ -398,7 +703,6 @@ function computePasswordStrength(password)
     var strength = 0;
     var length   = password.length;
 
-    var uniqueChars = '';
     var complexity  = new Array();
     for(i = 0; i < length; i++)
     {
@@ -406,7 +710,7 @@ function computePasswordStrength(password)
         var asc = letter.charCodeAt();
         if(asc >= 48 && asc <= 57)
         {
-            complexity[2] = 2;
+            complexity[0] = 1;
         }
         else if((asc >= 65 && asc <= 90))
         {
@@ -414,28 +718,19 @@ function computePasswordStrength(password)
         }
         else if(asc >= 97 && asc <= 122)
         {
-            complexity[0] = 1;
+            complexity[2] = 4;
         }
         else
         {
-            complexity[3] = 3;
+            complexity[3] = 8;
         }
-        if(uniqueChars.indexOf(letter) == -1) uniqueChars += letter;
     }
 
-    if(uniqueChars.length > 4) strength += uniqueChars.length - 4;
     var sumComplexity = 0;
-    var complexitySize = 0;
-    for(i in complexity)
-    {
-        complexitySize += 1;
-        sumComplexity += complexity[i];
-    }
-    strength += sumComplexity + (2 * (complexitySize - 1));
-    if(length < 6 && strength >= 10) strength = 9;
+    for(i in complexity) sumComplexity += complexity[i];
 
-    strength = strength > 29 ? 29 : strength;
-    strength = Math.floor(strength / 10);
+    if((sumComplexity == 7 || sumComplexity == 15) && password.length >= 6) strength = 1;
+    if(sumComplexity == 15 && password.length >= 10) strength = 2;
 
     return strength;
 }
@@ -731,9 +1026,9 @@ function toggleFold(form, unfoldIdList, objectID, objectType)
     $parentTd = $form.find('td.has-child');
     if($parentTd.length == 0) return false;
 
-    var toggleClass = objectType == 'product' ? 'story-toggle' : 'task-toggle';
-    var nameClass   = objectType == 'product' ? 'c-title'      : 'c-name';
-    $form.find('th.' + nameClass).append("<button type='button' id='toggleFold' class='btn btn-mini collapsed'>" + unfoldAll + "</button>");
+    var toggleClass = ['product', 'requirement', 'story'].indexOf(objectType) !== -1 ? 'story-toggle' : 'task-toggle';
+    var nameClass   = ['product', 'productplan'].indexOf(objectType) !== -1 ? 'c-title' : 'c-name';
+    $form.find('th.' + nameClass).addClass('clearfix').append("<span id='toggleFold' class='collapsed'><i  class='icon icon-angle-double-right'></i></span>");
 
     var allUnfold = true;
     $parentTd.each(function()
@@ -746,7 +1041,7 @@ function toggleFold(form, unfoldIdList, objectID, objectType)
         $(this).find('a.' + toggleClass).addClass('collapsed')
     })
 
-    $form.find('th.' + nameClass + ' #toggleFold').html(allUnfold ? foldAll : unfoldAll).toggleClass('collapsed', !allUnfold);
+    $form.find('th.' + nameClass + ' #toggleFold').toggleClass('collapsed', !allUnfold);
 
     $(document).on('click', '#toggleFold', function()
     {
@@ -761,7 +1056,7 @@ function toggleFold(form, unfoldIdList, objectID, objectType)
             newUnfoldID.push(dataID);
         })
 
-        $(this).html(collapsed ? foldAll : unfoldAll).toggleClass('collapsed', !collapsed);
+        $(this).toggleClass('collapsed', !collapsed);
         url = createLink('misc', 'ajaxSetUnfoldID', 'objectID=' + objectID + '&objectType=' + objectType + '&action=' + (collapsed ? 'add' : 'delete'));
         $.post(url, {'newUnfoldID': JSON.stringify(newUnfoldID)});
     });
@@ -781,7 +1076,7 @@ function toggleFold(form, unfoldIdList, objectID, objectType)
         setTimeout(function()
         {
             hasCollapsed = $table.find('td.has-child a.' + toggleClass + '.collapsed').length != 0;
-            $('#toggleFold').html(hasCollapsed ? unfoldAll : foldAll).toggleClass('collapsed', hasCollapsed);
+            $('#toggleFold').toggleClass('collapsed', hasCollapsed);
         }, 100);
 
         $.post(url, {'newUnfoldID': JSON.stringify(newUnfoldID)});
@@ -833,19 +1128,51 @@ function adjustMenuWidth()
  * @access public
  * @return void
  */
-function scrollToSelected(id)
+function scrollToSelected()
 {
-    if(typeof(id) == 'undefined') id = '#dropMenu .table-col .list-group'
-
-    $id = $(id);
-    $selected = $id.find('.selected');
-
-    $id.mouseout(function(){$(this).find('a.active:not(.not-list-item)').removeClass('active')});
-    if($selected.length > 0)
+    setTimeout(function()
     {
-        var offsetHeight = 75;
-        $id.scrollTop($selected.position().top - offsetHeight);
+        $selected = $('#dropMenu .selected');
+        if($selected.length == 0) return;
+
+        $id = $selected.closest('.list-group');
+        $id.mouseout(function(){$(this).find('a.active:not(.not-list-item)').removeClass('active')});
+
+        var fixOffset = 160;
+        offsetTop = $selected.offset().top;
+        if(offsetTop < fixOffset) return;
+        $id.scrollTop(offsetTop - fixOffset);
+    }, 100);
+}
+
+/**
+ * Limit iframe levels up to 3.
+ *
+ * @access public
+ * @return void
+ */
+function limitIframeLevel()
+{
+    /* Fix bug #15325. */
+    if(window.parent != window.top)
+    {
+        $('body').find('a.iframe').each(function()
+        {
+            $(this).replaceWith($(this).clone().removeClass('iframe'));
+        });
     }
+}
+
+/**
+ * Remove html tag.
+ *
+ * @param  str $str
+ * @access public
+ * @return void
+ */
+function removeHtmlTag(str)
+{
+    return str.replace(/<[^>]+>/g,"");
 }
 
 /* Ping the server every some minutes to keep the session. */
@@ -879,12 +1206,13 @@ $(document).ready(function()
     $('.has-avatar').hover(function()
     {
         $(this).next().removeClass('open');
+        $(this).prev().removeClass('open');
     });
 
     /* Hide the avatar drop-down when hovering over the global create button. */
     $('#globalCreate').hover(function()
     {
-        $(this).prev().removeClass('open');
+        $(this).next().removeClass('open');
         $(this).addClass('dropdown-hover');
     });
 
@@ -894,3 +1222,364 @@ $(document).ready(function()
         $(this).removeClass('dropdown-hover');
     });
 });
+
+/**
+ * Make the selected product non clickable.
+ *
+ * @return void
+ */
+function disableSelectedProduct()
+{
+    $("select[id^='products'] option[disabled='disabled']").removeAttr('disabled');
+
+    var selectedVal = [];
+    $("select[id^='products']").each(function()
+    {
+        var selectedProduct = $(this).val();
+        if(selectedProduct != 0 && $.inArray(selectedProduct, selectedVal) < 0) selectedVal.push(selectedProduct);
+    })
+
+    $("select[id^='products']").each(function()
+    {
+        var selectedProduct = $(this).val();
+        $(this).find('option').each(function()
+        {
+            var optionVal = $(this).attr('value');
+            if(optionVal != selectedProduct && $.inArray(optionVal, selectedVal) >= 0) $(this).attr('disabled', 'disabled');
+        })
+    })
+
+    $("select[id^=products]").trigger('chosen:updated');
+}
+
+/**
+ * Make the selected branch non clickable.
+ *
+ * @return void
+ */
+function disableSelectedBranch()
+{
+    var relatedProduct = $(this).siblings("select[id^='products']").val();
+
+    /* Get the products control of the same value and their branch control. */
+    var sameProductControl       = [];
+    var sameProductBranchControl = [];
+    $("select[id^='products']").each(function()
+    {
+        if($(this).val() == relatedProduct)
+        {
+            $(this).siblings("select[id^='branch']").find("option[disabled='disabled']").removeAttr('disabled');
+
+            sameProductControl.push(this);
+            sameProductBranchControl.push($(this).siblings("select[id^='branch']"));
+        }
+    });
+
+    /* Get the selected branch of the related product. */
+    var preSelectedVal = [];
+    $.each(sameProductControl, function()
+    {
+        var selectedBranch = $(this).siblings("select[id^='branch']").val();
+        if($.inArray(selectedBranch, preSelectedVal) < 0) preSelectedVal.push(selectedBranch);
+    });
+
+    var selectedVal = [];
+    $.each(sameProductControl, function()
+    {
+        var selectedBranch = $(this).siblings("select[id^='branch']").val();
+        if($.inArray(selectedBranch, selectedVal) >= 0)
+        {
+            $(this).siblings("select[id^='branch']").find('option').removeAttr('selected');
+            for(i in preSelectedVal) $(this).siblings("select[id^='branch']").find('option[value=' + preSelectedVal[i] + ']').attr('disabled', 'disabled');
+
+            $(this).siblings("select[id^='branch']").find('option').not('[disabled=disabled]').eq(0).attr('selected', 'selected');
+            var selectedBranch = $(this).siblings("select[id^='branch']").val();
+        }
+        if($.inArray(selectedBranch, selectedVal) < 0) selectedVal.push(selectedBranch);
+    });
+
+    /* Make the selected value disabled. */
+    $.each(sameProductBranchControl, function()
+    {
+        var selectedBranch = $(this).val();
+        $(this).find('option').each(function()
+        {
+            var optionVal = $(this).attr('value');
+
+            if(optionVal != selectedBranch && $.inArray(optionVal, selectedVal) >= 0) $(this).attr('disabled', 'disabled');
+        })
+    })
+
+    $("select[id^=branch]").trigger('chosen:updated');
+}
+
+/**
+ * Determine whether multi-branch products should be disabled.
+ *
+ * @param  object  product
+ * @return bool
+ */
+function checkMultiProducts(product)
+{
+    var disabledBranchList = [];
+    var optionLength       = $(product).siblings("select[id^='branch']").find('option').length;
+    $(product).siblings("select[id^='branch']").find("option[disabled='disabled']").each(function()
+    {
+        disabledBranchList.push($(this).attr('value'));
+    });
+
+    if(optionLength - disabledBranchList.length == 1) return true;
+
+    return false;
+}
+
+/**
+ * Add row.
+ *
+ * @param  object $obj
+ * @access public
+ * @return void
+ */
+function addRow(obj)
+{
+    var row = $('#addRow').html().replace(/%i%/g, rowIndex + 1);
+    $('<tr class="addedRow">' + row  + '</tr>').insertAfter($(obj).closest('tr'));
+
+    var $row = $(obj).closest('tr').next();
+
+    $row.find(".form-date").datepicker();
+    $row.find("input[name^=color]").colorPicker();
+    $row.find('div[id$=_chosen]').remove();
+    $row.find('.picker').remove();
+    $row.find('.chosen').chosen();
+    $row.find('.picker-select').picker();
+
+    rowIndex ++;
+}
+
+/**
+ * Delete row.
+ *
+ * @param  object $obj
+ * @access public
+ * @return void
+ */
+function deleteRow(obj)
+{
+    $(obj).closest('tr').remove();
+}
+
+/**
+ * Show checked fields.
+ *
+ * @param  string fields
+ * @access public
+ * @return void
+ */
+function showCheckedFields(fields)
+{
+    var fieldList = ',' + fields + ',';
+    $('#formSettingForm > .checkboxes > .checkbox-primary > input').each(function()
+    {
+        var field     = ',' + $(this).val() + ',';
+        var $field    = config.currentMethod == 'create' ? $('#' + $(this).val()) : $('[name^=' + $(this).val() + ']');
+        var $fieldBox = $('.' + $(this).val() + 'Box' );
+
+        var required  = '';
+        if(typeof requiredFields != 'undefined') var required = ',' + requiredFields + ',';
+        if(fieldList.indexOf(field) >= 0 || (required && required.indexOf(field) >= 0))
+        {
+            $fieldBox.removeClass('hidden');
+            $field.removeAttr('disabled');
+        }
+        else if(!$fieldBox.hasClass('hidden'))
+        {
+            $fieldBox.addClass('hidden');
+            if($(this).val() != 'branch') $field.attr('disabled', true);
+        }
+
+        if(config.currentModule == 'story' && $(this).val() == 'source')
+        {
+            var $sourceNote = config.currentMethod == 'create' ? $('#sourceNote') : $('[name^=sourceNote]');
+            $sourceNote.attr('disabled', $fieldBox.hasClass('hidden'));
+        }
+    });
+
+
+    if(config.currentModule == 'task' && config.currentMethod == 'create');
+    {
+        if(fieldList.indexOf(',estStarted,') >= 0 && fieldList.indexOf(',deadline,') >= 0)
+        {
+            $('.borderBox').removeClass('hidden');
+        }
+        else if(fieldList.indexOf(',estStarted,') >= 0 || fieldList.indexOf(',deadline,') >= 0)
+        {
+            $('.datePlanBox').removeClass('hidden');
+            if(!$('.borderBox').hasClass('hidden')) $('.borderBox').addClass('hidden');
+        }
+        else
+        {
+            if(!$('.borderBox').hasClass('hidden')) $('.borderBox').addClass('hidden');
+            if(!$('.datePlanBox').hasClass('hidden')) $('.datePlanBox').addClass('hidden');
+        }
+
+        if(typeof lifetime != 'undefined' && lifetime == 'ops') $('.storyBox').addClass('hidden');
+    }
+}
+
+/**
+ * Hidden require field.
+ *
+ * @access public
+ * @return void
+ */
+function hiddenRequireFields()
+{
+    $('#formSettingForm > .checkboxes > .checkbox-primary > input').each(function()
+    {
+        var field    = ',' + $(this).val() + ',';
+        var required = ',' + requiredFields + ',';
+        if(required.indexOf(field) >= 0) $(this).closest('div').addClass('hidden');
+    });
+}
+
+/**
+ * Save custom fields.
+ *
+ * @param  stirng $key
+ * @param  int    $maxFieldCount
+ * @param  object $name
+ * @param  int    $nameMinWidth
+ * @access public
+ * @return void
+ */
+function saveCustomFields(key, maxFieldCount, $name, nameMinWidth)
+{
+    var fields = '';
+    $('#formSettingForm > .checkboxes > .checkbox-primary > input:checked').each(function()
+    {
+        fields += ',' + $(this).val();
+    });
+
+    var module = config.currentModule;
+    var link   = createLink('custom', 'ajaxSaveCustomFields', 'module=' + module + '&section=custom&key=' + key);
+    $.post(link, {'fields' : fields}, function()
+    {
+        showFields = fields;
+
+        showCheckedFields(fields);
+        $('#formSetting').parent().removeClass('open');
+
+        if(key == 'batchCreateFields') setCustomFieldsStyle(maxFieldCount, $name, nameMinWidth);
+    });
+}
+
+/**
+ * Set custom fields style.
+ *
+ * @param  int    $maxFieldCount
+ * @param  object $name
+ * @param  int    $nameMinWidth
+ * @access public
+ * @return void
+ */
+function setCustomFieldsStyle(maxFieldCount, $name, nameMinWidth)
+{
+    var fieldCount = $('#batchCreateForm .table thead>tr>th:visible').length;
+    $('.form-actions').attr('colspan', fieldCount);
+
+    var $table = $('#batchCreateForm > .table-responsive');
+    if(fieldCount > maxFieldCount)
+    {
+        $table.removeClass('scroll-none');
+        $table.css('overflow', 'auto');
+    }
+    else
+    {
+        $table.addClass('scroll-none');
+        $table.css('overflow', 'visible');
+    }
+
+    if($name.width() < nameMinWidth) $name.width(200);
+}
+
+/**
+ * Refresh budget units of the project.
+ *
+ * @param  object $data
+ * @access public
+ * @return void
+ */
+function refreshBudgetUnit(data)
+{
+    $('#budgetUnit').val(data.budgetUnit).trigger('chosen:updated');
+    if(typeof(data.availableBudget) == 'undefined')
+    {
+        $('#budget').removeAttr('placeholder').attr('disabled', true);
+        $('#future').prop('checked', true);
+    }
+    else
+    {
+        $('#budget').removeAttr('disabled');
+        $('#future').prop('checked', false);
+    }
+}
+
+/**
+ * Handle radio logic of Kanban column width setting.
+ *
+ * @access public
+ * @return void
+ */
+function handleKanbanWidthAttr ()
+{
+    $('#colWidth, #minColWidth, #maxColWidth').attr('onkeyup', 'value=value.match(/^\\d+$/) ? value : ""');
+    $('#colWidth, #minColWidth, #maxColWidth').attr('maxlength', '3');
+    var fluidBoard = $("#mainContent input[name='fluidBoard'][checked='checked']").val() || 0;
+    var addAttrEle = fluidBoard == 0 ? '#colWidth' : '#minColWidth, #maxColWidth';
+    var $fixedTip  = $('#colWidth + .fixedTip');
+    var $autoTip   = $('#maxColWidth + .autoTip');
+    $(addAttrEle).closest('.width-radio-row').addClass('required');
+    $('#colWidth').attr('disabled',fluidBoard == 1);
+    $('#minColWidth, #maxColWidth').attr('disabled',fluidBoard == 0);
+    $("#minColWidth, #maxColWidth").on('input', function()
+    {
+        $('#minColWidthLabel, #maxColWidthLabel').remove();
+        $('#minColWidth, #maxColWidth').removeClass('has-error');
+    });
+
+    if(fluidBoard == 1)
+    {
+        $fixedTip.addClass('hidden');
+        $autoTip.removeClass('hidden');
+    }
+    else
+    {
+        $fixedTip.removeClass('hidden');
+        $autoTip.addClass('hidden');
+    }
+
+    $(document).on('change', "#mainContent input[name='fluidBoard']", function(e)
+    {
+        $('#colWidth').attr('disabled', e.target.value == 1);
+        $('#minColWidth, #maxColWidth').attr('disabled', e.target.value == 0);
+        if(e.target.value == 0 && $('#minColWidthLabel, #maxColWidthLabel'))
+        {
+            $('#colWidth').closest('.width-radio-row').addClass('required');
+            $('#minColWidth, #maxColWidth').closest('.width-radio-row').removeClass('required');
+            $('#minColWidthLabel, #maxColWidthLabel').remove();
+            $('#minColWidth, #maxColWidth').removeClass('has-error');
+            $fixedTip.removeClass('hidden');
+            $autoTip.addClass('hidden');
+        }
+        else if(e.target.value == 1 && $('#colWidthLabel'))
+        {
+            $('#minColWidth, #maxColWidth').closest('.width-radio-row').addClass('required');
+            $('#colWidth').closest('.width-radio-row').removeClass('required');
+            $('#colWidthLabel').remove();
+            $('#colWidth').removeClass('has-error');
+            $fixedTip.addClass('hidden');
+            $autoTip.removeClass('hidden');
+        }
+    });
+}

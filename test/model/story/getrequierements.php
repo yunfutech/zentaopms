@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 include dirname(dirname(dirname(__FILE__))) . '/lib/init.php';
 include dirname(dirname(dirname(__FILE__))) . '/class/story.class.php';
@@ -8,6 +9,12 @@ su('admin');
 title=测试 storyModel->getRequierements();
 cid=1
 pid=1
+
+获取产品1下的第一个用户需求名称 >> 用户需求1
+获取产品1下的所有用户需求数量 >> 2
+获取产品5下的第一个用户需求名称 >> 用户需求17
+获取产品5下的所有用户需求数量 >> 2
+获取产品ID为Null的用户需求数量 >> 0
 
 */
 

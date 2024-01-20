@@ -2,25 +2,26 @@
 /**
  * The task recordEstimate entry point of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2021 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2021 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     entries
  * @version     1
  * @link        http://www.zentao.net
  */
-class taskRecordEstimateEntry extends Entry
+class taskRecordEstimateEntry extends entry
 {
     /**
      * GET method.
      *
      * @param  int    $taskID
      * @access public
-     * @return void
+     * @return string
      */
     public function get($taskID)
     {
-        if($this->config->edition != 'open')
+        $issetEffort = $this->loadModel('effort') ? true : false;
+        if($issetEffort)
         {
             $control = $this->loadController('effort', 'createForObject');
             $control->createForObject('task', $taskID);
@@ -35,10 +36,8 @@ class taskRecordEstimateEntry extends Entry
         if(!$data) return $this->error('error');
         if(isset($data->status) and $data->status == 'fail') return $this->sendError(zget($data, 'code', 400), $data->message);
 
-        $effort = array();
-        if($this->config->edition != 'open' and $data->data->efforts)   $effort = $data->data->efforts;
-        if($this->config->edition == 'open' and $data->data->estimates) $effort = $data->data->estimates;
-        $this->send(200, array('effort' => $effort));
+        $effort = $data->data->efforts ? $data->data->efforts : new stdclass();
+        return $this->send(200, array('effort' => $effort));
 
     }
 
@@ -47,11 +46,11 @@ class taskRecordEstimateEntry extends Entry
      *
      * @param  int    $taskID
      * @access public
-     * @return void
+     * @return string
      */
     public function post($taskID)
     {
-        if($this->config->edition != 'open')
+        if($this->loadModel('effort'))
         {
             $fields = 'id,dates,consumed,left,objectType,objectID,work';
             $this->batchSetPost($fields);
@@ -72,6 +71,6 @@ class taskRecordEstimateEntry extends Entry
 
         $task = $this->loadModel('task')->getById($taskID);
 
-        $this->send(200, $this->format($task, 'deadline:date,openedBy:user,openedDate:time,assignedTo:user,assignedDate:time,realStarted:time,finishedBy:user,finishedDate:time,closedBy:user,closedDate:time,canceledBy:user,canceledDate:time,lastEditedBy:user,lastEditedDate:time,deleted:bool,mailto:userList'));
+        return $this->send(200, $this->format($task, 'deadline:date,openedBy:user,openedDate:time,assignedTo:user,assignedDate:time,realStarted:time,finishedBy:user,finishedDate:time,closedBy:user,closedDate:time,canceledBy:user,canceledDate:time,lastEditedBy:user,lastEditedDate:time,deleted:bool,mailto:userList'));
     }
 }

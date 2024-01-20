@@ -2,7 +2,7 @@
 /**
  * The view file of datatable module of ZenTaoPMS.
  *
- * @copyright   Copyright 2014-2014 青岛易软天创网络科技有限公司 (QingDao Nature Easy Soft Network Technology Co,LTD www.cnezsoft.com)
+ * @copyright   Copyright 2014-2014 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
  * @license     business(商业软件)
  * @author      Hao sun <sunhao@cnezsoft.com>
  * @package     datatable
@@ -57,9 +57,10 @@ class datatable extends control
      */
     public function ajaxCustom($module, $method, $extra = '')
     {
-        $target = $module . ucfirst($method);
-        $mode   = isset($this->config->datatable->$target->mode) ? $this->config->datatable->$target->mode : 'table';
-        $key    = $mode == 'datatable' ? 'cols' : 'tablecols';
+        $moduleName = $module;
+        $target     = $module . ucfirst($method);
+        $mode       = isset($this->config->datatable->$target->mode) ? $this->config->datatable->$target->mode : 'table';
+        $key        = $mode == 'datatable' ? 'cols' : 'tablecols';
 
         if($module == 'testtask')
         {
@@ -67,6 +68,7 @@ class datatable extends control
             $this->app->loadConfig('testtask');
             $this->config->testcase->datatable->defaultField = $this->config->testtask->datatable->defaultField;
             $this->config->testcase->datatable->fieldList['actions']['width'] = '100';
+            $this->config->testcase->datatable->fieldList['status']['width']  = '90';
         }
         if($module == 'testcase')
         {
@@ -88,11 +90,45 @@ class datatable extends control
         }
 
         $cols = $this->datatable->getFieldList($module);
+
+        if($module == 'story' && $extra != 'requirement') unset($cols['SRS']);
+
         if($extra == 'requirement')
         {
             unset($cols['plan']);
             unset($cols['stage']);
+            unset($cols['taskCount']);
+            unset($cols['bugCount']);
+            unset($cols['caseCount']);
+            unset($cols['URS']);
+
+            $cols['title']['title'] = str_replace($this->lang->SRCommon, $this->lang->URCommon, $this->lang->story->title);
         }
+
+        if($moduleName == 'project' and $method == 'bug')
+        {
+            $project = $this->loadModel('project')->getByID($this->session->project);
+
+            if(!$project->multiple) unset($cols['execution']);
+            if(!$project->hasProduct and $project->model != 'scrum') unset($cols['plan']);
+            if(!$project->hasProduct) unset($cols['branch']);
+        }
+
+        if($moduleName == 'execution' and $method == 'bug')
+        {
+            $execution = $this->loadModel('execution')->getByID($this->session->execution);
+            $project   = $this->loadModel('project')->getByID($execution->project);
+            if(!$project->hasProduct and $project->model != 'scrum') unset($cols['plan']);
+            if(!$project->hasProduct) unset($cols['branch']);
+        }
+
+        if($moduleName == 'execution' and $method == 'story')
+        {
+            $execution = $this->loadModel('execution')->getByID($this->session->execution);
+            if(!$execution->hasProduct and !$execution->multiple) unset($cols['plan']);
+            if(!$execution->hasProduct) unset($cols['branch']);
+        }
+        if($extra == 'unsetStory' and isset($cols['story'])) unset($cols['story']);
 
         $this->view->cols    = $cols;
         $this->view->setting = $setting;

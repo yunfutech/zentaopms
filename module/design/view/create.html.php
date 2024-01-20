@@ -2,8 +2,8 @@
 /**
  * The create view of design module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2020 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2020 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Shujie Tian <tianshujie@easycorp.ltd>
  * @package     design
  * @version     $Id: create.html.php 4903 2020-09-02 09:32:59Z tianshujie@easycorp.ltd $
@@ -13,6 +13,7 @@
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
 <?php js::set('type', $type);?>
+<?php js::set('projectID', $projectID);?>
 <div id="mainContent" class="main-content fade">
   <div class="center-block">
     <div class="main-header">
@@ -21,7 +22,7 @@
     <form class="load-indicator main-form form-ajax" method='post' enctype='multipart/form-data' id='dataform'>
       <table class="table table-form">
         <tbody>
-          <tr>
+          <tr <?php if(empty($project->hasProduct)) echo "class='hide'";?>>
             <th class='w-120px'><?php echo $lang->design->product;?></th>
             <td><?php echo html::select('product', $products, $productID, "class='form-control chosen'");?></td>
             <td></td>
@@ -33,7 +34,7 @@
           </tr>
           <tr>
             <th><?php echo $lang->design->type;?></th>
-            <td><?php echo html::select('type', $lang->design->typeList, '', "class='form-control chosen'");?></td>
+            <td><?php echo html::select('type', $typeList, '', "class='form-control chosen'");?></td>
             <td></td>
           </tr>
           <tr>

@@ -1,8 +1,20 @@
 <?php
 $lang->action->label->execution = "看板|execution|task|executionID=%s";
 $lang->action->label->task      = '任务|task|view|taskID=%s';
+$lang->action->label->module    = '目录|tree|browse|productid=%s&type=story&currentModuleID=0&branch=all';
 
-$lang->action->objectTypes['task'] = '任务';
+/* Object type. */
+$lang->action->objectTypes['execution'] = $lang->projectCommon . $lang->executionCommon;
+
+$lang->action->search = new stdclass();
+$lang->action->search->objectTypeList['']            = '';
+$lang->action->search->objectTypeList['project']     = $lang->projectCommon;
+$lang->action->search->objectTypeList['execution']   = '看板';
+$lang->action->search->objectTypeList['story']       = "目标";
+$lang->action->search->objectTypeList['task']        = '任务';
+$lang->action->search->objectTypeList['user']        = '用户';
+$lang->action->search->objectTypeList['doc']         = '文档';
+$lang->action->search->objectTypeList['todo']        = '待办';
 
 unset($lang->action->dynamicAction->program);
 unset($lang->action->dynamicAction->product);
@@ -90,16 +102,11 @@ $lang->action->search->label['verified']              = $lang->action->label->ve
 $lang->action->search->label['login']                 = $lang->action->label->login;
 $lang->action->search->label['logout']                = $lang->action->label->logout;
 
-$lang->action->label->createchildrenstory   = "创建子目标";
-$lang->action->label->linkchildstory        = "关联子目标";
-$lang->action->label->unlinkchildrenstory   = "取消关联子目标";
-$lang->action->label->linkparentstory       = "关联到父目标";
-$lang->action->label->unlinkparentstory     = "从父目标取消关联";
-$lang->action->label->deletechildrenstory   = "删除子目标";
-
 $lang->action->desc->createchildrenstory = '$date, 由 <strong>$actor</strong> 创建子目标 <strong>$extra</strong>。' . "\n";
 $lang->action->desc->linkchildstory      = '$date, 由 <strong>$actor</strong> 关联子目标 <strong>$extra</strong>。' . "\n";
 $lang->action->desc->unlinkchildrenstory = '$date, 由 <strong>$actor</strong> 移除子目标 <strong>$extra</strong>。' . "\n";
 $lang->action->desc->linkparentstory     = '$date, 由 <strong>$actor</strong> 关联到父目标 <strong>$extra</strong>。' . "\n";
 $lang->action->desc->unlinkparentstory   = '$date, 由 <strong>$actor</strong> 从父目标<strong>$extra</strong>取消关联。' . "\n";
 $lang->action->desc->deletechildrenstory = '$date, 由 <strong>$actor</strong> 删除子目标<strong>$extra</strong>。' . "\n";
+
+$lang->action->executionNoProject = "该{$lang->projectCommon}看板没有所属的{$lang->projectCommon}，请先还原{$lang->projectCommon}再还原{$lang->projectCommon}看板";

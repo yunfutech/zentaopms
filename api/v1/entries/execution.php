@@ -2,26 +2,26 @@
 /**
  * The execution entry point of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2021 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2021 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     entries
  * @version     1
  * @link        http://www.zentao.net
  */
-class executionEntry extends Entry
+class executionEntry extends entry
 {
     /**
      * GET method.
      *
      * @param  int    $executionID
      * @access public
-     * @return void
+     * @return string
      */
     public function get($executionID)
     {
-        $fields    = $this->param('fields');
-        $productID = $this->param('productID');
+        $fields = $this->param('fields');
+        $status = $this->param('status', 'all');
 
         $control = $this->loadController('execution', 'view');
         $control->view($executionID);
@@ -37,6 +37,8 @@ class executionEntry extends Entry
         $execution->products    = array();
         foreach($data->data->products as $productID => $executionProduct)
         {
+            if($status == 'noclosed' and $executionProduct->status == 'closed') continue;
+
             $product = new stdclass();
             $product->id = $executionProduct->id;
             $product->name = $executionProduct->name;
@@ -44,8 +46,8 @@ class executionEntry extends Entry
             foreach($executionProduct->plans as $planID)
             {
                 $plan = new stdclass();
-                $plan->id = $planID;
-                $plan->name = $data->data->planGroups->{$productID}->{$planID};
+                $plan->id   = trim($planID, ',');
+                $plan->name = $data->data->planGroups->{$productID}->{$plan->id};
                 $product->plans[] = $plan;
             }
             $execution->products[] = $product;
@@ -96,6 +98,10 @@ class executionEntry extends Entry
                     $dynamics = $data->data->dynamics;
                     $execution->dynamics = $this->loadModel('action')->processDynamicForAPI($dynamics);
                     break;
+                case 'chartdata':
+                    list($dateList, $interval) = $this->loadModel('execution')->getDateList($execution->begin, $execution->end, 'noweekend', '0', 'Y-m-d');
+                    $execution->chartData = $this->execution->buildBurnData($executionID, $dateList, 'noweekend', 'left');
+                    break;
             }
         }
 
@@ -107,7 +113,7 @@ class executionEntry extends Entry
      *
      * @param  int    $executionID
      * @access public
-     * @return void
+     * @return string
      */
     public function put($executionID)
     {
@@ -130,7 +136,7 @@ class executionEntry extends Entry
         if(!isset($data->result)) return $this->sendError(400, 'error');
 
         $execution = $this->execution->getByID($executionID);
-        $this->send(200, $this->format($execution, 'openedBy:user,openedDate:time,lastEditedBy:user,lastEditedDate:time,closedBy:user,closedDate:time,canceledBy:user,canceledDate:time,PM:user,PO:user,RD:user,QD:user,whitelist:userList,begin:date,end:date,realBegan:date,realEnd:date,deleted:bool'));
+        return $this->send(200, $this->format($execution, 'openedBy:user,openedDate:time,lastEditedBy:user,lastEditedDate:time,closedBy:user,closedDate:time,canceledBy:user,canceledDate:time,PM:user,PO:user,RD:user,QD:user,whitelist:userList,begin:date,end:date,realBegan:date,realEnd:date,deleted:bool'));
     }
 
     /**
@@ -138,7 +144,7 @@ class executionEntry extends Entry
      *
      * @param  int    $executionID
      * @access public
-     * @return void
+     * @return string
      */
     public function delete($executionID)
     {
@@ -146,6 +152,6 @@ class executionEntry extends Entry
         $control->delete($executionID, 'true');
 
         $this->getData();
-        $this->sendSuccess(200, 'success');
+        return $this->sendSuccess(200, 'success');
     }
 }

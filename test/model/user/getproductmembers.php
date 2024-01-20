@@ -29,4 +29,3 @@ r($teamGroups)         && p('4:user5')  && e('user5');  //获取ID为4的产品�
 r($stakeholderGroups)  && p('2:po3')    && e('po3');    //获取ID为2的产品的干系人，判断是否包含po3
 r($stakeholderGroups)  && p('3:user14') && e('user14'); //获取ID为3的产品的干系人，判断是否包含user14
 
-system("./ztest init");

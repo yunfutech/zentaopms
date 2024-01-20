@@ -2,8 +2,8 @@
 /**
  * The zfile library of zentaopms.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     Zfile
  * @version     $Id: zfile.class.php 2605 2013-01-09 07:22:58Z wwccss $
@@ -13,15 +13,17 @@ class zfile
 {
     /**
      * Copy a directory from an directory to another directory.
-     * 
-     * @param  string    $from 
-     * @param  string    $to 
+     *
+     * @param  string    $from
+     * @param  string    $to
      * @param  bool      $logLevel
-     * @param  string    $logFile 
+     * @param  string    $logFile
+     * @param  array     $excludeFiles
+     * @param  bool      $toIsLink
      * @access public
      * @return array     copied files, count, size or message.
      */
-    public function copyDir($from, $to, $logLevel = false, $logFile = '')
+    public function copyDir($from, $to, $logLevel = false, $logFile = '', $excludeFiles = array(), $toIsLink = false)
     {
         static $copiedFiles = array();
         static $errorFiles  = array();
@@ -41,12 +43,21 @@ class zfile
         if(!empty($log['message'])) return $log;
 
         $from = realpath($from) . '/';
-        $to   = realpath($to) . '/';
+        if(is_link($to) || $toIsLink)
+        {
+            $to = $to . '/';
+
+            $toIsLink = true;
+        }
+        else
+        {
+            $to = realpath($to) . '/';
+        }
 
         $entries = scandir($from);
         foreach($entries as $entry)
         {
-            if($entry == '.' or $entry == '..' or $entry == '.svn' or $entry == '.git') continue;
+            if($entry == '.' or $entry == '..' or $entry == '.svn' or $entry == '.git' or in_array($entry, $excludeFiles)) continue;
 
             $fullEntry = $from . $entry;
             if(is_file($fullEntry))
@@ -82,7 +93,7 @@ class zfile
             {
                 $nextFrom = $fullEntry;
                 $nextTo   = $to . $entry;
-                $result   = $this->copyDir($nextFrom, $nextTo, $logLevel, $logFile);
+                $result   = $this->copyDir($nextFrom, $nextTo, $logLevel, $logFile, array(), $toIsLink);
                 $count   += $result['count'];
                 $size    += $result['size'];
             }
@@ -99,12 +110,13 @@ class zfile
 
     /**
      * Get count.
-     * 
-     * @param  string $dir 
+     *
+     * @param  string $dir
+     * @param  array  $excludeFiles
      * @access public
      * @return int
      */
-    public function getCount($dir)
+    public function getCount($dir, $excludeFiles = array())
     {
         if(!file_exists($dir)) return 0;
         if(is_file($dir)) return 1;
@@ -113,7 +125,7 @@ class zfile
         $entries = scandir($dir);
         foreach($entries as $entry)
         {
-            if($entry == '.' or $entry == '..' or $entry == '.svn' or $entry == '.git') continue;
+            if($entry == '.' or $entry == '..' or $entry == '.svn' or $entry == '.git' or in_array($entry, $excludeFiles)) continue;
 
             $fullEntry = $dir . '/' . $entry;
             $count += $this->getCount($fullEntry);
@@ -124,8 +136,8 @@ class zfile
 
     /**
      * Remove a dir.
-     * 
-     * @param  string    $dir 
+     *
+     * @param  string    $dir
      * @access public
      * @return bool
      */
@@ -159,9 +171,9 @@ class zfile
 
     /**
      * Get files under a directory recursive.
-     * 
-     * @param  string    $dir 
-     * @param  array     $exceptions 
+     *
+     * @param  string    $dir
+     * @param  array     $exceptions
      * @access private
      * @return array
      */
@@ -195,8 +207,8 @@ class zfile
 
     /**
      * Make a dir.
-     * 
-     * @param  string    $dir 
+     *
+     * @param  string    $dir
      * @access public
      * @return bool
      */
@@ -207,8 +219,8 @@ class zfile
 
     /**
      * Remove a file
-     * 
-     * @param  string    $file 
+     *
+     * @param  string    $file
      * @access public
      * @return bool
      */
@@ -220,10 +232,10 @@ class zfile
 
    /**
     * Batch remove files. use glob function.
-    * 
+    *
     * @param  string    $patern
     * @access public
-    * @return avoid
+    * @return void
     */
     public function batchRemoveFile($patern)
     {
@@ -233,7 +245,7 @@ class zfile
 
     /**
      * Remove a file
-     * 
+     *
      * @param  string    from
      * @param  string    to
      * @access public
@@ -246,7 +258,7 @@ class zfile
 
     /**
      * Rename a file or directory.
-     * 
+     *
      * @param  string    from
      * @param  string    to
      * @access public
@@ -259,8 +271,8 @@ class zfile
 
     /**
      * Get file size.
-     * 
-     * @param  string    $file 
+     *
+     * @param  string    $file
      * @access public
      * @return int
      */
@@ -271,10 +283,10 @@ class zfile
 
     /**
      * Get directory size.
-     * 
+     *
      * @param  string    $dir
      * @access public
-     * @return int 
+     * @return int
      */
     public function getDirSize($dir)
     {

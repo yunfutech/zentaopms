@@ -19,4 +19,3 @@ $taskIDList  = array('1','2','3');
 
 $task = new taskTest();
 r($task->batchChangeModuleTest($taskIDList,$moduleID))  && p('0:field,old,new') && e('module,21,22');   // 返回批量修改的第一个值
-system("./ztest init");

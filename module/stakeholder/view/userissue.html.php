@@ -2,8 +2,8 @@
 /**
  * The view view of stakeholder module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology C
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(QingDao Nature Easy Soft Network Technology C
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Congzhi Chen <congzhi@cnezsoft.com>
  * @package     company
  * @version     $Id: edit.html.php 4488 2013-02-27 02:54:49Z chencongzhi520@gmail.com $
@@ -15,7 +15,7 @@
   <div class="center-block">
     <div class="main-header">
       <h2>
-        <span><?php echo $lang->stakeholder->viewIssue;?></span>
+        <span><?php echo $lang->stakeholder->userIssue;?></span>
       </h2>
       <div class="pull-right">
         <?php common::printLink('issue', 'create', "projectID=$projectID&from=stakeholder&owner=" . $stakeholder->user, "<i class='icon icon-plus'></i> " . $lang->issue->create, '', "class='btn btn-primary'");?>

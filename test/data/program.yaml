@@ -17,6 +17,8 @@ fields:
       range: 1-10000
   - field: type
     range: program
+  - field: budget
+    range: 1000000-1:100
   - field: status
     range: wait
   - field: parent
@@ -37,11 +39,33 @@ fields:
   - field: code
     range: 1-10000
     prefix: "program"
+  - field: begin
+    range: "(-5M)-(+M):1D"
+    type: timestamp
+    format: "YY/MM/DD"
+    postfix: "\t"
+  - field: end
+    range: "(+10w)-(+2M):1D"
+    type: timestamp
+    format: "YY/MM/DD"
+    postfix: "\t"
   - field: desc
     range: 1-10000
     prefix: "项目集描述"
   - field: acl
     range: open{4},private{4}
+  - field: PO
+    range: 1-10
+    prefix: "po"
+  - field: PM
+    range: 1-10
+    prefix: "pm"
+  - field: QD
+    range: 1-10
+    prefix: "test"
+  - field: RD
+    range: 1-10
+    prefix: "dev"
   - field: openedVersion
     range: "16.5"
   - field: whitelist

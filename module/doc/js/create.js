@@ -1,21 +1,55 @@
 $(function()
 {
-    toggleAcl($('[name=acl]').val(), 'doc');
-    setTimeout(function(){initPage(docType)}, 50);
-    $('input[name="type"]').change(function()
+    /* Set editor content height. */
+    var contentHeight = $(document).height() - 92;
+    setTimeout(function(){$('.ke-edit-iframe, .ke-edit, .ke-edit-textarea').height(contentHeight);}, 100);
+    setTimeout(function(){$('.CodeMirror').height($(document).height() - 112);}, 100);
+    $('iframe.ke-edit-iframe').contents().find('.article-content').css('padding', '20px 20px 0 20px');
+
+    if(objectType == 'project') loadExecutions($('#project').val());
+
+    /* Change for show create error. */
+    $('#contentBox #content').attr('id', 'contentHTML');
+    /* Copy doc title to modal title. */
+    $('#modalBasicInfo').on('show.zui.modal', function()
     {
-        var type = $(this).val();
-        if(type == 'text')
-        {
-            $('#contentBox').removeClass('hidden');
-            $('#urlBox').addClass('hidden');
-        }
-        else if(type == 'url')
-        {
-            $('#contentBox').addClass('hidden');
-            $('#urlBox').removeClass('hidden');
-        }
+        $('#modalBasicInfo #copyTitle').html($('.doc-title #editorTitle').val().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"));
     });
+
+    $('#saveDraft').click(function()
+    {
+        if($('#editorTitle').val() == '')
+        {
+            bootbox.alert(titleNotEmpty);
+            return false;
+        }
+        $('#status').val('draft');
+        submit(this);
+    });
+    $('#releaseBtn').click(function(){submit(this);});
+    $('#basicInfoLink').click(function()
+    {
+        if($('#editorTitle').val() == '')
+        {
+            bootbox.alert(titleNotEmpty);
+            return false;
+        }
+        if(requiredFields.indexOf('content') >= 0)
+        {
+            var contentType = $('#contentType').val();
+            var content     = '';
+            if(contentType == 'html')    content = $('#contentHTML').val();
+            if(contentType == 'markdown')content = $('#contentMarkdown').val();
+            if(content == '')
+            {
+                bootbox.alert(contentNotEmpty);
+                return false;
+            }
+        }
+        $('#status').val('normal');
+    });
+
+    setTimeout(function(){initPage(docType)}, 50);
     if(typeof(window.editor) != 'undefined')
     {
         $('.ke-toolbar .ke-outline:last').after("<span data-name='unlink' class='ke-outline' title='Markdown' onclick='toggleEditor(\"markdown\")' style='font-size: unset; line-height: unset;'>Markdown</span>");
@@ -26,12 +60,12 @@ $(function()
         if($(this).hasClass('ke-selected'))
         {
             $('#submit').removeClass('fullscreen-save')
-            $('#submit').addClass('btn-wide')
+            $('.form-actions #submit').addClass('btn-wide')
         }
         else
         {
             $('#submit').addClass('fullscreen-save')
-            $('#submit').removeClass('btn-wide')
+            $('.form-actions #submit').removeClass('btn-wide')
         }
     });
 
@@ -87,7 +121,7 @@ function initPage(type)
         {
             $('#contentBox .contentmarkdown').removeClass('hidden');
             $('#contentBox .contenthtml').addClass('hidden');
-            $('#contentBox #contentType').val(type);
+            $('#contentType').val(type);
         }
     }
     else if(type == 'url')
@@ -100,4 +134,50 @@ function initPage(type)
         $('#contentBox').hide();
         $('#urlBox').hide();
     }
+}
+
+/**
+ * Load whitelist by libID.
+ *
+ * @param  int    $libID
+ * @access public
+ * @return void
+ */
+function loadWhitelist(libID)
+{
+    var groupLink = createLink('doc', 'ajaxGetWhitelist', 'libID=' + libID + '&acl=&control=group');
+    var userLink  = createLink('doc', 'ajaxGetWhitelist', 'libID=' + libID + '&acl=&control=user');
+    $.post(groupLink, function(groups)
+    {
+        if(groups != 'private')
+        {
+            $('#groups').replaceWith(groups);
+            $('#groups').next('.picker').remove();
+            $('#groups').picker();
+        }
+    });
+
+    $.post(userLink, function(users)
+    {
+        if(users != 'private')
+        {
+            $('#users').replaceWith(users);
+            $('#users').next('.picker').remove();
+            $('#users').picker();
+        }
+    });
+}
+
+/**
+ * Redirect to edit page when create the doc of text type.
+ *
+ * @param  int     docID
+ * @param  string  objectType
+ * @param  int     objectID
+ * @param  int     libID
+ * @return void
+ */
+function redirect2Edit(docID, objectType, objectID, libID)
+{
+    parent.location.href = createLink('doc', 'edit', 'docID=' + docID + '&comment=false&objectType=' + objectType + '&objectID=' + objectID + '&libID=' + libID + '&from=create');
 }

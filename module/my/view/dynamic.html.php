@@ -2,8 +2,8 @@
 /**
  * The action->dynamic view file of dashboard module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     dashboard
  * @version     $Id: action->dynamic.html.php 1477 2011-03-01 15:25:50Z wwccss $
@@ -13,7 +13,7 @@
 <?php include '../../common/view/header.html.php';?>
 <div id="mainMenu" class="clearfix">
   <div class="btn-toolbar pull-left">
-    <?php foreach($lang->action->periods as $period => $label):?>
+    <?php foreach($lang->my->featureBar['dynamic'] as $period => $label):?>
     <?php
     $label  = "<span class='text'>$label</span>";
     $active = '';
@@ -48,19 +48,26 @@
       <ul class="timeline timeline-tag-left <?php if($type == 'all') echo 'margin-l-50px';?>">
         <?php if($direction == 'next') $actions = array_reverse($actions);?>
         <?php foreach($actions as $i => $action):?>
+        <?php if($action->action == 'adjusttasktowait') continue;?>
         <?php if(empty($firstAction)) $firstAction = $action;?>
-        <li <?php if($action->major) echo "class='active'";?>>
+        <?php $class = $action->major ? 'active' : '';?>
+        <?php if(in_array($action->action, array('releaseddoc', 'collected'))) $class .= " {$action->action}";?>
+        <li <?php if($action->major) echo "class='$class'";?>>
           <div>
             <span class="timeline-tag"><?php echo $action->time?></span>
             <span class="timeline-text">
               <?php echo $app->user->realname;?>
-              <span class='label-action'><?php echo ' ' . $action->actionLabel;?></span>
+              <span class='label-action'><?php echo $action->actionLabel;?></span>
               <?php if($action->action != 'login' and $action->action != 'logout'):?>
-              <span class="text-muted"><?php echo $action->objectLabel;?></span>
+              <?php echo $action->objectLabel;?>
+              <?php if($action->objectID):?>
+              <span class="label label-id"><?php echo (strpos(',module,chartgroup,', ",$action->objectType,") !== false and strpos(',created,edited,moved,', "$action->action") !== false) ? trim($action->extra, ',') : $action->objectID;?></span>
+              <?php endif;?>
               <?php $tab = '';?>
               <?php if($action->objectType == 'meeting') $tab = $action->project ? "data-app='project'" : "data-app='my'";?>
+              <span class='label-name'>
               <?php
-              if(($config->edition == 'max' and strpos($config->action->assetType, $action->objectType) !== false) and empty($action->objectName))
+              if(($config->edition == 'max' and strpos($config->action->assetType, ",{$action->objectType},") !== false) and empty($action->objectName))
               {
                   echo '#' . $action->objectID;
               }
@@ -77,9 +84,7 @@
                   echo html::a($action->objectLink, $action->objectName, '', $tab);
               }
               ?>
-              <?php if($action->objectID):?>
-              <span class="label label-id"><?php echo $action->objectID;?></span>
-              <?php endif;?>
+              </span>
               <?php endif;?>
             </span>
           </div>

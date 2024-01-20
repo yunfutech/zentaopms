@@ -38,6 +38,7 @@ class html extends baseHTML
         if(empty($target)) $target = '_self';
         if($target != '_self')  $misc .= " target='$target'";
         if($target == '_blank') $misc .= " rel='noopener noreferrer'";
+        if(strpos($misc, 'disabled')) $href = '#';
         return parent::a($href, $title, $misc, $newline);
     }
 
@@ -55,7 +56,9 @@ class html extends baseHTML
     static public function input($name, $value = "", $attrib = "", $autocomplete = false)
     {
         $id = "id='$name'";
+        $id = str_replace(array('[', ']'), "", $id);
         if(strpos($attrib, 'id=') !== false) $id = '';
+        if(is_null($value)) $value = '';
         $value = str_replace("'", '&#039;', $value);
         $autocomplete = $autocomplete ? 'autocomplete="on"' : 'autocomplete="off"';
         return "<input type='text' name='$name' {$id} value='$value' $attrib $autocomplete />\n";
@@ -91,7 +94,7 @@ class html extends baseHTML
             $string .= "<input type='checkbox' name='{$name}[]' value='$key' ";
             $string .= (strpos($checked, ",$key,") !== false) ? " checked ='checked'" : "";
             $string .= $attrib;
-            $string .= " id='$name$key' /> ";
+            $string .= " id='$name$key' title='{$value}'/> ";
             $string .= "<label for='$name$key'>" . $value . '</label></div>';
         }
         return $string;
@@ -168,7 +171,12 @@ class html extends baseHTML
         $convertedPinYin = (empty($config->isINT) and class_exists('common')) ? common::convert2Pinyin($options) : array();
         if(count($options) >= $config->maxCount or isset($config->moreLinks[$name]))
         {
-            if(strpos($attrib, 'chosen') !== false) $attrib = str_replace('chosen', 'picker-select', $attrib);
+            if(strpos($attrib, 'chosen') !== false)
+            {
+                $attrib = str_replace('chosen', 'picker-select', $attrib);
+                $attrib = preg_replace('/data-drop[-_]?direction=([\'"]?)down([\'"]?)/i', 'data-drop-direction=$1bottom$2', $attrib);
+                $attrib = preg_replace('/data-drop[-_]?direction=([\'"]?)up([\'"]?)/i', 'data-drop-direction=$1top$2', $attrib);
+            }
             if(isset($config->moreLinks[$name]))
             {
                 $link = $config->moreLinks[$name];
@@ -205,6 +213,7 @@ class html extends baseHTML
     static public function number($name, $value = '', $attrib = '')
     {
         $id = "id='$name'";
+        $id = str_replace(array('[', ']'), "", $id);
         if(strpos($attrib, 'id=') !== false) $id = '';
         $value = str_replace("'", '&#039;', $value);
         return "<input type='number' name='$name' {$id} value='$value' $attrib />\n";
@@ -259,7 +268,7 @@ class html extends baseHTML
         }
         elseif(is_object($user))
         {
-            $userObj->avatar  = $user->avatar;
+            $userObj->avatar  = isset($user->avatar) ? $user->avatar : '';
             $userObj->account = $user->account;
             $userObj->name    = isset($user->name) ? $user->name : (isset($user->realname) ? $user->realname : $user->account);
             $user = $userObj;
@@ -391,6 +400,54 @@ class html extends baseHTML
  */
 class js extends baseJS
 {
+    /**
+     * Open a new app window.
+     *
+     * @param  string    $app
+     * @param  string    $url
+     * @static
+     * @access public
+     * @return string
+     */
+    static public function openEntry($app, $url)
+    {
+        return static::start() . "$.apps.open('$url', '$app')" . static::end();
+    }
+
+    /**
+     * Generate the start of a js block, injects code for zentao client.
+     *
+     * @param  bool   $full
+     * @static
+     * @access public
+     * @return string
+     */
+    static public function start($full = true): string
+    {
+        if($full)
+        {
+            $document = "<html><meta charset='utf-8'/><style>body{background:white}</style><script>";
+            if(strpos($_SERVER['HTTP_USER_AGENT'], 'xuanxuan') != false)
+            {
+                /* Inject handler for confirm, prompt and alert. */
+                $document .= <<<EOT
+window.confirm = function() {
+    console.warn('\"window.confirm\" is disabled in webview.');
+    return true;
+};
+window.prompt = function() {
+    console.warn('\"window.prompt\" is disabled in webview.');
+};
+window.alert = function(msg) {
+    const win = window.parent ? window.parent : window;
+    win.open(`xxc://webview/alert/\${encodeURIComponent(msg)}`, '_blank');
+};
+EOT;
+            }
+            return $document;
+        }
+        return '<script>';
+    }
 }
 
 /**

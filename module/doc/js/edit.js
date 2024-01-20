@@ -1,5 +1,28 @@
 $(function()
 {
+    /* Set editor content height. */
+    var contentHeight = $(document).height() - 92;
+    setTimeout(function(){$('.ke-edit-iframe, .ke-edit, .ke-edit-textarea').height(contentHeight);}, 100);
+    setTimeout(function(){$('.CodeMirror').height($(document).height() - 112);}, 100);
+    $('iframe.ke-edit-iframe').contents().find('.article-content').css('padding', '20px 20px 0 20px');
+
+    $('#saveDraft').click(function()
+    {
+        if($('#editorTitle').val() == '')
+        {
+            bootbox.alert(titleNotEmpty);
+            return false;
+        }
+
+        $('#status').val('draft');
+        submit(this);
+    });
+    $('#saveRelease').click(function()
+    {
+        $('#status').val('normal');
+        submit(this);
+    });
+
     setTimeout(function()
     {
         if(needUpdateContent && confirm(confirmUpdateContent))
@@ -11,31 +34,7 @@ $(function()
         }
     }, 100)
 
-    $('#top-submit').click(function()
-    {
-        $(this).addClass('disabled');
-        $('form').submit();
-    })
-    toggleAcl($('input[name="acl"]:checked').val(), 'doc');
-    $('input[name="type"]').change(function()
-    {
-        var type = $(this).val();
-        if(type == 'text')
-        {
-            $('#contentBox').removeClass('hidden');
-            $('#urlBox').addClass('hidden');
-        }
-        else if(type == 'url')
-        {
-            $('#contentBox').addClass('hidden');
-            $('#urlBox').removeClass('hidden');
-        }
-    });
-
     $('#subNavbar li[data-id="doc"]').addClass('active');
-
-    /* Automatically save document contents. */
-    setInterval("saveDraft()", 60 * 1000);
 
     $(document).on("mouseup", 'span[data-name="fullscreen"]', function()
     {
@@ -82,6 +81,34 @@ $(function()
                 }
             }, 200);
         }
+        else
+        {
+            setTimeout(function()
+            {
+                if($('a[title="Fullscreen"]').hasClass('active'))
+                {
+                    $('.main-header').hide();
+                    $('#submit').addClass('markdown-fullscreen-save');
+                    $('#submit').removeClass('btn-wide');
+                    $('#mainContent .fullscreen').css('padding-top', '8px');
+                    $('#mainContent .fullscreen').css('height', '40px');
+                    $('.CodeMirror-fullscreen').css('top', '40px');
+                    $('.editor-preview-side').css('top', '40px');
+                    $('#submit').data('placement', 'left');
+                    parent.$('.modal-header > .close').addClass('fullscreen-close');
+                }
+                else
+                {
+                    $('.main-header').show();
+                    $('#submit').removeClass('markdown-fullscreen-save');
+                    $('#mainContent .editor-toolbar').css('padding', '1px');
+                    $('#mainContent .editor-toolbar').css('height', '30px');
+                    $('.CodeMirror').css('top', '0px');
+                    $('.editor-preview-side').css('top', '0px');
+                    parent.$('.modal-header > .close').removeClass('fullscreen-close');
+                }
+            }, 200);
+        }
     });
 })
 
@@ -96,4 +123,36 @@ function saveDraft()
     var content = $('#content').val();
     var link    = createLink('doc', 'ajaxSaveDraft', 'docID=' + docID);
     $.post(link, {content: content});
+}
+
+/**
+ * Load whitelist by libID.
+ *
+ * @param  int    $libID
+ * @access public
+ * @return void
+ */
+function loadWhitelist(libID)
+{
+    var groupLink = createLink('doc', 'ajaxGetWhitelist', 'libID=' + libID + '&acl=&control=group' + '&docID=' + docID);
+    var userLink  = createLink('doc', 'ajaxGetWhitelist', 'libID=' + libID + '&acl=&control=user' + '&docID=' + docID);
+    $.post(groupLink, function(groups)
+    {
+        if(groups != 'private')
+        {
+            $('#groups').replaceWith(groups);
+            $('#groups').next('.picker').remove();
+            $('#groups').picker();
+        }
+    });
+
+    $.post(userLink, function(users)
+    {
+        if(users != 'private')
+        {
+            $('#users').replaceWith(users);
+            $('#users').next('.picker').remove();
+            $('#users').picker();
+        }
+    });
 }

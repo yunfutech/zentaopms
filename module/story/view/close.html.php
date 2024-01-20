@@ -2,8 +2,8 @@
 /**
  * The close view file of story module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     story
  * @version     $Id: close.html.php 4129 2013-01-18 01:58:14Z wwccss $
@@ -26,11 +26,20 @@
       <table class='table table-form'>
         <tr>
           <th class='thWidth'><?php echo $lang->story->closedReason;?></th>
-          <td class='w-p25-f'><?php echo html::select('closedReason', $reasonList, '', 'class="form-control" onchange="setStory(this.value)"');?></td><td></td>
-        </tr>
+          <td class='w-p25-f'><?php echo html::select('closedReason', $reasonList, '', 'class="form-control" onchange="setStory(this.value)"');?></td>
+          <td class='closeSyncBox'>
+            <div class="checkbox-primary c-future <?php echo !empty($story->twins) ? '' : 'hidden';?>" style="display: inline-block">
+              <input type='checkbox' id='closeSync' name='closeSync' value='1' />
+              <label for='closeSync'>
+                <?php echo $lang->story->relievedTwinsRelation;?>
+              </label>
+            </div>
+            <div class="<?php echo !empty($story->twins) ? '' : 'hidden';?>" style="display: inline-block"><icon class='icon icon-help' data-toggle='popover' data-trigger='focus hover' data-placement='right' data-tip-class='text-muted popover-sm' data-content="<?php echo $lang->story->relievedTwinsRelationTips;?>"></icon></div>   
+          </td>
+        </tr>  
         <tr id='duplicateStoryBox' style='display:none'>
           <th><?php echo $lang->story->duplicateStory;?></th>
-          <td class='required'><?php echo html::input('duplicateStory', '', "class='form-control'");?></td><td></td>
+          <td class='required'><?php echo html::select('duplicateStory', array('' => '') + $productStories, '', "class='form-control' placeholder='{$lang->bug->duplicateTip}'"); ?></td><td></td>
         </tr>
         <tr id='childStoriesBox' style='display:none'>
           <th><?php echo $lang->story->childStories;?></th>

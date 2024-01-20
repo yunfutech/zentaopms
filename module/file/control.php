@@ -2,8 +2,8 @@
 /**
  * The control file of file module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     file
  * @version     $Id: control.php 4129 2013-01-18 01:58:14Z wwccss $
@@ -49,6 +49,12 @@ class file extends control
     public function ajaxUpload($uid = '')
     {
         $file = $this->file->getUpload('imgFile');
+
+        if(!isset($file[0]) or !in_array($file[0]['extension'], $this->config->file->imageExtensions))
+        {
+            return print(json_encode(array('result' => 'fail', 'message' => $this->lang->file->errorFileFormate)));
+        }
+
         $file = $file[0];
         if($file)
         {
@@ -80,7 +86,7 @@ class file extends control
                 {
                     if($uid) $_SESSION['album']['used'][$uid][$fileID] = $fileID;
                     $_SERVER['SCRIPT_NAME'] = 'index.php';
-                    return $this->send(array('status' => 'success', 'id' => $fileID, 'data' => commonModel::getSysURL() . $this->config->webRoot . $url));
+                    return $this->send(array('status' => 'success', 'id' => $fileID, 'url' => $url));
                 }
                 else
                 {
@@ -121,6 +127,13 @@ class file extends control
             return print("<html><head><meta charset='utf-8'></head><body>{$this->lang->file->fileNotFound}</body></html>");
         }
 
+        if(!$this->file->checkPriv($file))
+        {
+            echo(js::alert($this->lang->file->accessDenied));
+            if(isonlybody()) return print(js::reload('parent.parent'));
+            return print(js::locate(helper::createLink('my', 'index'), 'parent.parent'));
+        }
+
         /* Judge the mode, down or open. */
         $mode      = 'down';
         $fileTypes = 'txt|jpg|jpeg|gif|png|bmp|xml|html';
@@ -133,7 +146,7 @@ class file extends control
             $file->extension = $extension;
         }
 
-        if(file_exists($file->realPath))
+        if($this->file->fileExists($file))
         {
             /* If the mode is open, locate directly. */
             if($mode == 'open')
@@ -208,34 +221,20 @@ class file extends control
         $this->view->fields = $this->post->fields;
         $this->view->rows   = $this->post->rows;
         $this->host         = common::getSysURL();
+        $kind               = $this->post->kind;
 
-        switch($this->post->kind)
+        foreach($this->view->rows as $row)
         {
-            case 'task':
-            foreach($this->view->rows as $row)
+            foreach($row as &$field)
             {
-                $row->name = html::a($this->host . $this->createLink('task', 'view', "taskID=$row->id"), $row->name);
+                if(empty($field)) continue;
+                $field = preg_replace('/ src="{([0-9]+)(\.(\w+))?}" /', ' src="' . $this->host . helper::createLink('file', 'read', "fileID=$1", "$3") . '" ', $field);
             }
-            break;
-            case 'story':
-            foreach($this->view->rows as $row)
-            {
-                $row->title= html::a($this->host . $this->createLink('story', 'view', "storyID=$row->id"), $row->title);
-            }
-            break;
-            case 'bug':
-            foreach($this->view->rows as $row)
-            {
-                $row->title= html::a($this->host . $this->createLink('bug', 'view', "bugID=$row->id"), $row->title);
-            }
-            break;
-            case 'testcase':
-            foreach($this->view->rows as $row)
-            {
-                $row->title= html::a($this->host . $this->createLink('testcase', 'view', "caseID=$row->id"), $row->title);
-            }
-            break;
+
+            if(in_array($kind, array('story', 'bug', 'testcase'))) $row->title = html::a($this->host . $this->createLink($kind, 'view', "{$kind}ID=$row->id"), $row->title);
+            if($kind == 'task') $row->name = html::a($this->host . $this->createLink('task', 'view', "taskID=$row->id"), $row->name);
         }
+
         $this->view->fileName = $this->post->fileName;
         $output = $this->parse('file', 'export2Html');
 
@@ -274,9 +273,14 @@ class file extends control
             $file = $this->file->getById($fileID);
             $this->dao->delete()->from(TABLE_FILE)->where('id')->eq($fileID)->exec();
             $this->loadModel('action')->create($file->objectType, $file->objectID, 'deletedFile', '', $extra=$file->title);
+
             /* Fix Bug #1518. */
             $fileRecord = $this->dao->select('id')->from(TABLE_FILE)->where('pathname')->eq($file->pathname)->fetch();
-            if(empty($fileRecord)) @unlink($file->realPath);
+            if(empty($fileRecord)) $this->file->unlinkFile($file);
+
+            /* Update test case version for test case synchronization. */
+            if($file->objectType == 'testcase') $this->file->updateTestcaseVersion($file);
+
             return print(js::reload('parent'));
         }
     }
@@ -287,14 +291,22 @@ class file extends control
      * @param  array  $files
      * @param  string $fieldset
      * @param  object $object
+     * @param  string $method
+     * @param  bool   $showDelete
+     * @param  bool   $showEdit
      * @access public
      * @return void
      */
-    public function printFiles($files, $fieldset, $object = null)
+    public function printFiles($files, $fieldset, $object = null, $method = 'view', $showDelete = true, $showEdit = true)
     {
-        $this->view->files    = $files;
-        $this->view->fieldset = $fieldset;
-        $this->view->object   = $object;
+        $this->view->files      = $files;
+        $this->view->fieldset   = $fieldset;
+        $this->view->object     = $object;
+        $this->view->method     = $method;
+        $this->view->showDelete = $showDelete;
+        $this->view->showEdit   = $showEdit;
+
+        if(strpos('view,edit', $method) !== false and $this->app->clientDevice != 'mobile') return $this->display('file', 'viewfiles');
         $this->display();
     }
 
@@ -322,14 +334,33 @@ class file extends control
 
             $extension = "." . $file->extension;
             $actionID  = $this->loadModel('action')->create($file->objectType, $file->objectID, 'editfile', '', $fileName);
-            $changes[] = array('field' => 'fileName', 'old' => $file->title . $extension, 'new' => $fileName);
+            $changes[] = array('field' => 'fileName', 'old' => $file->title, 'new' => $fileName);
             $this->action->logHistory($actionID, $changes);
 
-            return print(js::reload('parent.parent'));
+            /* Update test case version for test case synchronization. */
+            if($file->objectType == 'testcase' and $file->title != $fileName) $this->file->updateTestcaseVersion($file);
+            $newFile = $this->file->getByID($fileID);
+
+            if($this->app->clientDevice == 'mobile') return print(js::reload('parent.parent'));
+            echo json_encode($newFile);
         }
 
-        $this->view->file = $this->file->getById($fileID);
-        $this->display();
+        if($this->app->clientDevice == 'mobile')
+        {
+            $file = $this->file->getById($fileID);
+            if(strrpos($file->title, '.') !== false)
+            {
+                /* Fix the file name exe.exe */
+                $title     = explode('.', $file->title);
+                $extension = end($title);
+                if($file->extension == 'txt' && $extension != $file->extension) $file->extension = $extension;
+                array_pop($title);
+                $file->title = join('.', $title);
+            }
+
+            $this->view->file = $file;
+            $this->display();
+         }
     }
 
     /**
@@ -457,7 +488,7 @@ class file extends control
     public function read($fileID)
     {
         $file = $this->file->getById($fileID);
-        if(empty($file) or !file_exists($file->realPath)) return false;
+        if(empty($file) or !$this->file->fileExists($file)) return false;
 
         $obLevel = ob_get_level();
         for($i = 0; $i < $obLevel; $i++) ob_end_clean();

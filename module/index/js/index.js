@@ -1,11 +1,5 @@
 (function()
 {
-    if(showFeatures && vision == 'rnd')
-    {
-        /* Show features dialog. */
-        new $.zui.ModalTrigger({url: $.createLink('misc', 'features'), type: 'iframe', width: 900, className: 'showFeatures', showHeader: false, backdrop: 'static'}).show();
-    }
-
     /* Init variables */
     var openedApps      = {}; // Key-value to save appCode-app pairs
     var appsMap         = {}; // Key-value to save opened appCode-app pairs
@@ -26,12 +20,18 @@
             url:      manualUrl || $helpLink.attr('href'),
             external: true,
             text:     manualText || $helpLink.text(),
-            appUrl:  config.webRoot + '#app=help'
+            appUrl:   config.webRoot + '#app=help'
         };
         var $menuMainNav = $('#menuMainNav').empty();
         window.appsMenuItems.forEach(function(item)
         {
             if(item === 'divider') return $menuMainNav.append('<li class="divider"></li>');
+
+            /* Append tid param to app url */
+            if($.tabSession && item.url)
+            {
+                item.url = $.tabSession.convertUrlWithTid(item.url);
+            }
 
             var $link= $('<a data-pos="menu"></a>')
                 .attr('data-app', item.code)
@@ -96,7 +96,7 @@
 
             if((link.params.from || link.params.$3) == 'product')
             {
-                if(['objectlibs', 'showfiles', 'browse', 'view', 'edit', 'delete', 'create'].includes(methodLowerCase)) return 'product';
+                if(['showfiles', 'browse', 'view', 'edit', 'delete', 'create'].includes(methodLowerCase)) return 'product';
             }
             return 'doc';
         }
@@ -116,7 +116,7 @@
             }
         }
         if(moduleName === 'story' && vision === 'lite') return 'project'
-        if(moduleName === 'story' && methodLowerCase === 'zerocase')
+        if(moduleName === 'testcase' && methodLowerCase === 'zerocase')
         {
             return link.params.from == 'project' ? 'project' : 'qa';
         }
@@ -136,6 +136,7 @@
             if(methodLowerCase === 'edit' && (link.params.programID || link.params.$4)) return 'program';
             if(methodLowerCase === 'batchedit') return 'program';
             var moduleGroup = link.params.moduleGroup ? link.params.moduleGroup : link.params.$2;
+            if(methodLowerCase === 'showerrornone' && link.params.$1 == 'project') return 'project';
             if(methodLowerCase === 'showerrornone' && (moduleGroup || moduleGroup)) return moduleGroup;
         }
         if(moduleName === 'stakeholder')
@@ -181,7 +182,7 @@
      * @param {string} [appCode] The code of target app to open
      * @return {void}
      */
-    function openTab(url, appCode)
+    function openTab(url, appCode, forceReload)
     {
         /* Check params */
         if(!appCode)
@@ -194,7 +195,7 @@
             else
             {
                 appCode = getAppCodeFromUrl(url);
-                if(!appCode) return false;
+                if(!appCode) return openTab('my');
             }
         }
 
@@ -228,7 +229,7 @@
                     'style="width: 100%; height: 100%; left: 0px;"',
                 '/>'
             ].join(' '));
-            var $app = $('<div class="app-container" id="app-' + appCode + '"></div>')
+            var $app = $('<div class="app-container load-indicator" id="app-' + appCode + '"></div>')
                 .append($iframe)
                 .appendTo('#apps');
 
@@ -241,7 +242,7 @@
             var iframe = $iframe.get(0);
             iframe.onload = iframe.onreadystatechange = function(e)
             {
-                $app.trigger('loadapp', app);
+                $app.removeClass('loading').trigger('loadapp', app);
             };
         }
 
@@ -258,8 +259,14 @@
         }
 
         /* Show page app and update iframe source */
-        if(url) reloadApp(appCode, url, true);
-        app.zIndex = openedAppZIndex++;
+        var iframe = app.$iframe[0];
+        var isSameUrl = iframe && url && iframe.contentWindow.location.href.endsWith(url);
+        if (url && (!isSameUrl || forceReload !== false))
+        {
+            app.$app.toggleClass('open-from-hidden', app.zIndex < openedAppZIndex)
+            reloadApp(appCode, url, true);
+        }
+        app.zIndex = ++openedAppZIndex;
         app.$app.show().css('z-index', app.zIndex);
 
         /* Update task bar */
@@ -429,7 +436,12 @@
         if(!app) return;
 
         if(url === true) url = app.url;
-        var iframe = app.$iframe[0];
+        else if($.tabSession) url = $.tabSession.convertUrlWithTid(url);
+
+        var iframe    = app.$iframe[0];
+        var isSameUrl = iframe && url && iframe.contentWindow.location.href.endsWith(url);
+
+        app.$app.trigger('beforereloadapp');
 
         /* Add hook to page before reload it */
         if (iframe && iframe.contentWindow.beforeAppReload)
@@ -439,7 +451,7 @@
 
         try
         {
-            if(url) iframe.contentWindow.location.assign(url);
+            if(url && !isSameUrl) iframe.contentWindow.location.assign(url);
             else iframe.contentWindow.location.reload(true);
         }
         catch(_)
@@ -448,6 +460,14 @@
         }
 
         if(!notTriggerEvent) app.$app.trigger('reloadapp', app);
+
+        if(!isSameUrl || app.zIndex < openedAppZIndex) app.$app.addClass('loading');
+        if(app._loadTimer) clearTimeout(app._loadTimer);
+        app._loadTimer = setTimeout(function()
+        {
+            app.$app.removeClass('loading');
+            app._loadTimer = null;
+        }, 15000);
     }
 
     /**
@@ -541,7 +561,7 @@
         /* The magic number "111" is the space between dropdown trigger
            btn and the bottom of screen */
         var listStyle = {maxHeight: 'initial', top: moreMenuHeight > 111 ? 111 - moreMenuHeight : ''};
-        if($list[0].getBoundingClientRect)
+        if($list[0] && $list[0].getBoundingClientRect)
         {
             var btnBounding = $list.prev('a')[0].getBoundingClientRect();
             if(btnBounding.height)
@@ -642,18 +662,46 @@
 
         /* Redirect or open default app after document load */
         var defaultOpenUrl = window.defaultOpen;
-        if(!defaultOpenUrl && location.hash.indexOf('#app=') === 0)
+        var codeApp = '';
+        if(location.hash.indexOf('#app=') === 0)
         {
-            defaultOpenUrl = decodeURIComponent(location.hash.substr(5));
-            if(defaultOpenUrl.indexOf('#app=') < 0) defaultOpenUrl += '#app=' + ($.cookie('tab') ? $.cookie('tab') : defaultApp);
+            var hashParams = new URLSearchParams(location.hash.substring(1));
+            codeApp = hashParams.get('app');
+            if(hashParams.has('url')) defaultOpenUrl = hashParams.get('url');
+            if(!defaultOpenUrl)
+            {
+                defaultOpenUrl = codeApp;
+                codeApp = '';
+            }
         }
 
-        openTab(defaultOpenUrl ? defaultOpenUrl : defaultApp);
+        openTab(defaultOpenUrl || defaultApp, codeApp);
 
         /* Refresh more menu on window resize */
         $(window).on('resize', refreshMoreMenu);
         refreshMoreMenu();
         setTimeout(refreshMoreMenu, 500);
+
+        /* Fix bug #21331. */
+        var vibibleState  = '';
+        var visibleChange = '';
+        if(typeof document.visibilityState != 'undefined')
+        {
+            visibleChange = 'visibilitychange';
+            vibibleState  = 'visibilityState';
+        }
+        else if(typeof document.webkitVisibilityState != 'undefined')
+        {
+            visibleChange = 'webkitvisibilitychange';
+            vibibleState  = 'webkitVisibilityState';
+        }
+        if(visibleChange)
+        {
+            document.addEventListener(visibleChange, function()
+            {
+                if(document[vibibleState] == 'visible') showTab($('#bars>li.active').data('app'));
+            });
+        }
     });
 }());
 
@@ -699,7 +747,8 @@ $.extend(
             var reg = /[^0-9]/;
             if(reg.test(objectValue) || objectType == 'all')
             {
-                var searchLink = createLink('search', 'index') + (config.requestType == 'PATH_INFO' ? '?' : '&') + 'words=' + objectValue;
+                var searchLink = createLink('search', 'index');
+                searchLink += (searchLink.indexOf('?') >= 0 ? '&' : '?') + 'words=' + objectValue;
                 $.apps.open(searchLink);
             }
             else
@@ -708,8 +757,8 @@ $.extend(
                 var searchModule = types[0];
                 var searchMethod = typeof(types[1]) == 'undefined' ? 'view' : types[1];
                 var searchLink   = createLink(searchModule, searchMethod, "id=" + objectValue);
-                var assetType    = 'story,issue,risk,opportunity,doc';
-                if(assetType.indexOf(searchModule) > -1)
+                var assetType    = ',story,issue,risk,opportunity,doc,';
+                if(assetType.indexOf(',' + searchModule + ',') > -1)
                 {
                     var link = createLink('index', 'ajaxGetViewMethod' , 'objectID=' + objectValue + '&objectType=' + searchModule);
                     $.get(link, function(data)
@@ -758,7 +807,7 @@ $(function()
     {
         var val        = $searchQuery.val();
         var searchType = changeSearchObject();
-        if(val !== null && val !== "")
+        if(val)
         {
             var isQuickGo = !reg.test(val);
             $dropmenu.toggleClass('show-quick-go', isQuickGo);
@@ -844,6 +893,9 @@ $(function()
     {
         $('#globalSearchInput').click();
     });
+
+    /* Update patch, plugin, news, publicclass from zetao.net. */
+    if(isAdminUser) $.get(createLink('admin', 'ajaxSetZentaoData'));
 });
 
 /* Change the search object according to the module and method. */

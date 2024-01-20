@@ -11,13 +11,14 @@ $(document).on('click', '.task-toggle', function(e)
 
 $(function()
 {
+    if(viewType != 'kanban') toggleFold('#productplanForm', unfoldPlans, productID, 'productplan');
     $('#productplanList tbody tr').each(function()
     {
         var $content = $(this).find('td.content');
         var content  = $content.find('div').html();
         if(content.indexOf('<br') >= 0 || content.indexOf('<img') >= 0)
         {
-            $content.append("<a href='###' class='more'><i class='icon icon-chevron-double-down'></i></a>");
+            $content.append("<a href='###' class='more'><i class='icon icon-angle-right rotate-down'></i></a>");
         }
     });
 
@@ -32,7 +33,7 @@ $(function()
         }
         else
         {
-            $.apps.open(createLink('execution', 'create', 'projectID=' + projectID + '&executionID=&copyExecutionID=&planID=' + planID + '&confirm=&productID=' + productID), 'project')
+            $.apps.open(createLink('execution', 'create', 'projectID=' + projectID + '&executionID=&copyExecutionID=&planID=' + planID + '&confirm=&productID=' + productID), 'execution')
         }
         $('#projects').modal('hide');
     });
@@ -40,14 +41,16 @@ $(function()
     $('.switchButton').click(function()
     {
         var viewType = $(this).attr('data-type');
+        var branchID = $(this).val();
         $.cookie('viewType', viewType, {expires:config.cookieLife, path:config.webRoot});
-        window.location.reload();
+        var link = createLink('productplan', 'browse', "productID=" + productID + '&branch=' + branchID);
+        location.href = link;
     });
 
     $('#branch').change(function()
     {
         var branchID = $(this).val();
-        var link = createLink('productplan', 'browse', "productID=" + productID + '&branch=' + branchID);
+        var link = createLink(rawModule, 'browse', "productID=" + productID + '&branch=' + branchID);
         location.href = link;
     });
 
@@ -57,8 +60,8 @@ $(function()
         $('#kanban').kanban(
         {
             data:         kanbanData,
-            minColWidth:  290,
-            maxColWidth:  290,
+            minColWidth:  typeof window.minColWidth === 'number' ? window.minColWidth: defaultMinColWidth,
+            maxColWidth:  typeof window.maxColWidth === 'number' ? window.maxColWidth: defaultMaxColWidth,
             maxColHeight: 460,
             minColHeight: 190,
             cardHeight:   80,
@@ -99,6 +102,27 @@ $(function()
     {
         $.zui.ContextMenu.hide();
     });
+
+    $('.execution-popover').on('click', function(e)
+    {
+        e.stopPropagation();
+        var showPopover = $(this).next().css('display') == 'block';
+        $('.popover.right').hide();
+        if(!showPopover) $(this).next().show();
+    });
+
+    $('.execution-link').on('click', function()
+    {
+        $('.popover.right').hide();
+    });
+
+    /* Hide popover tip. */
+    $(document).on('mousedown', function(e)
+    {
+        var $target = $(e.target);
+        var $toggle = $target.closest('.popover, .execution-popover');
+        if(!$toggle.length) $('.popover.right').hide();
+    });
 });
 
 /* Define menu creators. */
@@ -121,7 +145,6 @@ function createCardMenu(options)
     if(privs.includes('createExecution'))
     {
         var className     = '';
-        var executionLink = systemMode == 'new' ? '#projects' : createLink('execution', 'create', "projectID=0&executionID=0&copyExecutionID=0&plan=" + card.id + "&confirm=no&productID=" + productID);
         var today         = new Date();
         var end           = $.zui.createDate(card.end);
         if(end.getTime() < today.getTime())
@@ -138,19 +161,12 @@ function createCardMenu(options)
             if(branchStatus == 'closed') className = 'disabled';
         }
 
-        if(systemMode == 'new')
-        {
-            items.push({label: productplanLang.createExecution, icon: 'plus', url: executionLink, className: className, attrs: {'data-toggle': 'modal', 'onclick': 'getPlanID(this,' + card.branch + ')', 'data-id': card.id}});
-        }
-        else
-        {
-            items.push({label: productplanLang.createExecution, icon: 'plus', url: executionLink, className: className});
-        }
+        items.push({label: productplanLang.createExecution, icon: 'plus', url: '#projects', className: className, attrs: {'data-toggle': 'modal', 'onclick': 'getPlanID(this,' + card.branch + ')', 'data-id': card.id}});
     }
 
-    if(privs.includes('linkStory')) items.push({label: productplanLang.linkStory, icon: 'link', url: createLink('productplan', 'view', "planID=" + card.id + "&type=story&orderBy=id_desc&link=true")});
-    if(privs.includes('linkBug')) items.push({label: productplanLang.linkBug, icon: 'bug', url: createLink('productplan', 'view', "planID=" + card.id + "&type=bug&orderBy=id_desc&link=true")});
-    if(privs.includes('edit')) items.push({label: productplanLang.edit, icon: 'edit', url: createLink('productplan', 'edit', "planID=" + card.id)});
+    if(privs.includes('linkStory')) items.push({label: productplanLang.linkStory, icon: 'link', url: createLink(rawModule, 'view', "planID=" + card.id + "&type=story&orderBy=id_desc&link=true")});
+    if(privs.includes('linkBug')) items.push({label: productplanLang.linkBug, icon: 'bug', url: createLink(rawModule, 'view', "planID=" + card.id + "&type=bug&orderBy=id_desc&link=true")});
+    if(privs.includes('edit')) items.push({label: productplanLang.edit, icon: 'edit', url: createLink(rawModule, 'edit', "planID=" + card.id)});
     if(privs.includes('start')) items.push({label: productplanLang.start, icon: 'start', url: createLink('productplan', 'start', "planID=" + card.id), attrs: {'target': 'hiddenwin'}});
     if(privs.includes('finish')) items.push({label: productplanLang.finish, icon: 'checked', url: createLink('productplan', 'finish', "planID=" + card.id), attrs: {'target': 'hiddenwin'}});
     if(privs.includes('close')) items.push({label: productplanLang.close, icon: 'off', url: createLink('productplan', 'close', "planID=" + card.id, '', true), className: 'iframe', attrs: {'data-toggle': 'modal'}});
@@ -170,14 +186,14 @@ $(document).on('click', 'td.content .more', function(e)
         $toggle.removeClass('open');
         $toggle.closest('.content').find('div').css('height', '25px');
         $toggle.css('padding-top', 0);
-        $toggle.find('i').removeClass('icon-chevron-double-up').addClass('icon-chevron-double-down');
+        $toggle.find('i').addClass('rotate-down');
     }
     else
     {
         $toggle.addClass('open');
         $toggle.closest('.content').find('div').css('height', 'auto');
         $toggle.css('padding-top', ($toggle.closest('.content').find('div').height() - $toggle.height()) / 2);
-        $toggle.find('i').removeClass('icon-chevron-double-down').addClass('icon-chevron-double-up');
+        $toggle.find('i').removeClass('rotate-down');
     }
 });
 
@@ -346,10 +362,41 @@ function renderKanbanItem(item, $item)
     var $title = $titleBox.children('.title');
     if(!$title.length)
     {
-        if(privs.includes('view')) $title = $('<a class="title"></a>').appendTo($titleBox).attr('href', createLink('productplan', 'view', 'cardID=' + item.id));
+        if(privs.includes('view')) $title = $('<a class="title"></a>').appendTo($titleBox).attr('href', createLink(rawModule, 'view', 'cardID=' + item.id));
         if(!privs.includes('view')) $title = $('<a class="title"></a>').appendTo($titleBox);
     }
+    if(!$title.children('i').length)
+    {
+      $(function() {$title.prepend('<i class="icon icon-delay"></i>');})
+    }
     $title.text(item.title).attr('title', item.title);
+
+    var $info = $item.children('.productplanInfo');
+    if(!$info.length) $info = $(
+    [
+        '<div class="productplanInfo">',
+        '</div>'
+    ].join('')).appendTo($item);
+
+    /* Output plan desc information. */
+    var $descBox = $item.children('.productplanDesc');
+    if(!$descBox.length)
+    {
+        $descBox = $('<div class="productplanDesc c-name cardDesc" title="' + item.desc + '">' + item.desc + '</div>').appendTo($info);
+    }
+
+    var $statusBox = $item.children('.productplanStatus');
+    if(!$statusBox.length)
+    {
+        if(item.deleted == '0')
+        {
+            $statusBox = $('<span class="productplanStatus label label-' + item.status + '">' + productplanLang.statusList[item.status] + '</span>').appendTo($info);
+        }
+        else
+        {
+            $statusBox = $('<span class="productplanStatus label label-deleted">' + productplanLang.deleted + '</span>').appendTo($info);
+        }
+    }
 
     /* Determine whether to print an expired label. */
     var today = new Date();
@@ -376,54 +423,71 @@ function renderKanbanItem(item, $item)
         ].join('')).appendTo($header);
     }
 
-    /* Output plan date information. */
-    var $dateBox = $item.children('.dateBox');
-    if(!$dateBox.length) $dateBox = $(
-    [
-        '<div class="dateBox">',
-          '<span class="time label label-outline"></span>',
-        '</div>'
-    ].join('')).appendTo($item);
+    /* Display date of product plan. */
+    var $date      = $info.children('.date');
+    var begin      = $.zui.createDate(item.begin);
+    var end        = $.zui.createDate(item.end);
+    var today      = new Date();
+    var labelType  = (item.begin <= $.zui.formatDate(today, 'yyyy-MM-dd') && item.end >= $.zui.formatDate(today, 'yyyy-MM-dd')) ? 'danger' : 'wait';
+    var labelTitle = $.zui.formatDate(begin, 'MM-dd') + ' ' + productplanLang.to + ' ' + $.zui.formatDate(end, 'MM-dd');
 
-    var $time            = $dateBox.children('.time');
-    var beginTimeShort   = $.zui.formatDate(begin, 'MM-dd');
-    var beginTimeLong    = $.zui.formatDate(begin, 'yyyy-MM-dd');
-    var endTimeShort     = $.zui.formatDate(end, 'MM-dd');
-    var endTimeLong      = $.zui.formatDate(end, 'yyyy-MM-dd')
-    var to               = productplanLang.to;
-    var undetermined     = productplanLang.future;
-    var undetermindeDate = '2030-01-01';
-    if(item.begin != undetermindeDate && item.end != undetermindeDate)
+    if((item.begin == '2030-01-01' || item.end == '2030-01-01'))
     {
-        $time.text(beginTimeShort + ' ' + to + ' ' + endTimeShort).attr('title', beginTimeLong + to + endTimeLong).show();
+        labelType  = 'future';
+        labelTitle = productplanLang.future;
     }
-    else if(item.begin != undetermindeDate && item.end == undetermindeDate)
+    if(!$date.length) $date = $('<span class="date label label-' + labelType + '"></span>').appendTo($info);
+    $date.text(labelTitle).attr('title', labelTitle).show();
+
+    /* Display avatars of creator. */
+    var $user = $info.children('.user');
+    var user  = [item.createdBy];
+    if(users[item.createdBy])
     {
-        $time.text(beginTimeShort +  ' ' + to  + ' ' + undetermined).attr('title', beginTimeLong + to).show();
+        if(!$user.length) $user = $('<div class="user"></div>').appendTo($info);
+        $user.html(renderUsersAvatar(user, item.id)).attr('title', users[item.createdBy]);
     }
-    else if(item.begin == undetermindeDate && item.end != undetermindeDate)
+}
+
+/**
+* Render avatars of user.
+* @param {String|{account: string, avatar: string}} user User account or user object
+* @returns {string}
+*/
+function renderUsersAvatar(users, itemID, size)
+{
+    var avatarSizeClass = 'avatar-' + (size || 'md');
+
+    if(users.length == 0 || (users.length == 1 && users[0] == ''))
     {
-        $time.text(undetermined +  ' ' + to  + ' ' + endTimeShort).attr('title', to + endTimeLong).show();
-    }
-    else if(item.begin != '2030-01-01' && item.end == '2030-01-01')
-    {
-        $time.text($.zui.formatDate(begin, 'MM-dd') +  ' ' + productplanLang.to  + ' ' + productplanLang.future).attr('title', $.zui.formatDate(begin, 'yyyy-MM-dd') + productplanLang.to).show();
-    }
-    else if(item.begin == '2030-01-01' && item.end != '2030-01-01')
-    {
-        $time.text(productplanLang.future +  ' ' + productplanLang.to  + ' ' + $.zui.formatDate(end, 'MM-dd')).attr('title', $.zui.formatDate(end, 'yyyy-MM-dd') + productplanLang.to).show();
-    }
-    else
-    {
-        $time.text(undetermined).attr('title', undetermined).show();
+        return $('<div class="avatar has-text ' + avatarSizeClass + ' avatar-circle iframe" title="' + noAssigned + '" style="background: #ccc"><i class="icon icon-person"></i></div>');
     }
 
-    /* Output plan desc information. */
-    var $desc = $item.children('.desc');
-    if(!$desc.length)
+    var assignees = [];
+    for(var user of users)
     {
-        $("<div class='desc c-name'"+ " title='" + item.desc + "'>" + item.desc + '</div>').appendTo($item);
+        var $noPrivAndNoAssigned = $('<div class="avatar has-text ' + avatarSizeClass + ' avatar-circle" title="' + noAssigned + '" style="background: #ccc"><i class="icon icon-person"></i></div>');
+        if(!priv.canAssignCard && !user)
+        {
+            assignees.push($noPrivAndNoAssigned);
+            continue;
+        }
+        if(!user)
+        {
+            assignees.push($('<div class="avatar has-text ' + avatarSizeClass + ' avatar-circle iframe" title="' + noAssigned + '" style="background: #ccc"><i class="icon icon-person"></i></div>'));
+            continue;
+        }
+
+        if(typeof user === 'string') user = {account: user};
+        if(!user.avatar && window.userList && window.userList[user.account]) user = window.userList[user.account];
+        if(!user.name && window.users && window.users[user.account]) user.name = window.users[user.account];
+
+        assignees.push($('<div class="avatar has-text ' + avatarSizeClass + ' avatar-circle iframe"></div>').avatar({user: user}));
     }
+
+    if(assignees.length > 3) assignees.splice(3, assignees.length - 3, '<span>...</span>');
+
+    return assignees;
 }
 
 /**

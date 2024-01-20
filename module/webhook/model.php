@@ -2,8 +2,8 @@
 /**
  * The model file of webhook module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2017 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2017 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Gang Liu <liugang@cnezsoft.com>
  * @package     webhook
  * @version     $Id$
@@ -20,34 +20,33 @@ class webhookModel extends model
      */
     public function getByID($id)
     {
-        $webhook = $this->dao->select('*')->from(TABLE_WEBHOOK)->where('id')->eq($id)->fetch();
-        return $webhook;
+        return $this->dao->select('*')->from(TABLE_WEBHOOK)->where('id')->eq($id)->fetch();
     }
 
     /**
      * Get a webhook by type.
      *
-     * @param  int    $type
+     * @param  string $type
      * @access public
      * @return object
      */
     public function getByType($type)
     {
-        $webhook = $this->dao->select('*')->from(TABLE_WEBHOOK)->where('type')->eq($type)->andWhere('deleted')->eq('0')->fetch();
-        return $webhook;
+        return $this->dao->select('*')->from(TABLE_WEBHOOK)->where('type')->eq($type)->andWhere('deleted')->eq('0')->fetch();
     }
 
     /**
      * Get a webhook by type.
      *
-     * @param  int    $type
+     * @param  int    $webhookID
+     * @param  string $webhookType
+     * @param  string $openID
      * @access public
      * @return object
      */
     public function getBindAccount($webhookID, $webhookType, $openID)
     {
-        $account = $this->dao->select('account')->from(TABLE_OAUTH)->where('providerID')->eq($webhookID)->andWhere('providerType')->eq($webhookType)->andWhere('openID')->eq($openID)->fetch('account');
-        return $account;
+        return $this->dao->select('account')->from(TABLE_OAUTH)->where('providerID')->eq($webhookID)->andWhere('providerType')->eq($webhookType)->andWhere('openID')->eq($openID)->fetch('account');
     }
 
     /**
@@ -61,12 +60,11 @@ class webhookModel extends model
      */
     public function getList($orderBy = 'id_desc', $pager = null, $decode = true)
     {
-        $webhooks = $this->dao->select('*')->from(TABLE_WEBHOOK)
+        return $this->dao->select('*')->from(TABLE_WEBHOOK)
             ->where('deleted')->eq('0')
             ->orderBy($orderBy)
             ->page($pager)
             ->fetchAll('id');
-        return $webhooks;
     }
 
     /**
@@ -121,6 +119,10 @@ class webhookModel extends model
             elseif(isset($data->markdown->content))
             {
                 $text = substr($data->markdown->content, 0, strpos($data->markdown->content, '(http'));
+            }
+            elseif(isset($data->text->content))
+            {
+                $text = substr($data->text->content, 0, strpos($data->text->content, '(http'));
             }
             elseif(isset($data->content))
             {
@@ -187,6 +189,7 @@ class webhookModel extends model
             ->trim('agentId,appKey,appSecret,wechatAgentId,wechatCorpId,wechatCorpSecret,feishuAppId,feishuAppSecret')
             ->remove('allParams, allActions')
             ->get();
+        $webhook->domain = trim($webhook->domain, '/');
         $webhook->params = $this->post->params ? implode(',', $this->post->params) . ',text' : 'text';
 
         if($webhook->type == 'dinguser')
@@ -260,7 +263,8 @@ class webhookModel extends model
             ->trim('agentId,appKey,appSecret,wechatAgentId,wechatCorpId,wechatCorpSecret,feishuAppId,feishuAppSecret')
             ->remove('allParams, allActions')
             ->get();
-        $webhook->params  = $this->post->params ? implode(',', $this->post->params) . ',text' : 'text';
+        $webhook->domain = trim($webhook->domain, '/');
+        $webhook->params = $this->post->params ? implode(',', $this->post->params) . ',text' : 'text';
 
         if($webhook->type == 'dinguser')
         {
@@ -348,6 +352,7 @@ class webhookModel extends model
      * @param  int    $objectID
      * @param  string $actionType
      * @param  int    $actionID
+     * @param  string $actor
      * @access public
      * @return bool
      */
@@ -417,9 +422,10 @@ class webhookModel extends model
         $object         = $this->dao->select('*')->from($this->config->objectTables[$objectType])->where('id')->eq($objectID)->fetch();
         $field          = $this->config->action->objectNameFields[$objectType];
         $host           = empty($webhook->domain) ? common::getSysURL() : $webhook->domain;
-        $viewLink       = $this->getViewLink($objectType, $objectID);
+        $viewLink       = $this->getViewLink($objectType == 'kanbancard' ? 'kanban' : $objectType, $objectType == 'kanbancard' ? $object->kanban : $objectID);
         $objectTypeName = ($objectType == 'story' and $object->type == 'requirement') ? $this->lang->action->objectTypes['requirement'] : $this->lang->action->objectTypes[$objectType];
         $title          = $this->app->user->realname . $this->lang->action->label->$actionType . $objectTypeName;
+        $host           = (defined('RUN_MODE') and RUN_MODE == 'api') ? '' : $host;
         $text           = $title . ' ' . "[#{$objectID}::{$object->$field}](" . $host . $viewLink . ")";
 
         $mobile = '';
@@ -450,7 +456,7 @@ class webhookModel extends model
         {
             $data = $this->getWeixinData($title, $text, $mobile);
         }
-        elseif($webhook->type == 'feishuuser')
+        elseif($webhook->type == 'feishuuser' or $webhook->type == 'feishugroup')
         {
             $data = $this->getFeishuData($title, $text);
         }
@@ -564,7 +570,7 @@ class webhookModel extends model
     }
 
     /**
-     * Get weixin data.
+     * Get weixin send data.
      *
      * @param  string $title
      * @param  string $text
@@ -572,7 +578,7 @@ class webhookModel extends model
      * @access public
      * @return object
      */
-    public function getWeixinData($title, $text, $mobile)
+    public function getWeixinData($title, $text, $mobile = '')
     {
         $data = new stdclass();
         $data->msgtype = 'markdown';
@@ -580,18 +586,37 @@ class webhookModel extends model
         $markdown = new stdclass();
         $markdown->content = $text;
 
-        if($mobile) $markdown->mentioned_mobile_list = array($mobile);
+        if($mobile)
+        {
+            $data->msgtype = 'text';
+            $markdown->mentioned_mobile_list = array($mobile);
+        }
 
-        $data->markdown = $markdown;
+        $data->{$data->msgtype} = $markdown;
 
         return $data;
     }
 
+    /**
+     * Get feishu send data.
+     *
+     * @param  string $title
+     * @param  string $text
+     * @access public
+     * @return object
+     */
     public function getFeishuData($title, $text)
     {
         $data = new stdclass();
-        $data->msg_type = 'text';
-        $data->content['text'] = $text;
+        $data->msg_type = 'interactive';
+
+        $data->card = array();
+        $data->card['header']   = array();
+        $data->card['elements'] = array();
+
+        $data->card['elements'][]         = array('tag' => 'markdown', 'content' => $text);
+        $data->card['header']['title']    = array('tag' => 'plain_text', 'content' => $title);
+        $data->card['header']['template'] = 'blue';
 
         return $data;
     }
@@ -599,6 +624,7 @@ class webhookModel extends model
     /**
      * Get openID list.
      *
+     * @param  int    $webhookID
      * @param  int    $actionID
      * @access public
      * @return string
@@ -612,7 +638,7 @@ class webhookModel extends model
         if(empty($table)) return false;
 
         $object = $this->dao->select('*')->from($table)->where('id')->eq($action->objectID)->fetch();
-        $toList = $this->loadModel('message')->getToList($object, $action->objectType);
+        $toList = $this->loadModel('message')->getToList($object, $action->objectType, $actionID);
         if(!empty($object->mailto)) $toList .= ',' . $object->mailto;
         if(empty($toList)) return false;
 
@@ -690,11 +716,9 @@ class webhookModel extends model
             $sign = $timestamp . "\n" . $webhook->secret;
             $sign = base64_encode(hash_hmac('sha256', '', $sign, true));
 
-            $content = array();
-            $content['timestamp'] = $timestamp;
-            $content['sign']      = $sign;
-            $content['msg_type']  = 'text';
-            $content['content']   = json_decode($sendData);
+            $content = json_decode($sendData);
+            $content->timestamp = $timestamp;
+            $content->sign      = $sign;
             $sendData = json_encode($content);
         }
 
@@ -725,6 +749,7 @@ class webhookModel extends model
      * @param  int    $webhookID
      * @param  int    $actionID
      * @param  string $data
+     * @param  string $actor
      * @access public
      * @return bool
      */

@@ -2,21 +2,21 @@
 /**
  * The todo finish entry point of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2021 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2021 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     entries
  * @version     1
  * @link        http://www.zentao.net
  */
-class todoFinishEntry extends Entry
+class todoFinishEntry extends entry
 {
     /**
      * GET method.
      *
      * @param  int    $taskID
      * @access public
-     * @return void
+     * @return string
      */
     public function get($todoID)
     {
@@ -28,6 +28,6 @@ class todoFinishEntry extends Entry
         if(isset($data->status) and $data->status == 'fail') return $this->sendError(zget($data, 'code', 400), $data->message);
 
         $todo = $this->loadModel('todo')->getByID($todoID);
-        $this->send(200, $this->format($todo, 'assignedDate:time,finishedDate:time,closedDate:time'));
+        return $this->send(200, $this->format($todo, 'assignedDate:time,finishedDate:time,closedDate:time'));
     }
 }

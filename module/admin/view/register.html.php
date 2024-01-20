@@ -2,8 +2,8 @@
 /**
  * The view file of bug module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     admin
  * @version     $Id: view.html.php 2568 2012-02-09 06:56:35Z shiyangyangwork@yahoo.cn $
@@ -23,7 +23,7 @@
   </div>
 </div>
 <div id='mainContent' class='main-row'>
-  <div class='col-md-6'>
+  <div <?php if(common::hasPriv('admin', 'bind')) echo "class='col-md-6'";?>>
     <div class='panel'>
       <div class='panel-heading'><strong><?php echo $lang->admin->registerNotice->common?></strong></div>
       <form class='mw-600px' method="post" target="hiddenwin">
@@ -94,6 +94,7 @@
       </form>
     </div>
   </div>
+  <?php if(common::hasPriv('admin', 'bind')):?>
   <div class='col-md-6'>
     <div class='panel'>
       <div class='panel-heading'><strong><?php echo $lang->admin->registerNotice->bind?></strong></div>
@@ -118,6 +119,7 @@
       </form>
     </div>
   </div>
+  <?php endif;?>
 </div>
 <script>
 $(function()

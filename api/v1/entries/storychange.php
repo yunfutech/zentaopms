@@ -2,33 +2,33 @@
 /**
  * The bug change point of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2021 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2021 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     entries
  * @version     1
  * @link        http://www.zentao.net
  */
-class storyChangeEntry extends Entry
+class storyChangeEntry extends entry
 {
     /**
      * POST method.
      *
      * @param  int    $storyID
      * @access public
-     * @return void
+     * @return string
      */
     public function post($storyID)
     {
         $oldStory = $this->loadModel('story')->getByID($storyID);
 
-        $fields = 'reviewer,comment,executions,bugs,cases,tasks';
+        $fields = 'reviewer,comment,executions,bugs,cases,tasks,reviewedBy,uid';
         $this->batchSetPost($fields);
         $fields = 'title,spec,verify';
         $this->batchSetPost($fields, $oldStory);
 
         /* If reviewer is not post, set needNotReview. */
-        if(empty($this->request('reviewer')))
+        if(!$this->request('reviewer'))
         {
             $this->setPost('reviewer', array());
             $this->setPost('needNotReview', 1);
@@ -45,6 +45,6 @@ class storyChangeEntry extends Entry
 
         $story = $this->loadModel('story')->getByID($storyID);
 
-        $this->send(200, $this->format($story, 'openedDate:time,assignedDate:time,reviewedDate:time,lastEditedDate:time,closedDate:time'));
+        return $this->send(200, $this->format($story, 'openedDate:time,assignedDate:time,reviewedDate:time,lastEditedDate:time,closedDate:time'));
     }
 }

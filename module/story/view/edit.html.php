@@ -2,8 +2,8 @@
 /**
  * The edit view file of story module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     story
  * @version     $Id: edit.html.php 4645 2013-04-11 08:32:09Z chencongzhi520@gmail.com $
@@ -13,14 +13,19 @@
 <?php include './header.html.php';?>
 <?php js::set('page', 'edit')?>
 <?php js::set('oldProductID', $story->product);?>
+<?php js::set('storyID', $story->id);?>
 <?php js::set('parentStory', !empty($story->children));?>
 <?php js::set('moveChildrenTips', $lang->story->moveChildrenTips);?>
 <?php js::set('rawModule', $this->app->rawModule);?>
 <?php js::set('reviewedReviewer', $reviewedReviewer);?>
 <?php js::set('storyModule', $lang->story->module);?>
-<?php js::set('reviewers', explode(',', $reviewers));?>
+<?php js::set('reviewers', $reviewers);?>
 <?php js::set('reviewerNotEmpty', $lang->story->notice->reviewerNotEmpty);?>
 <?php js::set('feedbackSource', $config->story->feedbackSource); ?>
+<?php js::set('storyStatus', $story->status);?>
+<?php js::set('lastReviewer', explode(',', $lastReviewer))?>
+<?php js::set('twins', $story->twins)?>
+<?php js::Set('relievedTwinsTip', $lang->story->relievedTwinsTip)?>
 <div class='main-content' id='mainContent'>
   <form method='post' enctype='multipart/form-data' target='hiddenwin' id='dataform'>
     <div class='main-header'>
@@ -33,7 +38,7 @@
     <div class='main-row'>
       <div class='main-col col-8'>
         <div class='cell'>
-          <div class='form-group'>
+          <div class='form-group titleBox'>
             <div class="input-control has-icon-right">
               <div class="colorpicker">
                 <button type="button" class="btn btn-link dropdown-toggle" data-toggle="dropdown" title="<?php echo $lang->task->colorTag ?>"><span class="cp-title"></span><span class="color-bar"></span><i class="ic"></i></button>
@@ -42,18 +47,74 @@
                 </ul>
                 <input type="hidden" class="colorpicker" id="color" name="color" value="<?php echo $story->color ?>" data-icon="color" data-wrapper="input-control-icon-right" data-update-color=".story-title"  data-provide="colorpicker">
               </div>
-              <?php echo html::input('title', $story->title, 'class="form-control disabled story-title" disabled="disabled"');?>
+              <?php echo html::input('title', $story->title, 'class="form-control disabled story-title"' . (strpos('draft,changing', $story->status) !== false ? '' : ' disabled="disabled"'));?>
+            </div>
+          </div>
+          <?php if(strpos('draft,changing', $story->status) !== false):?>
+          <div class='detail'>
+            <div class='detail-title'><?php echo $lang->story->reviewers;?></div>
+            <div class='detail-content'>
+              <div class="table-row">
+                <?php if(!$this->story->checkForceReview()):?>
+                <div class="table-col">
+                  <?php echo html::select('reviewer[]', $hiddenProduct ? $teamUsers : $productReviewers, $reviewers, 'class="form-control picker-select" multiple')?>
+                </div>
+                <div class="table-col needNotReviewBox">
+                  <span class="input-group-addon" style="border: 1px solid #dcdcdc; border-left-width: 0px;">
+                    <div class='checkbox-primary'>
+                      <input id='needNotReview' name='needNotReview' value='1' type='checkbox' class='no-margin' <?php echo empty($reviewers) ? 'checked' : '';?>/>
+                      <label for='needNotReview'><?php echo $lang->story->needNotReview;?></label>
+                    </div>
+                  </span>
+                </div>
+                <?php else:?>
+                <div class="table-col">
+                  <?php echo html::select('reviewer[]', $hiddenProduct ? $teamUsers : $productReviewers, $reviewers, 'class="form-control picker-select" multiple required')?>
+                </div>
+                <?php endif;?>
+              </div>
+            </div>
+          </div>
+          <?php endif;?>
+          <div class='detail'>
+            <div class='detail-title'><?php echo $lang->story->legendSpec;?></div>
+            <div class='detail-content article-content'>
+              <?php echo strpos('draft,changing', $story->status) !== false ? html::textarea('spec', htmlSpecialString($story->spec), "rows='5' class='form-control'") : $story->spec;?>
             </div>
           </div>
           <div class='detail'>
-            <div class='detail-title'><?php echo $lang->story->legendSpec;?></div>
-            <div class='detail-content article-content'><?php echo $story->spec;?></div>
-          </div>
-          <div class='detail'>
             <div class='detail-title'><?php echo $lang->story->verify;?></div>
-            <div class='detail-content article-content'><?php echo $story->verify;?></div>
+            <div class='detail-content article-content'>
+              <?php echo strpos('draft,changing', $story->status) !== false ? html::textarea('verify', htmlSpecialString($story->verify), "rows='5' class='form-control'") : $story->verify;?>
+            </div>
           </div>
+          <?php $showFile = (strpos('draft,changing', $story->status) === false and empty($story->files)) ? false : true;?>
+          <?php if($showFile):?>
+          <div class='detail'>
+            <div class='detail-title'><?php echo $lang->attatch;?></div>
+            <div class='form-group'>
+              <?php $canChangeFile = strpos('draft,changing', $story->status) !== false ? true : false;?>
+              <?php echo $this->fetch('file', 'printFiles', array('files' => $story->files, 'fieldset' => 'false', 'object' => $story, 'method' => 'edit', 'showDelete' => $canChangeFile));?>
+              <?php echo $canChangeFile ? $this->fetch('file', 'buildform') : '';?>
+            </div>
+          </div>
+          <?php endif;?>
           <?php $this->printExtendFields($story, 'div', 'position=left');?>
+          <?php if(!empty($twins)):?>
+          <div class='detail' id='legendTwins'>
+            <div class='detail-title'>
+              <?php echo $lang->story->changeSyncTip;?>
+              <span data-toggle='tooltip' data-placement='right' title='<?php echo $lang->story->syncTip;?>'><i class='icon-help'></i></span>
+            </div>
+            <div class='form-group'>
+              <div>
+                <ul class='list-unstyled'>
+                  <?php include './blocktwins.html.php';?>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <?php endif;?>
           <div class='detail'>
             <div class='detail-title'><?php echo $lang->story->comment;?></div>
             <div class='form-group'>
@@ -63,7 +124,15 @@
           <div class='actions form-actions text-center'>
             <?php
             echo html::hidden('lastEditedDate', $story->lastEditedDate);
-            echo html::submitButton($lang->save);
+            if(strpos('draft,changing', $story->status) !== false)
+            {
+                echo html::commonButton($lang->save, "id='saveButton'", 'btn btn-primary btn-wide');
+                echo html::commonButton($story->status == 'changing' ? $lang->story->doNotSubmit : $lang->story->saveDraft, "id='saveDraftButton'", 'btn btn-secondary btn-wide');
+            }
+            else
+            {
+                echo html::submitButton($lang->save);
+            }
             if(!isonlybody()) echo html::backButton();
             ?>
           </div>
@@ -77,7 +146,7 @@
             <div class='detail-title'><?php echo $lang->story->legendBasicInfo;?></div>
             <table class='table table-form'>
               <?php if($story->parent <= 0):?>
-              <tr>
+              <tr class="<?php if($hiddenProduct) echo 'hidden';?>">
                 <th class='thWidth'><?php echo $lang->story->product;?></th>
                 <td>
                   <div class='input-group'>
@@ -106,7 +175,7 @@
                       echo "<span class='input-group-addon'>";
                       echo html::a($this->createLink('tree', 'browse', "rootID=$story->product&view=story&currentModuleID=0&branch=$story->branch", '', true), $lang->tree->manage, '', "class='text-primary' data-toggle='modal' data-type='iframe' data-width='95%'");
                       echo '&nbsp; ';
-                      echo html::a("javascript:void(0)", $lang->refresh, '', "class='refresh' onclick='loadProductModules($story->product)'");
+                      echo html::a("javascript:void(0)", $lang->refreshIcon, '', "class='refresh' title='$lang->refresh' onclick='loadProductModules($story->product)'");
                       echo '</span>';
                   }
                   ?>
@@ -114,16 +183,17 @@
                 </td>
               </tr>
               <?php if($story->parent >= 0 and $story->type == 'story'):?>
-              <tr>
+              <tr class="<?php if($hiddenParent) echo 'hidden';?>">
                 <th><?php echo $lang->story->parent;?></th>
                 <td><?php echo html::select('parent', $stories, $story->parent, "class='form-control chosen'");?></td>
               </tr>
-              <tr>
+              <tr class="<?php if($hiddenPlan) echo 'hidden';?>">
                 <th><?php echo $lang->story->plan;?></th>
                 <td>
                   <div class='input-group' id='planIdBox'>
-                  <?php $multiple = ($this->session->currentProductType != 'normal' and empty($story->branch)) ? true : false;?>
-                  <?php echo html::select($multiple ? 'plan[]' : 'plan', $plans, $story->plan, "class='form-control chosen'" . ($multiple ? ' multiple' : ''));
+                  <?php $planCount = !empty($story->planTitle) ? count($story->planTitle) : 0?>
+                  <?php $multiple  = ($this->session->currentProductType != 'normal' and empty($story->branch) and $planCount > 1) ? 'multiple' : '';?>
+                  <?php echo html::select(!empty($multiple) ? 'plan[]' : 'plan', $plans, $story->plan, "class='form-control chosen' " . $multiple);
                   if(count($plans) == 1)
                   {
                       echo "<span class='input-group-addon'>";
@@ -163,17 +233,21 @@
                 <th><?php echo $lang->story->stage;?></th>
                 <td>
                 <?php
+                $maxStage    = $story->stage;
+                $stageList   = join(',', array_keys($this->lang->story->stageList));
+                $maxStagePos = strpos($stageList, $maxStage);
                 if($story->stages and $branchTagOption)
                 {
                     foreach($story->stages as $branch => $stage)
                     {
-                        if(isset($branchTagOption[$branch])) echo '<p>' . $branchTagOption[$branch] . html::select("stages[$branch]", $lang->story->stageList, $stage, "class='form-control chosen'") . '</p>';
+                        if(strpos($stageList, $stage) !== false and strpos($stageList, $stage) > $maxStagePos)
+                        {
+                            $maxStage    = $stage;
+                            $maxStagePos = strpos($stageList, $stage);
+                        }
                     }
                 }
-                else
-                {
-                    echo html::select('stage', $lang->story->stageList, $story->stage, "class='form-control chosen'");
-                }
+                echo html::select('stage', $lang->story->stageList, $maxStage, "class='form-control chosen'");
                 ?>
                 </td>
               </tr>
@@ -206,7 +280,7 @@
                 <th><?php echo $lang->story->mailto;?></th>
                 <td>
                   <div class='input-group'>
-                    <?php echo html::select('mailto[]', $users, str_replace(' ' , '', $story->mailto), "class='form-control chosen' multiple");?>
+                    <?php echo html::select('mailto[]', $users, $story->mailto, "class='form-control picker-select' multiple");?>
                     <?php echo $this->fetch('my', 'buildContactLists');?>
                   </div>
                 </td>
@@ -222,12 +296,13 @@
               </tr>
               <tr>
                 <th><?php echo $lang->story->assignedTo;?></th>
-                <td><?php echo html::select('assignedTo', $users, $story->assignedTo, 'class="form-control chosen"');?></td>
+                <?php $assignedToList = $story->status == 'closed' ? $users + array('closed' => 'Closed') : $users;?>
+                <td><?php echo html::select('assignedTo', $hiddenProduct ? $teamUsers : $assignedToList, $story->assignedTo, 'class="form-control chosen"');?></td>
               </tr>
-              <?php if($isShowReviewer):?>
+              <?php if($story->status == 'reviewing'):?>
               <tr>
                 <th><?php echo $lang->story->reviewers;?></th>
-                <td><?php echo html::select('reviewer[]', $productReviewers, $reviewers, 'class="form-control chosen" multiple')?></td>
+                <td><?php echo html::select('reviewer[]', $hiddenProduct ? $teamUsers : $productReviewers, $reviewers, 'class="form-control picker-select" multiple')?></td>
               </tr>
               <?php endif;?>
               <?php if($story->status == 'closed'):?>
@@ -250,42 +325,38 @@
             <table class='table table-form'>
               <?php if($story->status == 'closed'):?>
               <tr id='duplicateStoryBox'>
-                <th class='w-70px'><?php echo $lang->story->duplicateStory;?></th>
-                <td><?php echo html::input('duplicateStory', $story->duplicateStory, "class='form-control'");?></td>
+                <th class='w-100px'><?php echo $lang->story->duplicateStory;?></th>
+                <td><?php echo html::select('duplicateStory', array('' => '') + $productStories, $story->duplicateStory ? $story->duplicateStory : '', "class='form-control' placeholder='{$lang->bug->duplicateTip}'"); ?></td>
               </tr>
               <?php endif;?>
-              <?php if($story->status == 'closed'):?>
               <tr class='text-top'>
-                <th><?php echo $lang->story->childStories;?></th>
+                <th class='thWidth'><?php echo $story->type == 'story' ? $lang->requirement->linkStory : $lang->story->linkStory;?></th>
                 <td>
-                  <?php echo html::a($this->createLink('story', 'linkStory', "storyID=$story->id&type=childStories", '', true), $lang->story->linkStory, '', "data-toggle='modal' data-type='iframe' data-width='95%'");?>
+                  <?php if(common::hasPriv('story', 'linkStories') and $story->type == 'story') echo html::a("#", $lang->story->linkStoriesAB, '', "class='btn btn-info' id='linkStoriesLink'");?>
+                  <?php if(common::hasPriv('requirement', 'linkRequirements') and $story->type == 'requirement') echo html::a("#", $lang->story->linkRequirementsAB, '', "class='btn btn-info' id='linkStoriesLink'");?>
                 </td>
               </tr>
               <tr>
                 <th></th>
-                <td>
+                <td class='linkStoryTd'>
                   <ul class='list-unstyled'>
                     <?php
-                    if($story->childStories)
+                    $linkStoryField = $story->type == 'story' ? 'linkStories' : 'linkRequirements';
+                    if(isset($story->linkStoryTitles))
                     {
-                        $childStories = explode(',', $story->childStories);
-                        foreach($childStories as $childStoryID)
+                        foreach($story->linkStoryTitles as $linkStoryID => $linkStoryTitle)
                         {
-                            if(isset($story->extraStories[$childStoryID]))
-                            {
-                                echo "<li><div class='checkbox-primary'>";
-                                echo "<input type='checkbox' checked='checked' name='childStories[]' value=$childStoryID />";
-                                echo "<label>#{$childStoryID} {$story->extraStories[$childStoryID]}</label>";
-                                echo '</div></li>';
-                            }
+                            echo "<li><div class='checkbox-primary' title='$linkStoryTitle'>";
+                            echo "<input type='checkbox' checked='checked' name='" . $linkStoryField . "[]' value=$linkStoryID />";
+                            echo "<label class='linkStoryTitle'>#{$linkStoryID} {$linkStoryTitle}</label>";
+                            echo '</div></li>';
                         }
                     }
                     ?>
-                    <span id='childStoriesBox'></span>
+                    <span id='linkStoriesBox'></span>
                   </ul>
                 </td>
               </tr>
-              <?php endif;?>
            </table>
           </div>
         </div>

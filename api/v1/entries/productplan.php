@@ -2,21 +2,21 @@
 /**
  * The productplan entry point of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2021 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2021 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     entries
  * @version     1
  * @link        http://www.zentao.net
  */
-class productplanEntry extends Entry
+class productplanEntry extends entry
 {
     /**
      * GET method.
      *
      * @param  int    $planID
      * @access public
-     * @return void
+     * @return string
      */
     public function get($planID)
     {
@@ -43,7 +43,7 @@ class productplanEntry extends Entry
      *
      * @param  int    $planID
      * @access public
-     * @return void
+     * @return string
      */
     public function put($planID)
     {
@@ -71,7 +71,7 @@ class productplanEntry extends Entry
         $plan->stories = $data->data->planStories;
         $plan->bugs    = $data->data->planBugs;
 
-        $this->send(200, $this->format($plan, 'begin:date,end:date,deleted:bool,stories:array,bugs:array'));
+        return $this->send(200, $this->format($plan, 'begin:date,end:date,deleted:bool,stories:array,bugs:array'));
     }
 
     /**
@@ -79,7 +79,7 @@ class productplanEntry extends Entry
      *
      * @param  int    $productID
      * @access public
-     * @return void
+     * @return string
      */
     public function delete($planID)
     {
@@ -87,6 +87,6 @@ class productplanEntry extends Entry
         $control->delete($planID, 'yes');
 
         $this->getData();
-        $this->sendSuccess(200, 'success');
+        return $this->sendSuccess(200, 'success');
     }
 }

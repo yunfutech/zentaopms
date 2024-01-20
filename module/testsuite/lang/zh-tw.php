@@ -3,7 +3,7 @@
  * The testsuite module zh-tw file of ZenTaoPMS.
  *
  * @copyright   Copyright 2009-2015 青島易軟天創網絡科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Yidong Wang <yidong@cnezsoft.com>
  * @package     testsuite
  * @version     $Id: zh-tw.php 4490 2013-02-27 03:27:05Z wyd621@gmail.com $
@@ -47,6 +47,7 @@ $lang->testsuite->confirmUnlinkCase = '您確認要移除該用例嗎？';
 $lang->testsuite->noticeNone        = '您還沒有創建套件';
 $lang->testsuite->noModule          = '<div>您現在還沒有模組信息</div><div>請維護用例庫模組</div>';
 $lang->testsuite->noTestsuite       = '暫時沒有套件。';
+$lang->testsuite->summary           = "本頁共 <strong>%total%</strong> 個套件，公開 <strong>%public%</strong> 個，私有 <strong>%private%</strong> 個。";
 
 $lang->testsuite->lblCases      = '用例列表';
 $lang->testsuite->lblUnlinkCase = '移除用例';

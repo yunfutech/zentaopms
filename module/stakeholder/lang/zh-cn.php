@@ -17,23 +17,15 @@ $lang->stakeholder->add          = '新建';
 $lang->stakeholder->communicate  = '沟通记录';
 $lang->stakeholder->expect       = '期望内容';
 $lang->stakeholder->progress     = '达成进展';
-$lang->stakeholder->expectation  = '期望管理';
-$lang->stakeholder->createExpect = '添加期望';
-$lang->stakeholder->deleteExpect = '删除期望';
-$lang->stakeholder->editExpect   = '编辑期望';
-$lang->stakeholder->viewExpect   = '期望信息';
-$lang->stakeholder->issue        = '问题管理';
-$lang->stakeholder->viewIssue    = '活动问题列表';
 $lang->stakeholder->userIssue    = '干系人问题列表';
 $lang->stakeholder->deleted      = '已删除';
 
-$lang->stakeholder->viewAction      = '干系人详情';
-$lang->stakeholder->viewIssueAction = '问题列表';
+$lang->stakeholder->viewAction = '干系人详情';
 
 /* Fields. */
 $lang->stakeholder->id          = '编号';
 $lang->stakeholder->user        = '用户';
-$lang->stakeholder->type        = '类型';
+$lang->stakeholder->type        = '用户类型';
 $lang->stakeholder->name        = '姓名';
 $lang->stakeholder->phone       = '手机';
 $lang->stakeholder->qq          = 'QQ';
@@ -42,7 +34,7 @@ $lang->stakeholder->email       = '邮箱';
 $lang->stakeholder->isKey       = '关键干系人';
 $lang->stakeholder->inside      = '内部干系人';
 $lang->stakeholder->outside     = '外部干系人';
-$lang->stakeholder->from        = '类型';
+$lang->stakeholder->from        = '干系人类型';
 $lang->stakeholder->company     = '所属公司';
 $lang->stakeholder->nature      = '性格特征';
 $lang->stakeholder->analysis    = '影响分析';
@@ -59,7 +51,7 @@ $lang->stakeholder->keyList[1] = '是';
 $lang->stakeholder->typeList['inside']  = '内部';
 $lang->stakeholder->typeList['outside'] = '外部';
 
-$lang->stakeholder->fromList['team']    = '项目团队成员';
+$lang->stakeholder->fromList['team']    = $lang->projectCommon . '团队成员';
 $lang->stakeholder->fromList['company'] = '公司同事';
 $lang->stakeholder->fromList['outside'] = '外部人员';
 

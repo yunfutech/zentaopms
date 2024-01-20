@@ -2,8 +2,8 @@
 /**
  * The import plan view of kanban module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2022 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2022 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Qiyu Xie<xieqiyu@cnezsoft.com>
  * @package     kanban
  * @version     $Id: importplan.html.php 5090 2022-01-19 14:19:24Z xieqiyu@cnezsoft.com $
@@ -16,6 +16,9 @@
 <?php js::set('groupID', $groupID);?>
 <?php js::set('columnID', $columnID);?>
 <?php js::set('methodName', $this->app->rawMethod);?>
+<?php if(count($plans2Imported) <= 3):?>
+<style>#importPlanForm, .table-empty-tip {margin-bottom: 120px}</style>
+<?php endif;?>
 <div id='mainContent' class='main-content importModal'>
   <div class='center-block'>
     <div class='main-header'>

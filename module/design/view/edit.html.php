@@ -2,8 +2,8 @@
 /**
  * The edit view of design module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Shujie Tian <tianshujie@easycorp.ltd>
  * @package     design
  * @version     $Id: edit.html.php 4903 2020-09-02 09:32:59Z tianshujie@easycorp.ltd $
@@ -13,6 +13,7 @@
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
 <?php js::set('type', $design->type);?>
+<?php js::set('projectID', $design->project);?>
 <div id="mainContent" class="main-content fade">
   <div class="center-block">
     <div class="main-header">
@@ -27,7 +28,7 @@
     <form class="load-indicator main-form form-ajax" method='post' enctype='multipart/form-data' id='dataform'>
       <table class="table table-form">
         <tbody>
-          <tr>
+          <tr <?php if(empty($project->hasProduct)) echo "class='hide'";?>>
             <th class='w-120px'><?php echo $lang->design->product;?></th>
             <td><?php echo html::select('product', $products, $design->product, "class='form-control chosen'");?></td>
             <td></td>
@@ -39,7 +40,7 @@
           </tr>
           <tr>
             <th><?php echo $lang->design->type;?></th>
-            <td><?php echo html::select('type', $lang->design->typeList, $design->type, "class='form-control chosen'");?></td>
+            <td><?php echo html::select('type', $typeList, $design->type, "class='form-control chosen'");?></td>
             <td></td>
           </tr>
           <tr>
@@ -79,7 +80,7 @@
                         <?php foreach($design->tasks as $task):?>
                         <tr class='text-center'>
                           <td><?php $task->id?></td>
-                          <td class='text-left'><?php echo html::a($this->createLink('task', 'view', "taskID=$task->id"), $task->name, '_blank');?></td>;
+                          <td class='text-left'><?php echo html::a($this->createLink('task', 'view', "taskID=$task->id"), $task->name, '_blank');?></td>
                           <td><?php echo zget($users, $task->assignedTo);?></td>
                           <td><span class='status-task status-<?php echo $task->status;?>'><?php $this->processStatus('task', $task);?></span></td>
                           <td><?php echo $task->consumed;?></td>

@@ -2,8 +2,8 @@
 /**
  * The create case view of caselib module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Yidong Wang <yidong@cnezsoft.com>
  * @package     caselib
  * @version     $Id: createcase.html.php 4904 2013-06-26 05:37:45Z wyd621@gmail.com $
@@ -33,7 +33,7 @@
                 <?php echo html::select('lib', $libraries, $libID, "onchange='loadLibModules(this.value);' class='form-control chosen'");?>
               </div>
             </td>
-            <td style='padding-left:15px;'>
+            <td style='padding-left:15px;'<?php echo strpos($config->testcase->create->requiredFields, 'module') !== false ? ' class="required"' : '';?>>
               <div class='input-group' id='moduleIdBox'>
               <span class="input-group-addon w-80px"><?php echo $lang->testcase->module?></span>
               <?php
@@ -41,7 +41,7 @@
               if(count($moduleOptionMenu) == 1)
               {
                   echo "<span class='input-group-btn'>";
-                  echo html::a($this->createLink('tree', 'browse', "rootID=$libID&view=caselib&currentModuleID=0", 'html', true), "<i class='icon icon-cog'></i>", '', "data-toggle='tooltip' class='btn iframe' title='{$lang->tree->manage}'");
+                  echo html::a($this->createLink('tree', 'browse', "rootID=$libID&view=caselib&currentModuleID=0", 'html', true), "<i class='icon icon-cog'></i>", '', "data-toggle='tooltip' class='btn iframe' data-width='95%' title='{$lang->tree->manage}'");
                   echo '</span>';
                   echo "<span class='input-group-btn'>";
                   echo html::a("javascript:void(0)", "<i class='icon icon-refresh'></i>", '', "class='btn refresh' title='{$lang->refresh}' onclick='loadLibModules($libID)'");
@@ -55,7 +55,7 @@
             <th><?php echo $lang->testcase->type;?></th>
             <td><?php echo html::select('type', $lang->testcase->typeList, $type, "class='form-control chosen'");?></td>
             <?php if(strpos(",$showFields,", 'stage') !== false):?>
-            <td style='padding-left:15px'>
+            <td style='padding-left:15px'<?php echo strpos($config->testcase->create->requiredFields, 'stage') !== false ? ' class="required"' : '';?>>
               <div class='input-group'>
                 <span class='input-group-addon w-80px'><?php echo $lang->testcase->stage?></span>
                 <?php echo html::select('stage[]', $lang->testcase->stageList, $stage, "class='form-control chosen' multiple='multiple'");?>
@@ -67,7 +67,7 @@
             <th><?php echo $lang->testcase->title;?></th>
             <td colspan='2'>
               <div class="input-group title-group">
-                <div class="input-control has-icon-right">
+                <div id="titleBox" class="input-control has-icon-right">
                   <?php echo html::input('title', $caseTitle, "class='form-control'");?>
                   <div class="colorpicker">
                     <button type="button" class="btn btn-link dropdown-toggle" data-toggle="dropdown"><span class="cp-title"></span><span class="color-bar"></span><i class="ic"></i></button>
@@ -101,7 +101,8 @@
                 <?php echo html::select('pri', (array)$priList, $pri, "class='form-control'");?>
                 <?php else: ?>
                 <?php ksort($priList);?>
-                <div class="input-group-btn pri-selector" data-type="pri">
+                <?php $hasPri = strpos($config->testcase->create->requiredFields, 'pri') !== false ? True : False;?>
+                <div <?php echo $hasPri ? "id='priRequiredBox'" : '';?> class="input-group-btn pri-selector <?php echo $hasPri ? 'required' : '';?>" data-type="pri">
                   <button type="button" class="btn dropdown-toggle br-0" data-toggle="dropdown">
                     <span class="pri-text"><span class="label-pri label-pri-<?php echo empty($pri) ? '0' : $pri?>" title="<?php echo $pri?>"><?php echo $pri?></span></span> &nbsp;<span class="caret"></span>
                   </button>
@@ -116,7 +117,7 @@
           </tr>
           <tr>
             <th><?php echo $lang->testcase->precondition;?></th>
-            <td colspan='2'><?php echo html::textarea('precondition', $precondition, " rows='2' class='form-control'");?></td>
+            <td colspan='2' <?php echo strpos($config->testcase->create->requiredFields, 'precondition') !== false ? ' class="required"' : '';?>><?php echo html::textarea('precondition', $precondition, " rows='2' class='form-control'");?></td>
           </tr>
           <tr>
             <th><?php echo $lang->testcase->steps;?></th>
@@ -189,7 +190,7 @@
           <?php if(strpos(",$showFields,", ',keywords,') !== false):?>
           <tr>
             <th><?php echo $lang->testcase->keywords;?></th>
-            <td colspan='2'><?php echo html::input('keywords', '', "class='form-control'");?></td>
+            <td colspan='2' <?php echo strpos($config->testcase->create->requiredFields, 'keywords') !== false ? ' class="required"' : '';?>><?php echo html::input('keywords', '', "class='form-control'");?></td>
           </tr>
           <?php endif;?>
           <tr>

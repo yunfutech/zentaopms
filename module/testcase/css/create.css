@@ -14,6 +14,7 @@
 #story_chosen .chosen-results > li.no-results {cursor: pointer;}
 #story_chosen .chosen-results > li.no-results:hover {color: #1a4f85; background-color: #ddd;}
 #story_chosen .chosen-results > li.no-results > span {font-weight: bold;}
+#type_chosen {display: table-cell;}
 
 .row .col-sm-10 {width: 89%;}
 .row .col-sm-2 {padding-left: 0px; width: 11%;}
@@ -38,7 +39,10 @@
 
 .title-group.required:after {display: none;}
 .title-group.required > .required:after {display: block; right: 29px; top: 5px;}
+#titleBox.required:after{display: block; right: 29px; top: 5px;}
+#priRequiredBox.required:after{display: block; right: -12px; top: 5px;}
 .pri-selector > .btn {padding: 5px 8px !important; width: 100%;}
 .pri-selector > .dropdown-menu {padding: 10px;}
+.stageBox {padding-left: 15px !important;}
 
-.title-group .has-icon-right {min-width: 600px;}
+#refresh {margin-left: 7px;}

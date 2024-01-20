@@ -2,14 +2,13 @@
 /**
  * The todo module English file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     todo
  * @version     $Id: en.php 4676 2013-04-26 06:08:23Z chencongzhi520@gmail.com $
- * @link        https://www.zentao.pm
+ * @link        http://www.zentao.net
  */
-$lang->todo->common       = 'Agenda';
 $lang->todo->index        = "Accueil";
 $lang->todo->create       = "Ajout Entrée";
 $lang->todo->createCycle  = "Ajout Tâche récurrente";
@@ -33,9 +32,11 @@ $lang->todo->import       = "Importer";
 $lang->todo->legendBasic  = "Infos de Base";
 $lang->todo->cycle        = "Rendre Récurrent";
 $lang->todo->cycleConfig  = "Récurrence";
-$lang->todo->project      = "Project";
-$lang->todo->product      = "Product";
+$lang->todo->project      = $lang->projectCommon;
+$lang->todo->product      = $lang->productCommon;
 $lang->todo->execution    = $lang->executionCommon;
+$lang->todo->changeDate   = "Change Date";
+$lang->todo->future       = 'TBD';
 
 $lang->todo->reasonList['story'] = "Convertir en Story";
 $lang->todo->reasonList['task']  = "Convertir en Tâche";
@@ -56,6 +57,7 @@ $lang->todo->pri          = 'Priorité';
 $lang->todo->name         = 'Titre';
 $lang->todo->status       = 'Statut';
 $lang->todo->desc         = 'Description';
+$lang->todo->config       = 'Config';
 $lang->todo->private      = 'Privé';
 $lang->todo->cycleDay     = 'Jour';
 $lang->todo->cycleWeek    = 'Semaine';
@@ -68,6 +70,8 @@ $lang->todo->finishedDate = 'FinishedDate';
 $lang->todo->closedBy     = 'ClosedBy';
 $lang->todo->closedDate   = 'ClosedDate';
 $lang->todo->deadline     = 'Expiration';
+$lang->todo->deleted      = 'Deleted';
+$lang->todo->ditto        = 'Idem';
 
 $lang->todo->cycleDaysLabel  = 'Interval days';
 $lang->todo->beforeDaysLabel = 'Days in advance';
@@ -79,9 +83,12 @@ $lang->todo->beforeDays   = "<span class='input-group-addon'>Créer automatiquem
 $lang->todo->dayNames     = array(1 => 'Lundi', 2 => 'Mardi', 3 => 'Mercredi', 4 => 'Jeudi', 5 => 'Vendredi', 6 => 'Samedi', 0 => 'Dimanche');
 $lang->todo->specifiedDay = array(1 => 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31);
 
-$lang->todo->confirmBug   = "Cette action est liée au Bug #%s. Voulez-vous l'éditer ?";
-$lang->todo->confirmTask  = "Cette action est liée à la Tâche #%s. Voulez-vous l'éditer ?";
-$lang->todo->confirmStory = "Cette action est liée à la Story #%s. Voulez-vous l'éditer ?";
+$lang->todo->confirmBug     = "Cette action est liée au Bug #%s. Voulez-vous l'éditer ?";
+$lang->todo->confirmTask    = "Cette action est liée à la Tâche #%s. Voulez-vous l'éditer ?";
+$lang->todo->confirmStory   = "Cette action est liée à la Story #%s. Voulez-vous l'éditer ?";
+$lang->todo->noOptions      = 'Vous n\'avez pas de %s en attente pour le moment. Veuillez sélectionner le type de Todo.';
+$lang->todo->summary        = 'Total todos: <strong>%s</strong>, Wait: <strong>%s</strong>, Doing: <strong>%s</strong>.';
+$lang->todo->checkedSummary = 'Seleted: <strong>%total%</strong>, Wait: <strong>%wait%</strong>, Doing: <strong>%doing%</strong>.';
 
 $lang->todo->statusList['wait']   = 'En Attente';
 $lang->todo->statusList['doing']  = 'En cours';
@@ -110,15 +117,17 @@ $lang->todo->lblClickCreate = "Cliquez pour ajouter une entrée";
 $lang->todo->noTodo         = 'Aucune entrée de ce type.';
 $lang->todo->noAssignedTo   = "Le champ Assigné à ne doit pas être vide.";
 $lang->todo->unfinishedTodo = "Les entrées de l'ID %s ne sont pas terminés et ne peuvent pas se fermer.";
+$lang->todo->today          = 'Todo Today';
+$lang->todo->selectProduct  = "Please select a {$lang->productCommon}";
 
-$lang->todo->periods['all']             = 'Toutes les entrées';
-$lang->todo->periods['before']          = 'Non terminée';
-$lang->todo->periods['future']          = 'A définir';
+$lang->todo->periods['all']             = 'Assigned To Yourself';
+$lang->todo->periods['before']          = 'Unfinished';
+$lang->todo->periods['future']          = 'TBD';
 $lang->todo->periods['thisWeek']        = 'This Week';
 $lang->todo->periods['thisMonth']       = 'This Month';
-$lang->todo->periods['thisYear']        = 'Cette Année';
+$lang->todo->periods['thisYear']        = 'This Year';
 $lang->todo->periods['assignedToOther'] = 'Assigned To Other';
-$lang->todo->periods['cycle']           = 'Récurrence';
+$lang->todo->periods['cycle']           = 'Recurrence';
 
 $lang->todo->action = new stdclass();
 $lang->todo->action->finished = array('main' => '$date, est $extra par <strong>$actor</strong>.', 'extra' => 'reasonList');

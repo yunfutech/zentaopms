@@ -2,8 +2,8 @@
 /**
  * The browsebykanban view file of plan module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2021 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2021 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Shujie Tian <tianshujie@easycorp.ltd>
  * @package     plan
  * @version     $Id: browsebykanban.html.php 4707 2021-12-27 16:07:41Z $
@@ -26,13 +26,16 @@
 .kanban-card:hover > .header > .actions {opacity: 1;}
 .kanban-card .title {white-space: nowrap; overflow: hidden;}
 .kanban-card .expired {margin-left: 2px;}
-.kanban-card .dateBox {padding-top: 22px;}
 .kanban-card .desc {overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #838a9d; padding-top: 5px;}
 .kanban-card .actions > a {display: block; float: left; width: 20px; height: 20px; line-height: 20px; text-align: center; border-radius: 4px; opacity: .7;}
 .dropdown-menu > li > .disabled {pointer-events: none; color: #838a9d;}
 </style>
 <?php js::set('kanbanData', $kanbanData);?>
+<?php js::set('rawModule', $app->rawModule);?>
+<?php js::set('users', $users);?>
+<?php js::set('noAssigned', $lang->productplan->noAssigned);?>
 <?php js::set('productplanLang', $lang->productplan);?>
+<?php js::set('priv', array('canAssignCard' => common::hasPriv('kanban', 'assigncard')));?>
 <div id="mainMenu" class="clearfix">
   <div class="btn-toolbar pull-left">
   <?php if($product->type == 'normal'):?>
@@ -52,7 +55,7 @@
       <ul class='dropdown-menu' style='max-height:240px; max-width: 300px; overflow-y:auto'>
       <?php foreach($lang->productplan->orderList as $order => $label):?>
       <?php $active = $orderBy == $order ? 'active' : '';?>
-        <li class='<?php echo $active;?>'><?php echo html::a(inlink('browse', "productID=$productID&branch=$branchID&browseType=$browseType&orderBy=$order"), $label);?></li>
+        <li class='<?php echo $active;?>'><?php echo html::a($this->createLink($app->rawModule, 'browse', "productID=$productID&branch=$branchID&browseType=$browseType&queryID=$queryID&orderBy=$order"), $label);?></li>
       <?php endforeach;?>
       </ul>
     </div>
@@ -61,7 +64,7 @@
       <?php echo html::a('javascript:;',"<i class='icon-kanban'></i> &nbsp;", '', "class='btn btn-icon text-primary switchButton' title='{$lang->productplan->kanban}' data-type='kanban'");?>
     </div>
     <?php if(common::canModify('product', $product)):?>
-    <?php common::printLink('productplan', 'create', "productID=$product->id&branch=$branch", "<i class='icon icon-plus'></i> {$lang->productplan->create}", '', "class='btn btn-primary'");?>
+    <?php common::printLink($app->rawModule, 'create', "productID=$product->id&branch=$branch", "<i class='icon icon-plus'></i> {$lang->productplan->create}", '', "class='btn btn-primary'");?>
     <?php endif;?>
   </div>
 </div>

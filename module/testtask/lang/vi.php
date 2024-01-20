@@ -2,7 +2,7 @@
 /**
  * The testtask module English file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
  * @license  ZPL (http://zpl.pub/page/zplv12.html)
  * @author   Nguyễn Quốc Nho <quocnho@gmail.com>
  * @package  testtask
@@ -27,6 +27,9 @@ $lang->testtask->unlinkCase       = "Hủy liên kết";
 $lang->testtask->batchUnlinkCases = "Hủy liên kết tình huống hàng loạt";
 $lang->testtask->batchAssign      = "Bàn giao hàng loạt";
 $lang->testtask->runCase          = "Chạy";
+$lang->testtask->running          = "Excuting";
+$lang->testtask->runningLog       = "Execution Log";
+$lang->testtask->runNode          = "Executed by %s,Execute on node %s %s";
 $lang->testtask->batchRun         = "Chạy hàng loạt";
 $lang->testtask->results          = "Kết quả";
 $lang->testtask->resultsAction    = "Kết quả tình huống";
@@ -49,7 +52,7 @@ $lang->testtask->testing          = "Đang Test";
 $lang->testtask->blocked          = "Blocked";
 $lang->testtask->done             = "Đã test";
 $lang->testtask->totalStatus      = "Tất cả";
-$lang->testtask->all              = "Tất cả " . $lang->productCommon . "s";
+$lang->testtask->all              = 'Tất cả';
 $lang->testtask->allTasks         = 'Tất cả yêu cầu';
 $lang->testtask->collapseAll      = 'Co lại';
 $lang->testtask->expandAll        = 'Mở ra';
@@ -94,6 +97,7 @@ $lang->testtask->caseCount        = 'Case Count';
 $lang->testtask->passCount        = 'Pass';
 $lang->testtask->failCount        = 'Fail';
 $lang->testtask->summary          = '%s cases, %s failures, %s time.';
+$lang->testtask->stepSummary      = 'Total %s steps, %s passes, %s failures.';
 
 $lang->testtask->beginAndEnd = 'Thời gian';
 $lang->testtask->to          = 'Tới';

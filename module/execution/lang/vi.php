@@ -2,7 +2,7 @@
 /**
  * The project module English file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
  * @license  ZPL (http://zpl.pub/page/zplv12.html)
  * @author   Nguyễn Quốc Nho <quocnho@gmail.com>
  * @package  project
@@ -54,6 +54,7 @@ $lang->execution->RD              = 'Quản lý phát hành';
 $lang->execution->release         = 'Phát hành';
 $lang->execution->acl             = 'Quyền truy cập';
 $lang->execution->teamname        = 'Tên đội nhóm';
+$lang->execution->teamCount       = 'số người';
 $lang->execution->order           = "Đánh giá {$lang->executionCommon}";
 $lang->execution->orderAB         = "Đánh giá";
 $lang->execution->products        = "Liên kết {$lang->productCommon}";
@@ -101,9 +102,7 @@ $lang->execution->copyNoExecution = 'There are no ' . $lang->executionCommon . '
 $lang->execution->noTeam          = 'No team members at the moment';
 $lang->execution->or              = ' or ';
 $lang->execution->selectProject   = 'Please select project';
-
-if($this->config->systemMode == 'new') $lang->execution->copyTeamTip = "select Project/{$lang->execution->common} to copy its members";
-if($this->config->systemMode == 'classic') $lang->execution->copyTeamTip = "select Project/{$lang->executionCommon} to copy its members";
+$lang->execution->copyTeamTip     = "select Project/{$lang->execution->common} to copy its members";
 
 $lang->execution->start    = 'Bắt đầu';
 $lang->execution->activate = 'Kích hoạt';
@@ -127,6 +126,7 @@ $lang->execution->lifeTimeList['ops']   = "DevOps";
 $lang->team = new stdclass();
 $lang->team->account    = 'Người dùng';
 $lang->team->role       = 'Vai trò';
+$lang->team->roleAB     = 'Vai trò của tôi';
 $lang->team->join       = 'Đã tham gia';
 $lang->team->hours      = 'Giờ/ngày';
 $lang->team->days       = 'Ngày';
@@ -146,16 +146,8 @@ $lang->execution->statusList['suspended'] = 'Đã đình chỉ';
 $lang->execution->statusList['closed']    = 'Đã đóng';
 
 global $config;
-if($config->systemMode == 'new')
-{
-    $lang->execution->aclList['private'] = 'Private (for team members and project stakeholders)';
-    $lang->execution->aclList['open']    = 'Inherited Execution ACL (for who can access the current project)';
-}
-else
-{
-    $lang->execution->aclList['private'] = 'Private (for team members and project stakeholders)';
-    $lang->execution->aclList['open']    = "Public (Users who can visit {$lang->executionCommon} can access it.)";
-}
+$lang->execution->aclList['private'] = 'Private (for team members and project stakeholders)';
+$lang->execution->aclList['open']    = 'Inherited Execution ACL (for who can access the current project)';
 
 $lang->execution->storyPoint = 'Story Point';
 
@@ -225,8 +217,8 @@ $lang->execution->importBug         = 'Nhập Bug';
 $lang->execution->tree              = 'Cây';
 $lang->execution->treeTask          = 'Chỉ hiện nhiệm vụ';
 $lang->execution->treeStory         = 'Chỉ hiện câu chuyện';
-$lang->execution->treeOnlyTask      = 'Chỉ hiện nhiệm vụ';
-$lang->execution->treeOnlyStory     = 'Chỉ hiện câu chuyện';
+$lang->execution->treeViewTask      = 'Chỉ hiện nhiệm vụ';
+$lang->execution->treeViewStory     = 'Chỉ hiện câu chuyện';
 $lang->execution->storyKanban       = 'Kanban câu chuyện';
 $lang->execution->storySort         = 'Đánh giá câu chuyện';
 $lang->execution->importPlanStory   = $lang->executionCommon . ' được tạo!\nBạn có muốn nhập các câu chuyện mà đã liên kết đến kế hoạch này?';
@@ -289,6 +281,7 @@ $lang->execution->wbs                 = "Tạo nhiệm vụ";
 $lang->execution->batchWBS            = "Tạo nhiệm vụ hàng loạt";
 $lang->execution->howToUpdateBurn     = "<a href='https://api.zentao.pm/goto.php?item=burndown' target='_blank' title='Làm thế nào để cập nhật biểu đồ Burndown?' class='btn btn-link'>Giúp<i class='icon icon-help'></i></a>";
 $lang->execution->whyNoStories        = "Không có câu chuyện có thể liên kết. Vui lòng kiểm tra có câu chuyện trong {$lang->executionCommon} cái liên kết tới {$lang->productCommon} và chắc chắn nó đã được duyệt.";
+$lang->execution->projectNoStories    = "No story can be linked. Please check whether there is any story in project and make sure it has been reviewed.";
 $lang->execution->productStories      = "Câu chuyện liên kết tới {$lang->executionCommon} là tập hợp con của câu chuyện liên kết tới {$lang->productCommon}. Các câu chuyện chỉ có thể liên kết sau khi chúng đã được duyệt. <a href='%s'> Liên kết câu chuyện</a> now.";
 $lang->execution->haveDraft           = "%s câu chuyện đang nháp, bởi vậy chúng không thể liên kết.";
 $lang->execution->doneExecutions      = 'Kết thúc';
@@ -314,7 +307,7 @@ $lang->execution->linkAllStoryTip     = "({$lang->SRCommon} has never been linke
 /* Interactive prompts. */
 $lang->execution->confirmDelete               = "Bạn có muốn xóa {$lang->executionCommon}[%s] này?";
 $lang->execution->confirmUnlinkMember         = "Bạn có muốn hủy liên kết người dùng này từ {$lang->executionCommon}?";
-$lang->execution->confirmUnlinkStory          = "After {$lang->SRCommon} is removed, cased linked to {$lang->SRCommon} will be reomoved and tasks linked to {$lang->SRCommon} will be cancelled. Do you want to continue?;"
+$lang->execution->confirmUnlinkStory          = "After {$lang->SRCommon} is removed, cased linked to {$lang->SRCommon} will be reomoved and tasks linked to {$lang->SRCommon} will be cancelled. Do you want to continue?";
 $lang->execution->confirmUnlinkExecutionStory = "Do you want to unlink this Story from the project?";
 $lang->execution->notAllowedUnlinkStory       = "This {$lang->SRCommon} is linked to the {$lang->executionCommon} of the project. Remove it from the {$lang->executionCommon}, then try again.";
 $lang->execution->notAllowRemoveProducts      = "The story of this product is linked with the {$lang->executionCommon}. Unlink it before doing any action.";
@@ -337,6 +330,8 @@ $lang->execution->unfinishedExecution         = "This {$lang->executionCommon} h
 $lang->execution->unfinishedTask              = "[%s] unfinished tasks. ";
 $lang->execution->unresolvedBug               = "[%s] unresolved bugs. ";
 $lang->execution->projectNotEmpty             = 'Project cannot be empty.';
+$lang->execution->errorCommonBegin            = 'The start date of ' . $lang->executionCommon . ' should be ≥ the start date of project : %s.';
+$lang->execution->errorCommonEnd              = 'The deadline of ' . $lang->executionCommon .  ' should be ≤ the deadline of project : %s.';
 
 /* Statistics. */
 $lang->execution->charts = new stdclass();
@@ -416,6 +411,11 @@ $lang->execution->featureBar['all']['doing']     = $lang->execution->statusList[
 $lang->execution->featureBar['all']['suspended'] = $lang->execution->statusList['suspended'];
 $lang->execution->featureBar['all']['closed']    = $lang->execution->statusList['closed'];
 
+$lang->execution->featureBar['bug']['all']        = 'All';
+$lang->execution->featureBar['bug']['unresolved'] = 'Active';
+
+$lang->execution->featureBar['build']['all'] = 'Build List';
+
 $lang->execution->myExecutions = 'Tôi tham gia';
 $lang->execution->doingProject = 'Hiện trường';
 
@@ -435,5 +435,7 @@ $lang->execution->statusColorList['wait']      = '#0991FF';
 $lang->execution->statusColorList['doing']     = '#0BD986';
 $lang->execution->statusColorList['suspended'] = '#fdc137';
 $lang->execution->statusColorList['closed']    = '#838A9D';
+
+$lang->execution->teamWords  = 'đội';
 
 $lang->execution->boardColorList = array('#32C5FF', '#006AF1', '#9D28B2', '#FF8F26', '#7FBB00', '#424BAC', '#66c5f8', '#EC2761');

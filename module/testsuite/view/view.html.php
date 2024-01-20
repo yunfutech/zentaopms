@@ -2,8 +2,8 @@
 /**
  * The view file of testsuite module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Yidong Wang <yidong@cnezsoft.com>
  * @package     testsuite
  * @version     $Id: view.html.php 4141 2013-01-18 06:15:13Z zhujinyonging@gmail.com $
@@ -12,8 +12,13 @@
 ?>
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/tablesorter.html.php';?>
+<?php $this->app->loadLang('zanode');?>
 <?php js::set('confirmUnlink', $lang->testsuite->confirmUnlinkCase)?>
 <?php js::set('flow', $config->global->flow);?>
+<?php js::set('automation',     !empty($automation) ? $automation->id : 0);?>
+<?php js::set('runCaseConfirm', $lang->zanode->runCaseConfirm);?>
+<?php js::set('confirmURL',     $this->createLink('testtask', 'batchRun', "productID=$suite->product&orderBy=id_desc&from=testcase&taskID=0&confirm=yes"));?>
+<?php js::set('cancelURL',      $this->createLink('testtask', 'batchRun', "productID=$suite->product&orderBy=id_desc&from=testcase&taskID=0&confirm=no"));?>
 <div id='mainMenu' class='clearfix'>
   <div class='btn-toolbar pull-left'>
     <?php $browseLink = $this->session->testsuiteList ? $this->session->testsuiteList : $this->createLink('testsuite', 'browse', "productID=$suite->product");?>
@@ -31,11 +36,7 @@
     <?php
     if(!$suite->deleted and $canBeChanged)
     {
-        echo $this->buildOperateMenu($suite, 'view');
-
-        common::printLink('testsuite', 'linkCase', "suiteID=$suite->id", "<i class='icon icon-link'> </i> " . '', '', "class='btn btn-link' title='{$lang->testsuite->linkCase}'");
-        common::printIcon('testsuite', 'edit',     "suiteID=$suite->id");
-        common::printIcon('testsuite', 'delete',   "suiteID=$suite->id", '', 'button', 'trash', 'hiddenwin');
+        echo $this->testsuite->buildOperateMenu($suite, 'view');
     }
     ?>
   </div>
@@ -75,7 +76,7 @@
           <?php if($cases):?>
           <tbody>
             <?php foreach($cases as $case):?>
-            <tr>
+            <tr data-auto='<?php echo $case->auto;?>'>
               <td class='c-id'>
                 <?php if($hasCheckbox):?>
                 <?php echo html::checkbox('caseIDList', array($case->id => sprintf('%03d', $case->id)));?>
@@ -90,8 +91,8 @@
                 <?php echo html::a($this->createLink('testcase', 'view', "caseID=$case->id&version=$case->caseVersion"), $case->title);?>
               </td>
               <td><?php echo $lang->testcase->typeList[$case->type];?></td>
-              <td class='<?php echo $case->status;?>'><?php echo ($case->version < $case->caseVersion) ? "<span class='warning'>{$lang->testcase->changed}</span>" : $this->processStatus('testcase', $case);?></td>
-              <td class='<?php echo $case->lastRunResult;?>'><?php if($case->lastRunResult) echo $lang->testcase->resultList[$case->lastRunResult];?></td>
+              <td class='status-testcase status-<?php echo $case->status;?>'><?php echo ($case->version < $case->caseVersion) ? "<span class='warning'>{$lang->testcase->changed}</span>" : $this->processStatus('testcase', $case);?></td>
+              <td class='result-testcase <?php echo $case->lastRunResult;?>'><?php if($case->lastRunResult) echo $lang->testcase->resultList[$case->lastRunResult];?></td>
               <td><?php echo (common::hasPriv('testcase', 'bugs') and $case->bugs) ? html::a($this->createLink('testcase', 'bugs', "runID=0&caseID={$case->id}"), $case->bugs, '', "class='iframe'") : $case->bugs;?></td>
               <td><?php echo (common::hasPriv('testtask', 'results') and $case->results) ? html::a($this->createLink('testtask', 'results', "runID=0&caseID={$case->id}"), $case->results, '', "class='iframe'") : $case->results;?></td>
               <td><?php echo $case->stepNumber;?></td>
@@ -134,7 +135,7 @@
                 echo "<li>" . html::a('javascript:;', $lang->testsuite->unlinkCase, '', $misc) . "</li>";
 
                 $actionLink = $this->createLink('testtask', 'batchRun', "productID=$productID&orderBy=$orderBy");
-                $misc = common::hasPriv('testtask', 'batchRun') ? "onclick=\"setFormAction('$actionLink')\"" : $class;
+                $misc = common::hasPriv('testtask', 'batchRun') ? "onclick=\"confirmAction()\"" : $class;
                 echo "<li>" . html::a('#', $lang->testtask->runCase, '', $misc) . "</li>";
                 ?>
               </ul>
@@ -164,4 +165,54 @@
   </div>
   <?php endif;?>
 </div>
+<script>
+function runAutocase()
+{
+    var caseIDList = [];
+    $.each($('input[name^=caseIDList]:checked'),function(){
+        caseIDList.push($(this).val());
+    });
+
+    var url = createLink('zanode', 'ajaxRunZTFScript', 'scriptID=' + automation)
+
+    var postData = {'caseIDList' : caseIDList.join(',')};
+
+    var response = true;
+    $.post(url, postData, function(result)
+    {
+        if(result.result == 'fail')
+        {
+            alert(result.message);
+            response = false;
+        }
+    }, 'json');
+    return response;
+}
+
+function confirmAction(obj)
+{
+    var autoRun = 'no';
+    $.each($('input[name^=caseIDList]:checked'),function(){
+       var dataAuto = $(this).parents('tr').attr('data-auto');
+       if(dataAuto == 'auto') autoRun = dataAuto;
+    });
+
+    if(autoRun == 'no' || !automation)
+    {
+        setFormAction(cancelURL, '', '#caseList');
+        return false;
+    }
+
+    if(confirm(runCaseConfirm))
+    {
+        var result = runAutocase();
+        if(result) setFormAction(confirmURL, '', '#caseList');
+    }
+    else
+    {
+        setFormAction(cancelURL, '', '#caseList');
+    }
+    return false;
+}
+</script>
 <?php include '../../common/view/footer.html.php';?>

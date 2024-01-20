@@ -2,8 +2,8 @@
 /**
  * The html template file of index method of index module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2021 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2021 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Hao Sun <sunhao@cnezsoft.com>
  * @package     ZenTaoPMS
  * @version     $Id: index.html.php 1947 2011-06-29 11:58:03Z wwccss $
@@ -18,14 +18,15 @@ js::set('vision',        $config->vision);
 js::set('navGroup',      $lang->navGroup);
 js::set('appsLang',      $lang->index->app);
 js::set('appsMenuItems', commonModel::getMainNavList($app->rawModule));
-js::set('defaultOpen',   $open);
+js::set('defaultOpen',   (isset($open) and !empty($open)) ? $open : '');
 js::set('manualText',    $lang->manual);
 js::set('manualUrl',     ((!empty($config->isINT)) ? $config->manualUrl['int'] : $config->manualUrl['home']) . '&theme=' . $_COOKIE['theme']);
-js::set('showFeatures', $showFeatures);
+js::set('isAdminUser',   $this->app->user->admin);
 ?>
 <style>
 #versionTitle {margin: 8px 3px 0px 0px; background-image: url(<?php echo $config->webRoot . 'theme/default/images/main/version-upgrade.svg';?>);}
 .icon-version {width: 20px; height: 24px; margin: -4px 3px 0px 0px; background-image: url(<?php echo $config->webRoot . 'theme/default/images/main/version-new.svg';?>);}
+.icon-version:before {content:"";}
 .version-hr {margin-top: 15px; margin-bottom: 15px;}
 
 <?php if(empty($latestVersionList)):?>
@@ -44,6 +45,7 @@ js::set('showFeatures', $showFeatures);
 #searchbox .dropdown-menu.show-quick-go.with-active {min-height: 180px;}
 <?php endif;?>
 </style>
+<?php if(strpos($_SERVER['HTTP_USER_AGENT'], 'xuanxuan') === false):?>
 <div id='menu'>
   <nav id='menuNav'>
     <ul class='nav nav-default' id='menuMainNav'>
@@ -76,6 +78,7 @@ js::set('showFeatures', $showFeatures);
     </ul>
   </div>
 </div>
+<?php endif;?>
 <div id='apps'>
 </div>
 <div id='appsBar'>

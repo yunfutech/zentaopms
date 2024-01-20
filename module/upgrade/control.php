@@ -2,8 +2,8 @@
 /**
  * The control file of upgrade module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     upgrade
  * @version     $Id: control.php 5119 2013-07-12 08:06:42Z wyd621@gmail.com $
@@ -82,6 +82,20 @@ class upgrade extends control
     {
         $version = str_replace(array(' ', '.'), array('', '_'), $this->config->installedVersion);
         $version = strtolower($version);
+
+        if($this->config->visions == ',lite,')
+        {
+            $installedVersion = str_replace('.', '_', $this->config->installedVersion);
+            $version = array_search($installedVersion, $this->config->upgrade->liteVersion);
+
+            foreach($this->lang->upgrade->fromVersions as $key => $value)
+            {
+                if(strpos($key, 'lite') === false) unset($this->lang->upgrade->fromVersions[$key]);
+            }
+
+            $this->config->version = ($this->config->edition == 'biz' ? 'LiteVIP' : 'Lite') . $this->config->liteVersion;
+        }
+
         $this->view->title      = $this->lang->upgrade->common . $this->lang->colon . $this->lang->upgrade->selectVersion;
         $this->view->position[] = $this->lang->upgrade->common;
         $this->view->version    = $version;
@@ -96,12 +110,15 @@ class upgrade extends control
      */
     public function confirm()
     {
+        if(strpos($this->post->fromVersion, 'lite') !== false) $this->post->fromVersion = $this->config->upgrade->liteVersion[$this->post->fromVersion];
+        $confirmSql = $this->upgrade->getConfirm($this->post->fromVersion);
+        $confirmSql = str_replace('ENGINE=InnoDB', 'ENGINE=MyISAM', $confirmSql);
+
         $this->session->set('step', '');
         $this->view->title       = $this->lang->upgrade->confirm;
         $this->view->position[]  = $this->lang->upgrade->common;
-        $this->view->confirm     = $this->upgrade->getConfirm($this->post->fromVersion);
+        $this->view->confirm     = $confirmSql;
         $this->view->fromVersion = $this->post->fromVersion;
-
         /* When sql is empty then skip it. */
         if(empty($this->view->confirm)) $this->locate(inlink('execute', "fromVersion={$this->post->fromVersion}"));
 
@@ -131,82 +148,114 @@ class upgrade extends control
         }
 
         $fromVersion = isset($_POST['fromVersion']) ? $this->post->fromVersion : $fromVersion;
+        if(strpos($fromVersion, 'lite') !== false) $fromVersion = $this->config->upgrade->liteVersion[$fromVersion];
         $this->upgrade->execute($fromVersion);
 
         if(!$this->upgrade->isError())
         {
             $systemMode = $this->loadModel('setting')->getItem('owner=system&module=common&section=global&key=mode');
-            if((empty($systemMode) && !isset($this->config->qcVersion) && strpos($fromVersion, 'max') === false) or
-               ($systemMode != 'new' && strpos($fromVersion, 'max') === false && strpos($this->config->version, 'max') !== false))
+
+            /* Delete all patch actions if upgrade success. */
+            $this->loadModel('action')->deleteByType('patch');
+
+            $openVersion = $this->upgrade->getOpenVersion(str_replace('.', '_', $fromVersion));
+            $selectMode = true;
+
+            if($systemMode == 'classic')
             {
-                $this->locate(inlink('to15Guide', "fromVersion=$fromVersion"));
+                $this->loadModel('setting')->setItem('system.common.global.mode', 'light');
+
+                $programID = $this->loadModel('program')->createDefaultProgram();
+                $this->loadModel('setting')->setItem('system.common.global.defaultProgram', $programID);
+
+                /* Set default program for product and project with no program. */
+                $this->upgrade->relateDefaultProgram($programID);
+
+                $_POST['projectType'] = 'execution';
+                $this->upgrade->upgradeInProjectMode($programID, $systemMode);
+
+                $this->upgrade->computeObjectMembers();
+                $this->upgrade->initUserView();
+                $this->upgrade->setDefaultPriv();
+                $this->dao->update(TABLE_CONFIG)->set('value')->eq('0_0')->where('`key`')->eq('productProject')->exec();
+
+                $hourPoint = $this->loadModel('setting')->getItem('owner=system&module=custom&key=hourPoint');
+                if(empty($hourPoint)) $this->setting->setItem('system.custom.hourPoint', 0);
+
+                $sprints = $this->dao->select('id')->from(TABLE_PROJECT)->where('type')->eq('sprint')->fetchAll('id');
+                $this->dao->update(TABLE_ACTION)->set('objectType')->eq('execution')->where('objectID')->in(array_keys($sprints))->andWhere('objectType')->eq('project')->exec();
+
+                $this->loadModel('custom')->disableFeaturesByMode('light');
+
+                $selectMode = false;
             }
+            if(version_compare($openVersion, '15_0_rc1', '>=') and $systemMode == 'new')
+            {
+                $this->loadModel('setting')->setItem('system.common.global.mode', 'ALM');
+                if(empty($this->config->URAndSR)) $this->setting->setItem('system.common.closedFeatures', 'productUR');
+                $selectMode = false;
+            }
+            if(version_compare($openVersion, '18_0_beta1', '>=')) $selectMode = false;
+
+            if($selectMode) $this->locate(inlink('to18Guide', "fromVersion=$fromVersion"));
+
             $this->locate(inlink('afterExec', "fromVersion=$fromVersion"));
         }
 
-        $this->view->result = 'fail';
+        $this->view->result = 'sqlFail';
         $this->view->errors = $this->upgrade->getError();
         $this->display();
     }
 
     /**
-     * Guide to 15 version.
+     * Guide to 18 version.
      *
      * @param  string    $fromVersion
      * @access public
      * @return void
      */
-    public function to15Guide($fromVersion)
+    public function to18Guide($fromVersion)
     {
         if($_POST)
         {
             $mode = fixer::input('post')->get('mode');
             $this->loadModel('setting')->setItem('system.common.global.mode', $mode);
+            $this->loadModel('custom')->disableFeaturesByMode($mode);
 
             /* Update sprint concept. */
             $sprintConcept = 0;
             if(isset($this->config->custom->sprintConcept))
             {
-                if($this->config->custom->sprintConcept == 2 and $mode == 'new') $sprintConcept = 1;
+                if($this->config->custom->sprintConcept == 2) $sprintConcept = 1;
             }
             elseif(isset($this->config->custom->productProject))
             {
                 list($productConcept, $projectConcept) = explode('_', $this->config->custom->productProject);
-                if($mode == 'classic') $sprintConcept = $projectConcept;
-                if($mode == 'new' and $projectConcept == 2) $sprintConcept = 1;
+                if($projectConcept == 2) $sprintConcept = 1;
             }
             $this->setting->setItem('system.custom.sprintConcept', $sprintConcept);
 
-            if($mode == 'classic') $this->locate(inlink('afterExec', "fromVersion=$fromVersion"));
-            if($mode == 'new')     $this->locate(inlink('mergeTips'));
+            $openVersion = $this->upgrade->getOpenVersion(str_replace('.', '_', $fromVersion));
+            if($mode == 'light')
+            {
+                $programID = $this->loadModel('program')->createDefaultProgram();
+                $this->loadModel('setting')->setItem('system.common.global.defaultProgram', $programID);
+
+                /* Set default program for product and project with no program. */
+                $this->upgrade->relateDefaultProgram($programID);
+
+            }
+
+            $this->locate(inlink('selectMergeMode', "fromVersion=$fromVersion&mode=$mode"));
         }
 
-        $title = $this->lang->upgrade->toPMS15Guide;
-        if($this->config->edition == 'max')
-        {
-            $this->lang->upgrade->to15Desc = str_replace('15.0', $this->lang->maxName, $this->lang->upgrade->to15Desc);
-            $title = $this->lang->upgrade->toMAXGuide;
-        }
-        elseif($this->config->edition == 'biz')
-        {
-            $this->lang->upgrade->to15Desc = str_replace('15', $this->lang->bizName . '5', $this->lang->upgrade->to15Desc);
-            $title = $this->lang->upgrade->toBIZ5Guide;
-        }
+        list($disabledFeatures, $enabledScrumFeatures, $disabledScrumFeatures) = $this->loadModel('custom')->computeFeatures();
 
-        $this->view->title = $title;
-        $this->display();
-    }
-
-    /**
-     * Merge program tips.
-     *
-     * @access public
-     * @return void
-     */
-    public function mergeTips()
-    {
-        $this->loadModel('setting')->setItem('system.common.global.upgradeStep', 'mergeProgram');
-        $this->view->title = $this->lang->upgrade->mergeTips;
+        $this->view->title                 = $this->lang->custom->selectUsage;
+        $this->view->edition               = $this->config->edition;
+        $this->view->disabledFeatures      = $disabledFeatures;
+        $this->view->enabledScrumFeatures  = $enabledScrumFeatures;
+        $this->view->disabledScrumFeatures = $disabledScrumFeatures;
         $this->display();
     }
 
@@ -221,6 +270,8 @@ class upgrade extends control
      */
     public function mergeProgram($type = 'productline', $programID = 0, $projectType = 'project')
     {
+        set_time_limit(0);
+
         $this->session->set('upgrading', true);
         $this->app->loadLang('program');
         $this->app->loadLang('project');
@@ -279,7 +330,7 @@ class upgrade extends control
                 }
 
                 /* When upgrading historical data as a project, handle products that are not linked with the project. */
-                if(!empty($singleProducts)) $this->upgrade->computeProductAcl($singleProducts, $programID);
+                if(!empty($singleProducts)) $this->upgrade->computeProductAcl($singleProducts, $programID, $lineID);
 
                 /* Process unlinked sprint and product. */
                 foreach($linkedProducts as $productID => $product)
@@ -334,7 +385,7 @@ class upgrade extends control
                 }
 
                 /* When upgrading historical data as a project, handle products that are not linked with the project. */
-                if(!empty($singleProducts)) $this->upgrade->computeProductAcl($singleProducts, $programID);
+                if(!empty($singleProducts)) $this->upgrade->computeProductAcl($singleProducts, $programID, $lineID);
             }
             elseif($type == 'sprint')
             {
@@ -401,7 +452,7 @@ class upgrade extends control
 
         /* Get no merged product and project count. */
         $noMergedProductCount = $this->dao->select('count(*) as count')->from(TABLE_PRODUCT)->where('program')->eq(0)->andWhere('vision')->eq('rnd')->fetch('count');
-        $noMergedSprintCount  = $this->dao->select('count(*) as count')->from(TABLE_PROJECT)->where('grade')->eq(0)->andWhere('vision')->eq('rnd')->andWhere('path')->eq('')->andWhere('type')->ne('program')->andWhere('deleted')->eq(0)->fetch('count');
+        $noMergedSprintCount  = $this->dao->select('count(*) as count')->from(TABLE_PROJECT)->where('vision')->eq('rnd')->andWhere('project')->eq(0)->andWhere('type')->eq('sprint')->andWhere('deleted')->eq(0)->fetch('count');
 
         /* When all products and projects merged then finish and locate afterExec page. */
         if(empty($noMergedProductCount) and empty($noMergedSprintCount))
@@ -423,6 +474,8 @@ class upgrade extends control
 
         $this->view->noMergedProductCount = $noMergedProductCount;
         $this->view->noMergedSprintCount  = $noMergedSprintCount;
+
+        $systemMode = $this->loadModel('setting')->getItem('owner=system&module=common&section=global&key=mode');
 
         $this->loadModel('project');
         $this->view->type = $type;
@@ -502,11 +555,15 @@ class upgrade extends control
             }
 
             /* Get products that are not merged by sprints. */
-            $noMergedProducts = $this->dao->select('t1.*')->from(TABLE_PRODUCT)->alias('t1')
-                ->leftJoin(TABLE_PROJECTPRODUCT)->alias('t2')->on('t1.id=t2.product')
-                ->where('t2.project')->in(array_keys($noMergedSprints))
-                ->andWhere('t1.vision')->eq('rnd')
-                ->fetchAll('id');
+            $noMergedProducts = array();
+            if($noMergedSprints)
+            {
+                $noMergedProducts = $this->dao->select('t1.*')->from(TABLE_PRODUCT)->alias('t1')
+                    ->leftJoin(TABLE_PROJECTPRODUCT)->alias('t2')->on('t1.id=t2.product')
+                    ->where('t2.project')->in(array_keys($noMergedSprints))
+                    ->andWhere('t1.vision')->eq('rnd')
+                    ->fetchAll('id');
+            }
 
             /* Add products without sprints. */
             $noMergedProducts += $this->dao->select('*')->from(TABLE_PRODUCT)->where('program')->eq(0)->andWhere('vision')->eq('rnd')->fetchAll('id');
@@ -532,9 +589,9 @@ class upgrade extends control
         if($type == 'sprint')
         {
             $noMergedSprints = $this->dao->select('*')->from(TABLE_PROJECT)
-                ->where('parent')->eq(0)
-                ->andWhere('path')->eq('')
+                ->where('project')->eq(0)
                 ->andWhere('vision')->eq('rnd')
+                ->andWhere('type')->eq('sprint')
                 ->andWhere('deleted')->eq(0)
                 ->orderBy('id_desc')
                 ->fetchAll('id');
@@ -545,15 +602,16 @@ class upgrade extends control
             if(empty($noMergedSprints)) $this->locate($this->createLink('upgrade', 'mergeProgram', "type=moreLink"));
 
             $this->view->noMergedSprints = $noMergedSprints;
+            if(!$programID && $systemMode == 'light') $programID = $this->loadModel('setting')->getItem('owner=system&module=common&section=global&key=defaultProgram');
         }
 
         /* Get no merged projects that link more then two products. */
         if($type == 'moreLink')
         {
             $noMergedSprints = $this->dao->select('*')->from(TABLE_PROJECT)
-                ->where('parent')->eq(0)
+                ->where('project')->eq(0)
                 ->andWhere('vision')->eq('rnd')
-                ->andWhere('path')->eq('')
+                ->andWhere('type')->eq('sprint')
                 ->andWhere('deleted')->eq(0)
                 ->orderBy('id_desc')
                 ->fetchAll('id');
@@ -600,7 +658,51 @@ class upgrade extends control
         $this->view->lines       = $currentProgramID ? array('' => '') + $this->loadModel('product')->getLinePairs($currentProgramID) : array('' => '');
         $this->view->users       = $this->loadModel('user')->getPairs('noclosed|noempty');
         $this->view->groups      = $this->loadModel('group')->getPairs();
+        $this->view->systemMode  = $systemMode;
         $this->view->projectType = $projectType;
+        $this->display();
+    }
+
+    /**
+     * Select the merge mode when upgrading to zentaopms 18.0.
+     *
+     * @param  string  $fromVersion
+     * @param  string  $mode   light | ALM
+     * @access public
+     * @return void
+     */
+    public function selectMergeMode($fromVersion, $mode = 'light')
+    {
+        if($_POST)
+        {
+            $mergeMode = $this->post->projectType;
+            if($mergeMode == 'manually') $this->locate(inlink('mergeProgram'));
+
+            if($mode == 'light') $programID = $this->loadModel('setting')->getItem('owner=system&module=common&section=global&key=defaultProgram');
+            if($mode == 'ALM')   $programID = $this->loadModel('program')->createDefaultProgram();
+
+            if($mergeMode == 'project')   $this->upgrade->upgradeInProjectMode($programID);
+            if($mergeMode == 'execution') $this->upgrade->upgradeInExecutionMode($programID);
+
+            if(dao::isError()) return print(js::error(dao::getError()));
+
+            $this->upgrade->computeObjectMembers();
+            $this->upgrade->initUserView();
+            $this->upgrade->setDefaultPriv();
+            $this->dao->update(TABLE_CONFIG)->set('value')->eq('0_0')->where('`key`')->eq('productProject')->exec();
+
+            $hourPoint = $this->loadModel('setting')->getItem('owner=system&module=custom&key=hourPoint');
+            if(empty($hourPoint)) $this->setting->setItem('system.custom.hourPoint', 0);
+
+            $sprints = $this->dao->select('id')->from(TABLE_PROJECT)->where('type')->eq('sprint')->fetchAll('id');
+            $this->dao->update(TABLE_ACTION)->set('objectType')->eq('execution')->where('objectID')->in(array_keys($sprints))->andWhere('objectType')->eq('project')->exec();
+
+            if(dao::isError()) return print(js::error(dao::getError()));
+            $this->locate(inlink('afterExec', "fromVersion=$fromVersion"));
+        }
+        $this->view->title       = $this->lang->upgrade->selectMergeMode;
+        $this->view->fromVersion = $fromVersion;
+        $this->view->systemMode  = $mode;
         $this->display();
     }
 
@@ -623,7 +725,7 @@ class upgrade extends control
                 $this->dao->update(TABLE_PROJECT)->set('name')->eq($projectName)->where('id')->eq($projectID)->exec();
             }
 
-            return print(js::closeModal('parent.parent', ''));
+            return print(js::reload('parent.parent', ''));
         }
 
         $objectGroup = array();
@@ -718,7 +820,7 @@ class upgrade extends control
         }
 
         $extFiles = $this->upgrade->getExtFiles();
-        if(!empty($extFiles) and $skipMoveFile == 'no') return $this->locate(inlink('moveExtFiles', "fromVersion=$fromVersion"));
+        if(!empty($extFiles) and $skipMoveFile == 'no') return print(js::locate(inlink('moveExtFiles', "fromVersion=$fromVersion")));
 
         $response = $this->upgrade->removeEncryptedDir();
         if($response['result'] == 'fail')
@@ -765,6 +867,7 @@ class upgrade extends control
     {
         set_time_limit(0);
         $alterSQL = $this->upgrade->checkConsistency();
+        $alterSQL = str_replace('ENGINE=InnoDB', 'ENGINE=MyISAM', $alterSQL);
         if(empty($alterSQL))
         {
             if(!$netConnect) $this->locate(inlink('selectVersion'));

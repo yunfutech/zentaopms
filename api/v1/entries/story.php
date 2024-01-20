@@ -2,21 +2,21 @@
 /**
  * The story entry point of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2021 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2021 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     entries
  * @version     1
  * @link        http://www.zentao.net
  */
-class storyEntry extends Entry
+class storyEntry extends entry
 {
     /**
      * GET method.
      *
      * @param  int    $storyID
      * @access public
-     * @return void
+     * @return string
      */
     public function get($storyID)
     {
@@ -36,8 +36,9 @@ class storyEntry extends Entry
         if(isset($story->planTitle)) $story->planTitle = array_values((array)$story->planTitle);
         if($story->parent > 0) $story->parentPri = $this->dao->select('pri')->from(TABLE_STORY)->where('id')->eq($story->parent)->fetch('pri');
 
-        /* Set product name */
-        $story->productName = $data->data->product->name;
+        /* Set product name and status*/
+        $story->productName   = $data->data->product->name;
+        $story->productStatus = $data->data->product->status;
 
         /* Set module title */
         $moduleTitle = '';
@@ -80,7 +81,7 @@ class storyEntry extends Entry
         $story->preAndNext['pre']  = $preAndNext->pre  ? $preAndNext->pre->id : '';
         $story->preAndNext['next'] = $preAndNext->next ? $preAndNext->next->id : '';
 
-        $this->send(200, $this->format($story, 'openedBy:user,openedDate:time,assignedTo:user,assignedDate:time,reviewedBy:user,reviewedDate:time,lastEditedBy:user,lastEditedDate:time,closedBy:user,closedDate:time,deleted:bool,mailto:userList'));
+        return $this->send(200, $this->format($story, 'openedBy:user,openedDate:time,assignedTo:user,assignedDate:time,reviewedBy:user,reviewedDate:time,lastEditedBy:user,lastEditedDate:time,closedBy:user,closedDate:time,deleted:bool,mailto:userList'));
     }
 
     /**
@@ -88,20 +89,18 @@ class storyEntry extends Entry
      *
      * @param  int    $storyID
      * @access public
-     * @return void
+     * @return string
      */
     public function put($storyID)
     {
         $oldStory = $this->loadModel('story')->getByID($storyID);
 
         /* Set $_POST variables. */
-        $fields = 'title,product,reviewer,type,plan,module,source,sourceNote,category,pri,estimate,mailto,keywords,uid,stage,notifyEmail';
+        $fields = 'title,product,parent,reviewer,type,plan,module,source,sourceNote,category,pri,estimate,mailto,keywords,uid,stage,notifyEmail';
         $this->batchSetPost($fields, $oldStory);
-        $this->setPost('parent', 0);
 
         $control = $this->loadController('story', 'edit');
         $control->edit($storyID);
-
 
         $data = $this->getData();
 
@@ -109,7 +108,7 @@ class storyEntry extends Entry
         if(!isset($data->status)) return $this->sendError(400, 'error');
 
         $story = $this->story->getByID($storyID);
-        $this->send(200, $this->format($story, 'openedBy:user,openedDate:time,assignedTo:user,assignedDate:time,reviewedBy:user,reviewedDate:time,lastEditedBy:user,lastEditedDate:time,closedBy:user,closedDate:time,deleted:bool,mailto:userList'));
+        return $this->send(200, $this->format($story, 'openedBy:user,openedDate:time,assignedTo:user,assignedDate:time,reviewedBy:user,reviewedDate:time,lastEditedBy:user,lastEditedDate:time,closedBy:user,closedDate:time,deleted:bool,mailto:userList'));
     }
 
     /**
@@ -117,7 +116,7 @@ class storyEntry extends Entry
      *
      * @param  int    $storyID
      * @access public
-     * @return void
+     * @return string
      */
     public function delete($storyID)
     {
@@ -125,6 +124,6 @@ class storyEntry extends Entry
         $control->delete($storyID, 'yes');
 
         $this->getData();
-        $this->sendSuccess(200, 'success');
+        return $this->sendSuccess(200, 'success');
     }
 }

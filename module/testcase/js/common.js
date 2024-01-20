@@ -47,10 +47,11 @@ function loadBranch()
  */
 function loadProductBranches(productID)
 {
-    var param = '';
-    if(page == 'create') param = 'active';
     $('#branch').remove();
-    var param = "productID=" + productID + "&oldBranch=0&param=" + param;
+
+    var param     = page == 'create' ? 'active' : 'all';
+    var oldBranch = page == 'edit' ? caseBranch : 0;
+    var param     = "productID=" + productID + "&oldBranch=" + oldBranch + "&param=" + param;
     if(typeof(tab) != 'undefined' && (tab == 'execution' || tab == 'project')) param += "&projectID=" + objectID;
     $.get(createLink('branch', 'ajaxGetBranches', param), function(data)
     {
@@ -88,15 +89,16 @@ function loadProductModules(productID, branch)
     if(typeof(branch) == 'undefined') branch = $('#branch').val();
     if(!branch) branch = 0;
     var currentModuleID = config.currentMethod == 'edit' ? $('#module').val() : 0;
-    link = createLink('tree', 'ajaxGetOptionMenu', 'productID=' + productID + '&viewtype=case&branch=' + branch + '&rootModuleID=0&returnType=html&fieldID=&needManage=true&extra=&currentModuleID=' + currentModuleID);
+    link = createLink('tree', 'ajaxGetOptionMenu', 'productID=' + productID + '&viewtype=case&branch=' + branch + '&rootModuleID=0&returnType=html&fieldID=&needManage=true&extra=nodeleted&currentModuleID=' + currentModuleID);
     $('#moduleIdBox').load(link, function()
     {
         var $inputGroup = $(this);
         $inputGroup.find('select').chosen()
         if(typeof(caseModule) == 'string') $('#moduleIdBox').prepend("<span class='input-group-addon'>" + caseModule + "</span>");
         $inputGroup.fixInputGroup();
+
+        setStories();
     });
-    setStories();
 }
 
 /**
@@ -130,17 +132,17 @@ function setStories()
     productID = $('#product').val();
     branch    = $('#branch').val();
     if(typeof(branch) == 'undefined') branch = 0;
-    link = createLink('story', 'ajaxGetProductStories', 'productID=' + productID + '&branch=' + branch + '&moduleID=' + moduleID + '&storyID=0&onlyOption=false&status=noclosed&limit=50&type=full&hasParent=1&executionID=' + executionID);
+    link = createLink('story', 'ajaxGetProductStories', 'productID=' + productID + '&branch=' + branch + '&moduleID=' + moduleID + '&storyID=0&onlyOption=false&status=noclosed&limit=0&type=full&hasParent=1&executionID=' + executionID);
 
     $.get(link, function(stories)
     {
         var value = $('#story').val();
         if(!stories) stories = '<select id="story" name="story"></select>';
         $('#story').replaceWith(stories);
-        $('#story').val(value);
+        $('#story').val(value).attr('onchange', 'setPreview()');
         $('#story_chosen').remove();
         $('#story').next('.picker').remove();
-        $("#story").chosen();
+        $("#story").picker();
     });
 }
 
@@ -361,21 +363,67 @@ function updateStepID()
  */
 function loadStories(productID, moduleID, num)
 {
-    var branchIDName = config.currentMethod == 'batchcreate' ? '#branch' : '#branches';
+    var branchIDName = (config.currentMethod == 'batchcreate' || config.currentMethod == 'showimport') ? '#branch' : '#branches';
     var branchID     = $(branchIDName + num).val();
-    var storyLink    = createLink('story', 'ajaxGetProductStories', 'productID=' + productID + '&branch=' + branchID + '&moduleID=' + moduleID + '&storyID=0&onlyOption=false&status=noclosed&limit=50&type=full&hasParent=1&executionID=0&number=' + num);
+    var storyLink    = createLink('story', 'ajaxGetProductStories', 'productID=' + productID + '&branch=' + branchID + '&moduleID=' + moduleID + '&storyID=0&onlyOption=false&status=noclosed&limit=0&type=full&hasParent=1&executionID=0&number=' + num);
     $.get(storyLink, function(stories)
     {
-        if(!stories) modules = '<select id="story' + num + '" name="story[' + num + ']" class="form-control"></select>';
-        for(var i = num; i < 10 ; i ++)
+        if(!stories) stories = '<select id="story' + num + '" name="story[' + num + ']" class="form-control"></select>';
+        if(config.currentMethod == 'batchcreate')
         {
-            if(i != num && $('#module' + i).val() != 'ditto') break;
-            var nowStories = stories.replaceAll('story' + num, 'story' + i);
-            $('#story' + i).replaceWith(nowStories);
-            $('#story' + i + "_chosen").remove();
-            $('#story' + i).next('.picker').remove();
-            $('#story' + i).attr('name', 'story[' + i + ']');
-            $('#story' + i).chosen();
+            for(var i = num; i <= rowIndex ; i ++)
+            {
+                if(i != num && $('#module' + i).val() != 'ditto') break;
+                var nowStories = stories.replaceAll('story' + num, 'story' + i);
+                $('#story' + i).replaceWith(nowStories);
+                $('#story' + i + "_chosen").remove();
+                $('#story' + i).next('.picker').remove();
+                $('#story' + i).attr('name', 'story[' + i + ']');
+                $('#story' + i).picker();
+            }
+        }
+        else
+        {
+            $('#story' + num).replaceWith(stories);
+            $('#story' + num + "_chosen").remove();
+            $('#story' + num).next('.picker').remove();
+            $('#story' + num).attr('name', 'story[' + num + ']');
+            $('#story' + num).picker();
         }
     });
+}
+
+/**
+ * Set modules.
+ *
+ * @param  int     $branchID
+ * @param  int     $productID
+ * @param  int     $num
+ * @access public
+ * @return void
+ */
+function setModules(branchID, productID, num)
+{
+    moduleLink = createLink('tree', 'ajaxGetModules', 'productID=' + productID + '&viewType=case&branch=' + branchID + '&num=' + num);
+    $.get(moduleLink, function(modules)
+    {
+        if(!modules) modules = '<select id="module' + num + '" name="module[' + num + ']" class="form-control"></select>';
+        $('#module' + num).replaceWith(modules);
+        $("#module" + num + "_chosen").remove();
+        $("#module" + num).next('.picker').remove();
+        $("#module" + num).attr('onchange', "loadStories("+ productID + ", this.value, " + num + ")").chosen();
+    });
+
+    loadStories(productID, 0, num);
+
+    /* If the branch of the current row is inconsistent with the one below, clear the module and story of the nex row. */
+    var nextBranchID = $('#branch' + (num + 1)).val();
+    if(nextBranchID != branchID)
+    {
+        $('#module' + (num + 1)).find("option[value='ditto']").remove();
+        $('#module' + (num + 1)).trigger("chosen:updated");
+
+        $('#plan' + (num + 1)).find("option[value='ditto']").remove();
+        $('#plan' + (num + 1)).trigger("chosen:updated");
+    }
 }

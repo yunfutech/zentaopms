@@ -2,21 +2,21 @@
 /**
  * The task entry point of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2021 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2021 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     entries
  * @version     1
  * @link        http://www.zentao.net
  */
-class taskEntry extends Entry
+class taskEntry extends entry
 {
     /**
      * GET method.
      *
      * @param  int    $taskID
      * @access public
-     * @return void
+     * @return string
      */
     public function get($taskID)
     {
@@ -87,7 +87,10 @@ class taskEntry extends Entry
         $task->preAndNext['pre']  = $preAndNext->pre  ? $preAndNext->pre->id : '';
         $task->preAndNext['next'] = $preAndNext->next ? $preAndNext->next->id : '';
 
-        $this->send(200, $this->format($task, 'deadline:date,openedBy:user,openedDate:time,assignedTo:user,assignedDate:time,realStarted:time,finishedBy:user,finishedDate:time,closedBy:user,closedDate:time,canceledBy:user,canceledDate:time,lastEditedBy:user,lastEditedDate:time,deleted:bool,mailto:userList'));
+        $execution             = $this->loadModel('project')->getByID($task->execution, 'execution,sprint');
+        $task->executionStatus = $execution->status;
+
+        return $this->send(200, $this->format($task, 'deadline:date,openedBy:user,openedDate:time,assignedTo:user,assignedDate:time,realStarted:time,finishedBy:user,finishedDate:time,closedBy:user,closedDate:time,canceledBy:user,canceledDate:time,lastEditedBy:user,lastEditedDate:time,deleted:bool,mailto:userList'));
     }
 
     /**
@@ -95,14 +98,14 @@ class taskEntry extends Entry
      *
      * @param  int    $taskID
      * @access public
-     * @return void
+     * @return string
      */
     public function put($taskID)
     {
         $oldTask = $this->loadModel('task')->getByID($taskID);
 
         /* Set $_POST variables. */
-        $fields = 'name,type,desc,assignedTo,pri,estimate,left,consumed,story,parent,execution,module,closedReason,status,estStarted,deadline,team,teamEstimate,multiple,mailto,uid';
+        $fields = 'name,type,desc,assignedTo,pri,estimate,left,consumed,story,parent,execution,module,closedReason,status,estStarted,deadline,team,teamEstimate,teamConsumed,teamLeft,multiple,mailto,uid';
         $this->batchSetPost($fields, $oldTask);
 
         $control = $this->loadController('task', 'edit');
@@ -111,7 +114,7 @@ class taskEntry extends Entry
         $data = $this->getData();
         if(isset($data->status) and $data->status == 'fail') return $this->sendError(zget($data, 'code', 400), $data->message);
         $task = $this->task->getByID($taskID);
-        $this->send(200, $this->format($task, 'deadline:date,openedBy:user,openedDate:time,assignedTo:user,assignedDate:time,realStarted:time,finishedBy:user,finishedDate:time,closedBy:user,closedDate:time,canceledBy:user,canceledDate:time,lastEditedBy:user,lastEditedDate:time,deleted:bool,mailto:userList'));
+        return $this->send(200, $this->format($task, 'deadline:date,openedBy:user,openedDate:time,assignedTo:user,assignedDate:time,realStarted:time,finishedBy:user,finishedDate:time,closedBy:user,closedDate:time,canceledBy:user,canceledDate:time,lastEditedBy:user,lastEditedDate:time,deleted:bool,mailto:userList'));
     }
 
     /**
@@ -119,7 +122,7 @@ class taskEntry extends Entry
      *
      * @param  int    $taskID
      * @access public
-     * @return void
+     * @return string
      */
     public function delete($taskID)
     {
@@ -127,6 +130,6 @@ class taskEntry extends Entry
         $control->delete(0, $taskID, 'true');
 
         $this->getData();
-        $this->sendSuccess(200, 'success');
+        return $this->sendSuccess(200, 'success');
     }
 }

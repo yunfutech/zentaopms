@@ -2,6 +2,16 @@
 <?php
 include dirname(dirname(dirname(__FILE__))) . '/lib/init.php';
 include dirname(dirname(dirname(__FILE__))) . '/class/program.class.php';
+su('admin');
+
+$program = zdTable('project');
+$program->id->range('1');
+$program->name->range('项目集1');
+$program->type->range('program');
+$program->path->range('1')->prefix(',')->postfix(',');
+$program->begin->range('20220112 000000:0')->type('timestamp')->format('YY/MM/DD');
+$program->end->range('20220212 000000:0')->type('timestamp')->format('YY/MM/DD');
+$program->gen(1);
 
 /**
 
@@ -9,21 +19,46 @@ title=测试 programModel::update();
 cid=1
 pid=1
 
-更新id为10的项目集信息 >> 测试更新项目集十
+正常更新项目集的情况 >> 测试更新项目集
+更新项目集名称为空时 >> 『项目集名称』不能为空。
 当计划开始为空时更新项目集信息 >> 『计划开始』不能为空。
 当计划完成为空时更新项目集信息 >> 『计划完成』不能为空。
-当计划完成小于计划开始时 >> 『计划完成』应当大于『2020-10-10』。
-项目集名称已经存在时 >> 『项目集名称』已经有『项目集1』这条记录了。如果您确定该记录已删除，请到后台-系统-数据-回收站还原。
-项目集开始时间小于父项目集时 >> 父项目集的开始日期：2019-09-09，开始日期不能小于父项目集的开始日期;父项目集的完成日期：2019-09-09，完成日期不能大于父项目集的完成日期
+更新未开始的项目集实际开始时间 >> doing
 
 */
 
-$t = new Program('admin');
+$programTester = new programTest();
 
-r($t->updateProgram(10))    && p('message:end')               && e('测试更新项目集十'); // 更新id为10的项目集信息
-r($t->updateProgram(10, 2)) && p('message[begin]:0')          && e('『计划开始』不能为空。'); //当计划开始为空时更新项目集信息
-r($t->updateProgram(10, 3)) && p('message[end]:0')            && e('『计划完成』不能为空。'); //当计划完成为空时更新项目集信息
-r($t->updateProgram(10, 4)) && p('message[end]:0')            && e('『计划完成』应当大于『2020-10-10』。'); //当计划完成小于计划开始时
-r($t->updateProgram(10, 1)) && p('message[name]:0')           && e('『项目集名称』已经有『项目集1』这条记录了。如果您确定该记录已删除，请到后台-系统-数据-回收站还原。'); //项目集名称已经存在时
-r($t->updateProgram(10, 5)) && p('message:begin;message:end') && e('父项目集的开始日期：2019-09-09，开始日期不能小于父项目集的开始日期;父项目集的完成日期：2019-09-09，完成日期不能大于父项目集的完成日期');// 项目集开始时间小于父项目集时
-system("./ztest init");
+$data = array(
+    'parent'       => '0',
+    'name'         => '测试更新项目集',
+    'begin'        => '2020-10-10',
+    'end'          => '2023-09-03',
+    'acl'          => 'private',
+    'budget'       => '100',
+    'status'       => 'wait',
+    'budgetUnit'   => 'CNY',
+    'syncPRJUnit'  => true,
+    'exchangeRate' => '',
+    'whitelist'    => array('dev10', 'dev12')
+);
+
+$normalProgram = $data;
+
+$emptyTitleProgram = $data;
+$emptyTitleProgram['name'] = '';
+
+$emptyBeginProgram = $data;
+$emptyBeginProgram['begin'] = '';
+
+$emptyEndProgram = $data;
+$emptyEndProgram['end'] = '';
+
+$realBeganProgram = $data;
+$realBeganProgram['realBegan'] = '2020-11-10';
+
+r($programTester->updateTest(1, $normalProgram))      && p('name')              && e('测试更新项目集');           // 正常更新项目集的情况
+r($programTester->updateTest(1, $emptyTitleProgram))  && p('message[name]:0')   && e('『项目集名称』不能为空。'); // 更新项目集名称为空时
+r($programTester->updateTest(1, $emptyBeginProgram))  && p('message[begin]:0')  && e('『计划开始』不能为空。');   // 当计划开始为空时更新项目集信息
+r($programTester->updateTest(1, $emptyEndProgram))    && p('message[end]:0')    && e('『计划完成』不能为空。');   // 当计划完成为空时更新项目集信息
+r($programTester->updateTest(1, $realBeganProgram))   && p('status')            && e('doing');                    // 更新未开始的项目集实际开始时间

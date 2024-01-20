@@ -2,8 +2,8 @@
 /**
  * The link bug view of productplan module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     productplan
  * @version     $Id: linkbug.html.php 5096 2013-07-11 07:02:43Z chencongzhi520@gmail.com $
@@ -41,7 +41,7 @@
           <td class='c-id text-left'>
             <?php echo html::checkbox('bugs', array($bug->id => sprintf('%03d', $bug->id)));?>
           </td>
-          <td><span class='label-pri label-pri-<?php echo $bug->pri;?>' title='<?php echo zget($lang->bug->priList, $bug->pri, $bug->pri)?>'><?php echo zget($lang->bug->priList, $bug->pri, $bug->pri)?></span></td>
+          <td><span class='<?php echo $bug->pri ? "label-pri label-pri-{$bug->pri}" : "";?>' title='<?php echo zget($lang->bug->priList, $bug->pri)?>'><?php echo zget($lang->bug->priList, $bug->pri)?></span></td>
           <td class='text-left nobr' title='<?php echo $bug->title?>'><?php echo html::a($this->createLink('bug', 'view', "bugID=$bug->id", '', true), $bug->title, '', "data-toggle='modal' data-type='iframe' data-width='90%'");?></td>
           <td><?php echo zget($users, $bug->openedBy);?></td>
           <td><?php echo zget($users, $bug->assignedTo);?></td>

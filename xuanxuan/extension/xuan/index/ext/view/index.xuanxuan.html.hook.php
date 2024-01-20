@@ -1,8 +1,6 @@
 <?php if(strpos($_SERVER['HTTP_USER_AGENT'], 'xuanxuan') != false): ?>
 <style>
-#menu {display: none!important;}
-#appsBar,
-#apps {left: 0!important;}
+#appsBar, #apps {left: 0!important;}
 </style>
 <script>
 $('html').addClass('xxc-embed');
@@ -10,7 +8,7 @@ $('html').addClass('xxc-embed');
 /** Update zentao client app menu */
 function updateAppMenu()
 {
-    const menuItems = appsMenuItems.map(function(item)
+    var menuItems = appsMenuItems.map(function(item)
     {
         if (item === 'divider') return '-';
         var $title = $('<div>' + item.title + '</div>');

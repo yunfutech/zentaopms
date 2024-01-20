@@ -2,7 +2,7 @@
 /**
  * The misc module English file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
  * @license  ZPL (http://zpl.pub/page/zplv12.html)
  * @author   Nguyễn Quốc Nho <quocnho@gmail.com>
  * @package  misc
@@ -59,7 +59,7 @@ $lang->misc->zentao->others['meshiot' ] = "<img src='{$config->webRoot}theme/def
 
 $lang->misc->mobile      = "Mobile Access";
 $lang->misc->noGDLib     = "Please visit <strong>%s</strong> in the browser of your phone.";
-$lang->misc->copyright   = "&copy; 2009 - 2019 <a href='http://easysoft.ltd' target='_blank'>Nature Easy Soft</a> Email <a href='mailto:Renee@easysoft.ltd'>Renee@easysoft.ltd</a>";
+$lang->misc->copyright   = "&copy; 2009 - " . date('Y') . " <a href='https://easysoft.ltd' target='_blank'>Nature Easy Soft</a> Email <a href='mailto:Renee@easysoft.ltd'>Renee@easysoft.ltd</a>";
 $lang->misc->checkTable  = "Check Data Table";
 $lang->misc->needRepair  = "Repair Table";
 $lang->misc->repairTable = "Database table might be damaged due to power outage. Vui lòng check and repair!";

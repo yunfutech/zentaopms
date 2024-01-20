@@ -297,7 +297,7 @@
         ],
         fontSizeTable: ['9px', '10px', '12px', '14px', '16px', '18px', '24px', '32px'],
         htmlTags: {
-            font: ['id', 'class', 'color', 'size', 'face', '.background-color'],
+            font: ['id', 'class', 'color', 'size', 'face', '.background-color', '.color', '.font-size', '.font-family'],
             span: [
                 'id', 'class', '.color', '.background-color', '.font-size', '.font-family', '.background',
                 '.font-weight', '.font-style', '.text-decoration', '.vertical-align', '.line-height'
@@ -7999,6 +7999,7 @@ KindEditor.plugin('lineheight', function(K) {
 KindEditor.plugin('link', function(K) {
     var self = this,
         name = 'link';
+    if (self.plugin.link) return;
     self.plugin.link = {
         edit: function() {
             var lang = self.lang(name + '.'),
@@ -10351,14 +10352,17 @@ KindEditor.plugin('pasteimage', function(K) {
                 var original = ev.originalEvent;
                 var clipboardItems = original.clipboardData && original.clipboardData.items;
                 var clipboardItem = null;
-                if(clipboardItems) {
+                if(clipboardItems)
+                {
                     var IMAGE_MIME_REGEX = /^image\/(p?jpeg|gif|png)$/i;
                     for (var i = 0; i < clipboardItems.length; i++)
                     {
-                        if (IMAGE_MIME_REGEX.test(clipboardItems[i].type))
+                        var dataType = clipboardItems[i].type;
+                        if(options.pasteTextFirst && dataType.indexOf('text/') === 0) return;
+                        if (IMAGE_MIME_REGEX.test(dataType))
                         {
                             clipboardItem = clipboardItems[i];
-                            break;
+                            if(!options.pasteTextFirst) break;
                         }
                     }
                 }

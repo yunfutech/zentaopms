@@ -59,15 +59,24 @@ $(document).on('click', '.chosen-with-drop', function()
     var select = $(this).prev('select');
     if($(select).val() == 'ditto')
     {
-        var index = $(select).closest('td').index();
-        var row   = $(select).closest('tr').index();
-        var table = $(select).closest('tr').parent();
-        var value = '';
-        for(i = row - 1; i >= 0; i--)
+        if($(select).attr('id').substr(0, 7) == 'visions')
         {
-            value = $(table).find('tr').eq(i).find('td').eq(index).find('select').val();
-            if(value != 'ditto') break;
+            /* Fix bug #19960. */
+            var value = '';
         }
+        else
+        {
+            var index = $(select).closest('td').index();
+            var row   = $(select).closest('tr').index();
+            var table = $(select).closest('tr').parent();
+            var value = '';
+            for(i = row - 1; i >= 0; i--)
+            {
+                value = $(table).find('tr').eq(i).find('td').eq(index).find('select').val();
+                if(value != 'ditto') break;
+            }
+        }
+
         $(select).val(value);
         $(select).trigger("chosen:updated");
     }
@@ -82,47 +91,150 @@ $(document).on('change', '[id^=visions]', function()
     }
 })
 
-$('select[id^="visions"]').each(function()
+var rndGroupSelect = liteGroupSelect = allGroupSelect = emptyGroupSelect = '';
+$.post(createLink('user', 'ajaxGetGroup', "visions=rnd&i=2"), function(data)
 {
-    var i      = $(this).attr('id').replace(/[^0-9]/ig, '');
+    rndGroupSelect = data;
     var vision = $('#visions1 option:selected').val();
+    if(vision == 'rnd') initGroup(data);
+});
+$.post(createLink('user', 'ajaxGetGroup', "visions=lite&i=2"), function(data)
+{
+    liteGroupSelect = data;
+    var vision = $('#visions1 option:selected').val();
+    if(vision == 'lite') initGroup(data);
+});
+$.post(createLink('user', 'ajaxGetGroup', "visions=rnd,lite&i=2"), function(data)
+{
+    allGroupSelect = data;
+});
+$.post(createLink('user', 'ajaxGetGroup', "visions=null&i=2"), function(data)
+{
+    emptyGroupSelect = data;
+});
 
-    $.post(createLink('user', 'ajaxGetGroup', "visions=" + vision + '&i=' + i + '&selected=' + $('#group' + i).val()), function(data)
+function initGroup(data)
+{
+    $('select[id^="visions"]').each(function()
     {
-         $('#group' + i).replaceWith(data);
-         $('#group' + i + '_chosen').remove();
-         $('#group' + i).chosen();
+        var i        = $(this).attr('id').replace(/[^0-9]/ig, '');
+        var groupVal = $('#group' + i).val();
+
+        var dataObj = $(data);
+        var dataHtml = $(dataObj).attr('id', 'group' + i).attr('name', 'group[' + i + '][]').prop('outerHTML');
+
+        $('#group' + i).replaceWith(dataHtml);
+        $('#group' + i + '_chosen').remove();
+        if(i == 1) $('#group' + i).find('option[value="ditto"]').remove();
+        $('#group' + i).val(groupVal);
+        $('#group' + i).chosen();
     })
-})
+}
+
+/**
+ * Get group data by selected vision.
+ *
+ * @param int $i
+ * @access public
+ * @return html
+ */
+function getGroupSelect(i)
+{
+    if(i < 1) return '';
+    var visions = $('select[id="visions' + i + '"]').val();
+
+    visions = visions ? visions.join() : '';
+    switch(visions)
+    {
+        case 'rnd':
+            var data = rndGroupSelect;
+            break;
+        case 'lite':
+            var data = liteGroupSelect;
+            break;
+        case 'rnd,lite':
+            var data = allGroupSelect;
+            break;
+        case 'ditto':
+            var data = getGroupSelect(i - 1);
+            break;
+        default:
+            var data = emptyGroupSelect;
+            break;
+    }
+
+    return data;
+}
 
 $(document).on('change', "select[id^='visions']", function()
 {
-    var i       = parseInt($(this).attr('id').replace(/[^0-9]/ig, ''));
-    var visions = $('select[id="visions' + i + '"]').val();
+    var i    = parseInt($(this).attr('id').replace(/[^0-9]/ig, ''));
+    var data = getGroupSelect(i);
 
-    var groups  = $('#group' + i).val();
-    if($.inArray('ditto', groups) >= 0) groups = '';
-
-    $.post(createLink('user', 'ajaxGetGroup', "visions=" + visions + '&i=' + i + '&selected=' + groups), function(data)
+    for(n = i; n <= batchCreateCount; n++)
     {
-        $('#group' + i).replaceWith(data);
-        $('#group' + i + '_chosen').remove();
-        $('#group' + i).chosen();
-    })
-
-    for(n = i + 1; n <= batchCreateCount; n++)
-    {
-        if(n == i) continue;
-        if($.inArray('ditto', $('select[id="visions' + n + '"]').val()) < 0) break;
+        if(n != i && $.inArray('ditto', $('select[id="visions' + n + '"]').val()) < 0) break;
 
         ((function(n)
         {
-            $.post(createLink('user', 'ajaxGetGroup', "visions=" + visions + '&i=' + n + '&selected=' + $('#group' + n).val()), function(data)
-            {
-                $('#group' + n).replaceWith(data);
-                $('#group' + n + '_chosen').remove();
-                $('#group' + n).chosen();
-            })
+            var groupVal = $('#group' + n).val();
+            var dataHtml = $(data).attr('id', 'group' + n).attr('name', 'group[' + n + '][]').prop('outerHTML');
+            $('#group' + n).replaceWith(dataHtml);
+            $('#group' + n + '_chosen').remove();
+            $('#group' + n).val(groupVal);
+            $('#group' + n).chosen();
         }(n)));
     }
+});
+
+/**
+ * Show or hide companies based on user type.
+ *
+ * @param  type $type
+ * @access public
+ * @return void
+ */
+function changeType(type)
+{
+    if(type == 'inside')
+    {
+        $('#companyBox').addClass('hide');
+        $('select[id^=dept], input[id^=join]').closest('td').removeClass('hide');
+        $('select[id^=company]').closest('td').addClass('hide');
+        $('th.c-dept, th.c-join').removeClass('hide');
+        $('th.c-company').addClass('hide');
+    }
+    else
+    {
+        $('#companyBox').removeClass('hide');
+        $('select[id^=dept], input[id^=join]').closest('td').addClass('hide');
+        $('select[id^=company]').closest('td').removeClass('hide');
+        $('th.c-dept, th.c-join').addClass('hide');
+        $('th.c-company').removeClass('hide');
+    }
+    $('#userType').val(type);
+}
+
+$(function()
+{
+    $(":checkbox[name^='new']").change(function()
+    {
+        var companyNode     = $(this).prop('checked') ? $(this).closest('span').prevAll('select') : $(this).closest('span').prevAll('input');
+        var companyNodeID   = $(companyNode).attr('id');
+        var companyNodeName = $(companyNode).attr('name');
+
+        if($(this).prop('checked'))
+        {
+            $(companyNode).replaceWith("<input name='" + companyNodeName + "' id='" + companyNodeID + "' class='form-control'/>");
+            $('#' + companyNodeID + '_chosen').remove();
+        }
+        else
+        {
+            var i        = companyNodeID.replace(/[^0-9]/ig, '');
+            var dataHtml = $(companies).attr('id', companyNodeID).attr('name', companyNodeName).prop('outerHTML');
+            $('#' + companyNodeID).replaceWith(dataHtml);
+            if(i == 1) $('#' + companyNodeID).find('option[value="ditto"]').remove();
+            $('#' + companyNodeID).chosen();
+        }
+    })
 });

@@ -10,6 +10,8 @@ title=测试 userModel->updateProgramView();
 cid=1
 pid=1
 
+
+
 */
 
 $user = new userTest();
@@ -17,4 +19,3 @@ $user = new userTest();
 $programIdList = array('1', '2');
 
 //r()      && p()  && e('');      //
-//system("./ztest init");

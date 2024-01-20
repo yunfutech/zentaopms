@@ -1,6 +1,6 @@
 <?php
 $lang->backup->common      = 'Sicherung';
-$lang->backup->index       = 'Start';
+$lang->backup->index       = 'Backup List';
 $lang->backup->history     = 'Verlauf';
 $lang->backup->delete      = 'Löschen';
 $lang->backup->backup      = 'Sichern';
@@ -8,6 +8,10 @@ $lang->backup->restore     = 'Restore';
 $lang->backup->change      = 'Ablaufdatum';
 $lang->backup->changeAB    = 'Bearbeiten';
 $lang->backup->rmPHPHeader = 'Remove PHP header';
+$lang->backup->setting     = 'Settings';
+
+$lang->backup->restoreAction = 'Restore Backup';
+$lang->backup->settingAction = 'Backup Settings';
 
 $lang->backup->time     = 'Datum';
 $lang->backup->files    = 'Dateien';
@@ -19,7 +23,6 @@ $lang->backup->status   = 'Status';
 $lang->backup->statusList['success'] = 'Success';
 $lang->backup->statusList['fail']    = 'Fail';
 
-$lang->backup->setting    = 'Settings';
 $lang->backup->settingDir = 'Backup Directory';
 $lang->backup->settingList['nofile'] = 'Do not back up files or codes.';
 $lang->backup->settingList['nosafe'] = 'Do not prevent downloading PHP file header.';
@@ -46,3 +49,4 @@ $lang->backup->error->restoreSQL  = "Datenbankwiederherstellung fehlgeschlagen. 
 $lang->backup->error->restoreFile = "Dateiwiederherstellung fehlgeschlagen. Error: %s.";
 $lang->backup->error->backupFile  = "Dateibackup fehlgeschlagen. Error: %s.";
 $lang->backup->error->backupCode  = "Codebackup fehlgeschlagen. Error: %s.";
+$lang->backup->error->timeout     = "Backup timeout.";

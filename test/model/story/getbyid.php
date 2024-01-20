@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 include dirname(dirname(dirname(__FILE__))) . '/lib/init.php';
 include dirname(dirname(dirname(__FILE__))) . '/class/story.class.php';
@@ -8,6 +9,12 @@ su('admin');
 title=测试 storyModel->getById();
 cid=1
 pid=1
+
+ >> 6
+获取ID为1、版本号为1的需求的名称 >> 用户需求版本一1
+获取ID为1、版本号为2的需求的名称 >> 用户需求版本二21
+获取ID为2、版本号为3的需求的名称 >> 用户需求版本三43
+获取ID为20、版本号为2的需求的名称 >> 这是一个软件需求描述40
 
 */
 

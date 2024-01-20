@@ -3,8 +3,10 @@ body {margin-bottom: 25px;}
 .w-170px {width: 170px;}
 
 #createActionMenu .dropdown-menu {width: 100%;}
-#caseForm table tbody tr td {overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+#caseForm table tbody tr td {overflow: hidden; white-space: nowrap;}
 #caseForm .setting {height: 25px;}
+#caseForm table tbody .c-name {overflow: hidden; padding-right: 65px;}
+#caseForm table tbody .c-name a:first-child {overflow: hidden; display: inline-block; max-width: 100%;}
 
 .dropdown-menu.with-search {padding: 0; min-width: 150px; overflow: hidden; max-height: 302px;}
 .dropdown-menu > .menu-search .input-group {width: 100%;}
@@ -17,10 +19,30 @@ body {margin-bottom: 25px;}
 
 .pl-5px {padding-left: 5px;}
 
-.fail .result-fail, .blocked .result-blocked {color: #f00;}
-.pass .result-pass {color: green;}
-
 tbody > tr > td > .btn-icon {margin-right: 3px;}
 tbody > tr > td   .icon-share {font-size: 9px;}
 
 .table td.c-title > a:first-child {display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+
+#importToLib .select-lib {width: 100px; text-align: right;}
+#subHeader #currentBranch + #dropMenu .col-left {padding-bottom: 30px;}
+.status-blocked {left: -5px;}
+
+#mainMenu .pull-left .dividing-line {margin: 7px 5px 0 0;}
+.btn-toolbar>.btn, .btn-toolbar>.btn-group, .btn-toolbar>.dropdown {margin-right: 5px;}
+
+#mainMenu > .btn-toolbar > .checkbox-primary{float: left;}
+
+.table-nest-icon { cursor: pointer; }
+
+.tr-moving { opacity: 0.3; }
+
+.tr-acceptable { border: 2px solid rgba(255,0,0,0.5); }
+
+.none-select { -webkit-user-select: none; -moz-user-select: none; -moz-user-select: none; user-select: none; }
+
+.table-nest-toggle { vertical-align: middle; }
+
+.table-nest-title .icon-test { pointer-events: none; }
+
+.icon-test:after { border: 0px solid!important; }

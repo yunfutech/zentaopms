@@ -66,7 +66,7 @@ function processKanbanData(key, programGroup)
                         var execution = latestExecutions[projectID];
                         if(execution && execution.id)
                         {
-                            executionsCol.count++;
+                            if(typeof(executionsCol) == 'object') executionsCol.count++;
                             projectItem.execution = $.extend({}, execution, {id: 'execution-' + execution.id, _id: execution.id});
                         }
                     }
@@ -201,9 +201,10 @@ $(function()
         if(!$kanban.length) return;
         $kanban.kanban(
         {
-            data:          processKanbanData(key, programGroup),
-            calcColHeight: calcColHeight,
-            virtualize:    true,
+            data:            processKanbanData(key, programGroup),
+            calcColHeight:   calcColHeight,
+            virtualize:      true,
+            virtualCardList: true,
             droppable:
             {
                 selector:     '.kanban-card:not(.execution-item)',

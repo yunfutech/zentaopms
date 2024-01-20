@@ -1,6 +1,6 @@
 <?php
-$lang->backup->common      = '系统备份';
-$lang->backup->index       = '备份首页';
+$lang->backup->common      = '备份';
+$lang->backup->index       = '备份列表';
 $lang->backup->history     = '备份历史';
 $lang->backup->delete      = '删除备份';
 $lang->backup->backup      = '开始备份';
@@ -10,6 +10,7 @@ $lang->backup->changeAB    = '修改';
 $lang->backup->rmPHPHeader = '去除安全设置';
 $lang->backup->setting     = '设置';
 
+$lang->backup->restoreAction = '还原备份';
 $lang->backup->settingAction = '备份设置';
 
 $lang->backup->time     = '备份时间';
@@ -48,3 +49,4 @@ $lang->backup->error->restoreSQL  = "数据库还原失败，错误：%s";
 $lang->backup->error->restoreFile = "附件还原失败，错误：%s";
 $lang->backup->error->backupFile  = "附件备份失败，错误：%s";
 $lang->backup->error->backupCode  = "代码备份失败，错误：%s";
+$lang->backup->error->timeout     = "备份超时";

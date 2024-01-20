@@ -2,8 +2,8 @@
 /**
  * The create view of execution module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     execution
  * @version     $Id: create.html.php 4728 2013-05-03 06:14:34Z chencongzhi520@gmail.com $
@@ -26,10 +26,10 @@
 <?php js::set('productID', empty($productID) ? 0 : $productID);?>
 <?php js::set('isStage', $isStage);?>
 <?php js::set('copyExecutionID', $copyExecutionID);?>
-<?php js::set('systemMode', $config->systemMode);?>
 <?php js::set('projectCommon', $lang->project->common);?>
 <?php js::set('multiBranchProducts', $multiBranchProducts);?>
 <?php js::set('systemMode', $config->systemMode);?>
+<?php js::set('projectID', $projectID);?>
 <div id='mainContent' class='main-content'>
   <div class='center-block'>
     <div class='main-header'>
@@ -37,7 +37,7 @@
     </div>
     <form class='form-indicator main-form form-ajax' method='post' target='hiddenwin' id='dataform'>
       <table class='table table-form'>
-        <?php if($config->systemMode == 'new'):?>
+        <?php if($config->systemMode == 'ALM'):?>
         <tr>
           <th class='w-120px'><?php echo $lang->execution->projectName;?></th>
           <td class="col-main"><?php echo html::select("project", $allProjects, $projectID, "class='form-control chosen' required onchange='refreshPage(this.value)'");?></td>
@@ -106,6 +106,7 @@
             <?php echo html::hidden("RD", '');?>
             <?php echo html::hidden("type", 'kanban');?>
             <?php echo html::hidden("vision", 'lite');?>
+            <?php echo html::hidden('project', $projectID);?>
           </td>
         </tr>
       </table>

@@ -23,7 +23,6 @@ class baseHTML
      * 生成title标签。
      * Create the title tag.
      *
-     * @param  mixed $title
      * @static
      * @access public
      * @return string.
@@ -111,6 +110,15 @@ class baseHTML
         if(strlen(trim($title)) == 0) $title = $href;
         $newline = $newline ? "\n" : '';
 
+        /* Make sure href is opened in the same tab. */
+        if(!str_contains($misc, 'data-app='))
+        {
+            global $app, $lang;
+            $module  = $app->rawModule;
+            $dataApp = (isset($lang->navGroup->$module) and $lang->navGroup->$module != $app->tab) ? "data-app='{$app->tab}'" : '';
+            $misc   .= ' ' . $dataApp;
+        }
+
         return "<a href='$href' $misc>$title</a>$newline";
     }
 
@@ -159,9 +167,9 @@ class baseHTML
 
         /* The begin. */
         $id = $name;
-        if(strpos($name, '[') !== false) $id = trim(str_replace(']', '', str_replace('[', '', $name)));
+        if(str_contains($name, '[')) $id = trim(str_replace(']', '', str_replace('[', '', $name)));
         $id = "id='{$id}'";
-        if(strpos($attrib, 'id=') !== false) $id = '';
+        if(str_contains($attrib, 'id=')) $id = '';
 
         $string = "<select name='$name' {$id} $attrib>\n";
 
@@ -170,7 +178,7 @@ class baseHTML
         $selectedItems = ",$selectedItems,";
         foreach($options as $key => $value)
         {
-            $selected = strpos($selectedItems, ",$key,") !== false ? " selected='selected'" : '';
+            $selected = str_contains($selectedItems, ",$key,") ? " selected='selected'" : '';
             $string  .= "<option value='$key'$selected>$value</option>\n";
         }
 
@@ -196,7 +204,7 @@ class baseHTML
 
         /* The begin. */
         $id = $name;
-        if(strpos($name, '[') !== false) $id = trim(str_replace(']', '', str_replace('[', '', $name)));
+        if(str_contains($name, '[')) $id = trim(str_replace(']', '', str_replace('[', '', $name)));
         $string = "<select name='$name' id='$id' $attrib>\n";
 
         /* The options. */
@@ -206,7 +214,7 @@ class baseHTML
             $string .= "<optgroup label='$groupName'>\n";
             foreach($options as $key => $value)
             {
-                $selected = strpos($selectedItems, ",$key,") !== false ? " selected='selected'" : '';
+                $selected = str_contains($selectedItems, ",$key,") ? " selected='selected'" : '';
                 $string  .= "<option value='$key'$selected>$value</option>\n";
             }
             $string .= "</optgroup>\n";
@@ -279,7 +287,7 @@ class baseHTML
             if($isBlock) $string .= "<div class='checkbox'><label>";
             else $string .= "<label class='checkbox-inline'>";
             $string .= "<input type='checkbox' name='{$name}[]' value='$key' ";
-            $string .= (strpos($checked, ",$key,") !== false) ? " checked ='checked'" : "";
+            $string .= (str_contains($checked, ",$key,")) ? " checked ='checked'" : "";
             $string .= $attrib;
             $string .= " id='$name$key' /> ";
             $string .= $value;
@@ -303,7 +311,7 @@ class baseHTML
     static public function input($name, $value = "", $attrib = "")
     {
         $id = "id='$name'";
-        if(strpos($attrib, 'id=') !== false) $id = '';
+        if(str_contains($attrib, 'id=')) $id = '';
         $value = str_replace("'", '&#039;', $value);
         return "<input type='text' name='$name' {$id} value='$value' $attrib />\n";
     }
@@ -321,7 +329,8 @@ class baseHTML
      */
     static public function hidden($name, $value = "", $attrib = "")
     {
-        return "<input type='hidden' name='$name' id='$name' value='$value' $attrib />\n";
+        $id = str_replace(array('[', ']'), "", $name);
+        return "<input type='hidden' name='$name' id='$id' value='$value' $attrib />\n";
     }
 
     /**
@@ -338,7 +347,8 @@ class baseHTML
     static public function password($name, $value = "", $attrib = "")
     {
         if(stripos($attrib, 'autocomplete') === false) $attrib .= " autocomplete='off'";
-        return "<input type='password' name='$name' id='$name' value='$value' $attrib />\n";
+        $id = str_replace(array('[', ']'), "", $name);
+        return "<input type='password' name='$name' id='$id' value='$value' $attrib />\n";
     }
 
     /**
@@ -355,7 +365,8 @@ class baseHTML
     static public function textarea($name, $value = "", $attrib = "")
     {
         $id = "id='$name'";
-        if(strpos($attrib, 'id=') !== false) $id = '';
+        $id = str_replace(array('[', ']'), "", $id);
+        if(str_contains($attrib, 'id=')) $id = '';
         return "<textarea name='$name' $id $attrib>$value</textarea>\n";
     }
 
@@ -388,8 +399,9 @@ class baseHTML
      */
     static public function date($name, $value = "", $options = '', $attrib = '')
     {
-        $html = "<div class='input-append date date-picker' {$options}>";
-        $html .= "<input type='text' name='{$name}' id='$name' value='$value' {$attrib} />\n";
+        $id    = str_replace(array('[', ']'), "", $name);
+        $html  = "<div class='input-append date date-picker' {$options}>";
+        $html .= "<input type='text' name='{$name}' id='$id' value='$value' {$attrib} />\n";
         $html .= "<span class='add-on'><button class='btn' type='button'><i class='icon-calendar'></i></button></span></div>";
         return $html;
     }
@@ -408,8 +420,9 @@ class baseHTML
      */
     static public function dateTime($name, $value = "", $options = '', $attrib = '')
     {
-        $html = "<div class='input-append date time-picker' {$options}>";
-        $html .= "<input type='text' name='{$name}' id='$name' value='$value' {$attrib} />\n";
+        $id    = str_replace(array('[', ']'), "", $name);
+        $html  = "<div class='input-append date time-picker' {$options}>";
+        $html .= "<input type='text' name='{$name}' id='$id' value='$value' {$attrib} />\n";
         $html .= "<span class='add-on'><button class='btn' type='button'><i class='icon-calendar'></i></button></span></div>";
         return $html;
     }
@@ -445,7 +458,7 @@ class baseHTML
         global $lang;
 
         $label = empty($label) ? $lang->save : $label;
-        $misc .= strpos($misc, 'data-loading') === false ? " data-loading='$lang->loading'" : '';
+        $misc .= !str_contains($misc, 'data-loading') ? " data-loading='$lang->loading'" : '';
 
         return " <button type='submit' id='submit' class='$class' $misc>$label</button>";
     }
@@ -471,6 +484,42 @@ class baseHTML
     }
 
     /**
+     * Get goback link.
+     * 获取返回按钮链接
+     */
+    public static function getGobackLink()
+    {
+        global $app, $config;
+
+        $gobackLink   = '';
+        $referer      = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
+        $refererParts = parse_url($referer);
+
+        if($config->requestType == 'PATH_INFO' and empty($refererParts)) return $gobackLink;
+        if($config->requestType == 'GET' and !isset($refererParts['query'])) return $gobackLink;
+
+        $tab        = $app->tab;
+        $gobackList = isset($_COOKIE['goback']) ? json_decode($_COOKIE['goback'], true) : array();
+        $gobackLink = isset($gobackList[$tab]) ? $gobackList[$tab] : '';
+
+        /* Make sure href is opened in the same tab. */
+        if(!empty($gobackLink)) $gobackLink .= "#app=$tab";
+
+        /* If the link of the referer is not the link of the current page or the link of the index,  the cookie and gobackLink will be updated. */
+        $currentModule = $app->getModuleName();
+        $currentMethod = $app->getMethodName();
+        $refererLink   = $config->requestType == 'PATH_INFO' ? $refererParts['path'] : $refererParts['query'];
+        if(!preg_match("/(m=|\/)(index|search|$currentModule)(&f=|-)(index|buildquery|$currentMethod)(&|-|\.)?/", strtolower($refererLink)))
+        {
+            $gobackList[$tab] = $referer;
+            $gobackLink       = $referer;
+            setcookie('goback', json_encode($gobackList), $config->cookieLife, $config->webRoot, '', $config->cookieSecure, false);
+        }
+
+        return empty($gobackLink) ? 'javascript:history.go(-1)' : $gobackLink;
+    }
+
+    /**
      * 创建返回按钮。
      * Back button.
      *
@@ -488,9 +537,9 @@ class baseHTML
         if(empty($label)) $label = $lang->goback;
 
         $gobackLink   = "<a href='javascript:history.go(-1)' class='btn btn-back $class' $misc>{$label}</a>";
-        $tab          = isset($_COOKIE['tab']) ? $_COOKIE['tab'] : '';
-        $referer      = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
-        $refererParts = parse_url($referer);
+        $tab          = $_COOKIE['tab'] ?? '';
+        $referer      = $_SERVER['HTTP_REFERER'] ?? '';
+        $refererParts = parse_url((string) $referer);
 
         if($config->requestType == 'PATH_INFO' and empty($refererParts)) return $gobackLink;
         if($config->requestType == 'GET' and !isset($refererParts['query'])) return $gobackLink;
@@ -498,18 +547,33 @@ class baseHTML
         $refererLink   = $config->requestType == 'PATH_INFO' ? $refererParts['path'] : $refererParts['query'];
         $currentModule = $app->getModuleName();
         $currentMethod = $app->getMethodName();
-        $gobackList    = isset($_COOKIE['goback']) ? json_decode($_COOKIE['goback'], true) : array();
-        $gobackLink    = isset($gobackList[$tab]) ? $gobackList[$tab] : '';
+        $gobackList    = isset($_COOKIE['goback']) ? json_decode((string) $_COOKIE['goback'], true) : array();
+        $gobackLink    = $gobackList[$tab] ?? '';
 
-        /* If the link of the referer is not the link of the current page or the link of the index,  the cookie and gobackLink will be updated. */
-        if(!preg_match("/(m=|\/)(index|search|$currentModule)(&f=|-)(index|buildquery|$currentMethod)(&|-|\.)?/", strtolower($refererLink)))
+        /* Make sure href is opened in the same tab. */
+        if(!str_contains($misc, 'data-app='))
         {
-            $gobackList[$tab] = $referer;
-            $gobackLink       = $referer;
-            setcookie('goback', json_encode($gobackList), $config->cookieLife, $config->webRoot, '', $config->cookieSecure, false);
+            $module  = $app->rawModule;
+            $dataApp = (isset($lang->navGroup->$module) and $lang->navGroup->$module != $app->tab) ? "data-app='{$app->tab}'" : '';
+            $misc   .= ' ' . $dataApp;
         }
 
-        return  "<a href='{$gobackLink}' class='btn btn-back $class' $misc>{$label}</a>";
+        /* If the link of the referer is not the link of the current page or the link of the index,  the cookie and gobackLink will be updated. */
+        if(preg_match("/(?:m=|\/)([a-zA-Z0-9]+)(?:(&f=)|(-?))([a-zA-Z0-9]+)?(?:&|-|\.)?/", strtolower($refererLink), $matches))
+        {
+            if(!isset($matches[2])) $matches[2] = $config->default->method;
+            if(!in_array($matches[1], array($config->default->module, 'search')) or !in_array($matches[2], array($config->default->method, 'buildquery')))
+            {
+                if($matches[1] != 'index' and ($matches[1] != $currentModule or $matches[4] != $currentMethod))
+                {
+                    $gobackList[$tab] = $referer;
+                    $gobackLink       = $referer;
+                    setcookie('goback', json_encode($gobackList), $config->cookieLife, $config->webRoot, '', $config->cookieSecure, false);
+                }
+            }
+        }
+
+        return "<a href='{$gobackLink}' class='btn btn-back $class' $misc>{$label}</a>";
     }
 
     /**
@@ -559,9 +623,8 @@ class baseHTML
      *
      * @static
      * @access public
-     * @return string
      */
-    public static function closeButton()
+    public static function closeButton(): string
     {
         return "<button type='button' class='close' data-dismiss='modal' aria-hidden='true'>&times;</button>";
     }
@@ -722,9 +785,8 @@ EOT;
      * @access public
      * @static
      * @access public
-     * @return void
      */
-    public static function printStars($stars)
+    public static function printStars($stars): void
     {
         $redStars   = 0;
         $halfStars  = 0;
@@ -764,7 +826,7 @@ class baseJS
      * @access public
      * @return string
      */
-    public static function import($url, $ieParam = '')
+    public static function import($url, $ieParam = ''): void
     {
         global $config;
         $pathInfo = parse_url($url);
@@ -783,9 +845,8 @@ class baseJS
      * @param  bool   $full
      * @static
      * @access public
-     * @return string
      */
-    static public function start($full = true)
+    static public function start($full = true): string
     {
         if($full) return "<html><meta charset='utf-8'/><style>body{background:white}</style><script>";
         return "<script>";
@@ -800,7 +861,7 @@ class baseJS
      * @access public
      * @return void
      */
-    static public function end($newline = true)
+    static public function end($newline = true): string
     {
         if($newline) return "\n</script>\n";
         return "</script>\n";
@@ -834,7 +895,7 @@ class baseJS
         $message = str_replace("\\'", "'", $message);
         $message = str_replace("'", "\\'", $message);
 
-        return self::start($full) . "alert('" . $message . "')" . self::end() . self::resetForm();
+        return static::start($full) . "alert('" . $message . "')" . static::end() . static::resetForm();
     }
 
     /**
@@ -845,22 +906,21 @@ class baseJS
      * @access public
      * @return void
      */
-    static public function close()
+    static public function close(): string
     {
-        return self::start() . "window.close()" . self::end();
+        return static::start() . "window.close()" . static::end();
     }
 
     /**
      * 显示错误信息。
      * Show error info.
      *
-     * @param  string|array $message
      * @param  bool         $full
      * @static
      * @access public
      * @return string
      */
-    static public function error($message, $full = true)
+    static public function error(string|array $message, $full = true)
     {
         global $app;
 
@@ -886,7 +946,7 @@ class baseJS
         {
             $alertMessage = $message;
         }
-        return self::alert($alertMessage, $full);
+        return static::alert($alertMessage, $full);
     }
 
     /**
@@ -895,11 +955,10 @@ class baseJS
      *
      * @static
      * @access public
-     * @return string
      */
-    static public function resetForm()
+    static public function resetForm(): string
     {
-        return self::start() . 'if(window.parent) window.parent.$.enableForm();' . self::end();
+        return static::start() . 'if(window.parent) window.parent.$.enableForm();' . static::end();
     }
 
     /**
@@ -937,14 +996,14 @@ class baseJS
             return json_encode($output);
         }
 
-        $js = self::start();
+        $js = static::start();
 
         $confirmAction = '';
         if(strtolower($okURL) == "back")
         {
             $confirmAction = "history.back(-1);";
         }
-        elseif(strpos($okTarget, '$.apps.open') !== false)
+        elseif(str_contains($okTarget, '$.apps.open'))
         {
             $confirmAction = "$okTarget('$okURL', '$okOpenApp');";
         }
@@ -958,7 +1017,7 @@ class baseJS
         {
             $cancleAction = "history.back(-1);";
         }
-        elseif(strpos($cancleTarget, '$.apps.open') !== false)
+        elseif(str_contains($cancleTarget, '$.apps.open'))
         {
             $cancleAction = "$cancleTarget('$cancleURL', '$cancleOpenApp');";
         }
@@ -966,8 +1025,9 @@ class baseJS
         {
             $cancleAction = "$cancleTarget.location = '$cancleURL';";
         }
-
-        $js .= <<<EOT
+        if(!str_contains((string) $_SERVER['HTTP_USER_AGENT'], 'xuanxuan'))
+        {
+            $js .= <<<EOT
 if(confirm("$message"))
 {
     $confirmAction
@@ -977,7 +1037,13 @@ else
     $cancleAction
 }
 EOT;
-        $js .= self::end();
+        }
+        else
+        {
+            $js .= $confirmAction;
+        }
+
+        $js .= static::end();
         return $js;
     }
 
@@ -1004,7 +1070,7 @@ EOT;
 
         if($app->viewType == 'json')
         {
-            $data = strtolower($url) == 'back' ? array('locate' => 'back') : array('locate' => common::getSysURL() . $url);
+            $data = strtolower((string) $url) == 'back' ? array('locate' => 'back') : array('locate' => common::getSysURL() . $url);
 
             $output = array();
             $output['status'] = 'success';
@@ -1014,20 +1080,22 @@ EOT;
             return json_encode($output);
         }
 
-        $js  = self::start();
-        if(strtolower($url) == "back")
+        $js  = static::start();
+        if(strtolower((string) $url) == "back")
         {
             $js .= "history.back(-1);\n";
         }
-        elseif(strpos($target, '$.apps.open') !== false)
+        elseif($target === 'app' or str_contains($target, '$.apps.open'))
         {
-            $js .= "$target('$url')";
+            $js .= "parent.$target('$url')";
         }
         else
         {
+            /* Can not locate the url that has '#app', so remove it. */
+            if(str_contains((string) $url, '#app=')) $url = substr((string) $url, 0, strpos((string) $url, '#app='));
             $js .= "$target.location='$url';\n";
         }
-        return $js . self::end();
+        return $js . static::end();
     }
 
     /**
@@ -1036,11 +1104,10 @@ EOT;
      *
      * @static
      * @access public
-     * @return string
      */
-    static public function closeWindow()
+    static public function closeWindow(): string
     {
-        return self::start(). "window.close();" . self::end();
+        return static::start(). "window.close();" . static::end();
     }
 
     /**
@@ -1056,9 +1123,9 @@ EOT;
      */
     static public function refresh($url, $target = "self", $time = 3000)
     {
-        $js  = self::start();
+        $js  = static::start();
         $js .= "setTimeout(\"$target.location='$url'\", $time);";
-        $js .= self::end();
+        $js .= static::end();
         return $js;
     }
 
@@ -1073,7 +1140,7 @@ EOT;
      */
     static public function reload($window = 'self')
     {
-        $js  = self::start();
+        $js  = static::start();
         // See bug #2379 http://pms.zentao.net/bug-view-2379.html
         if($window !== 'self' && $window !== 'window')
         {
@@ -1083,7 +1150,7 @@ EOT;
         {
             $js .= "$window.location.reload(true);\n";
         }
-        $js .= self::end();
+        $js .= static::end();
         return $js;
     }
 
@@ -1099,7 +1166,7 @@ EOT;
      */
     static public function closeColorbox($window = 'self')
     {
-        return self::closeModal($window);
+        return static::closeModal($window);
     }
 
     /**
@@ -1115,25 +1182,15 @@ EOT;
      */
     static public function closeModal($window = 'self', $location = 'this', $callback = 'null')
     {
-        $js  = self::start();
+        $js  = static::start();
         $js .= "if($window.location.href == self.location.href){ $window.window.close();}";
         $js .= "else{ $window.$.cookie('selfClose', 1);$window.$.closeModal($callback, '$location');}";
-        $js .= self::end();
+        $js .= static::end();
         return $js;
     }
 
-    /**
-     * 导出$config到js，因为js的createLink()方法需要获取config信息。
-     * Export the config vars for createLink() js version.
-     *
-     * @static
-     * @access public
-     * @return void
-     */
-    static public function exportConfigVars()
+    static function getJSConfigVars()
     {
-        if(!function_exists('json_encode')) return false;
-
         global $app, $config, $lang;
         $defaultViewType = $app->getViewType();
         $themeRoot       = $app->getWebRoot() . 'theme/';
@@ -1142,7 +1199,7 @@ EOT;
         $clientLang      = $app->getClientLang();
         $runMode         = defined('RUN_MODE') ? RUN_MODE : '';
         $requiredFields  = '';
-        if(isset($config->$moduleName->$methodName->requiredFields)) $requiredFields = str_replace(' ', '', $config->$moduleName->$methodName->requiredFields);
+        if(isset($config->$moduleName->$methodName->requiredFields)) $requiredFields = str_replace(' ', '', (string) $config->$moduleName->$methodName->requiredFields);
 
         $jsConfig = new stdclass();
         $jsConfig->webRoot        = $config->webRoot;
@@ -1161,21 +1218,60 @@ EOT;
         $jsConfig->clientLang     = $clientLang;
         $jsConfig->requiredFields = $requiredFields;
         $jsConfig->router         = $app->server->SCRIPT_NAME;
-        $jsConfig->save           = isset($lang->save) ? $lang->save : '';
+        $jsConfig->save           = $lang->save ?? '';
         $jsConfig->runMode        = $runMode;
-        $jsConfig->timeout        = isset($config->timeout) ? $config->timeout : '';
-        $jsConfig->pingInterval   = isset($config->pingInterval) ? $config->pingInterval : '';
+        $jsConfig->timeout        = $config->timeout ?? '';
+        $jsConfig->pingInterval   = $config->pingInterval ?? '';
+        $jsConfig->onlybody       = zget($_GET, 'onlybody', 'no');
+        $jsConfig->tabSession     = $config->tabSession;
+        if($config->tabSession and helper::isWithTID()) $jsConfig->tid = zget($_GET, 'tid', '');
+
+        return $jsConfig;
+    }
+
+    /**
+     * 导出$config到js，因为js的createLink()方法需要获取config信息。
+     * Export the config vars for createLink() js version.
+     *
+     * @static
+     * @access public
+     * @return void
+     */
+    static public function exportConfigVars()
+    {
+        if(!function_exists('json_encode')) return false;
+
+        global $lang;
+
+        $jsConfig = static::getJSConfigVars();
 
         $jsLang = new stdclass();
-        $jsLang->submitting = isset($lang->loading) ? $lang->loading : '';
-        $jsLang->save       = $jsConfig->save;
-        $jsLang->expand     = isset($lang->expand)  ? $lang->expand  : '';
-        $jsLang->timeout    = isset($lang->timeout) ? $lang->timeout : '';
+        $jsLang->submitting   = $lang->loading ?? '';
+        $jsLang->save         = $jsConfig->save;
+        $jsLang->expand       = $lang->expand ?? '';
+        $jsLang->timeout      = $lang->timeout ?? '';
+        $jsLang->confirmDraft = $lang->confirmDraft ?? '';
+        $jsLang->resume       = $lang->resume ?? '';
+        $jsLang->program      = zget($lang->program, 'common', '');
+        $jsLang->project      = zget($lang->project, 'common', '');
+        $jsLang->product      = zget($lang->product, 'common', '');
+        $jsLang->task         = zget($lang->task, 'common', '');
+        $jsLang->story        = zget($lang->story, 'common', '');
+        $jsLang->bug          = zget($lang->bug, 'common', '');
+        $jsLang->testcase     = zget($lang->testcase, 'common', '');
+        $jsLang->zahost       = zget($lang->zahost, 'common', '');
+        $jsLang->zanode       = zget($lang->zanode, 'common', '');
+        $jsLang->gitlab       = zget($lang->gitlab, 'common', '');
+        $jsLang->gogs         = zget($lang->gogs, 'common', '');
+        $jsLang->gitea        = zget($lang->gitea, 'common', '');
+        $jsLang->jenkins      = zget($lang->jenkins, 'common', '');
+        $jsLang->sonarqube    = zget($lang->sonarqube, 'common', '');
+        $jsLang->repo         = zget($lang->repo, 'common', '');
 
-        $js  = self::start(false);
+        $js  = static::start(false);
         $js .= 'window.config=' . json_encode($jsConfig) . ";\n";
         $js .= 'window.lang=' . json_encode($jsLang) . ";\n";
-        $js .= self::end();
+        $js .= static::end();
         echo $js;
     }
 
@@ -1188,11 +1284,11 @@ EOT;
      * @access public
      * @return string
      */
-    static public function execute($code)
+    static public function execute($code): void
     {
-        $js = self::start($full = false);
+        $js = static::start($full = false);
         $js .= $code;
-        $js .= self::end();
+        $js .= static::end();
         echo $js;
     }
 
@@ -1206,20 +1302,21 @@ EOT;
      * @access public
      * @return string
      */
-    static public function set($key, $value)
+    static public function set($key, $value): void
     {
         global $config;
         $prefix = (isset($config->framework->jsWithPrefix) and $config->framework->jsWithPrefix == false) ? '' : 'v.';
 
         static $viewOBJOut;
-        $js  = self::start(false);
+        $js  = static::start(false);
         if(!$viewOBJOut and $prefix)
         {
             $js .= 'if(typeof(v) != "object") v = {};';
             $viewOBJOut = true;
         }
 
-        if(is_numeric($value))
+        /* Fix value is '0123' error. */
+        if(is_numeric($value) and !preg_match('/^0[0-9]+/', $value))
         {
             $js .= "{$prefix}{$key} = {$value};";
         }
@@ -1246,9 +1343,9 @@ EOT;
         else
         {
             $value = addslashes($value);
-            $js .= "{$prefix}{$key} = '{$value};'";
+            $js .= "{$prefix}{$key} = '{$value}';";
         }
-        $js .= self::end($newline = false);
+        $js .= static::end($newline = false);
         echo $js;
     }
 }
@@ -1267,9 +1364,8 @@ class baseCSS
      *
      * @param  string $url
      * @access public
-     * @return void
      */
-    public static function import($url, $attrib = '')
+    public static function import($url, $attrib = ''): void
     {
         global $config;
         if(!empty($attrib)) $attrib = ' ' . $attrib;
@@ -1283,9 +1379,8 @@ class baseCSS
      * @param  string    $css
      * @static
      * @access public
-     * @return void
      */
-    public static function internal($css)
+    public static function internal($css): void
     {
         echo "<style>$css</style>";
     }

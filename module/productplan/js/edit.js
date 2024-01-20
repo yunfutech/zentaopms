@@ -13,25 +13,22 @@ function convertStringToDate(dateString)
     return Date.parse(dateString);
 }
 
-/**
- * Get conflict stories.
- *
- * @param  int    $planID
- * @param  int    $branch
- * @access public
- * @return void
- */
-function getConflictStories(planID, branch)
+$('#dataform').on('change', '#branch', function()
 {
-    $.get(createLink('productplan', 'ajaxGetConflictStory', 'planID=' + planID + '&newBranch=' + branch), function(conflictStories)
+    var newBranch = $('#branch').val() ? $('#branch').val().toString() : '';
+    $.get(createLink('productplan', 'ajaxGetConflict', 'planID=' + planID + '&newBranch=' + newBranch), function(conflictStories)
     {
-        if(conflictStories != '' && !confirm(conflictStories))
+        if(conflictStories != '')
         {
-            $('#branch').val(oldBranch[planID]);
-            $('#branch').trigger("chosen:updated");
+            var result = confirm(conflictStories) ? true : false;
+            if(!result)
+            {
+                $('#branch').val(oldBranch[planID].split(','));
+                $('#branch').trigger("chosen:updated");
+            }
         }
     });
-}
+});
 
 /**
  * Compute the end date for productplan.
@@ -59,6 +56,18 @@ function computeEndDate(delta)
     $('#end').val(endDate).datetimepicker('update');
 }
 
+$('#parent').change(function()
+{
+    var parentID        = $(this).val();
+    var currentBranches = $('#branch').val() ? $('#branch').val().toString() : '';
+    $.post(createLink('productplan', 'ajaxGetParentBranches', "productID=" + productID + "&parentID=" + parentID + "&currentBranches=" + currentBranches), function(data)
+    {
+        $('#branch').replaceWith(data);
+        $('#branch_chosen').remove();
+        $('#branch').chosen();
+    })
+})
+
 $('#future').on('change', function()
 {
     if($(this).prop('checked'))
@@ -74,3 +83,18 @@ $('#future').on('change', function()
 });
 
 $('#future').change();
+
+$('#submit').click(function()
+{
+    var parentPlan = $('#parent').val();
+    var branches   = $('#branch').val();
+    if(parentPlan > 0 && branches)
+    {
+        link = createLink('productplan', 'ajaxGetDiffBranchesTip', "produtID=" + productID + "&parentID=" + parentPlan + "&branches=" + branches.toString());
+        $.post(link, function(diffBranchesTip)
+        {
+            if((diffBranchesTip != '' && confirm(diffBranchesTip)) || !diffBranchesTip) $('form#dataform').submit();
+        });
+        return false;
+    }
+});

@@ -40,6 +40,7 @@ $lang->webhook->products    = $lang->productCommon;
 $lang->webhook->executions  = $lang->execution->common;
 $lang->webhook->actions     = '系统日志';
 $lang->webhook->deleted     = '已删除';
+$lang->webhook->approval    = '审批流推送';
 
 $lang->webhook->typeList['']            = '';
 $lang->webhook->typeList['dinggroup']   = '钉钉群通知机器人';
@@ -87,6 +88,8 @@ $lang->webhook->paramsList['comment']    = '备注';
 $lang->webhook->paramsList['text']       = '操作内容';
 
 $lang->webhook->confirmDelete = '您确认要删除该webhook吗？';
+$lang->webhook->friendlyTips  = '友情提示：点击部门，可以展开该部门下的子部门。';
+$lang->webhook->loadPrompt    = '数据较多，加载缓慢，请稍等。';
 
 $lang->webhook->trimWords = '了';
 
@@ -104,6 +107,7 @@ $lang->webhook->note->typeList['dingding']  = '请在钉钉中添加一个自定
 $lang->webhook->note->typeList['weixin']    = '请在企业微信中添加一个自定义机器人，并将其webhook填写到此处。';
 $lang->webhook->note->typeList['default']   = '从第三方系统获取webhook并填写到此处。';
 
-$lang->webhook->error = new stdclass();
-$lang->webhook->error->curl   = '需要加载php-curl扩展。';
-$lang->webhook->error->noDept = '没有选择部门，请先选择同步部门。';
+$lang->webhook->error               = new stdclass();
+$lang->webhook->error->curl         = '需要加载php-curl扩展。';
+$lang->webhook->error->noDept       = '没有选择部门，请先选择同步部门。';
+$lang->webhook->error->requestError = '请求错误！';

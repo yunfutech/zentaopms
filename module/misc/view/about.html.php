@@ -7,11 +7,11 @@
       </div>
       <table class='table table-form'>
         <tr>
-          <td class='text-center w-160px'>
+          <td class='text-center zt-logo'>
             <img src='<?php echo $config->webRoot . 'theme/default/images/main/' . $lang->logoImg;?>' />
             <h4>
               <?php if(trim($config->visions, ',') == 'lite'):?>
-              <?php printf($lang->misc->zentao->version, $config->liteVersion); ?>
+              <?php echo $lang->liteName.$config->liteVersion; ?>
               <?php else:?>
               <?php printf($lang->misc->zentao->version, $config->version); ?>
               <?php endif;?>

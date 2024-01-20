@@ -2,7 +2,7 @@
 /**
  * The admin module English file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
  * @license  ZPL (http://zpl.pub/page/zplv12.html)
  * @author   Nguyễn Quốc Nho <quocnho@gmail.com>
  * @package  admin
@@ -22,10 +22,17 @@ $lang->admin->captcha       = 'Mã xác thực';
 $lang->admin->getCaptcha    = 'Gửi Mã xác thực';
 $lang->admin->register      = 'Register';
 
-$lang->admin->api     = 'API';
-$lang->admin->log     = 'Nhật ký';
-$lang->admin->setting = 'Thiết lập';
-$lang->admin->days    = 'Ngày hợp lệ';
+$lang->admin->api                  = 'API';
+$lang->admin->log                  = 'Nhật ký';
+$lang->admin->setting              = 'Thiết lập';
+$lang->admin->pluginRecommendation = 'Recommended plug-ins';
+$lang->admin->zentaoInfo           = 'ZenTao information';
+$lang->admin->officialAccount      = 'WeChat Official Account';
+$lang->admin->publicClass          = 'Public class';
+$lang->admin->days                 = 'Ngày hợp lệ';
+$lang->admin->resetPWDByMail       = 'Reset the password via the email';
+$lang->admin->followUs             = 'Follow Us';
+$lang->admin->followUsContent      = 'Check out ZenTao news, events, and support at any time';
 
 $lang->admin->info = new stdclass();
 $lang->admin->info->version = 'Phiên bản hiện tại là %s. ';
@@ -45,6 +52,7 @@ $lang->admin->registerNotice->click      = 'Đăng ký';
 $lang->admin->registerNotice->lblAccount = '>= 3 chữ và số';
 $lang->admin->registerNotice->lblPasswd  = '>= 6 chữ và số';
 $lang->admin->registerNotice->submit     = 'Gửi';
+$lang->admin->registerNotice->submitHere = 'submitHere';
 $lang->admin->registerNotice->bind       = "Kết nối với tài khoản đang tồn tại";
 $lang->admin->registerNotice->success    = "Bạn đã đăng ký!";
 
@@ -79,8 +87,17 @@ $lang->admin->safe->reasonList['birthday'] = 'Giống ngày sinh';
 $lang->admin->safe->modifyPasswordList[1] = 'Có';
 $lang->admin->safe->modifyPasswordList[0] = 'Không';
 
-$lang->admin->safe->loginCaptchaList[1] = 'Yes'
+$lang->admin->safe->loginCaptchaList[1] = 'Yes';
 $lang->admin->safe->loginCaptchaList[0] = 'No';
 
 $lang->admin->safe->noticeMode   = 'Mật khẩu sẽ được kiểm tra khi người dùng đăng nhập hoặc người dùng thêm hoặc sửa.';
 $lang->admin->safe->noticeStrong = '';
+$lang->admin->safe->noticeGd     = 'Your server does not have GD module installed, you cannot use the Captcha function, Please use it after installation.';
+
+$lang->admin->mon              = 'month';
+$lang->admin->day              = 'day';
+$lang->admin->updateDynamics   = 'updateDynamics';
+$lang->admin->updatePatch      = 'updatePatch';
+$lang->admin->upgradeRecommend = 'upgradeRecommend';
+
+include dirname(__FILE__) . '/menu.php';

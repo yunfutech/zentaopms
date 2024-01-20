@@ -10,7 +10,7 @@ class myExecution extends execution
         $currentMethod = $this->app->methodName;
         $execution     = $this->execution->getById($executionID);
         $this->loadModel('project')->setMenu($execution->project);
-        $this->lang->kanban->menu->execution['subMenu'] = new stdClass();
+        $this->lang->kanbanProject->menu->execution['subMenu'] = new stdClass();
 
         $this->session->set('kanbanview', $currentMethod);
         setcookie('kanbanview', $currentMethod, $this->config->cookieLife, $this->config->webRoot, '', false, true);
@@ -42,9 +42,9 @@ class myExecution extends execution
             $TRActions .= "<div class='dropdown'>";
             $TRActions .= html::a('javascript:;', "<i class='icon icon-cog-outline'></i>" . $this->lang->kanban->setting, '', "data-toggle='dropdown' data- class='btn btn-link'");
             $TRActions .= "<ul id='kanbanActionMenu' class='dropdown-menu pull-right'>";
-            $width    = $this->app->getClientLang() == 'en' ? '70%' : '60%';
+            $width    = $this->app->getClientLang() == 'en' ? '750' : '650';
             if(common::hasPriv('kanban', 'createRegion')) $TRActions .= '<li>' . html::a(helper::createLink('kanban', 'createRegion', "kanbanID=$execution->id&from=execution", '', true), '<i class="icon icon-plus"></i>' . $this->lang->kanban->createRegion, '', "class='iframe btn btn-link text-left'") . '</li>';
-            if(common::hasPriv('kanban', 'setLaneHeight')) $TRActions .= '<li>' . html::a(helper::createLink('kanban', 'setLaneHeight', "kanbanID=$execution->id&from=execution", '', true), '<i class="icon icon-size-height"></i>' . $this->lang->kanban->laneHeight, '', "class='iframe btn btn-link text-left' data-width=$width") . '</li>';
+            if(common::hasPriv('execution', 'setKanban')) $TRActions .= '<li>' . html::a(helper::createLink('execution', 'setKanban', "kanbanID=$execution->id&from=execution", '', true), '<i class="icon icon-size-height"></i>' . $this->lang->kanban->laneHeight, '', "class='iframe btn btn-link text-left' data-width=$width") . '</li>';
             $kanbanActions = '';
             if(common::hasPriv('execution', 'edit')) $kanbanActions .= '<li>' . html::a(helper::createLink('execution', 'edit', "executionID=$execution->id", '', true), '<i class="icon icon-edit"></i>' . $this->lang->kanban->edit, '', "class='iframe btn btn-link text-left' data-width='75%'") . '</li>';
             if(in_array('start', $executionActions)) $kanbanActions .= '<li>' . html::a(helper::createLink('execution', 'start', "executionID=$execution->id", '', true), '<i class="icon icon-play"></i>' . $this->lang->execution->start, '', "class='iframe btn btn-link text-left' data-width='75%'") . '</li>';

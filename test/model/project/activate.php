@@ -1,23 +1,24 @@
 #!/usr/bin/env php
 <?php
 include dirname(dirname(dirname(__FILE__))) . '/lib/init.php';
-include dirname(dirname(dirname(__FILE__))) . '/class/project.class.php';
+su('admin');
 
 /**
 
-title=测试 projectModel::activate();
+title=测试 projectModel->activate();
 cid=1
 pid=1
 
-开始id为66状态不是closed的项目 >> 1
-开始id为67状态是closed的项目 >> 0
+激活id为66状态是closed的项目 >> status,closed,doing
+激活id为73状态是suspended的项目 >> status,suspended,doing
 
 */
 
-$project = new Project('admin');
+global $tester;
+$tester->loadModel('project');
 
-$beginId = array(66, 67);
+$changes1 = $tester->project->activate(66);
+$changes2 = $tester->project->activate(73);
 
-r($project->checkStatus($beginId[0])) && p() && e('1'); //开始id为66状态不是closed的项目
-r($project->checkStatus($beginId[1])) && p() && e('0'); //开始id为67状态是closed的项目
-system("./ztest init");
+r($changes1) && p('1:field,old,new') && e('status,closed,doing');    // 激活id为66状态是closed的项目
+r($changes2) && p('1:field,old,new') && e('status,suspended,doing'); // 激活id为73状态是suspended的项目

@@ -2,8 +2,8 @@
 /**
  * The link bug view of bug module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Fei Chen <chenfei@cnezsoft.com>
  * @package     bug
  * @version     $Id: linkbugs.html.php 4129 2016-03-08 09:00:12Z chenfei $
@@ -55,7 +55,7 @@
           <td><span class='label-pri <?php echo 'label-pri-' . $bug2Link->pri?>' title='<?php echo zget($lang->bug->priList, $bug2Link->pri, $bug2Link->pri);?>'><?php echo zget($lang->bug->priList, $bug2Link->pri, $bug2Link->pri);?></span></td>
           <td class='nobr' title="<?php echo $products[$bug2Link->product]?>"><?php echo html::a($this->createLink('product', 'browse', "productID=$bug2Link->product&branch=$bug2Link->branch"), $products[$bug2Link->product], '_blank');?></td>
           <td class='text-left nobr' title="<?php echo $bug2Link->title?>"><?php echo html::a($bugLink, $bug2Link->title);?></td>
-          <td><?php echo $this->processStatus('bug', $bug);?></td>
+          <td><?php echo $this->processStatus('bug', $bug2Link);?></td>
           <td><?php echo zget($users, $bug2Link->openedBy);?></td>
           <td><?php echo zget($users, $bug2Link->assignedTo);?></td>
         </tr>
@@ -90,7 +90,7 @@ $(function()
             output += checkbox;
         });
         $.closeModal();
-        parent.$('#linkBugsBox').html(output);
+        parent.$('#linkBugsBox').html(output).closest('tr').removeClass('hidden');
         return false;
     });
 });

@@ -1,4 +1,5 @@
 <?php
+include dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR . 'lib/requests/requests.class.php';
 /**
  * The rest class.
  *

@@ -2,8 +2,8 @@
 /**
  * The model file of dept module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     dept
  * @version     $Id: model.php 4210 2013-01-22 01:06:12Z zhujinyonging@gmail.com $
@@ -112,7 +112,8 @@ class deptModel extends model
 
         krsort($deptMenu);
         $topMenu = array_pop($deptMenu);
-        $topMenu = explode("\n", trim($topMenu));
+        $topMenu = explode("\n", trim((string)$topMenu));
+
         $lastMenu[] = '/';
         foreach($topMenu as $menu)
         {
@@ -120,6 +121,7 @@ class deptModel extends model
             list($label, $deptID) = explode('|', $menu);
             $lastMenu[$deptID] = $label;
         }
+
         return $lastMenu;
     }
 
@@ -369,10 +371,10 @@ class deptModel extends model
     /**
      * Get users of a deparment.
      *
-     * @param  varchar $browseType inside|outside|all
+     * @param  string  $browseType inside|outside|all
      * @param  int     $deptID
      * @param  object  $pager
-     * @param  varchar $orderBy
+     * @param  string  $orderBy
      * @access public
      * @return array
      */
@@ -409,6 +411,7 @@ class deptModel extends model
             ->where('deleted')->eq(0)
             ->beginIF(strpos($params, 'all') === false)->andWhere('type')->eq($type)->fi()
             ->beginIF($childDepts)->andWhere('dept')->in($childDepts)->fi()
+            ->beginIF($deptID === '0')->andWhere('dept')->eq($deptID)->fi()
             ->beginIF($this->config->vision)->andWhere("CONCAT(',', visions, ',')")->like("%,{$this->config->vision},%")->fi()
             ->orderBy('account')
             ->fetchPairs();

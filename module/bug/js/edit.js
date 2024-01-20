@@ -12,13 +12,36 @@ $(function()
                 confirmResult = confirm(confirmUnlinkBuild);
                 if(!confirmResult)
                 {
-                    $('#resolvedBuild').val(oldResolvedBuild);
-                    $('#resolvedBuild').trigger("chosen:updated");
-                    $('#resolvedBuild').chosen();
+                    var resolvedBuildPicker = $('#resolvedBuild').data('zui.picker');
+                    resolvedBuildPicker.setValue(oldResolvedBuild);
                 }
             }
         });
     }
+
+    $('#duplicateBug').picker(
+    {
+        disableEmptySearch : true,
+        dropWidth : 'auto',
+        maxAutoDropWidth : document.body.scrollWidth + document.getElementById('resolution').offsetWidth - document.getElementById('resolution').getBoundingClientRect().right
+    });
+
+    $('#linkBugsLink').click(function()
+    {
+        var bugIdList = '';
+        $('#linkBugsBox input').each(function()
+        {
+            bugIdList += $(this).val() + ',';
+        });
+
+        var link = createLink('bug', 'linkBugs', 'bugID=' + bugID + '&browseType=&excludeBugs=' + bugIdList, '', true);
+
+        var modalTrigger = new $.zui.ModalTrigger({type: 'iframe', width: '95%', url: link});
+        modalTrigger.show();
+    });
+
+    var $pkResolvedBuild = $('#pk_resolvedBuild-search');
+    $pkResolvedBuild.closest('.picker').css('width', $pkResolvedBuild.closest('td').width() - $pkResolvedBuild.closest('td').find('.input-group-btn').width());
 });
 
 /**

@@ -2,8 +2,8 @@
 /**
  * The create view of release module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     release
  * @version     $Id: create.html.php 4728 2013-05-03 06:14:34Z chencongzhi520@gmail.com $
@@ -12,7 +12,7 @@
 ?>
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
-<?php js::set('confirmLink', $confirmLink);?>
+<?php js::set('projectID', $projectID);?>
 <div id='mainContent' class='main-content'>
   <div class='center-block'>
     <div class='main-header'>
@@ -22,29 +22,36 @@
       <table class='table table-form'>
         <tbody>
           <tr>
-            <th><?php echo $lang->release->name;?></th>
+            <th class='w-120px'><?php echo $lang->release->name;?></th>
             <td><?php echo html::input('name', '', "class='form-control' required");?></td>
-            <td class='muted'>
-              <div class='checkbox-primary'>
+            <td>
+              <?php if(!$product->shadow):?>
+              <div id='markerBox' class='checkbox-primary'>
                 <input id='marker' name='marker' value='1' type='checkbox' />
                 <label for='marker'><?php echo $lang->release->marker;?></label>
               </div>
+              <?php endif;?>
               <?php if($lastRelease) echo '(' . $lang->release->last . ': ' . $lastRelease->name . ')';?>
             </td>
           </tr>
+          <?php if($product->shadow):?>
+          <?php echo html::hidden('product', $product->id);?>
+          <?php else:?>
           <tr>
-            <th><?php echo $lang->release->build;?></th>
-            <td><?php echo html::select('build', $builds, '', "onchange='showProducts(this.value)' class='form-control chosen'");?></td><td></td>
-          </tr>
-          <tr id='productBox'>
             <th><?php echo $lang->release->product;?></th>
+            <td><?php echo html::select('product', $products, $product->id, "onchange='loadBuilds()' class='form-control chosen'");?></td>
+            <td></td>
+          </tr>
+          <?php endif;?>
+          <tr>
+            <th><?php echo $lang->release->includedBuild;?></th>
+            <td id='buildBox'><?php echo html::select('build[]', $builds, '', "class='form-control picker-select' multiple data-placeholder='{$lang->build->placeholder->multipleSelect}'");?></td>
             <td>
-              <div class='input-group'>
-              <?php echo html::select('product', $products, '', "onchange='loadBranches(this.value)' class='form-control chosen'");?>
-              <?php if($product->type != 'normal') echo html::select('branch', $branches, $branch, "class='form-control chosen control-branch'");?>
+              <div class="checkbox-primary">
+                <input type="checkbox" name="sync" value="1" id="sync" checked>
+                <label for="sync"><?php echo $lang->release->syncFromBuilds?></label>
               </div>
             </td>
-            <td></td>
           </tr>
           <tr>
             <th><?php echo $lang->release->date;?></th>
@@ -64,7 +71,7 @@
             <th><?php echo $lang->release->mailto;?></th>
             <td colspan='2'>
               <div class="input-group">
-                <?php echo html::select('mailto[]', $users, '', "class='form-control chosen' data-placeholder='{$lang->chooseUsersToMail}' multiple");?>
+                <?php echo html::select('mailto[]', $users, '', "class='form-control picker-select' data-placeholder='{$lang->chooseUsersToMail}' multiple");?>
               </div>
             </td>
           </tr>
@@ -75,7 +82,6 @@
           <tr>
             <td colspan='3' class='text-center form-actions'>
               <?php echo html::submitButton();?>
-              <?php echo html::hidden('sync', 'false');?>
               <?php echo html::backButton();?>
             </td>
           </tr>
@@ -84,10 +90,5 @@
     </form>
   </div>
 </div>
-<script>
-$(function()
-{
-    $(".form-date").datetimepicker('setEndDate', '<?php echo date(DT_DATE1)?>');
-});
-</script>
+<?php js::set('multipleSelect', $lang->build->placeholder->multipleSelect);?>
 <?php include '../../common/view/footer.html.php';?>

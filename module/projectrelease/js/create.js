@@ -1,11 +1,14 @@
-$('#submit').click(function()
+/**
+ * Ajax load unlinked builds with project and product.
+ *
+ * @access public
+ * @return void
+ */
+function loadBuilds()
 {
-    var dateFormat = new RegExp(/^\d{4}\-\d{2}\-\d{2}$/);
-    var name       = $('#name').val();
-    var date       = $('#date').val();
-    if(name && dateFormat.test(date))
+    var productID = $('#product').val();
+    $('#buildBox').load(createLink('projectrelease', 'ajaxLoadBuilds', "projectID=" + projectID + "&productID=" + productID), function()
     {
-        var result = confirm(confirmLink) ? true : false;
-        $('#sync').val(result);
-    }
-});
+        $('#build').attr('data-placeholder', multipleSelect).chosen();
+    });
+}

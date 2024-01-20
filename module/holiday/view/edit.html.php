@@ -2,8 +2,8 @@
 /**
  * The edit view file of holiday module of ZenTao.
  *
- * @copyright   Copyright 2009-2018 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2018 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      chujilu <chujilu@cnezsoft.com>
  * @package     holiday
  * @version     $Id$
@@ -45,8 +45,8 @@
           <th><?php echo $lang->holiday->desc?></th>
           <td><?php echo html::textarea('desc', $holiday->desc, "class='form-control'")?></td>
           <td></td>
-        </tr> 
-        <tr><th></th><td clospan='2'><?php echo baseHTML::submitButton();?></td></tr>
+        </tr>
+        <tr><th></th><td colspan='2'><?php echo baseHTML::submitButton();?></td></tr>
       </table>
     </form>
   </div>

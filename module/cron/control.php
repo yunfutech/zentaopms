@@ -2,8 +2,8 @@
 /**
  * The control file of cron of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Yidong Wang <yidong@cnezsoft.com>
  * @package     cron
  * @version     $Id$
@@ -34,7 +34,7 @@ class cron extends control
      */
     public function turnon($confirm = 'no')
     {
-        $turnon = empty($this->config->global->cron) ? 1 : 0;
+        $turnon = empty($this->config->global->cron) ? '1' : '0';
         if(!$turnon and $confirm == 'no') return print(js::confirm($this->lang->cron->confirmTurnon, inlink('turnon', "confirm=yes")));
         $this->loadModel('setting')->setItem('system.common.global.cron', $turnon);
         return print(js::reload('parent'));
@@ -186,7 +186,7 @@ class cron extends control
                 /* Skip cron that status is running and run time is less than max. */
                 if($cronInfo->status == 'running' and (time() - strtotime($cronInfo->lastTime)) < $this->config->cron->maxRunTime) continue;
                 /* Skip cron that last time is more than this cron time. */
-                if ('cli' === PHP_SAPI)
+                if('cli' === PHP_SAPI)
                 {
                     if($cronInfo->lastTime >= $cron['time']->format(DT_DATETIME1)) continue;
                 }
@@ -197,10 +197,7 @@ class cron extends control
 
                 if($now > $cron['time'])
                 {
-                    if (!$this->cron->changeStatusRunning($id, $cronInfo->lastTime))
-                    {
-                        continue;
-                    }
+                    if(!$this->cron->changeStatusRunning($id)) continue;
                     $parsedCrons[$id]['time'] = $cron['cron']->getNextRunDate();
 
                     /* Execution command. */
@@ -259,5 +256,4 @@ class cron extends control
         /* Revert cron status to stop. */
         $this->cron->markCronStatus('stop', $configID);
     }
-
 }

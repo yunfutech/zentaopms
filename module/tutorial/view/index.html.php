@@ -2,8 +2,8 @@
 /**
  * The index view file of tutorial module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2016 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2016 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Hao Sun <sunhao@cnezsoft.com>
  * @package     tutorial
  * @version     $Id: browse.html.php 4728 2013-05-03 06:14:34Z sunhao@cnezsoft.com $
@@ -76,7 +76,6 @@
         <?php
         if(isset($task['mode']) && $task['mode'] != $mode) continue;
         $nav = $task['nav'];
-        if(!commonModel::hasPriv($nav['module'], $nav['method'])) continue;
         $task['name'] = $name;
         $task['id']   = ++ $idx;
         $task['url']  = helper::createLink($nav['module'], $nav['method'], isset($nav['vars']) ? $nav['vars'] : '', 'tutorial');

@@ -2,8 +2,8 @@
 /**
  * The viewcard of kanban module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2021 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2021 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Mengyi Liu <liumengyi@easycorp.ltd>
  * @package     kanban
  * @version     $Id: viewcard.html.php 4903 2021-12-13 16:25:59Z $
@@ -34,7 +34,7 @@
     </div>
     <div class='main-actions'>
       <div class="btn-toolbar">
-        <?php if(!$card->deleted and !$card->archived):?>
+        <?php if(!$card->deleted and !$card->archived and !(isset($this->config->CRKanban) and $this->config->CRKanban == '0' and $kanban->status == 'closed')):?>
         <?php
         //common::printLink('kanban', 'assigntoCard', "cardID=$card->id", "<i class='icon icon-hand-right'></i><span class='text'>{$lang->kanbancard->assign}</span>", '', "class='btn btn-link iframe' title='{$lang->kanbancard->assign}'", true, true);
         if($kanban->archived)

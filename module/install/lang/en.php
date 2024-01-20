@@ -2,8 +2,8 @@
 /**
  * The install module English file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     install
  * @version     $Id: en.php 4972 2013-07-02 06:50:10Z zhujinyonging@gmail.com $
@@ -23,48 +23,49 @@ $lang->install->start            = 'Start';
 $lang->install->keepInstalling   = 'Continue installing this version';
 $lang->install->seeLatestRelease = 'View the latest version';
 $lang->install->welcome          = 'Thanks for choosing ZenTao!';
-$lang->install->license          = 'ZenTao is under Z PUBLIC LICENSE(ZPL) 1.2';
+$lang->install->license          = 'License';
 $lang->install->desc             = <<<EOT
-ZenTao ALM is an open source software released under <a href='http://zpl.pub/page/zplv12.html' target='_blank'>Z Public License</a>. It integrates with Product Management, Project Management, Test Management, Document Management, CI Management, etc. ZenTao is a perfect choice for managing software development projects.
+ZenTao ALM is an open source software released under <a href='http://zpl.pub/page/zplv12.html' target='_blank'>ZPL</a> or <a href='https://www.gnu.org/licenses/agpl-3.0.en.html' target='_blank'>AGPL</a> License. It integrates with Product Management, Project Management, Test Management, Document Management, CI Management, etc. ZenTao is a perfect choice for managing software development projects.
 
-ZenTao ALM is built on PHP + MySQL + zentaoPHP which is an independent framework developed by EasyCorp. Third-party developers/organizations can develop extensions or customize ZenTao accordingly.
+ZenTao ALM is built on PHP + MySQL + zentaoPHP which is an independent framework developed by ZenTao Software. Third-party developers/organizations can develop extensions or customize ZenTao accordingly.
 EOT;
 $lang->install->links = <<<EOT
-ZenTao ALM is developed by <strong><a href='https://en.easysoft.ltd' target='_blank' class='text-danger'>EasyCorp</a></strong>.
+ZenTao ALM is developed by <strong><a href='https://en.easysoft.ltd' target='_blank' class='text-danger'>ZenTao Software</a></strong>.
 Official Website: <a href='https://www.zentao.pm' target='_blank'>https://www.zentao.pm</a>
 Technical Support: <a href='https://www.zentao.pm/forum/' target='_blank'>https://www.zentao.pm/forum/</a>
-LinkedIn: <a href='https://www.linkedin.com/company/1156596/' target='_blank'>EasyCorp</a>
-Facebook: <a href='https://www.facebook.com/natureeasysoft' target='_blank'>EasyCorp</a>
+LinkedIn: <a href='https://www.linkedin.com/company/1156596/' target='_blank'>ZenTao Software</a>
+Facebook: <a href='https://www.facebook.com/natureeasysoft' target='_blank'>ZenTao Software</a>
 Twitter: <a href='https://twitter.com/ZentaoA' target='_blank'>ZenTao ALM</a>
 
 You are installing ZenTao <strong class='text-danger'>%s</strong>.
 EOT;
 
+$lang->install->selectMode          = "Select mode";
 $lang->install->introduction        = "ZenTao 15.0+ Feature Introduction";
 $lang->install->howToUse            = "How do you like to use ZenTao?";
 $lang->install->guideVideo          = 'https://dl.cnezsoft.com/vedio/zentaoconcepteng0716.mp4';
 $lang->install->introductionContent = <<<EOT
 <div>
-  <h4>Dear users, welcome to ZenTao project management system.</h4>
-  <p>ZenTao has two managment modes in version 15.0 and up. One is the classic management mode, providing two core features, Product and Project; the other is a new project management mode, with Program and Execution added. The following is an introduction to the new mode:</p>
+  <h4>Dear users,</h4>
+  <p>Welcome to ZenTao project management system. ZenTao has two managment modes in version 15.0 and up. One is the classic management mode, providing two core features, Product and Project; the other is a new project management mode, with Program and Execution added. The following is an introduction to the new mode:</p>
   <div class='block-content'>
-    <div class='block-details'><p class='block-title'><i class='icon icon-program'></i><strong>Program</strong></p><p>Program is used to manage a group of products and projects, and the company executives or PMO can use it for strategic planning.</p></div>
+    <div class='block-details'><p class='block-title'><i class='icon icon-program'></i> <strong>Program</strong></p><p>Program is used to manage a group of products and projects, and the company executives or PMO can use it for strategic planning.</p></div>
     <div class='block-details block-right'>
-      <p class='block-title'><i class='icon icon-product'></i><strong>Product</strong></p>
+      <p class='block-title'><i class='icon icon-product'></i> <strong>Product</strong></p>
       <p>Product is used to subdivide the company's strategy into requirements that can be developed, and the product manager can use it to make release plans.<p>
     </div>
     <div class='block-details'>
-      <p class='block-title'><i class='icon icon-project'></i><strong>Project</strong></p>
+      <p class='block-title'><i class='icon icon-project'></i> <strong>Project</strong></p>
       <p>Project is used to organize the manpower for development, track and manage the project process, and complete the project in a faster, better, and less costly way.</p>
     </div>
     <div class='block-details block-right'>
-      <p class='block-title'><i class='icon icon-run'></i><strong>Execution</strong></p>
+      <p class='block-title'><i class='icon icon-run'></i> <strong>Execution</strong></p>
       <p>Execution is used to decompose, assign, and track tasks to ensure that project goals can be implemented by manpower.<p>
     </div>
   </div>
   <div class='text-center introduction-link'>
-    <a href='https://dl.cnezsoft.com/zentao/zentaoconcept.pdf' target='_blank' class='btn btn-wide btn-info'><i class='icon icon-p-square'></i> Document of introduction</a>
-    <a href='javascript:showVideo()' class='btn btn-wide btn-info'><i class='icon icon-video-play'></i> Video of introduction</a>
+    <a href='https://dl.cnezsoft.com/zentao/zentaoconcept.pdf' target='_blank' class='btn btn-wide btn-info'><i class='icon icon-p-square'></i> Introduction Document</a>
+    <a href='javascript:showVideo()' class='btn btn-wide btn-info'><i class='icon icon-video-play'></i> Introduction Video</a>
   </div>
 </div>
 EOT;
@@ -116,10 +117,11 @@ $lang->install->sessionFail  = 'Edit the php.ini file to set session.save_path.'
 $lang->install->mkdirWin     = '<p>%s directory has to be created.<br /> Run <code>mkdir %s</code> to create it.</p>';
 $lang->install->chmodWin     = ' "%s" privilege has to be changed.';
 $lang->install->mkdirLinux   = '<p>%s directory has to be created.<br /> Run <code>mkdir -p %s</code> to create it.</p>';
-$lang->install->chmodLinux   = ' "%s" permison has to be changed.<br /> Run <code>chmod o=rwx -R %s</code> to change it.';
+$lang->install->chmodLinux   = ' "%s" permison has to be changed.<br /> Run <code>chmod 777 -R %s</code> to change it.';
 
 $lang->install->timezone       = 'Set Timezone';
 $lang->install->defaultLang    = 'Default Language';
+$lang->install->dbDriver       = 'Database Driver';
 $lang->install->dbHost         = 'Database Host';
 $lang->install->dbHostNote     = 'If 127.0.0.1 is not accessible, try localhost.';
 $lang->install->dbPort         = 'Host Port';
@@ -131,6 +133,10 @@ $lang->install->dbPrefix       = 'Table Prefix';
 $lang->install->clearDB        = 'Clean up existing data';
 $lang->install->importDemoData = 'Import Demo Data';
 $lang->install->working        = 'Operation Mode';
+
+$lang->install->dbDriverList = array();
+$lang->install->dbDriverList['mysql'] = 'MySQL';
+$lang->install->dbDriverList['dm']    = 'DM8';
 
 $lang->install->requestTypes['GET']       = 'GET';
 $lang->install->requestTypes['PATH_INFO'] = 'PATH_INFO';
@@ -153,14 +159,24 @@ $lang->install->save2File          = '<div class="alert alert-warning">Copy the 
 $lang->install->saved2File         = 'The configuration file has been saved to " <strong>%s</strong> ". You can change this file later.';
 $lang->install->errorNotSaveConfig = 'The configuration file is not saved.';
 
+global $app;
+$lang->install->CSRFNotice = "CSRF defense has been enabled in the system. If you don't need it, contact the administrator to disable it manually in the {$app->basePath}config/config.php file.";
+
 $lang->install->getPriv            = 'Set Admin';
 $lang->install->company            = 'Company Name';
 $lang->install->account            = 'Admin Account';
 $lang->install->password           = 'Admin Password';
 
+$lang->install->placeholder = new stdclass();
+$lang->install->placeholder->password = 'The Password should be ≥ 6 characters, combination of uppercase, lowercase letters and numbers.';
+
 $lang->install->errorEmpty['company']  = "{$lang->install->company} should not be blank.";
 $lang->install->errorEmpty['account']  = "{$lang->install->account} should not be blank.";
 $lang->install->errorEmpty['password'] = "{$lang->install->password} should not be blank.";
+
+$lang->install->langList['1'] = array('module' => 'process', 'key' => 'support', 'value' => 'Support Process');
+$lang->install->langList['2'] = array('module' => 'process', 'key' => 'engineering', 'value' => 'Project Management');
+$lang->install->langList['3'] = array('module' => 'process', 'key' => 'project', 'value' => 'Engineering Process');
 
 $lang->install->processList['11'] = 'Project management';
 $lang->install->processList['12'] = 'Project planning';
@@ -248,6 +264,12 @@ $lang->install->groupList['LIMITED']['name']      = 'Limited User';
 $lang->install->groupList['LIMITED']['desc']      = 'Users can only edit contents related to themselves.';
 $lang->install->groupList['PROJECTADMIN']['name'] = 'Project Admin';
 $lang->install->groupList['PROJECTADMIN']['desc'] = 'Project Admins manage project privileges';
+$lang->install->groupList['LITEADMIN']['name']    = 'LITEADMIN';
+$lang->install->groupList['LITEADMIN']['desc']    = 'Operation Management Interface Admin';
+$lang->install->groupList['LITEPROJECT']['name']  = 'LITEPROJECT';
+$lang->install->groupList['LITEPROJECT']['desc']  = 'Operation Management Interface Project';
+$lang->install->groupList['LITETEAM']['name']     = 'LITETEAM';
+$lang->install->groupList['LITETEAM']['desc']     = 'Operation Management Interface Team';
 
 $lang->install->cronList[''] = 'Monitor Cron';
 $lang->install->cronList['moduleName=execution&methodName=computeBurn'] = 'Update Burndown Chart';
@@ -276,10 +298,7 @@ EOT;
 
 $lang->install->product = array('chanzhi', 'zdoo', 'ydisk', 'meshiot');
 
-$lang->install->modeList['classic'] = 'Classic mode';
-$lang->install->modeList['new']     = 'Program mode';
-
-$lang->install->promotion = "Products also from EasyCorp:";
+$lang->install->promotion = "Products also from ZenTao Software:";
 
 $lang->install->chanzhi       = new stdclass();
 $lang->install->chanzhi->name = 'ZSITE';

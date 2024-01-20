@@ -1,5 +1,7 @@
 $(function()
 {
+    if(config.onlybody == 'yes') $('.main-actions').css('width', '100%');
+
     $('#toStoryLink').click(function()
     {
         $('#productModal .modal-body .input-group .input-group-btn').addClass('hidden');
@@ -41,8 +43,13 @@ $(function()
     {
         var onlybody  = config.onlybody == 'yes';
         var productID = $('#bugProduct').val();
-        var link      = createLink('bug', 'create', 'productID=' + productID + '&branch=0&extras=todoID=' + todoID, config.defaultView, onlybody);
+        if(!productID)
+        {
+            alert(selectProduct);
+            return false;
+        }
 
+        var link = createLink('bug', 'create', 'productID=' + productID + '&branch=0&extras=todoID=' + todoID, config.defaultView, onlybody);
         if(!onlybody) window.parent.$.apps.open(link, 'qa');
         if(onlybody) location.href = link;
     })
@@ -63,8 +70,8 @@ function createProduct()
 
     var link = createLink('product', 'create');
 
-    config.onlybody      = onlybody;
-    parent.location.href = link;
+    config.onlybody = onlybody;
+    window.parent.$.apps.open(link, 'product');
 }
 
 /**
@@ -147,4 +154,16 @@ function getProgramByProduct(productID)
     {
         $('#productProgram').val(data);
     })
+}
+
+/**
+ * Toggle show execution.
+ *
+ * @param  bool $multiple
+ * @access public
+ * @return void
+ */
+function toggleExecution(multiple)
+{
+    $('#executionIdBox').closest('tr').toggleClass('hidden', !multiple);
 }

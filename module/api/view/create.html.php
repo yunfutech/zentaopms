@@ -2,8 +2,8 @@
 /**
  * The create view of doc module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Jia Fu <fujia@cnezsoft.com>
  * @package     doc
  * @version     $Id: create.html.php 975 2010-07-29 03:30:25Z jajacn@126.com $
@@ -38,12 +38,10 @@ js::set('struct_paramsType', $lang->struct->paramsType);
       </div>
       <div class='modal-body'>
         <table class='table table-form'>
-          <tbody>
-            <tr>
-              <td><?php echo html::select('filter', $allStruct, '', "class='form-control chosen filterSelect'");?></td>
-              <td></td>
-            </tr>
-          </tbody>
+          <tr>
+            <td><?php echo html::select('filter', $allStruct, '', "class='form-control chosen filterSelect'");?></td>
+            <td></td>
+          </tr>
         </table>
       </div>
       <div class="modal-footer">
@@ -62,7 +60,9 @@ js::set('struct_paramsType', $lang->struct->paramsType);
         <tbody>
           <tr>
             <th class='w-110px'><?php echo $lang->api->lib;?></th>
-            <td> <?php echo html::select('lib', $libs, $libID, "class='form-control chosen' onchange=loadDocModule(this.value)");?> </td>
+            <td>
+              <?php echo $libName . html::hidden('lib', $libID);?>
+            </td>
             <td></td>
           </tr>
           <tr>
@@ -103,9 +103,7 @@ js::set('struct_paramsType', $lang->struct->paramsType);
             <td><?php echo html::radio('status', $lang->api->statusOptions, apiModel::STATUS_DONE);?></td>
           </tr>
           <tr>
-            <th>
-              <nobr><?php echo $lang->api->owner;?></nobr>
-            </th>
+            <th><?php echo $lang->api->owner;?></th>
             <td>
               <div class='input-group'>
                 <?php echo html::select('owner', $allUsers, $user, "class='form-control chosen'");?>
@@ -130,18 +128,17 @@ js::set('struct_paramsType', $lang->struct->paramsType);
                       <input type="text" placeholder="<?php echo $lang->struct->field;?>" autocomplete="off" class="form-control" v-model="item.field">
                     </td>
                     <td class="w-50px">
-                      <div class="checkbox">
-                        <label>
-                          <input type="checkbox" v-model="item.required">
-                        </label>
+                      <div class="checkbox-primary">
+                        <input type="checkbox" v-model="item.required">
+                        <label></label>
                       </div>
                     </td>
                     <td class="w-500px">
                       <input type="text" placeholder="<?php echo $lang->struct->desc;?>" autocomplete="off" class="form-control" v-model="item.desc">
                     </td>
                     <td>
-                      <button class="btn btn-link" type="button" @click="add(header, key, 'header')"><?php echo $lang->struct->add;?></button>
-                      <button class="btn btn-link" type="button" @click="del(header, key)"><?php echo $lang->delete;?></button>
+                      <button class="btn btn-link btn-icon btn-add" type="button" @click="add(header, key, 'header')"><i class="icon icon-plus"></i></button>
+                      <button class="btn btn-link btn-icon btn-delete" type="button" @click="del(header, key)"><i class="icon icon-close"></i></button>
                     </td>
                 </tbody>
               </table>
@@ -165,18 +162,17 @@ js::set('struct_paramsType', $lang->struct->paramsType);
                       <input type="text" placeholder="<?php echo $lang->struct->field;?>" autocomplete="off" class="form-control" v-model="item.field">
                     </td>
                     <td class="w-50px">
-                      <div class="checkbox">
-                        <label>
-                          <input type="checkbox" v-model="item.required">
-                        </label>
+                      <div class="checkbox-primary">
+                        <input type="checkbox" v-model="item.required">
+                        <label></label>
                       </div>
                     </td>
                     <td class="w-500px">
                       <input type="text" placeholder="<?php echo $lang->struct->desc;?>" autocomplete="off" class="form-control" v-model="item.desc">
                     </td>
                     <td>
-                      <button class="btn btn-link" type="button" @click="add(queryP, key, 'query')"><?php echo $lang->struct->add;?></button>
-                      <button class="btn btn-link" type="button" @click="del(queryP, key)"><?php echo $lang->delete;?></button>
+                      <button class="btn btn-link btn-icon btn-add" type="button" @click="add(queryP, key, 'query')"><i class="icon icon-plus"></i></button>
+                      <button class="btn btn-link btn-icon btn-delete" type="button" @click="del(queryP, key)"><i class="icon icon-close"></i></button>
                     </td>
                 </tbody>
               </table>
@@ -190,9 +186,7 @@ js::set('struct_paramsType', $lang->struct->paramsType);
             </td>
           </tr>
           <tr>
-            <th>
-              <nobr><?php echo $lang->api->paramsExample;?></nobr>
-            </th>
+            <th><?php echo $lang->api->paramsExample;?></th>
             <td>
               <div class='input-group'>
                 <?php echo html::textarea('paramsExample', '', "style='width:100%;height:200px'");?>
@@ -207,9 +201,7 @@ js::set('struct_paramsType', $lang->struct->paramsType);
             </td>
           </tr>
           <tr>
-            <th>
-              <nobr><?php echo $lang->api->responseExample;?></nobr>
-            </th>
+            <th><?php echo $lang->api->responseExample;?></th>
             <td>
               <div class='input-group'>
                 <?php echo html::textarea('responseExample', '', "style='width:100%;height:200px'");?>
@@ -225,8 +217,7 @@ js::set('struct_paramsType', $lang->struct->paramsType);
           <tr>
             <td colspan='3' class='text-center form-actions'>
               <?php echo html::submitButton();?>
-              <?php if(empty($gobackLink)) echo html::backButton($lang->goback, "data-app='{$app->tab}'");?>
-              <?php if(!empty($gobackLink)) echo html::a($gobackLink, $lang->goback, '', "class='btn btn-back btn-wide'");?>
+              <?php echo html::backButton($lang->goback, "data-app='{$app->tab}' class='btn btn-back btn-wide'");?>
             </td>
           </tr>
         </tbody>

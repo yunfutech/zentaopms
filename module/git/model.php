@@ -2,8 +2,8 @@
 /**
  * The model file of git module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     git
  * @version     $Id$
@@ -128,12 +128,24 @@ class gitModel extends model
         $branches = $this->repo->getBranches($repo);
         $commits  = $repo->commits;
 
-        $gitlabAccountPairs = array();
+        $accountPairs = array();
         if($repo->SCM == 'Gitlab')
         {
-            $gitlabUserList = $this->loadModel('gitlab')->apiGetUsers($repo->gitlab);
-            $acountIDPairs  = $this->gitlab->getUserIdAccountPairs($repo->gitlab);
-            foreach($gitlabUserList as $gitlabUser) $gitlabAccountPairs[$gitlabUser->realname] = zget($acountIDPairs, $gitlabUser->id, $gitlabUser->realname);
+            $userList      = $this->loadModel('gitlab')->apiGetUsers($repo->gitService);
+            $acountIDPairs = $this->gitlab->getUserIdAccountPairs($repo->gitService);
+            foreach($userList as $gitlabUser) $accountPairs[$gitlabUser->realname] = zget($acountIDPairs, $gitlabUser->id, '');
+        }
+        elseif($repo->SCM == 'Gitea')
+        {
+            $userList      = $this->loadModel('gitea')->apiGetUsers($repo->gitService);
+            $acountIDPairs = $this->gitea->getUserAccountIdPairs($repo->gitService, 'openID,account');
+            foreach($userList as $gitlabUser) $accountPairs[$gitlabUser->realname] = zget($acountIDPairs, $gitlabUser->id, '');
+        }
+        elseif($repo->SCM == 'Gogs')
+        {
+            $userList      = $this->loadModel('gogs')->apiGetUsers($repo->gitService);
+            $acountIDPairs = $this->gogs->getUserAccountIdPairs($repo->gitService, 'openID,account');
+            foreach($userList as $gitlabUser) $accountPairs[$gitlabUser->realname] = zget($acountIDPairs, $gitlabUser->id, '');
         }
 
         /* Update code commit history. */
@@ -147,13 +159,13 @@ class gitModel extends model
             $lastInDB = $this->repo->getLatestCommit($repo->id);
 
             /* Ignore unsynced branch. */
-            if(empty($lastInDB))
+            if($repo->synced != 1)
             {
                 if($printLog) $this->printLog("Please init repo {$repo->name}");
                 continue;
             }
 
-            $version = (int)$lastInDB->commit + 1;
+            $version = isset($lastInDB->commit) ? (int)$lastInDB->commit + 1 : 1;
             $logs    = $this->repo->getUnsyncedCommits($repo);
             $objects = array();
             if(!empty($logs))
@@ -166,7 +178,10 @@ class gitModel extends model
                     if($printLog) $this->printLog("parsing log {$log->revision}");
                     if($printLog) $this->printLog("comment is\n----------\n" . trim($log->msg) . "\n----------");
 
-                    $objects = $this->repo->parseComment($log->msg);
+                    $objects     = $this->repo->parseComment($log->msg);
+                    $lastVersion = $version;
+                    $version     = $this->repo->saveOneCommit($repo->id, $log, $version, $branch);
+
                     if($objects)
                     {
                         if($printLog) $this->printLog('extract' .
@@ -174,7 +189,20 @@ class gitModel extends model
                             ' task:' . join(' ', $objects['tasks']) .
                             ' bug:'  . join(',', $objects['bugs']));
 
-                        $this->repo->saveAction2PMS($objects, $log, $this->repoRoot, $repo->encoding, 'git', $gitlabAccountPairs);
+                        if($lastVersion != $version)
+                        {
+                            $this->repo->saveAction2PMS($objects, $log, $this->repoRoot, $repo->encoding, 'git', $accountPairs);
+
+                            /* Objects link commit. */
+                            foreach($objects as $objectType => $objectIDs)
+                            {
+                                $objectTypeMap = array('stories' => 'story', 'bugs' => 'bug', 'tasks' => 'task');
+                                if(empty($objectIDs) or !isset($objectTypeMap[$objectType])) continue;
+
+                                $this->post->$objectType = $objectIDs;
+                                $this->repo->link($repo->id, $log->revision, $objectTypeMap[$objectType]);
+                            }
+                        }
                     }
                     else
                     {
@@ -190,11 +218,9 @@ class gitModel extends model
                             if(strpos($log->msg, $comment) !== false) $this->loadModel('compile')->createByJob($job->id);
                         }
                     }
-                    $version  = $this->repo->saveOneCommit($repo->id, $log, $version, $branch);
                     $commits += count($logs);
                 }
             }
-
         }
 
         $this->repo->updateCommitCount($repo->id, $commits);
@@ -210,7 +236,7 @@ class gitModel extends model
      */
     public function setRepos()
     {
-        $repos    = $this->loadModel('repo')->getListBySCM('Git,Gitlab');
+        $repos    = $this->loadModel('repo')->getListBySCM('Git,Gitlab,Gogs,Gitea');
         $gitRepos = array();
         $paths    = array();
         foreach($repos as $repo)
@@ -296,6 +322,8 @@ class gitModel extends model
      */
     public function getRepoTags($repo)
     {
+        if(empty($repo->client) or empty($repo->path) or !isset($repo->account) or !isset($repo->password) or !isset($repo->encoding)) return false;
+
         $scm = $this->app->loadClass('scm');
         $scm->setEngine($repo);
         return $scm->tags('');
@@ -311,6 +339,8 @@ class gitModel extends model
      */
     public function getRepoLogs($repo, $fromRevision)
     {
+        if(empty($repo->client) or empty($repo->path) or !isset($repo->account) or !isset($repo->password) or !isset($repo->encoding)) return false;
+
         $scm = $this->app->loadClass('scm');
         $scm->setEngine($repo);
         $logs = $scm->log('', $fromRevision);
@@ -369,106 +399,6 @@ class gitModel extends model
         $parsedLog->files     = $files;
 
         return $parsedLog;
-    }
-
-    /**
-     * Diff a url.
-     *
-     * @param  string $path
-     * @param  int    $revision
-     * @access public
-     * @return string|bool
-     */
-    public function diff($path, $revision)
-    {
-        $repo = $this->getRepoByURL($path);
-        if(!$repo) return false;
-
-        $this->setClient($repo);
-        if(empty($this->client)) return false;
-        putenv('LC_CTYPE=en_US.UTF-8');
-
-        chdir($repo->path);
-        exec("{$this->client} config core.quotepath false");
-        $subPath = substr($path, strlen($repo->path));
-        if($subPath[0] == '/' or $subPath[0] == '\\') $subPath = substr($subPath, 1);
-
-        $encodings = explode(',', $this->config->git->encodings);
-        foreach($encodings as $encoding)
-        {
-            $encoding = trim($encoding);
-            if($encoding == 'utf-8') continue;
-            $subPath = helper::convertEncoding($subPath, 'utf-8', $encoding);
-            if($subPath) break;
-        }
-
-        exec("$this->client rev-list -n 2 $revision -- $subPath", $lists);
-        if(count($lists) == 2) list($nowRevision, $preRevision) = $lists;
-        $cmd = "$this->client diff $preRevision $nowRevision -- $subPath 2>&1";
-        $diff = `$cmd`;
-
-        $encoding = isset($repo->encoding) ? $repo->encoding : 'utf-8';
-        if($encoding and $encoding != 'utf-8') $diff = helper::convertEncoding($diff, $encoding);
-
-        return $diff;
-    }
-
-    /**
-     * Cat a url.
-     *
-     * @param  string $path
-     * @param  int    $revision
-     * @access public
-     * @return string|bool
-     */
-    public function cat($path, $revision)
-    {
-        $repo = $this->getRepoByURL($path);
-        if(!$repo) return false;
-
-        $this->setClient($repo);
-        if(empty($this->client)) return false;
-
-        putenv('LC_CTYPE=en_US.UTF-8');
-
-        $subPath = substr($path, strlen($repo->path));
-        if($subPath[0] == '/' or $subPath[0] == '\\') $subPath = substr($subPath, 1);
-
-        $encodings = explode(',', $this->config->git->encodings);
-        foreach($encodings as $encoding)
-        {
-            $encoding = trim($encoding);
-            if($encoding == 'utf-8') continue;
-            $subPath = helper::convertEncoding($subPath, 'utf-8', $encoding);
-            if($subPath) break;
-        }
-
-        chdir($repo->path);
-        exec("{$this->client} config core.quotepath false");
-        $cmd  = "$this->client show $revision:$subPath 2>&1";
-        $code = `$cmd`;
-
-        $encoding = isset($repo->encoding) ? $repo->encoding : 'utf-8';
-        if($encoding and $encoding != 'utf-8') $code = helper::convertEncoding($code, $encoding);
-
-        return $code;
-    }
-
-    /**
-     * Get repo by url.
-     *
-     * @param  string    $url
-     * @access public
-     * @return object|bool
-     */
-    public function getRepoByURL($url)
-    {
-        foreach($this->config->git->repos as $repo)
-        {
-            if(empty($repo['path'])) continue;
-            if(strpos($url, $repo['path']) !== false) return (object)$repo;
-        }
-        return false;
     }
 
     /**

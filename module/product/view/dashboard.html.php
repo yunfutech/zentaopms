@@ -2,8 +2,8 @@
 /**
  * The view view of product module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     product
  * @version     $Id: view.html.php 4129 2013-01-18 01:58:14Z wwccss $
@@ -15,7 +15,7 @@
 <div id='mainContent' class="main-row">
   <div class="col-12 main-col">
     <div class="row">
-    <?php $isRoadmap = common::hasPriv('product', 'roadmap');?>
+    <?php $isRoadmap = (common::hasPriv('product', 'roadmap') and helper::hasFeature('product_roadmap'));?>
     <?php if($isRoadmap):?>
       <div class="col-sm-6">
         <div class="panel block-release">
@@ -54,14 +54,14 @@
           <div class="panel-heading">
           <div class="panel-title"><?php echo $lang->product->latestDynamic;?></div>
             <nav class="panel-actions nav nav-default">
-              <li><a href="<?php echo $this->createLink('product', 'dynamic', "productID={$product->id}&type=all");?>" title="<?php echo $lang->more;?>"><i class="icon icon-more icon-sm"></i></i></a></li>
+              <li><a href="<?php echo $this->createLink('product', 'dynamic', "productID={$product->id}&type=all");?>" title="<?php echo $lang->more;?>"><?php echo strtoupper($lang->more);?></i></i></a></li>
             </nav>
           </div>
           <div class="panel-body scrollbar-hover">
             <ul class="timeline timeline-tag-left no-margin">
               <?php foreach($dynamics as $action):?>
               <li <?php if($action->major) echo "class='active'";?>>
-                <div class='text-ellipsis'>
+                <div>
                   <span class="timeline-tag"><?php echo $action->date;?></span>
                   <span class="timeline-text"><?php echo zget($users, $action->actor) . ' ' . "<span class='label-action'>{$action->actionLabel}</span>" . $action->objectLabel . ' ' . html::a($action->objectLink, $action->objectName);?></span>
                 </div>

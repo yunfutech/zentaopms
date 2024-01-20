@@ -2,8 +2,8 @@
 /**
  * The build view file of project module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     project
  * @version     $Id: build.html.php 4262 2013-01-24 08:48:56Z chencongzhi520@gmail.com $
@@ -11,27 +11,31 @@
  */
 ?>
 <?php include '../../common/view/header.html.php';?>
-<?php js::set('executions', $executions)?>
 <?php js::set('projectID', $projectID)?>
+<?php js::set('noDevStage', $lang->project->noDevStage)?>
 <?php js::set('createExecution', $lang->project->createExecution)?>
 <?php js::set('confirmDelete', $lang->build->confirmDelete)?>
+<?php js::set('fromModule', $fromModule)?>
+<?php js::set('fromMethod', $fromMethod)?>
 <div id="mainMenu" class="clearfix table-row">
   <div class="btn-toolbar pull-left">
     <?php
-    $label  = "<span class='text'>{$lang->execution->build}</span>";
-    $active = '';
-    if($type == 'all')
+    common::sortFeatureMenu();
+    foreach($lang->project->featureBar['build'] as $featureType => $label)
     {
-        $active = 'btn-active-text';
-        $label .= " <span class='label label-light label-badge'>{$buildsTotal}</span>";
+        $activeClass = $type == $featureType ? 'btn-active-text' : '';
+        $label       = "<span class='text'>$label</span>";
+        if($type == $featureType) $label .= " <span class='label label-light label-badge'>{$buildsTotal}</span>";
+        echo html::a($this->createLink($fromModule, $fromMethod, "projectID=$projectID&type=$featureType"), $label, '',"class='btn btn-link $activeClass' data-app={$app->tab} id=" . $featureType .'Tab');
     }
-    echo html::a(inlink('build', "projectID=$projectID&type=all"), $label, '', "class='btn btn-link $active' id='all'")
     ?>
+    <?php if($project->hasProduct):?>
     <div class="input-control space w-150px"><?php echo html::select('product', $products, $product, "onchange='changeProduct(this.value)' class='form-control chosen' data-placeholder='{$lang->productCommon}'");?></div>
+    <?php endif;?>
     <a class="btn btn-link querybox-toggle" id="bysearchTab"><i class="icon icon-search muted"></i> <?php echo $lang->execution->byQuery;?></a>
   </div>
   <div class="btn-toolbar pull-right">
-    <?php if(common::canModify('project', $project)) common::printLink('build', 'create', "executionID=&productID=&projectID=$projectID", "<i class='icon icon-plus'></i> " . $lang->build->create, '', "class='btn btn-primary' id='createBuild'");?>
+    <?php if(common::canModify('project', $project)) common::printLink('projectbuild', 'create', "projectID=$projectID", "<i class='icon icon-plus'></i> " . $lang->build->create, '', "class='btn btn-primary' id='createBuild'");?>
   </div>
 </div>
 <div id="mainContent">
@@ -46,13 +50,19 @@
       <thead>
         <tr>
           <th class="c-id-sm"><?php echo $lang->build->id;?></th>
-          <th class="c-name w-200px text-left"><?php echo $lang->build->product;?></th>
           <th class="c-name text-left"><?php echo $lang->build->name;?></th>
-          <th class="c-name text-left"><?php echo $lang->executionCommon;?></th>
-          <th class="c-url"><?php echo $lang->build->scmPath;?></th>
-          <th class="c-url"><?php echo $lang->build->filePath;?></th>
-          <th class="c-date"><?php echo $lang->build->date;?></th>
-          <th class="c-user"><?php echo $lang->build->builder;?></th>
+          <?php if($project->hasProduct):?>
+          <th class="c-name w-200px text-left"><?php echo $lang->build->product;?></th>
+          <?php if($showBranch):?>
+          <th class="c-name w-150px text-left"><?php echo $lang->build->branch;?></th>
+          <?php endif;?>
+          <?php endif;?>
+          <?php if($project->multiple):?>
+          <th class="c-name w-150px text-left"><?php echo $lang->executionCommon;?></th>
+          <?php endif;?>
+          <th class="c-url w-200px text-left"><?php echo $lang->build->url;?></th>
+          <th class="c-date w-90px"><?php echo $lang->build->date;?></th>
+          <th class="c-user w-70px"><?php echo $lang->build->builder;?></th>
           <th class="c-actions-5"><?php echo $lang->actions;?></th>
         </tr>
       </thead>
@@ -60,34 +70,72 @@
         <?php foreach($projectBuilds as $productID => $builds):?>
         <?php foreach($builds as $index => $build):?>
         <tr data-id="<?php echo $productID;?>">
-          <td class="c-id-sm text-muted"><?php echo html::a(helper::createLink('build', 'view', "buildID=$build->id"), sprintf('%03d', $build->id), '', "data-app='project'");?></td>
-          <td class="c-name text-left" title='<?php echo $build->productName;?>'><?php echo $build->productName;?></td>
+          <td class="c-id-sm text-muted"><?php echo html::a(helper::createLink($fromModule, 'view', "buildID=$build->id"), sprintf('%03d', $build->id), '', "data-app='project'");?></td>
           <td class="c-name" title='<?php echo $build->name;?>'>
-            <?php if($build->branchName) echo "<span class='label label-outline label-badge'>{$build->branchName}</span>"?>
-            <?php echo html::a($this->createLink('build', 'view', "build=$build->id"), $build->name, '', "data-app='project'");?>
+            <span class='build'>
+              <?php echo html::a($this->createLink($fromModule, 'view', "buildID=$build->id"), $build->name, '', "data-app='project' class='buildName'");?>
+              <?php if(!$build->execution):?>
+                <span class='icon icon-code-fork text-muted' title='<?php echo $lang->build->integrated;?>'></span>
+              <?php endif;?>
+            </span>
           </td>
-          <td class="c-name text-left" title='<?php echo $build->executionName;?>'><?php echo $build->executionName;?></td>
-          <td class="c-url" title="<?php echo $build->scmPath?>"><?php  echo strpos($build->scmPath,  'http') === 0 ? html::a($build->scmPath)  : $build->scmPath;?></td>
-          <td class="c-url" title="<?php echo $build->filePath?>"><?php echo strpos($build->filePath, 'http') === 0 ? html::a($build->filePath) : $build->filePath;?></td>
-          <td class="c-date"><?php echo $build->date?></td>
-          <td class="c-user em"><?php echo zget($users, $build->builder);?></td>
-          <td class="c-actions">
+          <?php if($project->hasProduct):?>
+          <td class="c-name text-left" title='<?php echo $build->productName;?>'><?php echo $build->productName;?></td>
+          <?php if($showBranch):?>
+          <td class="c-name text-left" title='<?php echo $build->branchName;?>'><?php echo $build->branchName;?></td>
+          <?php endif;?>
+          <?php endif;?>
+          <?php if($project->multiple):?>
+          <?php if($build->execution):?>
+          <td class="c-name text-left" title='<?php echo $build->executionName;?>'>
+            <span class='execution'>
+            <?php $executionName = $build->executionName;?>
+            <?php if($build->executionDeleted) $executionName = "<del class='executionName'>$executionName</del>";?>
+            <?php echo $executionName;?>
+            <?php if($build->executionDeleted):?>
+            <span class='label label-danger'><?php echo $lang->build->deleted;?></span>
+            <?php endif; ?>
+            </span>
+          </td>
+          <?php else:?>
+          <td class="c-name text-left">
+            <?php $childExecutions = array();?>
+            <?php foreach($build->builds as $childBuild):?>
+            <?php $childExecutions[$childBuild->execution] = $childBuild->execution;?>
+            <?php endforeach;?>
+
+            <?php foreach($childExecutions as $execution):?>
+            <?php $executionName = zget($executions, $execution, '');?>
+            <?php if($executionName):?>
+            <span title="<?php echo $executionName;?>"><?php echo $executionName;?></span></br>
+            <?php endif;?>
+            <?php endforeach;?>
+          </td>
+          <?php endif;?>
+          <?php endif;?>
+          <td class="c-url text-left">
             <?php
-            if(common::hasPriv('build', 'linkstory') and common::hasPriv('build', 'view') and common::canBeChanged('build', $build))
+            if($build->scmPath)
             {
-                echo html::a($this->createLink('build', 'view', "buildID=$build->id&type=story&link=true"), "<i class='icon icon-link'></i>", '', "class='btn' title='{$lang->build->linkStory}' data-app='project'");
+                $colorStyle = strpos($build->scmPath, 'http') === 0 ? "style='color:#2463c7;'" : '';
+                echo "<div><i class='icon icon-file-code' $colorStyle title='{$lang->build->scmPath}'></i> ";
+                echo "<span title='{$build->scmPath}'>";
+                echo $colorStyle ? html::a($build->scmPath, $build->scmPath, '_blank', $colorStyle) : $build->scmPath;
+                echo '</span></div>';
             }
-            common::printIcon('testtask', 'create', "product=$build->product&executionID={$build->execution}&build=$build->id&projectID=$projectID", $build, 'list', 'bullhorn', '', '', '', "data-app='project'");
-            $lang->build->view = $lang->project->bug;
-            common::printIcon('build', 'view', "buildID=$build->id&type=generatedBug", $build, 'list', 'bug', '', '', '', "data-app='project'");
-            common::printIcon('build',   'edit', "buildID=$build->id", $build, 'list');
-            if(common::hasPriv('build',  'delete', $build))
+            if($build->filePath)
             {
-                $deleteURL = $this->createLink('build', 'delete', "buildID=$build->id&confirm=yes");
-                echo html::a("###", '<i class="icon-trash"></i>', '', "onclick='ajaxDelete(\"$deleteURL\", \"buildList\", confirmDelete)' class='btn' title='{$lang->build->delete}'");
+                $colorStyle = strpos($build->filePath, 'http') === 0 ? "style='color:#2463c7;'" : '';
+                echo "<div><i class='icon icon-download' $colorStyle title='{$lang->build->filePath}'></i> ";
+                echo "<span title='{$build->filePath}'>";
+                echo $colorStyle ? html::a($build->filePath, $build->filePath, '_blank', $colorStyle) : $build->filePath;
+                echo '</span></div>';
             }
             ?>
           </td>
+          <td class="c-date"><?php echo $build->date?></td>
+          <td class="c-user em"><?php echo zget($users, $build->builder);?></td>
+          <td class="c-actions"><?php echo $this->build->buildOperateMenu($build, 'browse');?></td>
         </tr>
         <?php endforeach;?>
         <?php endforeach;?>

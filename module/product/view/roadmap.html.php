@@ -2,8 +2,8 @@
 /**
  * The roadmap view file of product module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     product
  * @version     $Id: roadmap.html.php 4129 2013-01-18 01:58:14Z wwccss $
@@ -18,7 +18,7 @@
     <ul class="nav nav-secondary inline-block">
       <li class="nav-heading"><?php echo zget($lang->product->branchName, $product->type);?></li>
       <?php foreach($branches as $branchKey => $branchName):?>
-      <li <?php if($branchKey == 0) echo "class='active'";?>><a data-target="#tabContent<?php echo $branchKey;?>" data-toggle="tab"><?php echo $branchName;?></a></li>
+      <li title="<?php echo $branchName;?>" <?php if($branchKey == 0) echo "class='active'";?>><a data-target="#tabContent<?php echo $branchKey;?>" data-toggle="tab"><?php echo $branchName;?></a></li>
       <?php endforeach;?>
     </ul>
   </div>

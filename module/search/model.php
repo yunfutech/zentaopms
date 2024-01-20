@@ -2,8 +2,8 @@
 /**
  * The model file of search module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     search
  * @version     $Id: model.php 5082 2013-07-10 01:14:45Z wyd621@gmail.com $
@@ -24,45 +24,68 @@ class searchModel extends model
     public function setSearchParams($searchConfig)
     {
         $module = $searchConfig['module'];
+
         if($this->config->edition != 'open')
         {
             $flowModule = $module;
-            if($module == 'projectStory') $flowModule = 'story';
-            if($module == 'projectBug')   $flowModule = 'bug';
+            if($module == 'projectStory' || $module == 'executionStory') $flowModule = 'story';
+            if($module == 'projectBuild' || $module == 'executionBuild') $flowModule = 'build';
+            if($module == 'projectBug') $flowModule = 'bug';
 
-            $fields   = $this->loadModel('workflowfield')->getList($flowModule);
-            $maxCount = $this->config->maxCount;
-            $this->config->maxCount = 0;
+            $buildin = false;
 
-            foreach($fields as $field)
+            $this->app->loadLang('workflow');
+            $this->app->loadConfig('workflow');
+            if(!empty($this->config->workflow->buildin))
             {
-                if($field->canSearch == 0) continue;
-
-                /* The built-in modules and user defined modules all have the subStatus field, so set its configuration first. */
-                if($field->field == 'subStatus')
+                foreach($this->config->workflow->buildin->modules as $appName => $appModules)
                 {
-                    $field = $this->workflowfield->getByField($flowModule, 'subStatus');
-                    if(!isset($field->options[''])) $field->options[''] = '';
+                    if(isset($appModules->$flowModule))
+                    {
+                        $buildin = true;
+                        break;
+                    }
+                }
+            }
 
-                    $searchConfig['fields'][$field->field] = $field->name;
-                    $searchConfig['params'][$field->field] = array('operator' => '=', 'control' => 'select', 'values' => $field->options);
+            if($buildin)
+            {
+                $fields   = $this->loadModel('workflowfield')->getList($flowModule, 'searchOrder, `order`, id');
+                $maxCount = $this->config->maxCount;
+                $this->config->maxCount = 0;
 
-                    continue;
+                $fieldValues = array();
+                $formName    = $module . 'Form';
+                if($this->session->$formName)
+                {
+                    foreach($this->session->$formName as $formKey => $formField)
+                    {
+                        if(strpos($formKey, 'field') !== false)
+                        {
+                            $fieldNO      = substr($formKey, 5);
+                            $fieldNO      = "value" . $fieldNO;
+                            $formNameList = $this->session->$formName;
+                            $fieldValue   = zget($formNameList, $fieldNO, '');
+
+                            if($fieldValue) $fieldValues[$formField][$fieldValue] = $fieldValue;
+                        }
+                    }
                 }
 
-                /* The other built-in fields do not need to set their configuration. */
-                if($field->buildin) continue;
+                foreach($fields as $field)
+                {
+                    if($field->canSearch == 0 || $field->buildin) continue;
 
-                /* Set configuration for user defined fields. */
-                $operator = ($field->control == 'input' or $field->control == 'textarea') ? 'include' : '=';
-                $control  = ($field->control == 'select' or $field->control == 'multi-select' or $field->control == 'radio' or $field->control == 'checkbox') ? 'select' : 'input';
-                $options  = $this->workflowfield->getFieldOptions($field);
-                $class    = ($field->control == 'date' or $field->control == 'datetime') ? 'date' : ''; // Set date zui for date and datetime control.
+                    if(in_array($field->control, $this->config->workflowfield->optionControls))
+                    {
+                        $field->options = $this->workflowfield->getFieldOptions($field, true, zget($fieldValues, $field->field, ''), '', $this->config->flowLimit);
+                    }
 
-                $searchConfig['fields'][$field->field] = $field->name;
-                $searchConfig['params'][$field->field] = array('operator' => $operator, 'control' => $control,  'values' => $options, 'class' => $class);
+                    $searchConfig['fields'][$field->field] = $field->name;
+                    $searchConfig['params'][$field->field] = $this->loadModel('flow', 'sys')->processSearchParams($field->control, $field->options);
+                }
+                $this->config->maxCount = $maxCount;
             }
-            $this->config->maxCount = $maxCount;
         }
 
         $searchParams['module']       = $searchConfig['module'];
@@ -115,7 +138,7 @@ class searchModel extends model
             /* Skip empty values. */
             if($this->post->$valueName == false) continue;
             if($this->post->$valueName == 'ZERO') $this->post->$valueName = 0;   // ZERO is special, stands to 0.
-            if(isset($fieldParams->$field) and $fieldParams->$field->control == 'select' and $this->post->$valueName == 'null') $this->post->$valueName = '';   // Null is special, stands to empty if control is select. Fix bug #3279.
+            if(isset($fieldParams->$field) and $fieldParams->$field->control == 'select' and $this->post->$valueName === 'null') $this->post->$valueName = '';   // Null is special, stands to empty if control is select. Fix bug #3279.
 
             $scoreNum += 1;
 
@@ -166,6 +189,11 @@ class searchModel extends model
                     $allDepts = $this->loadModel('dept')->getAllChildId($value);
                     $condition = helper::dbIN($allDepts);
                 }
+                elseif($this->post->$fieldName == 'scene')
+                {
+                    $allScenes = $value === '0' ? array() : ($value === '' ? array(0) : $this->loadModel('testcase')->getAllChildId($value));
+                    if(count($allScenes)) $condition = helper::dbIN($allScenes);
+                }
                 else
                 {
                     $condition = ' = ' . $this->dbh->quote($value) . ' ';
@@ -193,9 +221,18 @@ class searchModel extends model
                 $condition  = '`' . $this->post->$fieldName . "` >= '$value' AND `" . $this->post->$fieldName . "` <= '$value 23:59:59'";
                 $where     .= " $andOr ($condition)";
             }
+            elseif($operator == '!=' and preg_match('/^[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}$/', $value))
+            {
+                $condition  = '`' . $this->post->$fieldName . "` < '$value' OR `" . $this->post->$fieldName . "` > '$value 23:59:59'";
+                $where     .= " $andOr ($condition)";
+            }
             elseif($operator == '<=' and preg_match('/^[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}$/', $value))
             {
                 $where .= " $andOr " . '`' . $this->post->$fieldName . "` <= '$value 23:59:59'";
+            }
+            elseif($operator == '>' and preg_match('/^[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}$/', $value))
+            {
+                $where .= " $andOr " . '`' . $this->post->$fieldName . "` > '$value 23:59:59'";
             }
             elseif($condition)
             {
@@ -320,7 +357,7 @@ class searchModel extends model
                 {
                     $params[$fieldName]['values'] = array('' => '', 'null' => $this->lang->search->null);
                 }
-                else
+                elseif(empty($params[$fieldName]['nonull']))
                 {
                     $params[$fieldName]['values'] = $params[$fieldName]['values'] + array('null' => $this->lang->search->null);
                 }
@@ -334,11 +371,11 @@ class searchModel extends model
      *
      * @param  int    $queryID
      * @access public
-     * @return string
+     * @return object
      */
     public function getQuery($queryID)
     {
-        $query = $this->dao->findByID($queryID)->from(TABLE_USERQUERY)->fetch();
+        $query = $this->dao->findByID((int)$queryID)->from(TABLE_USERQUERY)->fetch();
         if(!$query) return false;
 
         /* Decode html encode. */
@@ -354,6 +391,20 @@ class searchModel extends model
             $querySessionName = $query->form['module'] . 'Query';
             $query->sql = $_SESSION[$querySessionName];
         }
+        return $query;
+    }
+
+    /**
+     * Get a query.
+     *
+     * @param  int    $queryID
+     * @access public
+     * @return object
+     */
+    public function getByID($queryID)
+    {
+        $query = $this->dao->findByID($queryID)->from(TABLE_USERQUERY)->fetch();
+        if(!$query) return false;
         return $query;
     }
 
@@ -399,7 +450,6 @@ class searchModel extends model
     public function deleteQuery($queryID)
     {
         $this->dao->delete()->from(TABLE_USERQUERY)->where('id')->eq($queryID)->andWhere('account')->eq($this->app->user->account)->exec();
-        echo 'success';
     }
 
     /**
@@ -421,6 +471,30 @@ class searchModel extends model
             ->andWhere('module')->eq($module)
             ->orderBy('id_desc')
             ->fetchPairs();
+        if(!$queries) return array('' => $this->lang->search->myQuery);
+        $queries = array('' => $this->lang->search->myQuery) + $queries;
+        return $queries;
+    }
+
+    /**
+     * Get query list.
+     *
+     * @param  string    $module
+     * @access public
+     * @return array
+     */
+    public function getQueryList($module)
+    {
+        $queries = $this->dao->select('id, account, title')
+            ->from(TABLE_USERQUERY)
+            ->where()
+            ->markLeft(1)
+            ->where('account')->eq($this->app->user->account)
+            ->orWhere('common')->eq(1)
+            ->markRight(1)
+            ->andWhere('module')->eq($module)
+            ->orderBy('id_desc')
+            ->fetchAll();
         if(!$queries) return array('' => $this->lang->search->myQuery);
         $queries = array('' => $this->lang->search->myQuery) + $queries;
         return $queries;
@@ -526,36 +600,34 @@ class searchModel extends model
     }
 
     /**
-     * get search results of keywords.
+     * Get list sql params.
      *
      * @param  string    $keywords
      * @param  string    $type
-     * @access public
+     * @access protected
      * @return array
      */
-    public function getList($keywords, $type)
+    protected function getSqlParams($keywords, $type)
     {
         $spliter = $this->app->loadClass('spliter');
         $words   = explode(' ', self::unify($keywords, ' '));
 
-        $against = '';
-        $againstCond   = '';
-        $likeCondition = '';
+        $against     = '';
+        $againstCond = '';
+
         foreach($words as $word)
         {
             $splitedWords = $spliter->utf8Split($word);
+            $trimedWord   = trim($splitedWords['words']);
+            $against     .= '"' . $trimedWord . '" ';
+            $againstCond .= '(+"' . $trimedWord . '") ';
 
-            $trimedWord     = trim($splitedWords['words']);
-            $against       .= '"' . $trimedWord . '" ';
-            $againstCond   .= '+"' . $trimedWord . '" ';
-            if(is_numeric($word) and strlen($word) == 5) $againstCond .= "-\" $word \" ";
-
-            $likeWord      = is_numeric($word) ? $word : $trimedWord;
-            if(is_numeric($word) and strlen($word) < 5) $likeWord = str_pad("|$likeWord|", 5, '_');
-            $condition = "OR title like '%{$likeWord}%' OR content like '%{$likeWord}%'";
-            if(is_numeric($word) and strlen($word) == 5) $condition = "OR title REGEXP '[^ ]{$likeWord}[^ ]' OR content REGEXP '[^ ]{$likeWord}[^ ]'";
-            $likeCondition .= $condition;
+            if(is_numeric($word) and strpos($word, '.') === false and strlen($word) == 5) $againstCond .= "(-\" $word \") ";
         }
+
+        $likeCondition = '';
+        /* Assisted lookup by like condition when only one word. */
+        if(count($words) == 1 and strpos($words[0], ' ') === false and !is_numeric($words[0])) $likeCondition = "OR title like '%{$trimedWord}%' OR content like '%{$trimedWord}%'";
 
         $words = str_replace('"', '', $against);
         $words = str_pad($words, 5, '_');
@@ -568,6 +640,8 @@ class searchModel extends model
         }
         else
         {
+            if($this->config->systemMode == 'light') unset($this->config->search->fields->program);
+
             foreach($this->config->search->fields as $objectType => $fields)
             {
                 $module = $objectType;
@@ -579,15 +653,126 @@ class searchModel extends model
             }
         }
 
-        $scoreColumn = "((1 * (MATCH(title) AGAINST('{$against}' IN BOOLEAN MODE))) + (0.6 * (MATCH(content) AGAINST('{$against}' IN BOOLEAN MODE))) )";
-        $results = $this->dao->select("*, {$scoreColumn} as score")
+        return array($words, $againstCond, $likeCondition, $allowedObject);
+    }
+
+    /**
+     * Get counts of keyword search results.
+     *
+     * @param  string    $keywords
+     * @param  string    $type
+     * @access public
+     * @return array
+     */
+    public function getListCount($keywords = '', $type = 'all')
+    {
+        list($words, $againstCond, $likeCondition, $allowedObject) = $this->getSqlParams($keywords, $type);
+
+        $filterObject = array();
+        foreach($allowedObject as $index => $object)
+        {
+            if(strpos(',feedback,ticket,', ",$object,") !== false)
+            {
+                unset($allowedObject[$index]);
+                $filterObject[] = $object;
+            }
+        }
+
+        $typeCount = $this->dao->select("objectType, count(*) as objectCount")
             ->from(TABLE_SEARCHINDEX)
-            ->where("(MATCH(title) AGAINST('{$againstCond}' IN BOOLEAN MODE) >= 1 or MATCH(content) AGAINST('{$againstCond}' IN BOOLEAN MODE) >= 1 $likeCondition)")
-            ->andWhere('vision')->eq($this->config->vision)
+            ->where('((vision')->eq($this->config->vision)
             ->andWhere('objectType')->in($allowedObject)
+            ->markRight(1)
+            ->orWhere('(objectType')->in($filterObject)
+            ->markRight(2)
+            ->andWhere('addedDate')->le(helper::now())
+            ->groupBy('objectType')
+            ->fetchPairs('objectType', 'objectCount');
+        arsort($typeCount);
+        return $typeCount;
+    }
+
+    /**
+     * get search results of keywords.
+     *
+     * @param  string    $keywords
+     * @param  string    $type
+     * @param  object    $pager
+     * @access public
+     * @return array
+     */
+    public function getList($keywords, $type, $pager = null)
+    {
+        list($words, $againstCond, $likeCondition, $allowedObject) = $this->getSqlParams($keywords, $type);
+
+        $filterObject = array();
+        foreach($allowedObject as $index => $object)
+        {
+            if(strpos(',feedback,ticket,', ",$object,") !== false)
+            {
+                unset($allowedObject[$index]);
+                $filterObject[] = $object;
+            }
+        }
+
+        $scoreColumn = "(MATCH(title, content) AGAINST('{$againstCond}' IN BOOLEAN MODE))";
+        $stmt = $this->dao->select("*, {$scoreColumn} as score")
+            ->from(TABLE_SEARCHINDEX)
+            ->where("(MATCH(title,content) AGAINST('{$againstCond}' IN BOOLEAN MODE) >= 1 {$likeCondition})")
+            ->andWhere('((vision')->eq($this->config->vision)
+            ->andWhere('objectType')->in($allowedObject)
+            ->markRight(1)
+            ->orWhere('(objectType')->in($filterObject)
+            ->markRight(2)
             ->andWhere('addedDate')->le(helper::now())
             ->orderBy('score_desc, editedDate_desc')
-            ->fetchAll('id');
+            ->query();
+
+        $idListGroup = array();
+        $results     = array();
+        while($record = $stmt->fetch())
+        {
+            $module = $record->objectType == 'case' ? 'testcase' : $record->objectType;
+            $idListGroup[$module][$record->objectID] = $record->objectID;
+
+            $results[$record->id] = $record;
+        }
+
+        $results = $this->checkPriv($results, $idListGroup);
+        if(empty($results)) return $results;
+
+        /* Reset pager total and get this page data. */
+        $pager->setRecTotal(count($results));
+        $pager->setPageTotal();
+        $pager->setPageID($pager->pageID);
+        $results = array_chunk($results, $pager->recPerPage, true);
+        $results = $results[$pager->pageID - 1];
+
+        $idListGroup = array();
+        foreach($results as $record)
+        {
+            $module = $record->objectType == 'case' ? 'testcase' : $record->objectType;
+            $idListGroup[$module][$record->objectID] = $record->objectID;
+        }
+
+        $objectList = array();
+        $linkProjectModules = ',task,bug,testcase,build,release,testtask,testsuite,testreport,trainplan,';
+        foreach($idListGroup as $module => $idList)
+        {
+            if(!isset($this->config->objectTables[$module])) continue;
+            $table = $this->config->objectTables[$module];
+
+            $fields = '';
+            if($module == 'issue') $fields = $this->config->edition == 'max' ? 'id,project,owner,lib' : 'id,project,owner';
+            if($module == 'project') $fields = 'id,model';
+            if($module == 'execution')$fields = 'id,type,project';
+            if($module == 'story' or $module == 'requirement') $fields = $this->config->edition == 'max' ? 'id,type,lib' : 'id,type';
+            if(($module == 'risk' or $module == 'opportunity') and $this->config->edition == 'max') $fields = 'id,lib';
+            if($module == 'doc' and $this->config->edition == 'max') $fields = 'id,assetLib,assetLibType';
+            if(empty($fields)) continue;
+
+            $objectList[$module] = $this->dao->select($fields)->from($table)->where('id')->in($idList)->fetchAll('id');
+        }
 
         foreach($results as $record)
         {
@@ -604,17 +789,14 @@ class searchModel extends model
                 $method = 'viewstep';
             }
 
-            if(strpos(',task,bug,testcase,build,release,testtask,testsuite,testreport,trainplan,', ",$module,") !== false)
+            if(strpos($linkProjectModules, ",$module,") !== false)
             {
                 if(!isset($this->config->objectTables[$record->objectType])) continue;
-                $table       = $this->config->objectTables[$record->objectType];
-                $projectID   = $this->dao->select('project')->from($table)->where('id')->eq($record->objectID)->fetch('project');
                 $record->url = helper::createLink($module, $method, "id={$record->objectID}");
             }
             elseif($module == 'issue')
             {
-                $issueField = $this->config->edition == 'max' ? 'id,project,owner,lib' : 'id,project,owner';
-                $issue      = $this->dao->select($issueField)->from(TABLE_ISSUE)->where('id')->eq($record->objectID)->fetch();
+                $issue = $objectList['issue'][$record->objectID];
                 if(!empty($issue->lib))
                 {
                     $module = 'assetlib';
@@ -626,28 +808,28 @@ class searchModel extends model
             }
             elseif($module == 'project')
             {
-                $projectModel = $this->dao->select('model')->from(TABLE_PROJECT)->where('id')->eq($record->objectID)->fetch('model');
+                $projectModel = $objectList['project'][$record->objectID]->model;
                 $method       = $projectModel == 'kanban' ? 'index' : 'view';
                 $record->url  = helper::createLink('project', $method, "id={$record->objectID}");
             }
             elseif($module == 'execution')
             {
-                $execution         = $this->dao->select('id,type,project')->from(TABLE_EXECUTION)->where('id')->eq($record->objectID)->fetch();
+                $execution         = $objectList['execution'][$record->objectID];
                 $method            = $execution->type == 'kanban' ? 'kanban' : $method;
                 $record->url       = helper::createLink('execution', $method, "id={$record->objectID}");
                 $record->extraType = empty($execution->type) ? '' : $execution->type;
             }
-            elseif($module == 'story')
+            elseif($module == 'story' or $module == 'requirement')
             {
-                $storyField = $this->config->edition == 'max' ? 'id,type,lib' : 'id,type';
-                $story      = $this->dao->select($storyField)->from(TABLE_STORY)->where('id')->eq($record->objectID)->fetch();
+                $story  = $objectList[$module][$record->objectID];
+                $module = 'story';
                 if(!empty($story->lib))
                 {
                     $module = 'assetlib';
                     $method = 'storyView';
                 }
 
-                $record->url       = helper::createLink($module, $method, "id={$record->objectID}", '', false, 0, true);
+                $record->url = helper::createLink($module, $method, "id={$record->objectID}", '', false, 0, true);
 
                 if($this->config->vision == 'lite') $record->url = helper::createLink('projectstory', $method, "storyID={$record->objectID}", '', false, 0, true);
 
@@ -655,8 +837,7 @@ class searchModel extends model
             }
             elseif(($module == 'risk' or $module == 'opportunity') and $this->config->edition == 'max')
             {
-                $table  = $this->config->objectTables[$module];
-                $object = $this->dao->select('id,lib')->from($table)->where('id')->eq($record->objectID)->fetch();
+                $object = $objectList[$module][$record->objectID];
                 if(!empty($object->lib))
                 {
                     $method = $module == 'risk' ? 'riskView' : 'opportunityView';
@@ -667,7 +848,7 @@ class searchModel extends model
             }
             elseif($module == 'doc' and $this->config->edition == 'max')
             {
-                $doc = $this->dao->select('id,assetLib,assetLibType')->from(TABLE_DOC)->where('id')->eq($record->objectID)->fetch();
+                $doc = $objectList['doc'][$record->objectID];
                 if(!empty($doc->assetLib))
                 {
                     $module = 'assetlib';
@@ -682,7 +863,7 @@ class searchModel extends model
             }
         }
 
-        return $this->checkPriv($results);
+        return $results;
     }
 
     /**
@@ -815,22 +996,27 @@ class searchModel extends model
      * Check product and project priv.
      *
      * @param  array    $results
+     * @param  array    $objectPairs
      * @access public
      * @return array
      */
-    public function checkPriv($results)
+    public function checkPriv($results, $objectPairs = array())
     {
         if($this->app->user->admin) return $results;
 
         $this->loadModel('doc');
-        $products   = $this->app->user->view->products;
-        $programs   = $this->app->user->view->programs;
-        $projects   = $this->app->user->view->projects;
-        $executions = $this->app->user->view->sprints;
+        $products       = $this->app->user->view->products;
+        $shadowProducts = $this->dao->select('id')->from(TABLE_PRODUCT)->where('shadow')->eq(1)->fetchPairs('id');
+        $programs       = $this->app->user->view->programs;
+        $projects       = $this->app->user->view->projects;
+        $executions     = $this->app->user->view->sprints;
 
         $objectPairs = array();
         $total       = count($results);
-        foreach($results as $record) $objectPairs[$record->objectType][$record->objectID] = $record->id;
+        if(empty($objectPairs))
+        {
+            foreach($results as $record) $objectPairs[$record->objectType][$record->objectID] = $record->id;
+        }
 
         foreach($objectPairs as $objectType => $objectIdList)
         {
@@ -838,7 +1024,7 @@ class searchModel extends model
             $objectExecutions = array();
             if(!isset($this->config->objectTables[$objectType])) continue;
             $table = $this->config->objectTables[$objectType];
-            if(strpos(',bug,case,productplan,release,story,testtask,', ",$objectType,") !== false)
+            if(strpos(',bug,case,testcase,productplan,release,story,testtask,', ",$objectType,") !== false)
             {
                $objectProducts = $this->dao->select('id,product')->from($table)->where('id')->in(array_keys($objectIdList))->fetchGroup('product', 'id');
             }
@@ -861,6 +1047,7 @@ class searchModel extends model
                 foreach($objectIdList as $productID => $recordID)
                 {
                     if(strpos(",$products,", ",$productID,") === false) unset($results[$recordID]);
+                    if(in_array($productID, $shadowProducts)) unset($results[$recordID]);
                 }
             }
             elseif($objectType == 'program')
@@ -919,7 +1106,7 @@ class searchModel extends model
             }
             elseif($objectType == 'todo')
             {
-                $objectTodos = $this->dao->select('id')->from($table)->where('id')->in(array_keys($objectIdList))->andWhere("private")->eq(1)->fetchPairs('id', 'id');
+                $objectTodos = $this->dao->select('id')->from($table)->where('id')->in(array_keys($objectIdList))->andWhere("private")->eq(1)->andWhere('account')->ne($this->app->user->account)->fetchPairs('id', 'id');
                 foreach($objectTodos as $todoID)
                 {
                     if(isset($objectIdList[$todoID]))
@@ -940,6 +1127,21 @@ class searchModel extends model
                     if(isset($objectIdList[$suiteID]))
                     {
                         $recordID = $objectIdList[$suiteID];
+                        unset($results[$recordID]);
+                    }
+                }
+            }
+            elseif(strpos(',feedback,ticket,', ",$objectType,") !== false)
+            {
+                $grantProducts = $this->loadModel('feedback')->getGrantProducts();
+                $objects       = $this->dao->select('*')->from($table)->where('id')->in(array_keys($objectIdList))->fetchAll('id');
+                foreach($objects as $objectID => $object)
+                {
+                    if($objectType == 'feedback' and $object->openedBy == $this->app->user->account) continue;
+                    if(isset($grantProducts[$object->product])) continue;
+                    if(isset($objectIdList[$objectID]))
+                    {
+                        $recordID = $objectIdList[$objectID];
                         unset($results[$recordID]);
                     }
                 }
@@ -1024,9 +1226,13 @@ class searchModel extends model
     public function buildIndexQuery($type, $testDeleted = true)
     {
         $table = $this->config->objectTables[$type];
-        if($type == 'story')
+        if($type == 'story' or $type == 'requirement')
         {
-            $query = $this->dao->select('DISTINCT t1.*,t2.spec,t2.verify')->from($table)->alias('t1')->leftJoin(TABLE_STORYSPEC)->alias('t2')->on('t1.id=t2.story')->where('t1.deleted')->eq(0)->andWhere('t1.version=t2.version');
+            $query = $this->dao->select('DISTINCT t1.*,t2.spec,t2.verify')->from($table)->alias('t1')
+                ->leftJoin(TABLE_STORYSPEC)->alias('t2')->on('t1.id=t2.story')
+                ->where('t1.deleted')->eq(0)
+                ->andWhere('type')->eq($type)
+                ->andWhere('t1.version=t2.version');
         }
         elseif($type == 'doc')
         {
@@ -1038,7 +1244,7 @@ class searchModel extends model
             if($testDeleted) $data = $this->dao->select('*')->from($table)->limit(1)->fetch();
 
             $query = $this->dao->select('t1.*')->from($table)->alias('t1')
-                ->where('1')
+                ->where('1=1')
                 ->beginIF($type == 'program')->andWhere('type')->eq('program')->fi()
                 ->beginIF($type == 'project')->andWhere('type')->eq('project')->fi()
                 ->beginIF($type == 'execution')->andWhere('type')->in('stage,sprint,kanban')->fi()
@@ -1193,14 +1399,253 @@ class searchModel extends model
             if(strpos('docx|doc', $file->extension) !== false)
             {
                 $convertedFile = $this->file->convertOffice($file, 'txt');
-                if($convertedFile) $object->comment .= file_get_contents($convertedFile);
+                if($convertedFile) $object->comment .= substr(file_get_contents($convertedFile), 0, $this->config->search->maxFileSize);
             }
             if($file->extension == 'txt')
             {
-                $object->comment .= file_get_contents($file->realPath);
+                $object->comment .= substr(file_get_contents($file->realPath), 0, $this->config->search->maxFileSize);
             }
         }
 
         return $object;
+    }
+
+    /**
+     * Set search form options.
+     *
+     * @param  array $fields
+     * @param  array $fieldParams
+     * @param  array $queries
+     * @access public
+     * @return object
+     */
+    public function setOptions($fields, $fieldParams, $queries = array())
+    {
+        $options = new stdclass();
+        $options->operators         = array();
+        $options->fields            = array();
+        $options->savedQueryTitle   = $this->lang->search->savedQuery;
+        $options->andOr             = array();
+        $options->groupName         = array($this->lang->search->group1, $this->lang->search->group2);
+        $options->searchBtnText     = $this->lang->search->common;
+        $options->resetBtnText      = $this->lang->search->reset;
+        $options->saveSearchBtnText = $this->lang->search->saveCondition;
+        foreach($this->lang->search->andor as $value => $title)
+        {
+            $andOr = new stdclass();
+            $andOr->value = $value;
+            $andOr->title = $title;
+
+            $options->andOr[] = $andOr;
+        }
+
+        foreach($this->lang->search->operators as $value => $title)
+        {
+            $operator = new stdclass();
+            $operator->value = $value;
+            $operator->title = $title;
+
+            $options->operators[] = $operator;
+        }
+
+        foreach($fieldParams as $field => $param)
+        {
+            $data = new stdclass();
+            $data->label    = $fields[$field];
+            $data->name     = $field;
+            $data->control  = $param['control'];
+            $data->operator = $param['operator'];
+
+            if($field == 'id') $data->placeholder = $this->lang->search->queryTips;
+            if(!empty($param['values']) and is_array($param['values'])) $data->values = $param['values'];
+
+            $options->fields[] = $data;
+        }
+
+        $savedQuery = array();
+        foreach($queries as $query)
+        {
+            if(empty($query->id)) continue;
+            $savedQuery[] = $query;
+        }
+
+        if(!empty($savedQuery)) $options->savedQuery = $savedQuery;
+
+        $options->formConfig  = new stdclass();
+        $options->formConfig->method = 'post';
+        $options->formConfig->action = helper::createLink('search', 'buildQuery');
+        $options->formConfig->target = 'hiddenwin';
+
+        $options->saveSearch = new stdclass();
+        $options->saveSearch->text = $this->lang->search->saveCondition;
+
+        return $options;
+    }
+
+    /**
+     * Build search form options.
+     *
+     * @param  array $module
+     * @param  array $fieldParams
+     * @param  array $fieldsMap
+     * @param  array $queries
+     * @access public
+     * @return object
+     */
+    public function buildSearchFormOptions($module, $fieldParams, $fields, $queries)
+    {
+        $opts = new stdClass();
+        $opts->formConfig = static::buildFormConfig();
+        $opts->fields     = static::buildFormFields($fieldParams, $fields);
+        $opts->operators  = static::buildFormOperators($this->lang->search->operators);
+        $opts->andOr      = static::buildFormAndOrs($this->lang->search->andor);
+        $opts->saveSearch = static::buildFormSaveSearch($module);
+        $opts->savedQuery = static::buildFormSavedQuery($queries, $this->app->user->account);
+
+        return $opts;
+    }
+
+    /**
+     * Form Configuration of buildForm action.
+     *
+     * @access public
+     * @return object
+     */
+    public static function buildFormConfig()
+    {
+        $config = new stdClass();
+        $config->action = helper::createLink('search', 'buildQuery');
+        $config->method = 'post';
+
+        return $config;
+    }
+
+    /**
+     * Fields options of buildForm action.
+     *
+     * @param  array $fieldParams
+     * @param  array $fieldsMap
+     * @access public
+     * @return array
+     */
+    public static function buildFormFields($fieldParams, $fieldsMap)
+    {
+        $fields = array();
+
+        foreach($fieldParams as $name => $param)
+        {
+            $field = new stdClass();
+            $field->label        = isset($fieldsMap[$name]) ? $fieldsMap[$name] : '';
+            $field->name         = $name;
+            $field->control      = $param['control'];
+            $field->operator     = $param['operator'];
+            $field->defaultValue = '';
+            $field->placeholder  = '';
+            $field->values       = $param['values'];
+
+            $fields[] = $field;
+        }
+
+        return $fields;
+    }
+
+    /**
+     * Operators of buildForm action.
+     *
+     * @param  array $operators
+     * @access public
+     * @return array
+     */
+    public static function buildFormOperators($operators)
+    {
+        $ops = array();
+
+        foreach($operators as $val => $title)
+        {
+            $op = new stdClass();
+            $op->value = $val;
+            $op->title = $title;
+
+            $ops[] = $op;
+        }
+
+        return $ops;
+    }
+
+    /**
+     * AndOr options of buildForm action.
+     *
+     * @param  array $andOrs
+     * @access public
+     * @return array
+     */
+    public static function buildFormAndOrs($andOrs)
+    {
+        $result = array();
+
+        foreach($andOrs as $val => $title)
+        {
+            $item = new stdClass();
+            $item->value = $val;
+            $item->title = $title;
+
+            $result[] = $item;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Save Search button of buildForm action.
+     *
+     * @param  array $module
+     * @access public
+     * @return object
+     */
+    public static function buildFormSaveSearch($module)
+    {
+        global $lang;
+
+        $result = new stdClass();
+        $result->text     = $lang->search->saveCondition;
+        $result->hasPriv  = common::hasPriv('search', 'saveQuery');
+        $result->config   = array(
+            'data-toggle'    => 'modal',
+            'data-type'      => 'ajax',
+            'data-data-type' => 'html',
+            'data-url'       => helper::createLink('search', 'saveQuery', array('module' => $module)),
+        );
+
+        return $result;
+    }
+
+    /**
+     * Saved Queries list of buildForm action.
+     *
+     * @param  array $queries
+     * @param  array $account
+     * @access public
+     * @return array
+     */
+    public static function buildFormSavedQuery($queries, $account)
+    {
+        $result = array();
+        if(empty($queries)) return $result;
+
+        $hasPriv = common::hasPriv('search', 'deleteQuery');
+        foreach($queries as $query)
+        {
+            if(!is_object($query)) continue;
+
+            $item = new stdClass();
+            $item->id      = $query->id;
+            $item->title   = $query->title;
+            $item->account = $query->account;
+            $item->hasPriv = ($hasPriv && $account == $query->account);
+
+            $result[] = $item;
+        }
+
+        return $result;
     }
 }

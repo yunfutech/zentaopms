@@ -7,13 +7,13 @@ $lang->personnel->realName   = 'Name';
 $lang->personnel->userName   = 'Account';
 $lang->personnel->job        = 'Position';
 $lang->personnel->genders    = 'Gender';
-$lang->personnel->project    = 'Project';
+$lang->personnel->project    = $lang->projectCommon;
 $lang->personnel->search     = 'Search';
 $lang->personnel->delete     = 'Remove';
 $lang->personnel->role       = 'Role';
 
 $lang->personnel->name          = 'User';
-$lang->personnel->projects      = 'Projects';
+$lang->personnel->projects      = $lang->projectCommon . 's';
 $lang->personnel->executions    = 'Executions';
 $lang->personnel->workingHours  = 'Hours';
 $lang->personnel->task          = 'Task';
@@ -38,3 +38,4 @@ $lang->personnel->copy            = 'Copy Whitelist';
 
 $lang->personnel->openedPGMTip     = 'The program is public and can be accessed by users with Program privileges.';
 $lang->personnel->selectObjectTips = 'Select %s to copy its whitelist';
+$lang->personnel->countTip         = ' (%s member)';

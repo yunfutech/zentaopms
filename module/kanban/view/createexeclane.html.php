@@ -2,8 +2,8 @@
 /**
  * The createexeclane file of kanban module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2022 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2022 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Shujie Tian <tianshujie@easycorp.ltd>
  * @package     kanban
  * @version     $Id: createexeclane.html.php 935 2022-01-12 17:22:24Z $
@@ -16,7 +16,7 @@
 <?php js::set('regionID', $regionID);?>
 <?php js::set('lanes', $lanes);?>
 <style>
-.table-form>tbody>tr>th {width: 150px;}
+.table-form>tbody>tr>th {width: 160px;}
 #otherLane_chosen {top: -8px;}
 .margin-bottom {margin-bottom: -6px;}
 </style>
@@ -38,7 +38,7 @@
         </tr>
         <tr>
           <th><?php echo $lang->kanbanlane->WIPType;?></th>
-          <td id='laneTypeBox'><?php echo html::radio('laneType', $lang->kanban->laneTypeList, 'story');?></td>
+          <td id='laneTypeBox' colspan='3'><?php echo html::radio('laneType', $lang->kanban->laneTypeList, 'story');?></td>
         </tr>
         <tr>
           <th><?php echo $lang->kanbanlane->column;?></th>
@@ -50,7 +50,7 @@
           <th><?php echo $lang->kanbanlane->color;?></th>
           <td colspan='3'>
             <div id='color-picker'></div>
-            <?php echo html::input('color', '#7ec5ff', "class='hidden'");?>
+            <?php echo html::input('color', '#3C4353', "class='hidden'");?>
           </td>
         </tr>
         <tr>

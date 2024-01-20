@@ -2,7 +2,7 @@
 $filter                    = new stdclass();
 $filter->rules             = new stdclass();
 $filter->rules->md5        = '/^[a-z0-9]{32}$/';
-$filter->rules->base64     = '/^[a-zA-Z0-9\+\/\=]+$/';
+$filter->rules->base64     = '/^[a-zA-Z0-9\+\/\=\.]+$/';
 $filter->rules->checked    = '/^[0-9,\-]+$/';
 $filter->rules->idList     = '/^[0-9\|]+$/';
 $filter->rules->lang       = '/^[a-zA-Z_\-]+$/';
@@ -20,6 +20,8 @@ $filter->default->paramName  = 'reg::paramName';
 $filter->default->paramValue = 'reg::paramValue';
 
 $filter->default->get['onlybody']              = 'equal::yes';
+$filter->default->get['_single']               = 'equal::1';
+$filter->default->get['tid']                   = 'reg::word';
 $filter->default->get['HTTP_X_REQUESTED_WITH'] = 'equal::XMLHttpRequest';
 
 $filter->default->cookie['lang']        = 'reg::lang';
@@ -28,7 +30,11 @@ $filter->default->cookie['fingerprint'] = 'reg::word';
 $filter->default->cookie['hideMenu']    = 'equal::true';
 $filter->default->cookie['tab']         = 'reg::word';
 $filter->default->cookie['goback']      = 'reg::any';
+$filter->default->cookie['maxImport']   = 'reg::any';
+$filter->default->cookie['za']          = 'reg::any';
+$filter->default->cookie['zp']          = 'reg::any';
 
+$filter->index        = new stdclass();
 $filter->my           = new stdclass();
 $filter->bug          = new stdclass();
 $filter->caselib      = new stdclass();
@@ -65,8 +71,11 @@ $filter->mr           = new stdclass();
 $filter->ci           = new stdclass();
 $filter->tree         = new stdclass();
 $filter->productplan  = new stdclass();
+$filter->projectplan  = new stdclass();
 $filter->kanban       = new stdclass();
+$filter->group        = new stdclass();
 
+$filter->index->index             = new stdclass();
 $filter->block->default           = new stdclass();
 $filter->block->main              = new stdclass();
 $filter->my->work                 = new stdclass();
@@ -79,11 +88,13 @@ $filter->bug->export              = new stdclass();
 $filter->caselib->create          = new stdclass();
 $filter->doc->create              = new stdclass();
 $filter->doc->browse              = new stdclass();
-$filter->doc->alllibs             = new stdclass();
-$filter->doc->objectlibs          = new stdclass();
+$filter->doc->view                = new stdclass();
 $filter->doc->tablecontents       = new stdclass();
+$filter->doc->productspace        = new stdclass();
+$filter->doc->projectspace        = new stdclass();
 $filter->doc->showfiles           = new stdclass();
 $filter->doc->default             = new stdclass();
+$filter->api->default             = new stdClass();
 $filter->api->index               = new stdClass();
 $filter->api->create              = new stdClass();
 $filter->api->edit                = new stdClass();
@@ -92,6 +103,7 @@ $filter->mail->batchdelete        = new stdclass();
 $filter->misc->checkupdate        = new stdclass();
 $filter->file->download           = new stdclass();
 $filter->product->browse          = new stdclass();
+$filter->product->all             = new stdclass();
 $filter->product->default         = new stdclass();
 $filter->product->index           = new stdclass();
 $filter->product->export          = new stdclass();
@@ -103,6 +115,7 @@ $filter->program->default         = new stdclass();
 $filter->program->pgmproject      = new stdclass();
 $filter->program->prjbrowse       = new stdclass();
 $filter->program->project         = new stdclass();
+$filter->program->product         = new stdclass();
 $filter->program->browse          = new stdclass();
 $filter->program->export          = new stdclass();
 $filter->program->pgmbrowse       = new stdclass();
@@ -114,6 +127,7 @@ $filter->project->story           = new stdclass();
 $filter->project->export          = new stdclass();
 $filter->project->task            = new stdclass();
 $filter->project->execution       = new stdclass();
+$filter->project->testcase        = new stdclass();
 $filter->projectstory->story      = new stdclass();
 $filter->qa->default              = new stdclass();
 $filter->story->create            = new stdclass();
@@ -131,6 +145,7 @@ $filter->svn->cat                 = new stdclass();
 $filter->svn->diff                = new stdclass();
 $filter->task->create             = new stdclass();
 $filter->task->export             = new stdclass();
+$filter->task->recordestimate     = new stdclass();
 $filter->execution->default       = new stdclass();
 $filter->execution->story         = new stdclass();
 $filter->testcase->default        = new stdclass();
@@ -143,13 +158,16 @@ $filter->testsuite->default       = new stdclass();
 $filter->testsuite->library       = new stdclass();
 $filter->testtask->default        = new stdclass();
 $filter->testtask->browse         = new stdclass();
+$filter->testtask->create         = new stdclass();
 $filter->testtask->cases          = new stdclass();
 $filter->todo->export             = new stdclass();
 $filter->upgrade->license         = new stdclass();
 $filter->user->login              = new stdclass();
 $filter->user->edit               = new stdclass();
+$filter->user->export             = new stdclass();
 $filter->webhook->bind            = new stdclass();
 $filter->user->ajaxgetmore        = new stdclass();
+$filter->user->export             = new stdclass();
 $filter->repo->ajaxsynccommit     = new stdclass();
 $filter->repo->apigetrepobyurl    = new stdclass();
 $filter->search->index            = new stdclass();
@@ -161,7 +179,13 @@ $filter->ci->checkCompileStatus   = new stdclass();
 $filter->execution->export        = new stdclass();
 $filter->tree->browse             = new stdclass();
 $filter->productplan->browse      = new stdclass();
+$filter->projectplan->browse      = new stdclass();
 $filter->kanban->space            = new stdclass();
+$filter->execution->kanban        = new stdclass();
+$filter->execution->all           = new stdclass();
+$filter->group->editmanagepriv    = new stdclass();
+
+$filter->index->index->get['open'] = 'reg::base64';
 
 $filter->my->work->cookie['pagerMyTask']        = 'int';
 $filter->my->work->cookie['pagerMyRequirement'] = 'int';
@@ -194,27 +218,34 @@ $filter->bug->export->cookie['checkedItem']    = 'reg::checked';
 
 $filter->caselib->create->cookie['lastLibCaseModule'] = 'int';
 
-$filter->doc->create->cookie['lastDocModule']       = 'int';
-$filter->doc->browse->cookie['browseType']          = 'reg::browseType';
-$filter->doc->alllibs->cookie['browseType']         = 'reg::browseType';
-$filter->doc->objectlibs->cookie['browseType']      = 'reg::browseType';
-$filter->doc->objectlibs->cookie['preProductID']    = 'int';
-$filter->doc->objectlibs->cookie['preBranch']       = 'reg::word';
-$filter->doc->default->cookie['from']               = 'code';
-$filter->doc->default->cookie['product']            = 'int';
-$filter->doc->showfiles->cookie['docFilesViewType'] = 'code';
-$filter->doc->tablecontents->cookie['preProductID'] = 'int';
-$filter->doc->tablecontents->cookie['preBranch']    = 'reg::word';
-$filter->api->index->get['libID']                   = 'int';
-$filter->api->index->get['module']                  = 'int';
-$filter->api->index->get['apiID']                   = 'int';
-$filter->api->index->get['version']                 = 'int';
-$filter->api->create->get['libID']                  = 'int';
-$filter->api->create->get['module']                 = 'int';
-$filter->api->create->get['apiID']                  = 'int';
-$filter->api->edit->get['libID']                    = 'int';
-$filter->api->edit->get['module']                   = 'int';
-$filter->api->edit->get['apiID']                    = 'int';
+$filter->doc->create->cookie['lastDocModule']               = 'int';
+$filter->doc->browse->cookie['browseType']                  = 'reg::browseType';
+$filter->doc->view->cookie['browseType']                    = 'reg::browseType';
+$filter->doc->view->cookie['preBranch']                     = 'reg::word';
+$filter->doc->default->cookie['from']                       = 'code';
+$filter->doc->default->cookie['product']                    = 'int';
+$filter->doc->default->cookie['preProductID']               = 'int';
+$filter->doc->default->cookie['lastProject']                = 'int';
+$filter->doc->default->cookie['docSpaceParam']              = 'string';
+$filter->doc->showfiles->cookie['docFilesViewType']         = 'code';
+$filter->doc->tablecontents->cookie['preProductID']         = 'int';
+$filter->doc->tablecontents->cookie['preBranch']            = 'reg::word';
+$filter->doc->productspace->cookie['pagerDocTablecontents'] = 'int';
+$filter->doc->projectspace->cookie['pagerDocTablecontents'] = 'int';
+
+$filter->api->default->cookie['objectType']    = 'string';
+$filter->api->default->cookie['objectID']      = 'int';
+$filter->api->default->cookie['docSpaceParam'] = 'string';
+$filter->api->index->get['libID']              = 'int';
+$filter->api->index->get['module']             = 'int';
+$filter->api->index->get['apiID']              = 'int';
+$filter->api->index->get['version']            = 'int';
+$filter->api->create->get['libID']             = 'int';
+$filter->api->create->get['module']            = 'int';
+$filter->api->create->get['apiID']             = 'int';
+$filter->api->edit->get['libID']               = 'int';
+$filter->api->edit->get['module']              = 'int';
+$filter->api->edit->get['apiID']               = 'int';
 
 $filter->file->download->cookie[$config->sessionVar] = 'code';
 
@@ -226,6 +257,7 @@ $filter->product->browse->cookie['productStoryOrder'] = 'reg::orderBy';
 $filter->product->browse->cookie['storyModule']       = 'int';
 $filter->product->browse->cookie['storyBranch']       = 'int';
 $filter->product->browse->cookie['treeBranch']        = 'reg::word';
+$filter->product->all->cookie['showProductBatchEdit'] = 'int';
 $filter->product->default->cookie['lastProduct']      = 'int';
 $filter->product->default->cookie['preProductID']     = 'int';
 $filter->product->index->cookie['preBranch']          = 'reg::word';
@@ -237,19 +269,22 @@ $filter->product->dynamic->cookie['preBranch']        = 'reg::word';
 
 $filter->branch->default->cookie['preBranch'] = 'reg::word';
 
-$filter->program->default->cookie['lastPGM']            = 'int';
-$filter->program->default->cookie['lastPRJ']            = 'int';
-$filter->program->prjbrowse->cookie['programType']      = 'code';
-$filter->program->project->cookie['involved']           = 'code';
-$filter->program->browse->cookie['showClosed']          = 'code';
-$filter->program->export->cookie['checkedItem']         = 'reg::checked';
-$filter->program->ajaxgetdropmenu->cookie['showClosed'] = 'code';
+$filter->program->default->cookie['lastPGM']              = 'int';
+$filter->program->default->cookie['lastPRJ']              = 'int';
+$filter->program->prjbrowse->cookie['programType']        = 'code';
+$filter->program->project->cookie['involved']             = 'code';
+$filter->program->project->cookie['showProjectBatchEdit'] = 'int';
+$filter->program->product->cookie['showProductBatchEdit'] = 'int';
+$filter->program->browse->cookie['showClosed']            = 'code';
+$filter->program->export->cookie['checkedItem']           = 'reg::checked';
+$filter->program->ajaxgetdropmenu->cookie['showClosed']   = 'code';
 
 $filter->project->default->cookie['lastProject']         = 'int';
 $filter->project->default->cookie['lastPRJ']             = 'int';
 $filter->project->default->cookie['projectMode']         = 'code';
 $filter->project->default->cookie['kanbanview']          = 'code';
 $filter->project->browse->cookie['involved']             = 'code';
+$filter->project->browse->cookie['showProjectBatchEdit'] = 'int';
 $filter->project->export->cookie['involved']             = 'code';
 $filter->project->browse->cookie['projectType']          = 'code';
 $filter->project->story->cookie['storyModuleParam']      = 'int';
@@ -264,6 +299,8 @@ $filter->project->task->cookie['projectTaskOrder']       = 'reg::orderBy';
 $filter->project->task->cookie['windowWidth']            = 'int';
 $filter->project->export->cookie['checkedItem']          = 'reg::checked';
 $filter->project->execution->cookie['pagerExecutionAll'] = 'int';
+$filter->project->execution->cookie['showTask']          = 'code';
+$filter->project->testcase->cookie['showAutoCase']       = 'int';
 
 $filter->projectstory->story->cookie['storyModuleParam']   = 'int';
 $filter->projectstory->story->cookie['pagerProductBrowse'] = 'int';
@@ -279,26 +316,32 @@ $filter->story->track->cookie['preBranch']          = 'reg::word';
 $filter->story->track->cookie['preProductID']       = 'int';
 
 $filter->productplan->browse->cookie['viewType'] = 'code';
+$filter->projectplan->browse->cookie['viewType'] = 'code';
 
-$filter->task->create->cookie['lastTaskModule'] = 'int';
-$filter->task->export->cookie['checkedItem']    = 'reg::checked';
+$filter->task->create->cookie['lastTaskModule']         = 'int';
+$filter->task->export->cookie['checkedItem']            = 'reg::checked';
+$filter->task->recordestimate->cookie['taskEffortFold'] = 'reg::checked';
 
-$filter->execution->default->cookie['kanbanview']        = 'code';
-$filter->execution->story->cookie['storyPreExecutionID'] = 'int';
-$filter->execution->story->cookie['storyModuleParam']    = 'int';
-$filter->execution->story->cookie['storyProductParam']   = 'int';
-$filter->execution->story->cookie['storyBranchParam']    = 'int';
-$filter->execution->story->cookie['executionStoryOrder'] = 'code';
-$filter->execution->export->cookie['checkedItem']        = 'reg::checked';
+$filter->execution->default->cookie['kanbanview']         = 'code';
+$filter->execution->story->cookie['storyPreExecutionID']  = 'int';
+$filter->execution->story->cookie['storyModuleParam']     = 'int';
+$filter->execution->story->cookie['storyProductParam']    = 'int';
+$filter->execution->story->cookie['storyBranchParam']     = 'int';
+$filter->execution->story->cookie['executionStoryOrder']  = 'code';
+$filter->execution->export->cookie['checkedItem']         = 'reg::checked';
+$filter->execution->kanban->cookie['taskToOpen']          = 'int';
+$filter->execution->all->cookie['showExecutionBatchEdit'] = 'int';
 
-$filter->testcase->browse->cookie['caseModule']     = 'int';
-$filter->testcase->browse->cookie['caseSuite']      = 'int';
-$filter->testcase->browse->cookie['preBranch']      = 'reg::word';
-$filter->testcase->create->cookie['lastCaseModule'] = 'int';
-$filter->testcase->default->cookie['lastProduct']   = 'int';
-$filter->testcase->default->cookie['preProductID']  = 'int';
-$filter->testcase->export->cookie['checkedItem']    = 'reg::checked';
-$filter->testcase->groupcase->cookie['preBranch']   = 'reg::word';
+$filter->testcase->browse->cookie['caseModule']      = 'int';
+$filter->testcase->browse->cookie['caseSuite']       = 'int';
+$filter->testcase->browse->cookie['preBranch']       = 'reg::word';
+$filter->testcase->browse->cookie['showAutoCase']    = 'int';
+$filter->testcase->create->cookie['lastCaseModule']  = 'int';
+$filter->testcase->default->cookie['lastProduct']    = 'int';
+$filter->testcase->default->cookie['preProductID']   = 'int';
+$filter->testcase->export->cookie['checkedItem']     = 'reg::checked';
+$filter->testcase->groupcase->cookie['preBranch']    = 'reg::word';
+$filter->testcase->groupcase->cookie['showAutoCase'] = 'int';
 
 $filter->testreport->default->cookie['lastProduct']  = 'int';
 $filter->testreport->default->cookie['lastProject']  = 'int';
@@ -312,14 +355,20 @@ $filter->testsuite->library->cookie['libCaseModule'] = 'int';
 $filter->testsuite->library->cookie['preCaseLibID']  = 'int';
 
 $filter->testtask->browse->cookie['preBranch']     = 'reg::word';
+$filter->testtask->create->cookie['preBranch']     = 'reg::word';
 $filter->testtask->cases->cookie['preTaskID']      = 'int';
 $filter->testtask->cases->cookie['taskCaseModule'] = 'int';
 $filter->testtask->default->cookie['lastProduct']  = 'int';
 $filter->testtask->default->cookie['preProductID'] = 'int';
+$filter->testcase->browse->cookie['onlyScene']     = 'code';
+
+if(empty($filter->project->testcase)) $filter->project->testcase = new stdclass();
+$filter->project->testcase->cookie = array('onlyScene' => 'code');
 
 $filter->todo->export->cookie['checkedItem'] = 'reg::checked';
 
-$filter->user->login->cookie['keepLogin'] = 'equal::on';
+$filter->user->login->cookie['keepLogin']    = 'equal::on';
+$filter->user->export->cookie['checkedItem'] = 'reg::any';
 
 $filter->block->default->get['hash']    = 'reg::md5';
 $filter->block->main->get['blockid']    = 'code';
@@ -336,7 +385,7 @@ $filter->doc->showfiles->get['recPerPage'] = 'int';
 $filter->doc->showfiles->get['recTotal']   = 'int';
 $filter->doc->showfiles->get['title']      = 'reg::any';
 
-$filter->file->download->get['charset'] = 'reg::lang';
+$filter->file->download->get['charset'] = 'reg::any';
 
 $filter->mail->batchdelete->get['idList'] = 'reg::idList';
 
@@ -358,13 +407,15 @@ $filter->sso->logout->get['token']      = 'reg::md5';
 
 $filter->upgrade->license->get['agree'] = 'equal::true';
 
-$filter->user->login->get['account']      = 'account';
-$filter->user->login->get['lang']         = 'reg::lang';
-$filter->user->login->get['password']     = 'reg::any';
-$filter->user->edit->get['from']          = 'reg::word';
-$filter->user->ajaxgetmore->get['search'] = 'reg::any';
-$filter->user->ajaxgetmore->get['limit']  = 'int';
-$filter->user->ajaxgetmore->get['params'] = 'reg::base64';
+$filter->user->export->cookie['checkedItem'] = 'reg::checked';
+$filter->user->login->cookie['keepLogin']    = 'equal::on';
+$filter->user->login->get['account']         = 'account';
+$filter->user->login->get['lang']            = 'reg::lang';
+$filter->user->login->get['password']        = 'reg::any';
+$filter->user->edit->get['from']             = 'reg::word';
+$filter->user->ajaxgetmore->get['search']    = 'reg::any';
+$filter->user->ajaxgetmore->get['limit']     = 'int';
+$filter->user->ajaxgetmore->get['params']    = 'reg::base64';
 
 $filter->git->cat->get['repoUrl']  = 'reg::base64';
 $filter->git->diff->get['repoUrl'] = 'reg::base64';
@@ -415,3 +466,5 @@ $filter->tree->browse->cookie['preProductID'] = 'int';
 $filter->tree->browse->cookie['preBranch']    = 'reg::word';
 
 $filter->kanban->space->cookie['showClosed'] = 'code';
+
+$filter->group->editmanagepriv->cookie['managePrivEditType'] = 'string';

@@ -1,14 +1,11 @@
 $(function()
 {
-    if(!moduleTree || moduleTree.length == 0)
+    $('#docListForm .table .c-name').each(function()
     {
-        var contentHeight = $('.no-content').parent().innerHeight();
-        var titleHeight   = $('.cell div:nth-child(1)').innerHeight();
-
-        var height = $(document).height() - $('#header').height() - parent.$('#appsBar').height() - (2 * parseInt($('#main').css('padding-top')));
-        $('.main-content .cell').height(height);
-        $('.no-content').parent().css('padding-top', (height - contentHeight)/2 - titleHeight + 'px');
-    }
-
-    $('#main .main-content li.has-list').addClass('open in');
-})
+        var $this = $(this);
+        if($this.find('.draft').length > 0)
+        {
+            $this.find('.doc-title').css('max-width', parseInt($this.width()) - parseInt($this.find('.draft').width()) - parseInt($this.find('.ajaxCollect').width()) - parseInt($this.find('.file-icon').width()) - 24);
+        }
+    });
+});

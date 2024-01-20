@@ -2,8 +2,8 @@
 /**
  * The space file of kanban module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2021 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2021 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Shujie Tian <tianshujie@easycorp.ltd>
  * @package     kanban
  * @version     $Id: space.html.php 935 2021-12-07 14:31:24Z $
@@ -13,7 +13,7 @@
 <?php include '../../common/view/header.html.php';?>
 <div id="mainMenu" class="clearfix table-row">
   <div class="btn-toolBar pull-left">
-    <?php foreach($lang->kanbanspace->featureBar as $key => $label):?>
+    <?php foreach($lang->kanban->featureBar['space'] as $key => $label):?>
     <?php $active = $browseType == $key ? 'btn-active-text' : '';?>
     <?php $label = "<span class='text'>$label</span>";?>
     <?php if($browseType == $key) $label .= " <span class='label label-light label-badge'>{$pager->recTotal}</span>";?>
@@ -40,20 +40,33 @@
         <div class='spaceTitle pull-left'>
           <div><i class='icon-cube'></i></div>
           <div>
-            <h4 title="<?php echo $space->name;?>">
+            <p class='spaceName' title="<?php echo $space->name;?>">
               <?php if($space->status == 'closed'):?>
               <span class="label label-closed"><?php echo $lang->kanban->closed;?></span>
               <?php endif;?>
               <?php echo $space->name;?>
-            </h4>
+            </p>
           </div>
+          <?php $spaceDescTitle = empty($space->desc) ? $lang->kanban->emptyDesc : str_replace("\n", '', strip_tags($space->desc));?>
+          <?php $pattern        = '/<br[^>]*>|<img[^>]*>/';?>
+          <?php $spaceDesc      = empty($space->desc) ? $lang->kanban->emptyDesc : preg_replace($pattern, '', $space->desc);?>
+          <p><div><span class="text-limit hidden" data-limit-size="120"><?php echo $spaceDesc;?></span><a class="text-primary text-limit-toggle small" data-text-expand="<?php echo $lang->expand;?>"  data-text-collapse="<?php echo $lang->collapse;?>"></a></div></p>
         </div>
         <div class='spaceActions pull-right'>
           <?php $class = $space->status == 'closed' ? 'disabled' : '';?>
-          <?php if($space->status != 'closed' and $browseType != 'involved' and !empty($unclosedSpace)) common::printLink('kanban', 'create', "spaceID={$space->id}&type={$space->type}", '<i class="icon icon-plus"></i> ' . $lang->kanban->create, '', "class='iframe' data-width='75%'", '', true);?>
-          <?php common::printLink('kanban', 'editSpace', "spaceID={$space->id}", '<i class="icon icon-cog-outline"></i> ' . $lang->kanban->setting, '', "class='iframe' data-width='75%'", '', true);?>
-          <?php common::printLink('kanban', 'closeSpace', "spaceID={$space->id}", '<i class="icon icon-off"></i> ' . $lang->close, '', "class='iframe {$class}'", '', true);?>
-          <?php common::printLink('kanban', 'deleteSpace', "spaceID={$space->id}", '<i class="icon icon-trash"></i> ' . $lang->delete, 'hiddenwin', '', '', true);?>
+          <?php if($space->status != 'closed' and $browseType != 'involved' and !empty($unclosedSpace)) common::printLink('kanban', 'create', "spaceID={$space->id}&type={$space->type}", '<i class="icon icon-plus"></i> ' . $lang->kanban->create, '', "class='iframe btn btn-link' data-width='75%'", '', true);?>
+          <div class="btn-group" id="setting?">
+            <a href="javascript:;" data-toggle="dropdown" class="btn btn-link " style="border-radius: 4px;"><i class="icon icon-cog-outline position"></i><?php echo $lang->kanban->setting;?><span class="caret"></span></a>
+            <ul class="dropdown-menu setting pull-right">
+              <li><?php common::printLink('kanban', 'editSpace', "spaceID={$space->id}", '<i class="icon icon-cog-outline"></i> ' . $lang->kanban->settingSpace, '', "class='iframe' data-width='75%'", '', true);?></li>
+              <li><?php if($class == 'disabled'):?>
+              <?php common::printLink('kanban', 'activateSpace', "spaceID={$space->id}", '<i class="icon icon-magic"></i> ' . $lang->kanban->activateSpace, '', "class='iframe'", '', true);?>
+              <?php else:?>
+              <?php common::printLink('kanban', 'closeSpace', "spaceID={$space->id}", '<i class="icon icon-off"></i> ' . $lang->kanban->closeSpace, '', "class='iframe'", '', true);?>
+              <?php endif;?></li>
+              <li><?php common::printLink('kanban', 'deleteSpace', "spaceID={$space->id}", '<i class="icon icon-trash"></i> ' . $lang->kanban->deleteSpace, 'hiddenwin', '', '', true);?></li>
+            <ul>
+         </div>
         </div>
       </div>
       <?php if(isset($space->kanbans)):?>
@@ -62,36 +75,49 @@
         <div class='col' data-id='<?php echo $kanbanID?>'>
           <div class='panel' data-url='<?php echo $this->createLink('kanban', 'view', "kanbanID=$kanbanID");?>'>
             <div class='panel-heading'>
+              <?php if($space->type == 'cooperation' and $kanban->owner == $this->app->user->account):?>
+              <span class="label label-outline label-info kanban-label"><?php echo $lang->kanban->mine;?></span>
+              <?php endif;?>
               <div class='kanban-name'>
                 <?php if($kanban->status == 'closed'):?>
                 <span class="label label-closed"><?php echo $lang->kanban->closed;?></span>
                 <?php endif;?>
                 <strong title='<?php echo $kanban->name;?>'><?php echo $kanban->name;?></strong>
               </div>
-              <?php $canActions = (common::hasPriv('kanban','edit') or common::hasPriv('kanban','close') or common::hasPriv('kanban','delete'));?>
-              <?php if($canActions):?>
+              <?php
+              $canEdit     = common::hasPriv('kanban','edit');
+              $canDelete   = common::hasPriv('kanban','delete');
+              $canClose    = (common::hasPriv('kanban', 'close') and $kanban->status == 'active');
+              $canActivate = (common::hasPriv('kanban', 'activate') and $kanban->status == 'closed');
+              ?>
+              <?php if($canEdit or $canDelete or $canClose or $canActivate):?>
               <div class='kanban-actions kanban-actions<?php echo $kanbanID;?>'>
                 <div class='dropdown'>
                   <?php echo html::a('javascript:;', "<i class='icon icon-ellipsis-v'></i>", '', "data-toggle='dropdown' class='btn btn-link'");?>
                   <ul class='dropdown-menu <?php echo $kanbanCount % 4 == 0 ? 'pull-left' : 'pull-right';?>'>
                     <?php
-                    if(common::hasPriv('kanban','edit'))
+                    if($canEdit)
                     {
                         echo '<li>';
                         common::printLink('kanban', 'edit',   "kanbanID={$kanban->id}", '<i class="icon icon-edit"></i> ' . $lang->kanban->edit, '', "class='iframe' data-width='75%'", '', true);
                         echo '</li>';
                     }
-                    if(common::hasPriv('kanban','close'))
+                    if($canClose)
                     {
-                        $class = $kanban->status == 'closed' ? 'disabled' : '';
-                        echo "<li class='{$class}'>";
-                        common::printLink('kanban', 'close',  "kanbanID={$kanban->id}", '<i class="icon icon-off"></i> ' . $lang->kanban->close, '', "class='iframe {$class}' data-width='75%'", '', true);
+                        echo "<li>";
+                        common::printLink('kanban', 'close',  "kanbanID={$kanban->id}", '<i class="icon icon-off"></i> ' . $lang->kanban->close, '', "class='iframe' data-width='75%'", '', true);
                         echo '</li>';
                     }
-                    if(common::hasPriv('kanban','delete'))
+                    if($canActivate)
+                    {
+                        echo "<li>";
+                        common::printLink('kanban', 'activate',  "kanbanID={$kanban->id}", '<i class="icon icon-magic"></i> ' . $lang->kanban->activate, '', "class='iframe' data-width='75%'", '', true);
+                        echo '</li>';
+                    }
+                    if($canDelete)
                     {
                         echo '<li>';
-                        common::printLink('kanban', 'delete', "kanbanID={$kanban->id}", '<i class="icon icon-trash"></i> ' . $lang->kanban->delete, 'hiddenwin');
+                        common::printLink('kanban', 'delete', "kanbanID={$kanban->id}&confirm=no&browseType=$browseType", '<i class="icon icon-trash"></i> ' . $lang->kanban->delete, 'hiddenwin');
                         echo '</li>';
                     }
                     ?>
@@ -102,10 +128,13 @@
               <?php $kanbanCount ++;?>
             </div>
             <div class='panel-body'>
-              <div class='kanban-desc' title="<?php echo strip_tags(htmlspecialchars_decode($kanban->desc));?>"><?php echo strip_tags(htmlspecialchars_decode($kanban->desc));?></div>
+              <?php $kanbanDescTitle = str_replace("\n", '', strip_tags($kanban->desc));?>
+              <?php $kanbanDesc      = str_replace("\n", '', preg_replace($pattern, '', $kanban->desc));?>
+              <div class='kanban-desc' title="<?php echo $kanbanDescTitle;?>"><?php echo $kanbanDesc;?></div>
               <div class='kanban-footer'>
               <?php $count     = 0;?>
-              <?php $teamPairs = array_filter(explode(',', $kanban->team));?>
+              <?php $teamPairs = array_filter(explode(',', ",$kanban->createdBy,$kanban->owner,$kanban->team"));?>
+              <?php $teamPairs = array_unique($teamPairs);?>
               <?php
               foreach($teamPairs as $index => $team)
               {
@@ -138,7 +167,10 @@
                     <?php endif;?>
                   </div>
                   <?php endif;?>
-                  <div class='kanban-members-total pull-left'><?php echo sprintf($lang->kanban->teamSumCount, $teamCount);?></div>
+                  <?php $teamCountLang = ($teamCount > 1) ? $lang->kanban->teamSumCount : str_replace("Pers", "Person", $lang->kanban->teamSumCount);?>
+                  <div class='kanban-members-total pull-left'><?php echo sprintf($teamCountLang, $teamCount);?></div>
+                  <?php $cardsCount = ($kanban->cardsCount > 1) ? str_replace("Card", "Cards", $lang->kanban->cardsCount) : $lang->kanban->cardsCount;?>
+                  <div class='kanban-members-total pull-right'><?php echo empty($kanban->cardsCount) ? $lang->kanban->noCard : sprintf($cardsCount, $kanban->cardsCount);?></div>
                 </div>
               </div>
             </div>

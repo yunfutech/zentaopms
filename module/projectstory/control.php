@@ -2,7 +2,7 @@
 /**
  * The control file of projectStory module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     projectStory
  * @version     $Id: control.php 5094 2013-07-10 08:46:15Z chencongzhi520@gmail.com $
@@ -36,7 +36,18 @@ class projectStory extends control
      */
     public function story($projectID = 0, $productID = 0, $branch = 0, $browseType = '', $param = 0, $storyType = 'story', $orderBy = '', $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
+        /* Get productID for none-product project. */
+        if($projectID)
+        {
+            $project = $this->loadModel('project')->getByID($projectID);
+            if(!$project->hasProduct) $productID = $this->loadModel('product')->getShadowProductByProject($projectID)->id;
+        }
+
         $this->products = $this->loadModel('product')->getProductPairsByProject($projectID);
+
+        /* Set product list for export. */
+        $this->session->set('exportProductList', $this->products);
+
         if(empty($this->products)) return print($this->locate($this->createLink('product', 'showErrorNone', 'moduleName=project&activeMenu=story&projectID=' . $projectID)));
         echo $this->fetch('product', 'browse', "productID=$productID&branch=$branch&browseType=$browseType&param=$param&storyType=$storyType&orderBy=$orderBy&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID&projectID=$projectID");
     }
@@ -57,18 +68,23 @@ class projectStory extends control
         $products = $this->loadModel('product')->getProductPairsByProject($projectID);
         if(empty($productID)) $productID = key($products);
 
-        echo $this->fetch('story', 'track', "productID=$productID&branch=$branch&projectID=$projectID&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID");
+        $project = $this->loadModel('project')->getByID($projectID);
+        $this->session->set('hasProduct', $project->hasProduct);
+
+        echo $this->fetch('product', 'track', "productID=$productID&branch=$branch&projectID=$projectID&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID");
     }
 
     /**
      * View a story.
      *
      * @param  int    $storyID
+     * @param  int    $projectID
      * @access public
      * @return void
      */
-    public function view($storyID)
+    public function view($storyID, $projectID = 0)
     {
+        if($projectID) $this->session->set('project', $projectID, 'project');
         $this->session->set('productList', $this->app->getURI(true), 'product');
 
         $story = $this->loadModel('story')->getByID($storyID);

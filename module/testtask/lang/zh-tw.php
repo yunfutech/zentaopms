@@ -3,7 +3,7 @@
  * The testtask module zh-tw file of ZenTaoPMS.
  *
  * @copyright   Copyright 2009-2015 青島易軟天創網絡科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     testtask
  * @version     $Id: zh-tw.php 4490 2013-02-27 03:27:05Z wyd621@gmail.com $
@@ -26,6 +26,10 @@ $lang->testtask->unlinkCase       = "移除";
 $lang->testtask->batchUnlinkCases = "批量移除用例";
 $lang->testtask->batchAssign      = "批量指派";
 $lang->testtask->runCase          = "執行";
+$lang->testtask->running          = "執行中";
+$lang->testtask->runningLog       = "執行日誌";
+$lang->testtask->runningNode      = "由%s，在執行節點%s上執行中";
+$lang->testtask->runNode          = "由%s，在執行節點%s上執行";
 $lang->testtask->batchRun         = "批量執行";
 $lang->testtask->results          = "結果";
 $lang->testtask->createBug        = "提Bug";
@@ -45,7 +49,7 @@ $lang->testtask->testingAB        = "測試中";
 $lang->testtask->blocked          = "被阻塞測試單";
 $lang->testtask->done             = "已測測試單";
 $lang->testtask->totalStatus      = "全部";
-$lang->testtask->all              = "全部" . $lang->productCommon;
+$lang->testtask->all              = '所有';
 $lang->testtask->allTasks         = '所有測試';
 $lang->testtask->collapseAll      = '全部摺疊';
 $lang->testtask->expandAll        = '全部展開';

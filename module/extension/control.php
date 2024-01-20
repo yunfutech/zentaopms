@@ -2,8 +2,8 @@
 /**
  * The control file of extension module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     extension
  * @version     $Id$
@@ -26,6 +26,7 @@ class extension extends control
         $statusFile = $this->loadModel('common')->checkSafeFile();
         if($statusFile)
         {
+            $this->loadModel('admin')->setMenu();
             $this->view->title      = $this->lang->extension->browse;
             $this->view->position[] = $this->lang->extension->browse;
 
@@ -145,7 +146,6 @@ class extension extends control
         $this->view->upgrade     = $upgrade;
         $this->view->title       = $installTitle . $extension;
 
-
         $statusFile = $this->loadModel('common')->checkSafeFile();
         if($statusFile)
         {
@@ -186,7 +186,7 @@ class extension extends control
         $incompatible = $condition->zentao['incompatible'];
         if($this->extension->checkVersion($incompatible))
         {
-            $this->view->error = sprintf($this->lang->extension->errorIncompatible);
+            $this->view->error = $this->lang->extension->errorIncompatible;
             return $this->display();
         }
 
@@ -220,7 +220,7 @@ class extension extends control
                 $noDepends = false;
                 if(isset($installedExts[$code]))
                 {
-                    if($this->extension->compare4Limit($installedExts[$code]->version, $limit, 'noBetween'))$noDepends = true;
+                    if($this->extension->compare4Limit($installedExts[$code]->version, $limit, 'noBetween')) $noDepends = true;
                 }
                 else
                 {
@@ -235,7 +235,7 @@ class extension extends control
                     if(!empty($limit['max'])) $extVersion .= ' <=v' . $limit['max'];
                     $extVersion .=')';
                 }
-                if($noDepends)$dependsExt .= $code . $extVersion . ' ' . html::a(inlink('obtain', 'type=bycode&param=' . helper::safe64Encode($code)), $this->lang->extension->installExt, '_blank') . '<br />';
+                if($noDepends) $dependsExt .= $code . $extVersion . ' ' . html::a(inlink('obtain', 'type=bycode&param=' . helper::safe64Encode($code)), $this->lang->extension->installExt, '_blank') . '<br />';
             }
 
             if($noDepends)
@@ -428,7 +428,7 @@ class extension extends control
 
         if($_FILES)
         {
-            if($_FILES['file']['size'] == 0) return print(js::alert(str_replace("'", "\'", sprintf($this->lang->extension->errorFileNotEmpty, $fileName, $return->error))));
+            if($_FILES['file']['error'] == UPLOAD_ERR_NO_FILE) return print(js::alert($this->lang->extension->errorFileNotEmpty));
 
             $tmpName   = $_FILES['file']['tmp_name'];
             $fileName  = $_FILES['file']['name'];

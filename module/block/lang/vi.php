@@ -2,16 +2,14 @@
 /**
  * The vi file of block module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Yidong Wang <yidong@cnezsoft.com>
  * @package     block
  * @version     $Id$
  * @link        http://www.zentao.net
  */
 global $config;
-$lang->block = new stdclass();
-$lang->block->common     = 'Block';
 $lang->block->name       = 'Tên';
 $lang->block->style      = 'Kiểu';
 $lang->block->grid       = 'Vị trí';
@@ -252,14 +250,11 @@ $lang->block->default['full']['my']['3']['grid']            = 4;
 $lang->block->default['full']['my']['3']['source']          = 'todo';
 $lang->block->default['full']['my']['3']['params']['count'] = '20';
 
-if($config->systemMode == 'new')
-{
-    $lang->block->default['full']['my']['4']['title']           = 'Project Statistic';
-    $lang->block->default['full']['my']['4']['block']           = 'statistic';
-    $lang->block->default['full']['my']['4']['source']          = 'project';
-    $lang->block->default['full']['my']['4']['grid']            = 8;
-    $lang->block->default['full']['my']['4']['params']['count'] = '20';
-}
+$lang->block->default['full']['my']['4']['title']           = 'Project Statistic';
+$lang->block->default['full']['my']['4']['block']           = 'statistic';
+$lang->block->default['full']['my']['4']['source']          = 'project';
+$lang->block->default['full']['my']['4']['grid']            = 8;
+$lang->block->default['full']['my']['4']['params']['count'] = '20';
 
 $lang->block->default['full']['my']['5']['title']  = 'Personal Contribution';
 $lang->block->default['full']['my']['5']['block']  = 'contribute';
@@ -284,13 +279,10 @@ $lang->block->default['full']['my']['7']['params']['issueCount']   = '20';
 $lang->block->default['full']['my']['7']['params']['storyCount']   = '20';
 $lang->block->default['full']['my']['7']['params']['meetingCount'] = '20';
 
-if($config->systemMode == 'new')
-{
-    $lang->block->default['full']['my']['8']['title']  = 'Human Input';
-    $lang->block->default['full']['my']['8']['block']  = 'projectteam';
-    $lang->block->default['full']['my']['8']['source'] = 'project';
-    $lang->block->default['full']['my']['8']['grid']   = 8;
-}
+$lang->block->default['full']['my']['8']['title']  = 'Human Input';
+$lang->block->default['full']['my']['8']['block']  = 'projectteam';
+$lang->block->default['full']['my']['8']['source'] = 'project';
+$lang->block->default['full']['my']['8']['grid']   = 8;
 
 $lang->block->default['full']['my']['9']['title']  = 'Project List';
 $lang->block->default['full']['my']['9']['block']  = 'project';
@@ -319,8 +311,9 @@ $lang->block->availableBlocks->testtask  = 'Yêu cầu';
 $lang->block->availableBlocks->risk      = 'My Risks';
 $lang->block->availableBlocks->issue     = 'My Issues';
 $lang->block->availableBlocks->meeting   = 'My Meetings';
+$lang->block->availableBlocks->feedback  = 'My Feedbacks';
 
-if($config->systemMode == 'new') $lang->block->moduleList['project'] = 'Project';
+$lang->block->moduleList['project']   = 'Project';
 $lang->block->moduleList['product']   = $lang->productCommon;
 $lang->block->moduleList['execution'] = $lang->execution->common;
 $lang->block->moduleList['qa']        = 'QA';
@@ -331,7 +324,7 @@ $lang->block->modules['project']->availableBlocks = new stdclass();
 $lang->block->modules['project']->availableBlocks->project       = 'Project List';
 $lang->block->modules['project']->availableBlocks->recentproject = 'Recent Projects';
 $lang->block->modules['project']->availableBlocks->statistic     = 'Project Statistic';
-if($config->systemMode == 'new') $lang->block->modules['project']->availableBlocks->projectteam = 'ProjectHuman Input';
+$lang->block->modules['project']->availableBlocks->projectteam   = 'ProjectHuman Input';
 
 $lang->block->modules['scrum']['index'] = new stdclass();
 $lang->block->modules['scrum']['index']->availableBlocks = new stdclass();
@@ -431,13 +424,14 @@ $lang->block->orderByList->story['status_desc'] = 'Tình trạng câu chuyện g
 $lang->block->orderByList->story['stage_asc']   = 'Giai đoạn câu chuyện tăng dần';
 $lang->block->orderByList->story['stage_desc']  = 'Giai đoạn câu chuyện giảm dần';
 
-$lang->block->todoCount    = 'Việc làm';
-$lang->block->taskCount    = 'Nhiệm vụ';
-$lang->block->bugCount     = 'Bug';
-$lang->block->riskCount    = 'Risk';
-$lang->block->issueCount   = 'Issues';
-$lang->block->storyCount   = 'Stories';
-$lang->block->meetingCount = 'Meetings';
+$lang->block->todoCount     = 'Việc làm';
+$lang->block->taskCount     = 'Nhiệm vụ';
+$lang->block->bugCount      = 'Bug';
+$lang->block->riskCount     = 'Risk';
+$lang->block->issueCount    = 'Issues';
+$lang->block->storyCount    = 'Stories';
+$lang->block->meetingCount  = 'Meetings';
+$lang->block->feedbackCount = 'Feedbacks';
 
 $lang->block->typeList = new stdclass();
 

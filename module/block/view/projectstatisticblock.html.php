@@ -65,7 +65,7 @@ html[lang="en"] .product-info .type-info {color: #A6AAB8; text-align: center; po
 .block-statistic .executionName {padding: 2px 10px; font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;}
 .block-statistic .lastIteration {padding-top: 6px;}
 .block-statistic .progress-text-left {margin-right: 90px}
-.block-statistic .progress-text-left .progress-text {padding-top: 2px; font-size: 14px; padding-right:5px; left: -45px;}
+.block-statistic .progress-text-left .progress-text {padding-top: 2px; font-size: 14px; padding-right:5px; left: -50px;}
 
 .status-count {margin: auto;}
 .status-count tr:first-child td:last-child {color: #000; font-weight: bold;}
@@ -97,16 +97,16 @@ $(function()
         var isPrev = $(this).is('.prev');
         var $activeItem = $nav.children('.active');
         var $next = $activeItem[isPrev ? 'prev' : 'next']('li:not(.switch-icon)');
-        if ($next.length) $next.find('a').trigger('click');
-        else $nav.children('li:not(.switch-icon)')[isPrev ? 'last' : 'first']().find('a').trigger('click');
+        if ($next.length) $next.find('a[data-toggle="tab"]').trigger('click');
+        else $nav.children('li:not(.switch-icon)')[isPrev ? 'last' : 'first']().find('a[data-toggle="tab"]').trigger('click');
         e.preventDefault();
     });
 
-    var $projectLi = $('#activeProject');
-    if($projectLi.length)
+    var $projectList = $('#activeProject');
+    if($projectList.length)
     {
-        var projectLi  = $projectLi[0];
-        $(".col ul.nav").animate({scrollTop: projectLi.offsetTop}, "slow");
+        var projectList = $projectList[0];
+        $(".col ul.nav").animate({scrollTop: projectList.offsetTop}, "slow");
     }
 });
 </script>
@@ -123,7 +123,7 @@ $(function()
         <?php $selected = key($projects);?>
         <?php foreach($projects as $project):?>
         <li <?php if($project->id == $selected) echo "class='active' id='activeProject'";?> projectID='<?php echo $project->id;?>'>
-          <a href="###" title="<?php echo $project->name?>" data-target="#tab3Content<?php echo $project->id;?>" data-toggle="tab"><?php echo $project->name;?></a>
+          <a href="###" title="<?php echo $project->name?>" data-target='<?php echo "#tab3{$blockNavId}Content{$project->id}";?>' data-toggle="tab"><?php echo $project->name;?></a>
           <?php echo html::a(helper::createLink('project', 'index', "projectID=$project->id"), "<i class='icon-arrow-right text-primary'></i>", '', "class='btn-view' title={$lang->project->index}");?>
         </li>
         <?php endforeach;?>
@@ -132,18 +132,18 @@ $(function()
     </div>
     <div class="col tab-content">
       <?php foreach($projects as $project):?>
-      <div class="tab-pane fade<?php if($project->id == $selected) echo ' active in';?>" id="tab3Content<?php echo $project->id;?>">
+      <div class="tab-pane fade<?php if($project->id == $selected) echo ' active in';?>" id='<?php echo "tab3{$blockNavId}Content{$project->id}";?>'>
         <div class="table-row">
-          <?php if($project->model == 'scrum' or $project->model == 'kanban'):?>
+          <?php if(in_array($project->model, array('scrum', 'kanban', 'agileplus'))):?>
           <div class='table-row'>
             <div class="col-4 text-center">
-              <div><h4><?php echo $lang->block->story;?></h4></div>
+              <div><h4><?php echo $lang->block->storyCount;?></h4></div>
               <div>
-                <div class="col dataTitle"><?php echo $lang->project->allStories . "：";?></div>
+                <div class="col dataTitle"><?php echo $lang->block->allStories . "：";?></div>
                 <div class="col data"><?php echo $project->allStories;?></div>
               </div>
               <div>
-                <div class="col dataTitle"><?php echo $lang->project->doneStories . "：";?></div>
+                <div class="col dataTitle"><?php echo $lang->block->finish . "：";?></div>
                 <div class="col data"><?php echo $project->doneStories;?></div>
               </div>
               <div>
@@ -159,15 +159,30 @@ $(function()
               </div>
               <div>
                 <div class="col dataTitle"><?php echo $lang->block->estimate . "：";?></div>
-                <div class="col data"><?php echo $project->estimate;?></div>
+                <div class="col data"><?php echo $project->estimate . $lang->execution->workHourUnit;?></div>
               </div>
               <div>
                 <div class="col dataTitle"><?php echo $lang->block->consumedHours . "：";?></div>
-                <div class="col data"><?php echo $project->consumed;?></div>
+                <div class="col data"><?php echo $project->consumed . $lang->execution->workHourUnit;?></div>
               </div>
             </div>
             <div class="col-4 text-center">
-              <div><h4><?php echo $lang->bug->common;?></h4></div>
+              <div><h4><?php echo $lang->block->taskCount;?></h4></div>
+              <div>
+                <div class="col dataTitle"><?php echo $lang->block->wait . "：";?></div>
+                <div class="col data"><?php echo $project->waitTasks;?></div>
+              </div>
+              <div>
+                <div class="col dataTitle"><?php echo $lang->block->doing . "：";?></div>
+                <div class="col data"><?php echo $project->doingTasks;?></div>
+              </div>
+              <div>
+                <div class="col dataTitle"><?php echo $lang->block->done . "：";?></div>
+                <div class="col data"><?php echo $project->rndDoneTasks;?></div>
+              </div>
+            </div>
+            <div class="col-4 text-center">
+              <div><h4><?php echo $lang->block->bugCount;?></h4></div>
               <div>
                 <div class="col dataTitle"><?php echo $lang->block->totalBug . "：";?></div>
                 <div class="col data"><?php echo $project->allBugs;?></div>
@@ -182,7 +197,7 @@ $(function()
               </div>
             </div>
           </div>
-          <?php if(!empty($project->executions)):?>
+          <?php if(!empty($project->executions) and $project->multiple):?>
           <div class="table-row project-info">
             <div class="col-2 text-right"><h4><?php echo $lang->block->last;?></h4></div>
             <div class="table-row lastIteration">
@@ -190,7 +205,7 @@ $(function()
               <div class='col-7'>
                 <div class='progress progress-text-left'>
                   <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="<?php echo $project->executions[0]->hours->progress;?>" aria-valuemin="0" aria-valuemax="100" style="width: <?php echo $project->executions[0]->hours->progress;?>%">
-                    <span class='progress-text'><?php echo $project->executions[0]->hours->progress . '%';?></span>
+                    <span class='progress-text'><?php echo !empty($project->executions[0]->hours->progress) ? $project->executions[0]->hours->progress . '%' : '0%';?></span>
                   </div>
                 </div>
               </div>
@@ -244,7 +259,7 @@ $(function()
               <div class="col-1-5"><?php echo $project->cv;?></div>
             </div>
           </div>
-        <?php endif;?>
+          <?php endif;?>
         </div>
       </div>
       <?php endforeach;?>

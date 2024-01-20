@@ -2,8 +2,8 @@
 /**
  * The search module zh-cn file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     search
  * @version     $Id: zh-cn.php 4129 2013-01-18 01:58:14Z wwccss $
@@ -30,6 +30,8 @@ $lang->search->noQuery       = '还没有保存查询！';
 $lang->search->onMenuBar     = '显示在菜单栏';
 $lang->search->custom        = '自定义';
 $lang->search->setCommon     = '设为公共查询条件';
+$lang->search->saveCondition = '保存搜索条件';
+$lang->search->setCondName   = '请输入保存条件名称';
 
 $lang->search->account  = '用户名';
 $lang->search->module   = '模块';
@@ -89,17 +91,18 @@ $lang->search->modules['product']     = $lang->productCommon;
 $lang->search->modules['release']     = '发布';
 $lang->search->modules['testtask']    = '测试单';
 $lang->search->modules['testsuite']   = '测试套件';
-$lang->search->modules['testreport']  = '报告';
+$lang->search->modules['testreport']  = '测试报告';
 $lang->search->modules['productplan'] = '计划';
 $lang->search->modules['program']     = '项目集';
-$lang->search->modules['project']     = '项目';
-$lang->search->modules['execution']   = $lang->executionCommon;
-$lang->search->modules['story']       = '需求';
+$lang->search->modules['project']     = $lang->projectCommon;
+$lang->search->modules['execution']   = $lang->execution->common;
+$lang->search->modules['story']       = $lang->SRCommon;
+$lang->search->modules['requirement'] = $lang->URCommon;
 
 $lang->search->objectTypeList['story']            = $lang->SRCommon;
 $lang->search->objectTypeList['requirement']      = $lang->URCommon;
 $lang->search->objectTypeList['stage']            = '阶段';
-$lang->search->objectTypeList['sprint']           = $lang->executionCommon;
+$lang->search->objectTypeList['sprint']           = $lang->execution->common;
 $lang->search->objectTypeList['kanban']           = '看板';
 $lang->search->objectTypeList['commonIssue']      = '问题';
 $lang->search->objectTypeList['stakeholderIssue'] = '干系人问题';

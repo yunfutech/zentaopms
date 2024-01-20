@@ -2,8 +2,8 @@
 /**
  * The control file of sonarqube module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2022 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2022 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Yanyi Cao <caoyanyi@easycorp.ltd>
  * @package     sonarqube
  * @version     $Id: ${FILE_NAME} 5144 2022/1/11 8:55 上午 caoyanyi@easycorp.ltd $
@@ -215,6 +215,7 @@ class sonarqube extends control
         $oldSonarQube = $this->loadModel('pipeline')->getByID($sonarqubeID);
         $this->loadModel('action');
         $actionID = $this->pipeline->delete($sonarqubeID, 'sonarqube');
+        if($actionID) return print(js::error($this->lang->sonarqube->delError));
 
         $sonarQube = $this->pipeline->getByID($sonarqubeID);
         $changes   = common::createChanges($oldSonarQube, $sonarQube);
@@ -359,7 +360,7 @@ class sonarqube extends control
             if($search == true) $keyword = $this->session->sonarqubeIssueKeyword;
         }
 
-        ini_set('memory_limit', '256M');
+        ini_set('memory_limit', '1024M');
 
         $cacheFile = $this->sonarqube->getCacheFile($sonarqubeID, $projectKey);
         if(!$cacheFile or !file_exists($cacheFile) or (time() - filemtime($cacheFile)) / 60 > $this->config->sonarqube->cacheTime)

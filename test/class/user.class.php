@@ -9,14 +9,14 @@ class userTest
 
     /**
      * Test get user list.
-     * 
-     * @param  bool $count 
+     *
+     * @param  bool $count
      * @access public
      * @return void
      */
-    public function getListTest($count = false)
+    public function getListTest($params = 'nodeleted', $count = false)
     {
-        $objects = $this->objectModel->getList();
+        $objects = $this->objectModel->getList($params);
         if(dao::isError())
         {
             $error = dao::getError();
@@ -29,16 +29,17 @@ class userTest
     }
 
     /**
-     * Test get user information by accounts. 
-     * 
-     * @param  array  $accounts 
-     * @param  bool   $count 
+     * Test get user information by accounts.
+     *
+     * @param  array  $accounts
+     * @param  string $keyField
+     * @param  bool   $count
      * @access public
      * @return void
      */
-    public function getListByAccountsTest($accounts = array(), $count = false)
+    public function getListByAccountsTest($accounts = array(), $keyField = 'id', $count = false)
     {
-        $objects = $this->objectModel->getListByAccounts($accounts);
+        $objects = $this->objectModel->getListByAccounts($accounts, $keyField);
         if(dao::isError())
         {
             $error = dao::getError();
@@ -52,11 +53,11 @@ class userTest
 
     /**
      * Test user get pairs.
-     * 
-     * @param  string $params 
-     * @param  string $usersToAppended 
-     * @param  int    $maxCount 
-     * @param  array  $accounts 
+     *
+     * @param  string $params
+     * @param  string $usersToAppended
+     * @param  int    $maxCount
+     * @param  array  $accounts
      * @access public
      * @return void
      */
@@ -76,13 +77,14 @@ class userTest
 
     /**
      * Test get avatar pairs.
-     * 
+     *
+     * @param  string $params
      * @access public
-     * @return void
+     * @return array
      */
-    public function getAvatarPairsTest()
+    public function getAvatarPairsTest($param = 'nodeleted')
     {
-        $objects = $this->objectModel->getAvatarPairs();
+        $objects = $this->objectModel->getAvatarPairs($param);
         if(dao::isError())
         {
             $error = dao::getError();
@@ -96,7 +98,7 @@ class userTest
 
     /**
      * Test get user commiters.
-     * 
+     *
      * @access public
      * @return void
      */
@@ -116,8 +118,8 @@ class userTest
 
     /**
      * Test get user realname and emails.
-     * 
-     * @param  array $accounts 
+     *
+     * @param  array $accounts
      * @access public
      * @return void
      */
@@ -137,9 +139,9 @@ class userTest
 
     /**
      * Test get user roles.
-     * 
-     * @param  array  $accounts 
-     * @param  bool   $needRole 
+     *
+     * @param  array  $accounts
+     * @param  bool   $needRole
      * @access public
      * @return void
      */
@@ -158,11 +160,11 @@ class userTest
     }
 
     /**
-     * Test get user display infos. 
-     * 
-     * @param  int    $accounts 
-     * @param  int    $deptID 
-     * @param  string $type 
+     * Test get user display infos.
+     *
+     * @param  int    $accounts
+     * @param  int    $deptID
+     * @param  string $type
      * @access public
      * @return void
      */
@@ -182,9 +184,9 @@ class userTest
 
     /**
      * Test get user by id.
-     * 
-     * @param  int|string $userID 
-     * @param  string     $field 
+     *
+     * @param  int|string $userID
+     * @param  string     $field
      * @access public
      * @return void
      */
@@ -204,10 +206,10 @@ class userTest
 
     /**
      * Test get user by query.
-     * 
-     * @param  string $browseType 
-     * @param  string $query 
-     * @param  string $orderBy 
+     *
+     * @param  string $browseType
+     * @param  string $query
+     * @param  string $orderBy
      * @access public
      * @return void
      */
@@ -227,15 +229,15 @@ class userTest
 
     /**
      * Test create a user.
-     * 
-     * @param  array $params 
+     *
+     * @param  array $params
      * @access public
      * @return void
      */
     public function createUserTest($params = array())
     {
         $_POST  = $params;
-        $_POST['verifyPassword'] = 'e79f8fb9726857b212401e42e5b7e18b';
+        $_POST['verifyPassword'] = 'bac0bbaaf7192f219bebd5387e88c5d7';
 
         $userID = $this->objectModel->create();
         unset($_POST);
@@ -252,14 +254,18 @@ class userTest
 
     /**
      * Test batch create users.
-     * 
+     *
      * @access public
      * @return void
      */
     public function batchCreateUserTest($params = array())
     {
         $_POST  = $params;
-        $_POST['verifyPassword'] = 'e79f8fb9726857b212401e42e5b7e18b';
+        $_POST['verifyPassword'] = 'bac0bbaaf7192f219bebd5387e88c5d7';
+        $_POST['userType']       = 'inside';
+
+        global $tester;
+        $tester->config->user->batchCreate = count($_POST['account']);
 
         $userIDList = $this->objectModel->batchCreate();
         unset($_POST);
@@ -279,16 +285,16 @@ class userTest
 
     /**
      * Test edit a user.
-     * 
+     *
      * @param  int   $userID
-     * @param  array $params 
+     * @param  array $params
      * @access public
      * @return void
      */
     public function updateUserTest($userID, $params = array())
     {
         $_POST = $params;
-        $_POST['verifyPassword'] = 'e79f8fb9726857b212401e42e5b7e18b';
+        $_POST['verifyPassword'] = 'bac0bbaaf7192f219bebd5387e88c5d7';
 
         $this->objectModel->update($userID);
         unset($_POST);
@@ -305,17 +311,17 @@ class userTest
 
     /**
      * Test batch edit users.
-     * 
-     * @param  array $params 
+     *
+     * @param  array $params
      * @access public
      * @return void
      */
     public function batchEditUserTest($params = array())
     {
         $_POST = $params;
-        $_POST['verifyPassword'] = 'e79f8fb9726857b212401e42e5b7e18b';
+        $_POST['verifyPassword'] = 'bac0bbaaf7192f219bebd5387e88c5d7';
 
-        $this->objectModel->batchEdit($params);
+        $this->objectModel->batchEdit();
         unset($_POST);
 
         if(dao::isError())
@@ -326,7 +332,7 @@ class userTest
         {
             $users      = array();
             $userIDList = array_keys($params['account']);
-            foreach($userIDList as $userID) 
+            foreach($userIDList as $userID)
             {
                 $user = $this->objectModel->getByID($userID, 'id');
                 $users[$user->id] = $user;
@@ -338,9 +344,9 @@ class userTest
 
     /**
      * Test edit a user password.
-     * 
+     *
      * @param  int   $userID
-     * @param  array $params 
+     * @param  array $params
      * @access public
      * @return void
      */
@@ -363,8 +369,8 @@ class userTest
 
     /**
      * Reset user password.
-     * 
-     * @param  array $params 
+     *
+     * @param  array $params
      * @access public
      * @return void
      */
@@ -388,8 +394,8 @@ class userTest
 
     /**
      * Check user password.
-     * 
-     * @param  array $params 
+     *
+     * @param  array $params
      * @access public
      * @return void
      */
@@ -412,7 +418,7 @@ class userTest
 
     /**
      * Identify user.
-     * 
+     *
      * @param  string $account
      * @param  string $password
      * @access public
@@ -430,7 +436,7 @@ class userTest
 
     /**
      * Test authorize user.
-     * 
+     *
      * @param  string $account
      * @access public
      * @return void
@@ -444,7 +450,7 @@ class userTest
 
     /**
      * Test login user.
-     * 
+     *
      * @param  object $user
      * @access public
      * @return void
@@ -465,7 +471,7 @@ class userTest
 
     /**
      * Test get groups by user.
-     * 
+     *
      * @param  string $account
      * @param  string $password
      * @access public
@@ -487,8 +493,8 @@ class userTest
 
     /**
      * Test get groups by visions.
-     * 
-     * @param  string $visions 
+     *
+     * @param  string $visions
      * @access public
      * @return void
      */
@@ -508,11 +514,11 @@ class userTest
 
     /**
      * Test get my objects.
-     * 
-     * @param  string $account 
-     * @param  string $type 
-     * @param  string $status 
-     * @param  string $orderBy 
+     *
+     * @param  string $account
+     * @param  string $type
+     * @param  string $status
+     * @param  string $orderBy
      * @access public
      * @return void
      */
@@ -525,9 +531,53 @@ class userTest
     }
 
     /**
+     * Test clean user locked time.
+     *
+     * @param  string $account
+     * @access public
+     * @return string
+     */
+    public function cleanLockedTest($account)
+    {
+        global $tester;
+
+        $this->objectModel->cleanLocked($account);
+
+        if(dao::isError()) return dao::getError();
+
+        $locked = $tester->dao->select('locked')->from(TABLE_USER)->where('account')->eq($account)->fetch('locked');
+
+        $result = $locked === '0000-00-00 00:00:00' ? 'success' : 'fail';
+
+        return $result;
+    }
+
+    /**
+     * Test unbind Ranzhi.
+     *
+     * @param  string $account
+     * @access public
+     * @return string
+     */
+    public function unbindTest($account)
+    {
+        global $tester;
+
+        $this->objectModel->unbind($account);
+
+        if(dao::isError()) return dao::getError();
+
+        $ranzhi = $tester->dao->select('ranzhi')->from(TABLE_USER)->where('account')->eq($account)->fetch('ranzhi');
+
+        $result = empty($ranzhi) ? 'success' : 'fail';
+
+        return $result;
+    }
+
+    /**
      * Test get contact list.
-     * 
-     * @param  string $account 
+     *
+     * @param  string $account
      * @param  string $params
      * @access public
      * @return void
@@ -537,13 +587,14 @@ class userTest
         $contacts = $this->objectModel->getContactLists($account, $params);
 
         if(dao::isError()) return dao::getError();
-        return $contacts;
+
+        return $contacts ? $contacts : 0;
     }
 
     /**
      * Test get list by account method.
-     * 
-     * @param  string $account 
+     *
+     * @param  string $account
      * @access public
      * @return void
      */
@@ -554,8 +605,8 @@ class userTest
 
     /**
      * Test get parent stage authed users.
-     * 
-     * @param  int    $stageID 
+     *
+     * @param  int    $stageID
      * @access public
      * @return void
      */
@@ -566,8 +617,8 @@ class userTest
 
     /**
      * Test get contact list by id.
-     * 
-     * @param  int    $listID 
+     *
+     * @param  int    $listID
      * @access public
      * @return void
      */
@@ -578,8 +629,8 @@ class userTest
 
     /**
      * Test get contact user pairs.
-     * 
-     * @param  array $accountList 
+     *
+     * @param  array $accountList
      * @access public
      * @return void
      */
@@ -590,26 +641,29 @@ class userTest
 
     /**
      * Test create contact list.
-     * 
-     * @param  string $listName 
-     * @param  array  $userList 
+     *
+     * @param  string $listName
+     * @param  array  $userList
      * @access public
      * @return void
      */
     public function createContactListTest($listName = '', $userList = array())
     {
-        $listID = $this->objectModel->createContactList($listName, $userList); 
+        ob_start();
+        $listID  = $this->objectModel->createContactList($listName, $userList);
+        $message = ob_get_clean();
 
-        if(dao::isError()) return dao::getError();
+        if($message) return array('message' => array('listName' => array(1)));
+        if(dao::isError()) return array('message' => dao::getError());
         return $this->objectModel->getContactListByID($listID);
     }
 
     /**
      * Test update contact list.
-     * 
-     * @param  int    $listID 
-     * @param  string $listName 
-     * @param  array  $userList 
+     *
+     * @param  int    $listID
+     * @param  string $listName
+     * @param  array  $userList
      * @access public
      * @return void
      */
@@ -617,14 +671,14 @@ class userTest
     {
         $this->objectModel->updateContactList($listID, $listName, $userList);
 
-        if(dao::isError()) return dao::getError();
+        if(dao::isError()) return array('message' => dao::getError());
         return $this->objectModel->getContactListByID($listID);
     }
 
     /**
      * Test delete a contact list.
-     * 
-     * @param  int    $listID 
+     *
+     * @param  int    $listID
      * @access public
      * @return void
      */
@@ -637,8 +691,8 @@ class userTest
     }
 
     /**
-     * Test delete a contact list.
-     * 
+     * Test get user data in json.
+     *
      * @param  object $user
      * @access public
      * @return void
@@ -652,8 +706,8 @@ class userTest
     }
 
     /**
-     * Test get weak users. 
-     * 
+     * Test get weak users.
+     *
      * @access public
      * @return void
      */
@@ -666,8 +720,8 @@ class userTest
     }
 
     /**
-     * Test compute password strength. 
-     * 
+     * Test compute password strength.
+     *
      * @access public
      * @return void
      */
@@ -681,9 +735,9 @@ class userTest
 
     /**
      * Test compute user view.
-     * 
-     * @param  string $account 
-     * @param  bool   $force 
+     *
+     * @param  string $account
+     * @param  bool   $force
      * @access public
      * @return void
      */
@@ -697,9 +751,9 @@ class userTest
 
     /**
      * Test get product members.
-     * 
-     * @param  string $account 
-     * @param  bool   $force 
+     *
+     * @param  string $account
+     * @param  bool   $force
      * @access public
      * @return void
      */
@@ -713,9 +767,9 @@ class userTest
 
     /**
      * Test get product members.
-     * 
-     * @param  string $account 
-     * @param  bool   $force 
+     *
+     * @param  string $account
+     * @param  bool   $force
      * @access public
      * @return void
      */
@@ -729,9 +783,9 @@ class userTest
 
     /**
      * Test update program view.
-     * 
-     * @param  array  $programIdList 
-     * @param  array  $users 
+     *
+     * @param  array  $programIdList
+     * @param  array  $users
      * @access public
      * @return void
      */
@@ -745,7 +799,7 @@ class userTest
 
     /**
      * Test check program priv.
-     * 
+     *
      * @param  object $program
      * @param  string $account
      * @param  array  $stakeholders
@@ -760,7 +814,7 @@ class userTest
 
     /**
      * Test check project priv.
-     * 
+     *
      * @param  object $project
      * @param  string $account
      * @param  array  $stakeholders
@@ -775,7 +829,7 @@ class userTest
     }
     /**
      * Test check sprint priv.
-     * 
+     *
      * @param  object $sprint
      * @param  string $account
      * @param  array  $stakeholders
@@ -790,7 +844,7 @@ class userTest
     }
     /**
      * Test check product priv.
-     * 
+     *
      * @param  object $program
      * @param  string $account
      * @param  array  $groups
@@ -800,18 +854,18 @@ class userTest
      * @access public
      * @return void
      */
-    public function checkProductPrivTest($product, $account, $groups, $teams, $stakeholders, $whiteList)
+    public function checkProductPrivTest($product, $account, $groups = '', $teams = '', $stakeholders = '', $whiteList = '')
     {
         return $this->objectModel->checkProductPriv($product, $account, $groups, $teams, $stakeholders, $whiteList);
     }
 
     /**
      * Test get project authed users.
-     * 
-     * @param  int    $projectID 
-     * @param  array  $stakeholders 
-     * @param  array  $teams 
-     * @param  array  $whiteList 
+     *
+     * @param  int    $projectID
+     * @param  array  $stakeholders
+     * @param  array  $teams
+     * @param  array  $whiteList
      * @access public
      * @return void
      */
@@ -824,55 +878,74 @@ class userTest
 
     /**
      * Test get program authed users.
-     * 
-     * @param  int    $projectID 
-     * @param  array  $stakeholders 
-     * @param  array  $whiteList 
+     *
+     * @param  int    $projectID
+     * @param  array  $stakeholders
+     * @param  array  $whiteList
+     * @param  array  $admins
      * @access public
      * @return void
      */
-    public function getProgramAuthedUsersTest($programID, $stakeholders, $whiteList)
+    public function getProgramAuthedUsersTest($programID, $stakeholders, $whiteList, $admins)
     {
         global $tester;
         $program = $tester->loadModel('program')->getByID($programID);
-        return $this->objectModel->getProgramAuthedUsers($program, $stakeholders, $whiteList);
+        return $this->objectModel->getProgramAuthedUsers($program, $stakeholders, $whiteList, $admins);
     }
 
     /**
-     * Test get product view list users.
-     * 
-     * @param  int    $productID 
-     * @param  array  $teams 
-     * @param  array  $stakeholders 
-     * @param  array  $whiteList 
+     * getSprintAuthedUsersTest
+     *
+     * @param  int    $sprintID
+     * @param  array  $stakeholders
+     * @param  array  $teams
+     * @param  array  $whiteList
+     * @param  array  $admins
      * @access public
      * @return void
      */
-    public function getProductViewListUsersTest($productID, $teams, $stakeholders, $whiteList)
+    public function getSprintAuthedUsersTest($sprintID, $stakeholders, $teams, $whiteList, $admins)
     {
         global $tester;
-        $product = $tester->loadModel('product')->getByID($productID);
-        return $this->objectModel->getProductViewListUsers($product, $teams, $stakeholders, $whiteList);
+        $sprint = $tester->loadModel('execution')->getByID($sprintID);
+        return $this->objectModel->getSprintAuthedUsers($sprint, $stakeholders, $teams, $whiteList, $admins);
     }
 
     /**
      * Test get product view list users.
-     * 
-     * @param  int    $productID 
+     *
+     * @param  int    $productID
+     * @param  array  $teams
+     * @param  array  $stakeholders
+     * @param  array  $whiteList
+     * @access public
+     * @return void
+     */
+    public function getProductViewListUsersTest($productID, $teams, $stakeholders, $whiteList, $admins)
+    {
+        global $tester;
+        $product = $tester->loadModel('product')->getByID($productID);
+        return $this->objectModel->getProductViewListUsers($product, $teams, $stakeholders, $whiteList, $admins);
+    }
+
+    /**
+     * Test get product view list users.
+     *
+     * @param  int    $productID
      * @param  string $type
      * @param  string $params
      * @param  array  $usersToAppended
      * @access public
      * @return void
      */
-    public function getTeamMemberPairsTest($objectID, $type, $params, $usersToAppended)
+    public function getTeamMemberPairsTest($objectID, $type, $params = '', $usersToAppended = array())
     {
         return $this->objectModel->getTeamMemberPairs($objectID, $type, $params, $usersToAppended);
     }
 
     /**
      * Test save user template.
-     * 
+     *
      * @param  string $type
      * @access public
      * @return void
@@ -888,19 +961,19 @@ class userTest
 
     /**
      * Test get user templates.
-     * 
+     *
      * @param  string $type
      * @access public
-     * @return void
+     * @return array
      */
-    public function getUserTemplates($type)
+    public function getUserTemplatesTest($type)
     {
         return $this->objectModel->getUserTemplates($type);
     }
 
     /**
      * Test get person data.
-     * 
+     *
      * @param  string $account
      * @access public
      * @return void
@@ -912,7 +985,7 @@ class userTest
 
     /**
      * Test get user details for api.
-     * 
+     *
      * @param  array $userList
      * @access public
      * @return void
@@ -924,12 +997,148 @@ class userTest
 
     /**
      * Test get vision list.
-     * 
+     *
      * @access public
      * @return void
      */
     public function getVisionListTest()
     {
         return $this->objectModel->getVisionList();
+    }
+
+    /**
+     * Get users who have authority to create stories.
+     *
+     * @access public
+     * @return array
+     */
+    public function getCanCreateStoryUsersTest()
+    {
+        return $this->objectModel->getCanCreateStoryUsers();
+    }
+
+    /**
+     * Put the current user first
+     *
+     * @param  array    $users
+     * @access public
+     * @return array
+     */
+    public function processAccountSortTest($users = array())
+    {
+        return $this->objectModel->processAccountSort($users);
+    }
+
+    /**
+     * Set users list.
+     *
+     * @param  array    $users
+     * @param  string   $account
+     * @access public
+     * @return string
+     */
+    public function setUserListTest($users, $account)
+    {
+        $string = $this->objectModel->setUserList($users, $account);
+        return strpos($string, "<option value='$account' selected='selected'") !== false ? 1 : 0;
+    }
+
+    /**
+     * Update session random.
+     *
+     * @access public
+     * @return int
+     */
+    public function updateSessionRandomTest()
+    {
+        global $tester;
+        $oldRandom = $tester->session->rand;
+        $newRandom = $this->objectModel->updateSessionRandom();
+
+        return $oldRandom != $newRandom ? 1 : 0;
+    }
+
+    /**
+     * Judge a user is logon or not.
+     *
+     * @access public
+     * @return bool
+     */
+    public function isLogonTest()
+    {
+        return $this->objectModel->isLogon();
+    }
+
+    /**
+     * Plus the fail times.
+     *
+     * @param  string  $account
+     * @access public
+     * @return int
+     */
+    public function failPlusTest($account)
+    {
+        global $tester;
+        $this->objectModel->failPlus($account);
+        $failCounts = $tester->dao->select('fails')->from(TABLE_USER)->where('account')->eq($account)->fetch('fails');
+
+        return $failCounts;
+    }
+
+    /**
+     * Plus the fail times.
+     *
+     * @param  string  $account
+     * @access public
+     * @return string
+     */
+    public function checkLockedTest($account)
+    {
+        global $tester;
+        $result = $this->objectModel->checkLocked($account);
+
+        $result = $result ? 'locked' : 'unlocked';
+
+        return $result;
+    }
+
+    /**
+     * Identify user by PHP_AUTH_USER.
+     *
+     * @access public
+     * @return bool
+     */
+    public function identifyByPhpAuthTest()
+    {
+        return $this->objectModel->identifyByPhpAuth();
+    }
+
+    /**
+     * Identify user by cookie.
+     *
+     * @access public
+     * @return bool
+     */
+    public function identifyByCookieTest()
+    {
+        return $this->objectModel->identifyByCookie();
+    }
+
+    /**
+     * test of isClickable.
+     *
+     * @param  int    $userID
+     * @param  string $action
+     * @access public
+     * @return bool
+     */
+    public function isClickableTest($userID, $action = '')
+    {
+        global $tester;
+
+        $user = $tester->loadModel('user')->getById($userID, 'id');
+        if($userID == 10) $user->ranzhi = '';
+
+        return $this->objectModel->isClickable($user, $action);
     }
 }

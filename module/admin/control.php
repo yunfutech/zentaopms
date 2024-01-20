@@ -2,8 +2,8 @@
 /**
  * The control file of admin module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     admin
  * @version     $Id: control.php 4460 2013-02-26 02:28:02Z chencongzhi520@gmail.com $
@@ -11,6 +11,25 @@
  */
 class admin extends control
 {
+    /**
+     * The gogs constructor.
+     * @param string $moduleName
+     * @param string $methodName
+     */
+    public function __construct($moduleName = '', $methodName = '')
+    {
+        parent::__construct($moduleName, $methodName);
+
+        if(!isset($this->config->global->sn))
+        {
+            $this->loadModel('setting');
+            $this->setting->setItem('system.common.global.sn', $this->setting->computeSN());
+
+            if(!isset($this->config->global)) $this->config->global = new stdclass();
+            $this->config->global->sn = $this->setting->getItem('owner=system&module=common&section=global&key=sn');
+        }
+    }
+
     /**
      * Index page.
      * @access public
@@ -34,9 +53,50 @@ class admin extends control
 
         $this->loadModel('misc');
 
-        $this->view->title      = $this->lang->admin->common;
-        $this->view->position[] = $this->lang->admin->index;
+        $clientLang = $this->app->getClientLang();
+        $langNotCN  = common::checkNotCN();
+        $dateUsed   = $this->admin->genDateUsed();
+
+        $zentaoData  = $this->admin->getZentaoData();
+        $hasInternet = $zentaoData->hasData;
+
+        $this->view->title       = $this->lang->admin->common;
+        $this->view->position[]  = $this->lang->admin->index;
+        $this->view->plugins     = $zentaoData->plugins;
+        $this->view->patches     = $zentaoData->patches;
+        $this->view->dateUsed    = $dateUsed;
+        $this->view->hasInternet = $hasInternet;
+        $this->view->dynamics    = $zentaoData->news;
+        $this->view->publicClass = $zentaoData->publicclass;
+        $this->view->langNotCN   = $langNotCN;
         $this->display();
+    }
+
+    /**
+     * Get zentao.net data by api.
+     *
+     * @access public
+     * @return void
+     */
+    public function ajaxSetZentaoData()
+    {
+        $hasInternet = $this->admin->checkInternet();
+
+        if($hasInternet)
+        {
+            $nextWeek   = date('Y-m-d', strtotime('-7 days'));
+            $zentaoData = $this->loadModel('block')->getZentaoData($nextWeek);
+
+            if(empty($zentaoData))
+            {
+                $this->admin->setExtensionsByAPI('plugin', 6);
+                $this->admin->setExtensionsByAPI('patch', 5);
+                $this->admin->setDynamicsByAPI(3);
+                $this->admin->setPublicClassByAPI(3);
+            }
+        }
+
+        return $this->send(array('result' => 'success'));
     }
 
     /**
@@ -146,23 +206,6 @@ class admin extends control
     }
 
     /**
-     * Check all tables.
-     *
-     * @access public
-     * @return void
-     */
-    public function checkDB()
-    {
-        $tables = $this->dbh->query("show full tables where Table_Type != 'VIEW'")->fetchAll(PDO::FETCH_ASSOC);
-        foreach($tables as $table)
-        {
-            $tableName = current($table);
-            $result = $this->dbh->query("REPAIR TABLE $tableName")->fetch();
-            echo "Repairing TABLE: " . $result->Table . (defined('IN_SHELL') ? "\t" : "&nbsp;&nbsp;&nbsp;&nbsp;") . $result->Msg_type . ":" . $result->Msg_text . (defined('IN_SHELL') ? "\n" : "<br />\n");
-        }
-    }
-
-    /**
      * Account safe.
      *
      * @access public
@@ -230,6 +273,40 @@ class admin extends control
         $this->view->addr     = isset($this->config->sso->addr)     ? $this->config->sso->addr     : '';
         $this->view->key      = isset($this->config->sso->key)      ? $this->config->sso->key      : '';
         $this->view->code     = isset($this->config->sso->code)     ? $this->config->sso->code     : '';
+        $this->display();
+    }
+
+    /**
+     * Set closed features config.
+     *
+     * @access public
+     * @return void
+     */
+    public function setModule()
+    {
+        if($_POST)
+        {
+            $closedFeatures = '';
+            if(isset($_POST['module']))
+            {
+                foreach($this->post->module as $module => $options)
+                {
+                    if($module == 'myScore') continue;
+                    $checked = reset($options);
+                    if(!$checked) $closedFeatures .= "$module,";
+                }
+            }
+            $closedFeatures = rtrim($closedFeatures, ',');
+            $this->loadModel('setting')->setItem('system.common.closedFeatures', $closedFeatures);
+            $this->loadModel('setting')->setItem('system.common.global.scoreStatus', $this->post->module['myScore'][0]);
+            $this->loadModel('setting')->setItem('system.custom.URAndSR', $this->post->module['productUR'][0]);
+            $this->loadModel('custom')->processMeasrecordCron();
+            $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'top'));
+        }
+        $this->view->title            = $this->lang->admin->setModuleIndex;
+        $this->view->closedFeatures   = $this->loadModel('setting')->getItem('owner=system&module=common&section=&key=closedFeatures');
+        $this->view->useScore         = $this->setting->getItem('owner=system&module=common&global&key=scoreStatus');
+        $this->view->disabledFeatures = $this->setting->getItem('owner=system&module=common&section=&key=disabledFeatures');
         $this->display();
     }
 
@@ -354,5 +431,113 @@ class admin extends control
         $date = date(DT_DATE1, strtotime("-{$this->config->admin->log->saveDays} days"));
         $this->dao->delete()->from(TABLE_LOG)->where('date')->lt($date)->exec();
         return !dao::isError();
+    }
+
+    /**
+     * Reset password setting.
+     *
+     * @access public
+     * @return void
+     */
+    public function resetPWDSetting()
+    {
+        if($_POST)
+        {
+            $this->loadModel('setting')->setItem('system.common.resetPWDByMail', $this->post->resetPWDByMail);
+            return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'reload'));
+        }
+
+        $this->view->title = $this->lang->admin->resetPWDSetting;
+        $this->display();
+    }
+
+    /**
+     * Show table engine.
+     *
+     * @access public
+     * @return void
+     */
+    public function tableEngine()
+    {
+        $this->view->title = $this->lang->admin->tableEngine;
+        $this->view->tableEngines = $this->dao->getTableEngines();
+        $this->display();
+    }
+
+    /**
+     * Ajax change table engine.
+     *
+     * @access public
+     * @return void
+     */
+    public function ajaxChangeTableEngine()
+    {
+        $response = array();
+        $response['result']    = 'success';
+        $response['message']   = '';
+        $response['thisTable'] = '';
+        $response['nextTable'] = '';
+
+        $tableEngines = $this->loadModel('misc')->getTableEngines();
+
+        $thisTable = '';
+        $nextTable = '';
+        foreach($tableEngines as $table => $engine)
+        {
+            if($engine == 'InnoDB') continue;
+            if(strpos(",{$this->session->errorTables},", ",{$table},") !== false) continue;
+
+            if(stripos($table, 'searchindex') !== false)
+            {
+                $mysqlVersion = $this->loadModel('install')->getDatabaseVersion();
+                if($mysqlVersion < 5.6) continue;
+            }
+
+            if($thisTable and empty($nextTable)) $nextTable = $table;
+            if(empty($thisTable)) $thisTable = $table;
+            if($thisTable and $nextTable) break;
+        }
+
+        if(empty($thisTable))
+        {
+            unset($_SESSION['errorTables']);
+            $response['result'] = 'finished';
+            return print(json_encode($response));
+        }
+
+        try
+        {
+            /* Check process this table or not. */
+            $dbProcesses = $this->dbh->query("SHOW PROCESSLIST")->fetchAll();
+            foreach($dbProcesses as $dbProcess)
+            {
+                if($dbProcess->db != $this->config->db->name) continue;
+                if(!empty($dbProcess->Info) and strpos($dbProcess->Info, " {$thisTable} ") !== false)
+                {
+                    $response['message'] = sprintf($this->lang->upgrade->changingTable, $thisTable);
+                    return print(json_encode($response));
+                }
+            }
+        }
+        catch(PDOException $e){}
+
+        $response['thisTable'] = $thisTable;
+        $response['nextTable'] = $nextTable;
+
+        try
+        {
+            $sql = "ALTER TABLE `$thisTable` ENGINE='InnoDB'";
+            $this->dbh->exec($sql);
+            $response['message'] = sprintf($this->lang->admin->changeSuccess, $thisTable);
+        }
+        catch(PDOException $e)
+        {
+            $this->session->set('errorTables', $this->session->errorTables . ',' . $thisTable);
+
+            $response['result']  = 'fail';
+            $response['message'] = sprintf($this->lang->admin->changeFail, $thisTable, htmlspecialchars($e->getMessage()));
+        }
+
+        return print(json_encode($response));
     }
 }

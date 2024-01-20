@@ -2,8 +2,8 @@
 /**
  * The testsuite entry point of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2021 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2021 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     entries
  * @version     1
@@ -16,12 +16,12 @@ class testsuiteEntry extends entry
      *
      * @param  int    $testsuiteID
      * @access public
-     * @return void
+     * @return string
      */
     public function get($testsuiteID)
     {
         $control = $this->loadController('testsuite', 'view');
-        $control->view($testsuiteID, $this->param('version', 0));
+        $control->view($testsuiteID, $this->param('order', 'id_desc'), 0, $this->param('limit', 20), $this->param('page', 1));
 
         $data = $this->getData();
         if(!$data or (isset($data->message) and $data->message == '404 Not found')) return $this->send404();
@@ -36,7 +36,7 @@ class testsuiteEntry extends entry
             $suite->testcases[] = $this->format($case, 'openedBy:user,openedDate:time,lastEditedBy:user,lastEditedDate:time,lastRunDate:time,scriptedDate:date,reviewedBy:user,reviewedDate:date,deleted:bool');
         }
 
-        $this->send(200, $suite);
+        return $this->send(200, $suite);
     }
 
     /**
@@ -44,7 +44,7 @@ class testsuiteEntry extends entry
      *
      * @param  int    $testsuiteID
      * @access public
-     * @return void
+     * @return string
      */
     public function delete($testsuiteID)
     {
@@ -53,6 +53,6 @@ class testsuiteEntry extends entry
 
         $this->getData();
 
-        $this->sendSuccess(200, 'success');
+        return $this->sendSuccess(200, 'success');
     }
 }

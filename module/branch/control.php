@@ -2,8 +2,8 @@
 /**
  * The control file of branch of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Yidong Wang <yidong@cnezsoft.com>
  * @package     branch
  * @version     $Id$
@@ -25,7 +25,10 @@ class branch extends control
      */
     public function manage($productID, $browseType = 'active', $orderBy = 'order', $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
-        $this->loadModel('product')->setMenu($productID);
+        $product = $this->loadModel('product')->getById($productID);
+        if($product->type == 'normal') $this->locate($this->createLink('product', 'view', "productID=$productID"));
+
+        $this->product->setMenu($productID);
         $this->session->set('branchManage', $this->app->getURI(true), 'product');
         $this->branch->changeBranchLanguage($productID);
 
@@ -208,7 +211,10 @@ class branch extends control
     public function ajaxGetDropMenu($productID, $branch, $module, $method, $extra = '')
     {
         parse_str($extra, $output);
-        $branches   = $this->branch->getPairs($productID, 'all', isset($output['projectID']) ? $output['projectID'] : 0);
+        $isQaModule = (strpos(',project,execution,', ",{$this->app->tab},") !== false and strpos(',bug,testcase,groupCase,zeroCase,', ",$method,") !== false and !empty($productID)) ? true : false;
+        $param      = $isQaModule ? $extra : 0;
+        $param      = isset($output['projectID']) ? $output['projectID'] : $param;
+        $branches   = $this->branch->getPairs($productID, 'all', $param);
         $statusList = $this->dao->select('id,status')->from(TABLE_BRANCH)->where('product')->eq($productID)->fetchPairs();
 
         $this->view->link            = $this->loadModel('product')->getProductLink($module, $method, $extra, true);
@@ -251,25 +257,36 @@ class branch extends control
      *
      * @param  int    $productID
      * @param  int    $oldBranch
-     * @param  string $param
+     * @param  string $browseType
      * @param  int    $projectID
+     * @param  bool   $withMainBranch
+     * @param  string $isTwins
+     * @param  string $fieldID
+     * @param  string $multiple
      * @access public
      * @return void
      */
-    public function ajaxGetBranches($productID, $oldBranch = 0, $param = 'all', $projectID = 0)
+    public function ajaxGetBranches($productID, $oldBranch = 0, $browseType = 'all', $projectID = 0, $withMainBranch = true, $isTwins = 'no', $fieldID = '0', $multiple = '')
     {
         $product = $this->loadModel('product')->getById($productID);
         if(empty($product) or $product->type == 'normal') return;
 
-        $branches = $this->loadModel('branch')->getList($productID, $projectID, $param);
-        $branchOption    = array();
+        $branches = $this->loadModel('branch')->getList($productID, $projectID, $browseType, 'order', null, $withMainBranch);
         $branchTagOption = array();
         foreach($branches as $branchInfo)
         {
-            $branchOption[$branchInfo->id]    = $branchInfo->name;
             $branchTagOption[$branchInfo->id] = $branchInfo->name . ($branchInfo->status == 'closed' ? ' (' . $this->lang->branch->statusList['closed'] . ')' : '');
         }
-        return print(html::select('branch', strpos($param, 'active') !== false ? $branchOption : $branchTagOption, $oldBranch, "class='form-control' onchange='loadBranch(this)'"));
+        if(is_numeric($oldBranch) and !isset($branchTagOption[$oldBranch]))
+        {
+            $branch = $this->branch->getById($oldBranch, $productID, '');
+            $branchTagOption[$oldBranch] = $oldBranch == BRANCH_MAIN ? $branch : ($branch->name . ($branch->status == 'closed' ? ' (' . $this->lang->branch->statusList['closed'] . ')' : ''));
+        }
+
+        $name = $multiple == 'multiple' ? 'branch[]' : 'branch';
+
+        if($isTwins == 'yes') return print(html::select("branches[$fieldID]", $branchTagOption, $oldBranch, "onchange='loadBranchRelation(this.value, $fieldID);' class='form-control chosen control-branch'"));
+        return print(html::select($name, $branchTagOption, $oldBranch, "class='form-control' $multiple onchange='loadBranch(this)' data-last='{$oldBranch}'"));
     }
 
     /**

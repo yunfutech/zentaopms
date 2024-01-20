@@ -9,7 +9,7 @@ fields:
   - field: product
     range: 1-100{3}
   - field: branch
-    range: 0
+    range: 0{120},0-2,0,3-4,0,5-6,0,7-8,0,9-10,0{100000000}
   - field: module
     range: 1821-1823,1825-1827,1831-1833,0{1000000}
   - field: execution
@@ -41,7 +41,7 @@ fields:
   - field: type
     range: [codeerror,config,install,security,performance,standard,automation,designdefect,others]
   - field: os
-    range: []{2},[all,ie,ie11,ie10,ie9,ie8,ie7,ie6,chrome,firefox,firefox4,firefox3,firefox2,opera,oprea11,oprea10,opera9,safari,maxthon,uc,other]
+    range: []{2},[win10,windows,android,ios]
   - field: browser
     range: []
   - field: hardware
@@ -65,7 +65,7 @@ fields:
   - field: openedBy
     range: admin
   - field: openedDate
-    range: "(-1M)-(+1w):60"
+    range: "(-1M)-(+1w):-1D"
     type: timestamp
     format: "YYYY-MM-DD hh:mm:ss"
   - field: openedBuild
@@ -73,7 +73,7 @@ fields:
   - field: assignedTo
     range: [admin,dev1,test1]{30},[]{20},[admin,dev1,test1]{20},[]{10},closed{20}
   - field: assignedDate
-    range: "(-1M)-(+1w):60"
+    range: "(-1M)-(+1w):-1D"
     type: timestamp
     format: "YYYY-MM-DD"
   - field: deadline

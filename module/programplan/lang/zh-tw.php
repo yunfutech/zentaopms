@@ -3,7 +3,7 @@
  * The programplan module zh-tw file of ZenTaoPMS.
  *
  * @copyright   Copyright 2009-2015 青島易軟天創網絡科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     programplan
  * @version     $Id: zh-tw.php 4729 2013-05-03 07:53:55Z chencongzhi520@gmail.com $
@@ -72,7 +72,7 @@ $lang->programplan->stageCustom->date = '顯示日期';
 $lang->programplan->stageCustom->task = '顯示任務';
 
 $lang->programplan->error                  = new stdclass();
-$lang->programplan->error->percentNumber   = '"工作量比例"必須為數字';
+$lang->programplan->error->percentNumber   = '"工作量占比"必須為數字';
 $lang->programplan->error->planFinishSmall = '"計劃完成時間"必須大於"計劃開始時間"';
 $lang->programplan->error->percentOver     = '工作量占比累計不應當超過100%';
 $lang->programplan->error->createdTask     = '已分解任務,不可添加子階段';

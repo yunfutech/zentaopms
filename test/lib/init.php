@@ -5,8 +5,8 @@
  *
  * All request of entries should be routed by this router.
  *
- * @copyright   Copyright 2009-2017 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2017 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Guanxing <guanxiying@easycorp.ltd>
  * @package     ZenTaoPMS
  * @version     $Id: $
@@ -15,6 +15,7 @@
 /* Set the error reporting. */
 error_reporting(E_ALL & E_STRICT);
 
+$testPath      = dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR . 'test' . DIRECTORY_SEPARATOR;
 $frameworkRoot = dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR . 'framework' . DIRECTORY_SEPARATOR;
 
 /**
@@ -27,7 +28,12 @@ $frameworkRoot = dirname(dirname(dirname(__FILE__))) . DIRECTORY_SEPARATOR . 'fr
 function c($code)
 {
     global $_result;
-    if($_result and isset($_result->status_code) and $_result->status_code == $code)
+    if(empty($_result) or empty($_result->status_code)) return false;
+
+    $codeStr       = (string)$code;
+    $statusCodeStr = (string)($_result->status_code);
+
+    if($_result->status_code == $code or ($statusCodeStr[0] === '2' and $codeStr[0] === '2'))
     {
         $_result = $_result->body;
         return true;
@@ -51,6 +57,19 @@ $config->zendataRoot = dirname(dirname(__FILE__)) . '/zendata';
 $config->ztfPath     = dirname(dirname(__FILE__)) . '/tools/ztf';
 $config->zdPath      = dirname(dirname(__FILE__)) . '/tools/zd';
 
+/* init testDB. */
+include $testPath . 'config/config.php';
+include $testPath. 'lib/db.class.php';
+include $testPath. 'lib/yaml.class.php';
+include $testPath. 'lib/rest.php';
+$db   = new db();
+
+if(!empty($config->test->account) and !empty($config->test->password) and !empty($config->test->base))
+{
+    $rest  = new rest($config->test->base);
+    $token = $rest->post('/tokens', array('account' => $config->test->account, 'password' => $config->test->password));
+    $token = $token->body;
+}
 /**
  * Save variable to $_result.
  *
@@ -82,6 +101,7 @@ function p($keys = '', $delimiter = ',')
     if(is_array($_result) and isset($_result['code']) and $_result['code'] == 'fail') return print(">> " . (string) $_result['message'] . "\n");
 
     /* Print $_result. */
+    if(!$keys and is_array($_result)) return print(">> " . (string)$_result[''] . "\n");
     if(!$keys or !is_array($_result) and !is_object($_result)) return print(">> " . (string) $_result . "\n");
 
     $parts  = explode(';', $keys);
@@ -239,7 +259,7 @@ function zdImport($table, $yaml, $count = 10)
 function su($account)
 {
     $userModel = new userModel();
-    $user = $userModel->identify($account, '123qwe!@#');
+    $user = $userModel->identify($account, '123Qwe!@#');
     if($user) return $userModel->login($user);
     return false;
 }

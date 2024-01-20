@@ -1,26 +1,19 @@
-#product_chosen .chosen-single {width: 180px;}
+#main {padding-bottom: 0;}
+#myTable .dtable-header, #executionsForm .dtable-rows {z-index: 4;}
+.table-header.fixed-right > .btn-toolbar {right: 0; background-color: #f1f5f9;}
 
-.table-children {border-left: 2px solid #cbd0db; border-right: 2px solid #cbd0db;}
-.table tbody > tr.table-children.table-child-top {border-top: 2px solid #cbd0db;}
-.table tbody > tr.table-children.table-child-bottom {border-bottom: 2px solid #cbd0db;}
-.table td.has-child > a:not(.plan-toggle) {max-width: 90%; max-width: calc(100% - 30px); display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
-.table td.has-child > .plan-toggle {color: #838a9d; position: relative; top: 1px;}
-.table td.has-child > .plan-toggle:hover {color: #006af1; cursor: pointer;}
-.table td.has-child > .plan-toggle > .icon {font-size: 16px; display: inline-block; transition: transform .2s; -ms-transform:rotate(-90deg); -moz-transform:rotate(-90deg); -o-transform:rotate(-90deg); -webkit-transform:rotate(-90deg); transform: rotate(-90deg);}
-.table td.has-child > .plan-toggle > .icon:before {text-align: left;}
-.table td.has-child > .plan-toggle.collapsed > .icon {-ms-transform:rotate(90deg); -moz-transform:rotate(90deg); -o-transform:rotate(90deg); -webkit-transform:rotate(90deg); transform: rotate(90deg);}
-.table th.hours {padding-right: 8px !important;}
-.main-table tbody > tr.table-children > td:first-child::before {width: 3px;}
-td.hours {text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
-td.flex {display: flex; flex-flow: row nowrap; justify-content: flex-start; align-items: center;}
-td.flex span.label-badge {margin-left: 5px; min-width: 50px;}
-td.flex span.project-type-label {margin-left: 5px; min-width: 36px;}
-@-moz-document url-prefix() {.main-table tbody > tr.table-children > td:first-child::before {width: 4px;}}
+#myTable input[type=checkbox] {margin: 0px}
 
-.c-status, .c-date, .c-percent, .c-attribute {width: 80px;}
-.c-estimate, .c-consumed, .c-left, .c-pm {width: 70px;}
-.c-progress, .c-burn {width: 60px;}
-.c-code, .c-percent, .c-realBegan, .c-end, .c-begin, .c-realEnd{width: 100px;}
-.c-action {text-align: center;}
-.c-name > span {margin-right: 2px;}
-td.flex span.project-type-label {min-width: 40px;}
+.table-footer {border-top: 1px solid #fff4ea}
+.table-footer .pager{z-index: 10}
+#myTable .scrollbar {z-index: 11}
+
+.dtable {--dtable-checked-bg: #fff4ea; --dtable-border-color: #f4f5f7}
+.dtable-row {border-bottom-style: solid;}
+.dtable-cell-html a{color: #2463c7}
+.dtable-cell[data-sort='up']   .dtable-sort:before {color: #000; opacity: 1}
+.dtable-cell[data-sort='down'] .dtable-sort:after  {color: #000; opacity: 1}
+.dtable .toggle-icon {border-radius: 50%; border-style: solid;}
+.dtable-nested-toggle.is-no-child {display: block; opacity: 0; pointer-events: none;}
+
+.dtable-row.is-normal .dtable-cell[data-col="name"] {padding-left: 20px;}

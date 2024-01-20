@@ -2,8 +2,8 @@
 /**
  * The batch edit view of task module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Congzhi Chen <congzhi@cnezsoft.com>
  * @package     task
  * @version     $Id$
@@ -15,12 +15,14 @@
 <?php
 $dittoNotice = sprintf($this->lang->task->dittoNotice, $lang->executionCommon);
 js::set('dittoNotice', $dittoNotice);
+js::set('showFields', $showFields);
+js::set('requiredFields', $config->task->edit->requiredFields);
 ?>
 <div id='mainContent' class='main-content fade'>
   <div class='main-header'>
     <h2>
       <?php echo $lang->task->common . $lang->colon . $lang->task->batchEdit;?>
-      <?php if($executionName):?>
+      <?php if($executionName and $execution->multiple):?>
       <small class='text-muted'><?php echo $lang->task->execution . $lang->colon . ' ' . $executionName;?></small>
       <?php endif;?>
     </h2>
@@ -57,7 +59,7 @@ js::set('dittoNotice', $dittoNotice);
             <th class='required <?php if(count($visibleFields) > 10) echo 'c-name';?>'><?php echo $lang->task->name?></th>
             <th class='c-module<?php echo zget($visibleFields,    'module',       ' hidden') . zget($requiredFields, 'module', '', ' required');?>'><?php echo $lang->task->module?></th>
             <th class='c-assigned<?php echo zget($visibleFields,  'assignedTo',   ' hidden') . zget($requiredFields, 'assignedTo', '', ' required');?>'><?php echo $lang->task->assignedTo;?></th>
-            <th class='c-type required'><?php echo $lang->typeAB; ?></th>
+            <th class='c-type required'><?php echo $lang->task->type; ?></th>
             <th class='c-status<?php echo zget($visibleFields,    'status',       ' hidden') . zget($requiredFields, 'status', '', ' required');?>'><?php echo $lang->task->status;?></th>
             <th class='c-date<?php  echo zget($visibleFields,     'estStarted',   ' hidden') . zget($requiredFields, 'estStarted', '', ' required');?>'><?php echo $lang->task->estStarted?></th>
             <th class='c-date<?php  echo zget($visibleFields,     'deadline',     ' hidden') . zget($requiredFields, 'deadline', '', ' required');?>'><?php echo $lang->task->deadline?></th>
@@ -87,7 +89,7 @@ js::set('dittoNotice', $dittoNotice);
           }
           ?>
           <tr>
-            <?php $disableAssignedTo = (isset($teams[$taskID]) and $tasks[$taskID]->assignedTo != $this->app->user->account) ? "disabled='disabled'" : '';?>
+            <?php $disableAssignedTo = (isset($teams[$taskID]) and (($tasks[$taskID]->assignedTo != $this->app->user->account and $tasks[$taskID]->mode == 'linear') or !isset($teams[$taskID][$app->user->account]))) ? "disabled='disabled'" : '';?>
             <?php $disableHour = (isset($teams[$taskID]) or $tasks[$taskID]->parent < 0) ? "disabled='disabled'" : '';?>
             <?php
             $members      = array('' => '', 'ditto' => $this->lang->task->ditto);
@@ -97,8 +99,8 @@ js::set('dittoNotice', $dittoNotice);
             $taskMembers = array();
             if(isset($teams[$taskID]))
             {
-                $teamAccounts = array_keys($teams[$taskID]);
-                foreach($teamAccounts as $teamAccount) $taskMembers[$teamAccount] = $users[$teamAccount];
+                $teamAccounts = $teams[$taskID];
+                foreach($teamAccounts as $teamAccount) $taskMembers[$teamAccount->account] = $users[$teamAccount->account];
             }
             else
             {
@@ -124,19 +126,19 @@ js::set('dittoNotice', $dittoNotice);
                 </div>
               </div>
             </td>
-            <td class='text-left<?php echo zget($visibleFields, 'module', ' hidden')?>' style='overflow:visible'><?php echo html::select("modules[$taskID]", $modules, $tasks[$taskID]->module, "class='form-control chosen'")?></td>
-            <td class='text-left<?php echo zget($visibleFields, 'assignedTo', ' hidden')?>' style='overflow:visible'><?php echo html::select("assignedTos[$taskID]", $taskMembers, $tasks[$taskID]->assignedTo, "class='form-control chosen' {$disableAssignedTo}");?></td>
+            <td class='text-left<?php echo zget($visibleFields, 'module', ' hidden')?>' style='overflow:visible'><?php echo html::select("modules[$taskID]", $modules, $tasks[$taskID]->module, "class='form-control picker-select' data-drop-width='auto'")?></td>
+            <td class='text-left<?php echo zget($visibleFields, 'assignedTo', ' hidden')?>' style='overflow:visible'><?php echo html::select("assignedTos[$taskID]", $taskMembers, $tasks[$taskID]->assignedTo, "class='form-control picker-select' data-drop-width='auto' {$disableAssignedTo}");?></td>
             <td><?php echo html::select("types[$taskID]",    $typeList, $tasks[$taskID]->type, "class='form-control'");?></td>
-            <td <?php echo zget($visibleFields, 'status',     "class='hidden'")?>><?php echo html::select("statuses[$taskID]", $statusList, $tasks[$taskID]->status, "class='form-control'");?></td>
+            <td <?php echo zget($visibleFields, 'status',     "class='hidden'")?>><?php echo html::select("statuses[$taskID]", $statusList, $tasks[$taskID]->status, "class='form-control' {$disableHour}");?></td>
             <td <?php echo zget($visibleFields, 'estStarted', "class='hidden'")?>><?php echo html::input("estStarteds[$taskID]", helper::isZeroDate($tasks[$taskID]->estStarted) ? '' : $tasks[$taskID]->estStarted, "class='form-control text-center form-date'");?></td>
             <td <?php echo zget($visibleFields, 'deadline',   "class='hidden'")?>><?php echo html::input("deadlines[$taskID]", helper::isZeroDate($tasks[$taskID]->deadline) ? '' : $tasks[$taskID]->deadline, "class='form-control text-center form-date'");?></td>
             <td <?php echo zget($visibleFields, 'pri',        "class='hidden'")?>><?php echo html::select("pris[$taskID]", $priList, $tasks[$taskID]->pri, "class='form-control'");?></td>
             <td <?php echo zget($visibleFields, 'estimate',   "class='hidden'")?>><?php echo html::input("estimates[$taskID]", $tasks[$taskID]->estimate, "class='form-control text-center' {$disableHour}");?></td>
-            <td <?php echo zget($visibleFields, 'record',     "class='hidden'")?>><?php echo html::input("consumeds[$taskID]", '', "class='form-control text-center' {$disableHour}");?></td>
+            <td <?php echo zget($visibleFields, 'record',     "class='hidden'")?>><?php echo html::input("consumeds[$taskID]", 0, "class='form-control text-center' {$disableHour}");?></td>
             <td <?php echo zget($visibleFields, 'left',       "class='hidden'")?>><?php echo html::input("lefts[$taskID]", $tasks[$taskID]->left, "class='form-control text-center' {$disableHour}");?></td>
-            <td class='text-left<?php echo zget($visibleFields, 'finishedBy', ' hidden')?>' style='overflow:visible'><?php echo html::select("finishedBys[$taskID]", $members, $tasks[$taskID]->finishedBy, "class='form-control chosen'");?></td>
-            <td class='text-left<?php echo zget($visibleFields, 'canceledBy', ' hidden')?>' style='overflow:visible'><?php echo html::select("canceledBys[$taskID]", $members, $tasks[$taskID]->canceledBy, "class='form-control chosen'");?></td>
-            <td class='text-left<?php echo zget($visibleFields, 'closedBy', ' hidden')?>' style='overflow:visible'><?php echo html::select("closedBys[$taskID]",   $members, $tasks[$taskID]->closedBy, "class='form-control chosen'");?></td>
+            <td class='text-left<?php echo zget($visibleFields, 'finishedBy', ' hidden')?>' style='overflow:visible'><?php echo html::select("finishedBys[$taskID]", $members, $tasks[$taskID]->finishedBy, "class='form-control picker-select' data-drop-width='auto'");?></td>
+            <td class='text-left<?php echo zget($visibleFields, 'canceledBy', ' hidden')?>' style='overflow:visible'><?php echo html::select("canceledBys[$taskID]", $members, $tasks[$taskID]->canceledBy, "class='form-control picker-select' data-drop-width='auto'");?></td>
+            <td class='text-left<?php echo zget($visibleFields, 'closedBy', ' hidden')?>' style='overflow:visible'><?php echo html::select("closedBys[$taskID]",   $members, $tasks[$taskID]->closedBy, "class='form-control picker-select' data-drop-width='auto'");?></td>
             <td <?php echo zget($visibleFields, 'closedReason', "class='hidden'")?>>
               <?php
               $reasonList[''] = '';

@@ -2,8 +2,8 @@
 /**
  * The model file of todo module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     todo
  * @version     $Id: model.php 5035 2013-07-06 05:21:58Z wyd621@gmail.com $
@@ -39,6 +39,8 @@ class todoModel extends model
             ->setIF($this->post->date == false,  'date', '2030-01-01')
             ->setIF($this->post->begin == false, 'begin', '2400')
             ->setIF($this->post->begin == false or $this->post->end == false, 'end', '2400')
+            ->setIF($this->post->status == 'done', 'finishedBy', $this->app->user->account)
+            ->setIF($this->post->status == 'done', 'finishedDate', helper::now())
             ->stripTags($this->config->todo->editor->create['id'], $this->config->allowedTags)
             ->remove(implode(',', $this->config->todo->moduleList) . ',uid')
             ->get();
@@ -139,9 +141,11 @@ class todoModel extends model
 
         $validTodos = array();
         $now        = helper::now();
+        $assignedTo = $this->app->user->account;
         for($i = 0; $i < $this->config->todo->batchCreate; $i++)
         {
-            $isExist = false;
+            $isExist    = false;
+            $assignedTo = $todos->assignedTos[$i] == 'ditto' ? $assignedTo : $todos->assignedTos[$i];
             foreach($this->config->todo->objectList as $objects)
             {
                 if(isset($todos->{$objects}[$i + 1]))
@@ -173,7 +177,7 @@ class todoModel extends model
                 $todo->status       = "wait";
                 $todo->private      = 0;
                 $todo->idvalue      = 0;
-                $todo->assignedTo   = $this->app->user->account;
+                $todo->assignedTo   = $assignedTo;
                 $todo->assignedBy   = $this->app->user->account;
                 $todo->assignedDate = $now;
                 $todo->vision       = $this->config->vision;
@@ -250,7 +254,7 @@ class todoModel extends model
             ->remove(implode(',', $this->config->todo->moduleList) . ',uid')
             ->get();
 
-        if($todo->type != 'custom' and $todo->type != 'cycle')
+        if(in_array($todo->type, $this->config->todo->moduleList))
         {
             $type   = $todo->type;
             $object = $this->loadModel($type)->getByID($objectType);
@@ -301,6 +305,7 @@ class todoModel extends model
         {
             $this->file->updateObjectID($this->post->uid, $todoID, 'todo');
             if(!empty($oldTodo->cycle)) $this->createByCycle(array($todoID => $todo));
+            if(($this->config->edition == 'biz' || $this->config->edition == 'max') && $todo->type == 'feedback' && $todo->idvalue) $this->loadModel('feedback')->updateStatus('todo', $todo->idvalue, $todo->status);
             return common::createChanges($oldTodo, $todo);
         }
     }
@@ -321,16 +326,20 @@ class todoModel extends model
         if(!empty($todoIDList))
         {
             /* Initialize todos from the post data. */
+            $oldTodos = $this->dao->select('*')->from(TABLE_TODO)->where('id')->in(array_keys($todos))->fetchAll('id');
             foreach($todoIDList as $todoID)
             {
+                $oldTodo = $oldTodos[$todoID];
+
                 $todo = new stdclass();
-                $todo->date   = $data->dates[$todoID];
-                $todo->type   = $data->types[$todoID];
-                $todo->pri    = $data->pris[$todoID];
-                $todo->status = $data->status[$todoID];
-                $todo->name   = ($todo->type == 'custom' or $todo->type == 'cycle' or $todo->type == 'feedback') ? $data->names[$todoID] : '';
-                $todo->begin  = isset($data->begins[$todoID]) ? $data->begins[$todoID] : 2400;
-                $todo->end    = isset($data->ends[$todoID]) ? $data->ends[$todoID] : 2400;
+                $todo->date       = $data->dates[$todoID];
+                $todo->type       = $data->types[$todoID];
+                $todo->pri        = $data->pris[$todoID];
+                $todo->status     = $data->status[$todoID];
+                $todo->name       = !in_array($todo->type, $this->config->todo->moduleList) ? $data->names[$todoID] : '';
+                $todo->begin      = isset($data->begins[$todoID]) ? $data->begins[$todoID] : 2400;
+                $todo->end        = isset($data->ends[$todoID]) ? $data->ends[$todoID] : 2400;
+                $todo->assignedTo = isset($data->assignedTos[$todoID]) ? $data->assignedTos[$todoID] : $oldTodo->assignedTo;
 
                 if(in_array($todo->type, $this->config->todo->moduleList))
                 {
@@ -341,14 +350,13 @@ class todoModel extends model
                 $todos[$todoID] = $todo;
             }
 
-            $oldTodos = $this->dao->select('*')->from(TABLE_TODO)->where('id')->in(array_keys($todos))->fetchAll('id');
             foreach($todos as $todoID => $todo)
             {
                 $oldTodo = $oldTodos[$todoID];
-                if($oldTodo->type == 'bug' or $oldTodo->type == 'task' or $oldTodo->type == 'story' or $oldTodo->type == 'feedback') $oldTodo->name = '';
+                if(in_array($todo->type, $this->config->todo->moduList)) $oldTodo->name = '';
                 $this->dao->update(TABLE_TODO)->data($todo)
                     ->autoCheck()
-                    ->checkIF(in_array($todo->type, array('custom', 'feedback')), $this->config->todo->edit->requiredFields, 'notempty')
+                    ->checkIF(!in_array($todo->type, $this->config->todo->moduleList), $this->config->todo->edit->requiredFields, 'notempty')
                     ->checkIF($todo->type == 'bug'   and $todo->idvalue == 0, 'idvalue', 'notempty')
                     ->checkIF($todo->type == 'task'  and $todo->idvalue == 0, 'idvalue', 'notempty')
                     ->checkIF($todo->type == 'story' and $todo->idvalue == 0, 'idvalue', 'notempty')
@@ -365,6 +373,12 @@ class todoModel extends model
 
                 if(!dao::isError())
                 {
+                    if(($this->config->edition == 'biz' || $this->config->edition == 'max') && $todo->type == 'feedback' && $todo->idvalue && !isset($feedbacks[$todo->idvalue]))
+                    {
+                        $feedbacks[$todo->idvalue] = $todo->idvalue;
+                        $this->loadModel('feedback')->updateStatus('todo', $todo->idvalue, $todo->status);
+                    }
+
                     $allChanges[$todoID] = common::createChanges($oldTodo, $todo);
                 }
                 else
@@ -407,8 +421,18 @@ class todoModel extends model
             ->set('finishedDate')->eq(helper::now())
             ->where('id')->eq((int)$todoID)
             ->exec();
-        $this->loadModel('action')->create('todo', $todoID, 'finished', '', 'done');
-        return;
+        if(!dao::isError())
+        {
+            $this->loadModel('action')->create('todo', $todoID, 'finished', '', 'done');
+
+            if(($this->config->edition == 'biz' || $this->config->edition == 'max'))
+            {
+                $feedbackID = $this->dao->select('idvalue')->from(TABLE_TODO)->where('id')->eq($todoID)->andWhere('type')->eq('feedback')->fetch('idvalue');
+                if($feedbackID) $this->loadModel('feedback')->updateStatus('todo', $feedbackID, 'done');
+            }
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -433,6 +457,7 @@ class todoModel extends model
         if($todo->type == 'opportunity' and $this->config->edition == 'max') $todo->name = $this->dao->findById($todo->idvalue)->from(TABLE_OPPORTUNITY)->fetch('name');
         if($todo->type == 'review' and $this->config->edition == 'max') $todo->name = $this->dao->findById($todo->idvalue)->from(TABLE_REVIEW)->fetch('title');
         if($todo->type == 'testtask') $todo->name = $this->dao->findById($todo->idvalue)->from(TABLE_TESTTASK)->fetch('name');
+        if($todo->type == 'feedback') $todo->name = $this->dao->findById($todo->idvalue)->from(TABLE_FEEDBACK)->fetch('title');
         $todo->date = str_replace('-', '', $todo->date);
         return $todo;
     }
@@ -521,6 +546,7 @@ class todoModel extends model
             ->beginIF($type == 'assignedtoother')->andWhere('account', true)->eq($account)->fi()
             ->beginIF($type != 'assignedtoother')->andWhere('assignedTo', true)->eq($account)->fi()
             ->orWhere('finishedBy')->eq($account)
+            ->orWhere('closedBy')->eq($account)
             ->markRight(1)
             ->beginIF($begin)->andWhere('date')->ge($begin)->fi()
             ->beginIF($end)->andWhere('date')->le($end)->fi()
@@ -549,6 +575,7 @@ class todoModel extends model
             if($todo->type == 'risk'   && $this->config->edition == 'max') $todo->name = $this->dao->findById($todo->idvalue)->from(TABLE_RISK)->fetch('name');
             if($todo->type == 'opportunity' && $this->config->edition == 'max') $todo->name = $this->dao->findById($todo->idvalue)->from(TABLE_OPPORTUNITY)->fetch('name');
             if($todo->type == 'review' && $this->config->edition == 'max') $todo->name = $this->dao->findById($todo->idvalue)->from(TABLE_REVIEW)->fetch('title');
+            if($todo->type == 'feedback' and $this->config->edition != 'open') $todo->name = $this->dao->findById($todo->idvalue)->from(TABLE_FEEDBACK)->fetch('title');
             $todo->begin = date::formatTime($todo->begin);
             $todo->end   = date::formatTime($todo->end);
 
@@ -762,8 +789,19 @@ class todoModel extends model
             ->set('assignedDate')->eq($now)
             ->where('id')->eq((int)$todoID)
             ->exec();
-        $this->loadModel('action')->create('todo', $todoID, 'closed', '', 'closed');
-        return !dao::isError();
+
+        if(!dao::isError())
+        {
+            $this->loadModel('action')->create('todo', $todoID, 'closed', '', 'closed');
+
+            if(($this->config->edition == 'biz' || $this->config->edition == 'max'))
+            {
+                $feedbackID = $this->dao->select('idvalue')->from(TABLE_TODO)->where('id')->eq($todoID)->andWhere('type')->eq('feedback')->fetch('idvalue');
+                if($feedbackID) $this->loadModel('feedback')->updateStatus('todo', $feedbackID, 'closed');
+            }
+            return true;
+        }
+        return false;
     }
 
     /**

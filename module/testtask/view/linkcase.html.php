@@ -2,8 +2,8 @@
 /**
  * The linkcase view file of testtask module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     testtask
  * @version     $Id: linkcase.html.php 4411 2013-02-22 00:56:04Z chencongzhi520@gmail.com $
@@ -14,7 +14,7 @@
 <?php include '../../common/view/tablesorter.html.php';?>
 <div id='mainMenu' class='clearfix'>
   <div class='btn-toolbar pull-left'>
-    <?php echo html::backButton('<i class="icon icon-back icon-sm"></i> ' . $lang->goback, '', 'btn btn-secondary');?>
+    <?php echo html::backButton('<i class="icon icon-back icon-sm"></i> ' . $lang->goback, "data-app='{$app->tab}'", 'btn btn-secondary');?>
     <div class='divider'></div>
     <?php
     $lang->testtask->linkCase = $lang->testtask->linkByStory;
@@ -35,7 +35,7 @@
         {
             $suiteName = $suite->name;
             if($suite->type == 'public') $suiteName .= " <span class='label label-info'>{$lang->testsuite->authorList[$suite->type]}</span>";
-            echo "<li>" . html::a(inlink('linkCase', "taskID=$taskID&type=bysuite&param=$suiteID"), $suiteName) . "</li>";
+            echo "<li>" . html::a(inlink('linkCase', "taskID=$taskID&type=bysuite&param=$suiteID"), $suiteName, '', "data-app='$app->tab'") . "</li>";
         }
     }
     else
@@ -53,7 +53,7 @@
     {
         foreach($testTask as $tmpID => $tmpTitle)
         {
-            echo "<li>" . html::a(inlink('linkCase', "taskID=$taskID&type=bybuild&param=$tmpID"), $tmpTitle) . "</li>";
+            echo "<li>" . html::a(inlink('linkCase', "taskID=$taskID&type=bybuild&param=$tmpID"), $tmpTitle, '', "data-app='{$app->tab}'") . "</li>";
         }
     }
     else
@@ -77,7 +77,7 @@
         <tr>
           <th class='c-id'>
             <?php if($cases):?>
-            <div class="checkbox-primary check-all" title="<?php echo $lang->selectAll?>">
+            <div class="checkbox-primary check-all tablesorter-noSort" title="<?php echo $lang->selectAll?>">
               <label></label>
             </div>
             <?php endif;?>
@@ -86,6 +86,7 @@
           <th class='c-version text-center'><nobr><?php echo $lang->testtask->linkVersion;?></nobr></th>
           <th class='c-pri' title='<?php echo $lang->pri;?>'><?php echo $lang->priAB;?></th>
           <th><?php echo $lang->testcase->title;?></th>
+          <th class="<?php echo $type == 'bystory' ? '' : 'hidden';?>"><?php echo $lang->testcase->linkStory;?></th>
           <th class='c-type'><?php echo $lang->testcase->type;?></th>
           <th class='c-user'><?php echo $lang->openedByAB;?></th>
           <th class='c-user'><?php echo $lang->testtask->lastRunAccount;?></th>
@@ -112,12 +113,13 @@
           echo ')';
           ?>
         </td>
+        <td class="text-left title <?php echo $type == 'bystory' ? '' : 'hidden';?>" title='<?php echo $case->storyTitle?>'><?php if($case->story and $case->storyTitle) echo html::a(helper ::createLink('story', 'view', "storyID=$case->story"), $case->storyTitle);?></td>
         <td><?php echo $lang->testcase->typeList[$case->type];?></td>
         <td><?php echo zget($users, $case->openedBy);?></td>
         <td><?php echo zget($users, $case->lastRunner);?></td>
         <td><?php if(!helper::isZeroDate($case->lastRunDate)) echo date(DT_MONTHTIME1, strtotime($case->lastRunDate));?></td>
-        <td class='<?php echo $case->lastRunResult;?>'><?php if($case->lastRunResult) echo $lang->testcase->resultList[$case->lastRunResult];?></td>
-        <td class='case-<?php echo $case->status?>'><?php echo $this->processStatus('testcase', $case);?></td>
+        <td class='result-testcase <?php echo $case->lastRunResult;?>'><?php echo $case->lastRunResult ? $lang->testcase->resultList[$case->lastRunResult] : $lang->testcase->unexecuted;?></td>
+        <td class='status-testcase status-<?php echo $case->status?>'><?php echo $this->processStatus('testcase', $case);?></td>
       </tr>
       <?php endforeach;?>
       </tbody>

@@ -647,7 +647,6 @@ REPLACE INTO `zt_grouppriv` (`group`, `module`, `method`) VALUES
 (1,'feedback','adminView'),
 (1,'feedback','assignTo'),
 (1,'feedback','batchAssignTo'),
-(1,'feedback','batchChangeModule'),
 (1,'feedback','batchClose'),
 (1,'feedback','batchEdit'),
 (1,'feedback','batchReview'),
@@ -1004,7 +1003,6 @@ REPLACE INTO `zt_grouppriv` (`group`, `module`, `method`) VALUES
 (4,'feedback','adminView'),
 (4,'feedback','assignTo'),
 (4,'feedback','batchAssignTo'),
-(4,'feedback','batchChangeModule'),
 (4,'feedback','batchClose'),
 (4,'feedback','batchEdit'),
 (4,'feedback','batchReview'),
@@ -1135,7 +1133,6 @@ REPLACE INTO `zt_grouppriv` (`group`, `module`, `method`) VALUES
 (5,'feedback','adminView'),
 (5,'feedback','assignTo'),
 (5,'feedback','batchAssignTo'),
-(5,'feedback','batchChangeModule'),
 (5,'feedback','batchClose'),
 (5,'feedback','batchEdit'),
 (5,'feedback','batchReview'),
@@ -1856,7 +1853,7 @@ ALTER TABLE `zt_action` CHANGE `action` `action` varchar(80) NOT NULL DEFAULT ''
 ALTER TABLE `zt_action` CHANGE `extra` `extra` text;
 ALTER TABLE `zt_file` CHANGE `objectType` `objectType` char(30) NOT NULL;
 
-INSERT INTO `zt_workflowrule` VALUES (1,'system','必填','notempty','admin','2020-10-14 14:06:14','','0000-00-00 00:00:00'),(2,'system','唯一','unique','admin','2020-10-14 14:06:14','','0000-00-00 00:00:00'),(3,'system','日期','date','admin','2020-10-14 14:06:14','','0000-00-00 00:00:00'),(4,'system','email','email','admin','2020-10-14 14:06:14','','0000-00-00 00:00:00'),(5,'system','数字','float','admin','2020-10-14 14:06:14','','0000-00-00 00:00:00'),(6,'system','电话','phone','admin','2020-10-14 14:06:14','','0000-00-00 00:00:00'),(7,'system','IP','ip','admin','2020-10-14 14:06:14','','0000-00-00 00:00:00');
+REPLACE INTO `zt_workflowrule` VALUES (1,'system','必填','notempty','admin','2020-10-14 14:06:14','','0000-00-00 00:00:00'),(2,'system','唯一','unique','admin','2020-10-14 14:06:14','','0000-00-00 00:00:00'),(3,'system','日期','date','admin','2020-10-14 14:06:14','','0000-00-00 00:00:00'),(4,'system','email','email','admin','2020-10-14 14:06:14','','0000-00-00 00:00:00'),(5,'system','数字','float','admin','2020-10-14 14:06:14','','0000-00-00 00:00:00'),(6,'system','电话','phone','admin','2020-10-14 14:06:14','','0000-00-00 00:00:00'),(7,'system','IP','ip','admin','2020-10-14 14:06:14','','0000-00-00 00:00:00');
 
 REPLACE INTO `zt_grouppriv` VALUES
 (1,'apppriv','flow'),

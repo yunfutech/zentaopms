@@ -2,8 +2,8 @@
 /**
  * The story block view file of block module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Yidong Wang <yidong@cnezsoft.com>
  * @package     block
  * @version     $Id$
@@ -41,7 +41,7 @@
         </td>
         <td class="c-pri"><span class="todo-pri label-pri label-pri-<?php echo $todo->pri?>" title="<?php echo zget($lang->todo->priList, $todo->pri);?>"><?php echo zget($lang->todo->priList, $todo->pri);?></span></td>
         <td class="c-name" title='<?php echo $todo->name;?>'><?php echo html::a($viewLink, $todo->name);?></td>
-        <td class='c-status'><?php echo zget($lang->todo->statusList, $todo->status);?></td>
+        <td class='c-status status-<?php echo $todo->status;?>'><?php echo zget($lang->todo->statusList, $todo->status);?></td>
       </tr>
       <?php endforeach;?>
     </tbody>

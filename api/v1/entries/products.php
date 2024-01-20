@@ -2,8 +2,8 @@
 /**
  * The products entry point of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2021 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2021 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     entries
  * @version     1
@@ -16,7 +16,7 @@ class productsEntry extends entry
      *
      * @param  int    $projectID
      * @access public
-     * @return void
+     * @return string
      */
     public function get($programID = 0)
     {
@@ -24,7 +24,7 @@ class productsEntry extends entry
         if(strpos(strtolower(",{$fields},"), ',dropmenu,') !== false) return $this->getDropMenu();
 
         if(!$programID) $programID = $this->param('program', 0);
-        $projectID = $this->param('project', 0);
+        $projectID     = $this->param('project', 0);
         $mergeChildren = $this->param('mergeChildren', '');
 
         if($programID)
@@ -55,7 +55,7 @@ class productsEntry extends entry
         else
         {
             $control = $this->loadController('product', 'all');
-            $control->all($this->param('status', 'all'), $this->param('order', 'order_asc'));
+            $control->all($this->param('status', 'all'), $this->param('order', 'program_asc'), 0, 0, $this->param('limit', 100), $this->param('page', 1));
 
             /* Response */
             $data = $this->getData();
@@ -65,8 +65,9 @@ class productsEntry extends entry
             $products = $data->data->productStats;
             if($mergeChildren) $products = $data->data->productStructure;
         }
+        $pager = $data->data->pager;
 
-        $result   = array();
+        $result = array();
         if($mergeChildren)
         {
             $programs = $this->mergeChildren($products);
@@ -95,10 +96,7 @@ class productsEntry extends entry
                 $result[] = $this->format($product, 'createdDate:time,whitelist:userList,createdBy:user,PO:user,RD:user,QD:user');
             }
 
-            $data = array();
-            $data['total']    = count($result);
-            $data['products'] = $result;
-
+            $data = array('page' => $pager->pageID, 'total' => $pager->recTotal, 'limit' => $pager->recPerPage, 'products' => $result);
             $withUser = $this->param('withUser', '');
             if(!empty($withUser)) $data['users'] = $this->loadModel('user')->getListByAccounts($accounts, 'account');
 
@@ -110,7 +108,7 @@ class productsEntry extends entry
      * POST method.
      *
      * @access public
-     * @return void
+     * @return string
      */
     public function post()
     {
@@ -132,14 +130,14 @@ class productsEntry extends entry
         $product = $this->loadModel('product')->getByID($data->id);
         $product = $this->format($product, 'createdDate:time,whitelist:userList,createdBy:user,PO:user,RD:user,QD:user');
 
-        $this->send(200, $product);
+        return $this->send(200, $product);
     }
 
     /**
      * Get dropmenu.
      *
      * @access public
-     * @return void
+     * @return string
      */
     public function getDropMenu()
     {
@@ -170,15 +168,15 @@ class productsEntry extends entry
                 }
             }
         }
-        $this->send(200, $dropMenu);
+        return $this->send(200, $dropMenu);
     }
 
     /**
      * Merge children products.
      *
-     * @param  array    $products
+     * @param  array  $products
      * @access public
-     * @return void
+     * @return string
      */
     public function mergeChildren($products)
     {
@@ -194,12 +192,11 @@ class productsEntry extends entry
             }
 
             $unclosedTotal = 0;
-            foreach($program as $field => $value)
+            foreach($program as $lineID => $value)
             {
                 if(!isset($programs[$programID]->children)) $programs[$programID]->children = array();
                 if(isset($value->products))
                 {
-                    $lineID = $field;
                     if(empty($lineID))
                     {
                         foreach($value->products as $product)

@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 include dirname(dirname(dirname(__FILE__))) . '/lib/init.php';
 include dirname(dirname(dirname(__FILE__))) . '/class/story.class.php';
@@ -8,6 +9,11 @@ su('admin');
 title=测试 storyModel->batchCreate();
 cid=1
 pid=1
+
+插入两条软件需求，判断返回的需求总量 >> 2
+插入两条用户需求，判断返回的需求总量 >> 2
+插入两条软件需求，判断返回的title、type等信息 >> 测试需求1,story,1,测试需求描述1,1,planned,2221
+插入两条用户需求，判断返回的title、type等信息 >> 测试需求2,requirement,2,测试需求描述2,2,planned,2222
 
 */
 
@@ -28,4 +34,3 @@ r(count($result1)) && p() && e('2'); // 插入两条软件需求，判断返回�
 r(count($result2)) && p() && e('2'); // 插入两条用户需求，判断返回的需求总量
 r($result1) && p('401:title,type,pri,spec,estimate,stage,module') && e('测试需求1,story,1,测试需求描述1,1,planned,2221');       // 插入两条软件需求，判断返回的title、type等信息
 r($result2) && p('404:title,type,pri,spec,estimate,stage,module') && e('测试需求2,requirement,2,测试需求描述2,2,planned,2222'); // 插入两条用户需求，判断返回的title、type等信息
-system("./ztest init");

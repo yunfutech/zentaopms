@@ -2,8 +2,8 @@
 /**
  * The edit view of product module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     product
  * @version     $Id: edit.html.php 4129 2013-01-18 01:58:14Z wwccss $
@@ -14,11 +14,10 @@
 <?php include '../../common/view/kindeditor.html.php';?>
 <?php js::set('noProject', false);?>
 <?php js::set('oldProgramID', $product->program);?>
-<?php js::set('canChangeProgram', $canChangeProgram);?>
-<?php js::set('singleLinkProjects', $singleLinkProjects);?>
-<?php js::set('multipleLinkProjects', $multipleLinkProjects);?>
+<?php js::set('programID', $product->program);?>
 <style>
 #changeProgram .icon-project {padding-right: 5px;}
+#changeProgram .modal-body {padding-top: 10px;}
 </style>
 <div id="mainContent" class="main-content">
   <div class="center-block">
@@ -32,26 +31,28 @@
     <form class="load-indicator main-form form-ajax" id="createForm" method="post" target='hiddenwin'>
       <table class="table table-form">
         <tbody>
-          <?php if($this->config->systemMode == 'new'):?>
+          <?php if($this->config->systemMode == 'ALM'):?>
           <tr>
             <th class='w-140px'><?php echo $lang->product->program;?></th>
             <?php $attr = ($product->program and strpos(",{$this->app->user->view->programs},", ",{$product->program},") === false) ? 'disabled' : '';?>
             <?php if($attr == 'disabled') echo html::hidden('program', $product->program);?>
             <td><?php echo html::select('program', $programs, $product->program, "class='form-control chosen' $attr");?></td>
           </tr>
-          <?php endif;?>
           <tr>
             <th class='w-140px'><?php echo $lang->product->line;?></th>
-            <td><?php echo html::select('line', $lines, $product->line, "class='form-control chosen'");?></td><td></td>
+            <td><?php echo html::select('line', $lines, $product->line, "class='form-control picker-select'");?></td><td></td>
           </tr>
+          <?php endif;?>
           <tr>
             <th class='w-140px'><?php echo $lang->product->name;?></th>
             <td class='w-p40-f'><?php echo html::input('name', $product->name, "class='form-control' required");?></td><td></td>
           </tr>
+          <?php if(isset($config->setCode) and $config->setCode == 1):?>
           <tr>
             <th><?php echo $lang->product->code;?></th>
             <td><?php echo html::input('code', $product->code, "class='form-control' required");?></td><td></td>
           </tr>
+          <?php endif;?>
           <tr>
             <th><?php echo $lang->product->PO;?></th>
             <td><?php echo html::select('PO', $poUsers, $product->PO, "class='form-control chosen'");?></td><td></td>
@@ -66,7 +67,7 @@
           </tr>
           <tr>
             <th><?php echo $lang->product->reviewer;?></th>
-            <td><?php echo html::select('reviewer[]', $users, $product->reviewer, "class='form-control chosen' multiple");?></td><td></td>
+            <td><?php echo html::select('reviewer[]', $users, $product->reviewer, "class='form-control picker-select' multiple");?></td><td></td>
           </tr>
           <tr>
             <th><?php echo $lang->product->type;?></th>
@@ -89,7 +90,7 @@
             <th><?php echo $lang->whitelist;?></th>
             <td>
               <div class='input-group'>
-                <?php echo html::select('whitelist[]', $users, $product->whitelist, 'class="form-control chosen" multiple');?>
+                <?php echo html::select('whitelist[]', $users, $product->whitelist, 'class="form-control picker-select" multiple');?>
                 <?php echo $this->fetch('my', 'buildContactLists', "dropdownName=whitelist");?>
               </div>
             </td>
@@ -104,55 +105,6 @@
         </tbody>
       </table>
     </form>
-  </div>
-</div>
-<div class="modal fade" id="changeProgram">
-  <div class="modal-dialog mw-600px">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="icon icon-close"></i></button>
-        <?php if($canChangeProgram):?>
-        <h4 class="modal-title"><?php echo $lang->product->changeProgram;?></h4>
-        <?php endif;?>
-      </div>
-      <div class="modal-body">
-        <table class='table table-form'>
-          <?php if(!$canChangeProgram):?>
-          <tr>
-            <th class='text-left'><?php echo $lang->product->notChangeProgramTip;?></th>
-          </tr>
-          <?php foreach($linkStoriesProjects as $project):?>
-          <tr>
-            <td><i class="icon icon-project"></i><?php echo $project;?></td>
-          </tr>
-          <?php endforeach;?>
-          <?php endif;?>
-          <?php if($singleLinkProjects):?>
-          <tr>
-            <th class='text-left'><?php echo $lang->product->programChangeTip;?></th>
-          </tr>
-          <?php foreach($singleLinkProjects as $project):?>
-          <tr>
-            <td><i class="icon icon-project"></i><?php echo $project;?></td>
-          </tr>
-          <?php endforeach;?>
-          <?php endif;?>
-          <?php if($multipleLinkProjects):?>
-          <tr>
-            <th class='text-left'><?php echo $lang->product->confirmChangeProgram;?></th>
-          </tr>
-          <tr>
-            <td><?php echo html::checkbox('projects', $multipleLinkProjects);?></td>
-          </tr>
-          <tr>
-            <td class='text-center'>
-              <?php echo html::commonButton($lang->save, 'onclick = "setChangeProjects();"', 'btn btn-primary btn-wide');?>
-            </td>
-          </tr>
-          <?php endif;?>
-        </table>
-      </div>
-    </div>
   </div>
 </div>
 <?php include '../../common/view/footer.html.php';?>

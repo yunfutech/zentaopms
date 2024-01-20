@@ -2,8 +2,8 @@
 /**
  * The control file of misc of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     misc
  * @version     $Id: control.php 5128 2013-07-13 08:59:49Z chencongzhi520@gmail.com $
@@ -20,7 +20,7 @@ class misc extends control
     public function ping()
     {
         if(mt_rand(0, 1) == 1) $this->loadModel('setting')->setSN();
-        echo "<html><head><meta http-equiv=refresh' content='600' /></head><body></body></html>";
+        echo "<html><head><meta http-equiv='refresh' content='600' /></head><body></body></html>";
     }
 
     /**
@@ -230,6 +230,7 @@ class misc extends control
      */
     public function captcha($sessionVar = 'captcha', $uuid = '')
     {
+        if($sessionVar == 'user') die('The string user is not allowed to be defined as a session field.');
         $obLevel = ob_get_level();
         for($i = 0; $i < $obLevel; $i++) ob_end_clean();
 
@@ -255,6 +256,11 @@ class misc extends control
         {
             $condition   = "owner={$account}&module={$objectType}&section=task&key=unfoldTasks";
             $settingPath = $account . ".{$objectType}.task.unfoldTasks";
+        }
+        elseif($objectType == 'productplan')
+        {
+            $condition   = "owner={$account}&module={$objectType}&section=browse&key=unfoldPlans";
+            $settingPath = $account . ".{$objectType}.browse.unfoldPlans";
         }
         else
         {

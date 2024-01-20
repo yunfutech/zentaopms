@@ -2,8 +2,8 @@
 /**
  * The model file of convert module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     convert
  * @version     $Id: model.php 4129 2013-01-18 01:58:14Z wwccss $
@@ -41,12 +41,14 @@ class convertModel extends model
      * Check database exits or not.
      *
      * @access public
-     * @return bool
+     * @return object|false
      */
     public function dbExists($dbName = '')
     {
-        $sql = "SHOW DATABASES like '{$dbName}'";
-        return $this->dbh->query($sql)->fetch();
+        if(!$this->checkDBName($dbName)) die('Invalid database name.');
+        $statement = $this->dbh->prepare('SHOW DATABASES like ?');
+        $statement->execute(array($dbName));
+        return $statement->fetch();
     }
 
     /**
@@ -857,7 +859,7 @@ class convertModel extends model
                 $bug->openedBy    = $this->getJiraAccount($data->CREATOR, $method);
                 $bug->openedDate  = substr($data->CREATED, 0, 19);
                 $bug->openedBuild = 'trunk';
-                $bug->assignedTo  = $this->getJiraAccount($data->ASSIGNEE, $method);
+                $bug->assignedTo  = $bug->status == 'closed' ? 'closed' : $this->getJiraAccount($data->ASSIGNEE, $method);
 
                 if($data->RESOLUTION)
                 {
@@ -937,34 +939,68 @@ class convertModel extends model
             ->where('project')->in(array_values($projectRelation))
             ->fetchPairs();
 
-        $versionGroup = $method == 'db' ? $this->dao->dbh($this->sourceDBH)->select('SINK_NODE_ID as versionID, SOURCE_NODE_ID as issueID')->from(JIRA_NODEASSOCIATION)->where('SINK_NODE_ENTITY')->eq('Version')->fetchGroup('versionID') : $this->getVersionGroup();
+        $versionGroup = $method == 'db' ? $this->dao->dbh($this->sourceDBH)->select('SINK_NODE_ID as versionID, SOURCE_NODE_ID as issueID, ASSOCIATION_TYPE as relation')->from(JIRA_NODEASSOCIATION)->where('SINK_NODE_ENTITY')->eq('Version')->fetchGroup('versionID') : $this->getVersionGroup();
 
         foreach($dataList as $data)
         {
-            if(empty($data->RELEASEDATE)) continue;
-
             $versionID    = $data->ID;
             $buildProject = $data->PROJECT;
             $projectID    = $projectRelation[$buildProject];
             $productID    = $projectProduct[$projectID];
 
             $build = new stdclass();
-            $build->product = $productID;
-            $build->project = $projectID;
-            $build->name    = $data->vname;
-            $build->date    = substr($data->RELEASEDATE, 0, 10);
-            $build->builder = $this->app->user->account;
+            $build->product     = $productID;
+            $build->project     = $projectID;
+            $build->name        = $data->vname;
+            $build->date        = substr($data->RELEASEDATE, 0, 10);
+            $build->builder     = $this->app->user->account;
+            $build->createdBy   = $this->app->user->account;
+            $build->createdDate = helper::now();
 
             $this->dao->dbh($this->dbh)->insert(TABLE_BUILD)->data($build)->exec();
             $buildID = $this->dao->dbh($this->dbh)->lastInsertID();
 
+            /* Process build data. */
+            if(isset($versionGroup[$versionID]))
+            {
+                foreach($versionGroup[$versionID] as $issue)
+                {
+                    $issueID   = $method == 'db' ? $issue->issueID : $issue;
+                    $issueType = zget($issueObjectType, $issueID, '');
+                    if(!$issueType || ($issueType != 'story' and $issueType != 'bug')) continue;
+                    $objectID  = $issueType == 'bug' ? zget($issueBugs, $issueID) : zget($issueStories, $issueID);
+
+                    $field = $issueType == 'story' ? 'stories' : 'bugs';
+                    if($issueType == 'story')
+                    {
+                        $this->dao->dbh($this->dbh)->update(TABLE_BUILD)->set("stories = CONCAT(stories, ',$objectID')")->where('id')->eq($buildID)->exec();
+                    }
+                    else
+                    {
+                        $this->dao->dbh($this->dbh)->update(TABLE_BUILD)->set("bugs = CONCAT(bugs, ',$objectID')")->where('id')->eq($buildID)->exec();
+                        if($issue->relation == 'IssueVersion')
+                        {
+                            $this->dao->dbh($this->dbh)->update(TABLE_BUG)->set('openedBuild')->eq($buildID)->where('id')->eq($objectID)->exec();
+                        }
+                        elseif($issue->relation == 'IssueFixVersion')
+                        {
+                            $this->dao->dbh($this->dbh)->update(TABLE_BUG)->set('resolvedBuild')->eq($buildID)->where('id')->eq($objectID)->exec();
+                        }
+                    }
+                }
+            }
+
+            if(empty($data->RELEASEDATE)) continue;
+
             $release = new stdclass();
-            $release->product = $build->product;
-            $release->build   = $buildID;
-            $release->name    = $build->name;
-            $release->date    = $build->date;
-            $release->desc    = $data->DESCRIPTION;
-            $release->status  = 'normal';
+            $release->product     = $build->product;
+            $release->build       = $buildID;
+            $release->name        = $build->name;
+            $release->date        = $build->date;
+            $release->desc        = $data->DESCRIPTION;
+            $release->status      = 'normal';
+            $release->createdBy   = $this->app->user->account;
+            $release->createdDate = helper::now();
 
             $this->dao->dbh($this->dbh)->insert(TABLE_RELEASE)->data($release)->exec();
             $releaseID = $this->dao->dbh($this->dbh)->lastInsertID();
@@ -1484,5 +1520,18 @@ EOT;
             $filePath = $this->app->getTmpRoot() . 'jirafile/' . $fileName . '.xml';
             if(file_exists($filePath)) @unlink($filePath);
         }
+    }
+
+    /**
+     * Check dbName is valide.
+     *
+     * @param  string $dbName
+     * @access public
+     * @return bool
+     */
+    public function checkDBName($dbName)
+    {
+        if(preg_match('/^[a-zA-Z][a-zA-Z0-9_]*$/', $dbName)) return true;
+        return false;
     }
 }

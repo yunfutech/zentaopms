@@ -2,8 +2,8 @@
 /**
  * The import view file of task module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Yangyang Shi <shiyangyang@cnezsoft.com>
  * @package     task
  * @version     $Id$
@@ -39,10 +39,11 @@
           <th class='c-pri' title=<?php echo $lang->execution->pri;?>><?php echo $lang->priAB;?></th>
           <th><?php echo $lang->bug->title;?></th>
           <th class='c-status'><?php echo $lang->bug->statusAB;?></th>
-          <th class='c-pri-box <?php echo in_array('pri',        $requiredFields) ? 'required' : ''?>'><?php echo $lang->task->pri;?></th>
+          <th class='c-pri-box <?php echo in_array('pri', $requiredFields) ? 'required' : ''?>'><?php echo $lang->task->pri;?></th>
           <th class='c-assigned-box <?php echo in_array('assignedTo', $requiredFields) ? 'required' : ''?>'><?php echo $lang->task->assignedTo;?></th>
-          <th class='c-estimate-box  <?php echo in_array('estimate',   $requiredFields) ? 'required' : ''?>'><?php echo $lang->task->estimate;?></th>
-          <th class='c-date-box <?php echo in_array('deadline',   $requiredFields) ? 'required' : ''?>'><?php echo $lang->task->deadline;?></th>
+          <th class='c-estimate-box  <?php echo in_array('estimate', $requiredFields) ? 'required' : ''?>'><?php echo $lang->task->estimate;?></th>
+          <th class='c-date-box <?php echo in_array('estStarted', $requiredFields) ? 'required' : ''?>'><?php echo $lang->task->estStarted;?></th>
+          <th class='c-date-box <?php echo in_array('deadline', $requiredFields) ? 'required' : ''?>'><?php echo $lang->task->deadline;?></th>
         </tr>
       </thead>
       <tbody>
@@ -55,13 +56,14 @@
             </div>
             <?php echo sprintf('%03d', $bug->id) . html::hidden("id[$bug->id]", $bug->id);?>
           </td>
-          <td><span class='<?php echo 'severity' . zget($lang->bug->severityList, $bug->severity, $bug->severity)?>'><?php echo zget($lang->bug->severityList, $bug->severity, $bug->severity)?></span></td>
+          <td class='c-severity'><span class='label-severity <?php echo 'severity' . zget($lang->bug->severityList, $bug->severity, $bug->severity)?>' data-severity="<?php echo $bug->severity?>"><?php echo zget($lang->bug->severityList, $bug->severity, $bug->severity)?></span></td>
           <td><span class='label-pri <?php echo 'label-pri-' . $bug->pri;?>' title='<?php echo zget($lang->bug->priList, $bug->pri, $bug->pri)?>'><?php echo zget($lang->bug->priList, $bug->pri, $bug->pri)?></span></td>
           <td class='nobr'><?php common::printLink('bug', 'view', "bugID=$bug->id", $bug->title, '', "class='preview'", true, true);?></td>
           <td><span class='status-bug status-<?php echo $bug->status?>'><?php echo $this->processStatus('bug', $bug);?></span></td>
           <td class='bug-pri'><?php echo html::select("pri[$bug->id]", $lang->task->priList, zget($lang->task->priList, $bug->pri ? $bug->pri : 3, 3), "class='form-control chosen'");?></td>
           <td style='overflow:visible'><?php echo html::select("assignedTo[$bug->id]", $users, zget($users, $bug->assignedTo, '', $bug->assignedTo), "class='form-control chosen'");?></td>
           <td><?php echo html::input("estimate[$bug->id]", '', 'size=4 class="form-control"');?></td>
+          <td><?php echo html::input("estStarted[$bug->id]", '0000-00-00', 'size=4 class="form-control form-date"');?></td>
           <?php $deadline = ($bug->deadline > helper::today() and $bug->deadline > $execution->begin) ? $bug->deadline : '0000-00-00';?>
           <td><?php echo html::input("deadline[$bug->id]", $deadline, 'size=4 class="form-control form-date"');?></td>
         </tr>
@@ -71,11 +73,11 @@
     <div class='table-footer'>
       <div class="checkbox-primary check-all"><label><?php echo $lang->selectAll?></label></div>
       <div class="table-actions btn-toolbar show-always">
-        <?php echo html::submitButton('<i class="icon icon-import icon-sm"></i> ' . $lang->import, '', 'btn');?>
+        <?php echo html::submitButton('<i class="icon icon-import icon-sm"></i> ' . $lang->import, '', 'btn btn-primary');?>
       </div>
       <div class='btn-toolbar'>
         <?php if(isonlybody()):?>
-        <?php echo html::commonButton('<i class="icon icon-sm"></i> ' . $lang->goback, 'onclick="goback()"', 'btn');?>
+        <?php echo html::commonButton('<i class="icon icon-sm"></i> ' . $lang->goback, "onclick='goback($executionID)'", 'btn');?>
         <?php else:?>
         <?php echo html::backButton('','','btn');?>
         <?php endif;?>

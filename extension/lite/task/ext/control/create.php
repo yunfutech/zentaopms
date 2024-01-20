@@ -2,7 +2,7 @@
 helper::importControl('task');
 class myTask extends task
 {
-    public function create($executionID = 0, $storyID = 0, $moduleID = 0, $taskID = 0, $todoID = 0, $extra = '')
+    public function create($executionID = 0, $storyID = 0, $moduleID = 0, $taskID = 0, $todoID = 0, $extra = '', $bugID = 0)
     {
         $executions = $this->execution->getPairs();
         if(empty($executions))
@@ -11,7 +11,8 @@ class myTask extends task
             die(js::locate(helper::createLink('execution', 'create')));
         }
 
-        $regionList = $this->loadModel('kanban')->getRegionPairs($executionID, 0, 'execution');
+        $executionID = $this->execution->saveState($executionID, $executions);
+        $regionList  = $this->loadModel('kanban')->getRegionPairs($executionID, 0, 'execution');
 
         /* Filter Kanban without Lane. */
         $lanes = $this->kanban->getLaneGroupByRegion(array_keys($regionList), 'task');
@@ -20,21 +21,21 @@ class myTask extends task
             if(!isset($lanes[$key])) unset($regionList[$key]);
         }
 
+        $laneList = array();
+        $regionID = key($lanes);
+        if($regionID) $laneList = $this->kanban->getLanePairsByRegion($regionID, 'task');
+
         $this->view->regionList = $regionList;
-        $this->view->laneList   = array();
+        $this->view->laneList   = $laneList;
         $this->view->extra      = $extra;
         $extra = str_replace(array(',', ' '), array('&', ''), $extra);
         parse_str($extra, $output);
-        $lanes = array();
 
         if(isset($output['laneID']))
         {
             $regionID = $this->dao->select("*")->from(TABLE_KANBANLANE)->where('id')->eq($output['laneID'])->fetch('region');
-            $lanes    = $this->kanban->getLanePairsByRegion($regionID, 'task');
             $this->view->regionID = $regionID;
         }
-
-        $this->view->lanes = $lanes;
 
         if(isset($_POST['region']))
         {
@@ -50,6 +51,6 @@ class myTask extends task
 
             $extra = "laneID=$laneID,columnID=$columnID";
         }
-        return parent::create($executionID, $storyID, $moduleID, $taskID, $todoID, $extra);
+        return parent::create($executionID, $storyID, $moduleID, $taskID, $todoID, $extra, $bugID);
     }
 }

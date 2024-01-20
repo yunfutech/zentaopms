@@ -2,7 +2,7 @@
 /**
  * The control file of program module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     program
  * @version     $Id
@@ -10,6 +10,14 @@
  */
 class program extends control
 {
+    /**
+     * Construct
+     *
+     * @param  string $moduleName
+     * @param  string $methodName
+     * @access public
+     * @return void
+     */
     public function __construct($moduleName = '', $methodName = '')
     {
         parent::__construct($moduleName, $methodName);
@@ -21,17 +29,21 @@ class program extends control
     /**
      * Program list.
      *
-     * @param  varchar $status
-     * @param  varchar $orderBy
+     * @param  string  $status
+     * @param  string  $orderBy
      * @access public
      * @return void
      */
-    public function browse($status = 'all', $orderBy = 'order_asc')
+    public function browse($status = 'unclosed', $orderBy = 'order_asc', $recTotal = 0, $recPerPage = 10, $pageID = 1, $param = 0)
     {
         if(common::hasPriv('program', 'create')) $this->lang->pageActions = html::a($this->createLink('program', 'create'), "<i class='icon icon-plus'></i> " . $this->lang->program->create, '', "class='btn btn-primary create-program-btn'");
 
         $this->session->set('programList', $this->app->getURI(true), 'program');
         $this->session->set('projectList', $this->app->getURI(true), 'program');
+        $this->session->set('createProjectLocate', $this->app->getURI(true), 'program');
+
+        $this->app->loadClass('pager', $static = true);
+        $pager = new pager($recTotal, $recPerPage, $pageID);
 
         $programType = $this->cookie->programType ? $this->cookie->programType : 'bylist';
 
@@ -41,16 +53,43 @@ class program extends control
         }
         else
         {
-            $programs = $this->program->getList($status, $orderBy, null, true);
+            if(strtolower($status) == 'bysearch')
+            {
+                $queryID  = (int)$param;
+                $programs = $this->program->getListBySearch($orderBy, $queryID);
+            }
+            else
+            {
+                /* Get top programs and projects. */
+                $topObjects = $this->program->getList($status == 'unclosed' ? 'doing,suspended,wait' : $status, $orderBy, $pager, 'top');
+                if(!$topObjects) $topObjects = array(0);
+                $programs   = $this->program->getList($status, $orderBy, NULL, 'child', array_keys($topObjects));
+
+                /* Get summary. */
+                $topCount = $indCount = 0;
+                foreach($programs as $program)
+                {
+                    if($program->type == 'program' and $program->parent == 0) $topCount ++;
+                    if($program->type == 'project' and $program->parent == 0) $indCount ++;
+                }
+                $summary = sprintf($this->lang->program->summary, $topCount, $indCount);
+            }
         }
 
         /* Get PM id list. */
         $accounts = array();
+        $hasProject = false;
         foreach($programs as $program)
         {
             if(!empty($program->PM) and !in_array($program->PM, $accounts)) $accounts[] = $program->PM;
+            if($hasProject === false and $program->type != 'program') $hasProject = true;
         }
         $PMList = $this->loadModel('user')->getListByAccounts($accounts, 'account');
+
+        /* Build the search form. */
+        $actionURL = $this->createLink('program', 'browse', "status=bySearch&orderBy={$orderBy}&recTotal={$recTotal}&recPerPage={$recPerPage}&pageID={$pageID}&param=myQueryID");
+        $this->config->program->search['actionURL'] = $actionURL;
+        $this->loadModel('search')->setSearchParams($this->config->program->search);
 
         $this->view->title      = $this->lang->program->browse;
         $this->view->position[] = $this->lang->program->browse;
@@ -58,12 +97,16 @@ class program extends control
         $this->view->programs     = $programs;
         $this->view->status       = $status;
         $this->view->orderBy      = $orderBy;
+        $this->view->summary      = isset($summary) ? $summary : '';
+        $this->view->pager        = $pager;
         $this->view->users        = $this->user->getPairs('noletter');
         $this->view->userIdPairs  = $this->user->getPairs('noletter|showid');
-        $this->view->usersAvatar  = $this->user->getAvatarPairs();
+        $this->view->usersAvatar  = $this->user->getAvatarPairs('');
         $this->view->programType  = $programType;
         $this->view->PMList       = $PMList;
         $this->view->progressList = $this->program->getProgressList();
+        $this->view->hasProject   = $hasProject;
+        $this->view->param        = $param;
 
         $this->display();
     }
@@ -99,7 +142,7 @@ class program extends control
      * @access public
      * @return void
      */
-    public function product($programID = 0, $browseType = 'noclosed', $orderBy = 'order_desc', $recTotal = 0, $recPerPage = 15, $pageID = 1)
+    public function product($programID = 0, $browseType = 'noclosed', $orderBy = 'order_asc', $recTotal = 0, $recPerPage = 15, $pageID = 1)
     {
         $programPairs = $this->program->getPairs();
 
@@ -129,14 +172,17 @@ class program extends control
             $this->view->program = $program;
         }
 
-        $this->view->title       = $this->lang->program->product;
-        $this->view->position[]  = $this->lang->program->product;
-        $this->view->programID   = $programID;
-        $this->view->browseType  = $browseType;
-        $this->view->orderBy     = $orderBy;
-        $this->view->pager       = $pager;
-        $this->view->users       = $this->loadModel('user')->getPairs('noletter');
-        $this->view->products    = $this->loadModel('product')->getStats($orderBy, $pager, $browseType, '', 'story', $programID);
+        $this->view->title         = $this->lang->program->product;
+        $this->view->position[]    = $this->lang->program->product;
+        $this->view->programID     = $programID;
+        $this->view->browseType    = $browseType;
+        $this->view->orderBy       = $orderBy;
+        $this->view->pager         = $pager;
+        $this->view->users         = $this->loadModel('user')->getPairs('noletter');
+        $this->view->products      = $this->loadModel('product')->getStats($orderBy, $pager, $browseType, '', 'story', $programID);
+        $this->view->userIdPairs   = $this->user->getPairs('noletter|showid');
+        $this->view->usersAvatar   = $this->user->getAvatarPairs('');
+        $this->view->showBatchEdit = $this->cookie->showProductBatchEdit;
 
         $this->display();
     }
@@ -159,7 +205,8 @@ class program extends control
             if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
             $this->loadModel('action')->create('program', $programID, 'opened');
-            return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'id' => $programID, 'locate' => inlink('browse')));
+            $locateLink = $this->session->programList ? $this->session->programList : $this->createLink('program', 'browse');
+            return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'id' => $programID, 'locate' => $locateLink));
         }
 
         $extra = str_replace(array(',', ' '), array('&', ''), $extra);
@@ -200,7 +247,7 @@ class program extends control
                 $this->action->logHistory($actionID, $changes);
             }
 
-            return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => inLink('browse')));
+            return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => $this->session->programList ? $this->session->programList : inLink('browse')));
         }
 
         $program       = $this->program->getByID($programID);
@@ -220,7 +267,7 @@ class program extends control
         $this->view->program         = $program;
         $this->view->parents         = $parents;
         $this->view->programList     = $this->program->getList();
-        $this->view->budgetUnitList  = $this->program->getBudgetUnitList();
+        $this->view->budgetUnitList  = $this->loadModel('project')->getBudgetUnitList();
         $this->view->parentProgram   = $parentProgram;
         $this->view->availableBudget = $this->program->getBudgetLeft($parentProgram) + (float)$program->budget;
 
@@ -245,7 +292,7 @@ class program extends control
             $hasUnfinished = $this->program->hasUnfinished($program);
             if($hasUnfinished) return print(js::error($this->lang->program->closeErrorMessage));
 
-            $changes = $this->project->close($programID);
+            $changes = $this->project->close($programID, 'program');
             if(dao::isError()) return print(js::error(dao::getError()));
 
             if($this->post->comment != '' or !empty($changes))
@@ -316,7 +363,7 @@ class program extends control
 
         if(!empty($_POST))
         {
-            $changes = $this->project->activate($programID);
+            $changes = $this->project->activate($programID, 'program');
             if(dao::isError()) return print(js::error(dao::getError()));
 
             if($this->post->comment != '' or !empty($changes))
@@ -354,7 +401,7 @@ class program extends control
 
         if(!empty($_POST))
         {
-            $changes = $this->project->suspend($programID);
+            $changes = $this->project->suspend($programID, 'program');
             if(dao::isError()) return print(js::error(dao::getError()));
 
             if($this->post->comment != '' or !empty($changes))
@@ -396,7 +443,7 @@ class program extends control
         if($productCount) return print(js::alert($this->lang->program->hasProduct));
 
         $program = $this->dao->select('*')->from(TABLE_PROGRAM)->where('id')->eq($programID)->fetch();
-        if($confirm == 'no') return print(js::confirm($this->lang->program->confirmDelete, $this->createLink('program', 'delete', "programID=$programID&confirm=yes")));
+        if($confirm == 'no') return print(js::confirm(sprintf($this->lang->program->confirmDelete, $program->name), $this->createLink('program', 'delete', "programID=$programID&confirm=yes")));
 
         $this->dao->update(TABLE_PROGRAM)->set('deleted')->eq(1)->where('id')->eq($programID)->exec();
         $this->loadModel('action')->create('program', $programID, 'deleted', '', ACTIONMODEL::CAN_UNDELETED);
@@ -416,7 +463,7 @@ class program extends control
      * @access public
      * @return void
      */
-    public function project($programID = 0, $browseType = 'all', $orderBy = 'order_desc', $recTotal = 0, $recPerPage = 15, $pageID = 1)
+    public function project($programID = 0, $browseType = 'doing', $orderBy = 'order_desc', $recTotal = 0, $recPerPage = 15, $pageID = 1)
     {
         $programID = $this->program->saveState($programID, $this->program->getPairs());
         setCookie("lastProgram", $programID, $this->config->cookieLife, $this->config->webRoot, '', false, true);
@@ -426,6 +473,7 @@ class program extends control
         $uri = $this->app->getURI(true);
         $this->app->session->set('programProject', $uri, 'program');
         $this->app->session->set('projectList', $uri, 'program');
+        $this->app->session->set('createProjectLocate', $uri, 'program');
 
         $this->loadModel('datatable');
 
@@ -438,15 +486,19 @@ class program extends control
         $sortField    = zget($this->config->program->sortFields, $order[0], 'id') . '_' . $order[1];
         $projectStats = $this->program->getProjectStats($programID, $browseType, 0, $sortField, $pager, $programTitle);
 
+        $allProjectsNum = $this->program->getProjectStats($programID, 'all');
+        $this->view->allProjectsNum = $allProjectsNum;
+
         $this->view->title      = $this->lang->program->project;
         $this->view->position[] = $this->lang->program->project;
 
-        $this->view->projectStats = $projectStats;
-        $this->view->pager        = $pager;
-        $this->view->programID    = $programID;
-        $this->view->users        = $this->loadModel('user')->getPairs('noletter|pofirst|nodeleted');
-        $this->view->browseType   = $browseType;
-        $this->view->orderBy      = $orderBy;
+        $this->view->projectStats  = $projectStats;
+        $this->view->pager         = $pager;
+        $this->view->programID     = $programID;
+        $this->view->users         = $this->loadModel('user')->getPairs('noletter|pofirst|nodeleted');
+        $this->view->browseType    = $browseType;
+        $this->view->orderBy       = $orderBy;
+        $this->view->showBatchEdit = $this->cookie->showProjectBatchEdit;
 
         $this->display();
     }
@@ -464,6 +516,7 @@ class program extends control
      */
     public function stakeholder($programID = 0, $orderBy = 't1.id_desc', $recTotal = 0, $recPerPage = 15, $pageID = 1)
     {
+        $this->app->loadLang('stakeholder');
         $this->program->setMenu($programID);
 
         /* Load pager and get tasks. */
@@ -508,7 +561,7 @@ class program extends control
     {
         if($confirm == 'no')
         {
-            return print(js::confirm($this->lang->program->confirmDelete, $this->inlink('unlinkStakeholder', "stakeholderID=$stakeholderID&programID=$programID&confirm=yes")));
+            return print(js::confirm($this->lang->program->confirmUnlink, $this->inlink('unlinkStakeholder', "stakeholderID=$stakeholderID&programID=$programID&confirm=yes")));
         }
         else
         {
@@ -666,20 +719,6 @@ class program extends control
     }
 
     /**
-     * Ajax get budget left.
-     *
-     * @param  int    $programID
-     * @access public
-     * @return void
-     */
-    public function ajaxGetBudgetLeft($programID)
-    {
-        $program    = $this->program->getByID($programID);
-        $budgetLeft = $this->program->getBudgetLeft($program);
-        echo number_format($budgetLeft, 2);
-    }
-
-    /**
      * Update program order.
      *
      * @access public
@@ -726,5 +765,173 @@ class program extends control
         if(!$program) return print(js::error($this->lang->notFound) . js::locate('back'));
 
         echo $this->fetch('program', 'product', "programID=$programID");
+    }
+
+    /**
+     * Ajax set show setting.
+     *
+     * @access public
+     * @return void
+     */
+    public function ajaxSetShowSetting()
+    {
+        $data = fixer::input('post')->get();
+        $this->loadModel('setting')->updateItem("{$this->app->user->account}.program.showAllProjects", $data->showAllProjects);
+    }
+
+    /**
+     * Project View list.
+     * copied from browse()
+     *
+     * @param  string  $status
+     * @param  string  $orderBy
+     * @param  int     $recTotal
+     * @param  int     $recPerPage
+     * @param  int     $pageID
+     * @param  int     $param
+     * @access public
+     * @return void
+     */
+    public function projectView($status = 'unclosed', $orderBy = 'order_asc', $recTotal = 0, $recPerPage = 10, $pageID = 1, $param = 0)
+    {
+        if(common::hasPriv('program', 'create')) $this->lang->pageActions = html::a($this->createLink('program', 'create'), "<i class='icon icon-plus'></i> " . $this->lang->program->create, '', "class='btn btn-primary create-program-btn'");
+
+        $this->session->set('programList', $this->app->getURI(true), 'program');
+        $this->session->set('projectList', $this->app->getURI(true), 'program');
+        $this->session->set('createProjectLocate', $this->app->getURI(true), 'program');
+
+        $this->app->loadClass('pager', true);
+        $pager = new pager($recTotal, $recPerPage, $pageID);
+
+        $programType = $this->cookie->programType ? $this->cookie->programType : 'bylist';
+
+        if($programType === 'bygrid')
+        {
+            $programs = $this->program->getProgramStats($status, 20, $orderBy);
+        }
+        else
+        {
+            if(strtolower($status) == 'bysearch')
+            {
+                $queryID  = (int)$param;
+                $programs = $this->program->getListBySearch($orderBy, $queryID);
+            }
+            else
+            {
+                /* Get top programs and projects. */
+                $topObjects = $this->program->getList($status == 'unclosed' ? 'doing,suspended,wait' : $status, $orderBy, $pager, 'top');
+                if(!$topObjects) $topObjects = array(0);
+                $programs   = $this->program->getList($status == 'closed' ? 'closed' : 'all', $orderBy, NULL, 'child', array_keys($topObjects));
+
+                /* Get summary. */
+                $topCount = $indCount = 0;
+                foreach($programs as $program)
+                {
+                    if($program->type == 'program' and $program->parent == 0) $topCount ++;
+                    if($program->type == 'project' and $program->parent == 0) $indCount ++;
+                }
+                $summary = sprintf($this->lang->program->summary, $topCount, $indCount);
+            }
+        }
+
+        /* Get PM id list. */
+        $accounts = array();
+        $hasProject = false;
+        foreach($programs as $program)
+        {
+            if(!empty($program->PM) and !in_array($program->PM, $accounts)) $accounts[] = $program->PM;
+            if($hasProject === false and $program->type != 'program') $hasProject = true;
+        }
+        $PMList = $this->loadModel('user')->getListByAccounts($accounts, 'account');
+
+        /* Build the search form. */
+        $actionURL = $this->createLink('program', 'browse', "status=bySearch&orderBy={$orderBy}&recTotal={$recTotal}&recPerPage={$recPerPage}&pageID={$pageID}&param=myQueryID");
+        $this->config->program->search['actionURL'] = $actionURL;
+        $this->loadModel('search')->setSearchParams($this->config->program->search);
+
+        $this->view->title      = $this->lang->program->projectView;
+        $this->view->position[] = $this->lang->program->browse;
+
+        $this->view->programs     = $programs;
+        $this->view->status       = $status;
+        $this->view->orderBy      = $orderBy;
+        $this->view->summary      = isset($summary) ? $summary : '';
+        $this->view->pager        = $pager;
+        $this->view->users        = $this->user->getPairs('noletter');
+        $this->view->userIdPairs  = $this->user->getPairs('noletter|showid');
+        $this->view->usersAvatar  = $this->user->getAvatarPairs('');
+        $this->view->programType  = $programType;
+        $this->view->PMList       = $PMList;
+        $this->view->progressList = $this->program->getProgressList();
+        $this->view->hasProject   = $hasProject;
+        $this->view->param        = $param;
+        $this->view->recTotal     = $pager->recTotal;
+
+        $this->render();
+    }
+
+    /**
+     * Product View list.
+     * copied from all() function of product module.
+     *
+     * @param  string  $browseType
+     * @param  string  $orderBy
+     * @param  int     $recTotal
+     * @param  int     $recPerPage
+     * @param  int     $pageID
+     * @param  int     $param
+     * @access public
+     * @return void
+     */
+    public function productView($browseType = 'unclosed', $orderBy = 'program_asc', $param = 0, $recTotal = 0, $recPerPage = 20, $pageID = 1)
+    {
+        /* Load module and set session. */
+        $this->loadModel('product');
+        $this->loadModel('user');
+        $this->session->set('productView', $this->app->getURI(true), 'program');
+
+        $queryID  = ($browseType == 'bySearch') ? (int)$param : 0;
+
+        if($this->app->viewType == 'mhtml')
+        {
+            $productID = $this->product->saveState(0, $this->products);
+            $this->product->setMenu($productID);
+        }
+
+        $this->app->loadClass('pager', true);
+        $pager = new pager($recTotal, $recPerPage, $pageID);
+
+        /* Process product structure. */
+        if($this->config->systemMode == 'light' and $orderBy == 'program_asc') $orderBy = 'order_asc';
+        $productStats     = $this->product->getStats($orderBy, $pager, $browseType, '', 'story', '', $queryID);
+        $productStructure = $this->product->statisticProgram($productStats);
+        $productLines     = $this->dao->select('*')->from(TABLE_MODULE)->where('type')->eq('line')->andWhere('deleted')->eq(0)->orderBy('`order` asc')->fetchAll();
+        $programLines     = array();
+
+        foreach($productLines as $productLine)
+        {
+            if(!isset($programLines[$productLine->root])) $programLines[$productLine->root] = array();
+            $programLines[$productLine->root][$productLine->id] = $productLine->name;
+        }
+
+        $actionURL = $this->createLink('product', 'all', "browseType=bySearch&orderBy=order_asc&queryID=myQueryID");
+        $this->product->buildProductSearchForm($param, $actionURL);
+
+        $this->view->title            = $this->lang->product->common;
+        $this->view->position[]       = $this->lang->product->common;
+        $this->view->recTotal         = $pager->recTotal;
+        $this->view->productStats     = $productStats;
+        $this->view->productStructure = $productStructure;
+        $this->view->productLines     = $productLines;
+        $this->view->programLines     = $programLines;
+        $this->view->users            = $this->user->getPairs('noletter');
+        $this->view->userIdPairs      = $this->user->getPairs('noletter|showid');
+        $this->view->usersAvatar      = $this->user->getAvatarPairs('');
+        $this->view->orderBy          = $orderBy;
+        $this->view->browseType       = $browseType;
+        $this->view->pager            = $pager;
+        $this->view->showBatchEdit    = $this->cookie->showProductBatchEdit;
+
+        $this->render();
     }
 }

@@ -2,8 +2,8 @@
 /**
  * The control file of company module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     company
  * @version     $Id: control.php 5100 2013-07-12 00:25:23Z zhujinyonging@gmail.com $
@@ -73,6 +73,9 @@ class company extends control
         /* Get users. */
         $users = $this->company->getUsers($browseType, $type, $queryID, $deptID, $sort, $pager);
 
+        /* Process the sql, get the conditon partion, save it to session. */
+        $this->loadModel('common')->saveQueryCondition($this->dao->get(), 'user', true);
+
         /* Remove passwd. */
         foreach($users as $user) unset($user->password);
 
@@ -104,8 +107,8 @@ class company extends control
             return print(js::reload('parent.parent'));
         }
 
-        $this->view->title     = $this->lang->company->common . $this->lang->colon . $this->lang->company->create;
-        $this->view->position  = $this->lang->company->create;
+        $this->view->title    = $this->lang->company->common . $this->lang->colon . $this->lang->company->create;
+        $this->view->position = $this->lang->company->create;
 
         $this->display();
     }
@@ -133,9 +136,9 @@ class company extends control
         $this->company->setMenu();
         $title      = $this->lang->company->common . $this->lang->colon . $this->lang->company->edit;
         $position[] = $this->lang->company->edit;
-        $this->view->title     = $title;
-        $this->view->position  = $position;
-        $this->view->company   = $this->company->getById($this->app->company->id);
+        $this->view->title    = $title;
+        $this->view->position = $position;
+        $this->view->company  = $this->company->getById($this->app->company->id);
 
         $this->display();
     }
@@ -188,7 +191,6 @@ class company extends control
         $this->session->set('riskList',        $uri, 'project');
         $this->session->set('opportunityList', $uri, 'project');
         $this->session->set('trainplanList',   $uri, 'project');
-        $this->session->set('executionList',   $uri, 'execution');
         $this->session->set('taskList',        $uri, 'execution');
         $this->session->set('buildList',       $uri, 'execution');
         $this->session->set('bugList',         $uri, 'qa');
@@ -220,7 +222,13 @@ class company extends control
         $this->view->projects = array($this->lang->company->project) + $projects;;
 
         /* Get executions' list.*/
-        $executions = $this->loadModel('execution')->getPairs(0, 'all', 'nocode');
+        $executions    = $this->loadModel('execution')->getPairs(0, 'all', 'nocode|multiple');
+        $executionList = $this->execution->getByIdList(array_keys($executions));
+        foreach($executionList as $id => $execution)
+        {
+            if(isset($projects[$execution->project])) $executions[$execution->id] = $projects[$execution->project] . $executions[$execution->id];
+        }
+
         $executions = array($this->lang->execution->common) + $executions;
         $this->view->executions = $executions;
 
@@ -242,8 +250,8 @@ class company extends control
         /* Get actions. */
         if($browseType != 'bysearch')
         {
-            if(!$productID) $productID = 'all';
-            if(!$projectID) $projectID = 'all';
+            if(!$productID)   $productID   = 'all';
+            if(!$projectID)   $projectID   = 'all';
             if(!$executionID) $executionID = 'all';
             $actions = $this->action->getDynamic($account, $browseType, $orderBy, $pager, $productID, $projectID, $executionID, $date, $direction);
         }
@@ -278,6 +286,7 @@ class company extends control
         $this->loadModel('search')->setSearchParams($this->config->company->dynamic->search);
 
         /* Assign. */
+        $this->view->recTotal     = $recTotal;
         $this->view->browseType   = $browseType;
         $this->view->account      = $account;
         $this->view->accountPairs = $accountPairs;

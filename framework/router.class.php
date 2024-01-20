@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * 此文件包括ZenTaoPHP框架的三个类：router, config, lang。
  * The router, config and lang class file of ZenTaoPHP framework.
@@ -17,7 +17,7 @@
  *
  * @package framework
  */
-include dirname(__FILE__) . '/base/router.class.php';
+include __DIR__ . '/base/router.class.php';
 class router extends baseRouter
 {
     /**
@@ -47,6 +47,15 @@ class router extends baseRouter
     public $isFlow = false;
 
     /**
+     * Fetch的模块名。
+     * The fetched module name.
+     *
+     * @var string
+     * @access public
+     */
+    public $fetchModule;
+
+    /**
      * Get the $moduleRoot var.
      *
      * @param  string $appName
@@ -69,7 +78,7 @@ class router extends baseRouter
     {
         if($this->dbh)
         {
-            $langs = $this->dbh->query('SELECT value FROM' . TABLE_CONFIG . "WHERE `owner`='system' AND `module`='common' AND `section`='global' AND `key`='langs'")->fetch();
+            $langs = $this->dbh->query('SELECT `value` FROM ' . TABLE_CONFIG . " WHERE `owner`='system' AND `module`='common' AND `section`='global' AND `key`='langs'")->fetch();
             $langs = empty($langs) ? array() : json_decode($langs->value, true);
             foreach($langs as $langKey => $langData) $this->config->langs[$langKey] = $langData['name'];
         }
@@ -87,44 +96,81 @@ class router extends baseRouter
      * @access  public
      * @return  bool|object the lang object or false.
      */
-    public function loadLang($moduleName, $appName = '')
+    public function loadLang($moduleName, $appName = ''): bool|object
     {
         global $lang;
         if(!is_object($lang)) $lang = new language();
-
-        $appName = '';
 
         /* Set productCommon and projectCommon for flow. */
         if($moduleName == 'common') $this->setCommonLang();
 
         parent::loadLang($moduleName, $appName);
 
+        /* Replace main nav lang. */
+        if($moduleName == 'common' and $this->dbh and !empty($this->config->db->name))
+        {
+            $customMenus = array();
+            try
+            {
+                $customMenus = $this->dbh->query('SELECT * FROM' . TABLE_LANG . "WHERE `module`='common' AND `section`='mainNav' AND `lang`='{$this->clientLang}' AND `vision`='{$this->config->vision}'")->fetchAll();
+            }
+            catch(PDOException){}
+
+            foreach($customMenus as $menu)
+            {
+                $menuKey = $menu->key;
+                if(isset($lang->mainNav->$menuKey)) $lang->mainNav->$menuKey = zget($lang->navIcons, $menuKey, '') . " {$menu->value}" . substr((string) $lang->mainNav->$menuKey, strpos((string) $lang->mainNav->$menuKey, '|'));
+            }
+        }
+
         /* Merge from the db lang. */
         if($moduleName != 'common' and isset($lang->db->custom[$moduleName]))
         {
             foreach($lang->db->custom[$moduleName] as $section => $fields)
             {
-                if(isset($lang->{$moduleName}->{$section}['']))
+                if(in_array($section, array('featureBar', 'moreSelects')))
                 {
-                    $nullKey   = '';
-                    $nullValue = $lang->{$moduleName}->{$section}[$nullKey];
+                    foreach($fields as $featureBarMethod => $featureBarValues)
+                    {
+                        foreach($featureBarValues as $featureBarKey => $featureBarValue)
+                        {
+                            if(is_array($featureBarValue))
+                            {
+                                foreach($featureBarValue as $key => $value) $lang->{$moduleName}->{$section}[$featureBarMethod][$featureBarKey][$key] = $value;
+                            }
+                            else
+                            {
+                                $lang->{$moduleName}->{$section}[$featureBarMethod][$featureBarKey] = $featureBarValue;
+                            }
+                        }
+                    }
                 }
-                elseif(isset($lang->{$moduleName}->{$section}[0]))
+                else
                 {
-                    $nullKey   = 0;
-                    $nullValue = $lang->{$moduleName}->{$section}[0];
-                }
-                unset($lang->{$moduleName}->{$section});
+                    if(isset($lang->{$moduleName}->{$section}['']))
+                    {
+                        $nullKey   = '';
+                        $nullValue = $lang->{$moduleName}->{$section}[$nullKey];
+                    }
+                    elseif(isset($lang->{$moduleName}->{$section}[0]))
+                    {
+                        $nullKey   = 0;
+                        $nullValue = $lang->{$moduleName}->{$section}[0];
+                    }
+                    unset($lang->{$moduleName}->{$section});
 
-                if(isset($nullKey))$lang->{$moduleName}->{$section}[$nullKey] = $nullValue;
-                foreach($fields as $key => $value)
-                {
-                    if(!isset($lang->{$moduleName})) $lang->{$moduleName} = new stdclass();
-                    if(!isset($lang->{$moduleName}->{$section})) $lang->{$moduleName}->{$section} = array();
-                    $lang->{$moduleName}->{$section}[$key] = $value;
+                    if(isset($nullKey))$lang->{$moduleName}->{$section}[$nullKey] = $nullValue;
+                    foreach($fields as $key => $value)
+                    {
+                        if($section == 'priList' and $key > 0 and trim((string) $value) === '') continue; // Fix bug #23538.
+
+                        if(!isset($lang->{$moduleName})) $lang->{$moduleName} = new stdclass();
+                        if(!isset($lang->{$moduleName}->{$section})) $lang->{$moduleName}->{$section} = array();
+                        $lang->{$moduleName}->{$section}[$key] = $value;
+                    }
+                    unset($nullKey);
+                    unset($nullValue);
                 }
-                unset($nullKey);
-                unset($nullValue);
             }
         }
 
@@ -160,7 +206,7 @@ class router extends baseRouter
 
             try
             {
-                $commonSettings = $this->dbh->query('SELECT section, `key`, value FROM' . TABLE_CONFIG . "WHERE `owner`='system' AND (`module`='custom' or `module`='common') and `key` in ('sprintConcept', 'hourPoint', 'URSR', 'mode', 'URAndSR', 'scoreStatus')")->fetchAll();
+                $commonSettings = $this->dbh->query('SELECT `section`, `key`, `value` FROM' . TABLE_CONFIG . "WHERE `owner`='system' AND (`module`='custom' or `module`='common') and `key` in ('sprintConcept', 'hourPoint', 'URSR', 'mode', 'URAndSR', 'scoreStatus', 'disabledFeatures', 'closedFeatures')")->fetchAll();
             }
             catch (PDOException $exception)
             {
@@ -170,26 +216,31 @@ class router extends baseRouter
 
         $hourKey = $planKey = $URSR = $URAndSR = 0;
 
-        $mode       = 'new';
-        $score      = '0';
-        $projectKey = ITERATION_KEY;
+        $mode             = 'ALM';
+        $score            = '0';
+        $projectKey       = ITERATION_KEY;
+        $disabledFeatures = '';
+        $closedFeatures   = '';
 
         foreach($commonSettings as $setting)
         {
-            if($setting->key == 'sprintConcept') $projectKey = $setting->value;
-            if($setting->key == 'hourPoint')     $hourKey    = $setting->value;
-            if($setting->key == 'URSR')          $URSR       = $setting->value;
-            if($setting->key == 'URAndSR')       $URAndSR    = $setting->value;
-            if($setting->key == 'mode' and $setting->section == 'global') $mode = $setting->value;
-            if($setting->key == 'scoreStatus' and $setting->section == 'global') $score = $setting->value;
+            if($setting->key == 'sprintConcept')                                 $projectKey       = $setting->value;
+            if($setting->key == 'hourPoint')                                     $hourKey          = $setting->value;
+            if($setting->key == 'URSR')                                          $URSR             = $setting->value;
+            if($setting->key == 'URAndSR')                                       $URAndSR          = $setting->value;
+            if($setting->key == 'mode' and $setting->section == 'global')        $mode             = $setting->value;
+            if($setting->key == 'scoreStatus' and $setting->section == 'global') $score            = $setting->value;
+            if($setting->key == 'disabledFeatures')                              $disabledFeatures = $setting->value;
+            if($setting->key == 'closedFeatures')                                $closedFeatures   = $setting->value;
         }
 
         /* Lite Version is compatible with classic modes */
-        if($config->vision == 'lite') $mode = 'new';
+        if($config->vision == 'lite') $mode = 'ALM';
 
         /* Record system mode. */
         $config->systemMode = $mode;
-        if($config->systemMode == 'classic') $this->config->executionCommonList = $this->config->projectCommonList;
+
+        $config->disabledFeatures = $disabledFeatures . ',' . $closedFeatures;
 
         /* Record system score.*/
         $config->systemScore = $score;
@@ -204,22 +255,28 @@ class router extends baseRouter
         /* Set productCommon, projectCommon and hourCommon. Default english lang. */
         $lang->productCommon   = $this->config->productCommonList[$this->clientLang][PRODUCT_KEY];
         $lang->projectCommon   = $this->config->projectCommonList[$this->clientLang][PROJECT_KEY];
-        $lang->iterationCommon = isset($this->config->executionCommonList[$this->clientLang][(int)$iterationKey]) ? $this->config->executionCommonList[$this->clientLang][(int)$iterationKey] : $this->config->executionCommonList['en'][(int)$iterationKey];
-        $lang->executionCommon = isset($this->config->executionCommonList[$this->clientLang][(int)$projectKey]) ? $this->config->executionCommonList[$this->clientLang][(int)$projectKey] : $this->config->executionCommonList['en'][(int)$projectKey];
-        $lang->hourCommon      = isset($this->config->hourPointCommonList[$this->clientLang][(int)$hourKey]) ? $this->config->hourPointCommonList[$this->clientLang][(int)$hourKey] : $this->config->hourPointCommonList['en'][(int)$hourKey];
+        $lang->iterationCommon = $this->config->executionCommonList[$this->clientLang][(int)$iterationKey] ?? $this->config->executionCommonList['en'][(int)$iterationKey];
+        $lang->executionCommon = $this->config->executionCommonList[$this->clientLang][(int)$projectKey] ?? $this->config->executionCommonList['en'][(int)$projectKey];
+        $lang->hourCommon      = $this->config->hourPointCommonList[$this->clientLang][(int)$hourKey] ?? $this->config->hourPointCommonList['en'][(int)$hourKey];
 
         /* User preference init. */
         $config->URSR          = $URSR;
-        $config->URAndSR       = $URAndSR;
+        $config->URAndSR       = ($URAndSR and !str_contains(",{$config->disabledFeatures},", ',productUR,'));
         $config->programLink   = 'program-browse';
         $config->productLink   = 'product-all';
         $config->projectLink   = 'project-browse';
         $config->executionLink = 'execution-task';
 
         /* Get user preference. */
-        $account     = isset($this->session->user->account) ? $this->session->user->account : '';
+        $account     = $this->session->user->account ?? '';
         $userSetting = array();
-        if($this->dbh and !empty($this->config->db->name)) $userSetting = $this->dbh->query('SELECT `key`, value FROM' . TABLE_CONFIG . "WHERE `owner`='{$account}' AND `module`='common' and `key` in ('programLink', 'productLink', 'projectLink', 'executionLink', 'URSR')")->fetchAll();
+        if($this->dbh and !empty($this->config->db->name) and $account)
+        {
+            $sql         = new sql();
+            $account     = $sql->quote($account);
+            $userSetting = $this->dbh->query('SELECT `key`, `value` FROM ' . TABLE_CONFIG . " WHERE `owner`= $account AND `module`='common' and `key` in ('programLink', 'productLink', 'projectLink', 'executionLink', 'URSR')")->fetchAll();
+        }
+
         foreach($userSetting as $setting)
         {
              if($setting->key == 'URSR')          $config->URSR          = $setting->value;
@@ -233,35 +290,42 @@ class router extends baseRouter
         $lang->SRCommon = '';
         if($this->dbh and !empty($this->config->db->name))
         {
-            $productProject = $this->dbh->query('SELECT value FROM' . TABLE_CONFIG . "WHERE `owner`='system' AND `module`='custom' AND `key`='productProject'")->fetch();
-            if($productProject)
+            $productProject = $this->dbh->query('SELECT `value` FROM ' . TABLE_CONFIG . "WHERE `owner`='system' AND `module`='custom' AND `key`='productProject'")->fetch();
+            if(is_string($productProject))
             {
-                $productProject = $productProject->value;
                 list($productCommon, $projectCommon) = explode('_', $productProject);
                 $lang->productCommon = isset($this->config->productCommonList[$this->clientLang][(int)$productCommon]) ? $this->config->productCommonList[$this->clientLang][(int)$productCommon] : $this->config->productCommonList['en'][0];
-                $lang->projectCommon = isset($this->config->projectCommonList[$this->clientLang][(int)$projectCommon]) ? $this->config->projectCommonList[$this->clientLang][(int)$projectCommon] : $this->config->projectCommonList['en'][0];
             }
             if(!defined('IN_UPGRADE'))
             {
                 /* Get story concept in project and product. */
                 $clientLang = $this->clientLang == 'zh-tw' ? 'zh-cn' : $this->clientLang;
-                $URSRList   = $this->dbh->query('SELECT `key`, `value` FROM' . TABLE_LANG . "WHERE module = 'custom' and section = 'URSRList' and `lang` = \"{$clientLang}\"")->fetchAll();
-                if(empty($URSRList)) $URSRList = $this->dbh->query('SELECT `key`, `value` FROM' . TABLE_LANG . "WHERE module = 'custom' and section = 'URSRList' and `key` = \"{$config->URSR}\"")->fetchAll();
+                $URSRList   = $this->dbh->query('SELECT `key`, `value` FROM' . TABLE_LANG . "WHERE `module` = 'custom' and `section` = 'URSRList' and `lang` = '{$clientLang}'")->fetchAll();
+                if(empty($URSRList)) $URSRList = $this->dbh->query('SELECT `key`, `value` FROM' . TABLE_LANG . "WHERE module = 'custom' and `section` = 'URSRList' and `key` = '{$config->URSR}'")->fetchAll();
 
                 /* Get UR pairs and SR pairs. */
                 $URPairs  = array();
                 $SRPairs  = array();
                 foreach($URSRList as $id => $value)
                 {
-                    $URSR = json_decode($value->value);
+                    $URSR = json_decode((string) $value->value);
                     $URPairs[$value->key] = $URSR->URName;
                     $SRPairs[$value->key] = $URSR->SRName;
                 }
 
                 /* Set default story concept and init UR and SR concept. */
-                $lang->URCommon = isset($URPairs[$config->URSR]) ? $URPairs[$config->URSR] : reset($URPairs);
-                $lang->SRCommon = isset($SRPairs[$config->URSR]) ? $SRPairs[$config->URSR] : reset($SRPairs);
+                $lang->URCommon = $URPairs[$config->URSR] ?? reset($URPairs);
+                $lang->SRCommon = $SRPairs[$config->URSR] ?? reset($SRPairs);
             }
+
+            /* Replace common lang. */
+            $customMenus = array();
+            try
+            {
+                $customMenus = $this->dbh->query('SELECT * FROM' . TABLE_LANG . "WHERE `module`='common' AND `lang`='{$this->clientLang}' AND `section`='' AND `vision`='{$config->vision}'")->fetchAll();
+            }
+            catch(PDOException){}
+            foreach($customMenus as $menu) if(isset($lang->{$menu->key})) $lang->{$menu->key} = $menu->value;
         }
     }
 
@@ -277,6 +341,7 @@ class router extends baseRouter
      */
     public function saveError($level, $message, $file, $line)
     {
+        $fatalLevel = array();
         $fatalLevel[E_ERROR]      = E_ERROR;
         $fatalLevel[E_PARSE]      = E_PARSE;
         $fatalLevel[E_CORE_ERROR] = E_CORE_ERROR;
@@ -293,16 +358,13 @@ class router extends baseRouter
      *
      * @param   string $moduleName     module name
      * @param   string $appName        app name
-     * @param   bool   $exitIfNone     exit or not
      * @access  public
-     * @return  object|bool the config object or false.
+     * @return  void
      */
     public function loadModuleConfig($moduleName, $appName = '')
     {
+        $extConfigPath = array();
         global $config;
-
-        $appName = '';
-
         if($config and (!isset($config->$moduleName) or !is_object($config->$moduleName))) $config->$moduleName = new stdclass();
 
         /* 初始化数组。Init the variables. */
@@ -321,6 +383,7 @@ class router extends baseRouter
             if(!empty($extConfigPath['common'])) $commonExtConfigFiles = helper::ls($extConfigPath['common'], '.php');
             if(!empty($extConfigPath['xuan']))   $commonExtConfigFiles = array_merge($commonExtConfigFiles, helper::ls($extConfigPath['xuan'], '.php'));
             if(!empty($extConfigPath['vision'])) $commonExtConfigFiles = array_merge($commonExtConfigFiles, helper::ls($extConfigPath['vision'], '.php'));
+            if(!empty($extConfigPath['saas']))   $commonExtConfigFiles = array_merge($commonExtConfigFiles, helper::ls($extConfigPath['saas'], '.php'));
             if(!empty($extConfigPath['custom'])) $commonExtConfigFiles = array_merge($commonExtConfigFiles, helper::ls($extConfigPath['custom'], '.php'));
         }
         if($config->framework->extensionLevel == 2 and !empty($extConfigPath['site'])) $siteExtConfigFiles = helper::ls($extConfigPath['site'], '.php');
@@ -498,6 +561,8 @@ class router extends baseRouter
      */
     public function setFlowURI($moduleName, $methodName)
     {
+        $query = null;
+        $path = null;
         $this->rawURI = $this->URI;
 
         $this->setModuleName($moduleName);
@@ -506,62 +571,53 @@ class router extends baseRouter
         if($this->config->requestType != 'GET')
         {
             /* e.g. $this->URI = /$module-close-1.html. */
-            $params = explode($this->config->requestFix, $this->URI); // $params = array($module, 'close', 1);
+            $params = explode($this->config->requestFix, (string) $this->URI);       // $params = array($module, 'close', 1);
 
             /* Remove module and method. */
-            $params = array_slice($params, 2); // $params = array(1);
+            $params = array_slice($params, 2);                              // $params = array(1);
 
-            /* Prepend other params. */
-            if($methodName == 'operate')      array_unshift($params, $this->rawMethod); // $params = array('close', 1);
-            if($methodName == 'batchOperate') array_unshift($params, $this->rawMethod); // $params = array('close', 1);
-            if($methodName == 'browse')
+            if($moduleName == 'flow' and $methodName == 'browse')
             {
-                if(!(isset($params[0]) and $params[0] == 'bysearch')) array_unshift($params, 'browse');
+                $mode = 'browse';
+                if(count($params) > 0 and !is_numeric($params[0])) $mode = array_shift($params);
+                array_unshift($params, $mode);
             }
 
-            array_unshift($params, $this->rawModule);                                   // $params = array($module, 'close', 1);
-            array_unshift($params, $methodName);                                        // $params = array('operate', $module, 'close', 1);
-            array_unshift($params, $moduleName);                                        // $params = array('flow', 'operate', $module, 'close', 1);
+            array_unshift($params, $methodName);                            // $params = array('operate', 1);
+            array_unshift($params, $moduleName);                            // $params = array('flow', 'operate', 1);
 
-            $this->URI = implode($this->config->requestFix, $params);                   // $this->URI = flow-operate-$module-close-1.html;
+            $this->URI = implode($this->config->requestFix, $params);       // $this->URI = flow-operate-1.html;
         }
         else
         {
             /* Extract $path and $query from $params. */
-            /* e.g. $tshi->URI = /index.php?m=$module&f=browse&mode=search&label=1. */
-            $params = parse_url($this->URI);    // $params = array('path' => '/index.php', 'query' => m=$module&f=browse&mode=search&label=1;
-            extract($params);                   // $path = '/index.php'; $query = 'm=$module&f=browse&mode=search&label=1';
-            parse_str($query, $params);         // $params = array('m' => $module, 'f' => 'browse', 'mode' = 'search', 'label' => 1);
-
-            $params = array_reverse($params);           // $params = array('label' => 1, 'mode' => 'search');
-            if($methodName == 'operate')      $params['action'] = $params[$this->config->methodVar];
-            if($methodName == 'batchOperate') $params['action'] = $params[$this->config->methodVar];
+            /* e.g. $tshi->URI = /index.php?m=$module&f=close&id=1. */
+            $params = parse_url((string) $this->URI);                        // $params = array('path' => '/index.php', 'query' => m=$module&f=close&id=1;
+            extract($params);                                       // $path = '/index.php'; $query = 'm=$module&f=close&id=1';
+            parse_str((string) $query, $params);                             // $params = array('m' => $module, 'f' => 'close', 'id' => 1);
 
             /* Remove module and method. */
-            unset($params[$this->config->moduleVar]);   // $params = array('f' => 'browse', 'mode' => 'search', 'label' => 1);
-            unset($params[$this->config->methodVar]);   // $params = array('mode' => 'search', 'label' => 1);
+            unset($params[$this->config->moduleVar]);               // $params = array('f' => 'close', 'id' => 1);
+            unset($params[$this->config->methodVar]);               // $params = array('id' => 1);
 
-            /* Prepend other params. */
-            if($methodName == 'browse')
+            $params = array_reverse($params);                       // $params = array('id' => 1);
+
+            if($moduleName == 'flow' and $methodName == 'browse')
             {
-                if(!(isset($params['mode']) and $params['mode'] == 'bysearch')) $params['mode'] = 'browse';
+                $mode = zget($params, 'mode', 'browse');
+                if(is_numeric($mode)) $mode = 'browse';
+                $params['mode'] = $mode;
+
+                $get = array_reverse($_GET);
+                $get['mode'] = $mode;
+                $_GET = array_reverse($get);
             }
+            $params[$this->config->methodVar] = $methodName;        // $param = array('id' => 1, 'f' => 'operate');
+            $params[$this->config->moduleVar] = $moduleName;        // $param = array('id' => 1, 'f' => 'operate', 'm' => 'flow');
 
-            $params['module']                 = $this->rawModule;   // $param = array('label' => 1, 'mode' => 'search', 'module' => $module);
-            $params[$this->config->methodVar] = $methodName;        // $param = array('label' => 1, 'mode' => 'search', 'module' => $module, 'f' => 'browse');
-            $params[$this->config->moduleVar] = $moduleName;        // $param = array('label' => 1, 'mode' => 'search', 'module' => $module, 'f' => 'browse', 'm' => 'flow');
+            $params = array_reverse($params);                       // $params = array('m' => 'flow', 'f' => 'operate', 'id' => 1);
 
-            $params = array_reverse($params);   // $params = array('m' => 'flow', 'f' => 'browse', 'module' => $module, 'mode' => 'search', 'label' => 1);
-
-            /* Reset $_GET for setParamsByGET. */
-            $get = $params;
-            foreach($_GET as $key => $value)
-            {
-                if(!isset($get[$key])) $get[$key] = $value;
-            }
-            $_GET = $get;
-
-            $this->URI = $path . '?' . http_build_query($params);   // $this->URI = '/index.php?m=flow&f=browse&module=$module&mode=search&label=1';
+            $this->URI = $path . '?' . http_build_query($params);   // $this->URI = '/index.php?m=flow&f=operate&id=1';
         }
     }
 
@@ -603,13 +659,15 @@ class router extends baseRouter
      */
     public function getURI($full = false)
     {
-        $URI = !empty($this->rawURI) ? $this->rawURI : $this->URI;
+        $URI      = !empty($this->rawURI) ? $this->rawURI : $this->URI;
+        $tidParam = ($this->config->requestType == 'PATH_INFO' and helper::isWithTID()) ? "?tid={$_GET['tid']}" : '';
+
         if($full and $this->config->requestType == 'PATH_INFO')
         {
-            if($URI) return $this->config->webRoot . $URI . '.' . $this->viewType;
-            return $this->config->webRoot;
+            if($URI) return $this->config->webRoot . $URI . '.' . $this->viewType . $tidParam;
+            return $this->config->webRoot . $tidParam;
         }
-        return $URI;
+        return $URI . $tidParam;
     }
 
     /**
@@ -626,20 +684,6 @@ class router extends baseRouter
     {
         if(isset($_GET['project'])) $this->session->set('project', $_GET['project']);
         /* If the isFlow is true, reset the passed params. */
-        if($this->isFlow)
-        {
-            $passedParams = array_reverse($passedParams);
-
-            /* 如果请求的方法名不是browse、create、edit、view、delete、export中的任何一个，则需要添加action参数来传递请求的方法名。 */
-            /* If the requested method name is not any of browse, create, edit, view, delete, or export, you need to add an action parameter to pass the requested method name. */
-            if(isset($this->config->workflowaction->default->actions) and !in_array($this->rawMethod, $this->config->workflowaction->default->actions)) $passedParams['action'] = $this->rawMethod;
-
-            /* 添加module参数来传递请求的模块名。 */
-            /* Add the module parameter to pass the requested module name. */
-            $passedParams['module'] = $this->rawModule;
-
-            $passedParams = array_reverse($passedParams);
-        }
 
         /* display参数用来标记请求是否来自禅道客户端的卡片展示页面，此处应该删掉以避免对方法调用产生影响。 */
         /* The display parameter is used to mark whether the request comes from the card display page of the ZenTao client. It should be deleted here to avoid affecting the method call. */

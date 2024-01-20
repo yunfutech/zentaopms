@@ -2,14 +2,13 @@
 /**
  * The release module English file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     release
  * @version     $Id: en.php 4129 2013-01-18 01:58:14Z wwccss $
  * @link        http://www.zentao.net
  */
-$lang->release->common           = 'Product Release';
 $lang->release->create           = "Create Release";
 $lang->release->edit             = "Edit Release";
 $lang->release->linkStory        = "Link Story";
@@ -24,7 +23,7 @@ $lang->release->batchUnlinkStory = "Batch Unlink Stories";
 $lang->release->batchUnlinkBug   = "Batch Unlink Bugs";
 
 $lang->release->confirmDelete      = "Do you want to delete this release?";
-$lang->release->confirmLink        = "Whether to link the stories completed in the version and the bugs solved to the release?";
+$lang->release->syncFromBuilds     = "Link the stories completed in the version and the bugs solved to the release";
 $lang->release->confirmUnlinkStory = "Do you want to remove this story?";
 $lang->release->confirmUnlinkBug   = "Do you want to remove this bug?";
 $lang->release->existBuild         = '『Build』『%s』existed. You could change『name』or choose a『build』.';
@@ -33,36 +32,44 @@ $lang->release->errorDate          = 'The release date should not be greater tha
 
 $lang->release->basicInfo = 'Basic Info';
 
-$lang->release->id            = 'ID';
-$lang->release->product       = $lang->productCommon;
-$lang->release->branch        = 'Platform/Branch';
-$lang->release->project       = 'Project';
-$lang->release->build         = 'Build';
-$lang->release->name          = 'Name';
-$lang->release->marker        = 'Milestone';
-$lang->release->date          = 'Release Date';
-$lang->release->desc          = 'Description';
-$lang->release->status        = 'Status';
-$lang->release->subStatus     = 'Sub Status';
-$lang->release->last          = 'Last Release';
-$lang->release->unlinkStory   = 'Unlink Story';
-$lang->release->unlinkBug     = 'Unlink Bug';
-$lang->release->stories       = 'Finished Story';
-$lang->release->bugs          = 'Resolved Bug';
-$lang->release->leftBugs      = 'Active Bug';
-$lang->release->generatedBugs = 'Active Bug';
-$lang->release->finishStories = 'Finished %s Stories';
-$lang->release->resolvedBugs  = 'Resolved %s Bugs';
-$lang->release->createdBugs   = 'Unresolved %s Bug';
-$lang->release->export        = 'Export as HTML';
-$lang->release->yesterday     = 'Released Yesterday';
-$lang->release->all           = 'All';
-$lang->release->notify        = 'Notify';
-$lang->release->notifyUsers   = 'Notify Users';
-$lang->release->mailto        = 'Mailto';
-$lang->release->mailContent   = '<p>Dear users,</p><p style="margin-left: 30px;">The following requirements and bugs you feedback have been released in the %s. Please contact your account manager to check the latest version.</p>';
-$lang->release->storyList     = '<p style="margin-left: 30px;">Story List：%s。</p>';
-$lang->release->bugList       = '<p style="margin-left: 30px;">Bug List：%s。</p>';
+$lang->release->id             = 'ID';
+$lang->release->product        = $lang->productCommon;
+$lang->release->branch         = 'Platform/Branch';
+$lang->release->project        = $lang->projectCommon;
+$lang->release->build          = 'Build';
+$lang->release->includedBuild  = 'Included Builds';
+$lang->release->relatedProject = 'Related ' . $lang->projectCommon;
+$lang->release->name           = 'Name';
+$lang->release->marker         = 'Milestone';
+$lang->release->date           = 'Release Date';
+$lang->release->desc           = 'Description';
+$lang->release->files          = 'Files';
+$lang->release->status         = 'Status';
+$lang->release->subStatus      = 'Sub Status';
+$lang->release->last           = 'Last Release';
+$lang->release->unlinkStory    = 'Unlink Story';
+$lang->release->unlinkBug      = 'Unlink Bug';
+$lang->release->stories        = 'Finished Story';
+$lang->release->bugs           = 'Resolved Bug';
+$lang->release->leftBugs       = 'Active Bug';
+$lang->release->generatedBugs  = 'Active Bug';
+$lang->release->finishStories  = 'Finished %s Stories';
+$lang->release->resolvedBugs   = 'Resolved %s Bugs';
+$lang->release->createdBugs    = 'Unresolved %s Bug';
+$lang->release->export         = 'Export as HTML';
+$lang->release->yesterday      = 'Released Yesterday';
+$lang->release->all            = 'All';
+$lang->release->notify         = 'Notify';
+$lang->release->notifyUsers    = 'Notify Users';
+$lang->release->mailto         = 'Mailto';
+$lang->release->mailContent    = '<p>Dear users,</p><p style="margin-left:30px;">The following requirements and bugs you feedback have been released in the %s. Please contact your account manager to check the latest version.</p>';
+$lang->release->storyList      = '<p style="margin-left:30px;">Story List：%s。</p>';
+$lang->release->bugList        = '<p style="margin-left:30px;">Bug List：%s。</p>';
+$lang->release->pageAllSummary = 'Total releases: <strong>%total%</strong>, Normal: <strong>%normal%</strong>, Terminate: <strong>%terminate%</strong>.';
+$lang->release->pageSummary    = "Total releases: <strong>%s</strong>.";
+
+$lang->release->storyTitle = 'Story Name';
+$lang->release->bugTitle   = 'Bug Name';
 
 $lang->release->filePath = 'Download : ';
 $lang->release->scmPath  = 'SCM Path : ';
@@ -88,4 +95,9 @@ $lang->release->notifyList['PO'] = "{$lang->productCommon} Owner";
 $lang->release->notifyList['QD'] = 'QA Manager';
 $lang->release->notifyList['SC'] = 'Story Creator';
 $lang->release->notifyList['ET'] = "{$lang->execution->common} Team Members";
-$lang->release->notifyList['PT'] = "Project Team Members";
+$lang->release->notifyList['PT'] = "{$lang->projectCommon} Team Members";
+$lang->release->notifyList['CT'] = "Copy To";
+
+$lang->release->featureBar['browse']['all']       = $lang->release->all;
+$lang->release->featureBar['browse']['normal']    = $lang->release->statusList['normal'];
+$lang->release->featureBar['browse']['terminate'] = $lang->release->statusList['terminate'];

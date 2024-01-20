@@ -2,8 +2,8 @@
 /**
  * The model file of backup module of ZenTaoCMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Yidong Wang <yidong@cnezsoft.com>
  * @package     backup
  * @version     $Id$
@@ -34,6 +34,7 @@ class backupModel extends model
     public function backFile($backupFile)
     {
         $zfile  = $this->app->loadClass('zfile');
+
         $return = new stdclass();
         $return->result = true;
         $return->error  = '';
@@ -42,10 +43,10 @@ class backupModel extends model
 
         $tmpLogFile = $this->getTmpLogFile($backupFile);
         $dataDir    = $this->app->getAppRoot() . 'www/data/';
-        $count      = $zfile->getCount($dataDir);
+        $count      = $zfile->getCount($dataDir, array('course'));
         file_put_contents($tmpLogFile, json_encode(array('allCount' => $count)));
 
-        $result = $zfile->copyDir($dataDir, $backupFile, $logLevel = false, $tmpLogFile);
+        $result = $zfile->copyDir($dataDir, $backupFile, $logLevel = false, $tmpLogFile, array('course'));
         $this->processSummary($backupFile, $result['count'], $result['size'], $result['errorFiles'], $count);
         unlink($tmpLogFile);
 
@@ -298,7 +299,7 @@ class backupModel extends model
         $summaryFile = dirname($backup) . DS . 'summary';
         if(!file_exists($summaryFile)) return array();
 
-        $summary = json_decode(file_get_contents(dirname($backup) . DS . 'summary'), 'true');
+        $summary = json_decode(file_get_contents(dirname($backup) . DS . 'summary'), true);
         return isset($summary[basename($backup)]) ? $summary[basename($backup)] : array();
     }
 

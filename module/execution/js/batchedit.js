@@ -1,13 +1,34 @@
+function changeProject(obj, executionID, projectID)
+{
+    var lastSelected = $(obj).data('lastselected');
+    var $td = $(obj).closest('td');
+
+    if($td.find('[id^="syncStories"]').length == 0)
+    {
+        $td.append("<input type='hidden' id='syncStories" + executionID + "' name='syncStories[" + executionID + "]' value='no' />");
+    }
+
+    var confirmVal = confirm(confirmSync);
+    $("#syncStories" + executionID).val(confirmVal ? 'yes' : 'no');
+
+    if(!confirmVal)
+    {
+        $(obj).val(lastSelected).trigger("chosen:updated");
+    }
+    else
+    {
+        lastSelected = $(obj).val();
+        $(obj).data("lastselected", lastSelected);
+    }
+}
+
+$('#executionForm').on('change input mousedown', '.has-error', function()
+{
+    $(this).parent().find('.text-danger').remove();
+    $(this).removeClass('has-error');
+})
+
 $(function()
 {
-    $('[id^="projects"]').change(function()
-    {
-        var executionID = $(this).attr('id').replace('projects', '');
-        var $td = $(this).closest('td');
-        if($td.find('[id^="syncStories"]').length == 0)
-        {
-            $td.append("<input type='hidden' id='syncStories" + executionID + "' name='syncStories[" + executionID + "]' value='no' />");
-        }
-        $("#syncStories" + executionID).val(confirm(confirmSyncStories) ? 'yes' : 'no');
-    })
-});
+    $('[data-toggle="popover"]').popover();
+})

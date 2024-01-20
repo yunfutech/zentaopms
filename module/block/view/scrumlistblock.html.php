@@ -2,8 +2,8 @@
 /**
  * The project list block view file of block module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Yidong Wang <yidong@cnezsoft.com>
  * @package     block
  * @version     $Id$
@@ -13,6 +13,7 @@
 <style>
 .table .c-progress {width: 60px;}
 .table .c-estimate {width: 85px;}
+.table .c-burn     {width: 150px;}
 </style>
 <?php if(empty($executionStats)): ?>
 <div class='empty-tip'><?php echo $lang->block->emptyTip;?></div>
@@ -32,7 +33,7 @@
         <?php endif;?>
         <th class="c-progress"><?php echo $lang->execution->progress;?></th>
         <?php if($longBlock):?>
-        <th><?php echo $lang->execution->burn;?></th>
+        <th class='c-burn'><?php echo $lang->execution->burn;?></th>
         <?php endif;?>
       </tr>
     </thead>
@@ -44,14 +45,14 @@
       $viewLink = $this->createLink('execution', 'task', 'executionID=' . $execution->id);
       ?>
       <tr <?php echo $appid?>>
-        <td class='c-name text-left' title='<?php echo $execution->name;?>'><nobr><?php echo html::a($viewLink, $execution->name, '', "title='$execution->name'");?></nobr></td>
+        <td class='c-name text-left' title='<?php echo $execution->name;?>'><nobr><?php echo html::a($viewLink, $execution->name, '', "title='$execution->name' class='text-primary'");?></nobr></td>
         <td class="c-date"><?php echo $execution->end;?></td>
         <?php if($longBlock):?>
         <td class="w-70px">
           <?php if(isset($execution->delay)):?>
           <span class="status-project status-delayed" title='<?php echo $lang->execution->delayed;?>'><?php echo $lang->execution->delayed;?></span>
           <?php else:?>
-          <?php $statusName = $this->processStatus('project', $execution);?>
+          <?php $statusName = $this->processStatus('execution', $execution);?>
           <span class="status-project status-<?php echo $execution->status?>" title='<?php echo $statusName;?>'><?php echo $statusName;?></span>
           <?php endif;?>
         </td>

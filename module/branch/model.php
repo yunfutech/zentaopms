@@ -2,8 +2,8 @@
 /**
  * The model file of branch module of ZenTaoCMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Yidong Wang <yidong@cnezsoft.com>
  * @package     branch
  * @version     $Id$
@@ -22,6 +22,7 @@ class branchModel extends model
      */
     public function getById($branchID, $productID = 0, $field = 'name')
     {
+        if($branchID == 'all') return false;
         if(empty($branchID))
         {
             if(empty($productID)) $productID = $this->session->product;
@@ -43,10 +44,11 @@ class branchModel extends model
      * @param  string $browseType
      * @param  string $orderBy
      * @param  object $pager
+     * @param  bool   $withMainBranch
      * @access public
      * @return array
      */
-    public function getList($productID, $executionID = 0, $browseType = 'active', $orderBy = 'order', $pager = null)
+    public function getList($productID, $executionID = 0, $browseType = 'active', $orderBy = 'order', $pager = null, $withMainBranch = true)
     {
         $executionBranches = array();
         if($executionID)
@@ -54,7 +56,8 @@ class branchModel extends model
             $executionBranches = $this->dao->select('branch')->from(TABLE_PROJECTPRODUCT)
                 ->where('project')->eq($executionID)
                 ->andWhere('product')->eq($productID)
-                ->fetchAll('branch');
+                ->fetchPairs('branch');
+            if(in_array(BRANCH_MAIN, $executionBranches)) $withMainBranch = true;
             if(empty($executionBranches)) return array();
         }
 
@@ -72,6 +75,8 @@ class branchModel extends model
         $product       = $this->loadModel('product')->getById($productID);
         $defaultBranch = BRANCH_MAIN;
         foreach($branchList as $branch) $defaultBranch = $branch->default ? $branch->id : $defaultBranch;
+
+        if(!$withMainBranch) return $branchList;
 
         /* Display the main branch under all and active page. */
         $mainBranch = new stdclass();
@@ -92,7 +97,7 @@ class branchModel extends model
      * Get pairs.
      *
      * @param  int    $productID
-     * @param  string $params
+     * @param  string $params active|noempty|all|withClosed
      * @param  int    $executionID
      * @param  string $mergedBranches
      * @access public
@@ -100,6 +105,8 @@ class branchModel extends model
      */
     public function getPairs($productID, $params = '', $executionID = 0, $mergedBranches = '')
     {
+        if(!$productID) $productID = 0;
+
         $executionBranches = array();
         if($executionID)
         {
@@ -122,7 +129,7 @@ class branchModel extends model
 
         if($executionID)
         {
-            if(isset($executionBranches['0'])) $branches = array('0' => $this->lang->branch->main) + $branches;
+            $branches = array('all' => $this->lang->branch->all, '0' => $this->lang->branch->main) + $branches;
             return $branches;
         }
 
@@ -136,6 +143,16 @@ class branchModel extends model
         if(strpos($params, 'all') !== false)
         {
             $branches = array('all' => $this->lang->branch->all) + $branches;
+        }
+
+        if(strpos($params, 'withClosed') !== false)
+        {
+            $closedBranches = $this->dao->select('id')->from(TABLE_BRANCH)->where('product')->eq($productID)->andWhere('status')->eq('closed')->fetchPairs();
+
+            if(!empty($closedBranches))
+            {
+                foreach($closedBranches as $closedBranch) $branches[$closedBranch] .= ' (' . $this->lang->branch->statusList['closed'] . ')';
+            }
         }
         return $branches;
     }
@@ -490,7 +507,6 @@ class branchModel extends model
             }
             else
             {
-                $branchGroups[$branch->product][0] = $this->lang->branch->main;
                 $branchGroups[$branch->product][$branch->id] = htmlspecialchars_decode($branch->name);
             }
         }
@@ -740,7 +756,9 @@ class branchModel extends model
             ->andWhere('product')->eq($productID)
             ->fetchGroup('project');
 
-        $this->dao->delete()->from(TABLE_PROJECTPRODUCT)->where('branch')->in($mergedBranches . ",$targetBranch")->exec();
+        $this->dao->delete()->from(TABLE_PROJECTPRODUCT)->where('branch')->in($mergedBranches . ",$targetBranch")
+            ->andWhere('product')->eq($productID)
+            ->exec();
         foreach($linkedProject as $projectID => $projectProducts)
         {
             $plan = 0;
@@ -766,5 +784,19 @@ class branchModel extends model
         }
 
         return $targetBranch;
+    }
+
+    /**
+     * Judge an action is clickable or not..
+     *
+     * @param object $branch
+     * @param string $action
+     * @static
+     * @access public
+     * @return bool
+     */
+    public static function isClickable($branch, $action)
+    {
+        return true;
     }
 }

@@ -2,8 +2,8 @@
 /**
  * The testresults entry point of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2021 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2021 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     entries
  * @version     1
@@ -16,7 +16,7 @@ class testresultsEntry extends entry
      *
      * @param  int    $productID
      * @access public
-     * @return void
+     * @return string
      */
     public function get($caseID = 0)
     {
@@ -50,7 +50,7 @@ class testresultsEntry extends entry
      *
      * @param  int    $caseID
      * @access public
-     * @return void
+     * @return string
      */
     public function post($caseID = 0)
     {
@@ -58,20 +58,26 @@ class testresultsEntry extends entry
         if(!$caseID) return $this->sendError(400, 'Need case id.');
 
         $case    = $this->loadModel('testcase')->getByID($caseID);
-        $runID   = $this->param('runID', 0);
+        $taskID  = $this->param('testtask', 0);
         $version = $this->param('version', $case->version);
+        list($runID, $steps) = $this->getStepIDList($taskID, $caseID, $version);
 
         $this->setPost('case',  $caseID);
+        $this->setPost('version', $version);
 
         /* Set steps and expects. */
         if(isset($this->requestBody->steps))
         {
             $results = array();
             $reals   = array();
-            foreach($this->requestBody->steps as $step)
+            foreach($this->requestBody->steps as $index => $step)
             {
-                $results[] = $step->result;
-                $reals[]   = $step->real;
+                /* When post data more than case steps, break after take useful data. */
+                if($index + 1 > count($steps)) break;
+
+                $stepID           = $steps[$index];
+                $results[$stepID] = $step->result;
+                $reals[$stepID]   = $step->real;
             }
             $this->setPost('steps',  $results);
             $this->setPost('reals',  $reals);
@@ -83,6 +89,38 @@ class testresultsEntry extends entry
         $data = $this->getData();
         if(isset($data->result) and $data->result == 'fail') return $this->sendError(400, $data->message);
 
-        $this->send(200, array());
+        return $this->send(200, array());
+    }
+
+    /**
+     * Get steps key.
+     *
+     * @param  int    $taskID
+     * @access public
+     * @return array
+     */
+    public function getStepIDList($taskID, $caseID, $version)
+    {
+        if($taskID)
+        {
+            $run = $this->loadModel('testtask')->getRunByCase($taskID, $caseID);
+        }
+        else
+        {
+            $run = new stdclass();
+            $run->id   = 0;
+            $run->case = $this->loadModel('testcase')->getById($caseID, $version);
+        }
+
+        foreach($run->case->steps as $key => $step)
+        {
+            /* Unset step if step is a group. */
+            if($step->type == 'group')
+            {
+                unset($run->case->steps[$key]);
+            }
+        }
+
+        return array($run->id, array_keys($run->case->steps));
     }
 }

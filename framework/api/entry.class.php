@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 /**
  * 禅道API的entry类。
  * The entry class file of ZenTao API.
@@ -18,7 +18,9 @@ class entry extends baseEntry
     {
         parent::__construct();
 
-        if(!isset($this->app->user) or $this->app->user->account == 'guest') $this->sendError(401, 'Unauthorized');
+        if($this->app->action == 'options') throw EndResponseException::create($this->send(204));
+
+        if(!isset($this->app->user) or $this->app->user->account == 'guest') throw EndResponseException::create($this->sendError(401, 'Unauthorized'));
 
         $this->dao = $this->loadModel('common')->dao;
     }
@@ -81,11 +83,10 @@ class baseEntry
      * Get request data(POST or PUT)
      *
      * @param  string $key
-     * @param  mixed  $defaultValue
      * @access public
      * @return mixed
      */
-    public function request($key, $defaultValue = '')
+    public function request(string $key, $defaultValue = '')
     {
         if(isset($this->requestBody->$key)) return $this->requestBody->$key;
         return $defaultValue;
@@ -96,11 +97,10 @@ class baseEntry
      * Get request params.
      *
      * @param  string $key
-     * @param  string $defaultValue
      * @access public
      * @return mixed
      */
-    public function param($key, $defaultValue = '')
+    public function param(string $key, $defaultValue = '')
     {
         if(isset($_GET[$key])) return $_GET[$key];
         return $defaultValue;
@@ -110,13 +110,17 @@ class baseEntry
      * 设置请求参数
      * Set request param.
      *
-     * @param  string $key
-     * @param  mixed  $value
+     * @param  string|array  $key   if is array, set params by its key-value pairs.
      * @access public
-     * @return mixed
+     * @return void
      */
-    public function setParam($key, $value)
+    public function setParam(string|array $key, $value = null)
     {
+        if(is_array($key))
+        {
+            foreach($key as $k => $v) $_GET[$k] = $v;
+            return;
+        }
         $_GET[$key] = $value;
     }
 
@@ -195,11 +199,10 @@ class baseEntry
      * Send response data
      *
      * @param  int   $code
-     * @param  mixed $data
      * @access public
-     * @return void
+     * @return string
      */
-    public function send($code, $data = '')
+    public function send(int $code, $data = '')
     {
         header("Access-Control-Allow-Origin: *");
         header("Access-Control-Allow-Credentials: true");
@@ -208,8 +211,7 @@ class baseEntry
         header("Content-type: application/json");
         header("HTTP/1.1 {$this->statusCode[$code]}");
 
-        if($data) echo json_encode($data, JSON_HEX_TAG);
-        exit;
+        return !empty($data) ? json_encode($data, JSON_HEX_TAG) : '';
     }
 
     /**
@@ -219,14 +221,14 @@ class baseEntry
      * @param  int    $code
      * @param  string $msg
      * @access public
-     * @return void
+     * @return string
      */
-    public function sendError($code, $msg)
+    public function sendError(int $code, string $msg)
     {
         $response = new stdclass();
         $response->error = $msg;
 
-        $this->send($code, $response);
+        return $this->send($code, $response);
     }
 
     /**
@@ -236,14 +238,14 @@ class baseEntry
      * @param  int    $code
      * @param  string $msg
      * @access public
-     * @return void
+     * @return string
      */
-    public function sendSuccess($code, $msg)
+    public function sendSuccess(int $code, string $msg)
     {
         $response = new stdclass();
         $response->message = $msg;
 
-        $this->send($code, $response);
+        return $this->send($code, $response);
     }
 
     /**
@@ -251,22 +253,22 @@ class baseEntry
      *
      * @param  string message
      * @access public
-     * @return void
+     * @return string
      */
-    public function send400($message = 'error')
+    public function send400(string $message = 'error')
     {
-        $this->sendError(400, $message);
+        return $this->sendError(400, $message);
     }
 
     /**
      * Send 404 response.
      *
      * @access public
-     * @return void
+     * @return string
      */
     public function send404()
     {
-        $this->sendError(404, '404 Not found');
+        return $this->sendError(404, '404 Not found');
     }
 
     /**
@@ -278,7 +280,7 @@ class baseEntry
      * @access public
      * @return object
      */
-    public function loadController($moduleName, $methodName)
+    public function loadController(string $moduleName, string $methodName)
     {
         ob_start();
 
@@ -298,9 +300,6 @@ class baseEntry
              * 引入该模块的control文件。
              * Include the control file of the module.
              **/
-
-            $file2Included = $app->setActionExtFile() ? $app->extActionFile : $app->controlFile;
-
             $isExt = $app->setActionExtFile();
             if($isExt)
             {
@@ -312,7 +311,7 @@ class baseEntry
             }
 
             $file2Included = $isExt ? $app->extActionFile : $app->controlFile;
-            chdir(dirname($file2Included));
+            chdir(dirname((string) $file2Included));
             helper::import($file2Included);
         }
 
@@ -338,9 +337,9 @@ class baseEntry
      * @access  public
      * @return  object|bool 如果没有model文件，返回false，否则返回model对象。If no model file, return false, else return the model object.
      */
-    public function loadModel($moduleName = '', $appName = '')
+    public function loadModel(string $moduleName = '', string $appName = '')
     {
-        if(empty($moduleName)) $moduleName = $this->moduleName;
+        if(empty($moduleName)) $moduleName = $this->app->moduleName;
         if(empty($appName))    $appName    = $this->app->appName;
 
         global $loadedModels;
@@ -397,8 +396,8 @@ class baseEntry
     public function getData()
     {
         $output = helper::removeUTF8Bom(ob_get_clean());
-        $output = json_decode($output);
-        if(isset($output->data)) $output->data = json_decode($output->data);
+        $output = json_decode((string) $output);
+        if(isset($output->data)) $output->data = json_decode((string) $output->data);
 
         return $output;
     }
@@ -408,7 +407,6 @@ class baseEntry
      * Add data to $_POST.
      *
      * @param  string $key
-     * @param  mixed  $value
      * @access public
      * @return void
      */
@@ -422,11 +420,10 @@ class baseEntry
      * Batch set data to $_POST.
      *
      * @param  string $fields
-     * @param  mixed  $object
      * @access public
      * @return void
      */
-    public function batchSetPost($fields, $object = '')
+    public function batchSetPost(string $fields, $object = '')
     {
         $fields = explode(',', $fields);
         foreach($fields as $field)
@@ -454,11 +451,10 @@ class baseEntry
      * Make sure the fields is not empty.
      *
      * @param  string $fields
-     * @param  mixed  $object
      * @access public
      * @return void
      */
-    public function requireFields($fields)
+    public function requireFields(string $fields)
     {
         $fields = explode(',', $fields);
         foreach($fields as $field)
@@ -466,8 +462,8 @@ class baseEntry
             if(!isset($_POST[$field]))
             {
                 $module = $this->app->moduleName;
-                $name   = isset($this->app->lang->$module->$field) ? $this->app->lang->$module->$field : $field;
-                $this->sendError(400, sprintf($this->app->lang->error->notempty, $name));
+                $name   = $this->app->lang->$module->$field ?? $field;
+                throw EndResponseException::create($this->sendError(400, sprintf($this->app->lang->error->notempty, $name)));
             }
         }
     }
@@ -481,7 +477,7 @@ class baseEntry
      * @access public
      * @return object|array
      */
-    public function format($data, $fields)
+    public function format(object|array $data, string $fields)
     {
         if(is_array($data))
         {
@@ -501,7 +497,7 @@ class baseEntry
      * @access public
      * @return object
      */
-    private function formatFields(&$object, $fields)
+    private function formatFields(object &$object, string $fields)
     {
         $fields = explode(',', $fields);
 
@@ -515,22 +511,27 @@ class baseEntry
             if(!isset($object->$key)) continue;
 
             $pos = strpos($type, ']');
-            if($pos !== FALSE)
+            if($pos !== false)
             {
-                $is_array = true;
-                $type = substr($type, $pos + 1);
+                $isArray = true;
+                $type    = substr($type, $pos + 1);
+            }
+            else if(str_contains($type, 'array'))
+            {
+                $isArray = true;
+                $type    = 'object';
             }
 
             /* Format value. */
             if(!$isArray)
             {
-                $object->$key = $this->cast($object->$key, $type);
+                $object->$key = $this->cast(trim((string) $object->$key, ','), $type);
                 continue;
             }
 
             /* Format array. */
             $value = array();
-            if(is_array($object->$key))
+            if(is_array($object->$key) or is_object($object->$key))
             {
                 foreach($object->$key as $v) $value[] = $this->cast($v, $type);
             }
@@ -551,11 +552,11 @@ class baseEntry
      * Filter fields.
      *
      * @param  object $object
-     * @param  array  $filters
+     * @param  string $allowable
      * @access public
      * @return object
      */
-    public function filterFields($object, $allowable = '')
+    public function filterFields(object $object, string $allowable = '')
     {
         if(empty($allowable)) return $object;
         if(is_string($allowable)) $allowable = explode(',', $allowable);
@@ -563,7 +564,7 @@ class baseEntry
         $filtered = new stdclass();
         foreach($allowable as $field)
         {
-            $field = trim($field);
+            $field = trim((string) $field);
             if(empty($field)) continue;
             if(!isset($object->$field)) continue;
             $filtered->$field = $object->$field;
@@ -575,12 +576,12 @@ class baseEntry
     /**
      * Format user.
      *
-     * @param  string    $account
-     * @param  array     $users
+     * @param  string       $account
+     * @param  array|object $users
      * @access public
      * @return array
      */
-    public function formatUser($account, $users)
+    public function formatUser(string $account, array|object $users)
     {
         $user = array();
         $user['account']  = $account;
@@ -598,7 +599,7 @@ class baseEntry
      * @access public
      * @return mixed
      */
-    private function cast($value, $type)
+    private function cast($value, string $type)
     {
         switch($type)
         {
@@ -607,7 +608,7 @@ class baseEntry
                 if($timeFormat == 'utc')
                 {
                     if(!$value or $value == '0000-00-00 00:00:00') return null;
-                    return gmdate("Y-m-d\TH:i:s\Z", strtotime($value));
+                    return gmdate("Y-m-d\TH:i:s\Z", strtotime((string) $value));
                 }
                 return $value;
             case 'date':
@@ -618,7 +619,7 @@ class baseEntry
             case 'int':
                 return (int) $value;
             case 'idList':
-                $values = explode(',', $value);
+                $values = explode(',', (string) $value);
                 if(empty($values)) return array();
 
                 $idList = array();
@@ -628,7 +629,7 @@ class baseEntry
                 }
                 return $idList;
             case 'stringList':
-                $values = explode(',', $value);
+                $values = explode(',', (string) $value);
                 if(empty($values)) return array();
 
                 $stringList = array();
@@ -646,7 +647,7 @@ class baseEntry
                 if(empty($this->users)) $this->users = $this->dao->select('id,account,avatar,realname')->from(TABLE_USER)->fetchAll('account');
                 return zget($this->users, $value, null);
             case 'userList':
-                $values = explode(',', $value);
+                $values = explode(',', (string) $value);
                 if(empty($values)) return array();
 
                 $userList = array();
@@ -669,9 +670,9 @@ class baseEntry
      * @param  string $method
      * @param  array  $params
      * @access public
-     * @return void
+     * @return mixed
      */
-    public function fetch($entry, $method, $params = array())
+    public function fetch(string $entry, string $method, array $params = array())
     {
         include($this->app->appRoot . "api/{$this->app->version}/entries/" . strtolower($entry) . ".php");
 
@@ -684,7 +685,7 @@ class baseEntry
      * Check the user has permission to access this method, if not, return 403.
      *
      * @access public
-     * @return void
+     * @return void|string
      */
     public function checkPriv()
     {
@@ -692,7 +693,7 @@ class baseEntry
         $method = $this->app->getMethodName();
         if($module and $method and !$this->loadModel('common')->isOpenMethod($module, $method) and !commonModel::hasPriv($module, $method))
         {
-            $this->send(403, array('error' => 'Access not allowed'));
+            return $this->send(403, array('error' => 'Access not allowed'));
         }
     }
 
@@ -703,7 +704,7 @@ class baseEntry
      * @access public
      * @return void
      */
-    public function resetOpenApp($tab)
+    public function resetOpenApp(string $tab)
     {
         $_COOKIE['tab'] = $tab;
         $this->app->tab = $tab;

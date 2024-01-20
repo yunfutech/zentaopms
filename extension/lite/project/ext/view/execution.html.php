@@ -2,8 +2,8 @@
 /**
  * The html template file of all method of execution module for lite vision of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Wenrui LI <liwenrui@easycorp.ltd>
  * @package     execution
  * @version     $Id: index.html.php 5094 2013-07-10 08:46:15Z chencongzhi520@gmail.com $
@@ -14,7 +14,7 @@
 <div class='clearfix' id='mainMenu'>
   <div class='btn-toolbar pull-left'>
     <?php
-      foreach($lang->project->featureBar as $label => $labelName)
+      foreach($lang->project->featureBar['execution'] as $label => $labelName)
       {
           $active = $status == $label ? 'btn-active-text' : '';
           echo html::a($this->createLink('project', 'execution', "status=$label&projectID=$projectID"), '<span class="text">' . $labelName . '</span> ' . ($status == $label ? "<span class='label label-light label-badge'>" . (int)count($kanbanList) . '</span>' : ''), '', "class='btn btn-link $active'");
@@ -30,22 +30,26 @@
   <div class="table-empty-tip">
     <p>
       <span class="text-muted"><?php echo $lang->execution->noExecution;?></span>
-      <?php if(common::hasPriv('execution', 'create')):?>
+      <?php if(common::hasPriv('execution', 'create') and $allExecutionsNum):?>
       <?php echo html::a($this->createLink('execution', 'create', "projectID=$projectID"), "<i class='icon icon-plus'></i> " . $lang->project->createKanban, '', "class='btn btn-info' data-app='project'");?>
       <?php endif;?>
     </p>
   </div>
   <?php else:?>
     <div class='kanban-cards'>
-      <?php 
+      <?php
         $kanbanview = 'kanban';
         if($this->cookie->kanbanview) $kanbanview = $this->cookie->kanbanview;
-        
+
         if(!common::hasPriv('execution', $kanbanview))
         {
-            foreach (explode('|', 'kanban|task|calendar|gantt|tree|grouptask') as $view) 
+            foreach (explode('|', 'kanban|task|calendar|gantt|tree|grouptask') as $view)
             {
-                if(common::hasPriv('execution', $view)) $kanbanview = $view; break;
+                if(common::hasPriv('execution', $view))
+                {
+                    $kanbanview = $view;
+                    break;
+                }
             }
         }
       ?>
@@ -89,12 +93,24 @@
               </div>
               <div class="kanban-footer">
                 <div class='kanban-members pull-left'>
-                  <?php $teams = $memberGroup[$kanban->id];?>
+                  <?php $teams = isset($memberGroup[$kanban->id]) ? $memberGroup[$kanban->id] : array();?>
+                  <?php $count = 0;?>
                   <?php foreach($teams as $member):?>
+                  <?php if($count > 2) break;?>
+                  <?php $count ++;?>
                   <div title="<?php echo zget($users, $member->account);?>">
                     <?php echo html::smallAvatar(array('avatar' => zget($usersAvatar, $member->account), 'account' => $member->account, 'name' => isset($member->realname) ? $member->realname : '')); ?>
                   </div>
                   <?php endforeach;?>
+                  <?php if(count($teams) > 4):?>
+                  <?php echo '<span>… </span>';?>
+                  <?php endif;?>
+                  <?php if(count($teams) > 3):?>
+                  <?php $lastMember = end($teams);?>
+                  <div title="<?php echo $lastMember->realname;?>">
+                  <?php echo html::smallAvatar(array('avatar' => $usersAvatar[$lastMember->account], 'account' => $lastMember->account, 'name' => $lastMember->realname), 'avatar-circle avatar-' . key((array)$lastMember)); ?>
+                  </div>
+                  <?php endif;?>
                 </div>
                 <div class='kanban-members-count pull-left'><?php echo sprintf($lang->project->teamSumCount, count($teams));?></div>
                 <div class='kanban-acl pull-right'>

@@ -2,8 +2,8 @@
 /**
  * The action->dynamic view file of dashboard module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     dashboard
  * @version     $Id: action->dynamic.html.php 1477 2011-03-01 15:25:50Z wwccss $
@@ -16,7 +16,7 @@
 <?php js::set('period', $type);?>
 <div id='mainContent'>
   <div id='contentNav'>
-    <?php foreach($lang->action->periods as $period => $label):?>
+    <?php foreach($lang->user->featureBar['dynamic'] as $period => $label):?>
     <?php
     $label  = "<span class='text'>$label</span>";
     $active = '';
@@ -30,7 +30,7 @@
     <?php endforeach;?>
   </div>
 
-  <div id="dynamics" class='main-content'>
+  <div id="dynamics" class='main-content <?php echo empty($dateGroups) ? '' : 'hasData';?>'>
     <?php if(!empty($dateGroups)):?>
     <?php $firstAction = '';?>
     <?php foreach($dateGroups as $date => $actions):?>
@@ -52,10 +52,10 @@
             <span class="timeline-tag"><?php echo $action->time?></span>
             <span class="timeline-text">
               <?php echo zget($users, $action->actor);?>
-              <span class='label-action'><?php echo ' ' . $action->actionLabel;?></span>
-              <span class="text-muted"><?php echo $action->objectLabel;?></span>
+              <span class='label-action'><?php echo $action->actionLabel;?></span>
+              <span><?php echo $action->objectLabel;?></span>
               <span class="label label-id"><?php echo $action->objectID;?></span>
-              <?php if($action->objectName) echo html::a($action->objectLink, $action->objectName);?>
+              <?php if($action->objectName) echo "<sapn class='label-name'>" . (!empty($action->objectLink) ? html::a($action->objectLink, $action->objectName, '', "data-app=''") : $action->objectName) . '</span>';?>
             </span>
           </div>
         </li>

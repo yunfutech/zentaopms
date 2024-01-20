@@ -2,8 +2,8 @@
 /**
  * The create view of task module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     task
  * @version     $Id: create.html.php 5090 2013-07-10 05:49:24Z zhujinyonging@gmail.com $
@@ -18,8 +18,9 @@
 <?php js::set('vision', $this->config->vision);?>
 <?php js::set('projectID', $projectID);?>
 <?php js::set('productID', $productID);?>
+<?php js::set('teamMemberError', $lang->task->error->teamMember);?>
+<?php js::set('estimateNotEmpty', sprintf($lang->error->gt, $lang->task->estimate, '0'))?>
 <?php if(!empty($storyID)):?>
-<style> .title-group.required > .required:after {right: 110px;}</style>
 <?php endif;?>
 <div id='mainContent' class='main-content'>
   <div class='center-block'>
@@ -41,17 +42,17 @@
         <?php if($execution->type != 'kanban' or $this->config->vision == 'lite'):?>
         <tr>
           <th><?php echo $lang->task->execution;?></th>
-          <td><?php echo html::select('execution', $executions, $execution->id, "class='form-control chosen' onchange='loadAll(this.value)' required");?></td><td></td><td></td>
+          <td><?php echo html::select('execution', $executions, $execution->id, "class='form-control chosen' onchange='loadPage(this.value)' required");?></td><td></td><td></td>
         </tr>
         <?php endif;?>
-        <?php if(count($regionList) > 1 or count($lanes) > 1 or empty($extra)):?>
+        <?php if(count($regionList) > 1 or count($laneList) > 1 or empty($extra)):?>
         <tr>
           <th><?php echo $lang->task->region;?></th>
           <td><?php echo html::select('region', $regionList, isset($regionID) ? $regionID : '', "class='form-control chosen' onchange='loadLaneGroup(this.value)' required");?>
         </tr>
         <tr>
           <th><?php echo $lang->task->lane;?></th>
-          <td class='required'><?php echo html::select('otherLane', $laneList, '', "class='form-control chosen' onchange='loadAll(this.value)' required");?>
+          <td class='required'><?php echo html::select('otherLane', '', '', "class='form-control chosen' required");?>
         </tr>
         <?php endif;?>
         <tr>
@@ -89,6 +90,10 @@
             <button id='selectAllUser' type="button" class="btn btn-link<?php if($task->type !== 'affair') echo ' hidden';?>"><?php echo $lang->task->selectAllUser;?></button>
           </td>
         </tr>
+        <tr class='hidden modeBox'>
+          <th><?php echo $lang->task->mode;?></th>
+          <td><?php echo html::select('mode', $lang->task->modeList, '', "class='form-control chosen'");?></td>
+        </tr>
         <tr class='hide'>
           <th><?php echo $lang->task->status;?></th>
           <td><?php echo html::hidden('status', 'wait');?></td>
@@ -98,9 +103,9 @@
         <tr>
           <th><?php echo $lang->task->story;?></th>
           <td colspan='3'>
-            <span id='storyBox' class="<?php if(!empty($stories)) echo 'hidden';?> "><?php printf($lang->task->noticeLinkStory, html::a($this->createLink('story', 'create', "productID=$productID&branch=0&moduleID=0&storyID=0&projectID=$projectID&bugID=0&planID=0&todoID=0&extra=&type=story"), $lang->execution->linkStory, '_blank', 'class="text-primary"'), html::a("javascript:loadStories($execution->id)", $lang->refresh, '', 'class="text-primary"'));?></span>
+            <span id='storyBox' class="<?php if(!empty($stories)) echo 'hidden';?> "><?php printf($lang->task->noticeLinkStory, html::a($this->createLink('story', 'create', "productID=$productID&branch=0&moduleID=0&storyID=0&projectID=$projectID&bugID=0&planID=0&todoID=0&extra=&type=story&_single"), $lang->execution->linkStory, '', 'class="text-primary"'), html::a("javascript:loadStories($execution->id)", $lang->refresh, '', 'class="text-primary"'));?></span>
             <div class='input-group <?php if(empty($stories)) echo "hidden";?>'>
-              <?php echo html::select('story', array($task->story => empty($stories) ? '': $stories[$task->story]), $task->story, "class='form-control chosen' onchange='setStoryRelated();'");?>
+              <?php echo html::select('story', $stories, $task->story, "class='form-control chosen' onchange='setStoryRelated();'");?>
               <span class='input-group-btn' id='preview'><a href='#' class='btn iframe'><?php echo $lang->preview;?></a></span>
             </div>
           </td>
@@ -282,24 +287,11 @@
             <div class='modal-body'>
               <table class="table table-form" id='taskTeamEditor'>
                 <tbody class='sortable'>
-                  <tr class='template'>
-                    <td><?php echo html::select("team[]", $members, '', "class='form-control chosen'");?></td>
-                    <td>
-                      <div class='input-group'>
-                        <?php echo html::input("teamEstimate[]", '', "class='form-control text-center' placeholder='{$lang->task->estimateAB}'") ?>
-                        <span class='input-group-addon'><?php echo $lang->task->hour;?></span>
-                      </div>
-                    </td>
-                    <td class='w-130px sort-handler'>
-                      <button type="button" class="btn btn-link btn-sm btn-icon btn-add"><i class="icon icon-plus"></i></button>
-                      <button type='button' class='btn btn-link btn-sm btn-icon btn-move'><i class='icon-move'></i></button>
-                      <button type="button" class="btn btn-link btn-sm btn-icon btn-delete"><i class="icon icon-close"></i></button>
-                    </td>
-                  </tr>
+                  <?php include $app->getModuleRoot() . 'task/view/taskteam.html.php';?>
                 </tbody>
                 <tfoot>
                   <tr>
-                    <td colspan='3' class='text-center'><?php echo html::a('javascript:void(0)', $lang->confirm, '', "class='btn btn-primary' data-dismiss='modal'");?></td>
+                    <td colspan='4' class='text-center'><?php echo html::a('javascript:void(0)', $lang->confirm, '', "class='btn btn-primary'");?></td>
                   </tr>
                 </tfoot>
               </table>
@@ -335,9 +327,10 @@
 <?php js::set('storyPinYin', (empty($config->isINT) and class_exists('common')) ? common::convert2Pinyin($stories) : array());?>
 <?php js::set('testStoryIdList', $testStoryIdList);?>
 <?php js::set('executionID', $execution->id);?>
+<?php js::set('executionType', $execution->type);?>
 <?php if(isonlybody()):?>
 <style>
-.body-modal .main-header {padding-right: 0px; z-index: 1100;}
+.body-modal .main-header {padding-right: 0px; z-index: 1000;}
 .btn-toolbar > .dropdown {margin: 0px;}
 </style>
 <?php $html = '<div class="divider"></div><button id="closeModal" type="button" class="btn btn-link" data-dismiss="modal"><i class="icon icon-close"></i></button>';?>
@@ -349,6 +342,7 @@ $(function()
 })
 </script>
 <?php endif;?>
+<?php js::set('newRowCount', 5);?>
 <script>
 $(function()
 {
@@ -373,6 +367,12 @@ function loadLaneGroup(regionID)
             $('#otherLane').parent().parent().addClass('hide');
         }
     })
+}
+
+function loadPage(executionID)
+{
+    var link = createLink('task', 'create', 'executionID=' + executionID);
+    window.location.replace(link)
 }
 </script>
 <?php include $this->app->getModuleRoot() . '/common/view/footer.html.php';?>

@@ -3,7 +3,7 @@ body {margin-bottom: 25px;}
 .side-col {padding-right: 20px; width: 18%;}
 #sidebar>.cell {width: 100%;}
 
-th.c-budget {text-align: right;}
+.c-budget {text-align: right; padding-right:16px !important;}
 td.c-actions {overflow: visible;}
 td.c-PM {white-space: nowrap; overflow: hidden;}
 .c-actions .btn {overflow: visible;}
@@ -20,3 +20,6 @@ th.c-name {min-width: 240px;}
 [lang^='en'] .project-name > .label-warning {width: 55px !important;}
 
 .table-responsive {overflow: auto !important;}
+.checkbox-primary {margin-right: 10px;}
+#sidebar {padding: 0px; width: 200px;}
+#sidebar .cell {width: 180px;}

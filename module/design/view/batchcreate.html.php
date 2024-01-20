@@ -2,8 +2,8 @@
 /**
  * The batchCreate view of design module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2020 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2020 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Shujie Tian <tianshujie@easycorp.ltd>
  * @package     design
  * @version     $Id: batchcreate.html.php 4903 2020-09-02 09:32:59Z tianshujie@easycorp.ltd $
@@ -30,7 +30,7 @@
         <tr>
           <td><?php echo $i;?></td>
           <td><?php echo html::select("story[$i]", $stories, '', "class='form-control chosen'");?></td>
-          <td><?php echo html::select("type[$i]", $lang->design->typeList, '', "class='form-control chosen'");?></td>
+          <td><?php echo html::select("type[$i]", $typeList, '', "class='form-control chosen'");?></td>
           <td><?php echo html::input("name[$i]", '', "class='form-control'");?></td>
           <td><?php echo html::textarea("desc[$i]", '', "class='form-control autosize'");?></td>
         </tr>

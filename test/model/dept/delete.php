@@ -19,4 +19,3 @@ $deptID = '11';
 $dept = new deptTest();
 r($dept->deleteTest($deptID)) && p() && e('99'); //删除后统计数量
 
-system("./ztest init");

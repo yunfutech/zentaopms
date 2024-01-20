@@ -2,8 +2,8 @@
 /**
  * The batch edit view of testcase module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Congzhi Chen <congzhi@cnezsoft.com>
  * @package     testcase
  * @version     $Id$
@@ -11,12 +11,13 @@
  */
 ?>
 <?php include '../../common/view/header.html.php';?>
+<?php js::set('from', $from);?>
 <?php $this->app->loadLang('testcase'); unset($this->lang->testcase->resultList['n/a']); ?>
 <div id='mainContent' class='main-content'>
   <div class='main-header'>
-    <h2><?php echo $lang->testtask->common . $lang->colon . $lang->testtask->batchRun;?></h2>
+    <h2><?php echo ($from == 'testtask' ? ($lang->testtask->common . $lang->colon) : ''). $lang->testtask->batchRun;?></h2>
   </div>
-  <form class='main-form' method='post' target='hiddenwin'>
+  <form class='main-form no-stash' method='post' target='hiddenwin'>
     <table class='table table-fixed table-form table-bordered'>
       <thead>
         <tr>
@@ -29,6 +30,7 @@
         </tr>
       </thead>
       <?php foreach($cases as $caseID => $case):?>
+      <?php if($case->auto == 'auto' and $confirm == 'yes') continue;?>
       <?php if($case->status == 'wait') continue;?>
       <?php if(!$productID) echo html::hidden("caseIDList[$case->id]", $caseID); ?>
       <tr class='text-center'>
@@ -36,7 +38,9 @@
         <td class='text-left'><?php echo "<span title='" . $moduleOptionMenu[$case->module] . "'>" . $moduleOptionMenu[$case->module] . "</span>"?></td>
         <td class='text-left wordwrap'><?php echo "<span title='{$case->title}'>{$case->title}</span>"?></td>
         <td class='text-left precondition wordwrap'><?php echo "<span title='{$case->precondition}'>{$case->precondition}</span>"?></td>
-        <td class='text-left'><?php echo html::radio("results[$caseID]", $this->lang->testcase->resultList, 'pass', "onclick='showAction(this.value,\".action$caseID\")'", 'block')?></td>
+        <td class='text-left'>
+          <?php echo html::radio("results[$caseID]", $this->lang->testcase->resultList, 'pass', "onclick='showAction(this.value,\".action$caseID\")'", 'block')?>
+        </td>
         <td>
           <?php if(!empty($steps[$caseID])):?>
           <table class='table table-fixed'>

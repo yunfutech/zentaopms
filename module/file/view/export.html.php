@@ -2,8 +2,8 @@
 /**
  * The export view file of file module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Congzhi Chen <congzhi@cnezsoft.com>
  * @package     file
  * @version     $Id$
@@ -53,6 +53,16 @@ function switchEncode(fileType)
     if(fileType != 'csv') $encode.val('utf-8').attr('disabled', 'disabled');
     else $encode.removeAttr('disabled');
     $encode.trigger('chosen:updated');
+
+    if(fileType == 'word')
+    {
+        $('#tplBox').closest('tr').addClass('hidden');
+        $('#customFields').addClass('hidden');
+    }
+    else
+    {
+        $('#tplBox').closest('tr').removeClass('hidden');
+    }
 }
 
 function saveTemplate()
@@ -201,12 +211,10 @@ $(document).ready(function()
     });
 
     $('#fileType').change();
-    <?php if($this->cookie->checkedItem):?>
     setTimeout(function()
     {
-        $('#exportType').val('selected').trigger('chosen:updated');
+        if($.cookie('checkedItem') !== '') $('#exportType').val('selected').trigger('chosen:updated');
     }, 150);
-    <?php endif;?>
 
     if($('#customFields #exportFields').length > 0)
     {
@@ -247,6 +255,7 @@ if($isCustomExport)
     {
         $field                    = trim($field);
         $exportFieldPairs[$field] = isset($moduleLang->$field) ? $moduleLang->$field : (isset($lang->$field) ? $lang->$field : $field);
+        if(!is_string($exportFieldPairs[$field])) $exportFieldPairs[$field] = $field;
         if(!$hasDefaultField)$selectedFields[] = $field;
     }
     js::set('defaultExportFields', join(',', $selectedFields));
@@ -268,18 +277,18 @@ if($isCustomExport)
             </tr>
             <tr>
               <th><?php echo $lang->file->extension;?></th>
-              <td><?php echo html::select('fileType', $lang->exportFileTypeList, '', 'onchange=switchEncode(this.value) class="form-control"');?></td>
+              <td><?php echo html::select('fileType', $lang->exportFileTypeList, '', 'onchange=switchEncode(this.value) class="form-control chosen" data-drop_direction="down"');?></td>
             </tr>
             <tr>
               <th><?php echo $lang->file->encoding;?></th>
-              <td><?php echo html::select('encode', $config->charsets[$this->cookie->lang], 'utf-8', key($lang->exportFileTypeList) == 'csv' ? "class='form-control'" : "class='form-control'");?></td>
+              <td><?php echo html::select('encode', $config->charsets[$this->cookie->lang], 'utf-8', "class='form-control chosen'");?></td>
             </tr>
             <?php $hide = isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'kanban') !== false ? 'style="display:none"' : '';?>
             <tr <?php echo $hide;?>>
               <th><?php echo $lang->file->exportRange;?></th>
               <td>
                 <?php if(isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'calendar') !== false) unset($lang->exportTypeList['selected']);?>
-                <?php echo html::select('exportType', $lang->exportTypeList, 'all', "class='form-control'");?>
+                <?php echo html::select('exportType', $lang->exportTypeList, 'all', "class='form-control chosen'");?>
               </td>
               <td class='checkbox part hidden'>
                 <?php echo html::checkbox('part', array( 1 => $lang->file->batchExport), '', "onclick='setPart(this);'");?>

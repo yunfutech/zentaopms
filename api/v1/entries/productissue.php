@@ -3,8 +3,8 @@
  * The productissue entry point of ZenTaoPMS.
  * It is only used by Gitlab.
  *
- * @copyright   Copyright 2009-2021 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2021 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     entries
  * @version     1
@@ -17,7 +17,7 @@ class productIssueEntry extends entry
      *
      * @param  string $issueID, such as task-1, story-1, bug-1
      * @access public
-     * @return void
+     * @return string
      */
     public function get($issueID)
     {
@@ -34,7 +34,7 @@ class productIssueEntry extends entry
         {
             case 'story':
                 $this->app->loadLang('story');
-                $storyStatus = array('' => '', 'draft' => 'opened', 'active' => 'opened', 'changed' => 'opened', 'closed' => 'closed');
+                $storyStatus = array('' => '', 'draft' => 'opened', 'reviewing' => 'opened', 'active' => 'opened', 'changing' => 'opened', 'closed' => 'closed');
 
                 $story = $this->dao->select('*')->from(TABLE_STORY)->where('id')->eq($id)->fetch();
                 if(!$story) $this->send404();
@@ -142,7 +142,7 @@ class productIssueEntry extends entry
         }
         $issue->openedBy = $profileList[$issue->openedBy];
 
-        $this->send(200, array('issue' => $this->format($issue, 'openedDate:time,lastEditedDate:time')));
+        return $this->send(200, array('issue' => $this->format($issue, 'openedDate:time,lastEditedDate:time')));
     }
 
     /**

@@ -2,14 +2,20 @@
 /**
  * The html template file of index method of index module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     ZenTaoPMS
  * @version     $Id: index.html.php 5094 2013-07-10 08:46:15Z chencongzhi520@gmail.com $
  */
 ?>
 <?php include '../../common/view/header.html.php';?>
+<?php js::set('selectedWeekBegin', $date);?>
+<?php if(common::hasPriv('weekly', 'exportweeklyreport')):?>
+<script>
+$(function(){$('#exportreport').modalTrigger();});
+</script>
+<?php endif;?>
 <div id="mainMenu" class="clearfix text-center">
   <div id='mainContent' >
     <div class='main-table'>
@@ -22,7 +28,7 @@
       </tr>
       <tr>
         <td><?php echo $lang->weekly->project;?></td>
-        <td><?php echo $project->name;?></td>
+        <td class='projectName' title='<?php echo $project->name;?>'><?php echo $project->name;?></td>
         <td><?php echo $lang->weekly->staff;?></td>
         <td><?php echo $staff;?></td>
       </tr>
@@ -30,7 +36,15 @@
     <div class='page-title'><h4><?php echo $lang->weekly->summary;?></h4></div>
     <table class='table table-bordered'>
       <tr>
-        <td><?php echo $lang->weekly->progress;?></td>
+        <td>
+          <?php echo $lang->weekly->progress;?>
+          <div id='helpDropdown' class="dropdown dropdown-hover">
+            <a data-toggle="dropdown"><i class="icon-help"></i></a>
+            <div class="dropdown-menu">
+              <?php echo $lang->weekly->reportHelpNotice;?>
+            </div>
+          </div>
+        </td>
         <td></td>
         <td><?php echo $lang->weekly->analysisResult;?></td>
         <td></td>
@@ -58,7 +72,7 @@
         <td><?php echo $cv ? $cv . '%' : '';?></td>
         <td><?php echo $lang->weekly->cost;?></td>
         <?php $projectCost = zget($this->config->custom, 'cost', 1);?>
-        <td><?php echo empty($projectCost) ? 0 : $ac * $projectCost;?></td>
+        <td class='projectCost'><?php echo empty($projectCost) ? 0 : $ac * $projectCost;?></td>
       </tr>
     </table>
     <div class='page-title'><h4><?php echo $lang->weekly->finished;?></h4></div>
@@ -88,6 +102,7 @@
           <td class='text-left'><?php echo zget($users, $task->finishedBy);?></td>
         </tr>
         <?php endforeach;?>
+        <td colspan='6' class='totalCount'><?php echo sprintf($lang->weekly->totalCount, count($finished));?></tr>
       </tbody>
     </table>
 
@@ -120,6 +135,7 @@
           <td class='text-left'><?php echo $task->progress;?>%</td>
         </tr>
         <?php endforeach;?>
+        <td colspan='7' class='totalCount'><?php echo sprintf($lang->weekly->totalCount, count($postponed));?></tr>
       </tbody>
     </table>
 
@@ -148,6 +164,7 @@
           <td class='text-left'><?php echo $task->deadline;?></td>
         </tr>
         <?php endforeach;?>
+        <td colspan='5' class='totalCount'><?php echo sprintf($lang->weekly->totalCount, count($nextWeek));?></tr>
       </tbody>
     </table>
 
@@ -180,7 +197,4 @@
     </table>
   </div>
 </div>
-<style>
-.main-table tbody>tr:nth-child(odd){ background-color:#fff;}
-</style>
 <?php include '../../common/view/footer.html.php';?>

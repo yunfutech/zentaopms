@@ -2,8 +2,8 @@
 /**
  * The burn view file of execution module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     execution
  * @version     $Id: burn.html.php 4164 2013-01-20 08:27:55Z wwccss $
@@ -18,21 +18,27 @@
 <?php js::set('burnXUnit', $lang->execution->burnXUnit);?>
 <?php js::set('burnYUnit', $lang->execution->burnYUnit);?>
 <?php js::set('type', $type);?>
+<?php js::set('interval', $interval);?>
 <div id='mainMenu' class='clearfix'>
   <div class='btn-toolbar pull-left'>
     <?php
-    $weekend = ($type == 'noweekend') ? 'withweekend' : "noweekend";
-    common::printLink('execution', 'computeBurn', 'reload=yes', '<i class="icon icon-refresh"></i> ' . $lang->execution->computeBurn, 'hiddenwin', "title='{$lang->execution->computeBurn}{$lang->execution->burn}' class='btn btn-primary' id='computeBurn'");
-    echo '<div class="space"></div>';
-    echo html::a($this->createLink('execution', 'burn', "executionID=$executionID&type=$weekend&interval=$interval"), $lang->execution->$weekend, '', "class='btn btn-link'");
+    if(strpos('wait,doing', $execution->status) !== false)
+    {
+        common::printLink('execution', 'computeBurn', 'reload=yes', '<i class="icon icon-refresh"></i> ' . $lang->execution->computeBurn, 'hiddenwin', "title='{$lang->execution->computeBurn}' class='btn btn-primary' id='computeBurn'");
+        echo '<div class="space"></div>';
+    }
+
+    $weekend = strpos($type, 'noweekend') !== false ? 'withweekend' : 'noweekend';
+    $delay   = strpos($type, 'withdelay') !== false ? 'nodelay'     : 'withdelay';
+    echo html::a('#', $lang->execution->$weekend, '', "class='btn btn-link' id='weekend'");
+    if(strpos($type, 'delay') !== false) echo html::a('#', $lang->execution->$delay, '', "class='btn btn-link' id='delay'");
+
     if(common::canModify('execution', $execution)) common::printLink('execution', 'fixFirst', "execution=$execution->id", $lang->execution->fixFirst, '', "class='btn btn-link iframe' data-width='700'");
     echo $lang->execution->howToUpdateBurn;
     ?>
-    <?php if($config->systemMode == 'new'):?>
     <div class='input-control w-150px'>
       <?php echo html::select('burnBy', $lang->execution->burnByList, $burnBy, "class='form-control chosen'");?>
     </div>
-    <?php endif;?>
     <?php if($interval):?>
     <div class='input-control thWidth'>
       <?php echo html::select('interval', $dayList, $interval, "class='form-control chosen'");?>
@@ -44,7 +50,12 @@
   </div>
 </div>
 <div id='mainContent' class='main-content'>
-  <h2 class='text-center'><?php echo $executionName . ' ' . $this->lang->execution->burn . '(' . zget($lang->execution->burnByList, $burnBy) . ')';?></h2>
+  <h2 class='text-center'>
+    <?php echo $executionName . ' ' . $this->lang->execution->burn . '(' . zget($lang->execution->burnByList, $burnBy) . ')';?>
+    <?php if(isset($execution->delay)):?>
+    <span class="label label-danger label-outline"><?php echo $lang->execution->delayed;?></span>
+    <?php endif;?>
+  </h2>
   <div id="burnWrapper">
     <div id="burnChart">
       <canvas id="burnCanvas"></canvas>
@@ -54,6 +65,9 @@
     <div id="burnLegend">
       <div class="line-ref"><div class='barline'></div><?php echo $lang->execution->charts->burn->graph->reference;?></div>
       <div class="line-real"><div class='barline bg-primary'></div><?php echo $lang->execution->charts->burn->graph->actuality;?></div>
+      <?php if(strpos($type, 'withdelay') !== false):?>
+      <div class="line-real"><div class='barline bg-delay'></div><?php echo $lang->execution->charts->burn->graph->delay;?></div>
+      <?php endif;?>
     </div>
   </div>
 </div>
@@ -93,6 +107,19 @@ function initBurnChar()
             data: <?php echo $chartData['burnLine']?>
         }]
     };
+
+    var delaySets =
+    {
+        label: "<?php echo $lang->execution->charts->burn->graph->delay;?>",
+        color: 'red',
+        pointStrokeColor: 'red',
+        pointHighlightStroke: 'red',
+        pointColor: 'red',
+        fillColor: 'rgba(0,106,241, .07)',
+        pointHighlightFill: '#fff',
+        data: <?php echo isset($chartData['delayLine']) ? $chartData['delayLine'] : '[]';?>
+    }
+    if(type.match('withdelay')) data.datasets.push(delaySets);
 
     var burnChart = $("#burnCanvas").lineChart(data,
     {

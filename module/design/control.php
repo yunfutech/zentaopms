@@ -2,8 +2,8 @@
 /**
  * The control file of design module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2020 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2020 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Shujie Tian <tianshujie@easycorp.ltd>
  * @package     design
  * @version     $Id: control.php 5107 2020-09-02 09:46:12Z tianshujie@easycorp.ltd $
@@ -39,8 +39,12 @@ class design extends control
      */
     public function commonAction($projectID = 0, $productID = 0, $designID = 0)
     {
-        $products  = $this->product->getProductPairsByProject($projectID);
-        $productID = $this->product->saveState($productID, $products);
+        $products    = $this->product->getProductPairsByProject($projectID);
+        $products[0] = $this->lang->product->all;
+
+        ksort($products);
+
+        $productID   = $this->product->saveState($productID, $products);
 
         $this->lang->modulePageNav = $this->design->setMenu($projectID, $products, $productID);
         $this->project->setMenu($projectID);
@@ -67,11 +71,20 @@ class design extends control
     {
         $productID = $this->commonAction($projectID, $productID);
 
+        $project  = $this->loadModel('project')->getByID($projectID);
+        $typeList = $project->model == 'waterfall' ? $this->lang->design->typeList : $this->lang->design->plusTypeList;
+
         /* Save session for design list and process product id. */
         $this->session->set('designList', $this->app->getURI(true), 'project');
         $this->session->set('reviewList', $this->app->getURI(true), 'project');
 
         /* Build the search form. */
+        $products      = $this->product->getProductPairsByProject($projectID);
+        $productIdList = $productID ? $productID : array_keys($products);
+        $stories       = $this->loadModel('story')->getProductStoryPairs($productIdList, 'all', 0, 'active', 'id_desc', 0, 'full', 'story', false);
+        $this->config->design->search['params']['story']['values'] = $stories;
+        $this->config->design->search['params']['type']['values']  = $typeList;
+
         $queryID   = ($type == 'bySearch') ? (int)$param : 0;
         $actionURL = $this->createLink('design', 'browse', "projectID=$projectID&productID=$productID&type=bySearch&queryID=myQueryID");
         $this->design->buildSearchForm($queryID, $actionURL);
@@ -111,6 +124,8 @@ class design extends control
         $pager   = pager::init(0, $recPerPage, $pageID);
         $designs = $this->design->getList($projectID, $productID, $type, $queryID, $orderBy, $pager);
 
+        $this->view->hiddenProduct = $project->hasProduct ? false : true;
+
         $this->view->title      = $this->lang->design->common . $this->lang->colon . $this->lang->design->browse;
         $this->view->position[] = $this->lang->design->browse;
 
@@ -122,6 +137,7 @@ class design extends control
         $this->view->projectID  = $projectID;
         $this->view->pager      = $pager;
         $this->view->users      = $this->loadModel('user')->getPairs('noletter');
+        $this->view->typeList   = $typeList;
 
         $this->display();
     }
@@ -158,14 +174,20 @@ class design extends control
             return $this->send($response);
         }
 
+        $products      = $this->product->getProductPairsByProject($projectID);
+        $productIdList = $productID ? $productID : array_keys($products);
+
+        $project = $this->loadModel('project')->getByID($projectID);
+
         $this->view->title      = $this->lang->design->common . $this->lang->colon . $this->lang->design->create;
         $this->view->position[] = $this->lang->design->create;
 
         $this->view->users      = $this->loadModel('user')->getPairs('noclosed');
-        $this->view->stories    = $this->loadModel('story')->getProductStoryPairs($productID);
+        $this->view->stories    = $this->loadModel('story')->getProductStoryPairs($productIdList, 'all', 0, 'active', 'id_desc', 0, 'full', 'story', false);
         $this->view->productID  = $productID;
+        $this->view->projectID  = $projectID;
         $this->view->type       = $type;
-        $this->view->project    = $this->loadModel('project')->getByID($projectID);
+        $this->view->typeList   = $project->model == 'waterfall' ? $this->lang->design->typeList : $this->lang->design->plusTypeList;
 
         $this->display();
     }
@@ -201,12 +223,18 @@ class design extends control
             return $this->send($response);
         }
 
+        $products      = $this->product->getProductPairsByProject($projectID);
+        $productIdList = $productID ? $productID : array_keys($products);
+
+        $project = $this->loadModel('project')->getByID($projectID);
+
         $this->view->title      = $this->lang->design->common . $this->lang->colon . $this->lang->design->batchCreate;
         $this->view->position[] = $this->lang->design->batchCreate;
 
-        $this->view->stories = $this->loadModel('story')->getProductStoryPairs($productID);
-        $this->view->users   = $this->loadModel('user')->getPairs('noclosed');
-        $this->view->type    = $type;
+        $this->view->stories  = $this->loadModel('story')->getProductStoryPairs($productIdList);
+        $this->view->users    = $this->loadModel('user')->getPairs('noclosed');
+        $this->view->type     = $type;
+        $this->view->typeList = $project->model == 'waterfall' ? $this->lang->design->typeList : $this->lang->design->plusTypeList;
 
         $this->display();
     }
@@ -220,16 +248,27 @@ class design extends control
      */
     public function view($designID = 0)
     {
-        $design = $this->design->getByID($designID);
+        $design    = $this->design->getByID($designID);
         $productID = $this->commonAction($design->project, $design->product, $designID);
+
+        $this->session->set('revisionList', $this->app->getURI(true));
+        $this->session->set('storyList', $this->app->getURI(true), 'product');
+
+        $products      = $this->product->getProductPairsByProject($design->project);
+        $productIdList = $design->product ? $design->product : array_keys($products);
+
+        $project = $this->loadModel('project')->getByID($design->project);
 
         $this->view->title      = $this->lang->design->common . $this->lang->colon . $this->lang->design->view;
         $this->view->position[] = $this->lang->design->view;
 
         $this->view->design  = $design;
-        $this->view->stories = $this->loadModel('story')->getProductStoryPairs($design->product);
+        $this->view->stories = $this->loadModel('story')->getProductStoryPairs($productIdList);
         $this->view->users   = $this->loadModel('user')->getPairs('noletter');
         $this->view->actions = $this->loadModel('action')->getList('design', $design->id);
+        $this->view->repos   = $this->loadModel('repo')->getRepoPairs('project', $design->project);
+        $this->view->project  = $project;
+        $this->view->typeList = $project->model == 'waterfall' ? $this->lang->design->typeList : $this->lang->design->plusTypeList;
 
         $this->display();
     }
@@ -270,12 +309,19 @@ class design extends control
             return $this->send($response);
         }
 
+        $products      = $this->product->getProductPairsByProject($design->project);
+        $productIdList = $design->product ? $design->product : array_keys($products);
+
+        $project = $this->loadModel('project')->getByID($design->project);
+
         $this->view->title      = $this->lang->design->common . $this->lang->colon . $this->lang->design->edit;
         $this->view->position[] = $this->lang->design->edit;
 
         $this->view->design  = $design;
-        $this->view->project = $this->loadModel('project')->getByID($design->project);
-        $this->view->stories = $this->loadModel('story')->getProductStoryPairs($design->product);
+        $this->view->project = $project;
+        $this->view->stories = $this->loadModel('story')->getProductStoryPairs($productIdList);
+        $this->view->users   = $this->loadModel('user')->getPairs('noclosed');
+        $this->view->typeList = $project->model == 'waterfall' ? $this->lang->design->typeList : $this->lang->design->plusTypeList;
 
         $this->display();
     }
@@ -307,10 +353,8 @@ class design extends control
         $repos  = $this->loadModel('repo')->getRepoPairs('project', $design->project);
         $repoID = $repoID ? $repoID : key($repos);
 
-        if(empty($repoID)) return print(js::locate(helper::createLink('repo', 'create', "objectID=$design->project")));
-
         $repo      = $this->loadModel('repo')->getRepoByID($repoID);
-        $revisions = $this->repo->getCommits($repo, '', 'HEAD', '', '', $begin, $end);
+        $revisions = $this->repo->getCommits($repo, '', 'HEAD', '', '', $begin, date('Y-m-d 23:59:59', strtotime($end)));
 
         if($_POST)
         {
@@ -398,12 +442,15 @@ class design extends control
         $this->app->loadClass('pager', $static = true);
         $pager   = pager::init(0, $recPerPage, $pageID);
 
+        $design = $this->design->getCommit($designID, $pager);
+
         $this->view->title      = $this->lang->design->common . $this->lang->colon . $this->lang->design->submission;
         $this->view->position[] = $this->lang->design->submission;
 
-        $this->view->design = $this->design->getCommit($designID, $pager);
+        $this->view->design = $design;
         $this->view->pager  = $pager;
         $this->view->users  = $this->loadModel('user')->getPairs('noletter');
+        $this->view->repos  = $this->loadModel('repo')->getRepoPairs('project', $design->project);
 
         $this->display();
     }
@@ -419,7 +466,7 @@ class design extends control
     public function revision($repoID = 0, $projectID = 0)
     {
         $repo    = $this->dao->select('*')->from(TABLE_REPOHISTORY)->where('id')->eq($repoID)->fetch();
-        $repoURL = $this->createLink('repo', 'revision', "repoID=$repo->repo&objectID=$projectID&revistion=$repo->revision", '', true);
+        $repoURL = $this->createLink('repo', 'revision', "repoID=$repo->repo&objectID=$projectID&revistion=$repo->revision");
         header("location:" . $repoURL);
     }
 
@@ -441,6 +488,26 @@ class design extends control
         $this->view->products  = $products;
         $this->view->projectID = $projectID;
         $this->display();
+    }
+
+    /**
+     * Ajax get stories by productID and projectID.
+     *
+     * @param  int    $productID
+     * @param  int    $projectID
+     * @param  string $status
+     * @param  string $hasParent
+     * @access public
+     * @return void
+     */
+    public function ajaxGetProductStories($productID, $projectID, $status = 'all', $hasParent = 'true')
+    {
+        $products      = $this->product->getProductPairsByProject($projectID);
+        $productIdList = $productID ? $productID : array_keys($products);
+
+        $stories = $this->loadModel('story')->getProductStoryPairs($productIdList, 'all', 0, $status, 'id_desc', 0, 'full', 'story', $hasParent);
+
+        return print(html::select('story', $stories, '', "class='form-control'"));
     }
 
     /**

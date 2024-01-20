@@ -16,11 +16,12 @@ needPing = false;
 $(function()
 {
     var windowBlur = false;
-    if(window.Notification)
+    if(window.Notification && Notification.permission == 'granted')
     {
         window.onblur  = function(){windowBlur = true;}
         window.onfocus = function(){windowBlur = false;}
     }
+
     setInterval(function()
     {
         $.get(createLink('message', 'ajaxGetMessage', "windowBlur=" + (windowBlur ? '1' : '0')), function(data)
@@ -77,5 +78,14 @@ $extHookRule  = $extensionRoot . 'custom/common/ext/view/footer.*.hook.php';
 $extHookFiles = glob($extHookRule);
 if($extHookFiles) foreach($extHookFiles as $extHookFile) include $extHookFile;
 ?>
+<?php if($config->debug > 2 and $config->tabSession): ?>
+<div id="tid" style="position:fixed;right:0;bottom:0;z-index:10000">
+<code class="bg-red">tsid=<?php if(empty($_GET['tid'])) echo session_id(); else echo md5(session_id() . $_GET['tid']);?></code>
+<?php if(!empty($_GET['tid'])): ?>
+<code class="bg-yellow">servertid=<?php echo $_GET['tid'];?></code>
+<?php endif; ?>
+<code class="bg-green">sid=<?php echo session_id();?></code>
+</div>
+<?php endif; ?>
 </body>
 </html>

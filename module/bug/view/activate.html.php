@@ -2,8 +2,8 @@
 /**
  * The activate file of bug module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     bug
  * @version     $Id: activate.html.php 4129 2013-01-18 01:58:14Z wwccss $
@@ -37,7 +37,7 @@
         <?php $this->printExtendFields($bug, 'table');?>
         <tr>
           <th><?php echo $lang->bug->openedBuild;?></th>
-          <td colspan='2'><?php echo html::select('openedBuild[]', $builds, $bug->openedBuild, 'size=4 multiple=multiple class="form-control chosen"');?></td>
+          <td colspan='2'><?php echo html::select('openedBuild[]', $builds, $bug->openedBuild, 'size=4 multiple=multiple class="form-control picker-select"');?></td>
         </tr>
         <tr>
           <th><?php echo $lang->comment;?></th>
@@ -56,4 +56,8 @@
     <div class='main'><?php include '../../common/view/action.html.php';?></div>
   </div>
 </div>
+<?php
+js::set('productID', $bug->product);
+js::set('released', $lang->build->released);
+?>
 <?php include '../../common/view/footer.html.php';?>

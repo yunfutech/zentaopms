@@ -2,7 +2,7 @@
 /**
  * The action module vi file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
  * @license  ZPL (http://zpl.pub/page/zplv12.html)
  * @author   Nguyễn Quốc Nho <quocnho@gmail.com>
  * @package  action
@@ -30,13 +30,16 @@ $lang->action->editComment = 'Sửa nhận xét';
 $lang->action->create      = 'Thêm nhận xét';
 $lang->action->comment     = 'Nhận xét';
 
-$lang->action->trashTips      = 'Ghi chú: Xóa trong ZenTao là hợp lệ.';
-$lang->action->textDiff       = 'Định dạng văn bản';
-$lang->action->original       = 'Định dạng gốc';
-$lang->action->confirmHideAll = 'Bạn có muốn ẩn tất cả ghi nhận này?';
-$lang->action->needEdit       = '%s mà bạn muốn khôi phục. Vui lòng edit it.';
-$lang->action->historyEdit    = 'Lịch sử người cập nhật không thể trống.';
-$lang->action->noDynamic      = 'Không có lịch sử. ';
+$lang->action->trashTips          = 'Ghi chú: Xóa trong ZenTao là hợp lệ.';
+$lang->action->textDiff           = 'Định dạng văn bản';
+$lang->action->original           = 'Định dạng gốc';
+$lang->action->confirmHideAll     = 'Bạn có muốn ẩn tất cả ghi nhận này?';
+$lang->action->needEdit           = '%s mà bạn muốn khôi phục. Vui lòng edit it.';
+$lang->action->historyEdit        = 'Lịch sử người cập nhật không thể trống.';
+$lang->action->noDynamic          = 'Không có lịch sử. ';
+$lang->action->undeletedTips      = 'This data did not participate in the merging process during the version upgrade process, so restore is not supported.';
+$lang->action->executionNoProject = 'The execution does not belong to a project,please restore the project first';
+$lang->action->repoNoServer       = 'The repo does not belong to a server,please restore the server first';
 
 $lang->action->history = new stdclass();
 $lang->action->history->action = 'Liên kết';
@@ -44,6 +47,9 @@ $lang->action->history->field  = 'Trường';
 $lang->action->history->old    = 'Giá trị cũ';
 $lang->action->history->new    = 'Giá trị mới';
 $lang->action->history->diff   = 'So sánh';
+
+$lang->action->refusecase  = 'Before restoring the use case, please restore the scene to which the use case belongs';
+$lang->action->refusescene = ' Before restoring the use case, please restore the parent scene of this scene ';
 
 $lang->action->dynamic = new stdclass();
 $lang->action->dynamic->today      = 'Hôm nay';
@@ -57,49 +63,70 @@ $lang->action->dynamic->all        = 'Tất cả';
 $lang->action->dynamic->hidden     = 'Ẩn';
 $lang->action->dynamic->search     = 'Tìm kiếm';
 
-$lang->action->periods['all']       = $lang->action->dynamic->all;
-$lang->action->periods['today']     = $lang->action->dynamic->today;
-$lang->action->periods['yesterday'] = $lang->action->dynamic->yesterday;
-$lang->action->periods['thisweek']  = $lang->action->dynamic->thisWeek;
-$lang->action->periods['lastweek']  = $lang->action->dynamic->lastWeek;
-$lang->action->periods['thismonth'] = $lang->action->dynamic->thisMonth;
-$lang->action->periods['lastmonth'] = $lang->action->dynamic->lastMonth;
-
-$lang->action->objectTypes['product']     = $lang->productCommon;
-$lang->action->objectTypes['branch']      = 'Nhánh';
-$lang->action->objectTypes['story']       = $lang->SRCommon;
-$lang->action->objectTypes['design']      = 'Design';
-$lang->action->objectTypes['productplan'] = 'Plan';
-$lang->action->objectTypes['release']     = 'Phát hành';
-$lang->action->objectTypes['program']     = 'Program';
-$lang->action->objectTypes['project']     = 'Project';
-$lang->action->objectTypes['execution']   = $lang->executionCommon;
-$lang->action->objectTypes['task']        = 'Nhiệm vụ';
-$lang->action->objectTypes['build']       = 'Bản dựng';
-$lang->action->objectTypes['job']         = 'Job';
-$lang->action->objectTypes['bug']         = 'Bug';
-$lang->action->objectTypes['case']        = 'Tình huống';
-$lang->action->objectTypes['caseresult']  = 'Kết quả tình huống';
-$lang->action->objectTypes['stepresult']  = 'Các bước tình huống';
-$lang->action->objectTypes['caselib']     = 'Thư viện';
-$lang->action->objectTypes['testsuite']   = 'Suite';
-$lang->action->objectTypes['testtask']    = 'Test bản dựng';
-$lang->action->objectTypes['testreport']  = 'Báo cáo';
-$lang->action->objectTypes['doc']         = 'Tài liệu';
-$lang->action->objectTypes['doclib']      = 'Thư viện tài liệu';
-$lang->action->objectTypes['todo']        = 'Việc làm';
-$lang->action->objectTypes['risk']        = 'Risk';
-$lang->action->objectTypes['issue']       = 'Issue';
-$lang->action->objectTypes['module']      = 'Module';
-$lang->action->objectTypes['user']        = 'Người dùng';
-$lang->action->objectTypes['stakeholder'] = 'Stakeholder';
-$lang->action->objectTypes['budget']      = 'Cost Estimate';
-$lang->action->objectTypes['entry']       = 'Entry';
-$lang->action->objectTypes['webhook']     = 'Webhook';
-$lang->action->objectTypes['job']         = 'Job';
-$lang->action->objectTypes['team']        = 'Team';
-$lang->action->objectTypes['whitelist']   = 'Whitelist';
-$lang->action->objectTypes['pipeline']    = 'GitLib';
+$lang->action->objectTypes['product']          = $lang->productCommon;
+$lang->action->objectTypes['branch']           = 'Nhánh';
+$lang->action->objectTypes['story']            = $lang->SRCommon;
+$lang->action->objectTypes['design']           = 'Design';
+$lang->action->objectTypes['productplan']      = 'Plan';
+$lang->action->objectTypes['release']          = 'Phát hành';
+$lang->action->objectTypes['program']          = 'Program';
+$lang->action->objectTypes['project']          = 'Project';
+$lang->action->objectTypes['execution']        = $lang->executionCommon;
+$lang->action->objectTypes['task']             = 'Nhiệm vụ';
+$lang->action->objectTypes['build']            = 'Bản dựng';
+$lang->action->objectTypes['job']              = 'Job';
+$lang->action->objectTypes['bug']              = 'Bug';
+$lang->action->objectTypes['case']             = 'Tình huống';
+$lang->action->objectTypes['caseresult']       = 'Kết quả tình huống';
+$lang->action->objectTypes['stepresult']       = 'Các bước tình huống';
+$lang->action->objectTypes['caselib']          = 'Thư viện';
+$lang->action->objectTypes['testsuite']        = 'Suite';
+$lang->action->objectTypes['testtask']         = 'Test bản dựng';
+$lang->action->objectTypes['testreport']       = 'Báo cáo';
+$lang->action->objectTypes['zahost']           = 'Host';
+$lang->action->objectTypes['zanode']           = 'ZA Node';
+$lang->action->objectTypes['doc']              = 'Tài liệu';
+$lang->action->objectTypes['doclib']           = 'Thư viện tài liệu';
+$lang->action->objectTypes['todo']             = 'Việc làm';
+$lang->action->objectTypes['risk']             = 'Risk';
+$lang->action->objectTypes['issue']            = 'Issue';
+$lang->action->objectTypes['module']           = 'Module';
+$lang->action->objectTypes['user']             = 'Người dùng';
+$lang->action->objectTypes['stakeholder']      = 'Stakeholder';
+$lang->action->objectTypes['budget']           = 'Cost Estimate';
+$lang->action->objectTypes['entry']            = 'Entry';
+$lang->action->objectTypes['webhook']          = 'Webhook';
+$lang->action->objectTypes['job']              = 'Job';
+$lang->action->objectTypes['team']             = 'Team';
+$lang->action->objectTypes['whitelist']        = 'Whitelist';
+$lang->action->objectTypes['pipeline']         = 'GitLib';
+$lang->action->objectTypes['gitlab']           = 'GitLab Server';
+$lang->action->objectTypes['gitea']            = 'Gitea Server';
+$lang->action->objectTypes['gogs']             = 'Gogs Server';
+$lang->action->objectTypes['jenkins']          = 'Jenkins';
+$lang->action->objectTypes['mr']               = 'Merge Request';
+$lang->action->objectTypes['gitlabproject']    = 'GitLab Project';
+$lang->action->objectTypes['gitlabuser']       = 'GitLab User';
+$lang->action->objectTypes['gitlabgroup']      = 'GitLab Group';
+$lang->action->objectTypes['gitlabbranch']     = 'GitLab Branch';
+$lang->action->objectTypes['gitlabbranchpriv'] = 'GitLab Protected Branches';
+$lang->action->objectTypes['gitlabtag']        = 'GitLab Tag';
+$lang->action->objectTypes['gitlabtagpriv']    = 'GitLab Tag Protected';
+$lang->action->objectTypes['giteauser']        = 'Gitea User';
+$lang->action->objectTypes['gogsuser']         = 'Gogs User';
+$lang->action->objectTypes['kanbanspace']      = 'Kanban Space';
+$lang->action->objectTypes['kanban']           = 'Kanban';
+$lang->action->objectTypes['kanbanregion']     = 'Kanban Region';
+$lang->action->objectTypes['kanbanlane']       = 'Kanban Lane';
+$lang->action->objectTypes['kanbancolumn']     = 'Kanban Column';
+$lang->action->objectTypes['kanbancard']       = 'Kanban Card';
+$lang->action->objectTypes['sonarqube']        = 'SonarQube Server';
+$lang->action->objectTypes['sonarqubeproject'] = 'SonarQube Project';
+$lang->action->objectTypes['stage']            = 'Stage';
+$lang->action->objectTypes['patch']            = 'Patch';
+$lang->action->objectTypes['repo']             = 'Repo';
+$lang->action->objectTypes['dataview']         = 'Data View';
+$lang->action->objectTypes['scene']            = 'Scene';
 
 /* Used to describe operation history. */
 $lang->action->desc = new stdclass();
@@ -153,6 +180,14 @@ $lang->action->desc->run             = '$date, by <strong>$actor</strong> execut
 $lang->action->desc->syncprogram     = '$date, started by <strong>$actor</strong>(starting the project sets the program status as Ongoing).' . "\n";
 $lang->action->desc->syncproject     = '$date, starting the execution sets the project status as Ongoing.' . "\n";
 $lang->action->desc->syncexecution   = '$date, starting the task sets the execution status as Ongoing.' . "\n";
+$lang->action->desc->reopen          = '$date, reopened by <strong>$actor</strong> .' . "\n";
+$lang->action->desc->merged          = '$date, merged by <strong>$actor</strong> .' . "\n";
+$lang->action->desc->submitreview    = '$date, submitted for review by <strong>$actor</strong>.' . "\n";
+$lang->action->desc->suspend         = '$date, the ZenAgent Node is suspended by <strong>$actor</strong> .' . "\n";
+$lang->action->desc->resume          = '$date, the ZenAgent Node is resumed by <strong>$actor</strong> .' . "\n";
+$lang->action->desc->reboot          = '$date, the ZenAgent Node is reboot by <strong>$actor</strong> .' . "\n";
+$lang->action->desc->destroy         = '$date, the ZenAgent Node is destroyed by <strong>$actor</strong> .' . "\n";
+$lang->action->desc->boot            = '$date, the ZenAgent Node is boot by <strong>$actor</strong> .' . "\n";
 
 /* Used to describe the history of operations related to parent-child tasks. */
 $lang->action->desc->createchildren     = '$date, <strong>$actor</strong> created a child task <strong>$extra</strong>。' . "\n";
@@ -198,6 +233,7 @@ $lang->action->label->blocked               = 'blocked ';
 $lang->action->label->resolved              = 'resolved ';
 $lang->action->label->reviewed              = 'reviewed ';
 $lang->action->label->recalled              = 'recalled';
+$lang->action->label->recalledchange        = 'undo changes';
 $lang->action->label->moved                 = 'moved ';
 $lang->action->label->confirmed             = 'confirmed Story ';
 $lang->action->label->bugconfirmed          = 'Đã xác nhận';
@@ -218,6 +254,8 @@ $lang->action->label->unlinkedfromproject   = "Unlink Project";
 $lang->action->label->unlinkedfrombuild     = "hủy liên kết Bản dựng ";
 $lang->action->label->linked2release        = "liên kết Phát hành ";
 $lang->action->label->unlinkedfromrelease   = "hủy liên kết Release ";
+$lang->action->label->linked2revision       = "Link Revision";
+$lang->action->label->unlinkedfromrevision  = "Unlink Revision";
 $lang->action->label->linkrelatedbug        = "linked Bug ";
 $lang->action->label->unlinkrelatedbug      = "hủy liên kết Bug ";
 $lang->action->label->linkrelatedcase       = "linked Case ";
@@ -273,6 +311,15 @@ $lang->action->label->syncprogram           = 'start';
 $lang->action->label->syncproject           = 'start';
 $lang->action->label->syncexecution         = 'start';
 $lang->action->label->startProgram          = '(The start of the project sets the status of the program as Ongoing)';
+$lang->action->label->submitreview          = 'submitted';
+$lang->action->label->suspend               = 'suspended';
+$lang->action->label->resume                = 'resumed';
+$lang->action->label->reboot                = 'reboot';
+$lang->action->label->boot                  = 'boot';
+$lang->action->label->destroy               = 'destroyed';
+$lang->action->label->synctwins             = 'synchronized changes';
+$lang->action->label->linkedrepo            = 'Linked Code Repo';
+$lang->action->label->unlinkedrepo          = 'Unlinked Code Repo';
 
 /* Dynamic information is grouped by object. */
 $lang->action->dynamicAction                    = new stdclass;
@@ -328,6 +375,8 @@ $lang->action->dynamicAction->story['linked2plan']           = 'Liên kết Stor
 $lang->action->dynamicAction->story['unlinkedfromplan']      = 'Hủy liên kết Story from kế hoạch';
 $lang->action->dynamicAction->story['linked2release']        = 'Liên kết Story to phát hành';
 $lang->action->dynamicAction->story['unlinkedfromrelease']   = 'Hủy liên kết Story from kế hoạch';
+$lang->action->dynamicAction->story['linked2revision']       = 'Link Stroy to Revision';
+$lang->action->dynamicAction->story['unlinkedfromrevision']  = 'Unlink Stroy from Revision';
 $lang->action->dynamicAction->story['linked2build']          = 'Liên kết Story to bản dựng';
 $lang->action->dynamicAction->story['unlinkedfrombuild']     = 'Hủy liên kết Story from bản dựng';
 $lang->action->dynamicAction->story['unlinkedfromproject']   = 'Hủy liên kết Project';
@@ -352,58 +401,63 @@ $lang->action->dynamicAction->execution['moved']     = 'Nhập nhiệm vụ';
 
 $lang->action->dynamicAction->team['managedTeam'] = 'Manage Team';
 
-$lang->action->dynamicAction->task['opened']              = 'Tạo nhiệm vụ';
-$lang->action->dynamicAction->task['edited']              = 'Sửa nhiệm vụ';
-$lang->action->dynamicAction->task['commented']           = 'Task nhận xét';
-$lang->action->dynamicAction->task['assigned']            = 'Bàn giao nhiệm vụ';
-$lang->action->dynamicAction->task['confirmed']           = 'Xác nhận nhiệm vụ';
-$lang->action->dynamicAction->task['started']             = 'Bắt đầu nhiệm vụ';
-$lang->action->dynamicAction->task['finished']            = 'Nhiệm vụ hoàn thành';
-$lang->action->dynamicAction->task['recordestimate']      = 'Thêm dự tính';
-$lang->action->dynamicAction->task['editestimate']        = 'Sửa dự tính';
-$lang->action->dynamicAction->task['deleteestimate']      = 'Xóa dự tính';
-$lang->action->dynamicAction->task['paused']              = 'Pause nhiệm vụ';
-$lang->action->dynamicAction->task['closed']              = 'Đóng nhiệm vụ';
-$lang->action->dynamicAction->task['canceled']            = 'Hủy nhiệm vụ';
-$lang->action->dynamicAction->task['activated']           = 'Kích hoạt nhiệm vụ';
-$lang->action->dynamicAction->task['createchildren']      = 'Tạo Nhiệm vụ con';
-$lang->action->dynamicAction->task['unlinkparenttask']    = 'Hủy liên kết Nhiệm vụ mẹ';
-$lang->action->dynamicAction->task['deletechildrentask']  = 'Xóa children nhiệm vụ';
-$lang->action->dynamicAction->task['linkparenttask']      = 'Liên kết Nhiệm vụ mẹ';
-$lang->action->dynamicAction->task['linkchildtask']       = 'Liên kết Nhiệm vụ con';
-$lang->action->dynamicAction->task['createchildrenstory'] = 'Tạo Câu chuyện con';
-$lang->action->dynamicAction->task['unlinkparentstory']   = 'Hủy liên kết Parent câu chuyện';
-$lang->action->dynamicAction->task['deletechildrenstory'] = 'Xóa children story';
-$lang->action->dynamicAction->task['linkparentstory']     = 'Liên kết Parent câu chuyện';
-$lang->action->dynamicAction->task['linkchildstory']      = 'Liên kết Câu chuyện con';
-$lang->action->dynamicAction->task['undeleted']           = 'Khôi phục nhiệm vụ';
-$lang->action->dynamicAction->task['hidden']              = 'Ẩn nhiệm vụ';
-$lang->action->dynamicAction->task['svncommited']         = 'SVN Commit';
-$lang->action->dynamicAction->task['gitcommited']         = 'GIT Commit';
+$lang->action->dynamicAction->task['opened']               = 'Tạo nhiệm vụ';
+$lang->action->dynamicAction->task['edited']               = 'Sửa nhiệm vụ';
+$lang->action->dynamicAction->task['commented']            = 'Task nhận xét';
+$lang->action->dynamicAction->task['assigned']             = 'Bàn giao nhiệm vụ';
+$lang->action->dynamicAction->task['confirmed']            = 'Xác nhận nhiệm vụ';
+$lang->action->dynamicAction->task['started']              = 'Bắt đầu nhiệm vụ';
+$lang->action->dynamicAction->task['finished']             = 'Nhiệm vụ hoàn thành';
+$lang->action->dynamicAction->task['recordestimate']       = 'Thêm dự tính';
+$lang->action->dynamicAction->task['editestimate']         = 'Sửa dự tính';
+$lang->action->dynamicAction->task['deleteestimate']       = 'Xóa dự tính';
+$lang->action->dynamicAction->task['paused']               = 'Pause nhiệm vụ';
+$lang->action->dynamicAction->task['closed']               = 'Đóng nhiệm vụ';
+$lang->action->dynamicAction->task['canceled']             = 'Hủy nhiệm vụ';
+$lang->action->dynamicAction->task['activated']            = 'Kích hoạt nhiệm vụ';
+$lang->action->dynamicAction->task['createchildren']       = 'Tạo Nhiệm vụ con';
+$lang->action->dynamicAction->task['unlinkparenttask']     = 'Hủy liên kết Nhiệm vụ mẹ';
+$lang->action->dynamicAction->task['deletechildrentask']   = 'Xóa children nhiệm vụ';
+$lang->action->dynamicAction->task['linkparenttask']       = 'Liên kết Nhiệm vụ mẹ';
+$lang->action->dynamicAction->task['linkchildtask']        = 'Liên kết Nhiệm vụ con';
+$lang->action->dynamicAction->task['createchildrenstory']  = 'Tạo Câu chuyện con';
+$lang->action->dynamicAction->task['unlinkparentstory']    = 'Hủy liên kết Parent câu chuyện';
+$lang->action->dynamicAction->task['deletechildrenstory']  = 'Xóa children story';
+$lang->action->dynamicAction->task['linkparentstory']      = 'Liên kết Parent câu chuyện';
+$lang->action->dynamicAction->task['linkchildstory']       = 'Liên kết Câu chuyện con';
+$lang->action->dynamicAction->task['undeleted']            = 'Khôi phục nhiệm vụ';
+$lang->action->dynamicAction->task['hidden']               = 'Ẩn nhiệm vụ';
+$lang->action->dynamicAction->task['svncommited']          = 'SVN Commit';
+$lang->action->dynamicAction->task['gitcommited']          = 'GIT Commit';
+$lang->action->dynamicAction->task['linked2revision']      = 'Link Task to Revision';
+$lang->action->dynamicAction->task['unlinkedfromrevision'] = 'Unlink Task from Revision';
 
 $lang->action->dynamicAction->build['opened']  = 'Tạo bản dựng';
 $lang->action->dynamicAction->build['edited']  = 'Sửa bản dựng';
 $lang->action->dynamicAction->build['deleted'] = 'Delete Build';
 
-$lang->action->dynamicAction->bug['opened']              = 'Báo cáo Bug';
-$lang->action->dynamicAction->bug['edited']              = 'Sửa Bug';
-$lang->action->dynamicAction->bug['activated']           = 'Kích hoạt Bug';
-$lang->action->dynamicAction->bug['assigned']            = 'Bàn giao Bug';
-$lang->action->dynamicAction->bug['closed']              = 'Đóng Bug';
-$lang->action->dynamicAction->bug['bugconfirmed']        = 'Xác nhận Bug';
-$lang->action->dynamicAction->bug['resolved']            = 'Giải quyết Bug';
-$lang->action->dynamicAction->bug['undeleted']           = 'Khôi phục Bug';
-$lang->action->dynamicAction->bug['hidden']              = 'Ẩn Bug';
-$lang->action->dynamicAction->bug['deleted']             = 'Xóa tìBug';
-$lang->action->dynamicAction->bug['confirmed']           = 'Xác nhận thay đổi câu chuyện';
-$lang->action->dynamicAction->bug['tostory']             = 'Chuyển thành câu chuyện';
-$lang->action->dynamicAction->bug['totask']              = 'Chuyển thành nhiệm vụ';
-$lang->action->dynamicAction->bug['linked2plan']         = 'Liên kết kế hoạch';
-$lang->action->dynamicAction->bug['unlinkedfromplan']    = 'Hủy liên kết kế hoạch';
-$lang->action->dynamicAction->bug['linked2release']      = 'Liên kết phát hành';
-$lang->action->dynamicAction->bug['unlinkedfromrelease'] = 'Hủy liên kết kế hoạch';
-$lang->action->dynamicAction->bug['linked2bug']          = 'Liên kết bản dựng';
-$lang->action->dynamicAction->bug['unlinkedfrombuild']   = 'Hủy liên kết bản dựng';
+$lang->action->dynamicAction->bug['opened']               = 'Báo cáo Bug';
+$lang->action->dynamicAction->bug['edited']               = 'Sửa Bug';
+$lang->action->dynamicAction->bug['activated']            = 'Kích hoạt Bug';
+$lang->action->dynamicAction->bug['assigned']             = 'Bàn giao Bug';
+$lang->action->dynamicAction->bug['closed']               = 'Đóng Bug';
+$lang->action->dynamicAction->bug['bugconfirmed']         = 'Xác nhận Bug';
+$lang->action->dynamicAction->bug['resolved']             = 'Giải quyết Bug';
+$lang->action->dynamicAction->bug['undeleted']            = 'Khôi phục Bug';
+$lang->action->dynamicAction->bug['hidden']               = 'Ẩn Bug';
+$lang->action->dynamicAction->bug['deleted']              = 'Xóa tìBug';
+$lang->action->dynamicAction->bug['confirmed']            = 'Xác nhận thay đổi câu chuyện';
+$lang->action->dynamicAction->bug['tostory']              = 'Chuyển thành câu chuyện';
+$lang->action->dynamicAction->bug['totask']               = 'Chuyển thành nhiệm vụ';
+$lang->action->dynamicAction->bug['linked2plan']          = 'Liên kết kế hoạch';
+$lang->action->dynamicAction->bug['unlinkedfromplan']     = 'Hủy liên kết kế hoạch';
+$lang->action->dynamicAction->bug['linked2release']       = 'Liên kết phát hành';
+$lang->action->dynamicAction->bug['unlinkedfromrelease']  = 'Hủy liên kết kế hoạch';
+$lang->action->dynamicAction->bug['linked2release']       = 'Link Revision';
+$lang->action->dynamicAction->bug['linked2bug']           = 'Liên kết bản dựng';
+$lang->action->dynamicAction->bug['unlinkedfrombuild']    = 'Hủy liên kết bản dựng';
+$lang->action->dynamicAction->bug['linked2revision']      = 'Link Bug to Revision';
+$lang->action->dynamicAction->bug['unlinkedfromrevision'] = 'Unlink Bug from Revision';
 
 $lang->action->dynamicAction->testtask['opened']    = 'Tạo Yêu cầu Test';
 $lang->action->dynamicAction->testtask['edited']    = 'Sửa Yêu cầu Test';
@@ -439,6 +493,15 @@ $lang->action->dynamicAction->caselib['deleted']   = 'Xóa Case Lib';
 $lang->action->dynamicAction->caselib['undeleted'] = 'Khôi phục Case Lib';
 $lang->action->dynamicAction->caselib['hidden']    = 'Ẩn Case Lib';
 
+$lang->action->dynamicAction->zahost['created'] = 'Create Host';
+
+$lang->action->dynamicAction->zanode['created'] = 'Create Zagent Node';
+$lang->action->dynamicAction->zanode['suspend'] = 'Suspend Zagent Node';
+$lang->action->dynamicAction->zanode['resume']  = 'Resume Zagent Node';
+$lang->action->dynamicAction->zanode['reboot']  = 'Reboot Zagent Node';
+$lang->action->dynamicAction->zanode['boot']    = 'Boot Zagent Node';
+$lang->action->dynamicAction->zanode['destroy'] = 'Destory Zagent Node';
+
 $lang->action->dynamicAction->doclib['created'] = 'Tạo Doc thư viện';
 $lang->action->dynamicAction->doclib['edited']  = 'Sửa Doc thư viện';
 $lang->action->dynamicAction->doclib['deleted'] = 'Delete Doc Library';
@@ -462,6 +525,39 @@ $lang->action->dynamicAction->user['loginxuanxuan'] = 'Login Desktop';
 $lang->action->dynamicAction->entry['created'] = 'Thêm ứng dụng';
 $lang->action->dynamicAction->entry['edited']  = 'Sửa ứng dụng';
 
+$lang->action->dynamicAction->job['created']   = 'Create Job';
+$lang->action->dynamicAction->job['edited']    = 'Edit Job';
+$lang->action->dynamicAction->job['executed']  = 'Execute Job';
+$lang->action->dynamicAction->job['deleted']   = 'Delete Job';
+$lang->action->dynamicAction->job['undeleted'] = 'Undelete Job';
+
+$lang->action->dynamicAction->sonarqube['created']   = 'Create SonarQube Server';
+$lang->action->dynamicAction->sonarqube['edited']    = 'Edit SonarQube Server';
+$lang->action->dynamicAction->sonarqube['deleted']   = 'Delete SonarQube Server';
+$lang->action->dynamicAction->sonarqube['undeleted'] = 'Undelete SonarQube Server';
+
+$lang->action->dynamicAction->sonarqubeproject['deleted'] = 'Delete SonarQube Project';
+
+$lang->action->dynamicAction->gitlab['created']   = 'Create GitLab Server';
+$lang->action->dynamicAction->gitlab['edited']    = 'Edit GitLab Server';
+$lang->action->dynamicAction->gitlab['deleted']   = 'Delete GitLab Server';
+$lang->action->dynamicAction->gitlab['undeleted'] = 'Undelete GitLab Server';
+
+$lang->action->dynamicAction->gitea['created']   = 'Create Gitea Server';
+$lang->action->dynamicAction->gitea['edited']    = 'Edit Gitea Server';
+$lang->action->dynamicAction->gitea['deleted']   = 'Delete Gitea Server';
+$lang->action->dynamicAction->gitea['undeleted'] = 'Undelete Gitea Server';
+
+$lang->action->dynamicAction->gogs['created']   = 'Create Gogs Server';
+$lang->action->dynamicAction->gogs['edited']    = 'Edit Gogs Server';
+$lang->action->dynamicAction->gogs['deleted']   = 'Delete Gogs Server';
+$lang->action->dynamicAction->gogs['undeleted'] = 'Undelete Gogs Server';
+
+$lang->action->dynamicAction->repo['created']   = 'Create Repo';
+$lang->action->dynamicAction->repo['edited']    = 'Edit Repo';
+$lang->action->dynamicAction->repo['deleted']   = 'Delete Repo';
+$lang->action->dynamicAction->repo['undeleted'] = 'Undelete Repo';
+
 /* Generate the corresponding object link. */
 global $config;
 $lang->action->label->product     = $lang->productCommon . '|product|view|productID=%s';
@@ -470,14 +566,7 @@ $lang->action->label->release     = 'Phát hành|release|view|productID=%s';
 $lang->action->label->story       = 'Câu chuyện|story|view|storyID=%s';
 $lang->action->label->program     = "Program|program|pgmproduct|programID=%s";
 $lang->action->label->project     = "Project|program|index|projectID=%s";
-if($config->systemMode == 'new')
-{
-    $lang->action->label->execution = "Execution|execution|task|executionID=%s";
-}
-else
-{
-    $lang->action->label->execution = "$lang->executionCommon|execution|task|executionID=%s";
-}
+$lang->action->label->execution   = "Execution|execution|task|executionID=%s";
 $lang->action->label->task        = 'Nhiệm vụ|task|view|taskID=%s';
 $lang->action->label->build       = 'Bản dựng|build|view|buildID=%s';
 $lang->action->label->bug         = 'Bug|bug|view|bugID=%s';

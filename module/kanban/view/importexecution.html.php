@@ -2,8 +2,8 @@
 /**
  * The import execution view of kanban module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2022 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2022 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Qiyu Xie<xieqiyu@cnezsoft.com>
  * @package     kanban
  * @version     $Id: importexecution.html.php 5090 2022-01-19 14:19:24Z xieqiyu@cnezsoft.com $
@@ -16,6 +16,9 @@
 <?php js::set('groupID', $groupID);?>
 <?php js::set('columnID', $columnID);?>
 <?php js::set('methodName', $this->app->rawMethod);?>
+<?php if(count($executions2Imported) <= 3):?>
+<style>#importExecutionForm, .table-empty-tip {margin-bottom: 120px}</style>
+<?php endif;?>
 <div id='mainContent' class='main-content importModal'>
   <div class='center-block'>
     <div class='main-header'>
@@ -23,10 +26,8 @@
     </div>
   </div>
   <div class='input-group space'>
-    <?php if($config->systemMode == 'new'):?>
     <span class='input-group-addon'><?php echo $lang->kanban->selectedProject;?></span>
     <?php echo html::select('project', $projects, $selectedProjectID, "onchange='reloadObjectList(this.value)' class='form-control chosen' data-drop_direction='down'");?>
-    <?php endif;?>
     <span class='input-group-addon'><?php echo $lang->kanban->selectedLane;?></span>
     <?php echo html::select('lane', $lanePairs, '', "onchange='setTargetLane(this.value)' class='form-control chosen' data-drop_direction='down'");?>
   </div>
@@ -61,11 +62,19 @@
             <?php printf('%03d', $execution->id);?>
           </td>
           <?php if(common::hasPriv('execution', 'view')):?>
-          <td title='<?php echo $execution->name;?>'>
+          <?php
+          $isClickable = true;
+          if($execution->type == 'stage') $isClickable = $this->programplan->checkLeafStage($execution->id) ? true : false;
+          ?>
+          <td title='<?php echo $execution->title;?>'>
+            <?php if($isClickable):?>
             <a href='javascript:void(0);' onclick="locateView('execution', <?php echo $execution->id;?>)"><?php echo $execution->name;?></a>
+            <?php else:?>
+            <?php echo $execution->name;?>
+            <?php endif;?>
           </td>
           <?php else:?>
-          <td title='<?php echo $execution->name;?>'><?php echo $execution->name;?></td>
+          <td title='<?php echo $execution->title;?>'><?php echo $execution->name;?></td>
           <?php endif;?>
           <td title='<?php echo zget($lang->execution->statusList, $execution->status);?>'><?php echo zget($lang->execution->statusList, $execution->status);?></td>
           <td title='<?php echo zget($users, $execution->PM);?>'><?php echo zget($users, $execution->PM);?></td>
@@ -88,7 +97,7 @@
   <div class='table-empty-tip'><?php echo $lang->noData;?></div>
   <?php endif;?>
 </div>
-<?php if($config->systemMode == 'classic'):?>
+<?php if($config->systemMode == 'light'):?>
 <style>.input-group {width: 45% !important}</style>
 <?php else:?>
 <style>#project_chosen {width: 45% !important}</style>

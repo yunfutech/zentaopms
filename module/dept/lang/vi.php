@@ -2,7 +2,7 @@
 /**
  * The dept module English file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
  * @license  ZPL (http://zpl.pub/page/zplv12.html)
  * @author   Nguyễn Quốc Nho <quocnho@gmail.com>
  * @package  dept
@@ -26,6 +26,7 @@ $lang->dept->dragAndSort = "Drag để sắp xếp";
 
 $lang->dept->confirmDelete = " Bạn có muốn xóa this department?";
 $lang->dept->successSave   = " Saved!";
+$lang->dept->repeatDepart  = " Có một tên bộ phận trùng lặp, bạn có chắc chắn thêm nó không?";
 
 $lang->dept->error = new stdclass();
 $lang->dept->error->hasSons  = 'This Department has child departments. You cannot xóa it!';

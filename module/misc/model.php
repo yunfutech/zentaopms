@@ -1,8 +1,8 @@
 <?php
 /**
  * The model file of misc module of ZenTaoPMS.
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     misc
  * @version     $Id: model.php 4129 2013-01-18 01:58:14Z wwccss $
@@ -62,6 +62,31 @@ class miscModel extends model
     }
 
     /**
+     * Get the notification information about plugin expiration.
+     *
+     * @access public
+     * @return void
+     */
+    public function getPluginRemind()
+    {
+        $plugins = $this->loadModel('extension')->getExpiringPlugins();
+        $remind  = '';
+
+        $today = helper::today();
+        $showPluginRemind = (empty($this->config->global->showPluginRemind) or $this->config->global->showPluginRemind != $today) ? true : false;
+        if(!empty($plugins) and $this->app->user->admin and $showPluginRemind)
+        {
+            $pluginButton = html::a(helper::createLink('extension', 'browse'), $this->lang->misc->view, '', "id='pluginButton' class='btn btn-primary btn-wide' data-app='admin'");
+            $cancelButton = html::a('javascript: void(0);', $this->lang->misc->cancel, '', "id='cancelButton' class='btn btn-back btn-wide'");
+            $remind  = '<p>' . sprintf($this->lang->misc->expiredTipsForAdmin, count($plugins)) . '</p>';
+            $remind .= '<p class="text-right">' . $pluginButton . $cancelButton . '</p>';
+
+            $this->loadModel('setting')->setItem("{$this->app->user->account}.common.global.showPluginRemind", $today);
+        }
+        return $remind;
+    }
+
+    /**
      * Check one click package.
      *
      * @access public
@@ -70,18 +95,10 @@ class miscModel extends model
     public function checkOneClickPackage()
     {
         $weakSites = array();
-        if(strpos('|/zentao/|/pro/|/biz/|', "|{$this->config->webRoot}|") !== false)
+        if(strpos('|/zentao/|/biz/|/max/|', "|{$this->config->webRoot}|") !== false)
         {
-            $databases = array('zentao' => 'zentao', 'zentaopro' => 'zentaopro', 'zentaobiz' => 'zentaobiz', 'zentaoep' => 'zentaoep');
-            if($this->config->webRoot == '/zentao/') unset($databases['zentao']);
-            if($this->config->webRoot == '/pro/') unset($databases['zentaopro']);
-            if($this->config->webRoot == '/biz/')
-            {
-                unset($databases['zentaobiz']);
-                unset($databases['zentaoep']);
-            }
-
-            $basePath = dirname($this->app->getBasePath());
+            $databases = array('zentao' => 'zentao', 'zentaobiz' => 'zentaobiz', 'zentaoep' => 'zentaoep', 'zentaomax' => 'zentaomax');
+            $basePath  = dirname($this->app->getBasePath());
             foreach($databases as $database)
             {
                 $zentaoDirName = $database;
@@ -89,19 +106,18 @@ class miscModel extends model
                 {
                     if($zentaoDirName == 'zentaobiz' and !is_dir($basePath . '/zentaoep')) continue;
                     if($zentaoDirName == 'zentaoep' and !is_dir($basePath . '/zentaobiz')) continue;
-                    if($zentaoDirName == 'zentao' or $zentaoDirName == 'zentaopro') continue;
+                    if($zentaoDirName == 'zentao' or $zentaoDirName == 'zentaomax') continue;
 
                     if($zentaoDirName == 'zentaobiz') $zentaoDirName = 'zentaoep';
-                    if($zentaoDirName == 'zentaoep')  $zentaoDirName = 'zentaobiz';
                 }
 
                 try
                 {
                     $webRoot = "/{$database}/";
                     if($database == 'zentao')    $webRoot = '/zentao/';
-                    if($database == 'zentaopro') $webRoot = '/pro/';
                     if($database == 'zentaobiz') $webRoot = '/biz/';
                     if($database == 'zentaoep')  $webRoot = '/biz/';
+                    if($database == 'zentaomax') $webRoot = '/max/';
 
                     $user = $this->dbh->query("select * from {$database}.`zt_user` where account = 'admin' and password='" . md5('123456') . "'")->fetch();
                     if($user)

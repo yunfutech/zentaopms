@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 include dirname(dirname(dirname(__FILE__))) . '/lib/init.php';
 su('admin');
@@ -7,6 +8,11 @@ su('admin');
 title=测试 storyModel->getStories2Link();
 cid=1
 pid=1
+
+获取需求1可关联的需求数量 >> 2
+获取需求2可关联的需求数量 >> 2
+获取需求1可关联的需求id、product >> story,1
+获取需求2可关联的需求id、product >> requirement,1
 
 */
 

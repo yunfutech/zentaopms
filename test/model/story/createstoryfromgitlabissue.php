@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 include dirname(dirname(dirname(__FILE__))) . '/lib/init.php';
 include dirname(dirname(dirname(__FILE__))) . '/class/story.class.php';
@@ -8,6 +9,10 @@ su('admin');
 title=测试 storyModel->createStoryFromGitlabIssue();
 cid=1
 pid=1
+
+创建正常的需求，获取创建后的id、title、stage、product >> 401,测试需求1,projected,1
+需求名称为空，给出提示 >> 『研发需求名称』不能为空。
+创建正常的需求，获取创建后的id、title、stage、product >> 402,测试需求3,projected,2
 
 */
 
@@ -34,4 +39,3 @@ $result3 = $story->createStoryFromGitlabIssueTest($story3, 0);
 r($result1) && p('id,title,stage,product') && e('401,测试需求1,projected,1');  //创建正常的需求，获取创建后的id、title、stage、product
 r($result2) && p('title:0')                && e('『研发需求名称』不能为空。'); //需求名称为空，给出提示
 r($result3) && p('id,title,stage,product') && e('402,测试需求3,projected,2');  //创建正常的需求，获取创建后的id、title、stage、product
-system("./ztest init");

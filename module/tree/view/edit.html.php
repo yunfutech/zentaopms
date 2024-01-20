@@ -2,8 +2,8 @@
 /**
  * The edit view of tree module of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     tree
  * @version     $Id: edit.html.php 4795 2013-06-04 05:59:58Z zhujinyonging@gmail.com $
@@ -23,7 +23,12 @@ if(isset($pageCSS)) css::internal($pageCSS);
       <strong>
         <?php
         $lblEditTree = $lang->tree->edit;
-        if($type == 'doc') $lblEditTree = $lang->doc->editType;
+        $required    = '';
+        if($type == 'doc' or $type == 'api')
+        {
+            $lblEditTree = $lang->tree->editDir;
+            $required    = 'root,name';
+        }
         if($type == 'line') $lblEditTree = $lang->tree->manageLine;
         echo $lblEditTree;
         ?>
@@ -31,17 +36,17 @@ if(isset($pageCSS)) css::internal($pageCSS);
     </h4>
   </div>
   <div class='modal-body'>
-    <form action="<?php echo inlink('edit', 'module=' . $module->id .'&type=' .$type);?>" target='hiddenwin' method='post' class='mt-10px' id='dataform'>
+    <form action="<?php echo helper::createLink($app->rawModule, $app->rawMethod, 'module=' . $module->id .'&type=' .$type);?>" target='hiddenwin' method='post' class='mt-10px' id='dataform'>
       <table class='table table-form'>
         <?php if($showProduct):?>
-        <tr>
+        <tr class="<?php if($hiddenProduct) echo 'hidden';?>">
           <th class='thWidth'><?php echo $lang->tree->product;?></th>
           <td>
             <div class='input-group'>
               <?php echo html::select('root', $products, $module->root, "class='form-control chosen' onchange='loadBranches(this)'");?>
               <?php if($product->type != 'normal'):?>
               <span class='input-group-addon fix-border fix-padding'></span>
-              <?php echo html::select('branch', $branches, $module->branch, "class='form-control chosen control-branch'");?>
+              <?php echo html::select('branch', $branches, $module->branch, "class='form-control chosen control-branch' onchange='loadModules(this)'");?>
               </div>
               <?php endif;?>
             </div>
@@ -52,25 +57,29 @@ if(isset($pageCSS)) css::internal($pageCSS);
         <?php if($type == 'doc'):?>
         <tr>
           <th class='thWidth'><?php echo $lang->doc->lib;?></th>
-          <td><?php echo html::select('root', $libs, $module->root, "class='form-control chosen'");?></td>
+          <td class="<?php if(strpos($required, 'root') !== false) echo 'required';?>"><?php echo html::select('root', $libs, $module->root, "class='form-control chosen'");?></td>
         </tr>
         <?php endif;?>
         <?php if($module->type != 'line'):?>
         <tr <?php if($hidden) echo "style='display:none'";?>>
-          <th class='thWidth'><?php echo ($type == 'doc' || $type == 'feedback') ? $lang->tree->parentCate : $lang->tree->parent;?></th>
-          <td><?php echo html::select('parent', $optionMenu, $module->parent, "class='form-control chosen'");?></td>
+          <th class='thWidth'><?php echo ($type == 'doc' or $type == 'api') ? $lang->tree->parentCate : $lang->tree->parent;?></th>
+          <td>
+            <div class='input-group' id='moduleIdBox'>
+              <?php echo html::select('parent', $optionMenu, $module->parent, "class='form-control chosen'");?>
+            </div>
+          </td>
         </tr>
         <?php endif;?>
         <tr <?php if($hidden) echo "style='display:none'";?>>
           <th class='thWidth'>
             <?php
             $lblTreeName = $lang->tree->name;
-            if($type == 'doc' || $type == 'feedback') $lblTreeName = $lang->tree->cate;
+            if($type == 'doc' or $type == 'api') $lblTreeName = $lang->tree->dir;
             if($type == 'line') $lblTreeName = $lang->tree->line;
             echo $lblTreeName;
             ?>
           </th>
-          <td><?php echo html::input('name', $module->name, "class='form-control'");?></td>
+          <td class="<?php if(strpos($required, 'name') !== false) echo 'required';?>"><?php echo html::input('name', $module->name, "class='form-control'");?></td>
         </tr>
         <?php if($type == 'bug'):?>
         <tr>
@@ -160,14 +169,39 @@ function loadBranches(obj)
     var $inputGroup = $(obj).closest('.input-group');
     $inputGroup.find('#branch').remove();
     $inputGroup.find('#branch_chosen').remove();
-    $.get(createLink('branch', 'ajaxGetBranches', "productID=" + productID), function(data)
+    $.get(createLink('branch', 'ajaxGetBranches', "productID=" + productID + "&oldBranch=0&param=withClosed"), function(data)
     {
         if(data)
         {
             $inputGroup.append(data);
             $inputGroup.find('#branch').removeAttr('onchange');
+            $inputGroup.find('#branch').attr('onchange', 'loadModules(this)');
             $inputGroup.find('#branch').chosen();
         }
     })
+}
+
+/**
+ * Load modules by product and branch.
+ *
+ * @param  obj $branch
+ * @access public
+ * @return void
+ */
+function loadModules(branch)
+{
+    var productID = $('#root').val();
+    var branchID  = $(branch).val();
+    var moduleID  = $('#parent').val();
+
+    if(typeof(branchID) == 'undefined') branchID = 0;
+    if(typeof(moduleID) == 'undefined') moduleID = 0;
+
+    link = createLink('tree', 'ajaxGetOptionMenu', 'productID=' + productID + '&viewtype=' + type + '&branch=' + branchID + '&rootModuleID=0&returnType=html&fieldID=&needManage=false&extra=excludeModuleID=' + <?php echo $module->id;?> + ',noMainBranch,nodeleted&currentModuleID=' + moduleID);
+    $('#moduleIdBox').load(link, function()
+    {
+        $(this).children('select').attr('id', 'parent').attr('name', 'parent');
+        $(this).find('select').chosen()
+    });
 }
 </script>

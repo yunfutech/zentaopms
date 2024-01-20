@@ -2,8 +2,8 @@
 /**
  * The control file of backup of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青岛易软天创网络科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
- * @license     ZPL (http://zpl.pub/page/zplv12.html)
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Yidong Wang <yidong@cnezsoft.com>
  * @package     backup
  * @version     $Id$
@@ -93,12 +93,12 @@ class backup extends control
         $backFileName = "{$this->backupPath}{$fileName}.sql";
         if(!$nosafe) $backFileName .= '.php';
         $result = $this->backup->backSQL($backFileName);
+
         if(!$result->result)
         {
             if($reload == 'yes')
             {
-                echo js::alert(sprintf($this->lang->backup->error->noWritable, $this->backupPath));
-                return print(js::reload('parent'));
+                return print(sprintf($this->lang->backup->error->noWritable, $this->backupPath));
             }
             else
             {
@@ -112,12 +112,12 @@ class backup extends control
             $backFileName = "{$this->backupPath}{$fileName}.file";
 
             $result = $this->backup->backFile($backFileName);
+
             if(!$result->result)
             {
                 if($reload == 'yes')
                 {
-                    echo js::alert(sprintf($this->lang->backup->error->backupFile, $result->error));
-                    return print(js::reload('parent'));
+                    return print(sprintf($this->lang->backup->error->backupFile, $result->error));
                 }
                 else
                 {
@@ -132,8 +132,7 @@ class backup extends control
             {
                 if($reload == 'yes')
                 {
-                    echo js::alert(sprintf($this->lang->backup->error->backupCode, $result->error));
-                    return print(js::reload('parent'));
+                    return print(sprintf($this->lang->backup->error->backupCode, $result->error));
                 }
                 else
                 {
@@ -164,7 +163,7 @@ class backup extends control
             }
         }
 
-        if($reload == 'yes') return print(js::reload('parent'));
+        if($reload == 'yes') return print($this->lang->backup->success->backup);
         echo $this->lang->backup->success->backup . "\n";
     }
 
@@ -336,8 +335,13 @@ class backup extends control
         if($statusFile)
         {
             $this->app->loadLang('extension');
-            $statusFile = str_replace(dirname($this->app->getBasePath()) . DS, '', $statusFile);
-            $this->view->error = sprintf($this->lang->extension->noticeOkFile, $statusFile, $statusFile);
+
+            $search = $this->app->getBasePath();
+            $pos    = strpos($statusFile, $search);
+            $okFile = $statusFile;
+            if($pos !== false) $okFile = substr_replace($statusFile, '', $pos, strlen($search));
+
+            $this->view->error = sprintf($this->lang->extension->noticeOkFile, $okFile, $statusFile);
             return print($this->display());
         }
 

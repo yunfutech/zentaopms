@@ -55,6 +55,10 @@ $lang->project->selectProgram     = '項目集篩選';
 $lang->project->teamMember        = '團隊成員';
 $lang->project->unlinkMember      = '移除成員';
 $lang->project->copyTeamTitle     = '選擇一個項目團隊來複制';
+$lang->project->manageRepo        = '關聯代碼庫';
+$lang->project->linkedRepo        = '已關聯代碼庫';
+$lang->project->unlinkedRepo      = '未關聯代碼庫';
+$lang->project->linkRepoFailed    = '關聯代碼庫失敗。';
 
 /* Fields. */
 $lang->project->common             = '項目';
@@ -179,13 +183,14 @@ $lang->project->linkStoryByPlanTips    = "此操作會將所選計划下面的{$
 $lang->project->createExecution        = "該項目下沒有{$lang->executionCommon}，請先創建{$lang->executionCommon}";
 $lang->project->unlinkExecutionMember  = "該用戶參與了%s%s%s個{$lang->execution->common}，是否同時將其移除？（該用戶所產生的數據不會受影響。）";
 $lang->project->unlinkExecutionMembers = "移除的團隊成員還參與了項目下的執行，是否同步從執行團隊中移除？";
+$lang->project->noDevStage             = '該項目下沒有研發類型的階段，或者您沒有權限訪問，暫時不支持創建版本。';
 
 $lang->project->tenThousand = '萬';
 
 $lang->project->unitList['CNY'] = '人民幣';
 $lang->project->unitList['USD'] = '美元';
 $lang->project->unitList['HKD'] = '港元';
-$lang->project->unitList['NTD'] = '台元';
+$lang->project->unitList['NTD'] = '台幣';
 $lang->project->unitList['EUR'] = '歐元';
 $lang->project->unitList['DEM'] = '馬克';
 $lang->project->unitList['CHF'] = '瑞士法郎';
@@ -295,3 +300,5 @@ $lang->project->confirmUnlinkMember = "您確定從該項目中移除該用戶�
 
 $lang->project->action = new stdclass();
 $lang->project->action->managed = '$date, 由 <strong>$actor</strong> 維護。$extra' . "\n";
+
+$lang->project->cannotManageProducts = "該項目為項目型項目，不能關聯產品。";
