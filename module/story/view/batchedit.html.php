@@ -58,6 +58,8 @@ foreach(explode(',', $showFields) as $field)
           <th class='c-source<?php echo zget($visibleFields, 'source', ' hidden')?>'> <?php echo $lang->story->source;?></th>
           <th class='c-note<?php echo zget($visibleFields, 'source', ' hidden')?>'> <?php echo $lang->story->sourceNote;?></th>
           <th class='c-status'><?php echo $lang->story->status;?></th>
+          <!-- TODO: 需求列表进度编辑 -->
+          <!-- <th class='c-progress'><?php echo $lang->story->progress ?></th> -->
           <th class='c-stage<?php echo zget($visibleFields, 'stage', ' hidden')?>'> <?php echo $lang->story->stageAB;?></th>
           <th class='c-user-box<?php echo zget($visibleFields, 'closedBy', ' hidden')?>'><?php echo $lang->story->closedBy;?></th>
           <th class='c-reason<?php echo zget($visibleFields, 'closedReason', ' hidden')?>'> <?php echo $lang->story->closedReason;?></th>
@@ -123,6 +125,8 @@ foreach(explode(',', $showFields) as $field)
           ?>
           <td class='<?php echo zget($visibleFields, 'source', 'hidden')?>' data-id="<?php echo $story->sourceNote;?>"><?php echo $html;?></td>
           <td class='story-<?php echo $story->status;?>'><?php echo $this->processStatus('story', $story);?></td>
+          <!-- TODO: 需求列表进度编辑 -->
+          <!-- <td class><?php echo html::input("progress[$storyID]", $story->progress, "class='form-control' id='progress_$storyID'"); ?></td> -->
           <td <?php echo zget($visibleFields, 'stage', "class='hidden'")?>><?php echo html::select("stages[$storyID]", $stageList, $story->stage, 'class="form-control"' . ($story->status == 'draft' ? ' disabled="disabled"' : ''));?></td>
           <td class='text-left<?php echo zget($visibleFields, 'closedBy', ' hidden')?>'><?php echo html::select("closedBys[$storyID]", $users, $story->closedBy, "class='form-control" . ($story->status == 'closed' ? " picker-select' data-drop-width='auto'" : "' disabled='disabled'"));?></td>
 

@@ -11,13 +11,12 @@ $config->project->editor->activate = array('id' => 'comment', 'tools' => 'simple
 $config->project->editor->view     = array('id' => 'lastComment', 'tools' => 'simpleTools');
 
 $config->project->list = new stdclass();
-$config->project->list->exportFields = 'id,code,name,hasProduct,linkedProducts,status,begin,end,budget,PM,end,desc';
-if($config->systemMode == 'ALM') $config->project->list->exportFields = substr_replace($config->project->list->exportFields, ',parent', 2, 0);
+$config->project->list->exportFields = 'id,parent,code,name,pri,linkedProducts,status,begin,end,budget,PP,PC,PM,end,desc';
 
 $config->project->create = new stdclass();
 $config->project->edit   = new stdclass();
-$config->project->create->requiredFields = 'name,code,begin,end';
-$config->project->edit->requiredFields   = 'name,code,begin,end';
+$config->project->create->requiredFields = 'name,code,pri,begin,end';
+$config->project->edit->requiredFields   = 'name,code,pri,begin,end';
 
 $config->project->start   = new stdclass();
 $config->project->start->requiredFields = 'realBegan';
@@ -37,13 +36,19 @@ $config->project->multiple['execution'] = ',task,kanban,burn,view,story,CFD,';
 
 global $lang;
 $config->project->datatable = new stdclass();
-$config->project->datatable->defaultField = array('id', 'name', 'status', 'PM', 'budget', 'begin', 'end', 'progress', 'actions');
+$config->project->datatable->defaultField = array('id', 'pri', 'name', 'PP', 'PC', 'PM', 'status', 'begin', 'end', 'budget', 'progress', 'actions');
 
 $config->project->datatable->fieldList['id']['title']    = 'ID';
 $config->project->datatable->fieldList['id']['fixed']    = 'left';
 $config->project->datatable->fieldList['id']['width']    = '60';
 $config->project->datatable->fieldList['id']['required'] = 'yes';
 $config->project->datatable->fieldList['id']['pri']      = '1';
+
+$config->project->datatable->fieldList['pri']['title']    = 'priAB';
+$config->project->datatable->fieldList['pri']['fixed']    = 'left';
+$config->project->datatable->fieldList['pri']['width']    = '50';
+$config->project->datatable->fieldList['pri']['required'] = 'no';
+$config->project->datatable->fieldList['pri']['name']     = $lang->project->pri;
 
 $config->project->datatable->fieldList['name']['title']    = 'name';
 $config->project->datatable->fieldList['name']['fixed']    = 'left';
@@ -60,6 +65,20 @@ $config->project->datatable->fieldList['code']['minWidth'] = '180';
 $config->project->datatable->fieldList['code']['required'] = 'no';
 $config->project->datatable->fieldList['code']['sort']     = 'no';
 $config->project->datatable->fieldList['code']['pri']      = '1';
+
+$config->project->datatable->fieldList['PP']['title']    = 'PP';
+$config->project->datatable->fieldList['PP']['fixed']    = 'no';
+$config->project->datatable->fieldList['PP']['width']    = '80';
+$config->project->datatable->fieldList['PP']['required'] = 'no';
+$config->project->datatable->fieldList['PP']['sort']     = 'no';
+$config->project->datatable->fieldList['PP']['pri']      = '2';
+
+$config->project->datatable->fieldList['PC']['title']    = 'PC';
+$config->project->datatable->fieldList['PC']['fixed']    = 'no';
+$config->project->datatable->fieldList['PC']['width']    = '80';
+$config->project->datatable->fieldList['PC']['required'] = 'no';
+$config->project->datatable->fieldList['PC']['sort']     = 'no';
+$config->project->datatable->fieldList['PC']['pri']      = '2';
 
 $config->project->datatable->fieldList['PM']['title']    = 'PM';
 $config->project->datatable->fieldList['PM']['fixed']    = 'no';
@@ -146,8 +165,9 @@ $config->project->checkList->agileplus     = $config->project->checkList->scrum;
 $config->project->checkList->waterfallplus = $config->project->checkList->waterfall;
 
 $config->project->maxCheckList = new stdclass();
-$config->project->maxCheckList->scrum         = array('bug', 'execution', 'build', 'doc', 'release', 'testtask', 'case', 'issue', 'risk', 'meeting');
-$config->project->maxCheckList->waterfall     = array('execution', 'design', 'doc', 'bug', 'case', 'build', 'release', 'testtask', 'review', 'build', 'researchplan', 'issue', 'risk', 'opportunity', 'auditplan', 'gapanalysis', 'meeting');
+$config->project->maxCheckList->scrum     = array('bug', 'execution', 'build', 'doc', 'release', 'testtask', 'case', 'issue', 'risk', 'meeting');
+$config->project->maxCheckList->waterfall = array('execution', 'design', 'doc', 'bug', 'case', 'build', 'release', 'testtask', 'review', 'build', 'researchplan', 'issue', 'risk', 'opportunity', 'auditplan', 'gapanalysis', 'meeting');
+
 $config->project->maxCheckList->kanban        = array('execution', 'build');
 $config->project->maxCheckList->agileplus     = $config->project->maxCheckList->scrum;
 $config->project->maxCheckList->waterfallplus = $config->project->maxCheckList->waterfall;
@@ -215,3 +235,17 @@ $config->project->includedPriv['testreport'] = array('create', 'view', 'delete',
 $config->project->includedPriv['auditplan']  = array('browse', 'create', 'edit', 'batchCreate', 'batchCheck', 'check', 'nc', 'result', 'assignTo');
 $config->project->includedPriv['execution']  = array('create', 'start', 'delete', 'calendar', 'effortCalendar', 'effort', 'taskEffort', 'computeTaskEffort', 'deleterelation', 'maintainrelation', 'relation', 'gantt');
 if($config->edition != 'max') $config->project->includedPriv['stakeholder'] = array('browse', 'create', 'batchCreate', 'edit', 'delete', 'view', 'communicate', 'expect', 'expectation', 'deleteExpect', 'createExpect', 'editExpect', 'viewExpect');
+
+$config->project->excludedPriv['project']    = array('index', 'browse', 'kanban', 'create', 'batchEdit', 'qa', 'updateOrder', 'createGuide', 'programTitle', 'export');
+$config->project->excludedPriv['execution']  = array('view', 'browse', 'edit', 'batchedit', 'start', 'activate', 'putoff', 'suspend', 'close', 'delete', 'task', 'grouptask', 'importtask', 'importplanstories', 'importBug', 'story', 'build', 'testtask', 'testcase', 'bug', 'testreport', 'burn', 'computeBurn', 'fixFirst', 'burnData', 'team', 'doc', 'dynamic', 'manageProducts', 'manageMembers', 'unlinkMember', 'linkStory', 'unlinkStory', 'batchUnlinkStory', 'updateOrder', 'taskKanban', 'printKanban', 'tree', 'treeTask', 'treeStory', 'all', 'kanbanHideCols', 'kanbanColsColor', 'export', 'storyKanban', 'storySort', 'whitelist', 'addWhitelist', 'unbindWhitelist', 'storyEstimate', 'executionkanban', 'kanban');
+$config->project->excludedPriv['story']      = array('report', 'linkStory', 'batchChangeBranch', 'batchChangeModule', 'batchToTask', 'processStoryChange', 'track', 'tasks', 'bugs', 'cases');
+$config->project->excludedPriv['bug']        = array('browse', 'batchChangePlan', 'batchCreate', 'batchEdit', 'batchConfirm', 'batchResolve', 'batchClose', 'batchActivate', 'report', 'batchChangeModule', 'batchChangeBranch');
+$config->project->excludedPriv['testcase']   = array('browse', 'batchChangeModule', 'batchChangeBranch');
+$config->project->excludedPriv['testtask']   = array('browse', 'view', 'start', 'activate', 'block', 'close');
+$config->project->excludedPriv['doc']        = array('browse', 'view', 'catalog', 'index');
+$config->project->excludedPriv['repo']       = array('edit', 'delete', 'maintain', 'setRules');
+$config->project->excludedPriv['testreport'] = array('browse');
+$config->project->excludedPriv['auditplan']  = array('delete');
+if($config->edition != 'max') $config->project->excludedPriv['stakeholder'] = array('issue', 'viewIssue', 'userIssue');
+
+$config->project->ppExcludes = [3]; # 任务看板负责人排除

@@ -55,6 +55,16 @@
           <div class="panel-body">
             <div class="row row-grid">
               <?php $i = 9; $j = 0;?>
+              <?php if($project->PP):?>
+              <?php $i--;?>
+              <?php unset($teamMembers[$project->PP]);?>
+              <div class="col-xs-6"><i class="icon icon-person icon-sm text-muted"></i> <?php echo zget($users, $project->PP);?> <span class="text-muted">（<?php echo $lang->project->PP;?>）</span></div>
+              <?php endif;?>
+              <?php if($project->PC):?>
+              <?php $i--;?>
+              <?php unset($teamMembers[$project->PC]);?>
+              <div class="col-xs-6"><i class="icon icon-person icon-sm text-muted"></i> <?php echo zget($users, $project->PC);?> <span class="text-muted">（<?php echo $lang->project->PC;?>）</span></div>
+              <?php endif;?>
               <?php if($project->PM):?>
               <?php $i--;?>
               <?php unset($teamMembers[$project->PM]);?>

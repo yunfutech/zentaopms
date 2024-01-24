@@ -31,8 +31,8 @@ $lang->company->admins   = '管理员';
 $lang->company->deleted  = '已删除';
 
 $lang->company->product   = $lang->productCommon;
-$lang->company->project   = $lang->projectCommon;
-$lang->company->execution = $lang->executionCommon;
+$lang->company->project   = '项目';
+$lang->company->execution = '迭代';
 $lang->company->user      = '用户';
 $lang->company->empty     = '暂时没有动态';
 

@@ -944,6 +944,8 @@ $lang->resource->task->recordEstimate     = 'recordEstimateAction';
 $lang->resource->task->editEstimate       = 'editEstimate';
 $lang->resource->task->deleteEstimate     = 'deleteEstimate';
 $lang->resource->task->report             = 'reportChart';
+$lang->resource->task->remind             = 'remind';
+$lang->resource->task->generateTasks      = 'generateTasks';
 
 $lang->task->methodOrder[5]   = 'create';
 $lang->task->methodOrder[10]  = 'batchCreate';
@@ -1779,6 +1781,7 @@ $lang->resource->report->bugAssign        = 'bugAssign';
 $lang->resource->report->workload         = 'workload';
 $lang->resource->report->annualData       = 'annual';
 $lang->resource->report->allAnnualData    = 'viewEveryoneAnnual';
+$lang->resource->report->taskboard       = 'taskboard';
 
 $lang->report->methodOrder[0]  = 'index';
 $lang->report->methodOrder[5]  = 'projectDeviation';
@@ -1788,6 +1791,9 @@ $lang->report->methodOrder[20] = 'bugAssign';
 $lang->report->methodOrder[25] = 'workload';
 $lang->report->methodOrder[30] = 'annual';
 $lang->report->methodOrder[35] = 'allAnnualData';
+// $lang->report->methodOrder[20] = 'workload';
+// $lang->report->methodOrder[25] = 'annual';
+// $lang->report->methodOrder[30] = 'taskboard';
 
 /* Search. */
 $lang->resource->search = new stdclass();
@@ -2066,5 +2072,12 @@ if(!$inUpgrade)
     }
     if(!helper::hasFeature('kanban')) unset($lang->resource->kanban);
 }
+
+$lang->resource->projectweekly = new stdclass();
+$lang->resource->projectweekly->projectweeklylist = 'projectweeklylist';
+$lang->resource->projectweekly->generateWeekly    = 'generateWeekly';
+$lang->resource->projectweekly->edit              = 'edit';
+$lang->resource->projectweekly->view              = 'view';
+$lang->resource->projectweekly->weeklyboard                 = 'weeklyboard';
 
 include (dirname(__FILE__) . '/changelog.php');

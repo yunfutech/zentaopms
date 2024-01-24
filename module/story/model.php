@@ -2993,16 +2993,17 @@ class storyModel extends model
         if(empty($normalProducts) and empty($branchProducts)) $productQuery .= '1 = 1';
         $productQuery .= ') ';
 
-        $stories = $this->dao->select("*, IF(`pri` = 0, {$this->config->maxPriValue}, `pri`) as priOrder")->from(TABLE_STORY)
-            ->where('product')->in($productID)
+        $stories = $this->dao->select('t1.*, sum(t2.consumed) as consumed')->from(TABLE_STORY)->alias('t1')
+            ->leftJoin(TABLE_TASK)->alias('t2')->on('t2.story = t1.id and t2.deleted = "0" and t2.status!="cancel"')
+            ->where('t1.product')->in($productID)
             ->andWhere($productQuery)
-            ->beginIF(!$hasParent)->andWhere("parent")->ge(0)->fi()
-            ->beginIF(!empty($moduleIdList))->andWhere('module')->in($moduleIdList)->fi()
-            ->beginIF(!empty($excludeStories))->andWhere('id')->notIN($excludeStories)->fi()
-            ->beginIF($status and $status != 'all')->andWhere('status')->in($status)->fi()
-            ->andWhere('vision')->eq($this->config->vision)
-            ->andWhere('type')->eq($type)
-            ->andWhere('deleted')->eq(0)
+            ->beginIF(!$hasParent)->andWhere("t1.parent")->ge(0)->fi()
+            ->beginIF(!empty($moduleIdList))->andWhere('t1.module')->in($moduleIdList)->fi()
+            ->beginIF(!empty($excludeStories))->andWhere('t1.id')->notIN($excludeStories)->fi()
+            ->beginIF($status and $status != 'all')->andWhere('t1.status')->in($status)->fi()
+            ->andWhere('t1.type')->eq($type)
+            ->andWhere('t1.deleted')->eq(0)
+            ->groupBy('t1.id')
             ->orderBy($orderBy)
             ->page($pager)
             ->fetchAll('id');
@@ -3626,7 +3627,24 @@ class storyModel extends model
         }
 
         $this->dao->sqlobj->sql = $query;
-        return $this->mergePlanTitle($productID, $stories, $branch, $storyType);
+        $stories = $this->getStoriesConsumed($stories);
+        return $this->mergePlanTitle($productID, $stories, $branch, $type);
+    }
+
+    private function getStoriesConsumed($stories)
+    {
+        $stories_ids = array_column($stories, 'id');
+        $id2consumed = $this->dao->select('t1.id, sum(t2.consumed) as consumed')->from(TABLE_STORY)->alias('t1')
+            ->leftJoin(TABLE_TASK)->alias('t2')->on('t2.story = t1.id and t2.deleted = "0" and t2.status!="cancel"')
+            ->where('t1.deleted')->eq(0)
+            ->andWhere('t1.id')->in($stories_ids)
+            ->groupBy('t1.id')
+            ->fetchAll('id');
+        foreach($stories as $story) {
+            $consumed = $id2consumed[$story->id]->consumed;
+            $story->consumed = round($consumed ? $consumed : 0, 2);
+        }
+        return $stories;
     }
 
     /**
@@ -3674,30 +3692,15 @@ class storyModel extends model
      */
     public function getPlanStories($planID, $status = 'all', $orderBy = 'id_desc', $pager = null)
     {
-        if(strpos($orderBy, 'module') !== false)
-        {
-            $orderBy = (strpos($orderBy, 'module_asc') !== false) ? 't3.path asc' : 't3.path desc';
-            $stories = $this->dao->select('distinct t1.story, t1.plan, t1.order, t2.*')
-                ->from(TABLE_PLANSTORY)->alias('t1')
-                ->leftJoin(TABLE_STORY)->alias('t2')->on('t1.story = t2.id')
-                ->leftJoin(TABLE_MODULE)->alias('t3')->on('t2.module = t3.id')
-                ->where('t1.plan')->eq($planID)
-                ->beginIF($status and $status != 'all')->andWhere('t2.status')->in($status)->fi()
-                ->andWhere('t2.deleted')->eq(0)
-                ->orderBy($orderBy)->page($pager)
-                ->fetchAll('id');
-        }
-        else
-        {
-            $stories = $this->dao->select("distinct t1.story, t1.plan, t1.order, t2.*, IF(t2.`pri` = 0, {$this->config->maxPriValue}, t2.`pri`) as priOrder")
-                ->from(TABLE_PLANSTORY)->alias('t1')
-                ->leftJoin(TABLE_STORY)->alias('t2')->on('t1.story = t2.id')
-                ->where('t1.plan')->eq($planID)
-                ->beginIF($status and $status != 'all')->andWhere('t2.status')->in($status)->fi()
-                ->andWhere('t2.deleted')->eq(0)
-                ->orderBy($orderBy)->page($pager)
-                ->fetchAll('id');
-        }
+        $stories = $this->dao->select('t1.*, t2.plan, t2.order, sum(t3.consumed) as consumed')
+            ->from(TABLE_STORY)->alias('t1')
+            ->leftJoin(TABLE_PLANSTORY)->alias('t2')->on('t2.story = t1.id')
+            ->leftJoin(TABLE_TASK)->alias('t3')->on('t3.story = t1.id and t3.deleted = "0" and t3.status!="cancel"')
+            ->where('t2.plan')->eq($planID)
+            ->beginIF($status and $status != 'all')->andWhere('t1.status')->in($status)->fi()
+            ->andWhere('t1.deleted')->eq(0)
+            ->groupBy('t1.id')
+            ->orderBy($orderBy)->page($pager)->fetchAll('id');
 
         $this->loadModel('common')->saveQueryCondition($this->dao->get(), 'story', false);
 
@@ -5068,12 +5071,12 @@ class storyModel extends model
                 $title  = isset($story->planTitle) ? $story->planTitle : '';
                 $class .= ' text-ellipsis';
             }
-            elseif($id == 'branch')
+            elseif($id == 'consumed')
             {
-                $title  = zget($branches, $story->branch, '');
-                $class .= ' text-ellipsis';
+                $title = $story->consumed;
+                $class .= ' text-right';
             }
-            elseif($id == 'sourceNote')
+            else if($id == 'sourceNote')
             {
                 $title  = $story->sourceNote;
                 $class .= ' text-ellipsis';
@@ -5186,6 +5189,9 @@ class storyModel extends model
             case 'keywords':
                 echo $story->keywords;
                 break;
+            case 'consumed':
+                echo round($story->consumed, 2) .  $this->config->hourUnit;;
+                break;
             case 'source':
                 echo zget($this->lang->story->sourceList, $story->source, $story->source);
                 break;
@@ -5214,6 +5220,9 @@ class storyModel extends model
             case 'taskCount':
                 $tasksLink = helper::createLink('story', 'tasks', "storyID=$story->id", '', 'class="iframe"');
                 $storyTasks[$story->id] > 0 ? print(html::a($tasksLink, $storyTasks[$story->id], '', 'class="iframe"')) : print(0);
+                break;
+            case 'progress':
+                echo html::ring($story->progress);
                 break;
             case 'bugCount':
                 $bugsLink = helper::createLink('story', 'bugs', "storyID=$story->id");

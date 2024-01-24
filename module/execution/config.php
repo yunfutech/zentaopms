@@ -8,7 +8,7 @@ $config->execution->ownerFields       = array('PO', 'PM', 'QD', 'RD');
 $config->execution->defaultBurnPeriod = 30;
 
 $config->execution->list = new stdclass();
-$config->execution->list->exportFields = 'id,name,projectName,PM,begin,end,status,totalEstimate,totalConsumed,totalLeft,progress';
+$config->execution->list->exportFields = 'id,name,projectName,code,pri,PM,end,status,totalEstimate,totalConsumed,totalLeft,progress';
 
 $config->execution->modelList['scrum']         = 'sprint';
 $config->execution->modelList['waterfall']     = 'stage';
@@ -26,8 +26,8 @@ $config->execution->create = new stdclass();
 $config->execution->edit   = new stdclass();
 $config->execution->start  = new stdclass();
 $config->execution->close  = new stdclass();
-$config->execution->create->requiredFields  = 'name,code,begin,end';
-$config->execution->edit->requiredFields    = 'name,code,begin,end';
+$config->execution->create->requiredFields  = 'name,code,pri,begin,end';
+$config->execution->edit->requiredFields    = 'name,code,pri,begin,end';
 $config->execution->start->requiredFields   = 'realBegan';
 $config->execution->close->requiredFields   = 'realEnd';
 

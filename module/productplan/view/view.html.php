@@ -139,15 +139,17 @@
                 <?php if($canOrder):?>
                 <th class='w-90px'><?php echo $lang->productplan->updateOrder;?></th>
                 <?php endif;?>
-                <th class='text-left'><?php common::printOrderLink('title', $orderBy, $vars, $lang->story->title);?></th>
-                <th class='w-90px text-left'><?php common::printOrderLink('module', $orderBy, $vars, $lang->story->module);?></th>
-                <th class='w-70px' title='<?php echo $lang->pri;?>'><?php common::printOrderLink('pri', $orderBy, $vars, $lang->priAB);?></th>
-                <th class='w-70px'><?php common::printOrderLink('status',     $orderBy, $vars, $lang->statusAB);?></th>
-                <th class='c-user'><?php common::printOrderLink('openedBy',   $orderBy, $vars, $lang->openedByAB);?></th>
-                <th class='c-user'><?php common::printOrderLink('assignedTo', $orderBy, $vars, $lang->assignedToAB);?></th>
-                <th class='w-110px text-right'><?php common::printOrderLink('estimate', $orderBy, $vars, $lang->story->estimateAB);?></th>
-                <th class='w-80px'><?php common::printOrderLink('stage', $orderBy, $vars, $lang->story->stageAB);?></th>
-                <th class='c-actions-1 w-90px'><?php echo $lang->actions?></th>
+                <th class='w-70px' title='<?php echo $lang->pri;?>'> <?php common::printOrderLink('pri', $orderBy, $vars, $lang->priAB);?></th>
+                <th class='w-150px text-left'><?php common::printOrderLink('module',     $orderBy, $vars, $lang->story->module);?></th>
+                <th class='text-left'><?php common::printOrderLink('title',      $orderBy, $vars, $lang->story->title);?></th>
+                <th class='w-80px'> <?php common::printOrderLink('progress',   $orderBy, $vars, $lang->story->progress);?></th>
+                <th class='w-80px'> <?php common::printOrderLink('consumed',   $orderBy, $vars, $lang->story->consumed);?></th>
+                <th class='c-user'> <?php common::printOrderLink('openedBy',   $orderBy, $vars, $lang->openedByAB);?></th>
+                <th class='c-user'> <?php common::printOrderLink('assignedTo', $orderBy, $vars, $lang->assignedToAB);?></th>
+                <th class='w-70px text-right'> <?php common::printOrderLink('estimate',   $orderBy, $vars, $lang->story->estimateAB);?></th>
+                <th class='w-70px'> <?php common::printOrderLink('status',     $orderBy, $vars, $lang->statusAB);?></th>
+                <th class='w-80px'> <?php common::printOrderLink('stage',      $orderBy, $vars, $lang->story->stageAB);?></th>
+                <th class='c-actions-1'> <?php echo $lang->actions?></th>
                 <?php endif;?>
               </tr>
             </thead>
@@ -192,11 +194,8 @@
                   echo html::a($viewLink , $story->title, '', "style='color: $story->color' data-app={$this->app->tab}");
                   ?>
                 </td>
-                <td class='text-left nobr' title='<?php echo zget($modulePairs, $story->module, '');?>'><?php echo zget($modulePairs, $story->module, '');?></td>
-                <td><span class="<?php echo $story->pri ? 'label-pri label-pri-' . $story->pri : "";?>" title='<?php echo zget($lang->story->priList, $story->pri);?>'><?php echo zget($lang->story->priList, $story->pri);?></span></td>
-                <td>
-                  <span class='status-story status-<?php echo $story->status?>'><?php echo $this->processStatus('story', $story);?></span>
-                </td>
+                <td><?php echo $story->progress;?></td>
+                <td><?php echo ($story->consumed ? round($story->consumed, 2) : 0) . $config->hourUnit;?></td>
                 <td><?php echo zget($users, $story->openedBy);?></td>
                 <td><?php echo zget($users, $story->assignedTo);?></td>
                 <td class='text-right' title="<?php echo $story->estimate . ' ' . $lang->hourCommon;?>"><?php echo $story->estimate . $config->hourUnit;?></td>

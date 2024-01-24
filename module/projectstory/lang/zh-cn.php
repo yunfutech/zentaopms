@@ -23,8 +23,8 @@ $lang->projectstory->trackAction       = '跟踪矩阵';
 $lang->projectstory->confirm           = '确定';
 
 /* Notice. */
-$lang->projectstory->whyNoStories   = "看起来没有{$lang->SRCommon}可以关联。请检查下{$lang->projectCommon}关联的{$lang->productCommon}中有没有{$lang->SRCommon}，而且要确保它们已经审核通过。";
-$lang->projectstory->batchUnlinkTip = "其他需求已经移除，如下需求已与该{$lang->projectCommon}下执行相关联，请从执行中移除后再操作。";
+$lang->projectstory->whyNoStories   = "看起来没有{$lang->SRCommon}可以关联。请检查下项目关联的{$lang->productCommon}中有没有{$lang->SRCommon}，而且要确保它们已经审核通过。";
+$lang->projectstory->batchUnlinkTip = '其他需求已经移除，如下需求已与该项目下迭代相关联，请从迭代中移除后再操作。';
 
 $lang->projectstory->featureBar['story']['allstory']          = '全部';
 $lang->projectstory->featureBar['story']['unclosed']          = '未关闭';

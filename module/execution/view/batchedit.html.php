@@ -55,7 +55,7 @@
             <th class='c-method'><?php echo $lang->execution->method;?></th>
             <?php endif;?>
             <th class='required <?php echo $minWidth?>' style="width:100%"><?php echo $lang->execution->$name;?></th>
-            <?php if(isset($config->setCode) and $config->setCode == 1):?>
+            <th class='w-70px c-pri<?php echo zget($requiredFields, 'pri',     '', ' required');?>'><?php echo $lang->priAB?></th>
             <th class='c-code required'><?php echo $lang->execution->$code;?></th>
             <?php endif;?>
             <th class='c-user<?php echo zget($visibleFields, 'PM',       ' hidden') . zget($requiredFields, 'PM',     '', ' required');?>'><?php echo $lang->execution->$PM;?></th>
@@ -96,11 +96,10 @@
             <?php if($app->tab == 'project' and isset($project) and ($project->model == 'agileplus' or $project->model == 'waterfallplus')):?>
             <td title='<?php echo zget($lang->execution->typeList, $executions[$executionID]->type);?>'><?php echo zget($lang->execution->typeList, $executions[$executionID]->type);?></td>
             <?php endif;?>
-            <td title='<?php echo $executions[$executionID]->name?>'><?php echo html::input("names[$executionID]", $executions[$executionID]->name, "class='form-control' id='names{$executionID}'");?></td>
-            <?php if(isset($config->setCode) and $config->setCode == 1):?>
-            <td><?php echo html::input("codes[$executionID]", $executions[$executionID]->code, "id='codes{$executionID}' class='form-control'");?></td>
-            <?php endif;?>
-            <td class='text-left<?php echo zget($visibleFields, 'PM', ' hidden')?>' style='overflow:visible'><?php echo html::select("PMs[$executionID]", $pmUsers, $executions[$executionID]->PM, "class='form-control picker-select'");?></td>
+            <td title='<?php echo $executions[$executionID]->name?>'><?php echo html::input("names[$executionID]", $executions[$executionID]->name, "class='form-control'");?></td>
+            <td title='<?php echo $executions[$executionID]->pri?>'><?php echo html::select("pris[$executionID]", $lang->execution->priList, $executions[$executionID]->pri, "class='form-control'");?></td>
+            <td><?php echo html::input("codes[$executionID]",     $executions[$executionID]->code, "class='form-control'");?></td>
+            <td class='text-left<?php echo zget($visibleFields, 'PM',  ' hidden')?>' style='overflow:visible'><?php echo html::select("PMs[$executionID]", $pmUsers, $executions[$executionID]->PM, "class='form-control picker-select'");?></td>
             <td class='text-left<?php echo zget($visibleFields, 'PO', ' hidden')?>' style='overflow:visible'><?php echo html::select("POs[$executionID]", $poUsers, $executions[$executionID]->PO, "class='form-control picker-select'");?></td>
             <td class='text-left<?php echo zget($visibleFields, 'QD', ' hidden')?>' style='overflow:visible'><?php echo html::select("QDs[$executionID]", $qdUsers, $executions[$executionID]->QD, "class='form-control picker-select'");?></td>
             <td class='text-left<?php echo zget($visibleFields, 'RD', ' hidden')?>' style='overflow:visible'><?php echo html::select("RDs[$executionID]", $rdUsers, $executions[$executionID]->RD, "class='form-control picker-select'");?></td>
