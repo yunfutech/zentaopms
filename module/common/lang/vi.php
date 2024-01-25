@@ -155,7 +155,7 @@ $lang->mainNav->execution = "<i class='icon icon-run'></i> Execution|$executionM
 $lang->mainNav->qa        = '<i class="icon icon-test"></i> Test|qa|index|';
 $lang->mainNav->repo      = '<i class="icon icon-code1"></i> Code|repo|browse|';
 $lang->mainNav->doc       = '<i class="icon icon-doc"></i> Doc|doc|index|';
-$lang->mainNav->report    = "<i class='icon icon-statistic'></i> Statistic|report|productsummary|";
+$lang->mainNav->report    = "<i class='icon icon-statistic'></i> Statistic|report|taskboard|";
 $lang->mainNav->system    = '<i class="icon icon-menu-users"></i> System|company|browse|';
 $lang->mainNav->admin     = '<i class="icon icon-menu-backend"></i> Admin|admin|index|';
 if($config->systemMode == 'ALM') $lang->mainNav->program = "<i class='icon icon-program'></i> Program|$programModule|$programMethod|";
@@ -511,7 +511,7 @@ $lang->report = new stdclass();
 $lang->report->menu = new stdclass();
 
 $lang->report->menu->annual    = array('link' => 'Tóm tắt năm|report|annualData|year=&dept=&userID=' . (isset($_SESSION['user']) ? zget($_SESSION['user'], 'id', 0) : 0), 'target' => '_blank');
-$lang->report->menu->product   = array('link' => $lang->productCommon . '|report|productsummary');
+$lang->report->menu->product   = array('link' => $lang->productCommon . '|report|taskboard');
 $lang->report->menu->execution = array('link' => 'Execution|report|executiondeviation');
 $lang->report->menu->test      = array('link' => 'Yêu cầu|report|bugcreate', 'alias' => 'bugassign');
 $lang->report->menu->staff     = array('link' => 'Doanh nghiệp|report|workload');

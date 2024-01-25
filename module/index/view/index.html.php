@@ -24,7 +24,6 @@ js::set('manualUrl',     ((!empty($config->isINT)) ? $config->manualUrl['int'] :
 js::set('isAdminUser',   $this->app->user->admin);
 js::set('isIntranet',    helper::isIntranet());
 js::set('showFeatures',  $showFeatures);
-var_dump(commonModel::getMainNavList($app->rawModule));
 ?>
 <style>
 #versionTitle {margin: 8px 3px 0px 0px; background-image: url(<?php echo $config->webRoot . 'theme/default/images/main/version-upgrade.svg';?>);}

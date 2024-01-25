@@ -56,8 +56,8 @@ $lang->mainNav->qa        = "{$lang->navIcons['qa']} {$lang->qa->common}|qa|inde
 $lang->mainNav->devops    = "{$lang->navIcons['devops']} DevOps|repo|maintain|";
 $lang->mainNav->kanban    = "{$lang->navIcons['kanban']} {$lang->kanban->common}|kanban|space|";
 $lang->mainNav->doc       = "{$lang->navIcons['doc']} {$lang->doc->common}|doc|index|";
-$lang->mainNav->bi        = "{$lang->navIcons['bi']} {$lang->bi->common}|screen|browse|";
-$lang->mainNav->report    = "{$lang->navIcons['bi']} {$lang->report->common}|report|annualdata|";
+// $lang->mainNav->bi        = "{$lang->navIcons['bi']} {$lang->bi->common}|screen|browse|";
+$lang->mainNav->report    = "{$lang->navIcons['bi']} {$lang->report->common}|report|taskboard|";
 $lang->mainNav->system    = "{$lang->navIcons['system']} {$lang->system->common}|my|team|";
 $lang->mainNav->admin     = "{$lang->navIcons['admin']} {$lang->admin->common}|admin|index|";
 
@@ -587,14 +587,14 @@ $lang->doc->menu->api['subMenu']->struct = array('link' => "{$lang->doc->apiStru
 /* Report menu.*/
 $lang->report->menu             = new stdclass();
 $lang->report->menu->screen     = array('link' => "{$lang->screen->common}|screen|browse");
-$lang->report->menu->pivotTable = array('link' => "{$lang->report->pivotTable}|report|productsummary", 'alias' => 'projectdeviation,bugcreate,workload,bugassign,taskboard');
+$lang->report->menu->pivotTable = array('link' => "{$lang->report->pivotTable}|report|taskboard", 'alias' => 'projectdeviation,bugcreate,workload,bugassign,taskboard');
 
 /* Report menu order. */
 $lang->report->menuOrder[5]  = 'screen';
 $lang->report->menuOrder[10] = 'pivotTable';
 
 $lang->report->menu->pivotTable['subMenu'] = new stdclass();
-$lang->report->menu->pivotTable['subMenu']->product    = array('link' => "{$lang->product->common}|report|productsummary");
+$lang->report->menu->pivotTable['subMenu']->product    = array('link' => "{$lang->product->common}|report|product");
 $lang->report->menu->pivotTable['subMenu']->project    = array('link' => "{$lang->project->common}|report|projectdeviation");
 $lang->report->menu->pivotTable['subMenu']->test       = array('link' => "{$lang->qa->common}|report|bugcreate", 'alias' => 'bugassign');
 $lang->report->menu->pivotTable['subMenu']->staff      = array('link' => "{$lang->system->common}|report|workload");
