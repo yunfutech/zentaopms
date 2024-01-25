@@ -20,6 +20,7 @@ $lang->pivot->design       = '设计透视表';
 $lang->pivot->export       = '导出透视表';
 $lang->pivot->query        = '查询';
 $lang->pivot->browseAction = '进入透视表设计';
+$lang->pivot->designAB     = '设计';
 
 $lang->pivot->id          = 'ID';
 $lang->pivot->name        = '名称';
@@ -71,6 +72,17 @@ $lang->pivot->percent     = '百分比';
 $lang->pivot->undefined   = '未设定';
 $lang->pivot->project     = $lang->projectCommon;
 $lang->pivot->PO          = 'PO';
+$lang->pivot->showPivot   = '查看透视表';
+$lang->pivot->showOrigin  = '查看原始数据';
+
+$lang->pivot->showOriginItem = '展示原始条目';
+$lang->pivot->recTotalTip    = '共 <strong> %s </strong> 项';
+$lang->pivot->recPerPageTip  = "每页 <strong>%s</strong> 项";
+
+$lang->pivot->showOriginPlaceholder = new stdclass();
+$lang->pivot->showOriginPlaceholder->slice    = '展示原始条目后无需配置切片';
+$lang->pivot->showOriginPlaceholder->calcMode = '展示原始条目后无需配置计算方式';
+$lang->pivot->showOriginPlaceholder->showMode = '展示原始条目后无需配置显示方式';
 
 $lang->pivot->colors[] = 'AFD8F8';
 $lang->pivot->colors[] = 'F6BD0F';
@@ -93,7 +105,7 @@ $lang->pivot->singleColor[] = 'F6BD0F';
 $lang->pivot->projectDeviation = "{$lang->execution->common}偏差报表";
 $lang->pivot->productSummary   = $lang->productCommon . '汇总表';
 $lang->pivot->bugCreate        = 'Bug创建表';
-$lang->pivot->bugAssign        = 'Bug指派表';
+$lang->pivot->bugAssign        = '未解决Bug指派表';
 $lang->pivot->workload         = '员工负载表';
 $lang->pivot->workloadAB       = '工作负载';
 $lang->pivot->bugOpenedDate    = 'Bug创建时间';
@@ -112,7 +124,7 @@ $lang->pivotList->staff   = new stdclass();
 $lang->pivotList->product->lists[10] = $lang->productCommon . '汇总表|pivot|productsummary';
 $lang->pivotList->project->lists[10] = "{$lang->execution->common}偏差报表|pivot|projectdeviation";
 $lang->pivotList->test->lists[10]    = 'Bug创建表|pivot|bugcreate';
-$lang->pivotList->test->lists[13]    = 'Bug指派表|pivot|bugassign';
+$lang->pivotList->test->lists[13]    = '未解决Bug指派表|pivot|bugassign';
 $lang->pivotList->staff->lists[10]   = '员工负载表|pivot|workload';
 
 $lang->pivot->id            = '编号';
@@ -261,7 +273,7 @@ $lang->pivot->noChartSelected = '请选择至少一个图表。';
 $lang->pivot->beginGtEnd      = '开始时间不得大于结束时间。';
 $lang->pivot->resetSettings   = '查询数据的配置已修改，是否清空透视表设计，并重新设计。';
 $lang->pivot->clearSettings   = '查询数据的配置已修改，是否清空透视表设计并保存。';
-$lang->pivot->draftSave       = '已发布的内容被编辑，将覆盖，是否继续?';
+$lang->pivot->draftSave       = '该透视表已发布，将变为草稿态，是否继续？';
 $lang->pivot->cannotAddQuery  = '已添加结果筛选器，无法添加查询筛选器';
 $lang->pivot->cannotAddResult = '已添加查询筛选器，无法添加结果筛选器';
 
@@ -332,6 +344,7 @@ $lang->pivot->typeOptions['dept']      = '部门';
 
 $lang->pivot->step2 = new stdclass();
 $lang->pivot->step2->group       = '行分组';
+$lang->pivot->step2->summary     = '汇总设置';
 $lang->pivot->step2->column      = '列设置';
 $lang->pivot->step2->groupTip    = '选择字段';
 $lang->pivot->step2->groupNum    = array('一', '二', '三');
@@ -344,6 +357,7 @@ $lang->pivot->step2->columnField = '字段';
 $lang->pivot->step2->calcMode    = '计算方式';
 
 $lang->pivot->step2->moreThanOne = '至少选择一个分组字段。';
+$lang->pivot->step2->summaryTip  = '勾选后，可配置行分组、列设置、显示列的汇总。';
 $lang->pivot->step2->groupsTip   = '通过选择分组字段，对SQL查询的数据进行分组，并分层级显示在透视表中。';
 $lang->pivot->step2->columnsTip  = '在透视表中添加1列并对其进行设置。';
 

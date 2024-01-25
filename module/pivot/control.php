@@ -68,13 +68,18 @@ class pivot extends control
         if($pivot)
         {
             list($sql, $filterFormat) = $this->pivot->getFilterFormat($pivot->sql, $pivot->filters);
-            
-            $pivot->sql = $sql;
 
-            $processSqlData = $this->loadModel('dataview')->getTables($sql);
+            $processSqlData = $this->loadModel('chart')->getTables($sql);
             $sql = $processSqlData['sql'];
 
-            list($data, $configs) = $this->pivot->genSheet(json_decode(json_encode($pivot->fieldSettings), true), $pivot->settings, $sql, $filterFormat, json_decode($pivot->langs, true));
+            if(isset($pivot->settings['summary']) and $pivot->settings['summary'] =='notuse')
+            {
+                list($data, $configs) = $this->pivot->genOriginSheet(json_decode(json_encode($pivot->fieldSettings), true), $pivot->settings, $sql, $filterFormat, json_decode($pivot->langs, true));
+            }
+            else
+            {
+                list($data, $configs) = $this->pivot->genSheet(json_decode(json_encode($pivot->fieldSettings), true), $pivot->settings, $sql, $filterFormat, json_decode($pivot->langs, true));
+            }
             $this->view->data     = $data;
             $this->view->configs  = $configs;
         }
@@ -250,5 +255,82 @@ class pivot extends control
         $this->view->allHour  = $days * $workday;
         $this->view->submenu  = 'staff';
         $this->display();
+    }
+
+    /**
+     * Ajax get sys options.
+     *
+     * @param  string $type
+     * @param  string $object
+     * @param  string $field
+     * @access public
+     * @return string
+     */
+    public function ajaxGetSysOptions($type, $object = '', $field = '')
+    {
+        $sql     = isset($_POST['sql'])     ? $_POST['sql']     : '';
+        $filters = isset($_POST['filters']) ? $_POST['filters'] : '';
+
+        $sql     = $this->loadModel('chart')->parseSqlVars($sql, $filters);
+        $options = $this->pivot->getSysOptions($type, $object, $field, $sql);
+        return print(html::select('default[]', array('' => '') + $options, '', "class='form-control form-select picker-select' multiple"));
+    }
+
+    /**
+     * Ajax get pivot table.
+     *
+     * @access public
+     * @return void
+     */
+    public function ajaxGetPivot()
+    {
+        $post = fixer::input('post')->skipSpecial('settings,filters,sql,langs')->get();
+
+        $pivotID    = $post->id;
+        $settings   = $post->settings;
+        $filters    = isset($_POST['searchFilters']) ? $_POST['searchFilters'] : (isset($_POST['filters']) ? $post->filters : array());
+        $page       = isset($_POST['page']) ? $_POST['page'] : 0;
+        $filterType = 'result';
+
+        $pivot = $this->pivot->getById($pivotID);
+
+        list($sql, $filterFormat) = $this->pivot->getFilterFormat($post->sql, $filters);
+        $post->sql = $sql;
+
+        $settings['filterType'] = $filterType;
+
+        $sql    = str_replace(';', '', "$post->sql");
+        $fields = $post->fieldSettings;
+        $langs  = isset($post->langs) ? (is_array($post->langs) ? $post->langs : json_decode($post->langs, true)) : array();
+
+        $processSqlData = $this->loadModel('chart')->getTables($sql);
+        $sql = $processSqlData['sql'];
+
+        if(isset($settings['summary']) and $settings['summary'] == 'notuse')
+        {
+            list($data, $configs) = $this->pivot->genOriginSheet($fields, $settings, $sql, $filterFormat, $langs);
+        }
+        else
+        {
+            list($data, $configs) = $this->pivot->genSheet($fields, $settings, $sql, $filterFormat, $langs);
+        }
+
+        $this->pivot->buildPivotTable($data, $configs, $page);
+    }
+
+    /**
+     * Set pager param to this->view.
+     *
+     * @access public
+     * @return void
+     */
+    public function setPagerParam2View($pager)
+    {
+        $this->view->recTotal   = $pager->recTotal;
+        $this->view->recPerPage = $pager->recPerPage;
+        $this->view->page       = $pager->pageID;
+        $this->view->leftPage   = $pager->pageID - 1;
+        $this->view->rightPage  = $pager->pageID + 1;
+        $this->view->pageTotal  = ceil($pager->recTotal / $pager->recPerPage);
     }
 }

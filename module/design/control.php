@@ -91,7 +91,7 @@ class design extends control
 
         /* Print top and right actions. */
         $this->lang->TRActions  = '<div class="btn-toolbar pull-right">';
-        if($this->config->edition == 'max' and common::hasPriv('design', 'submit'))
+        if(($this->config->edition == 'max' or $this->config->edition == 'ipd') and common::hasPriv('design', 'submit'))
         {
             $this->lang->TRActions .= '<div class="btn-group">';
             $this->lang->TRActions .= html::a($this->createLink('design', 'submit', "productID=$productID", '', true), "<i class='icon-plus'></i> {$this->lang->design->submit}", '', "class='btn btn-secondary iframe'");
@@ -183,9 +183,10 @@ class design extends control
         $this->view->position[] = $this->lang->design->create;
 
         $this->view->users      = $this->loadModel('user')->getPairs('noclosed');
-        $this->view->stories    = $this->loadModel('story')->getProductStoryPairs($productIdList, 'all', 0, 'active', 'id_desc', 0, 'full', 'story', false);
+        $this->view->stories    = $this->loadModel('story')->getProductStoryPairs($productIdList, 'all', 0, 'active');
         $this->view->productID  = $productID;
         $this->view->projectID  = $projectID;
+        $this->view->project    = $project;
         $this->view->type       = $type;
         $this->view->typeList   = $project->model == 'waterfall' ? $this->lang->design->typeList : $this->lang->design->plusTypeList;
 
@@ -231,7 +232,7 @@ class design extends control
         $this->view->title      = $this->lang->design->common . $this->lang->colon . $this->lang->design->batchCreate;
         $this->view->position[] = $this->lang->design->batchCreate;
 
-        $this->view->stories  = $this->loadModel('story')->getProductStoryPairs($productIdList);
+        $this->view->stories  = $this->loadModel('story')->getProductStoryPairs($productIdList, 'all', 0, 'active');
         $this->view->users    = $this->loadModel('user')->getPairs('noclosed');
         $this->view->type     = $type;
         $this->view->typeList = $project->model == 'waterfall' ? $this->lang->design->typeList : $this->lang->design->plusTypeList;
@@ -262,11 +263,11 @@ class design extends control
         $this->view->title      = $this->lang->design->common . $this->lang->colon . $this->lang->design->view;
         $this->view->position[] = $this->lang->design->view;
 
-        $this->view->design  = $design;
-        $this->view->stories = $this->loadModel('story')->getProductStoryPairs($productIdList);
-        $this->view->users   = $this->loadModel('user')->getPairs('noletter');
-        $this->view->actions = $this->loadModel('action')->getList('design', $design->id);
-        $this->view->repos   = $this->loadModel('repo')->getRepoPairs('project', $design->project);
+        $this->view->design   = $design;
+        $this->view->stories  = $this->loadModel('story')->getProductStoryPairs($productIdList, 'all', 0, 'active');
+        $this->view->users    = $this->loadModel('user')->getPairs('noletter');
+        $this->view->actions  = $this->loadModel('action')->getList('design', $design->id);
+        $this->view->repos    = $this->loadModel('repo')->getRepoPairs('project', $design->project);
         $this->view->project  = $project;
         $this->view->typeList = $project->model == 'waterfall' ? $this->lang->design->typeList : $this->lang->design->plusTypeList;
 
@@ -319,7 +320,7 @@ class design extends control
 
         $this->view->design  = $design;
         $this->view->project = $project;
-        $this->view->stories = $this->loadModel('story')->getProductStoryPairs($productIdList);
+        $this->view->stories = $this->loadModel('story')->getProductStoryPairs($productIdList, 'all', 0, 'active');
         $this->view->users   = $this->loadModel('user')->getPairs('noclosed');
         $this->view->typeList = $project->model == 'waterfall' ? $this->lang->design->typeList : $this->lang->design->plusTypeList;
 
@@ -339,8 +340,17 @@ class design extends control
      * @access public
      * @return void
      */
-    public function linkCommit($designID = 0, $repoID = 0, $begin = '', $end = '', $recTotal = 0, $recPerPage = 50, $pageID = 1)
+    public function linkCommit(int $designID = 0, int $repoID = 0, string $begin = '', string $end = '', int $recTotal = 0, int $recPerPage = 50, int $pageID = 1)
     {
+        if($_POST)
+        {
+            $this->design->linkCommit($designID, $repoID);
+
+            $result['result']  = 'success';
+            $result['message'] = $this->lang->saveSuccess;
+            $result['locate']  = 'parent';
+            return $this->send($result);
+        }
         $design    = $this->design->getById($designID);
         $productID = $this->commonAction($design->project, $design->product, $designID);
 
@@ -353,18 +363,9 @@ class design extends control
         $repos  = $this->loadModel('repo')->getRepoPairs('project', $design->project);
         $repoID = $repoID ? $repoID : key($repos);
 
-        $repo      = $this->loadModel('repo')->getRepoByID($repoID);
+        $repo      = $this->loadModel('repo')->getByID($repoID);
         $revisions = $this->repo->getCommits($repo, '', 'HEAD', '', '', $begin, date('Y-m-d 23:59:59', strtotime($end)));
-
-        if($_POST)
-        {
-            $this->design->linkCommit($designID, $repoID);
-
-            $result['result']  = 'success';
-            $result['message'] = $this->lang->saveSuccess;
-            $result['locate']  = 'parent';
-            return $this->send($result);
-        }
+        $this->session->set('designRevisions', $revisions);
 
         /* Linked submission. */
         $linkedRevisions = array();
@@ -435,14 +436,12 @@ class design extends control
      */
     public function viewCommit($designID = 0, $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
-        $design = $this->design->getByID($designID);
-        $productID = $this->commonAction($design->project, $design->product, $designID);
-
         /* Init pager. */
-        $this->app->loadClass('pager', $static = true);
-        $pager   = pager::init(0, $recPerPage, $pageID);
+        $this->app->loadClass('pager', true);
+        $pager = pager::init($recTotal, $recPerPage, $pageID);
 
         $design = $this->design->getCommit($designID, $pager);
+        $this->commonAction($design->project, $design->product, $designID);
 
         $this->view->title      = $this->lang->design->common . $this->lang->colon . $this->lang->design->submission;
         $this->view->position[] = $this->lang->design->submission;
@@ -463,10 +462,10 @@ class design extends control
      * @access public
      * @return void
      */
-    public function revision($repoID = 0, $projectID = 0)
+    public function revision($revisionID = 0, $projectID = 0)
     {
-        $repo    = $this->dao->select('*')->from(TABLE_REPOHISTORY)->where('id')->eq($repoID)->fetch();
-        $repoURL = $this->createLink('repo', 'revision', "repoID=$repo->repo&objectID=$projectID&revistion=$repo->revision");
+        $revision = $this->dao->select('*')->from(TABLE_REPOHISTORY)->where('id')->eq($revisionID)->fetch();
+        $repoURL  = $this->createLink('repo', 'revision', "repoID=$revision->repo&objectID=$projectID&revistion=$revision->revision");
         header("location:" . $repoURL);
     }
 

@@ -29,6 +29,9 @@ class chart extends control
 
         if(!empty($_POST))
         {
+            $chartChecked = count($this->post->charts);
+            if($chartChecked > $this->config->chart->chartMaxChecked) $this->send(array('result' => 'fail', 'message' => sprintf($this->lang->chart->chartMaxChecked, $this->config->chart->chartMaxChecked)));
+
             $charts = array();
             foreach($this->post->charts as $value)
             {
@@ -181,7 +184,8 @@ class chart extends control
 
         $sql    = str_replace(';', '', "$post->sql");
         $fields = $post->fieldSettings;
-        $langs  = isset($post->langs) ? json_decode($post->langs, true) : array();
+        $langs  = !empty($post->langs) ? $post->langs : array();
+        if(is_string($langs)) $langs = json_decode($langs, true);
 
         switch($type)
         {
@@ -206,6 +210,16 @@ class chart extends control
             case 'stackedBarY':
                 $data = $this->chart->genCluBar($fields, $settings, $sql, $filterFormat, 'total', $langs);
                 break;
+            case 'waterpolo':
+                $data = $this->chart->genWaterpolo($fields, $settings, $sql, $filterFormat);
+                break;
+        }
+
+        // 对于能进行旋转的图表，判断有没有设置旋转
+        if(in_array($type, $this->config->chart->canLabelRotate))
+        {
+            if(isset($settings['rotateX']) and $settings['rotateX'] == 'use') $data['xAxis']['axisLabel'] = array('rotate' => 30);
+            if(isset($settings['rotateY']) and $settings['rotateY'] == 'use') $data['yAxis']['axisLabel'] = array('rotate' => 30);
         }
 
         echo json_encode($data);

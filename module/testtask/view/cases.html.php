@@ -17,6 +17,8 @@
 <?php js::set('taskCaseBrowseType', ($browseType == 'bymodule' and $this->session->taskCaseBrowseType == 'bysearch') ? 'all' : $this->session->taskCaseBrowseType);?>
 <?php js::set('browseType', $browseType);?>
 <?php js::set('moduleID', $moduleID);?>
+<?php js::set('case2RunMap', $case2RunMap);?>
+<?php js::set('taskID', $taskID);?>
 <?php js::set('automation',     !empty($automation) ? $automation->id : 0);?>
 <?php $this->app->loadLang('zanode');?>
 <?php js::set('runCaseConfirm', $lang->zanode->runCaseConfirm);?>
@@ -25,7 +27,17 @@
 <div id='mainContent' class='main-row fade'>
   <div class='side-col' id='sidebar'>
     <div class="sidebar-toggle"><i class="icon icon-angle-left"></i></div>
-    <div class='cell'><?php echo $moduleTree;?></div>
+    <div class='cell'>
+      <?php if(!$moduleTree):?>
+      <hr class="space">
+      <div class="text-center text-muted"><?php echo $lang->testcase->noModule;?></div>
+      <hr class="space">
+      <?php endif;?>
+      <?php echo $moduleTree;?>
+      <div class='text-center'>
+        <hr class="space-sm" />
+      </div>
+    </div>
   </div>
   <div class='main-col'>
     <div class="cell" id="queryBox" data-module='testtask'></div>
@@ -33,7 +45,8 @@
     $datatableId  = $this->moduleName . ucfirst($this->methodName);
     $useDatatable = (isset($config->datatable->$datatableId->mode) and $config->datatable->$datatableId->mode == 'datatable');
     ?>
-    <form class='main-table table-cases' data-hot='true' method='post' name='casesform' id='casesForm' <?php if(!$useDatatable) echo "data-ride='table'";?>>
+    <form class='main-table table-case' data-nested='true' data-expand-nest-child='false' data-checkable='true' data-enable-empty-nested-row='true' data-replace-id='caseTableList' data-preserve-nested='true'
+    id='caseForm' method='post' <?php if(!$useDatatable) echo "data-ride='table'";?>>
       <div class="table-header fixed-right">
         <nav class="btn-toolbar pull-right"></nav>
       </div>
@@ -58,7 +71,7 @@
       $columns = 0;
       ?>
       <?php if(!$useDatatable) echo '<div class="table-responsive">';?>
-        <table class='table has-sort-head<?php if($useDatatable) echo ' datatable';?>' id='caseList' data-fixed-left-width='<?php echo $widths['leftWidth']?>' data-fixed-right-width='<?php echo $widths['rightWidth']?>' data-checkbox-name='caseIDList[]'>
+        <table class='table has-sort-head table-fixed table-nested table has-sort-head<?php if($useDatatable) echo ' datatable';?>' id='caseList' data-fixed-left-width='<?php echo $widths['leftWidth']?>' data-fixed-right-width='<?php echo $widths['rightWidth']?>' data-checkbox-name='caseIDList[]'>
           <thead>
             <tr>
             <?php
@@ -73,12 +86,8 @@
             ?>
             </tr>
           </thead>
-          <tbody>
-            <?php foreach($runs as $run):?>
-            <tr data-id='<?php echo $run->id?>' data-auto='<?php echo $run->auto;?>'>
-              <?php foreach($setting as $key => $value) $this->testtask->printCell($value, $run, $users, $task, $branches, $useDatatable ? 'datatable' : 'table');?>
-            </tr>
-            <?php endforeach;?>
+          <tbody id='caseTableList'>
+            <?php $this->testtask->printRow($runs, $setting, $users, $task, $branches, $modulePairs, $browseType, $useDatatable ? 'datatable' : 'table');?>
           </tbody>
         </table>
       <?php if(!$useDatatable) echo '</div>';?>
@@ -170,13 +179,15 @@ $("thead").find('.c-assignedTo').attr('class', '');
 function runAutocase()
 {
     var caseIDList = [];
+    var runIDList  = [];
     $.each($('input[name^=caseIDList]:checked'),function(){
         caseIDList.push($(this).val());
+        runIDList.push(case2RunMap[$(this).val()]);
     });
 
-    var url = createLink('zanode', 'ajaxRunZTFScript', 'scriptID=' + automation)
+    var url = createLink('zanode', 'ajaxRunZTFScript', 'scriptID=' + automation + "&taskID=" + taskID)
 
-    var postData = {'caseIDList' : caseIDList.join(',')};
+    var postData = {'caseIDList' : caseIDList.join(','), 'runIDList' : runIDList.join(',')};
 
     var response = true;
     $.post(url, postData, function(result)

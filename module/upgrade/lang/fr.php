@@ -9,6 +9,7 @@
  * @version     $Id: en.php 5119 2013-07-12 08:06:42Z wyd621@gmail.com $
  * @link        http://www.zentao.net
  */
+global $config;
 $lang->upgrade->common          = 'Mise à jour';
 $lang->upgrade->start           = 'Start';
 $lang->upgrade->result          = 'Résultat';
@@ -32,6 +33,22 @@ $lang->upgrade->warnningContent = <<<EOT
 </pre>
 EOT;
 
+if($config->db->driver == 'dm')
+{
+    $lang->upgrade->warnningContent = <<<EOT
+<p>The upgrade requires high database privileges, please use the root user.<br>
+   Please backup your database before updating ZenTao!</p>
+<pre>
+1. It can be backed up by graphical client tools.
+2. Use DIsql tool to back up data.
+   $> BACKUP DATABASE BACKUPSET  <span class='text-danger'>'filename'</span>;
+   After the statement is executed, a backup set directory named "filename" is generated in the default backup path.
+   The default backup path is the path configured with BAK_PATH in dm.ini. If BAK_PATH is not configured, bak in SYSTEM_PATH is used by default.
+   This is the simplest database backup statement,To set additional backup options, you need to understand the syntax of the online backup database.
+</pre>
+EOT;
+}
+
 $lang->upgrade->createFileWinCMD   = 'Ouvrez la fenêtre Ligne de commandes de windows et exécutez <strong style="color:#ed980f">echo > %s</strong>';
 $lang->upgrade->createFileLinuxCMD = 'Executez la ligne de commande suivante: <strong style="color:#ed980f">touch %s</strong>';
 $lang->upgrade->setStatusFile      = '<h4>Please complete the following actions</h4>
@@ -51,7 +68,8 @@ $lang->upgrade->sureExecute    = 'Executez';
 $lang->upgrade->upgradingTips  = 'La mise à jour est en cours, veuillez être patient. Ne pas actualiser la page ou éteindre votre ordinateur!';
 $lang->upgrade->forbiddenExt   = 'Cette extension est incompatible avec la version. Elle a été désactivée :';
 $lang->upgrade->updateFile     = "Le fichier information a besoin d'une mise à jour.";
-$lang->upgrade->noticeSQL      = 'Votre base de donnée est inconsistente avec le standard et il y a eu un échec pour la corriger. Exécutez la commande SQL suivante et rafraichissez.';
+$lang->upgrade->showSQLLog     = 'Your database is inconsistent with the standard and try fix it.';
+$lang->upgrade->noticeErrSQL   = 'Your database is inconsistent with the standard and it failed to fix it. Please run the following SQL and refresh.';
 $lang->upgrade->afterDeleted   = "Le fichier n'est pas supprimé. Recommencez après l'avoir supprimé.";
 $lang->upgrade->afterExec      = 'Please modify the database manually according to the above error information, and refresh after the modification!';
 $lang->upgrade->mergeProgram   = 'Data Merge';
@@ -132,7 +150,7 @@ $lang->upgrade->mergeExecutionTip = 'The system will automatically create projec
 $lang->upgrade->createProgramTip  = 'At the same time, the system will automatically create a default project set and place all projects under the default project set.';
 $lang->upgrade->mergeManuallyTip  = 'You can manually select the data merging method.';
 
-$lang->upgrade->defaultGroup = 'Default';
+$lang->upgrade->defaultGroup = 'Ungrouped';
 
 include dirname(__FILE__) . '/version.php';
 
@@ -142,3 +160,7 @@ $lang->upgrade->recoveryActions->review = 'Review';
 
 $lang->upgrade->remark     = 'Remark';
 $lang->upgrade->remarkDesc = 'You can also switch the mode in the Admin-System-Mode page of the system.';
+
+$lang->upgrade->upgradingTip = 'The system is being upgraded, please wait patiently...';
+
+$lang->upgrade->addTraincoursePrivTips = "In order to facilitate everyone's learning of project management-related knowledge, we have made the courses and practical repositories of the academy accessible to all permission groups by default. This ensures that everyone can easily access the resources. However, if you do not require this feature, you can disable it in the backend feature switch.";

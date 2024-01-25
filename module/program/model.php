@@ -87,7 +87,7 @@ class programModel extends model
 
         $dao = $this->dao->select('id, name, program')->from(TABLE_PRODUCT)
             ->where('deleted')->eq(0)
-            ->andWhere('vision')->eq($this->config->vision)
+            ->andWhere("FIND_IN_SET('{$this->config->vision}', vision)")
             ->beginIF($shadow !== 'all')->andWhere('shadow')->eq((int)$shadow)->fi()
             ->beginIF($mode == 'assign')->andWhere('program')->eq($programID)->fi()
             ->beginIF(strpos($status, 'noclosed') !== false)->andWhere('status')->ne('closed')->fi()
@@ -196,6 +196,7 @@ class programModel extends model
             ->beginIF($this->app->rawMethod == 'browse' and $type === 'top')->andWhere('parent')->eq(0)->fi()
             ->beginIF($this->app->rawMethod == 'browse' and ($type === 'child' or !$this->app->user->admin))->andWhere('id')->in($objectIdList)->fi()
             ->beginIF(!$this->app->user->admin and $this->app->rawMethod != 'browse')->andWhere('id')->in($userViewIdList)->fi()
+            ->beginIF(defined('RUN_MODE') && RUN_MODE == 'api' && !$this->cookie->showClosed)->andWhere('status')->ne('closed')->fi()
             ->orderBy($orderBy)
             ->page($pager)
             ->fetchAll('id');
@@ -302,7 +303,7 @@ class programModel extends model
             ->fetchGroup('product');
 
         /* Get all products linked projects. */
-        $projectGroup = $this->dao->select('t1.product,t2.id,t2.name,t2.status,t2.end,t2.parent,t2.path')->from(TABLE_PROJECTPRODUCT)->alias('t1')
+        $projectGroup = $this->dao->select('t1.product,t2.id,t2.name,t2.status,t2.progress,t2.end,t2.parent,t2.path')->from(TABLE_PROJECTPRODUCT)->alias('t1')
             ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
             ->where('t2.deleted')->eq(0)
             ->andWhere('t1.product')->in($productPairs)
@@ -334,19 +335,6 @@ class programModel extends model
         $executionPairs = array();
         foreach($doingExecutions as $execution) $executionPairs[$execution->id] = $execution->id;
 
-        /* Compute executions and projects progress. */
-        $tasks = $this->dao->select('id, project, estimate, consumed, `left`, status, closedReason, execution')
-            ->from(TABLE_TASK)
-            ->where('(execution')->in($executionPairs)
-            ->orWhere('project')->in($projectPairs)
-            ->markRight(1)
-            ->andWhere('parent')->lt(1)
-            ->andWhere('deleted')->eq(0)
-            ->fetchGroup('execution', 'id');
-
-        $hours        = $this->computeProgress($tasks);
-        $projectHours = $this->getProgressList();
-
         /* Group data by product. */
         foreach($productGroup as $programID => $products)
         {
@@ -374,12 +362,11 @@ class programModel extends model
 
                     if(!empty($execution))
                     {
-                        $execution->hours = zget($hours, $execution->id, array());
                         if(helper::diffDate(helper::today(), $execution->end) > 0) $execution->delay = 1;
                     }
 
                     $project->execution = $execution;
-                    $project->hours['progress']   = zget($projectHours, $project->id, array());
+                    $project->hours = array('progress' => $project->progress);
 
                     /* Convert predefined HTML entities to characters. */
                     $project->name = htmlspecialchars_decode($project->name, ENT_QUOTES);
@@ -517,44 +504,6 @@ class programModel extends model
     }
 
     /**
-     * Compute progress for project or execution.
-     *
-     * @param  array $tasks
-     * @access public
-     * @return void
-     */
-    public function computeProgress($tasks)
-    {
-        $hours = array();
-        foreach($tasks as $projectID => $projectTasks)
-        {
-            $hour = new stdclass();
-            $hour->totalConsumed = 0;
-            $hour->totalEstimate = 0;
-            $hour->totalLeft     = 0;
-
-            foreach($projectTasks as $task)
-            {
-                $hour->totalConsumed += $task->consumed;
-                $hour->totalEstimate += $task->estimate;
-                if($task->status != 'cancel' and $task->status != 'closed') $hour->totalLeft += $task->left;
-            }
-            $hours[$projectID] = $hour;
-        }
-
-        foreach($hours as $hour)
-        {
-            $hour->totalEstimate = round($hour->totalEstimate, 1) ;
-            $hour->totalConsumed = round($hour->totalConsumed, 1);
-            $hour->totalLeft     = round($hour->totalLeft, 1);
-            $hour->totalReal     = $hour->totalConsumed + $hour->totalLeft;
-            $hour->progress      = $hour->totalReal ? round($hour->totalConsumed / $hour->totalReal, 2) * 100 : 0;
-        }
-
-        return $hours;
-    }
-
-    /**
      * Get project list data.
      *
      * @param  int       $programID
@@ -595,15 +544,13 @@ class programModel extends model
             if($browseType == 'bySearch' and $this->session->projectQuery == false) $this->session->set('projectQuery', ' 1 = 1');
         }
 
-        $query       = str_replace('`id`','t1.id', $this->session->projectQuery);
-        $projectList = $this->dao->select('t1.*')->from(TABLE_PROJECT)->alias('t1')
-            ->leftJoin(TABLE_TEAM)->alias('t2')->on('t1.id=t2.root')
-            ->leftJoin(TABLE_STAKEHOLDER)->alias('t3')->on('t1.id=t3.objectID')
-            ->where('t1.deleted')->eq('0')
+        $query = str_replace('`id`','t1.id', $this->session->projectQuery);
+        $stmt  = $this->dao->select('DISTINCT t1.*')->from(TABLE_PROJECT)->alias('t1');
+        if($this->cookie->involved || $involved) $stmt->leftJoin(TABLE_TEAM)->alias('t2')->on('t1.id=t2.root')->leftJoin(TABLE_STAKEHOLDER)->alias('t3')->on('t1.id=t3.objectID');
+        $stmt->where('t1.deleted')->eq('0')
             ->andWhere('t1.vision')->eq($this->config->vision)
             ->beginIF($browseType == 'bysearch' and $query)->andWhere($query)->fi()
             ->andWhere('t1.type')->eq('project')
-            ->beginIF($this->cookie->involved or $involved)->andWhere('t2.type')->eq('project')->fi()
             ->beginIF(!in_array($browseType, array('all', 'undone', 'bysearch', 'review', 'unclosed'), true))->andWhere('t1.status')->eq($browseType)->fi()
             ->beginIF($browseType == 'undone' or $browseType == 'unclosed')->andWhere('t1.status')->in('wait,doing')->fi()
             ->beginIF($browseType == 'review')
@@ -611,23 +558,23 @@ class programModel extends model
             ->andWhere('t1.reviewStatus')->eq('doing')
             ->fi()
             ->beginIF($path)->andWhere('t1.path')->like($path . '%')->fi()
-            ->beginIF(!$queryAll and !$this->app->user->admin)->andWhere('t1.id')->in($this->app->user->view->projects)->fi()
-            ->beginIF($this->cookie->involved or $involved)
-            ->andWhere('t1.openedBy', true)->eq($this->app->user->account)
-            ->orWhere('t1.PM')->eq($this->app->user->account)
-            ->orWhere('t2.account')->eq($this->app->user->account)
-            ->orWhere('(t3.user')->eq($this->app->user->account)
-            ->andWhere('t3.deleted')->eq(0)
-            ->markRight(1)
-            ->orWhere("CONCAT(',', t1.whitelist, ',')")->like("%,{$this->app->user->account},%")
-            ->markRight(1)
-            ->fi()
-            ->orderBy($orderBy)
-            ->page($pager, 't1.id')
-            ->fetchAll('id');
+            ->beginIF(!$queryAll and !$this->app->user->admin)->andWhere('t1.id')->in($this->app->user->view->projects)->fi();
+        if($this->cookie->involved || $involved)
+        {
+            $stmt->andWhere('t2.type')->eq('project')
+                ->andWhere('t1.openedBy', true)->eq($this->app->user->account)
+                ->orWhere('t1.PM')->eq($this->app->user->account)
+                ->orWhere('t2.account')->eq($this->app->user->account)
+                ->orWhere('(t3.user')->eq($this->app->user->account)
+                ->andWhere('t3.deleted')->eq(0)
+                ->markRight(1)
+                ->orWhere("CONCAT(',', t1.whitelist, ',')")->like("%,{$this->app->user->account},%")
+                ->markRight(1);
+        }
+        $projectList = $stmt->orderBy($orderBy)->page($pager, 't1.id')->fetchAll('id');
 
         /* Determine how to display the name of the program. */
-        if($programTitle and $this->config->systemMode == 'ALM')
+        if($programTitle and in_array($this->config->systemMode, array('ALM', 'PLM')))
         {
             $programList = $this->getPairs();
             foreach($projectList as $id => $project)
@@ -682,58 +629,6 @@ class programModel extends model
     }
 
     /**
-     * Get program and project progress list.
-     *
-     * @access public
-     * @return array
-     */
-    public function getProgressList()
-    {
-        $totalProgress = array();
-        $projectCount  = array();
-        $userPRJCount  = array();
-        $progressList  = array();
-        $programPairs  = $this->getPairs();
-        $projectStats  = $this->getProjectStats(0, 'all', 0, 'id_desc', null, 0, 0, true);
-
-        /* Add program progress. */
-        foreach(array_keys($programPairs) as $programID)
-        {
-            $totalProgress[$programID] = 0;
-            $projectCount[$programID]  = 0;
-            $userPRJCount[$programID]  = 0;
-            $progressList[$programID]  = 0;
-
-            foreach($projectStats as $project)
-            {
-                if(strpos($project->path, ',' . $programID . ',') === false) continue;
-
-                /* The number of projects under this program that the user can view. */
-                if(strpos(',' . $this->app->user->view->projects . ',', ',' . $project->id . ',') !== false) $userPRJCount[$programID] ++;
-
-                $totalProgress[$programID] += $project->hours->progress;
-                $projectCount[$programID] ++;
-            }
-
-            if(empty($projectCount[$programID])) continue;
-
-            /* Program progress can't see when this user don't have all projects priv. */
-            if(!$this->app->user->admin and $userPRJCount[$programID] != $projectCount[$programID])
-            {
-                unset($progressList[$programID]);
-                continue;
-            }
-
-            $progressList[$programID] = round($totalProgress[$programID] / $projectCount[$programID]);
-        }
-
-        /* Add project progress. */
-        foreach($projectStats as $project) $progressList[$project->id] = $project->hours->progress;
-
-        return $progressList;
-    }
-
-    /**
      * Create a program.
      *
      * @access private
@@ -747,6 +642,7 @@ class programModel extends model
             ->setDefault('parent', 0)
             ->setDefault('code', '')
             ->setDefault('openedDate', helper::now())
+            ->cleanINT('parent')
             ->setIF($this->post->acl == 'open', 'whitelist', '')
             ->setIF($this->post->delta == 999, 'end', LONG_TIME)
             ->setIF($this->post->budget != 0, 'budget', round((float)$this->post->budget, 2))
@@ -771,7 +667,7 @@ class programModel extends model
             ->checkIF($program->begin != '', 'begin', 'date')
             ->checkIF($program->end != '', 'end', 'date')
             ->checkIF($program->end != '', 'end', 'gt', $program->begin)
-            ->checkIF(!empty($program->name), 'name', 'unique', "`type`='program' and `parent` = $program->parent and `deleted` = '0'")
+            ->checkIF(!empty($program->name), 'name', 'unique', "`type`='program' and `parent` = " . $this->dao->sqlobj->quote($program->parent) . " and `deleted` = '0'")
             ->checkFlow()
             ->exec();
 
@@ -811,6 +707,7 @@ class programModel extends model
             ->setDefault('end', '')
             ->setDefault('lastEditedBy', $this->app->user->account)
             ->setDefault('lastEditedDate', helper::now())
+            ->cleanINT('parent')
             ->setIF($this->post->begin == '0000-00-00', 'begin', '')
             ->setIF($this->post->end   == '0000-00-00', 'end', '')
             ->setIF($this->post->delta == 999, 'end', LONG_TIME)
@@ -851,7 +748,7 @@ class programModel extends model
             ->checkIF($program->begin != '', 'begin', 'date')
             ->checkIF($program->end != '', 'end', 'date')
             ->checkIF($program->end != '', 'end', 'gt', $program->begin)
-            ->checkIF(!empty($program->name), 'name', 'unique', "id!=$programID and `type`='program' and `parent` = $program->parent and `deleted` = '0'")
+            ->checkIF(!empty($program->name), 'name', 'unique', "id!=$programID and `type`='program' and `parent` = " . $this->dao->sqlobj->quote($program->parent) . " and `deleted` = '0'")
             ->checkFlow()
             ->where('id')->eq($programID)
             ->limit(1)
@@ -1290,7 +1187,7 @@ class programModel extends model
         $treeMenu = array();
         foreach($modules as $module)
         {
-            if(strpos($mode, 'all') !== false and strpos(",{$this->app->user->view->programs},", ",{$module->id},") === false and (!$this->app->user->admin)) continue;
+            if(strpos($mode, 'all') === false and strpos(",{$this->app->user->view->programs},", ",{$module->id},") === false and (!$this->app->user->admin)) continue;
 
             $moduleName    = $showRoot ? '/' : '';
             $parentModules = explode(',', $module->path);
@@ -1399,6 +1296,170 @@ class programModel extends model
     }
 
     /**
+     * Refresh stats fields(estimate,consumed,left,progress) of program, project, execution.
+     *
+     * @param  bool $refreshAll
+     * @access public
+     * @return void
+     */
+    public function refreshStats($refreshAll = false)
+    {
+        $updateTime = zget($this->app->config->global, 'projectStatsTime', '');
+        $now        = helper::now();
+
+        /*
+         * If projectStatsTime is before two weeks ago, refresh all executions directly.
+         * Else only refresh the latest executions in action table.
+         */
+        $projects = array();
+        if($updateTime < date('Y-m-d', strtotime('-14 days')) or $refreshAll)
+        {
+            $projects = $this->dao->select('id')->from(TABLE_PROJECT)->where('type')->eq('project')->fetchPairs('id');
+        }
+        else
+        {
+            $projects = $this->dao->select('project')->from(TABLE_ACTION)->where('`date`')->ge($updateTime)->andWhere('project')->ne(0)->fetchPairs('project');
+        }
+        if(empty($projects)) return;
+
+        $executionGroup = $this->dao->select('id,project')->from(TABLE_PROJECT)->where('project')->in($projects)->andWhere('deleted')->eq(0)->fetchGroup('project', 'id');
+
+        $summary = array();
+        /* 1. Execution has no tasks.*/
+        foreach($projects as $projectID => $project)
+        {
+            $executions = zget($executionGroup, $projectID, array());
+            foreach($executions as $executionID => $execution)
+            {
+                $summary[$executionID] = new stdclass();
+                $summary[$executionID]->totalEstimate = 0;
+                $summary[$executionID]->totalConsumed = 0;
+                $summary[$executionID]->totalLeft     = 0;
+                $summary[$executionID]->execution     = $executionID;
+            }
+        }
+
+        /* 2. Get summary and members of executions to be refreshed. */
+        $tasks = $this->dao->select('t1.id, execution, t1.estimate, t1.consumed, t1.`left`, t1.status')->from(TABLE_TASK)->alias('t1')
+            ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project=t2.id')
+            ->where('t1.deleted')->eq(0)
+            ->andWhere('t1.parent')->ge(0) // Ignore parent task.
+            ->beginIF(!empty($projects))->andWhere('t1.project')->in($projects)->fi()
+            ->fetchAll('id');
+
+        foreach($tasks as $task)
+        {
+            if(empty($task->execution)) continue;
+            if(!isset($summary[$task->execution]))
+            {
+                $summary[$task->execution] = new stdclass();
+                $summary[$task->execution]->totalEstimate = 0;
+                $summary[$task->execution]->totalConsumed = 0;
+                $summary[$task->execution]->totalLeft     = 0;
+            }
+
+            $summary[$task->execution]->execution      = $task->execution;
+            $summary[$task->execution]->totalEstimate += $task->estimate;
+            $summary[$task->execution]->totalConsumed += $task->consumed;
+            $summary[$task->execution]->totalLeft     += ($task->status == 'closed' or $task->status == 'cancel') ? 0 : $task->left;
+        }
+
+        $teamMembers = $this->dao->select('t1.root, COUNT(1) AS members')->from(TABLE_TEAM)->alias('t1')
+            ->leftJoin(TABLE_USER)->alias('t2')->on('t1.account=t2.account')
+            ->where('t1.type')->eq('project')
+            ->beginIF(!empty($projects))->andWhere('t1.root')->in($projects)->fi()
+            ->andWhere('t2.deleted')->eq(0)
+            ->groupBy('t1.root')
+            ->fetchPairs('root');
+
+        $projectsPairs = $this->dao->select('id,deleted')->from(TABLE_PROJECT)->fetchPairs();
+
+        /* 3. Get all parents to be refreshed. */
+        $executions = array();
+        foreach($summary as $execution) $executions[$execution->execution] = $execution->execution;
+        $paths = $this->dao->select('id,path')->from(TABLE_PROJECT)->where('id')->in($executions)->fetchAll();
+        $executionPaths = array();
+        foreach($paths as $path) $executionPaths[$path->id] = explode(',', trim($path->path, ','));
+
+        /* 4. Compute stats of execution and parents. */
+        $stats = array();
+        foreach($summary as $execution)
+        {
+            $executionID = $execution->execution;
+            foreach($executionPaths[$executionID] as $nodeID)
+            {
+                if(!isset($stats[$nodeID])) $stats[$nodeID] = array('totalEstimate' => 0, 'totalConsumed' => 0, 'totalLeft' => 0, 'teamCount' => 0, 'totalLeftNotDel' => 0, 'totalConsumedNotDel' => 0);
+                $stats[$nodeID]['totalEstimate'] += $execution->totalEstimate;
+                $stats[$nodeID]['totalConsumed'] += $execution->totalConsumed;
+                $stats[$nodeID]['totalLeft']     += $execution->totalLeft;
+
+                // Check $execution->execution and $nodeID(path) is not deleted.
+                if(empty($projectsPairs[$execution->execution]) && empty($projectsPairs[$nodeID]))
+                {
+                    $stats[$nodeID]['totalConsumedNotDel'] += $execution->totalConsumed;
+                    $stats[$nodeID]['totalLeftNotDel']     += $execution->totalLeft;
+                }
+            }
+        }
+
+        foreach($teamMembers as $projectID => $teamCount)
+        {
+            if(!isset($stats[$projectID])) $stats[$projectID] = array('totalEstimate' => 0, 'totalConsumed' => 0, 'totalLeft' => 0, 'teamCount' => 0, 'totalConsumedNotDel' => 0, 'totalLeftNotDel' => 0);
+            $stats[$projectID]['teamCount'] = $teamCount;
+        }
+
+        /* 5. Refresh stats to db. */
+        foreach($stats as $projectID => $project)
+        {
+            $totalRealNotDel = $project['totalConsumedNotDel'] + $project['totalLeftNotDel'];
+            $progress        = $totalRealNotDel ? floor($project['totalConsumedNotDel'] / $totalRealNotDel * 1000) / 1000 * 100 : 0;
+            $this->dao->update(TABLE_PROJECT)
+                ->set('progress')->eq($progress)
+                ->set('teamCount')->eq($project['teamCount'])
+                ->set('estimate')->eq($project['totalEstimate'])
+                ->set('consumed')->eq($project['totalConsumedNotDel'])
+                ->set('left')->eq($project['totalLeftNotDel'])
+                ->where('id')->eq($projectID)
+                ->exec();
+        }
+
+        /* 6. Update programStatsTime. */
+        $projectList = $this->dao->select('id,progress,path,consumed,`left`')->from(TABLE_PROJECT)
+            ->where('type')->eq('project')
+            ->andWhere('parent')->ne(0)
+            ->andWhere('deleted')->eq(0)
+            ->fetchAll('id');
+        $programProgress = array();
+        foreach($projectList as $projectID => $project)
+        {
+            $path = explode(',', trim($project->path, ','));
+
+            foreach($path as $programID)
+            {
+                if($programID == $projectID) continue;
+
+                if(!isset($programProgress[$programID])) $programProgress[$programID] = array('consumed' => 0, 'left' => 0);
+                $programProgress[$programID]['consumed'] += $project->consumed;
+                $programProgress[$programID]['left']     += $project->left;
+            }
+        }
+
+        foreach($programProgress as $programID => $hours)
+        {
+            $progress = ($hours['consumed'] + $hours['left']) ? floor($hours['consumed'] / ($hours['consumed'] + $hours['left']) * 1000) / 1000 * 100 : 0;
+
+            $this->dao->update(TABLE_PROJECT)->set('progress')->eq($progress)->where('id')->eq($programID)->exec();
+        }
+
+        /* 7. Update projectStatsTime in config. */
+        $this->loadModel('setting')->setItem('system.common.global.projectStatsTime', $now);
+        $this->app->config->global->projectStatsTime = $now;
+
+        /* 8. Clear actions older than 30 days. */
+        $this->loadModel('action')->cleanActions();
+    }
+
+    /**
      * Get project stats.
      *
      * @param  int    $programID
@@ -1416,81 +1477,21 @@ class programModel extends model
     {
         if(defined('TUTORIAL')) return $this->loadModel('tutorial')->getProjectStats($browseType);
 
-        /* Init vars. */
         $projects = $this->getProjectList($programID, $browseType, $queryID, $orderBy, $pager, $programTitle, $involved, $queryAll);
-
         if(empty($projects)) return array();
 
-        $projectKeys = array_keys($projects);
-        $stats       = array();
-        $hours       = array();
-        $emptyHour   = array('totalEstimate' => 0, 'totalConsumed' => 0, 'totalLeft' => 0, 'progress' => 0);
-        $leftTasks   = array();
-        $teamMembers = array();
-
-        $executions = $this->dao->select('id')->from(TABLE_EXECUTION)
-            ->where('deleted')->eq(0)
-            ->andWhere('project')->in($projectKeys)
-            ->andWhere('type')->in('sprint,stage,kanban')
-            ->fetchAll('id');
-
-        /* Get all tasks and compute totalEstimate, totalConsumed, totalLeft, progress according to them. */
-        $tasks = $this->dao->select('id, project, estimate, consumed, `left`, status, closedReason, execution')
-            ->from(TABLE_TASK)
-            ->where('project')->in($projectKeys)
-            ->andWhere('parent')->lt(1)
-            ->andWhere('deleted')->eq(0)
-            ->fetchGroup('project', 'id');
-
-        /* Compute totalEstimate, totalConsumed, totalLeft. */
-        foreach($tasks as $projectID => $projectTasks)
-        {
-            $hour = (object)$emptyHour;
-            foreach($projectTasks as $task)
-            {
-                if(isset($executions[$task->execution]))
-                {
-                    $hour->totalConsumed += $task->consumed;
-                    $hour->totalEstimate += $task->estimate;
-
-                    if(strpos('cancel,closed', $task->status) === false) $hour->totalLeft += $task->left;
-                }
-            }
-            $hours[$projectID] = $hour;
-        }
-
-        /* Compute totalReal and progress. */
-        $progressList = $this->loadModel('project')->getWaterfallProgress(array_keys($hours));
-        foreach($hours as $projectID => $hour)
-        {
-            $hour->totalEstimate = round($hour->totalEstimate, 1) ;
-            $hour->totalConsumed = round($hour->totalConsumed, 1);
-            $hour->totalLeft     = round($hour->totalLeft, 1);
-            $hour->totalReal     = $hour->totalConsumed + $hour->totalLeft;
-            $hour->progress      = $projects[$projectID]->model == 'waterfall' ? $progressList[$projectID] : ($hour->totalReal ? round($hour->totalConsumed / $hour->totalReal, 2) * 100 : 0);
-        }
-
-        /* Get the number of left tasks. */
-        if($this->cookie->projectType and $this->cookie->projectType == 'bycard')
-        {
-            $leftTasks = $this->dao->select('t2.parent as project, count(*) as tasks')->from(TABLE_TASK)->alias('t1')
-                ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.execution = t2.id')
-                ->where('t1.execution')->in(array_keys($executions))
-                ->andWhere('t1.status')->notIn('cancel,closed')
-                ->groupBy('t2.parent')
-                ->fetchAll('project');
-        }
+        $leftTasks = ($this->cookie->projectType and $this->cookie->projectType == 'bycard') ? $this->loadModel('project')->getProjectLeftTasks(array_keys($projects)) : array();
 
         /* Get the members of project teams. */
         $teamMembers = $this->dao->select('t1.root,t1.account')->from(TABLE_TEAM)->alias('t1')
             ->leftJoin(TABLE_USER)->alias('t2')->on('t1.account=t2.account')
-            ->where('t1.root')->in($projectKeys)
+            ->where('t1.root')->in(array_keys($projects))
             ->andWhere('t1.type')->eq('project')
             ->andWhere('t2.deleted')->eq(0)
             ->fetchGroup('root', 'account');
 
         /* Process projects. */
-        foreach($projects as $key => $project)
+        foreach($projects as $projectID => $project)
         {
             if($project->end == '0000-00-00') $project->end = '';
 
@@ -1501,18 +1502,12 @@ class programModel extends model
                 if($delay > 0) $project->delay = $delay;
             }
 
-            /* Process the hours. */
-            $project->hours = isset($hours[$project->id]) ? $hours[$project->id] : (object)$emptyHour;
+            $project->teamMembers = isset($teamMembers[$projectID]) ? array_keys($teamMembers[$projectID]) : array();
+            $project->leftTasks   = isset($leftTasks[$projectID]) ? $leftTasks[$projectID]->tasks : '—';
 
-            $project->teamCount   = isset($teamMembers[$project->id]) ? count($teamMembers[$project->id]) : 0;
-            $project->leftTasks   = isset($leftTasks[$project->id]) ? $leftTasks[$project->id]->tasks : '—';
-            $project->teamMembers = isset($teamMembers[$project->id]) ? array_keys($teamMembers[$project->id]) : array();
-
-            /* Convert predefined HTML entities to characters. */
-            $project->name = htmlspecialchars_decode($project->name, ENT_QUOTES);
-
-            $stats[$key] = $project;
+            $stats[$projectID] = $project;
         }
+
         return $stats;
     }
 
@@ -1701,205 +1696,15 @@ class programModel extends model
         return $programID;
     }
 
-    /*
-     * Build row data.
-     *
-     * @param  string $program
-     * @param  array  $PMList
-     * @param  array  $progressList
-     * @access public
-     * @return object
-     */
-    public function buildRowData($program, $PMList, $progressList)
-    {
-        $row = new stdclass();
-
-        $manager       = isset($PMList[$program->PM]) ? $PMList[$program->PM] : '';
-        $programBudget = $this->project->getBudgetWithUnit($program->budget);
-        $link          = $program->type == 'program' ? helper::createLink('program', 'product', "programID=$program->id") : helper::createLink('project', 'index', "projectID=$program->id");
-        $name          = html::a($link, $program->name, '', "title=$program->name");
-        if($program->status != 'done' and $program->status != 'closed' and $program->status != 'suspended')
-        {
-            $delay = helper::diffDate(helper::today(), $program->end);
-            if($delay > 0) $name .= "<span class='label label-danger label-badge'>{$this->lang->project->statusList['delay']}</span>";
-        }
-
-        $row->id       = $program->id;
-        $row->parent   = $program->parent ? $program->parent : '';
-        $row->asParent = $program->type == 'program';
-        $row->type     = $program->type;
-        $row->model    = $program->model;
-        $row->name     = $name;
-        $row->status   = $program->status;
-        $row->PM       = empty($manager) ? '' : $manager->realname;
-        $row->PMAvatar = empty($manager) ? '' : $manager->avatar;
-        $row->budget   = $program->budget != 0 ? zget($this->lang->project->currencySymbol, $program->budgetUnit) . ' ' . $programBudget : $this->lang->project->future;
-        $row->begin    = $program->begin;
-        $row->end      = $program->end == LONG_TIME ? $this->lang->program->longTime : $program->end;
-        $row->progress = isset($progressList[$program->id]) ? round($progressList[$program->id]) : 0;
-        $row->actions  = $this->buildActions($program);
-
-        return $row;
-    }
-
     /**
-     * Build actions data.
+     * Check the privilege.
      *
-     * @param  object $program
+     * @param  int    $programID
      * @access public
-     * @return array
+     * @return bool
      */
-    public function buildActions($program)
+    public function checkPriv($programID)
     {
-        $this->loadModel('project');
-
-        $actionsMap         = array();
-        $canStartProgram    = common::hasPriv('program', 'start');
-        $canSuspendProgram  = common::hasPriv('program', 'suspend');
-        $canCloseProgram    = common::hasPriv('program', 'close');
-        $canActivateProgram = common::hasPriv('program', 'activate');
-        $canStartProject    = common::hasPriv('project', 'start');
-        $canSuspendProject  = common::hasPriv('project', 'suspend');
-        $canCloseProject    = common::hasPriv('project', 'close');
-        $canActivateProject = common::hasPriv('project', 'activate');
-
-        if($program->type == 'program' && strpos(",{$this->app->user->view->programs},", ",$program->id,") !== false)
-        {
-            $normalActions = array('start', 'close', 'activate');
-            foreach($normalActions as $action)
-            {
-                if($action == 'start' and (!$canStartProgram or ($program->status != 'wait' and $program->status != 'suspended'))) continue;
-                if($action == 'close' and (!$canCloseProgram or $program->status != 'doing')) continue;
-                if($action == 'activate' and (!$canActivateProgram or $program->status != 'closed')) continue;
-                $item = new stdclass();
-                $item->name = $action;
-                $item->hint = $this->lang->program->$action;
-
-                $actionsMap[] = $item;
-            }
-
-            if($canSuspendProgram or ($canClose && $program->status != 'doing') or ($canActivateProgram and $program->status != 'closed'))
-            {
-                $other = new stdclass();
-                $other->name  = 'other';
-                $other->items = array();
-
-                $otherActions = array('suspend', 'close', 'activate');
-                foreach($otherActions as $action)
-                {
-                    if($action == 'close' and $program->status == 'doing') continue;
-                    if(!common::hasPriv('program', $action)) continue;
-
-                    $item = new stdclass();
-                    $item->name = $action;
-                    $item->text = $this->lang->program->$action;
-                    if(!$this->isClickable($program, $action)) $item->disabled = true;
-                    if($action == 'close' and $program->status == 'closed')      $item->hint = $this->lang->program->tip->closed;
-                    if($action == 'suspend' and $program->status == 'closed')    $item->hint = $this->lang->program->tip->notSuspend;
-                    if($action == 'suspend' and $program->status == 'suspended') $item->hint = $this->lang->program->tip->suspended;
-                    if($action == 'activate' and $program->status == 'doing')    $item->hint = $this->lang->program->tip->actived;
-
-                    $other->items[] = $item;
-                }
-
-                $actionsMap[] = $other;
-            }
-
-            $normalActions = array('edit', 'create', 'delete');
-            foreach($normalActions as $action)
-            {
-                if(!common::hasPriv('program', $action)) continue;
-                $item = new stdclass();
-                $item->name = $action;
-                $item->hint = $this->lang->program->$action;
-                if($action == 'create' and $program->status == 'closed')
-                {
-                    $item->disabled = true;
-                    $item->hint     = $this->lang->program->tip->notCreate;
-                }
-
-                $actionsMap[] = $item;
-            }
-        }
-        elseif($program->type == 'project')
-        {
-            $normalActions = array('start', 'close', 'activate');
-            foreach($normalActions as $action)
-            {
-                if($action == 'start' and (!$canStartProject or ($program->status != 'wait' and $program->status != 'suspended'))) continue;
-                if($action == 'close' and (!$canCloseProject or $program->status != 'doing')) continue;
-                if($action == 'activate' and (!$canActivateProgram or $program->status != 'closed')) continue;
-                $item = new stdclass();
-                $item->name = $action;
-                $item->hint = $this->lang->project->$action;
-
-                $actionsMap[] = $item;
-            }
-            if($canSuspendProject or ($canCloseProject and $program->status != 'doing') or ($canActivateProject and $program->status != 'closed'))
-            {
-                $other = new stdclass();
-                $other->name  = 'other';
-                $other->items = array();
-
-                $otherActions = array('suspend', 'close', 'activate');
-                foreach($otherActions as $action)
-                {
-                    if($action == 'close' and $program->status == 'doing') continue;
-                    if(!common::hasPriv('project', $action)) continue;
-
-                    $item = new stdclass();
-                    $item->name = $action;
-                    $item->text = $this->lang->project->$action;
-                    if(!$this->project->isClickable($program, $action)) $item->disabled = true;
-                    if($action == 'close' and $program->status == 'closed')      $item->hint = $this->lang->project->tip->closed;
-                    if($action == 'suspend' and $program->status == 'closed')    $item->hint = $this->lang->project->tip->notSuspend;
-                    if($action == 'suspend' and $program->status == 'suspended') $item->hint = $this->lang->project->tip->suspended;
-                    if($action == 'activate' and $program->status == 'doing')    $item->hint = $this->lang->project->tip->actived;
-
-                    $other->items[] = $item;
-                }
-
-                $actionsMap[] = $other;
-            }
-            if(common::hasPriv('project', 'edit')) $actionsMap[] = 'edit';
-            if(common::hasPriv('project', 'team')) $actionsMap[] = 'team';
-            if(common::hasPriv('project', 'group'))
-            {
-                $item = new stdclass();
-                $item->name = 'group';
-                if($program->model == 'kanban')
-                {
-                    $item->disabled = true;
-                    $item->hint     = $this->lang->project->tip->group;
-                }
-                $actionsMap[] = $item;
-            }
-
-            if(common::hasPriv('project', 'manageProducts') || common::hasPriv('project', 'whitelist') || common::hasPriv('project', 'delete'))
-            {
-                $more = new stdclass();
-                $more->name  = 'more';
-                $more->items = array();
-                $moreActions = array('manageProducts', 'whitelist', 'delete');
-                foreach($moreActions as $action)
-                {
-                    if(!common::hasPriv('project', $action)) continue;
-
-                    $item = new stdclass();
-                    $item->name = $action == 'manageProducts' ? 'link' : $action;
-                    $item->text = $this->lang->project->$action;
-                    if($action == 'whitelist' and $program->acl == 'open')
-                    {
-                        $item->disabled = true;
-                        $item->hint     = $this->lang->project->tip->whitelist;
-                    }
-
-                    $more->items[] = $item;
-                }
-
-                $actionsMap[] = $more;
-            }
-        }
-        return $actionsMap;
+        return !empty($programID) && ($this->app->user->admin || (strpos(",{$this->app->user->view->programs},", ",{$programID},") !== false));
     }
 }

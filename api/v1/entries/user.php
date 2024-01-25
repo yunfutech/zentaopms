@@ -38,7 +38,11 @@ class userEntry extends entry
         if(!$data) return $this->send404(); // If no user, send 404.
 
         $user = $data->data->user;
-        unset($user->password);
+        if($user)
+        {
+            $user->group = $this->loadModel('group')->getByAccount($user->account);
+            unset($user->password);
+        }
 
         return $this->send(200, $user);
     }
@@ -166,7 +170,7 @@ class userEntry extends entry
                     {
                         $myExecutions['owner'] = array();
                         $myExecutions['other'] = array();
-                        foreach($data->data->executions as $projectID => $projectExecutions)
+                        foreach($data->data->projectExecutions as $projectID => $projectExecutions)
                         {
                             foreach($projectExecutions as $execution)
                             {
@@ -298,7 +302,7 @@ class userEntry extends entry
                     $info->issue = array('total' => 0, 'issues' => array());
                     if(!common::hasPriv('my', 'work')) break;
 
-                    if($this->config->edition == 'max')
+                    if($this->config->edition == 'max' or $this->config->edition == 'ipd')
                     {
                         global $app;
                         $app->rawMethod = 'work';
@@ -318,7 +322,7 @@ class userEntry extends entry
                     $info->risk = array('total' => 0, 'risks' => array());
                     if(!common::hasPriv('my', 'work')) break;
 
-                    if($this->config->edition == 'max')
+                    if($this->config->edition == 'max' or $this->config->edition == 'ipd')
                     {
                         global $app;
                         $app->rawMethod = 'work';
@@ -338,7 +342,7 @@ class userEntry extends entry
                     $info->meeting = array('total' => 0, 'meetings' => array());
                     if(!common::hasPriv('my', 'work')) break;
 
-                    if($this->config->edition == 'max')
+                    if($this->config->edition == 'max' or $this->config->edition == 'ipd')
                     {
                         global $app;
                         $app->rawMethod = 'work';

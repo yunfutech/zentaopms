@@ -12,8 +12,8 @@
 <?php js::set('checkedSummary', $lang->execution->checkedExecSummary);?>
 <?php js::set('pageSummary', $lang->execution->pageExecSummary);?>
 <?php js::set('executionSummary', $lang->execution->executionSummary);?>
-<?php js::set('checkedExecutions', $lang->execution->checkedExecutions);?>
 <?php js::set('changeStatusHtml', $changeStatusHtml);?>
+<?php if($project->model == 'ipd') js::set('reviewPoints', json_encode($reviewPoints));?>
 <div id='mainMenu' class='clearfix'>
   <div class='btn-toolbar pull-left'>
     <?php if($project->division and $project->hasProduct):?>
@@ -42,9 +42,10 @@
     <?php endforeach;?>
     <?php if(common::hasPriv('execution', 'batchEdit') and !empty($executionStats)) echo html::checkbox('editExecution', array('1' => $lang->edit . $lang->executionCommon), '', $this->cookie->editExecution ? 'checked=checked' : '');?>
     <?php if(common::hasPriv('execution', 'task')) echo html::checkbox('showTask', array('1' => $lang->programplan->stageCustom->task), '', $this->cookie->showTask ? 'checked=checked' : '');?>
+    <?php if($project->model == 'ipd') echo html::checkbox('showStage', array('1' => $lang->programplan->stageCustom->point), '', $this->cookie->showStage ? 'checked=checked' : '');?>
   </div>
   <div class='btn-toolbar pull-right'>
-    <?php if(($project->model == 'waterfall' or $project->model == 'waterfallplus') and $this->config->edition == 'max'):?>
+    <?php if(in_array($project->model, array('waterfall', 'waterfallplus', 'ipd')) and ($this->config->edition == 'max' or $this->config->edition == 'ipd')):?>
     <div class="btn-group">
       <?php echo html::a($this->createLink('programplan', 'browse', "projectID=$projectID&productID=$productID&type=gantt"), "<i class='icon-gantt-alt'></i> &nbsp;", '', "class='btn btn-icon switchBtn' title='{$lang->programplan->gantt}'");?>
       <?php echo html::a('', "<i class='icon-list'></i> &nbsp;", '', "class='btn btn-icon text-primary switchBtn' title='{$lang->project->bylist}'");?>
@@ -55,7 +56,7 @@
     <?php echo html::a($this->createLink('programplan', 'create', "projectID=$projectID&productID=$productID"), "<i class='icon icon-plus'></i> " . $lang->programplan->create, '', "class='btn btn-primary'");?>
     <?php elseif($project->model == 'agileplus'):?>
     <div class="btn-group dropdown">
-      <?php echo html::a($this->createLink('execution', 'create', "projectID=$projectID"), "<i class='icon icon-sm icon-plus'></i> " . $lang->execution->create, '', "class='btn btn-primary create-execution-btn' data-app='execution' onclick='$(this).removeAttr(\"data-toggle\")'");?>
+      <?php echo html::a($this->createLink('execution', 'create', "projectID=$projectID"), "<i class='icon icon-sm icon-plus'></i> " . $lang->execution->create, '', "class='btn btn-primary create-execution-btn' data-app='project' onclick='$(this).removeAttr(\"data-toggle\")'");?>
       <button type='button' class='btn btn-primary dropdown-toggle' data-toggle='dropdown'><span class='caret'></span></button>
       <ul class='dropdown-menu pull-right'>
         <li><?php echo html::a($this->createLink('execution', 'create', "projectID=$projectID"), $lang->execution->create);?></li>
@@ -63,7 +64,7 @@
       </ul>
     </div>
     <?php else: ?>
-    <?php if(common::hasPriv('execution', 'create') and !$isStage) echo html::a($this->createLink('execution', 'create', "projectID=$projectID"), "<i class='icon icon-sm icon-plus'></i> " . $lang->execution->create, '', "class='btn btn-primary create-execution-btn' data-app='execution' onclick='$(this).removeAttr(\"data-toggle\")'");?>
+    <?php if(common::hasPriv('execution', 'create') and !$isStage) echo html::a($this->createLink('execution', 'create', "projectID=$projectID"), "<i class='icon icon-sm icon-plus'></i> " . $lang->execution->create, '', "class='btn btn-primary create-execution-btn' data-app='project' onclick='$(this).removeAttr(\"data-toggle\")'");?>
     <?php endif;?>
   </div>
 </div>
@@ -77,7 +78,7 @@
         <?php echo html::a($this->createLink('programplan', 'create', "projectID=$projectID&productID=$productID"), "<i class='icon icon-plus'></i> " . $lang->programplan->create, '', "class='btn btn-info'");?>
         <?php else: ?>
           <?php if(common::hasPriv('execution', 'create')):?>
-          <?php echo html::a($this->createLink('execution', 'create', "projectID=$projectID"), "<i class='icon icon-plus'></i> " . $lang->execution->create, '', "class='btn btn-info' data-app='execution'");?>
+          <?php echo html::a($this->createLink('execution', 'create', "projectID=$projectID"), "<i class='icon icon-plus'></i> " . $lang->execution->create, '', "class='btn btn-info' data-app='project'");?>
           <?php endif;?>
         <?php endif;?>
       <?php endif;?>
@@ -102,7 +103,7 @@
           <th class='c-status text-center'><?php echo $lang->project->status;?></th>
           <th class='w-50px'><?php echo $lang->execution->owner;?></th>
           <th class='c-date'><?php echo $lang->programplan->begin;?></th>
-          <th class='c-date'><?php echo $lang->programplan->end;?></th>
+          <th class='c-enddate'><?php echo $lang->programplan->end;?></th>
           <th class='w-50px text-right'><?php echo $lang->task->estimateAB;?></th>
           <th class='w-50px text-right'><?php echo $lang->task->consumedAB;?></th>
           <th class='w-50px text-right'><?php echo $lang->task->leftAB;?> </th>
@@ -115,7 +116,7 @@
         <?php foreach($executionStats as $execution):?>
         <?php $execution->division = $project->division;?>
         <?php $executionProductID = (empty($productID) and !empty($execution->product)) ? $execution->product : $productID;?>
-        <?php $this->execution->printNestedList($execution, false, $users, $executionProductID);?>
+        <?php $this->execution->printNestedList($execution, false, $users, $executionProductID, $project);?>
         <?php endforeach;?>
       </tbody>
     </table>

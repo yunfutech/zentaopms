@@ -75,6 +75,8 @@ class editor extends control
         if($filePath)
         {
             $filePath = helper::safe64Decode($filePath);
+            $filePath = realpath($filePath);
+
             if(strpos(strtolower($filePath), strtolower($this->app->getBasePath())) !== 0) return print($this->lang->editor->editFileError);
             if($action == 'extendOther' and file_exists($filePath)) $this->view->showContent = file_get_contents($filePath);
 
@@ -162,7 +164,7 @@ class editor extends control
             if(strpos(strtolower($filePath), strtolower($this->app->getBasePath())) !== 0) return print($this->lang->editor->editFileError);
 
             $fileName = empty($_POST['fileName']) ? '' : trim($this->post->fileName);
-            if(empty($fileName)) return print(js::error($this->lang->editor->emptyFileName));
+            if($action != 'edit' and empty($fileName)) return print(js::error($this->lang->editor->emptyFileName));
 
             if($action != 'edit' and $action != 'newPage') $filePath = $this->editor->getSavePath($filePath, $action);
             if($action != 'edit' and $action != 'newPage' and file_exists($filePath) and !$this->post->override) return print(js::error($this->lang->editor->repeatFile));

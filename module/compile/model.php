@@ -47,7 +47,7 @@ class compileModel extends model
      */
     public function getList($repoID, $jobID, $orderBy = 'id_desc', $pager = null)
     {
-        $compiles = $this->dao->select('t1.id, t1.name, t1.job, t1.status, t1.createdDate, t1.testtask, t2.pipeline, t2.triggerType, t2.comment, t2.atDay, t2.atTime, t2.engine, t3.name as repoName, t4.name as jenkinsName')->from(TABLE_COMPILE)->alias('t1')
+        return $this->dao->select('t1.id, t1.name, t1.job, t1.status, t1.createdDate, t1.testtask, t2.pipeline, t2.triggerType, t2.comment, t2.atDay, t2.atTime, t2.engine, t3.name as repoName, t4.name as jenkinsName')->from(TABLE_COMPILE)->alias('t1')
             ->leftJoin(TABLE_JOB)->alias('t2')->on('t1.job=t2.id')
             ->leftJoin(TABLE_REPO)->alias('t3')->on('t2.repo=t3.id')
             ->leftJoin(TABLE_PIPELINE)->alias('t4')->on('t2.server=t4.id')
@@ -58,11 +58,6 @@ class compileModel extends model
             ->orderBy($orderBy)
             ->page($pager)
             ->fetchAll('id');
-        foreach($compiles as $key => $compile)
-        {
-            if(!empty($compile->createdDate)) $compiles[$key]->createdDate = substr($compile->createdDate, 5, 11);
-        }
-        return $compiles;
     }
 
     /**
@@ -134,13 +129,18 @@ class compileModel extends model
 
         $url = new stdclass();
         $url->userPWD = "$jenkinsUser:$jenkinsPassword";
+
+        $detailUrl             = strpos($jenkins->pipeline, '/job/') !== false ? sprintf('%s%s/api/json', $jenkinsServer, $jenkins->pipeline) : sprintf('%s/job/%s/api/json', $jenkinsServer, $jenkins->pipeline);
+        $hasParameterizedBuild = $this->loadModel('job')->checkParameterizedBuild($detailUrl, $url->userPWD);
+        $buildInterface        = $hasParameterizedBuild ? 'buildWithParameters' : 'build';
+
         if(strpos($jenkins->pipeline, '/job/') !== false)
         {
-            $url->url = sprintf('%s%sbuildWithParameters/api/json', $jenkinsServer, $jenkins->pipeline);
+            $url->url = sprintf("%s%s{$buildInterface}/api/json", $jenkinsServer, $jenkins->pipeline);
         }
         else
         {
-            $url->url = sprintf('%s/job/%s/buildWithParameters/api/json', $jenkinsServer, $jenkins->pipeline);
+            $url->url = sprintf("%s/job/%s/{$buildInterface}/api/json", $jenkinsServer, $jenkins->pipeline);
         }
 
         return $url;
@@ -166,7 +166,10 @@ class compileModel extends model
             $userPWD         = "$jenkinsUser:$jenkinsPassword";
 
             $infoUrl  = sprintf('%s/job/%s/api/xml?tree=builds[id,number,queueId]&xpath=//build[queueId=%s]', $jenkins->url, $job->pipeline, $compile->queue);
-            $response = common::http($infoUrl, '', array(CURLOPT_USERPWD => $userPWD));
+            $result   = common::http($infoUrl, '', array(CURLOPT_USERPWD => $userPWD), array(), 'data', 'POST', 30, true);
+            $response = $result['body'];
+            $httpCode = $result[1];
+            if($httpCode == 404) return '';
             if($response)
             {
                 $buildInfo   = simplexml_load_string($response);
@@ -188,7 +191,9 @@ class compileModel extends model
             $this->loadModel('ci');
             foreach($jobs as $gitlabJob)
             {
-                if(empty($gitlabJob->duration) or $gitlabJob->duration == '') $gitlabJob->duration = '-';
+                if(!is_object($gitlabJob)) continue;
+
+                if(empty($gitlabJob->duration)) $gitlabJob->duration = '-';
                 $logs .= "<font style='font-weight:bold'>&gt;&gt;&gt; Job: $gitlabJob->name, Stage: $gitlabJob->stage, Status: $gitlabJob->status, Duration: $gitlabJob->duration Sec\r\n </font>";
                 $logs .= "Job URL: <a href=\"$gitlabJob->web_url\" target='_blank'>$gitlabJob->web_url</a> \r\n";
                 $logs .= $this->ci->transformAnsiToHtml($this->gitlab->apiGetJobLog($job->server, $projectID, $gitlabJob->id));
@@ -269,6 +274,8 @@ class compileModel extends model
      */
     public function syncJenkinsBuildList($jenkins, $job)
     {
+        if(empty($jenkins->account)) return;
+
         $jenkinsUser     = $jenkins->account;
         $jenkinsPassword = $jenkins->token ? $jenkins->token : base64_decode($jenkins->password);
 
@@ -286,6 +293,8 @@ class compileModel extends model
 
         $compilePairs = $this->dao->select('queue,job')->from(TABLE_COMPILE)->where('job')->eq($job->id)->andWhere('queue')->gt(0)->fetchPairs();
         $jobInfo      = json_decode($response);
+        if(empty($jobInfo)) return;
+
         foreach($jobInfo->builds as $build)
         {
             $lastSyncTime = strtotime($job->lastSyncDate);
@@ -293,12 +302,14 @@ class compileModel extends model
             if(isset($compilePairs[$build->queueId])) continue;
 
             $data = new stdclass();
-            $data->name        = $job->name;
-            $data->job         = $job->id;
-            $data->queue       = $build->queueId;
-            $data->status      = $build->result == 'SUCCESS' ? 'success' : 'failure';
-            $data->createdBy   = 'guest';
-            $data->createdDate = date('Y-m-d H:i:s', $build->timestamp / 1000);
+            $data->name      = $job->name;
+            $data->job       = $job->id;
+            $data->queue     = $build->queueId;
+            $data->status    = $build->result == 'SUCCESS' ? 'success' : 'failure';
+            $data->createdBy = 'guest';
+
+            $buildTime = is_int($build->timestamp) ? $build->timestamp / 1000 : round($build->timestamp);
+            $data->createdDate = date('Y-m-d H:i:s', $buildTime);
             $data->updateDate  = $data->createdDate;
 
             $this->dao->insert(TABLE_COMPILE)->data($data)->exec();
@@ -318,6 +329,8 @@ class compileModel extends model
      */
     public function syncGitlabBuildList($gitlab, $job)
     {
+        if(empty($gitlab->id)) return;
+
         $pipeline  = json_decode($job->pipeline);
         $projectID = isset($pipeline->project) ? $pipeline->project : '';
         $ref       = isset($pipeline->reference) ? $pipeline->reference : '';
@@ -374,11 +387,10 @@ class compileModel extends model
             ->leftJoin(TABLE_PIPELINE)->alias('t2')->on('t1.server=t2.id')
             ->where('t1.id')->eq($compile->job)
             ->fetch();
-
         if(!$job) return false;
 
         $compileID = $compile->id;
-        $repo      = $this->loadModel('repo')->getRepoById($job->repo);
+        $repo      = $this->loadModel('repo')->getByID($job->repo);
 
         if($job->triggerType == 'tag')
         {
@@ -393,12 +405,14 @@ class compileModel extends model
         }
 
         $this->loadModel('job');
-        if($job->engine == 'gitlab')  $compile = $this->job->execGitlabPipeline($job, $compileID);
-        if($job->engine == 'jenkins') $compile = $this->job->execJenkinsPipeline($job, $repo, $compileID);
+        $result = new stdclass();
+        if($job->engine == 'gitlab')  $result = $this->job->execGitlabPipeline($job, $compileID);
+        if($job->engine == 'jenkins') $result = $this->job->execJenkinsPipeline($job, $repo, $compileID);
+        if(!$result) return false;
 
-        $this->dao->update(TABLE_COMPILE)->data($compile)->where('id')->eq($compileID)->exec();
+        $this->dao->update(TABLE_COMPILE)->data($result)->where('id')->eq($compileID)->exec();
         $this->dao->update(TABLE_JOB)
-            ->set('lastStatus')->eq($compile->status)
+            ->set('lastStatus')->eq($result->status)
             ->set('lastExec')->eq($compile->updateDate)
             ->where('id')->eq($job->id)
             ->exec();

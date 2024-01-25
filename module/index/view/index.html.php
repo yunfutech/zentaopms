@@ -22,6 +22,8 @@ js::set('defaultOpen',   (isset($open) and !empty($open)) ? $open : '');
 js::set('manualText',    $lang->manual);
 js::set('manualUrl',     ((!empty($config->isINT)) ? $config->manualUrl['int'] : $config->manualUrl['home']) . '&theme=' . $_COOKIE['theme']);
 js::set('isAdminUser',   $this->app->user->admin);
+js::set('isIntranet',    helper::isIntranet());
+js::set('showFeatures',  $showFeatures);
 ?>
 <style>
 #versionTitle {margin: 8px 3px 0px 0px; background-image: url(<?php echo $config->webRoot . 'theme/default/images/main/version-upgrade.svg';?>);}
@@ -41,8 +43,12 @@ js::set('isAdminUser',   $this->app->user->admin);
 #menuMoreList > li.active:after {content: attr(data-tip); display: block; position: absolute; left: 100%; background-color: #f1a325; color: #fff; top: 3px; white-space: nowrap; line-height: 16px; padding: 8px 10px; margin-left: 5px; border-radius: 4px;}
 <?php endif;?>
 
-<?php if($this->config->vision == 'lite'):?>
+<?php if($config->vision == 'lite' or $config->vision == 'or'):?>
 #searchbox .dropdown-menu.show-quick-go.with-active {min-height: 180px;}
+<?php endif;?>
+
+<?php if($config->inQuickon):?>
+#poweredBy {width: 50%;}
 <?php endif;?>
 </style>
 <?php if(strpos($_SERVER['HTTP_USER_AGENT'], 'xuanxuan') === false):?>
@@ -90,7 +96,7 @@ js::set('isAdminUser',   $this->app->user->admin);
       <?php $versionName = $lang->liteName . $config->liteVersion;?>
       <?php else:?>
       <?php $version     = $config->version;?>
-      <?php $versionName = $lang->pmsName . $config->version;?>
+      <?php $versionName = ($config->inQuickon ? 'DevOps' : '') . $lang->pmsName . $config->version;?>
       <a href='javascript:void(0)' id='bizLink' class='btn btn-link' style='color: #B57D4F;'><span class='upgrade'><?php echo $lang->bizName;?></span> <i class='text-danger icon-pro-version'></i></a>
       <?php endif;?>
       <a href='<?php echo $lang->website;?>' class="btn btn-sm btn-link" target='_blank' title='<?php echo $version;?>'>
@@ -132,15 +138,15 @@ js::set('isAdminUser',   $this->app->user->admin);
           <div class="version-list">
             <div>
               <i class='version-upgrade icon-version'></i>
-              <h4><?php echo $version->name;?></h4>
+              <h4><?php echo $version['name'];?></h4>
             </div>
-            <div class="version-detail"><?php echo $version->explain;?></div>
+            <div class="version-detail"><?php echo $version['explain'];?></div>
             <div class="version-footer">
               <a href="<?php echo inLink('changeLog', 'version=' . $versionNumber);?>" class="btn btn-link iframe" data-width="800"><?php echo $lang->index->log;?></strong></a>
-              <a href='<?php echo $version->link?>' class='btn btn-primary upgrade-now' style='color: white;' target='_blank'><?php echo $lang->index->upgradeNow;?></a>
+              <a href='<?php echo $version['link']?>' class='btn btn-primary upgrade-now' style='color: white;' target='_blank'><?php echo $lang->index->upgradeNow;?></a>
             </div>
           </div>
-          <?php if($version->name != $lastVersion->name):?>
+          <?php if($version['name'] != $lastVersion['name']):?>
           <hr class='version-hr'>
           <?php endif;?>
           <?php endforeach;?>
@@ -150,6 +156,7 @@ js::set('isAdminUser',   $this->app->user->admin);
     </div>
   </div>
 </div>
+<?php include './chatview.html.php';?>
 <?php js::set('searchAB', $lang->searchAB);?>
 <?php js::set('searchObjectList', ',' . implode(',', array_keys($lang->searchObjects)) . ',');?>
 <?php js::set('searchCommon', $lang->index->search);?>

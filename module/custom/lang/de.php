@@ -254,6 +254,7 @@ $lang->custom->selectProgramTips = "After switching to the Light Mode, in order 
 
 $lang->custom->modeList['light'] = 'Light Mode';
 $lang->custom->modeList['ALM']   = 'ALM Mode';
+$lang->custom->modeList['PLM']   = 'IPD Mode';
 
 $lang->custom->modeIntroductionList['light'] = "Provides the core function of {$lang->projectCommon} management, suitable for small R&D teams";
 $lang->custom->modeIntroductionList['ALM']   = 'The concept is more complete and rigorous, and the function is more abundant. It is suitable for medium and large R&D teams';
@@ -272,7 +273,7 @@ $lang->custom->features['qa']                   = 'QA';
 $lang->custom->features['devops']               = 'DevOps';
 $lang->custom->features['kanban']               = 'Kanban';
 $lang->custom->features['doc']                  = 'Doc';
-$lang->custom->features['report']               = $lang->report->common;
+$lang->custom->features['report']               = 'BI';
 $lang->custom->features['system']               = 'System';
 $lang->custom->features['assetlib']             = 'Asset Lib';
 $lang->custom->features['oa']                   = 'Attend';

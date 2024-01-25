@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 /**
  * 禅道API的api类。
  * The api class file of ZenTao API.
@@ -10,7 +10,7 @@
  *  May you find forgiveness for yourself and forgive others.
  *  May you share freely, never taking more than you give.
  */
-include dirname(__FILE__, 2) . '/router.class.php';
+include dirname(dirname(__FILE__)) . '/router.class.php';
 class api extends router
 {
     /**
@@ -76,11 +76,11 @@ class api extends router
      * @access public
      * @return void
      */
-    public function __construct(string $appName = 'api', string $appRoot = '')
+    public function __construct($appName = 'api', $appRoot = '')
     {
         parent::__construct($appName, $appRoot);
 
-        $this->httpMethod  = strtolower((string) $_SERVER['REQUEST_METHOD']);
+        $this->httpMethod  = strtolower($_SERVER['REQUEST_METHOD']);
 
         /*
         $documentRoot = zget($_SERVER, 'CONTEXT_DOCUMENT_ROOT', $_SERVER['DOCUMENT_ROOT']);
@@ -91,7 +91,7 @@ class api extends router
         if(strpos($this->path, '?') > 0) $this->path = strstr($this->path, '?', true);
          */
 
-        $this->path = trim(substr((string) $_SERVER['REQUEST_URI'], strpos((string) $_SERVER['REQUEST_URI'], 'api.php') + 7), '/');
+        $this->path = trim(substr($_SERVER['REQUEST_URI'], strpos($_SERVER['REQUEST_URI'], 'api.php') + 7), '/');
         if(strpos($this->path, '?') > 0) $this->path = strstr($this->path, '?', true);
 
         $subPos = $this->path ? strpos($this->path, '/') : false;
@@ -107,26 +107,26 @@ class api extends router
      * Parse request path, find entry and action.
      *
      * @param  array $routes
-     * @access public
+     * @access private
      * @return void
      */
-    public function route(array $routes)
+    public function route($routes)
     {
         foreach($routes as $route => $target)
         {
             $patternAsRegex = preg_replace_callback(
                 '#:([\w]+)\+?#',
-                $this->matchesCallback(...),
+                array($this, 'matchesCallback'),
                 str_replace(')', ')?', $route)
             );
-            if(str_ends_with($route, '/')) $patternAsRegex .= '?';
+            if(substr($route, -1) === '/') $patternAsRegex .= '?';
 
             /* Cache URL params' names and values if this route matches the current HTTP request. */
             if(!preg_match('#^' . $patternAsRegex . '$#', $this->path, $paramValues)) continue;
 
             /* Set module and action */
             $this->entry  = $target;
-            $this->action = strtolower((string) $_SERVER['REQUEST_METHOD']);
+            $this->action = strtolower($_SERVER['REQUEST_METHOD']);
 
             /* Set params */
             foreach($this->paramNames as $name)
@@ -154,11 +154,11 @@ class api extends router
      *
      * Parse params of route to regular expression.
      *
-     * @param  string $m
+     * @param  string $param
      * @access protected
      * @return string
      */
-    protected function matchesCallback(string $m)
+    protected function matchesCallback($m)
     {
         $this->paramNames[] = $m[1];
         return '(?P<' . $m[1] . '>[^/]+)';
@@ -230,7 +230,7 @@ class api extends router
      * @access public
      * @return void
      */
-    public function loadApiConfig(string $configPath)
+    public function loadApiConfig($configPath)
     {
         global $config;
         include($this->appRoot . "api/$this->version/config/$configPath.php");
@@ -260,17 +260,17 @@ class api extends router
      * @access public
      * @return string
      */
-    public function formatData(string $output)
+    public function formatData($output)
     {
         /* If the version exists, return output directly. */
         if($this->version) return $output;
 
-        $output = json_decode((string) $output);
+        $output = json_decode($output);
 
         $data = new stdClass();
-        $data->status = $output->status ?? $output->result;
+        $data->status = isset($output->status) ? $output->status : $output->result;
         if(isset($output->message)) $data->message = $output->message;
-        if(isset($output->data))    $data->data    = json_decode((string) $output->data);
+        if(isset($output->data))    $data->data    = json_decode($output->data);
         if(isset($output->id))      $data->id      = $output->id;
         $output = json_encode($data);
 
@@ -278,5 +278,39 @@ class api extends router
         unset($_SESSION['VALID_ENTRY']);
 
         return $output;
+    }
+
+    /**
+     * 设置vision。
+     * set Debug.
+     *
+     * @access public
+     * @return void
+     */
+    public function setVision()
+    {
+        $account = isset($_SESSION['user']) ? $_SESSION['user']->account : '';
+        if(empty($account) and isset($_POST['account'])) $account = $_POST['account'];
+        if(empty($account) and isset($_GET['account']))  $account = $_GET['account'];
+
+        $vision = 'rnd';
+        if($this->config->installed and validater::checkAccount($account))
+        {
+            $sql     = new sql();
+            $account = $sql->quote($account);
+
+            $user = $this->dbh->query("SELECT * FROM " . TABLE_USER . " WHERE account = $account AND deleted = '0' LIMIT 1")->fetch();
+            if(!empty($user->visions))
+            {
+                $userVisions = explode(',', $user->visions);
+                if(!in_array($vision, $userVisions)) $vision = '';
+                if(empty($vision)) list($vision) = $userVisions;
+            }
+        }
+
+        list($defaultVision) = explode(',', trim($this->config->visions, ','));
+        if($vision and strpos($this->config->visions, ",{$vision},") === false) $vision = $defaultVision;
+
+        $this->config->vision = $vision ? $vision : $defaultVision;
     }
 }

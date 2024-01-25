@@ -64,6 +64,7 @@ $lang->task->teamOrder           = 'Order';
 $lang->task->manageTeam          = 'Manage Team';
 $lang->task->unfoldEffort        = 'Unfold Effort';
 $lang->task->foldEffort          = 'Fold Effort';
+$lang->task->relatedBranch       = 'Related Branch';
 
 $lang->task->common            = 'Tâche';
 $lang->task->id                = 'ID';
@@ -94,6 +95,7 @@ $lang->task->consumed          = 'Coût Total';
 $lang->task->currentConsumed   = 'Coût Actuel';
 $lang->task->myConsumed        = 'Mon Coût';
 $lang->task->consumedAB        = 'Coût';
+$lang->task->consumedHours     = 'Coût';
 $lang->task->hour              = 'Heures';
 $lang->task->consumedThisTime  = 'Coût';
 $lang->task->leftThisTime      = 'Reste';
@@ -164,6 +166,7 @@ $lang->task->lblPri            = 'P';
 $lang->task->lblHour           = '(h)';
 $lang->task->lblTestStory      = 'Story Testée';
 $lang->task->teamMember        = 'Team Member';
+$lang->task->update            = 'Update';
 
 /* Fields of zt_taskestimate. */
 $lang->task->task    = 'Task';
@@ -259,9 +262,11 @@ $lang->task->deniedNotice              = 'Seulement le %s peut %s la tâche.';
 $lang->task->deniedStatusNotice        = 'The task status is %s, the effort cannot be maintained.';
 $lang->task->transferNotice            = 'Linear task cannot be transferred.';
 $lang->task->noTask                    = "Pas de tâche pour l'instant. ";
+$lang->task->noModule                  = '<div>You have no modules.</div><div>Manage now</div>';
 $lang->task->createDenied              = 'La création de tâches est interdite dans ce ' . $lang->projectCommon;
 $lang->task->cannotDeleteParent        = 'Impossible de supprimer la tâche parente';
 $lang->task->addChildTask              = 'Because the task has already consumed consumption, to ensure data consistency, we will help you create a subtask with the same name to record the consumption.';
+$lang->task->effortOperateTips         = 'Only the project manager, the executive supervisor, and the department head have the authority to %s logs belonging to others.';
 
 $lang->task->error = new stdclass();
 $lang->task->error->totalNumber       = '"Coût Total" doit être numérique.';

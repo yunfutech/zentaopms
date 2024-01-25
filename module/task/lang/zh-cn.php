@@ -64,6 +64,7 @@ $lang->task->teamOrder           = '工序';
 $lang->task->manageTeam          = '维护团队';
 $lang->task->unfoldEffort        = '展开日志';
 $lang->task->foldEffort          = '收起日志';
+$lang->task->relatedBranch       = '相关分支';
 
 $lang->task->common            = '任务';
 $lang->task->id                = '编号';
@@ -94,6 +95,7 @@ $lang->task->consumed          = '总计消耗';
 $lang->task->currentConsumed   = '本次消耗';
 $lang->task->myConsumed        = '我的总消耗';
 $lang->task->consumedAB        = '消耗';
+$lang->task->consumedHours     = '耗时';
 $lang->task->hour              = '小时';
 $lang->task->consumedThisTime  = '工时';
 $lang->task->leftThisTime      = '剩余';
@@ -164,6 +166,7 @@ $lang->task->lblPri            = 'P';
 $lang->task->lblHour           = '(h)';
 $lang->task->lblTestStory      = "测试{$lang->SRCommon}";
 $lang->task->teamMember        = '团队成员';
+$lang->task->update            = '更新';
 
 /* Fields of zt_taskestimate. */
 $lang->task->task    = '任务';
@@ -259,9 +262,11 @@ $lang->task->deniedNotice              = '当前任务只有%s才可以%s。';
 $lang->task->deniedStatusNotice        = '当前任务状态是%s，不能维护日志。';
 $lang->task->transferNotice            = '串行多人任务不能转交。';
 $lang->task->noTask                    = '暂时没有任务。';
+$lang->task->noModule                  = '<div>您现在还没有模块信息</div><div>请维护任务模块</div>';
 $lang->task->createDenied              = "你不能在该{$lang->projectCommon}添加任务";
 $lang->task->cannotDeleteParent        = '不能删除父任务。';
 $lang->task->addChildTask              = '因该任务已经产生消耗，为保证数据一致性，我们会帮您创建一条同名子任务记录该消耗。';
+$lang->task->effortOperateTips         = '只有项目负责人、执行负责人、所属部门负责人才能%s他人日志。';
 
 $lang->task->error                    = new stdclass();
 $lang->task->error->totalNumber       = '"总计消耗"必须为数字';

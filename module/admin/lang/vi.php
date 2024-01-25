@@ -59,6 +59,7 @@ $lang->admin->registerNotice->success    = "Bạn đã đăng ký!";
 $lang->admin->bind = new stdclass();
 $lang->admin->bind->caption = 'Liên kết tài khoản';
 $lang->admin->bind->success = "Tài khoản đã được kết nối!";
+$lang->admin->bind->submit  = "Trói buộc";
 
 $lang->admin->safe = new stdclass();
 $lang->admin->safe->common     = 'Chính sách bảo mật';
@@ -92,7 +93,7 @@ $lang->admin->safe->loginCaptchaList[0] = 'No';
 
 $lang->admin->safe->noticeMode   = 'Mật khẩu sẽ được kiểm tra khi người dùng đăng nhập hoặc người dùng thêm hoặc sửa.';
 $lang->admin->safe->noticeStrong = '';
-$lang->admin->safe->noticeGd     = 'Your server does not have GD module installed, you cannot use the Captcha function, Please use it after installation.';
+$lang->admin->safe->noticeGd     = 'Your server does not have GD module installed or enabled FreeType support, you cannot use the Captcha function, Please use it after installation.';
 
 $lang->admin->mon              = 'month';
 $lang->admin->day              = 'day';

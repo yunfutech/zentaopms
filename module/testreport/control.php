@@ -251,22 +251,22 @@ class testreport extends control
 
             $execution     = $this->execution->getById($executionID);
             $tasks         = $this->testtask->getExecutionTasks($executionID, $objectType);
-            $task          = $objectID ? $this->testtask->getById($objectID) : key($tasks);
+            $task          = $objectID ? $this->testtask->getById($extra) : key($tasks);
             $owners        = array();
             $buildIdList   = array();
             $productIdList = array();
-            foreach($tasks as $i => $task)
+            foreach($tasks as $i => $testtask)
             {
-                if(!empty($extra) and strpos(",{$extra},", ",{$task->id},") === false)
+                if(!empty($extra) and strpos(",{$extra},", ",{$testtask->id},") === false)
                 {
                     unset($tasks[$i]);
                     continue;
                 }
 
-                $owners[$task->owner] = $task->owner;
-                $productIdList[$task->product] = $task->product;
-                $this->setChartDatas($task->id);
-                if($task->build != 'trunk') $buildIdList[$task->build] = $task->build;
+                $owners[$testtask->owner] = $testtask->owner;
+                $productIdList[$testtask->product] = $testtask->product;
+                $this->setChartDatas($testtask->id);
+                if($testtask->build != 'trunk') $buildIdList[$testtask->build] = $testtask->build;
             }
             if(count($productIdList) > 1)
             {
@@ -302,9 +302,17 @@ class testreport extends control
 
         list($bugInfo, $bugSummary) = $this->testreport->getBug4Report($tasks, $productIdList, $begin, $end, $builds);
 
+        /* Get testtasks members. */
+        $taskMembers = '';
+        foreach($tasks as $testtask) $taskMembers .= ',' . $testtask->members;
+        $taskMembers = explode(',', $taskMembers);
+
+        $members     = $this->dao->select('DISTINCT lastRunner')->from(TABLE_TESTRUN)->where('task')->in(array_keys($tasks))->fetchPairs('lastRunner', 'lastRunner');
+        $members     = array_merge($members, $taskMembers);
+
         $this->view->begin   = $begin;
         $this->view->end     = $end;
-        $this->view->members = $this->dao->select('DISTINCT lastRunner')->from(TABLE_TESTRUN)->where('task')->in(array_keys($tasks))->fetchPairs('lastRunner', 'lastRunner');
+        $this->view->members = $members;
         $this->view->owner   = $owner;
 
         $this->view->stories       = $stories;

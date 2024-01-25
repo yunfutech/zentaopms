@@ -102,6 +102,7 @@ $lang->testcase->caseType         = 'Case Type';
 $lang->testcase->allType          = 'All Types';
 $lang->testcase->showAutoCase     = 'Automated';
 $lang->testcase->automation       = 'Automation Test';
+$lang->testcase->autoCase         = 'Automation';
 
 $lang->case = $lang->testcase;  // For dao checking using. Because 'case' is a php keywords, so the module name is testcase, table name is still case.
 
@@ -193,6 +194,10 @@ $lang->testcase->confirmUnlinkTesttask = 'The case [%s] is already associated in
 $lang->testcase->reviewList[0] = 'NON';
 $lang->testcase->reviewList[1] = 'OUI';
 
+$lang->testcase->autoList['']     = '';
+$lang->testcase->autoList['auto'] = 'Yes';
+$lang->testcase->autoList['no']   = 'No';
+
 $lang->testcase->priList[0] = '';
 $lang->testcase->priList[3] = 3;
 $lang->testcase->priList[1] = 1;
@@ -242,10 +247,12 @@ $lang->testcase->noFunction       = "Iconv et mb_convert_encoding non trouvés. 
 $lang->testcase->noRequire        = "Ligne %s a“%s ”qui est un champ obligatoire et ne doit pas être vide.";
 $lang->testcase->noRequireTip     = "“%s”is a required field and it should not be blank.";
 $lang->testcase->noLibrary        = "Aucune library n'existe. Créez-en une pour commencer.";
+$lang->testcase->noOtherLibrary   = "There are no other use case libraries available at this time, please maintain a new use case library and try again.";
 $lang->testcase->mustChooseResult = 'La Validation du résultat est nécessaire.';
 $lang->testcase->noModule         = "<div>Vous n'avez aucun modules.</div><div>Gérer les modules maintenant.</div>";
 $lang->testcase->noCase           = "Aucun CasTest pour l'instant. ";
 $lang->testcase->importedCases    = 'Le cas d\'utilisation avec l\'ID %s est déjà importé dans le même module, il est donc ignoré.';
+$lang->testcase->importedFromLib  = '%s items imported successfully: %s.';
 
 $lang->testcase->searchStories = 'Rechercher des stories';
 $lang->testcase->selectLib     = 'Sélectionner Library';

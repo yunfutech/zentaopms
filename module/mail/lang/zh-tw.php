@@ -1,5 +1,4 @@
 <?php
-$lang->mail->common        = '發信配置';
 $lang->mail->index         = '首頁';
 $lang->mail->detect        = '檢測';
 $lang->mail->detectAction  = '通過郵箱地址檢測';
@@ -113,6 +112,12 @@ $lang->mail->ztCloudNotice    = <<<EOD
 </ul>
 <p>如果不同意以上條款，就不能該服務。</p>
 EOD;
+
+$lang->mail->forgetPassword = <<<EOT
+<p>您好：</p>
+<p>您正在申請重置禪道密碼，重置連結三分鐘內有效，過期請重新申請。</p>
+<p><a href="%s" target="_blank">點擊此處重置</a></p>
+EOT;
 
 $lang->mail->placeholder = new stdclass();
 $lang->mail->placeholder->password = '有些郵箱需要填寫單獨申請的授權碼，具體請到郵箱相關設置查詢。';

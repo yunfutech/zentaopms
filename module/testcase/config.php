@@ -3,6 +3,7 @@ $config->testcase = new stdclass();
 $config->testcase->defaultSteps = 3;
 $config->testcase->batchCreate  = 10;
 $config->testcase->needReview   = 0;
+$config->testcase->useDatatable = false;
 
 $config->testcase->create = new stdclass();
 $config->testcase->edit   = new stdclass();
@@ -18,7 +19,7 @@ $config->testcase->export   = new stdclass();
 $config->testcase->export->listFields   = array('type', 'stage', 'pri', 'status');
 
 $config->testcase->exportFields = '
-    id, product, branch, module, story,
+    id, product, branch, module, story, scene,
     title, precondition, stepDesc, stepExpect, real, keywords,
     pri, type, stage, status, bugsAB, resultsAB, stepNumberAB, lastRunner, lastRunDate, lastRunResult, openedBy, openedDate,
     lastEditedBy, lastEditedDate, version, linkCase, files';
@@ -35,13 +36,14 @@ $config->testcase->custom->batchEditFields   = 'branch,module,stage,status,pri,s
 $config->testcase->excludeCheckFileds = ',pri,type,stage,needReview,story,branch,';
 
 global $lang;
-$config->testcase->search['module']                   = 'testcase';
-$config->testcase->search['fields']['title']          = $lang->testcase->title;
-$config->testcase->search['fields']['story']          = $lang->testcase->linkStory;
-$config->testcase->search['fields']['id']             = $lang->testcase->id;
-$config->testcase->search['fields']['keywords']       = $lang->testcase->keywords;
-$config->testcase->search['fields']['lastEditedBy']   = $lang->testcase->lastEditedByAB;
-$config->testcase->search['fields']['type']           = $lang->testcase->type;
+$config->testcase->search['module']                 = 'testcase';
+$config->testcase->search['fields']['title']        = $lang->testcase->title;
+$config->testcase->search['fields']['story']        = $lang->testcase->linkStory;
+$config->testcase->search['fields']['id']           = $lang->testcase->id;
+$config->testcase->search['fields']['keywords']     = $lang->testcase->keywords;
+$config->testcase->search['fields']['lastEditedBy'] = $lang->testcase->lastEditedByAB;
+$config->testcase->search['fields']['type']         = $lang->testcase->type;
+$config->testcase->search['fields']['auto']         = $lang->testcase->autoCase;
 
 $config->testcase->search['fields']['openedBy']       = $lang->testcase->openedBy;
 $config->testcase->search['fields']['status']         = $lang->testcase->status;
@@ -64,6 +66,7 @@ $config->testcase->search['params']['module']       = array('operator' => 'belon
 $config->testcase->search['params']['keywords']     = array('operator' => 'include', 'control' => 'input',  'values' => '');
 $config->testcase->search['params']['lastEditedBy'] = array('operator' => '=',       'control' => 'select', 'values' => 'users');
 $config->testcase->search['params']['type']         = array('operator' => '=',       'control' => 'select', 'values' => $lang->testcase->typeList);
+$config->testcase->search['params']['auto']         = array('operator' => '=',       'control' => 'select', 'values' => $lang->testcase->autoList);
 
 $config->testcase->search['params']['pri']          = array('operator' => '=',       'control' => 'select', 'values' => $lang->testcase->priList);
 $config->testcase->search['params']['openedBy']     = array('operator' => '=',       'control' => 'select', 'values' => 'users');
@@ -88,13 +91,20 @@ $config->testcase->datatable->fieldList['id']['fixed']    = 'left';
 $config->testcase->datatable->fieldList['id']['width']    = '70';
 $config->testcase->datatable->fieldList['id']['required'] = 'yes';
 
-$config->testcase->datatable->fieldList['product']['title']      = 'priAB';
+$config->testcase->datatable->fieldList['product']['title']      = 'product';
 $config->testcase->datatable->fieldList['product']['control']    = 'hidden';
+$config->testcase->datatable->fieldList['product']['display']    = false;
 $config->testcase->datatable->fieldList['product']['dataSource'] = array('module' => 'product', 'method' => 'getPairs', 'params' => '&0&&all');
 
 $config->testcase->datatable->fieldList['module']['title']      = 'module';
 $config->testcase->datatable->fieldList['module']['control']    = 'select';
+$config->testcase->datatable->fieldList['module']['display']    = false;
 $config->testcase->datatable->fieldList['module']['dataSource'] = array('module' => 'testcase', 'method' => 'getDatatableModules', 'params' => '$productID');
+
+$config->testcase->datatable->fieldList['scene']['title']      = 'scene';
+$config->testcase->datatable->fieldList['scene']['control']    = 'select';
+$config->testcase->datatable->fieldList['scene']['display']    = false;
+$config->testcase->datatable->fieldList['scene']['dataSource'] = array('module' => 'testcase', 'method' => 'getSceneMenu', 'params' => '$productID&0');
 
 $config->testcase->datatable->fieldList['title']['title']    = 'title';
 $config->testcase->datatable->fieldList['title']['fixed']    = 'left';
@@ -206,6 +216,7 @@ $config->testcase->datatable->fieldList['lastEditedDate']['required'] = 'no';
 $config->testcase->datatable->fieldList['version']['title']    = 'version';
 $config->testcase->datatable->fieldList['version']['fixed']    = 'no';
 $config->testcase->datatable->fieldList['version']['width']    = '60';
+$config->testcase->datatable->fieldList['version']['sort']     = 'no';
 $config->testcase->datatable->fieldList['version']['required'] = 'no';
 
 $config->testcase->datatable->fieldList['bugs']['title']    = 'B';
@@ -215,12 +226,12 @@ $config->testcase->datatable->fieldList['bugs']['required'] = 'no';
 $config->testcase->datatable->fieldList['bugs']['sort']     = 'no';
 $config->testcase->datatable->fieldList['bugs']['name']     = $lang->testcase->bugs;
 
-$config->testcase->datatable->fieldList['results']['title']    = 'R';
-$config->testcase->datatable->fieldList['results']['fixed']    = 'no';
-$config->testcase->datatable->fieldList['results']['width']    = '32';
-$config->testcase->datatable->fieldList['results']['required'] = 'no';
-$config->testcase->datatable->fieldList['results']['sort']     = 'no';
-$config->testcase->datatable->fieldList['results']['name']     = $lang->testcase->results;
+$config->testcase->datatable->fieldList['results']['title']      = 'R';
+$config->testcase->datatable->fieldList['results']['fixed']      = 'no';
+$config->testcase->datatable->fieldList['results']['width']      = '32';
+$config->testcase->datatable->fieldList['results']['required']   = 'no';
+$config->testcase->datatable->fieldList['results']['sort']       = 'no';
+$config->testcase->datatable->fieldList['results']['name']       = $lang->testcase->results;
 $config->testcase->datatable->fieldList['results']['dataSource'] = array('lang' => 'resultList');
 
 $config->testcase->datatable->fieldList['stepNumber']['title']    = 'S';
@@ -241,7 +252,10 @@ $config->testcase->search['fields']['scene'] = $lang->testcase->iScene;
 $config->testcase->search['params']['scene'] = array('operator' => 'belong',  'control' => 'select', 'values' => '');
 
 $config->testcase->createscene = new stdclass();
-$config->testcase->createscene->requiredFields = 'title';
+$config->testcase->createscene->requiredFields = 'product,title';
+
+$config->testcase->editscene = new stdclass();
+$config->testcase->editscene->requiredFields = 'product,title';
 
 $config->testcase->customBatchCreateFields   = 'module,scene,stage,story,pri,precondition,keywords,review';
 $config->testcase->customBatchEditFields     = 'module,scene,story,stage,precondition,status,pri,keywords';

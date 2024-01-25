@@ -23,7 +23,7 @@ function changeParams(obj)
     }
 
     var params = window.btoa('begin=' + begin + '&end=' + end + '&days=' + days + '&workday=' + workday + '&dept=' + dept + '&assign=' + assign);
-    var link = createLink('pivot', 'preview', 'dimension=' + dimension + '&group=' + group + '&module=pivot&method=workload&params=' + params);
+    var link = createLink('pivot', 'preview', 'dimension=' + dimension + '&group=' + groupID + '&module=pivot&method=workload&params=' + params);
     location.href = link;
 }
 
@@ -79,7 +79,6 @@ $(function()
         showMeridian: 1,
         minView: 2,
         format: 'yyyy-mm-dd',
-        startDate: new Date()
     };
     $('input#begin,input#end').fixedDate().datetimepicker(options);
 });

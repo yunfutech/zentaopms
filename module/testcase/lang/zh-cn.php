@@ -102,6 +102,7 @@ $lang->testcase->caseType         = '用例类型';
 $lang->testcase->allType          = '所有类型';
 $lang->testcase->showAutoCase     = '自动化';
 $lang->testcase->automation       = '自动化设置';
+$lang->testcase->autoCase         = '自动化';
 
 $lang->case = $lang->testcase;  // 用于DAO检查时使用。因为case是系统关键字，所以无法定义该模块为case，只能使用testcase，但表还是使用的case。
 
@@ -193,6 +194,10 @@ $lang->testcase->confirmUnlinkTesttask = '用例[%s]已关联在之前所属平�
 $lang->testcase->reviewList[0] = '否';
 $lang->testcase->reviewList[1] = '是';
 
+$lang->testcase->autoList['']     = '';
+$lang->testcase->autoList['auto'] = '是';
+$lang->testcase->autoList['no']   = '否';
+
 $lang->testcase->priList[0] = '';
 $lang->testcase->priList[3] = 3;
 $lang->testcase->priList[1] = 1;
@@ -242,10 +247,12 @@ $lang->testcase->noFunction       = '不存在iconv和mb_convert_encoding转码�
 $lang->testcase->noRequire        = "%s行的“%s”是必填字段，不能为空";
 $lang->testcase->noRequireTip     = "“%s”是必填字段，不能为空";
 $lang->testcase->noLibrary        = "现在还没有用例库，请先创建！";
+$lang->testcase->noOtherLibrary   = "目前还没有其他用例库，请维护新的用例库后再试。";
 $lang->testcase->mustChooseResult = '必须选择评审结果';
 $lang->testcase->noModule         = '<div>您现在还没有模块信息</div><div>请维护测试模块</div>';
 $lang->testcase->noCase           = '暂时没有用例。';
 $lang->testcase->importedCases    = 'ID为 %s 的用例在相同模块已经导入，已忽略。';
+$lang->testcase->importedFromLib  = '导入成功%s项：%s。';
 
 $lang->testcase->searchStories = "键入来搜索{$lang->SRCommon}";
 $lang->testcase->selectLib     = '请选择库';

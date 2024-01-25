@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 /**
  * ZenTaoPHP的model类。
  * The model class file of ZenTaoPHP framework.
@@ -17,7 +17,7 @@
  *
  * @package framework
  */
-include __DIR__ . '/base/model.class.php';
+include dirname(__FILE__) . '/base/model.class.php';
 class model extends baseModel
 {
     /**
@@ -31,7 +31,7 @@ class model extends baseModel
      * @access public
      * @return object|bool  the model object or false if model file not exists.
      */
-    public function loadModel($moduleName, $appName = ''): object|bool
+    public function loadModel($moduleName, $appName = '')
     {
         return parent::loadModel($moduleName);
     }
@@ -47,7 +47,7 @@ class model extends baseModel
      * @access public
      * @return object|bool  the model object or false if model file not exists.
      */
-    public function loadTao($moduleName, $appName = ''): object|bool
+    public function loadTao($moduleName, $appName = '')
     {
         return parent::loadTao($moduleName);
     }
@@ -64,7 +64,7 @@ class model extends baseModel
     public function delete($table, $id)
     {
         $this->dao->update($table)->set('deleted')->eq(1)->where('id')->eq($id)->exec();
-        $object = preg_replace('/^' . preg_quote((string) $this->config->db->prefix) . '/', '', trim($table, '`'));
+        $object = preg_replace('/^' . preg_quote($this->config->db->prefix) . '/', '', trim($table, '`'));
         $this->loadModel('action')->create($object, $id, 'deleted', '', $extra = ACTIONMODEL::CAN_UNDELETED);
 
         return true;
@@ -88,20 +88,21 @@ class model extends baseModel
      * @access public
      * @return string
      */
-
     public function buildMenu($moduleName, $methodName, $params, $data, $type = 'view', $icon = '', $target = '', $class = '', $onlyBody = false, $misc = '' , $title = '', $returnHtml = true)
     {
-        if(str_contains($moduleName, '.')) [$appName, $moduleName] = explode('.', $moduleName);
+        if(strpos($moduleName, '.') !== false) list($appName, $moduleName) = explode('.', $moduleName);
 
-        if(str_contains($methodName, '_') && strpos($methodName, '_') > 0) [$module, $method] = explode('_', $methodName);
+        if(strpos($methodName, '_') !== false && strpos($methodName, '_') > 0) list($module, $method) = explode('_', $methodName);
 
         if(empty($module)) $module = $moduleName;
         if(empty($method)) $method = $methodName;
 
-        static $actions = array();
-        if(isset($this->config->bizVersion))
+        static $actions   = array();
+        static $hasAction = array();
+        if(!isset($hasAction[$moduleName])) $hasAction[$moduleName] = true;
+        if($this->config->edition != 'open')
         {
-            if(empty($actions[$moduleName]))
+            if($hasAction[$moduleName] and empty($actions[$moduleName]))
             {
                 $actions[$moduleName] = $this->dao->select('*')->from(TABLE_WORKFLOWACTION)
                     ->where('module')->eq($moduleName)
@@ -109,6 +110,8 @@ class model extends baseModel
                     ->andWhere('status')->eq('enable')
                     ->beginIF(!empty($this->config->vision))->andWhere('vision')->eq($this->config->vision)->fi()
                     ->fetchAll('action');
+
+                if(empty($actions[$moduleName])) $hasAction[$moduleName] = false;
             }
         }
 
@@ -119,7 +122,7 @@ class model extends baseModel
 
             if($action->extensionType == 'override') return $this->loadModel('flow')->buildActionMenu($moduleName, $action, $data, $type);
 
-            $conditions = json_decode((string) $action->conditions);
+            $conditions = empty($action->conditions) ? array() : json_decode($action->conditions);
             if($conditions and $action->extensionType == 'extend')
             {
                 if($icon != 'copy' and $methodName != 'create') $title = $action->name;
@@ -129,6 +132,10 @@ class model extends baseModel
             {
                 if(method_exists($this, 'isClickable')) $enabled = $this->isClickable($data, $method, $module);
             }
+        }
+        elseif(strpos($misc, 'disabled') !== false)
+        {
+            $enabled = false;
         }
         else
         {
@@ -155,10 +162,10 @@ class model extends baseModel
      */
     public function buildFlowMenu($module, $data, $type = 'browse', $show = '')
     {
-        if(!isset($this->config->bizVersion)) return '';
+        if($this->config->edition == 'open') return '';
 
         $moduleName = $module;
-        if(str_contains($module, '.')) [$appName, $moduleName] = explode('.', $module);
+        if(strpos($module, '.') !== false) list($appName, $moduleName) = explode('.', $module);
 
         static $actions;
         static $relations;
@@ -182,7 +189,7 @@ class model extends baseModel
             $flow = $this->loadModel('workflow', 'flow')->getByModule($moduleName);
             if($flow->approval == 'enabled' && !empty($data->approval))
             {
-                $extraClass = str_contains(',testsuite,build,release,productplan,', ",{$moduleName},") ? 'btn-link' : '';
+                $extraClass = strpos(',testsuite,build,release,productplan,', ",{$moduleName},") !== false ? 'btn-link' : '';
                 $approvalProgressMenu .= "<div class='divider'></div>";
                 $approvalProgressMenu .= baseHTML::a(helper::createLink('approval', 'progress', "approvalID={$data->approval}", '', true), $this->lang->flow->approvalProgress, "class='btn {$extraClass} iframe'");
             }
@@ -193,7 +200,7 @@ class model extends baseModel
         {
             foreach($actions as $action)
             {
-                if(!str_contains((string) $action->position, $type) || $action->show != $show) continue;
+                if(strpos($action->position, $type) === false || $action->show != $show) continue;
 
                 $menu .= $this->flow->buildActionMenu($moduleName, $action, $data, $type, $relations);
             }
@@ -205,7 +212,7 @@ class model extends baseModel
             $dropdownMenu = '';
             foreach($actions as $action)
             {
-                if(!str_contains((string) $action->position, $type)) continue;
+                if(strpos($action->position, $type) === false) continue;
 
                 if($type == 'view' || $action->show == 'direct')         $menu         .= $this->flow->buildActionMenu($moduleName, $action, $data, $type, $relations);
                 if($type == 'browse' && $action->show == 'dropdownlist') $dropdownMenu .= $this->flow->buildActionMenu($moduleName, $action, $data, $type, $relations);
@@ -233,7 +240,7 @@ class model extends baseModel
      */
     public function processStatus($module, $record)
     {
-        if(!isset($this->config->bizVersion) or empty($record->subStatus)) return zget($this->lang->$module->statusList, $record->status);
+        if($this->config->edition == 'open' or empty($record->subStatus)) return zget($this->lang->$module->statusList, $record->status);
 
         return $this->loadModel('workflowfield')->processSubStatus($module, $record);
     }
@@ -247,7 +254,7 @@ class model extends baseModel
      */
     public function processExportData($data)
     {
-        if(!isset($this->config->bizVersion)) return $data;
+        if($this->config->edition == 'open') return $data;
 
         return $this->loadModel('workflowfield')->processExportData($data);
     }
@@ -261,7 +268,7 @@ class model extends baseModel
      */
     public function processExportOptions($data)
     {
-        if(!isset($this->config->bizVersion)) return $data;
+        if($this->config->edition == 'open') return $data;
 
         return $this->loadModel('workflowfield')->processExportOptions($data);
     }
@@ -275,7 +282,7 @@ class model extends baseModel
      */
     public function processImportData($data)
     {
-        if(!isset($this->config->bizVersion)) return $data;
+        if($this->config->edition == 'open') return $data;
 
         return $this->loadModel('workflowfield')->processImportData($data);
     }
@@ -288,7 +295,7 @@ class model extends baseModel
      */
     public function getFlowExtendFields()
     {
-        if(!isset($this->config->bizVersion)) return array();
+        if($this->config->edition == 'open') return array();
 
         return $this->loadModel('flow')->getExtendFields($this->app->getModuleName(), $this->app->getMethodName());
     }
@@ -301,7 +308,7 @@ class model extends baseModel
      */
     public function getFlowExportFields()
     {
-        if(!isset($this->config->bizVersion)) return array();
+        if($this->config->edition == 'open') return array();
 
         return $this->loadModel('workflowfield')->getExportFields($this->app->getModuleName());
     }
@@ -313,9 +320,9 @@ class model extends baseModel
      * @access public
      * @return void
      */
-    public function executeHooks(int $objectID)
+    public function executeHooks($objectID)
     {
-        if(!isset($this->config->bizVersion)) return false;
+        if($this->config->edition == 'open') return false;
 
         $moduleName = $this->app->getModuleName();
         $methodName = $this->app->getMethodName();
@@ -368,7 +375,7 @@ class model extends baseModel
     {
         global $app;
 
-        $moduleName = strtolower(static::class);
+        $moduleName = strtolower(get_called_class());
 
         preg_match_all('/^(ext)?(\w+)model/', $moduleName, $matches);
         if(isset($matches[2][0]))
@@ -391,5 +398,25 @@ class model extends baseModel
         if(method_exists($taoClass, $method)) return call_user_func_array("{$taoClass}::{$method}", $arguments);
 
         $app->triggerError("the module {$moduleName} has no {$method} method", __FILE__, __LINE__, $exit = true);
+    }
+
+    /**
+     * Load dao of bi.
+     *
+     * @access public
+     * @return void
+     */
+    public function loadBIDAO()
+    {
+        global $config, $biDAO;
+        if(is_object($biDAO)) return $this->dao = $biDAO;
+
+        if(!isset($config->biDB)) return;
+
+        $driver = $config->db->driver;
+        $biDAO = new $driver();
+        $biDAO->slaveDBH = $this->app->connectByPDO($config->biDB, 'BI');
+
+        $this->dao = $biDAO;
     }
 }

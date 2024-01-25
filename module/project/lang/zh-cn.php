@@ -1,4 +1,6 @@
 <?php
+global $config;
+
 /* Actions. */
 $lang->project->createGuide         = "选择{$lang->projectCommon}模板";
 $lang->project->index               = "{$lang->projectCommon}仪表盘";
@@ -40,7 +42,7 @@ $lang->project->updateOrder         = '排序';
 $lang->project->sort                = "{$lang->projectCommon}排序";
 $lang->project->whitelist           = "{$lang->projectCommon}白名单";
 $lang->project->addWhitelist        = "{$lang->projectCommon}添加白名单";
-$lang->project->unbindWhitelist     = "{$lang->projectCommon}删除白名单";
+$lang->project->unbindWhitelist     = "{$lang->projectCommon}移除白名单";
 $lang->project->manageProducts      = "关联{$lang->productCommon}";
 $lang->project->manageOtherProducts = "关联其他{$lang->productCommon}";
 $lang->project->manageProductPlan   = "关联{$lang->productCommon}和计划";
@@ -70,12 +72,6 @@ $lang->project->allProjects         = "所有{$lang->projectCommon}";
 $lang->project->ignore              = '忽略';
 $lang->project->disableExecution    = "不启用{$lang->executionCommon}的{$lang->projectCommon}";
 $lang->project->selectProduct       = "选择{$lang->productCommon}";
-$lang->project->manageRepo          = '关联代码库';
-$lang->project->linkedRepo          = '已关联代码库';
-$lang->project->unlinkedRepo        = '未关联代码库';
-$lang->project->executionCount      = '执行数';
-$lang->project->storyCount          = '需求规模';
-$lang->project->invested            = '已投入';
 
 /* Fields. */
 $lang->project->common             = "{$lang->projectCommon}";
@@ -185,7 +181,6 @@ $lang->project->branch             = '平台/分支';
 $lang->project->plan               = '所属计划';
 $lang->project->createKanban       = '添加看板';
 $lang->project->kanban             = '项目看板';
-$lang->project->moreActions        = '更多操作';
 
 /* Project Kanban. */
 $lang->project->projectTypeList = array();
@@ -234,14 +229,6 @@ $lang->project->allSummary             = "本页共 <strong>%s</strong> 个{$lan
 $lang->project->checkedSummary         = "选中 <strong>%total%</strong> 个{$lang->projectCommon}。";
 $lang->project->checkedAllSummary      = "选中 <strong>%total%</strong> 个{$lang->projectCommon}，未开始 <strong>%wait%</strong>，进行中 <strong>%doing%</strong>，已挂起 <strong>%suspended%</strong>，已关闭 <strong>%closed%</strong> 。";
 
-$lang->project->tip = new stdclass();
-$lang->project->tip->closed     = '该项目已是关闭状态，无须关闭。';
-$lang->project->tip->notSuspend = '该项目已关闭，不可进行挂起操作。';
-$lang->project->tip->suspended  = '该项目已是挂起状态，无须挂起。';
-$lang->project->tip->actived    = '该项目已是激活状态，无须激活。';
-$lang->project->tip->group      = '该项目是看板项目，无法进行项目权限分组。';
-$lang->project->tip->whitelist  = '该项目是公开项目，无须维护白名单。';
-
 $lang->project->tenThousand    = '万';
 $lang->project->hundredMillion = '亿';
 
@@ -282,6 +269,7 @@ $lang->project->currencySymbol['THB'] = '฿';
 $lang->project->currencySymbol['SGD'] = 'S$';
 
 $lang->project->modelList['']            = "";
+if($config->systemMode == 'PLM') $lang->project->modelList['ipd'] = "IPD";
 $lang->project->modelList['scrum']       = "Scrum";
 if(helper::hasFeature('waterfall')) $lang->project->modelList['waterfall'] = "瀑布";
 $lang->project->modelList['kanban']      = "看板";
@@ -292,9 +280,8 @@ $lang->project->featureBar['browse']['all']       = '全部';
 $lang->project->featureBar['browse']['undone']    = '未完成';
 $lang->project->featureBar['browse']['wait']      = '未开始';
 $lang->project->featureBar['browse']['doing']     = '进行中';
-$lang->project->featureBar['browse']['exceeded']  = '已逾期';
-$lang->project->featureBar['browse']['risky']     = '有风险';
-$lang->project->featureBar['browse']['more']      = '更多';
+$lang->project->featureBar['browse']['suspended'] = '已挂起';
+$lang->project->featureBar['browse']['closed']    = '已关闭';
 
 $lang->project->featureBar['index']['all']       = '全部';
 $lang->project->featureBar['index']['undone']    = '未完成';
@@ -343,7 +330,6 @@ $lang->project->kanbanSubAclList['private'] = "私有 (只有{$lang->projectComm
 $lang->project->kanbanSubAclList['open']    = "公开 (有{$lang->projectCommon}视图权限即可访问)";
 $lang->project->kanbanSubAclList['program'] = "项目集内公开（所有上级项目集负责人和干系人、{$lang->projectCommon}负责人、团队成员可访问）";
 
-global $config;
 if($config->systemMode == 'light')
 {
     unset($lang->project->subAclList['program']);
@@ -366,11 +352,12 @@ $lang->project->endList[186] = '半年';
 $lang->project->endList[365] = '一年';
 $lang->project->endList[999] = '长期';
 
+$lang->project->ipdTitle           = "集成产品开发";
 $lang->project->scrumTitle         = "敏捷开发全流程{$lang->projectCommon}管理";
 $lang->project->waterfallTitle     = "瀑布式{$lang->projectCommon}管理";
 $lang->project->kanbanTitle        = "专业研发看板{$lang->projectCommon}管理";
-$lang->project->agileplusTitle     = "敏捷+看板{$lang->projectCommon}管理";
-$lang->project->waterfallplusTitle = "瀑布+敏捷+看板{$lang->projectCommon}管理";
+$lang->project->agileplusTitle     = "Scrum+看板{$lang->projectCommon}管理";
+$lang->project->waterfallplusTitle = "瀑布+Scrum+看板{$lang->projectCommon}管理";
 $lang->project->moreModelTitle     = '更多模型敬请期待...';
 
 $lang->project->empty                  = "暂时没有{$lang->projectCommon}";
@@ -380,6 +367,7 @@ $lang->project->membersUnit            = '%s人';
 $lang->project->lastIteration          = "近期{$lang->executionCommon}";
 $lang->project->lastKanban             = '近期看板';
 $lang->project->ongoingStage           = '进行中的阶段';
+$lang->project->ipd                    = 'IPD';
 $lang->project->scrum                  = 'Scrum';
 $lang->project->waterfall              = '瀑布';
 $lang->project->agileplus              = '融合敏捷';
@@ -414,7 +402,7 @@ $lang->project->dateExceedParent     = "{$lang->projectCommon}的起止日期已
 $lang->project->beginGreateChild     = "{$lang->projectCommon}的开始日期应大于等于项目集的最小开始日期：%s";
 $lang->project->endLetterChild       = "{$lang->projectCommon}的完成日期应小于等于项目集的最大完成日期：%s";
 $lang->project->begigLetterExecution = "{$lang->projectCommon}的开始日期应小于等于执行的最小开始日期：%s";
-$lang->project->endGreateExecution   = "{$lang->projectCommon}的完成日期应大于等于执行的最大完成日期：%s";
+$lang->project->endGreateExecution   = "{$lang->projectCommon}的完成日期应大于等于{$lang->executionCommon}的最大完成日期：%s";
 $lang->project->childLongTime        = "子{$lang->projectCommon}中有长期{$lang->projectCommon}，父{$lang->projectCommon}也应该是长期{$lang->projectCommon}";
 $lang->project->confirmUnlinkMember  = "您确定从该{$lang->projectCommon}中移除该用户吗？";
 $lang->project->divisionTips         = "按{$lang->projectCommon}创建为单套阶段，阶段关联所有{$lang->productCommon}；按{$lang->productCommon}创建为多套阶段，每套阶段关联一个{$lang->productCommon}。";
@@ -441,17 +429,3 @@ $lang->project->featureBar['dynamic']['thisWeek']  = '本周';
 $lang->project->featureBar['dynamic']['lastWeek']  = '上周';
 $lang->project->featureBar['dynamic']['thisMonth'] = '本月';
 $lang->project->featureBar['dynamic']['lastMonth'] = '上月';
-
-$lang->project->moreSelects = array();
-$lang->project->moreSelects['suspended'] = '已挂起';
-$lang->project->moreSelects['closed']    = '已关闭';
-
-$lang->project->manDay            = '人天';
-$lang->project->day               = '天';
-$lang->project->newProduct        = '新产品';
-$lang->project->associatePlan     = '关联计划';
-$lang->project->editorPlaceholder = '可以在编辑器直接贴图。快捷键：Command C+V';
-$lang->project->tenThousandYuan   = '万元';
-$lang->project->planDate          = '计划日期';
-$lang->project->inputProjectName  = '输入项目名称';
-$lang->project->inputProjectCode  = '输入项目代号';

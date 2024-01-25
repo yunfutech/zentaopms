@@ -17,7 +17,7 @@ $lang->my->story           = "我的{$lang->SRCommon}";
 $lang->my->doc             = "我的文档";
 $lang->my->createProgram   = '添加' . $lang->projectCommon;
 $lang->my->project         = '我的' . $lang->projectCommon;
-$lang->my->execution       = "我的{$lang->executionCommon}";
+$lang->my->execution       = "我的{$lang->execution->common}";
 $lang->my->audit           = '审批';
 $lang->my->issue           = '我的问题';
 $lang->my->risk            = '我的风险';
@@ -143,9 +143,10 @@ $lang->my->featureBar['todo']['assignedToOther'] = '指派他人';
 $lang->my->featureBar['todo']['cycle']           = '周期';
 
 $lang->my->featureBar['audit']['all']      = '全部';
+$lang->my->featureBar['audit']['demand']   = '需求池需求';
 $lang->my->featureBar['audit']['story']    = '需求';
 $lang->my->featureBar['audit']['testcase'] = '用例';
-if($config->edition == 'max' and (helper::hasFeature('waterfall') or helper::hasFeature('waterfallplus'))) $lang->my->featureBar['audit']['project'] = $lang->projectCommon;
+if(($config->edition == 'max' or $config->edition == 'ipd') and (helper::hasFeature('waterfall') or helper::hasFeature('waterfallplus'))) $lang->my->featureBar['audit']['project'] = $lang->projectCommon;
 if($config->edition != 'open') $lang->my->featureBar['audit']['feedback'] = '反馈';
 if($config->edition != 'open' and helper::hasFeature('OA')) $lang->my->featureBar['audit']['oa'] = '办公';
 

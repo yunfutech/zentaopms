@@ -76,6 +76,8 @@ li.drag-shadow ul {display: none !important;}
 js::set('release', isset($release) ? $release : 0);
 js::set('versionLang', $lang->build->common);
 js::set('spaceType', $this->session->spaceType);
+js::set('rawModule', $this->app->rawModule);
+js::set('rawMethod', $this->app->rawMethod);
 
 /* ObjectType and objectID used for other space. */
 js::set('objectType', isset($type) ? $type : '');
@@ -151,7 +153,7 @@ js::set('hasLibPriv',       $hasLibPriv);
     <li data-method="addCataChild" data-type="add" data-id="%moduleID%" data-has-children='%hasChildren%'><a><i class="icon icon-add-directory"></i><?php echo $lang->doc->libDropdown['addSubModule'];?></a></li>
     <?php endif;?>
     <?php if($canEditCatalog[$module]):?>
-    <li data-method="editCata" class='edit-module'><a data-href='<?php echo helper::createLink($module, 'editCatalog', "moduleID=%moduleID%&type=$app->rawModule");?>'><i class="icon icon-edit"></i><?php echo $lang->doc->libDropdown['editModule'];?></a></li>
+    <li data-method="editCata" class='edit-module'><a data-href='<?php echo helper::createLink($module, 'editCatalog', "moduleID=%moduleID%&type=" . ($app->rawModule == 'api' ? 'api' : 'doc'));?>'><i class="icon icon-edit"></i><?php echo $lang->doc->libDropdown['editModule'];?></a></li>
     <?php endif;?>
     <?php if($canDeleteCatalog[$module]):?>
     <li data-method="deleteCata"><a href='<?php echo helper::createLink($module, 'deleteCatalog', 'rootID=%libID%&moduleID=%moduleID%');?>' target='hiddenwin'><i class="icon icon-trash"></i><?php echo $lang->doc->libDropdown['delModule'];?></a></li>
@@ -249,14 +251,15 @@ $(function()
     function initTree(ele, treeData)
     {
         var imgObj = {
-            'annex'     : 'annex',
-            'api'       : 'interface',
-            'lib'       : 'wiki',
-            'execution' : 'wiki-file-lib',
-            'text'      : 'wiki-file',
-            'word'      : 'word',
-            'ppt'       : 'ppt',
-            'excel'     : 'excel'
+            'annex'      : 'annex',
+            'api'        : 'interface',
+            'lib'        : 'wiki',
+            'execution'  : 'wiki-file-lib',
+            'text'       : 'wiki-file',
+            'word'       : 'word',
+            'ppt'        : 'ppt',
+            'excel'      : 'excel',
+            'attachment' : 'attachment'
         };
 
         ele.tree(
@@ -268,8 +271,8 @@ $(function()
                 if(item.type == 'apiDoc' && release) item.hasAction = false;
                 if(typeof item.hasAction == 'undefined') item.hasAction = true;
                 if(typeof item.active == 'undefined') item.active = 0;
-                if(typeof docID != 'undefined' && item.id == docID) item.active = 1;
-                if(['text', 'word', 'ppt', 'excel'].indexOf(item.type) !== -1) item.hasAction = false;
+                if(typeof docID != 'undefined' && item.id == docID && item.type != 'lib') item.active = 1;
+                if(['text', 'word', 'ppt', 'excel', 'attachment'].indexOf(item.type) !== -1) item.hasAction = false;
 
                 var objectType  = config.currentModule == 'api' && ['project', 'product', 'execution'].indexOf(item.objectType) === false ? item.objectType : item.type;
                 var libClass    = ['lib', 'annex', 'api', 'execution'].indexOf(objectType) !== -1 ? 'lib' : '';
@@ -283,7 +286,7 @@ $(function()
 
                 $item += '<div class="text h-full w-full flex-start overflow-hidden">';
                 if((libClass == 'lib' && item.type != 'execution') || (item.type == 'execution' && item.hasAction)) $item += '<i class="before-tree-item icon icon-' + imgObj[item.type] +'-lib"></i>';
-                if(['text', 'word', 'ppt', 'excel'].indexOf(item.type) !== -1) $item += '<div class="img-lib" style="background-image:url(static/svg/' + imgObj[item.type] + '.svg)"></div>';
+                if(['text', 'word', 'ppt', 'excel', 'attachment'].indexOf(item.type) !== -1) $item += '<div class="img-lib" style="background-image:url(static/svg/' + imgObj[item.type] + '.svg)"></div>';
                 $item += '<div class="tree-text">';
                 $item += item.name;
                 $item += '</div>';
@@ -473,8 +476,8 @@ $(function()
         if(!libID)    libID    = 0;
         if(!moduleID) moduleID = 0;
         linkParams = linkParams.replace('%s', 'libID=' + libID + '&moduleID=' + moduleID);
-        if(config.currentModule == 'api' && config.currentMethod == 'view') spaceType = 'api';
-        if(spaceType != 'api' && config.currentModule == 'api') linkParams = 'objectID=' + objectID + '&' + linkParams;
+        if(rawModule == 'api' && rawMethod== 'view') spaceType = 'api';
+        if(spaceType != 'api' && rawModule == 'api') linkParams = 'objectID=' + objectID + '&' + linkParams;
         var moduleName = spaceType == 'api' ? 'api' : 'doc';
         var methodName = '';
         if(spaceType == 'api')
@@ -487,7 +490,7 @@ $(function()
             methodName = 'showFiles';
             linkParams = 'type=' + objectType + '&objectID=' + objectID;
         }
-        else if(['text', 'word', 'ppt', 'excel'].indexOf(type) !== -1)
+        else if(['text', 'word', 'ppt', 'excel', 'attachment'].indexOf(type) !== -1)
         {
             methodName = 'view';
             linkParams = 'docID=' + moduleID;
@@ -624,7 +627,7 @@ $(function()
         var libID      = $(this).closest('#versionSwitcher').data('lib');
         var moduleID   = $(this).data('id');
         var params     = 'libID=' + libID + '&moduleID=0&apiID=0&version=0&release=' + moduleID;
-        var methodName = config.currentMethod;
+        var methodName = rawMethod;
         if(config.currentModule == 'doc')
         {
             params = linkParams.replace('%s', 'libID=' + libID + '&moduleID=0').replace('browseType=&', 'browseType=byrelease&').replace('param=0', 'param=' + moduleID);

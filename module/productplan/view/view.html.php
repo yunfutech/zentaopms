@@ -14,6 +14,7 @@
 <?php include '../../common/view/kindeditor.html.php';?>
 <?php include '../../common/view/sortable.html.php';?>
 <?php include '../../common/view/tablesorter.html.php';?>
+<?php include '../../ai/view/promptmenu.html.php';?>
 <?php js::set('confirmUnlinkStory', $lang->productplan->confirmUnlinkStory)?>
 <?php js::set('confirmUnlinkBug', $lang->productplan->confirmUnlinkBug)?>
 <?php js::set('planID', $plan->id);?>
@@ -25,7 +26,7 @@
 <?php js::set('checkedSummary', str_replace('%storyCommon%', $lang->SRCommon, $lang->product->checkedSummary));?>
 <div id='mainMenu' class='clearfix'>
   <div class='btn-toolbar pull-left'>
-    <?php $browseLink = $this->session->productPlanList ? $this->session->productPlanList : inlink('browse', "planID=$plan->product");?>
+    <?php $browseLink = $this->session->productPlanList ? $this->session->productPlanList : inlink('browse', "productID=$plan->product");?>
     <?php common::printBack($browseLink, 'btn btn-primary');?>
     <div class='divider'></div>
     <div class='page-title'>

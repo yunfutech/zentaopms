@@ -529,16 +529,16 @@ class caselib extends control
                 $columnKey[] = $fields[$title];
             }
 
-            if(count($columnKey) != count($header) or $this->post->encode != 'utf-8')
+            if(count($columnKey) <= 3 or $this->post->encode != 'utf-8')
             {
-                $fc     = file_get_contents($fileName);
                 $encode = $this->post->encode != "utf-8" ? $this->post->encode : 'gbk';
+                $fc     = file_get_contents($fileName);
                 $fc     = helper::convertEncoding($fc, $encode, 'utf-8');
                 file_put_contents($fileName, $fc);
 
                 $rows      = $this->file->parseCSV($fileName);
                 $columnKey = array();
-                $header   = array();
+                $header    = array();
                 foreach($rows[0] as $i => $rowValue)
                 {
                     if(empty($rowValue)) break;
@@ -550,7 +550,7 @@ class caselib extends control
                     if(!isset($fields[$title])) continue;
                     $columnKey[] = $fields[$title];
                 }
-                if(count($columnKey) != count($header)) return print(js::alert($this->lang->testcase->errorEncode));
+                if(count($columnKey) == 0) return print(js::alert($this->lang->testcase->errorEncode));
             }
 
             $this->session->set('fileImport', $fileName);
@@ -558,6 +558,28 @@ class caselib extends control
             return print(js::locate(inlink('showImport', "libID=$libID"), 'parent.parent'));
         }
         $this->display();
+    }
+
+    /**
+     * Import case from lib to caseLib.
+     *
+     * @param  int    $productID
+     * @param  int    $branch
+     * @param  int    $libID
+     * @param  string $orderBy
+     * @param  string $browseType
+     * @param  int    $queryID
+     * @param  int    $recTotal
+     * @param  int    $recPerPage
+     * @param  int    $pageID
+     * @param  int    $projectID
+     * @param  bool   $toLib
+     * @access public
+     * @return void
+     */
+    public function importFromLib($productID, $branch = 0, $libID = 0, $orderBy = 'id_desc', $browseType = '', $queryID = 0, $recTotal = 0, $recPerPage = 20, $pageID = 1, $projectID = 0, $toLib = true)
+    {
+        echo $this->fetch('testcase', 'importFromLib', "productID=$productID&branch=$branch&libID=$libID&orderBy=$orderBy&browseType=$browseType&queryID=$queryID&recTotal=$recTotal&recPerPage=$recPerPage&pageID=$pageID&projectID=$projectID&toLib=$toLib");
     }
 
     /**

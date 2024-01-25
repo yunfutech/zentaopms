@@ -24,7 +24,7 @@ class customModel extends model
         try
         {
             $sql  = $this->dao->select('*')->from(TABLE_LANG)->where('`lang`')->in("$currentLang,all")->andWhere('vision')->eq($this->config->vision)->orderBy('lang,id')->get();
-            $stmt = $this->dbh->query($sql);
+            $stmt = $this->app->dbQuery($sql);
 
             $allCustomLang = array();
             while($row = $stmt->fetch())
@@ -472,10 +472,10 @@ class customModel extends model
      */
     public static function mergeFeatureBar($module, $method)
     {
-        global $lang, $app, $dbh;
+        global $lang, $app;
         if(!isset($lang->$module->featureBar[$method])) return;
         $queryModule = $module == 'execution' ? 'task' : ($module == 'product' ? 'story' : $module);
-        $shortcuts   = $dbh->query('select id, title from ' . TABLE_USERQUERY . " where (`account` = '{$app->user->account}' or `common` = '1') AND `module` = '{$queryModule}' AND `shortcut` = '1' order by id")->fetchAll();
+        $shortcuts   = $app->dbQuery('select id, title from ' . TABLE_USERQUERY . " where (`account` = '{$app->user->account}' or `common` = '1') AND `module` = '{$queryModule}' AND `shortcut` = '1' order by id")->fetchAll();
 
         if($shortcuts)
         {
@@ -731,7 +731,7 @@ class customModel extends model
                     if(strpos(",$fields,", ",$field,") === false) $fields = "$field,$fields";
                 }
 
-                $requiredFields[$method]['requiredFields'] = $fields;
+                $requiredFields[$method]['requiredFields'] = trim($fields, ',');
             }
         }
 
@@ -889,7 +889,7 @@ class customModel extends model
 
         $enabledScrumFeatures  = array();
         $disabledScrumFeatures = array();
-        if($this->config->edition == 'max')
+        if($this->config->edition == 'max' or $this->config->edition == 'ipd')
         {
             foreach($this->config->custom->scrumFeatures as $scrumFeature)
             {
@@ -1048,7 +1048,7 @@ class customModel extends model
      */
     public function hasAssetlibData()
     {
-        if($this->config->edition == 'max') return $this->dao->select('*')->from(TABLE_ASSETLIB)->where('deleted')->eq(0)->count();
+        if($this->config->edition == 'max' or $this->config->edition == 'ipd') return $this->dao->select('*')->from(TABLE_ASSETLIB)->where('deleted')->eq(0)->count();
         return false;
     }
 
@@ -1060,7 +1060,7 @@ class customModel extends model
      */
     public function hasScrumIssueData()
     {
-        if($this->config->edition == 'max')
+        if($this->config->edition == 'max' or $this->config->edition == 'ipd')
         {
             return $this->dao->select('t1.*')->from(TABLE_ISSUE)->alias('t1')
                 ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
@@ -1080,7 +1080,7 @@ class customModel extends model
      */
     public function hasScrumRiskData()
     {
-        if($this->config->edition == 'max')
+        if($this->config->edition == 'max' or $this->config->edition == 'ipd')
         {
             return $this->dao->select('t1.*')->from(TABLE_RISK)->alias('t1')
                 ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
@@ -1100,7 +1100,7 @@ class customModel extends model
      */
     public function hasScrumOpportunityData()
     {
-        if($this->config->edition == 'max')
+        if($this->config->edition == 'max' or $this->config->edition == 'ipd')
         {
             return $this->dao->select('id')->from(TABLE_OPPORTUNITY)->where('execution')->ne('0')->andWhere('deleted')->eq('0')->count();
         }
@@ -1115,7 +1115,7 @@ class customModel extends model
      */
     public function hasScrumMeetingData()
     {
-        if($this->config->edition == 'max')
+        if($this->config->edition == 'max' or $this->config->edition == 'ipd')
         {
             return $this->dao->select('id')->from(TABLE_PROJECT)->alias('t1')
                 ->leftJoin(TABLE_MEETING)->alias('t2')->on('t1.id = t2.project')
@@ -1135,7 +1135,7 @@ class customModel extends model
      */
     public function hasScrumAuditplanData()
     {
-        if($this->config->edition == 'max')
+        if($this->config->edition == 'max' or $this->config->edition == 'ipd')
         {
             return $this->dao->select('id')->from(TABLE_PROJECT)->alias('t1')
                 ->leftJoin(TABLE_AUDITPLAN)->alias('t2')->on('t1.id = t2.project')
@@ -1155,7 +1155,7 @@ class customModel extends model
      */
     public function hasScrumProcessData()
     {
-        if($this->config->edition == 'max')
+        if($this->config->edition == 'max' or $this->config->edition == 'ipd')
         {
             return $this->dao->select('id')->from(TABLE_PROGRAMACTIVITY)->where('execution')->ne('0')->andWhere('deleted')->eq('0')->count();
         }

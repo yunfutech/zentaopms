@@ -184,6 +184,19 @@ class releaseModel extends model
      */
     public function create($productID = 0, $branch = 0, $projectID = 0)
     {
+        if(empty($projectID))
+        {
+            $product = $this->loadModel('product')->getById($productID);
+            if($product->shadow)
+            {
+                $projectID = $this->dao->select('t2.id')->from(TABLE_PROJECTPRODUCT)->alias('t1')
+                    ->leftJoin(TABLE_PROJECT)->alias('t2')
+                    ->on('t1.project=t2.id')
+                    ->where('t1.product')->eq($productID)
+                    ->andWhere('t2.type')->eq('project')
+                    ->fetch('id');
+            }
+        }
         /* Init vars. */
         $productID = $this->post->product ? $this->post->product : (int)$productID;
         $branch    = $this->post->branch ? $this->post->branch : (int)$branch;
@@ -249,7 +262,11 @@ class releaseModel extends model
                 {
                     $build->stories = trim($build->stories, ',');
                     $build->bugs    = trim($build->bugs, ',');
-                    if($build->stories) $release->stories .= ',' . $build->stories;
+                    if($build->stories)
+                    {
+                        $release->stories .= ',' . $build->stories;
+                        $this->loadModel('story')->updateStoryReleasedDate($build->stories, $release->date);
+                    }
                     if($build->bugs)    $release->bugs    .= ',' . $build->bugs;
                 }
             }
@@ -400,9 +417,9 @@ class releaseModel extends model
             }
             elseif($notify == 'SC' and !empty($release->build))
             {
-                $stories  = join(',', $this->dao->select('stories')->from(TABLE_BUILD)->where('id')->in($release->build)->fetchAll());
-                $stories .= $this->dao->select('stories')->from(TABLE_RELEASE)->where('id')->eq($release->id)->fetch('stories');
-                $stories  = trim($stories, ',');
+                $stories  = join(',', $this->dao->select('id,stories')->from(TABLE_BUILD)->where('id')->in($release->build)->fetchPairs('id', 'stories'));
+                $stories .= ',' . $this->dao->select('stories')->from(TABLE_RELEASE)->where('id')->eq($release->id)->fetch('stories');
+                $stories  = trim(str_replace(',,', ',', $stories), ',');
 
                 if(empty($stories)) continue;
 
@@ -460,6 +477,7 @@ class releaseModel extends model
             if(strpos(",{$release->stories},", ",{$storyID},") !== false) unset($_POST['stories'][$i]);
         }
 
+        $this->loadModel('story')->updateStoryReleasedDate($release->stories, $release->date);
         $release->stories .= ',' . join(',', $this->post->stories);
         $this->dao->update(TABLE_RELEASE)->set('stories')->eq($release->stories)->where('id')->eq((int)$releaseID)->exec();
 
@@ -494,6 +512,8 @@ class releaseModel extends model
         $release->stories = trim(str_replace(",$storyID,", ',', ",$release->stories,"), ',');
         $this->dao->update(TABLE_RELEASE)->set('stories')->eq($release->stories)->where('id')->eq((int)$releaseID)->exec();
         $this->loadModel('action')->create('story', $storyID, 'unlinkedfromrelease', '', $releaseID);
+
+        $this->loadModel('story')->setStage($storyID);
     }
 
     /**
@@ -515,7 +535,12 @@ class releaseModel extends model
         $this->dao->update(TABLE_RELEASE)->set('stories')->eq($release->stories)->where('id')->eq((int)$releaseID)->exec();
 
         $this->loadModel('action');
-        foreach($this->post->storyIdList as $unlinkStoryID) $this->action->create('story', $unlinkStoryID, 'unlinkedfromrelease', '', $releaseID);
+        $this->loadModel('story');
+        foreach($this->post->storyIdList as $unlinkStoryID)
+        {
+            $this->action->create('story', $unlinkStoryID, 'unlinkedfromrelease', '', $releaseID);
+            $this->story->setStage($unlinkStoryID);
+        }
     }
 
     /**

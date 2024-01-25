@@ -179,6 +179,28 @@ class Gitea
     }
 
     /**
+     * Create a branch.
+     *
+     * @param  string $branchName
+     * @param  string $ref
+     * @access public
+     * @return bool
+     */
+    public function createBranch($branchName = '', $ref = 'master')
+    {
+        global $app;
+        $project = $app->control->loadModel('gitea')->getApiRoot($this->repo->serviceHost);
+
+        $url   = sprintf($apiRoot, "/repos/{$this->repo->serviceProject}/branches");
+        $param = new stdclass();
+        $param->old_branch_name = $ref;
+        $param->new_branch_name = $branchName;
+        $result = json_decode(commonModel::http($url), $param);
+
+        return array('result' => empty($result->name) ? 'fail' : 'success', 'message' => zget($result, 'message', 'Error'));
+    }
+
+    /**
      * Get last log.
      *
      * @param  string $path
@@ -250,16 +272,17 @@ class Gitea
      *
      * @param  string $path
      * @param  string $revision
+     * @param  bool   $showComment
      * @access public
      * @return array
      */
-    public function blame($path, $revision)
+    public function blame($path, $revision, $showComment = true)
     {
         if(!scm::checkRevision($revision)) return array();
 
         $path = ltrim($path, DIRECTORY_SEPARATOR);
         chdir($this->root);
-        $list = execCmd(escapeCmd("$this->client blame -l $revision -- $path"), 'array');
+        $list = execCmd(escapeCmd("$this->client blame -c -l $revision -- $path"), 'array');
 
         $blames   = array();
         $revLine  = 0;
@@ -268,7 +291,7 @@ class Gitea
         {
             if(empty($line)) continue;
             if($line[0] == '^') $line = substr($line, 1);
-            preg_match('/^([0-9a-f]{39,40})\s.*\((\S+)\s+([\d-]+)\s(.*)\s(\d+)\)(.*)$/U', $line, $matches);
+            preg_match('/^([0-9a-f]{39,40})\s.*\(\s*(\S+)\s+([\d-]+)\s(.*)\s(\d+)\)(.*)$/U', $line, $matches);
 
             if(isset($matches[1]) and $matches[1] != $revision)
             {
@@ -322,7 +345,9 @@ class Gitea
         if(strpos($fromRevision, '^') !== false)
         {
             $list = execCmd(escapeCmd("$this->client log -2 $toRevision --pretty=format:%H -- $path"), 'array');
-            if(isset($list[1])) $fromRevision = $list[1];
+            if(!isset($list[1])) return execCmd(escapeCmd("$this->client show HEAD"), 'array');
+
+            $fromRevision = $list[1];
         }
         $lines = execCmd(escapeCmd("$this->client diff $fromRevision $toRevision -- $path"), 'array');
         return $lines;

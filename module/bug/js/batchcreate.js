@@ -18,6 +18,11 @@ $(function()
     });
 
     $('#dropMenu').css('z-index', 9999);
+
+    $("input[name^='uploadImage']").each(function()
+    {
+        $(this).closest('td').siblings("td[id^='buildBox']").find('select').data('zui.picker').setValue('trunk');
+    })
 })
 
 /**
@@ -84,7 +89,7 @@ function setLane(regionID, num)
  */
 function loadExecutionBuilds(productID, executionID, index)
 {
-    var branch = $('#branches' + index).val();
+    var branch = $('#branches' + index).val() ? $('#branches' + index).val() : 0;
     if(executionID == 'ditto')
     {
         for(var i = index - 1; i > 0, executionID == 'ditto'; i--)

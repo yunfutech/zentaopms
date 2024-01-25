@@ -22,6 +22,8 @@ class groupModel extends model
     public function create()
     {
         $group = fixer::input('post')->get();
+        $group->vision = $this->config->vision;
+
         if(isset($group->limited))
         {
             unset($group->limited);
@@ -410,36 +412,15 @@ class groupModel extends model
      * @access public
      * @return bool
      */
-    public function updatePrivByGroup($groupID, $menu, $version)
+    public function updatePrivByGroup($groupID, $nav, $version)
     {
         /* Delete old. */
-        /* Set priv when have version. */
-        if($version)
-        {
-            $noCheckeds = trim($this->post->noChecked, ',');
-            if($noCheckeds)
-            {
-                $noCheckeds = explode(',', $noCheckeds);
-                foreach($noCheckeds as $noChecked)
-                {
-                    /* Delete no checked priv*/
-                    list($module, $method) = explode('-', $noChecked);
-                    $this->dao->delete()->from(TABLE_GROUPPRIV)->where('`group`')->eq($groupID)->andWhere('module')->eq($module)->andWhere('method')->eq($method)->exec();
-                }
-            }
-        }
-        else
-        {
-            $privs = !empty($menu) ? $this->getPrivsListByView($menu) : array();
-            $privs = !empty($menu) ? $this->getCustomPrivs($menu, $privs) : array();
-            if(!empty($privs) or empty($menu))
-            {
-                $this->dao->delete()->from(TABLE_GROUPPRIV)
-                    ->where('`group`')->eq($groupID)
-                    ->beginIF(!empty($menu))->andWhere("CONCAT(module, '-', method)")->in(array_keys($privs))->fi()
-                    ->exec();
-            }
-        }
+        $privs = array_keys($this->getPrivListByNav($nav, $version));
+
+        $this->dao->delete()->from(TABLE_GROUPPRIV)
+            ->where('`group`')->eq($groupID)
+            ->beginIF(!empty($nav))->andWhere("CONCAT(module, '-', method)")->in($privs)->fi()
+            ->exec();
 
         $data         = new stdclass();
         $data->group  = $groupID;
@@ -447,57 +428,59 @@ class groupModel extends model
         $data->method = 'index';
         $this->dao->replace(TABLE_GROUPPRIV)->data($data)->exec();
 
+        $hasDepend = false;
+
         /* Insert new. */
         if($this->post->actions)
         {
-            $depentedPrivs = array();
-            $privs         = array();
+            $dependPrivs = array();
+            foreach($this->config->group->package as $packageCode => $packageData)
+            {
+                foreach($packageData->privs as $privCode => $priv)
+                {
+                    if(isset($priv['depend'])) $dependPrivs[$privCode] = $priv['depend'];
+                }
+            }
+
+            $insertPrivs = array();
             foreach($this->post->actions as $moduleName => $moduleActions)
             {
                 if(empty($moduleName) or empty($moduleActions)) continue;
-                $privIdList    = $this->dao->select('id')->from(TABLE_PRIV)->where('module')->eq($moduleName)->andWhere('method')->in($moduleActions)->fetchPairs();
-                $relationPrivs = $this->getPrivRelationsByIdList($privIdList, 'depend', 'idGroup');
-                $depentedPrivs = array_merge($depentedPrivs, array_keys(zget($relationPrivs, 'depend', array())));
+
                 foreach($moduleActions as $actionName)
                 {
-                    $data         = new stdclass();
+                    $data = new stdclass();
                     $data->group  = $groupID;
                     $data->module = $moduleName;
                     $data->method = $actionName;
-                    $privs[]      = $data;
+
+                    $insertPrivs["{$moduleName}-{$actionName}"] = $data;
                 }
             }
-            $depentedPrivs = $this->getPrivByIdList($depentedPrivs);
-            foreach($depentedPrivs as $privID => $priv)
+
+            foreach($insertPrivs as $key => $priv)
             {
-                if(empty($_POST['actions'][$priv->module]) or in_array($priv->method, $_POST['actions'][$priv->module]))
+                foreach($dependPrivs[$key] as $depend)
                 {
-                    unset($depentedPrivs[$privID]);
-                    continue;
+                    if(isset($insertPrivs[$depend])) continue;
+
+                    list($moduleName, $methodName) = explode('-', $depend);
+
+                    $data = new stdclass();
+                    $data->group  = $groupID;
+                    $data->module = $moduleName;
+                    $data->method = $methodName;
+
+                    $insertPrivs[$depend] = $data;
+
+                    $hasDepend = true;
                 }
-                $data         = new stdclass();
-                $data->group  = $groupID;
-                $data->module = $priv->module;
-                $data->method = $priv->method;
-                $this->dao->replace(TABLE_GROUPPRIV)->data($data)->exec();
             }
-            $recommendPrivs = $this->getPrivByIdList(zget($_POST, 'recommendPrivs'));
-            foreach($recommendPrivs as $privID => $priv)
-            {
-                if(in_array($priv->method, zget($_POST['actions'], $priv->module, array())))
-                {
-                    unset($recommendPrivs[$privID]);
-                    continue;
-                }
-                $data         = new stdclass();
-                $data->group  = $groupID;
-                $data->module = $priv->module;
-                $data->method = $priv->method;
-                $this->dao->replace(TABLE_GROUPPRIV)->data($data)->exec();
-            }
-            $this->insertPrivs($privs);
+
+            $this->insertPrivs($insertPrivs);
         }
-        return !empty($depentedPrivs) ? true : false;
+
+        return $hasDepend;
     }
 
     /**
@@ -783,19 +766,50 @@ class groupModel extends model
     }
 
     /**
-     * Check menu have module
+     * Check nav have subset.
      *
-     * @param  string    $menu
-     * @param  string    $moduleName
+     * @param  string $nav
+     * @param  string $subset
      * @access public
-     * @return void
+     * @return bool
      */
-    public function checkMenuModule($menu, $moduleName)
+    public function checkNavSubset($nav, $subset)
     {
-        if(empty($menu)) return true;
-        if($menu == 'general' and (isset($this->lang->navGroup->$moduleName) or isset($this->lang->mainNav->$moduleName))) return false;
-        if($menu != 'general' and !($moduleName == $menu or (isset($this->lang->navGroup->$moduleName) and $this->lang->navGroup->$moduleName == $menu))) return false;
-        if($menu == 'project' and strpos('caselib|testsuite|report', $moduleName) !== false) return false;
+        if(empty($nav)) return true;
+
+        if($nav == 'general') return !isset($this->config->group->subset->$subset) || !isset($this->config->group->subset->$subset->nav) || $this->config->group->subset->$subset->nav == 'general';
+
+        return isset($this->config->group->subset->$subset)
+            && isset($this->config->group->subset->$subset->nav)
+            && $this->config->group->subset->$subset->nav == $nav;
+    }
+
+    /**
+     * Check nav have module.
+     *
+     * @param  string $nav
+     * @param  string $moduleName
+     * @access public
+     * @return bool
+     */
+    public function checkNavModule($nav, $moduleName, $methodName = '')
+    {
+        if(empty($nav)) return true;
+
+        if($nav == 'general' and (isset($this->lang->navGroup->$moduleName) or isset($this->lang->mainNav->$moduleName))) return false;
+        if($nav != 'general')
+        {
+            if($moduleName === $nav) return true;
+            if(isset($this->lang->navGroup->{$moduleName . '_' . $methodName}))
+            {
+                if($this->lang->navGroup->{$moduleName . '_' . $methodName} === $nav) return true;
+                return false;
+            }
+            if(isset($this->lang->navGroup->$moduleName) and $this->lang->navGroup->$moduleName == $nav) return true;
+            return false;
+        }
+        if($nav == 'project' and strpos('caselib|testsuite|report', $moduleName) !== false) return false;
+
         return true;
     }
 
@@ -812,7 +826,7 @@ class groupModel extends model
         $modules = array();
         foreach($this->lang->resource as $moduleName => $action)
         {
-            if($this->checkMenuModule($menu, $moduleName))
+            if($this->checkNavModule($menu, $moduleName))
             {
                 $modules[$moduleName] = $moduleName;
                 if($translateLang)
@@ -1497,6 +1511,168 @@ class groupModel extends model
     }
 
     /**
+     * Super Model: Init views, modules and privileges for IPD.
+     *
+     * @access public
+     * @return bool
+     */
+    public function initPrivs4IPD()
+    {
+        $views     = array_keys(json_decode(json_encode($this->lang->mainNav), true));
+        $resources = json_decode(json_encode($this->lang->resource), true);
+
+        $hasStoredPrivs = $this->dao->select('*')->from(TABLE_PRIV)->fetchAll('id');
+        foreach($hasStoredPrivs as $privID => $hasStoredPriv)
+        {
+            $hasStoredPrivs["{$hasStoredPriv->module}-{$hasStoredPriv->method}"] = $hasStoredPriv;
+            unset($hasStoredPrivs[$privID]);
+        }
+
+        $hasStoredManagered = $this->dao->select('*')->from(TABLE_PRIVMANAGER)->where('type')->ne('package')->fetchGroup('type', 'code');
+        $hasStoredViews     = $hasStoredManagered['view'];
+        $hasStoredModules   = $hasStoredManagered['module'];
+
+        $viewOrder = 1;
+        $viewPairs = array();
+        foreach($views as $view)
+        {
+            if($view == 'menuOrder') continue;
+
+            if(!empty($hasStoredViews[$view]))
+            {
+                $vision  = strpos($hasStoredViews[$view]->vision, ",{$this->config->vision},") !== false ? $hasStoredViews[$view]->vision : $hasStoredViews[$view]->vision . "{$this->config->vision},";
+                $edition = strpos($hasStoredViews[$view]->edition, ",{$this->config->edition},") !== false ? $hasStoredViews[$view]->edition : $hasStoredViews[$view]->edition . "{$this->config->edition},";
+
+                $viewID = $hasStoredViews[$view]->id;
+                $this->dao->update(TABLE_PRIVMANAGER)
+                    ->set('vision')->eq($vision)
+                    ->set('edition')->eq($edition)
+                    ->where('id')->eq($viewID)
+                    ->exec();
+            }
+            else
+            {
+                $viewManager = new stdclass();
+                $viewManager->parent  = 0;
+                $viewManager->code    = $view;
+                $viewManager->type    = 'view';
+                $viewManager->edition = ',ipd,';
+                $viewManager->vision  = ",{$this->config->vision},";
+                $viewManager->order   = $viewOrder * 10;
+                $viewOrder ++;
+
+                $this->dao->insert(TABLE_PRIVMANAGER)->data($viewManager)->exec();
+                $viewID = $this->dao->lastInsertId();
+
+                foreach($this->config->langs as $lang => $langValue)
+                {
+                    $viewLang = new stdclass();
+                    $viewLang->objectID   = $viewID;
+                    $viewLang->objectType = 'manager';
+                    $viewLang->lang       = $lang;
+                    $viewLang->key        = $view;
+                    $viewLang->value      = '';
+                    $viewLang->desc       = '';
+
+                    $this->dao->insert(TABLE_PRIVLANG)->data($viewLang)->exec();
+                }
+            }
+
+            $viewPairs[$view] = $viewID;
+        }
+
+        $moduleOrder = 1;
+        foreach($resources as $module => $privs)
+        {
+            if(!empty($hasStoredModules[$module]))
+            {
+                $vision  = strpos($hasStoredModules[$module]->vision, ",{$this->config->vision},") !== false ? $hasStoredModules[$module]->vision : $hasStoredModules[$module]->vision . "{$this->config->vision},";
+                $edition = strpos($hasStoredModules[$module]->edition, ",{$this->config->edition},") !== false ? $hasStoredModules[$module]->edition : $hasStoredModules[$module]->edition . "{$this->config->edition},";
+
+                $moduleID = $hasStoredModules[$module]->id;
+                $this->dao->update(TABLE_PRIVMANAGER)
+                    ->set('vision')->eq($vision)
+                    ->set('edition')->eq($edition)
+                    ->where('id')->eq($moduleID)
+                    ->exec();
+            }
+            else
+            {
+                $moduleMenu = isset($this->lang->navGroup->{$module}) ? $this->lang->navGroup->{$module} : '';
+                $moduleManager = new stdclass();
+                $moduleManager->parent  = $moduleMenu ? $viewPairs[$moduleMenu] : 0;
+                $moduleManager->code    = $module;
+                $moduleManager->type    = 'module';
+                $moduleManager->edition = ',ipd,';
+                $moduleManager->vision  = ",{$this->config->vision},";
+                $moduleManager->order   = $moduleOrder * 10;
+                $moduleOrder ++;
+
+                $this->dao->insert(TABLE_PRIVMANAGER)->data($moduleManager)->exec();
+                $moduleID = $this->dao->lastInsertId();
+
+                foreach($this->config->langs as $lang => $langValue)
+                {
+                    $moduleLang = new stdclass();
+                    $moduleLang->objectID   = $moduleID;
+                    $moduleLang->objectType = 'manager';
+                    $moduleLang->lang       = $lang;
+                    $moduleLang->key        = $module;
+                    $moduleLang->value      = '';
+                    $moduleLang->desc       = '';
+
+                    $this->dao->insert(TABLE_PRIVLANG)->data($moduleLang)->exec();
+                }
+            }
+
+            $privOrder = 1;
+            foreach($privs as $methodName => $methodLang)
+            {
+                if(!empty($hasStoredPrivs["$module-$methodName"]))
+                {
+                    $vision  = strpos($hasStoredPrivs["$module-$methodName"]->vision, ",{$this->config->vision},") !== false ? $hasStoredPrivs["$module-$methodName"]->vision : $hasStoredPrivs["$module-$methodName"]->vision . "{$this->config->vision},";
+                    $edition = strpos($hasStoredPrivs["$module-$methodName"]->edition, ",{$this->config->edition},") !== false ? $hasStoredPrivs["$module-$methodName"]->edition : $hasStoredPrivs["$module-$methodName"]->edition . "{$this->config->edition},";
+
+                    $this->dao->update(TABLE_PRIV)
+                        ->set('vision')->eq($vision)
+                        ->set('edition')->eq($edition)
+                        ->where('id')->eq($hasStoredPrivs["$module-$methodName"]->id)
+                        ->exec();
+                }
+                else
+                {
+                    $priv = new stdclass();
+                    $priv->module  = $module;
+                    $priv->method  = $methodName;
+                    $priv->parent  = $moduleID;
+                    $priv->edition = ',ipd,';
+                    $priv->vision  = ",{$this->config->vision},";
+                    $priv->system  = '1';
+                    $priv->order   = $privOrder * 10;
+                    $privOrder ++;
+
+                    $this->dao->insert(TABLE_PRIV)->data($priv)->exec();
+                    $privID = $this->dao->lastInsertId();
+
+                    foreach($this->config->langs as $lang => $langValue)
+                    {
+                        $privLang = new stdclass();
+                        $privLang->objectID   = $privID;
+                        $privLang->objectType = 'priv';
+                        $privLang->lang       = $lang;
+                        $privLang->key        = "{$module}-{$methodLang}";
+                        $privLang->value      = '';
+                        $privLang->desc       = '';
+                        $this->dao->replace(TABLE_PRIVLANG)->data($privLang)->exec();
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Get priv by id.
      *
      * @param  int    $privID
@@ -1509,7 +1685,7 @@ class groupModel extends model
         if(empty($lang)) $lang = $this->app->getClientLang();
         return $this->dao->select('t1.*,t2.key,t2.value,t2.desc')->from(TABLE_PRIV)->alias('t1')
             ->leftJoin(TABLE_PRIVLANG)->alias('t2')->on('t1.id=t2.objectID')
-            ->where('t1.id')->eq($privID)
+            ->where('t1.id')->eq((int)$privID)
             ->andWhere('t2.objectType')->eq('priv')
             ->andWhere('t2.lang')->eq($lang)
             ->fetch();
@@ -1572,61 +1748,64 @@ class groupModel extends model
     }
 
     /**
-     * Get priv group by package.
+     * Get priv list by nav.
      *
-     * @param  array  $parentList
+     * @param  string $nav
+     * @param  string $version
      * @access public
      * @return array
      */
-    public function getPrivByParent($parentList)
+    public function getPrivListByNav($nav = '', $version = '')
     {
-        return $this->dao->select('t1.*,t2.`key`,t2.value')->from(TABLE_PRIV)->alias('t1')
-            ->leftJoin(TABLE_PRIVLANG)->alias('t2')->on('t1.id=t2.objectID')
-            ->where('t1.parent')->in($parentList)
-            ->andWhere('t1.edition')->like("%,{$this->config->edition},%")
-            ->andWhere('t1.vision')->like("%,{$this->config->vision},%")
-            ->andWhere('t2.`objectType`')->eq('priv')
-            ->orderBy('order_asc')
-            ->fetchAll('id');
-    }
+        $privList = array();
+        $allPrivs = array();
 
-    /**
-     * Get privs list by module.
-     *
-     * @param  string $view
-     * @param  object $pager
-     * @access public
-     * @return array
-     */
-    public function getPrivsListByView($view = '', $pager = null)
-    {
-        $modules = $this->getPrivManagerPairs('module', $view);
-        $modules = array_keys($modules);
-        $modules = implode(',', $modules);
+        /* Filter privs equal or greater than this version.*/
+        if($version) $versionPrivs = $this->getPrivsAfterVersion($version);
 
-        $privs = $this->dao->select("t1.id, t1.module, t1.method, CONCAT(t1.module, '-', t1.method) AS action, IF(t3.type = 'module', 0, t1.parent) as parent, t1.order, t2.`key`, t2.`value`, t2.desc, IF(t3.type = 'module', t3.code, t4.code) as parentCode, IF(t3.type = 'module', 999, INSTR('$modules', t4.code)) as moduleOrder")->from(TABLE_PRIV)->alias('t1')
-            ->leftJoin(TABLE_PRIVLANG)->alias('t2')->on('t1.id=t2.objectID')
-            ->leftJoin(TABLE_PRIVMANAGER)->alias('t3')->on('t1.parent=t3.id')
-            ->leftJoin(TABLE_PRIVMANAGER)->alias('t4')->on('t3.parent=t4.id')
-            ->where('1=1')
-            ->andWhere('t2.lang')->eq($this->app->getClientLang())
-            ->andWhere('t2.objectType')->eq('priv')
-            ->andWhere('((t3.type')->eq('package')
-            ->andWhere('t4.type')->eq('module')
-            ->beginIF(!empty($view) and $view != 'general')->andWhere('t4.code')->in($modules)->fi()
-            ->beginIF(!empty($view) and $view == 'general')->andWhere('t4.parent')->eq('0')->fi()
-            ->markRight(1)
-            ->orWhere('(t3.type')->eq('module')
-            ->andWhere('t4.type')->eq('view')
-            ->beginIF(!empty($view) and $view != 'general')->andWhere('t3.code')->in($modules)->fi()
-            ->beginIF(!empty($view) and $view == 'general')->andWhere('t3.parent')->eq('0')->fi()
-            ->markRight(2)
-            ->andWhere('t1.edition')->like("%,{$this->config->edition},%")
-            ->andWhere('t1.vision')->like("%,{$this->config->vision},%")
-            ->orderBy("moduleOrder asc, t3.order asc, `order` asc")
-            ->page($pager)
-            ->fetchAll('action');
-        return $privs;
+        /* Privs in package. */
+        foreach($this->config->group->package as $packageCode => $packageData)
+        {
+            if(!isset($packageData->privs)) continue;
+
+            foreach($packageData->privs as $privCode => $priv)
+            {
+                list($moduleName, $methodName) = explode('-', $privCode);
+                $allPrivs[$privCode] = $privCode;
+
+                if(!$this->config->inQuickon && in_array("{$moduleName}-{$methodName}", $this->config->group->hiddenPriv)) continue;
+                if(strpos(',' . $priv['edition'] . ',', ',' . $this->config->edition . ',') === false) continue;
+                if(strpos(',' . $priv['vision'] . ',',  ',' . $this->config->vision . ',')  === false) continue;
+
+                if(!$this->checkNavSubset($nav, $packageData->subset)) continue;
+
+                /* If version is selected, only show privs before the version. */
+                if(!empty($version) and strpos($versionPrivs, ",$privCode,") === false) continue;
+
+                /* Add methods in workflow menus, remove privs unused in the edition. */
+                if(isset($this->lang->$moduleName->menus) && isset($this->lang->$moduleName->menus[$methodName]))
+                {
+                    $privName = $this->lang->group->package->browse . '(' . $this->lang->$moduleName->menus[$methodName] . ')';
+                }
+                else
+                {
+                    if(!isset($this->lang->resource->$moduleName) || !isset($this->lang->resource->$moduleName->$methodName)) continue;
+                    $methodLang = $this->lang->resource->$moduleName->$methodName;
+                    if(!isset($this->lang->$moduleName->$methodLang))
+                    {
+                        $this->app->loadLang($moduleName);
+                        if($moduleName == 'requirement') $this->app->loadLang('story');
+                    }
+                    $privName = $this->lang->$moduleName->$methodLang;
+                }
+
+                $priv = (object)array('subset' => $packageData->subset, 'package' => $packageCode, 'module' => $moduleName, 'method' => $methodName, 'selected' => false, 'name' => $privName);
+
+                $privList[$privCode] = $priv;
+            }
+        }
+
+        return $privList;
     }
 
     /**
@@ -1744,7 +1923,7 @@ class groupModel extends model
     public function getPrivRelation($priv, $type = '', $module = '')
     {
         $relations = $this->dao->select('t1.type,t2.*,t3.`key`,t3.value')->from(TABLE_PRIVRELATION)->alias('t1')
-            ->leftJoin(TABLE_PRIV)->alias('t2')->on('t1.relationPriv=t2.id')
+            ->leftJoin(TABLE_PRIV)->alias('t2')->on("t1.relationPriv=CONCAT(t2.module, '-', t2.method)")
             ->leftJoin(TABLE_PRIVLANG)->alias('t3')->on('t2.id=t3.objectID')
             ->where('t1.priv')->eq($priv)
             ->andWhere('t2.edition')->like("%,{$this->config->edition},%")
@@ -1771,7 +1950,7 @@ class groupModel extends model
     public function getPrivRelationsByIdList($privs, $type = '', $returnType = 'name')
     {
         $privs = $this->dao->select('t1.priv,t3.`key`,t3.value,t1.type,t1.relationPriv')->from(TABLE_PRIVRELATION)->alias('t1')
-            ->leftJoin(TABLE_PRIV)->alias('t2')->on('t1.relationPriv=t2.id')
+            ->leftJoin(TABLE_PRIV)->alias('t2')->on("t1.relationPriv=CONCAT(t2.module, '-', t2.method)")
             ->leftJoin(TABLE_PRIVLANG)->alias('t3')->on('t2.id=t3.objectID')
             ->where('t1.priv')->in($privs)
             ->andWhere('t2.edition')->like("%,{$this->config->edition},%")
@@ -2061,45 +2240,6 @@ class groupModel extends model
     }
 
     /**
-     * Get priv manager pairs.
-     *
-     * @param  string $type
-     * @param  string $parent
-     * @access public
-     * @return array
-     */
-    public function getPrivManagerPairs($type, $parent = '')
-    {
-        $parentType = $type == 'package' ? 'module' : 'view';
-        $parent     = !empty($parent) ? $this->dao->select('id as parent')->from(TABLE_PRIVMANAGER)->where('type')->eq($parentType)->andWhere('code')->eq($parent)->fetch('parent') : 0;
-
-        $moduleLang = $type == 'module' ? $this->getMenuModules('', true) : array();
-
-        $managers = $this->dao->select('t1.id,t1.code,t2.key,t2.value')
-            ->from(TABLE_PRIVMANAGER)->alias('t1')
-            ->leftJoin(TABLE_PRIVLANG)->alias('t2')->on('t1.id=t2.objectID')
-            ->where('t1.type')->eq($type)
-            ->andWhere('t2.objectType')->eq('manager')
-            ->beginIF($type == 'module')->andWhere('code')->in(array_keys($moduleLang))->fi()
-            ->beginIF(!empty($parent))->andWhere('t1.parent')->eq($parent)->fi()
-            ->andWhere('t1.edition')->like("%,{$this->config->edition},%")
-            ->andWhere('t1.vision')->like("%,{$this->config->vision},%")
-            ->andWhere('t2.lang')->eq($this->app->getClientLang())
-            ->orderBy('order asc')
-            ->fetchAll('id');
-
-        $pairs = array();
-        foreach($managers as $managerID => $manager)
-        {
-            $key = $type == 'package' ? $managerID : $manager->code;
-            if(!empty($manager->value)) $pairs[$key] = $manager->value;
-            if(empty($manager->value) and $type == 'view')   $pairs[$key] = $this->lang->{$manager->key}->common;
-            if(empty($manager->value) and $type == 'module') $pairs[$key] = isset($moduleLang[$manager->key]) ? $moduleLang[$manager->key] : $this->lang->{$manager->key}->common;
-        }
-        return $pairs;
-    }
-
-    /**
      * Transform priv lang.
      *
      * @param  array    $privs
@@ -2120,8 +2260,8 @@ class groupModel extends model
             else
             {
                 list($moduleName, $methodLang) = explode('-', $priv->key);
-                if($moduleName == 'requirement') $moduleName = 'story';
-                $this->app->loadLang($moduleName);
+                $actualModule = $moduleName == 'requirement' ? 'story' : $moduleName;
+                $this->app->loadLang($actualModule);
 
                 $hasLang = (!empty($moduleName) and !empty($methodLang) and isset($this->lang->resource->{$priv->module}) and isset($this->lang->resource->{$priv->module}->{$priv->method}));
                 if(!$hasLang)
@@ -2149,7 +2289,7 @@ class groupModel extends model
      */
     public function getCustomPrivs($menu, $privs = array())
     {
-        $allPrivs = $this->dao->select('module,method')->from(TABLE_PRIV)->fetchGroup('module', 'method');
+        $allPrivs = $this->dao->select('module,method')->from(TABLE_PRIV)->where('edition')->like("%,{$this->config->edition},%")->andWhere('vision')->like("%,{$this->config->vision},%")->fetchGroup('module', 'method');
         foreach($this->lang->resource as $module => $methods)
         {
             if(isset($this->lang->$module->menus) and (empty($menu) or $menu == 'general'))
@@ -2158,6 +2298,7 @@ class groupModel extends model
                 {
                     $key  = "{$module}-{$method}";
                     $priv = new stdclass();
+                    $priv->id          = $key;
                     $priv->module      = $module;
                     $priv->method      = $method;
                     $priv->action      = $key;
@@ -2174,12 +2315,13 @@ class groupModel extends model
             foreach($methods as $method => $methodLabel)
             {
                 if(isset($allPrivs[$module][$method])) continue;
-                if(!$this->checkMenuModule($menu, $module)) continue;
+                if(!$this->checkNavModule($menu, $module)) continue;
                 if(!isset($this->lang->{$module}->{$methodLabel})) $this->app->loadLang($module);
                 if(isset($this->lang->$module->menus) and $method == 'browse') continue;
 
                 $key  = "{$module}-{$method}";
                 $priv = new stdclass();
+                $priv->id          = $key;
                 $priv->module      = $module;
                 $priv->method      = $method;
                 $priv->action      = $key;
@@ -2196,69 +2338,138 @@ class groupModel extends model
     }
 
     /**
+     * Load language of resource.
+     *
+     * @access public
+     * @return void
+     */
+    public function loadResourceLang()
+    {
+        foreach($this->lang->resource as $moduleName => $action) $this->app->loadLang($moduleName);
+
+        $this->app->loadLang('doc');
+        $this->app->loadLang('api');
+
+        $this->lang->custom->common = $this->lang->group->config;
+        $this->lang->doc->common    = $this->lang->doc->manage;
+        $this->lang->api->common    = $this->lang->api->manage;
+
+        if(($this->config->edition == 'max' or $this->config->edition == 'ipd') and $this->config->vision == 'rnd' and isset($this->lang->baseline)) $this->lang->baseline->common = $this->lang->group->docTemplate;
+    }
+
+    /**
+     * Process circular dependency.
+     *
+     * @param array $depends
+     * @param array $privs
+     * @param array $excludes
+     * @access protected
+     * @return array
+     */
+    protected function processDepends($depends, $privs, $excludes)
+    {
+        foreach($privs as $priv)
+        {
+            if(!isset($depends[$priv])) continue;
+
+            foreach($depends[$priv] as $dependPriv)
+            {
+                if(isset($privs[$dependPriv]) || in_array($dependPriv, $excludes)) continue;
+                $privs[$dependPriv] = $dependPriv;
+
+                $dependPrivs = $this->processDepends($depends, $depends[$dependPriv], $excludes);
+
+                foreach($dependPrivs as $depend)
+                {
+                    if(!in_array($depend, $excludes)) $privs[$depend] = $depend;
+                }
+            }
+        }
+
+        return $privs;
+    }
+
+    /**
      * Get related privs.
      *
-     * @param  array  $privIdList
-     * @param  string $type
-     * @param  array  $excludePrivs
-     * @param  array  $recommedSelect
+     * @param  array  $allPrivList
+     * @param  array  $selectedPrivList
+     * @param  array  $recommendSelect
      * @access public
      * @return array
      */
-    public function getRelatedPrivs($privIdList, $type = '', $excludePrivs = array(), $recommedSelect = array())
+    public function getRelatedPrivs($allPrivList, $selectedPrivList, $recommendSelect = array())
     {
-        $modulePairs = $this->getPrivManagerPairs('module');
-        $modules     = array_keys($modulePairs);
-        $modules     = implode(',', $modules);
-        $relatedPrivs = $this->dao->select("t1.relationPriv,t1.type,t2.parent,t2.module,t2.method,t2.`order`,t3.`key`,t3.value, IF(t4.type = 'module', 999, INSTR('$modules', t5.code)) as moduleOrder")->from(TABLE_PRIVRELATION)->alias('t1')
-            ->leftJoin(TABLE_PRIV)->alias('t2')->on('t1.relationPriv=t2.id')
-            ->leftJoin(TABLE_PRIVLANG)->alias('t3')->on('t1.relationPriv=t3.objectID')
-            ->leftJoin(TABLE_PRIVMANAGER)->alias('t4')->on('t2.parent=t4.id')
-            ->leftJoin(TABLE_PRIVMANAGER)->alias('t5')->on('t4.parent=t5.id')
-            ->where('t1.priv')->in($privIdList)
-            ->andWhere('t5.code')->in(array_keys($modulePairs))
-            ->andWhere('(t1.relationPriv')->notin($privIdList)
+        $this->loadResourceLang();
 
-            ->beginIF(!empty($recommedSelect))
-            ->orWhere('(t1.relationPriv')->in($recommedSelect)
-            ->andWhere('t1.type')->eq('recommend')->markRight(1)
-            ->fi()
+        $depends = array();
 
-            ->markRight(1)
-            ->beginIF(!empty($excludePrivs))->andWhere('t1.relationPriv')->notin($excludePrivs)->fi()
-            ->beginIF(!empty($type))->andWhere('t1.type')->eq($type)->fi()
-            ->andWhere('t3.objectType')->eq('priv')
-            ->andWhere('t2.edition')->like("%,{$this->config->edition},%")
-            ->andWhere('t2.vision')->like("%,{$this->config->vision},%")
-            ->andWhere('((t4.type')->eq('package')
-            ->andWhere('t5.type')->eq('module')
-            ->beginIF(!empty($view) and $view != 'general')->andWhere('t5.code')->in($modules)->fi()
-            ->markRight(1)
-            ->orWhere('(t4.type')->eq('module')
-            ->andWhere('t5.type')->eq('view')
-            ->beginIF(!empty($view) and $view != 'general')->andWhere('t1.module')->in($modules)->fi()
-            ->markRight(2)
-            ->orderBy('moduleOrder asc, t2.`order`_asc, t1.`type` desc')
-            ->fetchAll('relationPriv');
-
-        $privList = empty($type) ? array('depend' => array(), 'recommend' => array()) : array($type => array());
-        if(empty($relatedPrivs)) return $privList;
-
-        $managerList  = $this->dao->select('*')->from(TABLE_PRIVMANAGER)->fetchAll('id');
-        $relatedPrivs = $this->transformPrivLang($relatedPrivs);
-
-        foreach($relatedPrivs as $privID => $relatedPriv)
+        $privSubsets  = array();
+        $relatedPrivs = array('depend' => array(), 'recommend' => array());
+        $privOrder    = array();
+        foreach($this->config->group->package as $packagePage => $package)
         {
-            $module = $managerList[$relatedPriv->parent]->type == 'package' ? $managerList[$managerList[$relatedPriv->parent]->parent]->code : $managerList[$relatedPriv->parent]->code;
-            if(!isset($privList[$relatedPriv->type][$module])) $privList[$relatedPriv->type][$module] = array();
-            $privList[$relatedPriv->type][$module]['title']      = $modulePairs[$module];
-            $privList[$relatedPriv->type][$module]['id']         = $relatedPriv->parent;
-            $privList[$relatedPriv->type][$module]['children'][] = array('title' => $relatedPriv->name, 'relationPriv' => $privID, 'parent' => $relatedPriv->parent, 'module' => $relatedPriv->module, 'method' => $relatedPriv->method);
+            if(!isset($package->privs)) continue;
+
+            foreach($package->privs as $privCode => $priv)
+            {
+                $privSubsets[$privCode] = $package->subset;
+
+                foreach(array('depend', 'recommend') as $type)
+                {
+                    /* Show related pirvs when select. */
+                    if($type == 'recommend' && in_array($privCode, $recommendSelect)) $relatedPrivs[$type][$privCode] = $privCode;
+                    if($type == 'depend') $depends[$privCode] = $priv['depend'];
+
+                    if(!in_array($privCode, $selectedPrivList) || !isset($priv[$type])) continue;
+
+                    foreach($priv[$type] as $relatedPriv)
+                    {
+                        if(!in_array($relatedPriv, $selectedPrivList) && in_array($relatedPriv, $allPrivList)) $relatedPrivs[$type][$relatedPriv] = $relatedPriv;
+                    }
+                }
+
+                $privOrder[$privCode] = $priv['order'];
+            }
         }
 
-        if(empty($type) or $type == 'depend')    $privList['depend']    = array_values($privList['depend']);
-        if(empty($type) or $type == 'recommend') $privList['recommend'] = array_values($privList['recommend']);
-        return $privList;
+        /* Process circular dependency. */
+        $relatedPrivs['depend'] = $this->processDepends($depends, $relatedPrivs['depend'], $selectedPrivList);
+
+        $subsetPrivs = array('depend' => array(), 'recommend' => array());
+        foreach(array('depend', 'recommend') as $type)
+        {
+            foreach($relatedPrivs[$type] as $relatedPriv)
+            {
+                if($type == 'recommend' && isset($relatedPrivs['depend'][$relatedPriv])) continue; // Don't show depend privs to recommend.
+
+                list($moduleName, $methodName) = explode('-', $relatedPriv);
+                if(!isset($this->lang->resource->$moduleName->$methodName)) continue;
+
+                $method = $this->lang->resource->$moduleName->$methodName;
+
+                $subset = $privSubsets[$relatedPriv];
+                if(!isset($subsetPrivs[$type][$subset])) $subsetPrivs[$type][$subset] = array('id' => $subset, 'title' => $this->lang->$subset->common, 'children' => array());
+
+                if(!isset($this->lang->$moduleName->$method)) $this->app->loadLang($moduleName);
+                $subsetPrivs[$type][$subset]['children'][] = array('id' => $relatedPriv, 'module' => $moduleName, 'method' => $methodName, 'subset' => $subset, 'title' => $this->lang->$moduleName->$method, 'order' => $privOrder[$relatedPriv]);
+
+                usort($subsetPrivs[$type][$subset]['children'], function ($relatedPriv1, $relatedPriv2)
+                {
+                    if ($relatedPriv1['order'] > $relatedPriv2['order'])
+                    {
+                        return 1;
+                    }
+                    elseif ($relatedPriv1['order'] < $relatedPriv2['order'])
+                    {
+                        return -1;
+                    }
+                    return 0;
+                });
+            }
+        }
+
+        return array('depend' => array_values($subsetPrivs['depend']), 'recommend' => array_values($subsetPrivs['recommend']));
     }
 
     /**
@@ -2281,23 +2492,85 @@ class groupModel extends model
     }
 
     /**
-     * Get privs id list by group.
+     * Get privs list by group.
      *
      * @param  int    $groupID
      * @access public
-     * @return void
+     * @return array
      */
-    public function getPrivsIdListByGroup($groupID)
+    public function getPrivListByGroup($groupID)
     {
-        $modulePairs = $this->getPrivManagerPairs('module');
-        $modules     = array_keys($modulePairs);
-        $actions    = $this->dao->select("CONCAT(module, '-',  method) AS action")->from(TABLE_GROUPPRIV)->where('`group`')->eq($groupID)->andWhere('module')->in($modules)->fetchPairs();
-        $actions    = implode("','", $actions);
-        $privIdList = $this->dao->select("*")->from(TABLE_PRIV)
-            ->where("CONCAT(module, '-',  method) IN ('$actions')")
-            ->andWhere('edition')->like("%,{$this->config->edition},%")
-            ->andWhere('vision')->like("%,{$this->config->vision},%")
-            ->fetchAll('id');
-        return $privIdList;
+        return $this->dao->select("CONCAT(module, '-',  method) AS action")->from(TABLE_GROUPPRIV)->where('`group`')->eq($groupID)->fetchPairs();
+    }
+
+    /**
+     * AJAX: Get privs by parents.
+     *
+     * @param  string  $selectedSubset
+     * @param  string  $selectedPackages
+     * @access public
+     * @return bool
+     */
+    public function getPrivByParents($selectedSubset, $selectedPackages = '')
+    {
+        $allPrivs = array();
+        $privs    = array();
+
+        /* Privs in package. */
+        foreach($this->config->group->package as $packageCode => $packageData)
+        {
+            foreach($packageData->privs as $privCode => $priv)
+            {
+                list($moduleName, $methodName) = explode('-', $privCode);
+
+                /* Remove privs unused in the edition. */
+                if(isset($this->lang->$moduleName->menus) && isset($this->lang->$moduleName->menus[$methodName]))
+                {
+                    $privName = $this->lang->$moduleName->menus[$methodName];
+                }
+                else
+                {
+                    if(!isset($this->lang->resource->$moduleName) || !isset($this->lang->resource->$moduleName->$methodName)) continue;
+                    $methodLang = $this->lang->resource->$moduleName->$methodName;
+                    if(!isset($this->lang->$moduleName->$methodLang))
+                    {
+                        $this->app->loadLang($moduleName);
+                        if($moduleName == 'requirement') $this->app->loadLang('story');
+                    }
+                    $privName = $this->lang->$moduleName->$methodLang;
+                }
+
+                $allPrivs[$privCode] = $privCode;
+
+                $subset = $packageData->subset;
+                if($subset !== $selectedSubset) continue;
+
+                if($selectedPackages && strpos($selectedPackages, ",$packageCode,") === false) continue;
+
+                $privs[$privCode] = $privName;
+            }
+        }
+
+        return $privs;
+    }
+
+    /**
+     * Get privs after version
+     *
+     * @param  string $version
+     * @access public
+     * @return string
+     */
+    public function getPrivsAfterVersion($version)
+    {
+        $realVersion = str_replace('_', '.', $version);
+        $changelog   = array();
+        foreach($this->lang->changelog as $currentVersion => $currentChangeLog)
+        {
+            if(version_compare($currentVersion, $realVersion, '>=')) $changelog[] = join(',', $currentChangeLog);
+        }
+        $versionPrivs = ',' . join(',', $changelog) . ',';
+
+        return $versionPrivs;
     }
 }

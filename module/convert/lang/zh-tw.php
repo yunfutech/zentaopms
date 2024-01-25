@@ -2,7 +2,7 @@
 /**
  * The convert module zh-tw file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青島易軟天創網絡科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @copyright   Copyright 2009-2015 禪道軟件（青島）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
  * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     convert
@@ -114,3 +114,81 @@ $lang->convert->issue = new stdclass();
 $lang->convert->issue->redmine = 'Redmine';
 $lang->convert->issue->zentao  = '禪道';
 $lang->convert->issue->goto    = '轉換為';
+
+$lang->convert->jira = new stdclass();
+$lang->convert->jira->method           = '選擇導入方式';
+$lang->convert->jira->next             = '下一步';
+$lang->convert->jira->importFromDB     = '從資料庫導入';
+$lang->convert->jira->importFromFile   = '從檔案導入';
+$lang->convert->jira->mapJira2Zentao   = '設置Jira與禪道數據對應關係';
+$lang->convert->jira->dbNameNotice     = '請輸入Jira資料庫名字';
+$lang->convert->jira->importNotice     = '注意：導入數據有風險！請務必確保如下操作步驟依次完成，再進行合併。';
+$lang->convert->jira->dbDesc           = '<p>如果您的Jira使用Mysql資料庫, 請選擇此方式</p>';
+$lang->convert->jira->fileDesc         = '<p>如果您的Jira使用非Mysql資料庫, 請選擇此方式</p>';
+$lang->convert->jira->jiraObject       = 'Jira Issues';
+$lang->convert->jira->zentaoObject     = '禪道對象';
+$lang->convert->jira->jiraLinkType     = 'Jira 關聯關係';
+$lang->convert->jira->zentaoLinkType   = '禪道關聯關係';
+$lang->convert->jira->jiraResolution   = 'Jira 解決方案';
+$lang->convert->jira->zentaoResolution = '禪道Bug解決方案';
+$lang->convert->jira->zentaoReason     = '禪道需求關閉原因';
+$lang->convert->jira->jiraStatus       = 'Jira Issues 狀態';
+$lang->convert->jira->storyStatus      = '禪道需求狀態';
+$lang->convert->jira->storyStage       = '禪道需求階段';
+$lang->convert->jira->bugStatus        = '禪道Bug狀態';
+$lang->convert->jira->taskStatus       = '禪道任務狀態';
+$lang->convert->jira->initJiraUser     = '設置Jira用戶';
+$lang->convert->jira->importJira       = '導入Jira';
+$lang->convert->jira->start            = '開始導入';
+
+$lang->convert->jira->dbNameEmpty        = 'Jira資料庫名字不能為空！';
+$lang->convert->jira->invalidDB          = '無效的資料庫名！';
+$lang->convert->jira->invalidTable       = '本資料庫非Jira資料庫！';
+$lang->convert->jira->notReadAndWrite    = '權限不足！請修改%s目錄讀寫權限！';
+$lang->convert->jira->notExistEntities   = '%s 檔案不存在！';
+$lang->convert->jira->passwordNotice     = "<span class='text-red'>設置Jira用戶導入到禪道後的預設密碼，用戶後續可以在禪道中自行修改密碼。</span>";
+$lang->convert->jira->groupNotice        = "<span class='text-red'>設置Jira用戶導入到禪道後的預設權限分組。</span>";
+$lang->convert->jira->passwordDifferent  = '兩次密碼不一致！';
+$lang->convert->jira->passwordEmpty      = '密碼不能為空！';
+$lang->convert->jira->passwordLess       = '密碼不能少於六位！';
+$lang->convert->jira->importSuccessfully = 'Jira導入完成！';
+$lang->convert->jira->importResult       = "導入 <strong class='text-red'>%s</strong> 數據, 已處理 <strong class='%scount'>%s</strong> 條記錄；";
+$lang->convert->jira->importing          = '數據導入中，請不要切換其它頁面';
+$lang->convert->jira->importingAB        = '數據導入中';
+$lang->convert->jira->imported           = '數據導入完成';
+
+$lang->convert->jira->zentaoObjectList[''] = '';
+$lang->convert->jira->zentaoObjectList['task']        = '任務';
+$lang->convert->jira->zentaoObjectList['requirement'] = '用戶需求';
+$lang->convert->jira->zentaoObjectList['story']       = '軟件需求';
+$lang->convert->jira->zentaoObjectList['bug']         = 'Bug';
+
+$lang->convert->jira->zentaoLinkTypeList['subTaskLink']  = '父-子任務';
+$lang->convert->jira->zentaoLinkTypeList['subStoryLink'] = '父-子需求';
+$lang->convert->jira->zentaoLinkTypeList['duplicate']    = '重複對象';
+$lang->convert->jira->zentaoLinkTypeList['relates']      = '互相關聯';
+
+$lang->convert->jira->steps[1] = '對象';
+$lang->convert->jira->steps[2] = '對象關聯關係';
+$lang->convert->jira->steps[3] = '解決方案';
+$lang->convert->jira->steps[4] = '狀態';
+
+$lang->convert->jira->importSteps['db'][1]   = '備份禪道資料庫，備份Jira資料庫。';
+$lang->convert->jira->importSteps['db'][2]   = '導入數據時使用禪道會給伺服器造成性能壓力，請儘量保證導入數據時無人使用禪道。';
+$lang->convert->jira->importSteps['db'][3]   = '將Jira資料庫導入到禪道使用的Mysql中，名字和禪道資料庫區別開來。';
+$lang->convert->jira->importSteps['db'][4]   = "將Jira附件目錄<strong class='text-red'> attachments</strong> 放到 <strong class='text-red'>%s</strong> 下，確保禪道伺服器磁碟空間足夠。";
+
+$lang->convert->jira->importSteps['db'][5]   = "上述步驟完成後，請輸入Jira資料庫名字進行下一步。";
+$lang->convert->jira->importSteps['file'][1] = '備份禪道資料庫，備份Jira資料庫。';
+$lang->convert->jira->importSteps['file'][2] = '導入數據時使用禪道會給伺服器造成性能壓力，請儘量保證導入數據時無人使用禪道。';
+$lang->convert->jira->importSteps['file'][3] = "將Jira的備份檔案 <strong class='text-red'>entities.xml</strong> 放到 <strong class='text-red'>%s</strong> 下，並給該目錄讀寫權限。";
+$lang->convert->jira->importSteps['file'][4] = "將Jira附件目錄<strong class='text-red'> attachments</strong> 放到 <strong class='text-red'>%s</strong> 下，確保禪道伺服器磁碟空間足夠。";
+$lang->convert->jira->importSteps['file'][5]   = "上述步驟完成後，點擊下一步。";
+
+$lang->convert->jira->objectList['user']      = '用戶';
+$lang->convert->jira->objectList['project']   = '項目';
+$lang->convert->jira->objectList['issue']     = 'Issue';
+$lang->convert->jira->objectList['build']     = '版本';
+$lang->convert->jira->objectList['issuelink'] = '關聯關係';
+$lang->convert->jira->objectList['action']    = '歷史記錄';
+$lang->convert->jira->objectList['file']      = '附件';

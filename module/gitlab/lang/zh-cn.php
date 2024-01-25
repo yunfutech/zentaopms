@@ -29,6 +29,10 @@ $lang->gitlab->addWebhookSuccess = 'Webhook创建成功';
 $lang->gitlab->failCreateWebhook = 'Webhook创建失败，请查看日志';
 $lang->gitlab->placeholderSearch = '请输入名称';
 
+$lang->gitlab->bindStatus['binded']      = $lang->gitlab->binded;
+$lang->gitlab->bindStatus['notBind']     = "<span class='text-danger'>{$lang->gitlab->notBind}</span>";
+$lang->gitlab->bindStatus['bindedError'] = "<span class='text-danger'>{$lang->gitlab->bindedError}</span>";
+
 $lang->gitlab->browseAction         = 'GitLab列表';
 $lang->gitlab->deleteAction         = '删除GitLab';
 $lang->gitlab->gitlabProject        = "{$lang->gitlab->common}项目";
@@ -60,7 +64,7 @@ $lang->gitlab->deleteTag            = '删除标签';
 $lang->gitlab->svaeFailed           = '『%s』保存失败';
 
 $lang->gitlab->id             = 'ID';
-$lang->gitlab->name           = "服务器名称";
+$lang->gitlab->name           = "应用名称";
 $lang->gitlab->url            = '服务器地址';
 $lang->gitlab->token          = 'Token';
 $lang->gitlab->defaultProject = '默认项目';
@@ -104,7 +108,10 @@ $lang->gitlab->apiError[2] = 'is too short (minimum is 8 characters)';
 $lang->gitlab->apiError[3] = "can contain only letters, digits, '_', '-' and '.'. Cannot start with '-', end in '.git' or end in '.atom'";
 $lang->gitlab->apiError[4] = 'Branch already exists';
 $lang->gitlab->apiError[5] = 'Failed to save group {:path=>["has already been taken"]}';
-$lang->gitlab->apiError[6] = '403 Forbidden';
+$lang->gitlab->apiError[6] = 'Failed to save group {:path=>["已经被使用"]}';
+$lang->gitlab->apiError[7] = '403 Forbidden';
+$lang->gitlab->apiError[8] = 'is invalid';
+$lang->gitlab->apiError[9] = 'admin is a reserved name';
 
 $lang->gitlab->errorLang[0] = '私有分组的项目，可见性级别不能设为内部。';
 $lang->gitlab->errorLang[1] = '私有分组的项目，可见性级别不能设为公开。';
@@ -112,7 +119,13 @@ $lang->gitlab->errorLang[2] = '密码太短（最少8个字符）';
 $lang->gitlab->errorLang[3] = "只能包含字母、数字、'.'-'和'.'。不能以'-'开头、以'.git'结尾或以'.atom'结尾。";
 $lang->gitlab->errorLang[4] = '分支名已存在。';
 $lang->gitlab->errorLang[5] = '保存失败，群组URL路径已经被使用。';
-$lang->gitlab->errorLang[6] = $lang->gitlab->noAccess;
+$lang->gitlab->errorLang[6] = '保存失败，群组URL路径已经被使用。';
+$lang->gitlab->errorLang[7] = $lang->gitlab->noAccess;
+$lang->gitlab->errorLang[8] = '格式错误';
+$lang->gitlab->errorLang[9] = 'admin是保留名';
+
+$lang->gitlab->errorResonse['Email has already been taken']    = '邮箱已存在';
+$lang->gitlab->errorResonse['Username has already been taken'] = '用户名已存在';
 
 $lang->gitlab->project = new stdclass;
 $lang->gitlab->project->id                         = "项目ID";
@@ -235,3 +248,7 @@ $lang->gitlab->tag->accessLevel        = '允许创建';
 $lang->gitlab->tag->protectConfirmDel  = '确认删除该GitLab标签保护吗？';
 $lang->gitlab->tag->emptyPrivNameError = "标签不能为空";
 $lang->gitlab->tag->issetPrivNameError = "已存在该保护标签";
+
+$lang->gitlab->featureBar['binduser']['all']     = $lang->gitlab->all;
+$lang->gitlab->featureBar['binduser']['notBind'] = $lang->gitlab->notBind;
+$lang->gitlab->featureBar['binduser']['binded']  = $lang->gitlab->binded;

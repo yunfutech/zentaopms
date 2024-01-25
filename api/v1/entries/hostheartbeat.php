@@ -70,7 +70,6 @@ class hostHeartbeatEntry extends baseEntry
         {
             foreach($vms as $vm)
             {
-                $heartbeat = strtotime(substr($vm->heartbeat, 0, 19));
                 $vmData    = array(
                     'vnc'       => $vm->vncPortOnHost,
                     'zap'       => $vm->agentPortOnHost,
@@ -79,11 +78,10 @@ class hostHeartbeatEntry extends baseEntry
                     'ssh'       => $vm->sshPortOnHost,
                     'status'    => $vm->status,
                     'extranet'  => $vm->ip,
+                    'heartbeat' => helper::now()
                 );
-                
+
                 if(!$vm->sshPortOnHost) unset($vmData['ssh']);
-                if($heartbeat > 0) $vmData['heartbeat'] = date("Y-m-d H:i:s", $heartbeat);
-                
                 if($isPhysicsNode)
                 {
                     unset($vmData['extranet']);
@@ -95,10 +93,10 @@ class hostHeartbeatEntry extends baseEntry
                     if(empty($node)) continue;
 
                     if(in_array($node->status, array('restoring', 'creating_img', 'creating_snap')))
-                        $vmData->status = $vm->status = $node->status;
+                        $vmData['status'] = $vm->status = $node->status;
                     $this->dao->update(TABLE_ZAHOST)->data($vmData)->where('mac')->eq($vm->macAddress)->exec();
                 }
-                
+
                 if($vm->status == 'running' && !$isPhysicsNode)
                 {
                     if(!empty($node))

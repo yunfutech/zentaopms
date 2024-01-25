@@ -64,6 +64,7 @@ $lang->task->teamOrder           = 'Order';
 $lang->task->manageTeam          = 'Manage Team';
 $lang->task->unfoldEffort        = 'Unfold Effort';
 $lang->task->foldEffort          = 'Fold Effort';
+$lang->task->relatedBranch       = 'Related Branch';
 
 $lang->task->common            = 'Aufgabe';
 $lang->task->id                = 'ID';
@@ -94,6 +95,7 @@ $lang->task->consumed          = 'Genutzt';
 $lang->task->currentConsumed   = 'Current Cost';
 $lang->task->myConsumed        = 'Von mir';
 $lang->task->consumedAB        = 'Genutzt';
+$lang->task->consumedHours     = 'Genutzt';
 $lang->task->hour              = 'Stunden';
 $lang->task->consumedThisTime  = 'Stunden';
 $lang->task->leftThisTime      = 'Rest';
@@ -164,6 +166,7 @@ $lang->task->lblPri            = 'P';
 $lang->task->lblHour           = '(h)';
 $lang->task->lblTestStory      = 'Story Tested';
 $lang->task->teamMember        = 'Team Member';
+$lang->task->update            = 'Update';
 
 /* Fields of zt_taskestimate. */
 $lang->task->task    = 'Task';
@@ -259,9 +262,11 @@ $lang->task->deniedNotice              = 'Nur %s kann die Aufgabe %s.';
 $lang->task->deniedStatusNotice        = 'The task status is %s, the effort cannot be maintained.';
 $lang->task->transferNotice            = 'Linear task cannot be transferred.';
 $lang->task->noTask                    = 'Keine Aufagben. ';
+$lang->task->noModule                  = '<div>You have no modules.</div><div>Manage now</div>';
 $lang->task->createDenied              = "Aufgben erstellen it in diesem {$lang->projectCommon} gesperrt";
 $lang->task->cannotDeleteParent        = 'Cannot delete parent task';
 $lang->task->addChildTask              = 'Because the task has already consumed consumption, to ensure data consistency, we will help you create a subtask with the same name to record the consumption.';
+$lang->task->effortOperateTips         = 'Only the project manager, the executive supervisor, and the department head have the authority to %s logs belonging to others.';
 
 $lang->task->error = new stdclass();
 $lang->task->error->totalNumber       = '"Total Cost" must be numbers.';

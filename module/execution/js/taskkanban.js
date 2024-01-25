@@ -306,7 +306,7 @@ function renderTaskItem(item, $item, col)
         $item.html(renderUserAvatar(item.assignedTo, 'task', item.id, 'md'));
     }
 
-    if(scaleSize <= 1)
+    if(canBeChanged && scaleSize <= 1)
     {
         var $actions = $item.find('.actions');
         if(!$actions.length && item.menus && item.menus.length)
@@ -356,8 +356,13 @@ function renderColumnCount($count, count, col)
         return;
     }
 
-    var text = count + '/' + (col.limit < 0 ? '<i class="icon icon-infinite"></i>' : col.limit);
-    $count.html(text + '<i class="icon icon-arrow-up" data-toggle="tooltip" data-original-title="' + kanbanLang.limitExceeded + '"></i>');
+    var text     = count + '/' + (col.limit < 0 ? '<i class="icon icon-infinite"></i>' : col.limit);
+    var limitTip = '';
+    if(col.limit >= 0 && count > col.limit)
+    {
+        limitTip = 'data-original-title="' + kanbanLang.limitExceeded + '"';
+    }
+    $count.html(text + '<i class="icon icon-arrow-up" data-toggle="tooltip" ' + limitTip + '"></i>');
 
     if(col.limit != -1 && col.limit < count)
     {
@@ -487,7 +492,8 @@ function createKanban(kanbanID, data, options)
     var $kanban = $('#kanban-' + kanbanID);
     if($kanban.length) return updateKanban(kanbanID, data);
 
-    $kanban = $('<div id="kanban-' + kanbanID + '" data-id="' + kanbanID + '"></div>').appendTo('#kanbans');
+    $kanban = $('<div id="kanban-' + kanbanID + '" data-id="' + kanbanID + '"></div>');
+    $('#kanbans').append($kanban);
     $kanban.kanban($.extend({data: data, calcColHeight: calcColHeight, displayCards: typeof window.displayCards === 'number' ? window.displayCards : 2}, options));
 }
 
@@ -1173,13 +1179,9 @@ function handleSortCards(event)
     if(groupBy != 'default' || searchValue != '') return;
     var newLaneID = event.element.closest('.kanban-lane').data('id');
     var newColID  = event.element.closest('.kanban-col').data('id');
-    var cards     = event.element.closest('.kanban-lane-items').data('cards');
-    var orders    = cards.map(function(card){return card.id});
-    var fromID    = String(event.element.data('id'));
-    var toID      = String(event.target.data('id'));
-
-    orders.splice(orders.indexOf(fromID), 1);
-    orders.splice(orders.indexOf(toID) + (event.insert === 'before' ?  0 : 1), 0, fromID);
+    var cards     = event.element.closest('.kanban-lane-items').find('.kanban-item');
+    var orders    = [];
+    cards.each(function(){orders.push($(this).data('id'))});
 
     var url = createLink('kanban', 'sortCard', 'kanbanID=' + executionID + '&laneID=' + newLaneID + '&columnID=' + newColID + '&cards=' + orders.join(','));
     $.getJSON(url, function(response)
@@ -1241,16 +1243,12 @@ $(function()
         onAction:             handleKanbanAction,
         virtualRenderOptions: {container: '#kanbanContainer>.panel-body,#kanbanContainer'},
         virtualCardList:      true,
-        droppable:
-        {
-            target:       findDropColumns,
-            finish:       handleFinishDrop
-        },
         onRenderHeaderCol: renderHeaderCol,
         onRenderLaneName:  renderLaneName,
         onRenderCount:     renderColumnCount,
         sortable:          handleSortCards,
     };
+    if(canBeChanged) commonOptions.droppable = {target: findDropColumns, finish: handleFinishDrop};
 
     /* Create kanban */
     if(groupBy == 'default')

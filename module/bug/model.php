@@ -168,7 +168,7 @@ class bugModel extends model
         $data   = $result['data'];
 
         /* Get pairs(moduleID => moduleOwner) for bug. */
-        $stmt         = $this->dbh->query($this->loadModel('tree')->buildMenuQuery($productID, 'bug', $startModuleID = 0, $branch));
+        $stmt         = $this->app->dbQuery($this->loadModel('tree')->buildMenuQuery($productID, 'bug', $startModuleID = 0, $branch));
         $moduleOwners = array();
         while($module = $stmt->fetch()) $moduleOwners[$module->id] = $module->owner;
 
@@ -220,7 +220,7 @@ class bugModel extends model
             $bug->module      = (int)$data->modules[$i];
             $bug->project     = (int)$data->projects[$i];
             $bug->execution   = (int)$data->executions[$i];
-            $bug->openedBuild = isset($data->openedBuilds) ? implode(',', $data->openedBuilds[$i]) : '';
+            $bug->openedBuild = !empty($data->openedBuilds[$i]) ? implode(',', $data->openedBuilds[$i]) : '';
             $bug->color       = $data->color[$i];
             $bug->title       = $title;
             $bug->deadline    = $data->deadlines[$i];
@@ -561,7 +561,7 @@ class bugModel extends model
 
         $bug = $this->loadModel('file')->replaceImgURL($bug, 'steps');
         if($setImgSize) $bug->steps = $this->file->setImgSize($bug->steps);
-        foreach($bug as $key => $value) if(strpos($key, 'Date') !== false and !(int)substr($value, 0, 4)) $bug->$key = '';
+        foreach($bug as $key => $value) if(strpos($key, 'Date') !== false && $value && !(int)substr(is_null($value) ? '' : $value, 0, 4)) $bug->$key = '';
 
         if($bug->duplicateBug) $bug->duplicateBugTitle = $this->dao->findById($bug->duplicateBug)->from(TABLE_BUG)->fields('title')->fetch('title');
         if($bug->case)         $bug->caseTitle         = $this->dao->findById($bug->case)->from(TABLE_CASE)->fields('title')->fetch('title');
@@ -606,7 +606,7 @@ class bugModel extends model
      * @access public
      * @return array
      */
-    public function getActiveBugs($products, $branch, $executions, $excludeBugs, $pager = null)
+    public function getActiveBugs($products, $branch, $executions, $excludeBugs, $pager = null, $orderBy = 'id desc')
     {
         return $this->dao->select('*')->from(TABLE_BUG)
             ->where('status')->eq('active')
@@ -617,7 +617,7 @@ class bugModel extends model
             ->beginIF(!empty($executions))->andWhere('execution')->in($executions)->fi()
             ->beginIF($excludeBugs)->andWhere('id')->notIN($excludeBugs)->fi()
             ->andWhere('deleted')->eq(0)
-            ->orderBy('id desc')
+            ->orderBy($orderBy)
             ->page($pager)
             ->fetchAll();
     }
@@ -745,6 +745,7 @@ class bugModel extends model
             ->setIF($this->post->story != false and $this->post->story != $oldBug->story, 'storyVersion', $this->loadModel('story')->getVersion($this->post->story))
             ->setIF(!$this->post->linkBug, 'linkBug', '')
             ->setIF($this->post->case === '', 'case', 0)
+            ->setIF($this->post->testtask === '', 'testtask', 0)
             ->remove('comment,files,labels,uid,contactListMenu')
             ->get();
 
@@ -799,7 +800,7 @@ class bugModel extends model
 
             if($bug->execution and $bug->status != $oldBug->status) $this->loadModel('kanban')->updateLane($bug->execution, 'bug');
 
-            if(($this->config->edition == 'biz' || $this->config->edition == 'max') && $oldBug->feedback) $this->loadModel('feedback')->updateStatus('bug', $oldBug->feedback, $bug->status, $oldBug->status);
+            if($this->config->edition != 'open' && $oldBug->feedback) $this->loadModel('feedback')->updateStatus('bug', $oldBug->feedback, $bug->status, $oldBug->status);
 
             $this->file->processFile4Object('bug', $oldBug, $bug);
             return common::createChanges($oldBug, $bug);
@@ -911,9 +912,6 @@ class bugModel extends model
                 unset($bug);
             }
 
-            $isBiz = $this->config->edition == 'biz';
-            $isMax = $this->config->edition == 'max';
-
             /* Update bugs. */
             foreach($bugs as $bugID => $bug)
             {
@@ -936,7 +934,7 @@ class bugModel extends model
 
                     $allChanges[$bugID] = common::createChanges($oldBug, $bug);
 
-                    if(($isBiz || $isMax) && $oldBug->feedback && !isset($feedbacks[$oldBug->feedback]))
+                    if($this->config->edition != 'open' && $oldBug->feedback && !isset($feedbacks[$oldBug->feedback]))
                     {
                         $feedbacks[$oldBug->feedback] = $oldBug->feedback;
                         $this->loadModel('feedback')->updateStatus('bug', $oldBug->feedback, $bug->status, $oldBug->status);
@@ -1046,6 +1044,8 @@ class bugModel extends model
             ->remove('comment,showModule')
             ->join('mailto', ',')
             ->get();
+
+        if($this->app->rawMethod == 'batchassignto') unset($bug->mailto);
 
         $bug = $this->loadModel('file')->processImgURL($bug, $this->config->bug->editor->assignto['id'], $this->post->uid);
         $this->dao->update(TABLE_BUG)
@@ -1241,7 +1241,7 @@ class bugModel extends model
             /* Link bug to build and release. */
             $this->linkBugToBuild($bugID, $bug->resolvedBuild);
 
-            if(($this->config->edition == 'biz' || $this->config->edition == 'max') && $oldBug->feedback) $this->loadModel('feedback')->updateStatus('bug', $oldBug->feedback, $bug->status, $oldBug->status);
+            if($this->config->edition != 'open' && $oldBug->feedback) $this->loadModel('feedback')->updateStatus('bug', $oldBug->feedback, $bug->status, $oldBug->status);
 
             return common::createChanges($oldBug, $bug);
         }
@@ -1367,9 +1367,6 @@ class bugModel extends model
         $modules   = array();
         while($module = $stmt->fetch()) $modules[$module->id] = $module;
 
-        $isBiz = $this->config->edition == 'biz';
-        $isMax = $this->config->edition == 'max';
-
         $changes = array();
         foreach($bugIDList as $i => $bugID)
         {
@@ -1416,7 +1413,7 @@ class bugModel extends model
             if($oldBug->execution) $this->loadModel('kanban')->updateLane($oldBug->execution, 'bug');
             $changes[$bugID] = common::createChanges($oldBug, $bug);
 
-            if(($isBiz || $isMax) && $oldBug->feedback && !isset($feedbacks[$oldBug->feedback]))
+            if($this->config->edition != 'open' && $oldBug->feedback && !isset($feedbacks[$oldBug->feedback]))
             {
                 $feedbacks[$oldBug->feedback] = $oldBug->feedback;
                 $this->loadModel('feedback')->updateStatus('bug', $oldBug->feedback, $bug->status, $oldBug->status);
@@ -1531,7 +1528,7 @@ class bugModel extends model
             if(isset($output['toColID'])) $this->kanban->moveCard($bugID, $output['fromColID'], $output['toColID'], $output['fromLaneID'], $output['toLaneID']);
         }
 
-        if(($this->config->edition == 'biz' || $this->config->edition == 'max') && $oldBug->feedback) $this->loadModel('feedback')->updateStatus('bug', $oldBug->feedback, $bug->status, $oldBug->status);
+        if($this->config->edition != 'open' && $oldBug->feedback) $this->loadModel('feedback')->updateStatus('bug', $oldBug->feedback, $bug->status, $oldBug->status);
 
         return common::createChanges($oldBug, $bug);
     }
@@ -1674,8 +1671,8 @@ class bugModel extends model
     public function processBuildForBugs($bugs)
     {
         $productIdList = array();
-        foreach($bugs as $bug) $productIdList[$bug->id] = $bug->product;
-        $builds = $this->loadModel('build')->getBuildPairs(array_unique($productIdList), 'all', $params = '');
+        foreach($bugs as $bug) $productIdList[$bug->product] = $bug->product;
+        $builds = $this->loadModel('build')->getBuildPairs(array_unique($productIdList), 'all', 'noterminate, nodone, hasdeleted');
 
         /* Process the openedBuild and resolvedBuild fields. */
         foreach($bugs as $key => $bug)
@@ -2050,24 +2047,28 @@ class bugModel extends model
      *
      * @param  int        $productID
      * @param  int|string $branch
+     * @param  string     $search
+     * @param  int        $limit
      * @access public
      * @return void
      */
-    public function getProductBugPairs($productID, $branch = '')
+    public function getProductBugPairs($productID, $branch = '', $search = '', $limit = 0)
     {
-        $bugs = array('' => '');
-        $data = $this->dao->select('id, title')->from(TABLE_BUG)
+        $bugs = $this->dao->select("id, CONCAT(id, ':', title) AS title")->from(TABLE_BUG)
             ->where('product')->eq((int)$productID)
             ->beginIF(!$this->app->user->admin)->andWhere('execution')->in('0,' . $this->app->user->view->sprints)->fi()
             ->beginIF($branch !== '')->andWhere('branch')->in($branch)->fi()
+            ->beginIF(strlen(trim($search)))
+            ->andWhere('id', true)->like('%' . $search . '%')
+            ->orWhere('title')->like('%' . $search . '%')
+            ->markRight(1)
+            ->fi()
             ->andWhere('deleted')->eq(0)
             ->orderBy('id desc')
-            ->fetchAll();
-        foreach($data as $bug)
-        {
-            $bugs[$bug->id] = $bug->id . ':' . $bug->title;
-        }
-        return $bugs;
+            ->beginIF($limit)->limit($limit)->fi()
+            ->fetchPairs();
+
+        return array('' => '') + $bugs;
     }
 
     /**
@@ -2405,7 +2406,7 @@ class bugModel extends model
      */
     public function getDataOfOpenedBugsPerDay()
     {
-        return $this->dao->select('DATE_FORMAT(openedDate, "%Y-%m-%d") AS name, COUNT(*) AS value')->from(TABLE_BUG)->where($this->reportCondition())->groupBy('name')->orderBy('openedDate')->fetchAll();
+        return $this->dao->select("DATE_FORMAT(openedDate, '%Y-%m-%d') AS name, COUNT(*) AS value")->from(TABLE_BUG)->where($this->reportCondition())->groupBy('name')->orderBy('openedDate')->fetchAll();
     }
 
     /**
@@ -2416,7 +2417,7 @@ class bugModel extends model
      */
     public function getDataOfResolvedBugsPerDay()
     {
-        return $this->dao->select('DATE_FORMAT(resolvedDate, "%Y-%m-%d") AS name, COUNT(*) AS value')->from(TABLE_BUG)
+        return $this->dao->select("DATE_FORMAT(resolvedDate, '%Y-%m-%d') AS name, COUNT(*) AS value")->from(TABLE_BUG)
             ->where($this->reportCondition())->groupBy('name')
             ->having('name != 0000-00-00')
             ->orderBy('resolvedDate')
@@ -2431,7 +2432,7 @@ class bugModel extends model
      */
     public function getDataOfClosedBugsPerDay()
     {
-        return $this->dao->select('DATE_FORMAT(closedDate, "%Y-%m-%d") AS name, COUNT(*) AS value')->from(TABLE_BUG)
+        return $this->dao->select("DATE_FORMAT(closedDate, '%Y-%m-%d') AS name, COUNT(*) AS value")->from(TABLE_BUG)
             ->where($this->reportCondition())->groupBy('name')
             ->having('name != 0000-00-00')
             ->orderBy('closedDate')->fetchAll();
@@ -2862,7 +2863,8 @@ class bugModel extends model
             ->beginIF($projectID)->andWhere('project')->eq($projectID)->fi()
             ->andWhere('deleted')->eq(0)
             ->beginIF(!$this->app->user->admin)->andWhere('project')->in('0,' . $this->app->user->view->projects)->fi()
-            ->orderBy($orderBy)->page($pager)
+            ->orderBy($orderBy)
+            ->page($pager)
             ->fetchAll();
     }
 
@@ -3060,7 +3062,6 @@ class bugModel extends model
         $bugs = $this->dao->select("*, IF(`pri` = 0, {$this->config->maxPriValue}, `pri`) as priOrder, IF(`severity` = 0, {$this->config->maxPriValue}, `severity`) as severityOrder")->from(TABLE_BUG)->where($bugQuery)
             ->beginIF(!$this->app->user->admin)->andWhere('execution')->in('0,' . $this->app->user->view->sprints)->fi()
             ->beginIF($excludeBugs)->andWhere('id')->notIN($excludeBugs)->fi()
-
             ->beginIF($projectID)
             ->andWhere('project', true)->eq($projectID)
             ->orWhere('project')->eq(0)
@@ -3571,10 +3572,11 @@ class bugModel extends model
      *
      * @param  object $bug
      * @param  array  $users
+     * @param  bool   $output
      * @access public
      * @return void
      */
-    public function printAssignedHtml($bug, $users)
+    public function printAssignedHtml($bug, $users, $output = true)
     {
         $btnTextClass   = '';
         $btnClass       = '';
@@ -3587,9 +3589,13 @@ class bugModel extends model
         $btnClass    .= ' iframe btn btn-icon-left btn-sm';
 
         $assignToLink = helper::createLink('bug', 'assignTo', "bugID=$bug->id", '', true);
-        $assignToHtml = html::a($assignToLink, "<i class='icon icon-hand-right'></i> <span title='" . zget($users, $bug->assignedTo) . "'>{$assignedToText}</span>", '', "class='$btnClass'");
+        $modalToggle  = $bug->assignedTo == 'closed' ? '' : "data-toggle='modal'";
+        $assignToHtml = html::a($assignToLink, "<i class='icon icon-hand-right'></i> <span title='" . zget($users, $bug->assignedTo) . "'>{$assignedToText}</span>", '', "class='$btnClass' $modalToggle");
 
-        echo !common::hasPriv('bug', 'assignTo', $bug) ? "<span style='padding-left: 21px' class='{$btnTextClass}'>{$assignedToText}</span>" : $assignToHtml;
+        $html = !common::hasPriv('bug', 'assignTo', $bug) ? "<span style='padding-left: 21px' class='{$btnTextClass}'>{$assignedToText}</span>" : $assignToHtml;
+        if(!$output) return $html;
+
+        echo $html;
     }
 
     /**
@@ -3603,7 +3609,7 @@ class bugModel extends model
     {
         /* Set toList and ccList. */
         $toList = $bug->assignedTo;
-        $ccList = trim($bug->mailto, ',');
+        $ccList = $bug->mailto ? trim($bug->mailto, ',') : '';
         if(empty($toList))
         {
             if(empty($ccList)) return false;
@@ -3744,7 +3750,10 @@ class bugModel extends model
         $relatedObjectIdList = array();
         $relatedObjects      = array();
 
-        foreach($bugs as $bug) $relatedObjectIdList[$bug->$object]  = $bug->$object;
+        foreach($bugs as $bug)
+        {
+            if(is_numeric($bug->$object)) $relatedObjectIdList[$bug->$object]  = $bug->$object;
+        }
 
         if($object == 'openedBuild' or $object == 'resolvedBuild') $object = 'build';
 
@@ -3792,5 +3801,257 @@ class bugModel extends model
         }
 
         return $index;
+    }
+
+    /**
+     * Convert array to object array.
+     *
+     * @param  int    $data
+     * @access public
+     * @return array
+     */
+    public function convertArrayToObjectArray($data)
+    {
+        return array_map(function($key, $value)
+        {
+            return (object) array('value' => $key, 'text' => $value);
+        }, array_keys($data), array_values($data));
+    }
+
+    /**
+     * Generate columns used in datatable.
+     *
+     * @param  string $orderBy
+     * @access public
+     * @return array
+     */
+    public function generateCol($orderBy)
+    {
+        $setting   = $this->loadModel('datatable')->getSetting('bug');
+        $fieldList = $this->config->bug->datatable->fieldList;
+
+        if(empty($setting))
+        {
+            $setting = $this->config->bug->datatable->defaultField;
+            $order   = 1;
+            foreach($setting as $key => $value)
+            {
+                $id  = $value;
+                $set = new stdclass();;
+                $set->order = $order++;
+                $set->show  = true;
+                $set->name  = $value;
+                $set->title = $fieldList[$id]['title'];
+
+                $sortType = '';
+                if(strpos($orderBy, $id) !== false)
+                {
+                    $sort = str_replace("{$id}_", '', $orderBy);
+                    $sortType = $sort == 'asc' ? 'up' : 'down';
+                }
+
+                if(isset($fieldList[$id]['checkbox'])) $set->checkbox = $fieldList[$id]['checkbox'];
+                if(isset($fieldList[$id]['fixed']))    $set->fixed    = $fieldList[$id]['fixed'];
+                if(isset($fieldList[$id]['width']))    $set->width    = $fieldList[$id]['width'];
+                if(isset($fieldList[$id]['type']))     $set->type     = $fieldList[$id]['type'];
+                if(isset($fieldList[$id]['sortType'])) $set->sortType = $fieldList[$id]['sortType'];
+                if(isset($fieldList[$id]['flex']))     $set->flex     = $fieldList[$id]['flex'];
+                if(isset($fieldList[$id]['minWidth'])) $set->minWidth = $fieldList[$id]['minWidth'];
+                if(isset($fieldList[$id]['maxWidth'])) $set->maxWidth = $fieldList[$id]['maxWidth'];
+                if(isset($fieldList[$id]['pri']))      $set->pri      = $fieldList[$id]['pri'];
+
+                if($sortType) $set->sortType = $sortType;
+
+                $setting[$key] = $set;
+            }
+        }
+        else
+        {
+            foreach($setting as $key => $set)
+            {
+                if(empty($set->show))
+                {
+                    unset($setting[$key]);
+                    continue;
+                }
+
+                $sortType = '';
+                if(strpos($orderBy, $set->id) !== false)
+                {
+                    $sort = str_replace("{$set->id}_", '', $orderBy);
+                    $sortType = $sort == 'asc' ? 'up' : 'down';
+                }
+
+                $set->name  = $set->id;
+                $set->title = $fieldList[$set->id]['title'];
+
+                if(isset($fieldList[$set->id]['checkbox'])) $set->checkbox = $fieldList[$set->id]['checkbox'];
+                if(isset($fieldList[$set->id]['fixed']))    $set->fixed    = $fieldList[$set->id]['fixed'];
+                if(isset($fieldList[$set->id]['type']))     $set->type     = $fieldList[$set->id]['type'];
+                if(isset($fieldList[$set->id]['sortType'])) $set->sortType = $fieldList[$set->id]['sortType'];
+                if(isset($fieldList[$set->id]['flex']))     $set->flex     = $fieldList[$set->id]['flex'];
+                if(isset($fieldList[$set->id]['minWidth'])) $set->minWidth = $fieldList[$set->id]['minWidth'];
+                if(isset($fieldList[$set->id]['maxWidth'])) $set->maxWidth = $fieldList[$set->id]['maxWidth'];
+                if(isset($fieldList[$set->id]['pri']))      $set->pri      = $fieldList[$set->id]['pri'];
+
+                if($sortType) $set->sortType = $sortType;
+
+                if(isset($set->width)) $set->width = str_replace('px', '', $set->width);
+
+                unset($set->id);
+            }
+        }
+
+        foreach($setting as $key => $set)
+        {
+            if(isset($set->fixed) && $set->fixed != 'left' && $set->fixed != 'right') unset($set->fixed);
+        }
+
+        usort($setting, array('datatableModel', 'sortCols'));
+
+        return $setting;
+    }
+
+    /**
+     * Generate rows displayed in datatable.
+     *
+     * @param  array  $bugs
+     * @param  array  $branches
+     * @param  array  $modulePairs
+     * @param  array  $projectPairs
+     * @param  array  $plans
+     * @param  array  $executions
+     * @param  array  $stories
+     * @param  array  $tasks
+     * @param  array  $users
+     * @access public
+     * @return array
+     */
+    public function generateRow($bugs, $branches, $modulePairs, $projectPairs, $plans, $executions, $stories, $tasks, $users)
+    {
+        $rows         = array();
+        $userFields   = array('openedBy', 'resolvedBy', 'closedBy', 'lastEditedBy');
+        $dateFields   = array('activatedDate', 'openedDate', 'assignedDate', 'deadline', 'resolvedDate', 'closedDate', 'lastEditedDate');
+        $canViewBug   = common::hasPriv('bug',   'view');
+        $canViewCase  = common::hasPriv('case',  'view');
+        $canViewTask  = common::hasPriv('task',  'view');
+        $canViewStory = common::hasPriv('story', 'view');
+
+        foreach($bugs as $bug)
+        {
+            $bug->actions = '<div class="c-actions">' . $this->buildOperateMenu($bug, 'browse') . '</div>';
+
+            $severityValue = zget($this->lang->bug->severityList, $bug->severity);
+            $severityClass = !is_numeric($severityValue) ? 'label-severity-custom' : 'label-severity';
+            $bugSeverity   = !is_numeric($severityValue) ? $severityValue : '';
+            $bug->severity = "<div class='c-severity'><span class='{$severityClass}' data-severity='{$bug->severity}' title='{$severityValue}'>{$bugSeverity}</span></div>";
+
+            $bugPri   = zget($this->lang->bug->priList, $bug->pri);
+            $bug->pri = $bug->pri ? "<span class='label-pri label-pri-{$bug->pri}' title='{$bugPri}'>{$bugPri}</span>" : '';
+
+            $bugConfirmed   = zget($this->lang->bug->confirmedList, $bug->confirmed);
+            $bug->confirmed = "<span class='confirm{$bug->confirmed}' title='{$bugConfirmed}'>{$bugConfirmed}</span>";
+
+            $bugTitle   = '';
+            $showBranch = isset($this->config->bug->browse->showBranch) ? $this->config->bug->browse->showBranch : 1;
+            if($showBranch && !empty($branches[$bug->branch])) $bugTitle .= "<span class='label label-outline label-badge' title='{$branches[$bug->branch]}'>{$branches[$bug->branch]}</span> ";
+            if($bug->module && !empty($modulePairs[$bug->module])) $bugTitle .= "<span class='label label-gray label-badge' title='{$modulePairs[$bug->module]}'>{$modulePairs[$bug->module]}</span> ";
+            $bugTitle .= $canViewBug ? html::a(helper::createLink('bug', 'view', "bugID={$bug->id}"), $bug->title, null, "style='color: {$bug->color}' data-app='{$this->app->tab}' title='{$bug->title}'") : "<span style='color: {$bug->color}' title='{$bug->title}'>{$bug->title}</span>";
+            if($bug->case)
+            {
+                $bugCase   = "[{$this->lang->testcase->common}#{$bug->case}]";
+                $bugTitle .= $canViewCase ? html::a(helper::createLink('testcase', 'view', "caseID={$bug->case}&version={$bug->caseVersion}"), $bugCase, '', "class='bug' title='{$bug->case}'") : $bugCase;
+            }
+            $bug->title = $bugTitle;
+
+            $bug->story = zget($stories, $bug->story, '');
+            if($bug->story)
+            {
+                $bug->story = $canViewStory ? html::a(helper::createLink('story', 'view', "storyID={$bug->story->id}", 'html', true), $bug->story->title, '', "class='iframe' title='{$bug->story->title}' data-toggle='modal'") : "<span title='{$bug->story->title}'>{$bug->story->title}</span>";
+            }
+
+            $bug->task = zget($tasks, $bug->task, '');
+            if($bug->task)
+            {
+                $bug->task = $canViewTask ? html::a(helper::createLink('task', 'view', "taskID={$bug->task->id}", 'html', true), $bug->task->name, '', "class='iframe' title='{$bug->task->name}' data-toggle='modal'") : "<span title='{$bug->task->name}'>{$bug->task->name}</span>";
+            }
+
+            $bug->toTask = zget($tasks, $bug->toTask, '');
+            if($bug->toTask)
+            {
+                $bug->toTask = $canViewTask ? html::a(helper::createLink('task', 'view', "taskID={$bug->toTask->id}", 'html', true), $bug->toTask->name, '', "class='iframe' title='{$bug->toTask->name}' data-toggle='modal'") : "<span title='{$bug->toTask->name}'>{$bug->toTask->name}</span>";
+            }
+
+            $status      = $bug->status;
+            $bugStatus   = $this->processStatus('bug', $bug);
+            $bug->status = "<span class='status-bug status-{$bug->status}' title='{$bugStatus}'> {$bugStatus}</span>";
+
+            $bugOS = array();
+            if($bug->os)
+            {
+                foreach(explode(',', $bug->os) as $os)
+                {
+                    $os = trim($os);
+                    if($os) $bugOS[] = zget($this->lang->bug->osList, $os, '');
+                }
+            }
+            $bug->os = implode(',', $bugOS);
+
+            $bugBrowser = array();
+            if($bug->browser)
+            {
+                foreach(explode(',', $bug->browser) as $browser)
+                {
+                    $browser = trim($browser);
+                    if($browser) $bugBrowser[] = zget($this->lang->bug->browserList, $browser, '');
+                }
+            }
+            $bug->browser = implode(',', $bugBrowser);
+
+            $bugMailto = array();
+            if($bug->mailto)
+            {
+                foreach(explode(',', $bug->mailto) as $account)
+                {
+                    $account = trim($account);
+                    if($account) $bugMailto[] = zget($users, $account);
+                }
+            }
+            $bug->mailto = implode(' ', $bugMailto);
+
+            $bug->branch     = zget($branches, $bug->branch, '');
+            $bug->project    = zget($projectPairs, $bug->project, '');
+            $bug->plan       = zget($plans, $bug->plan, '');
+            $bug->execution  = zget($executions, $bug->execution, '');
+            $bug->type       = zget($this->lang->bug->typeList, $bug->type, '');
+            $bug->resolution = zget($this->lang->bug->resolutionList, $bug->resolution, '');
+            $bug->assignedTo = $this->printAssignedHtml($bug, $users, false);
+
+            foreach($userFields as $field) $bug->$field = zget($users, $bug->$field);
+            foreach($dateFields as $field) $bug->$field = (empty($bug->$field) || helper::isZeroDate($bug->$field)) ? '' : substr($bug->$field, 5, 11);
+
+            foreach(array_merge(array('os', 'browser', 'mailto', 'branch', 'project', 'plan', 'execution', 'type', 'resolution', 'keywords', 'openedBuild', 'resolvedBuild', 'activatedCount'), $userFields, $dateFields) as $field)
+            {
+                if(empty($bug->$field)) continue;
+
+                $class = ($field == 'deadline' && isset($bug->delay) && $status == 'active') ? "class='delayed'" : "class='deadline-padding'";
+                $bug->$field = "<span $class title='{$bug->$field}'>{$bug->$field}</span>";
+            }
+
+            if($this->config->edition != 'open')
+            {
+                $this->loadModel('flow');
+                $extendFields = $this->loadModel('workflowfield')->getList('bug');
+                foreach($extendFields as $fieldCode => $field)
+                {
+                    if(isset($field->buildin) && $field->buildin == 0)
+                    {
+                        $bug->$fieldCode = $this->flow->printFlowCell('bug', $bug, $fieldCode, true);
+                    }
+                }
+            }
+            $rows[] = $bug;
+        }
+        return $rows;
     }
 }

@@ -377,7 +377,7 @@ function renderKanbanItem(item, $item)
             .text(item.pri);
 
         var $time = $info.children('.time');
-        if(item.end == '0000-00-00' && item.begin == '0000-00-00')
+        if((item.end == '0000-00-00' && item.begin == '0000-00-00') || (item.end == '' && item.begin == ''))
         {
             $time.hide();
         }
@@ -1445,9 +1445,6 @@ function handleSortCards(event)
     var fromID    = String(event.element.data('id'));
     var toID      = String(event.target.data('id'));
 
-    orders.splice(orders.indexOf(fromID), 1);
-    orders.splice(orders.indexOf(toID) + (event.insert === 'before' ?  0 : 1), 0, fromID);
-
     var url = createLink('kanban', 'sortCard', 'kanbanID=' + kanbanID + '&laneID=' + newLaneID + '&columnID=' + newColID + '&cards=' + orders.join(','));
     $.getJSON(url, function(response)
     {
@@ -1479,6 +1476,7 @@ function initKanban($kanban)
     var id         = $kanban.data('id');
     var region     = regions[id];
     var cardHeight = kanbanInfo.performable == 1 ? 87 : 60;
+    var droppable  = priv['canMoveCard'] ? {target: findDropColumns, finish: handleFinishDrop} : false;
 
     $kanban.kanban(
     {
@@ -1503,11 +1501,7 @@ function initKanban($kanban)
         virtualize:            true,
         virtualRenderOptions:  {container: $(window).add($('#kanbanContainer'))},
         virtualCardList:       true,
-        droppable:
-        {
-            target:       findDropColumns,
-            finish:       handleFinishDrop
-        },
+        droppable:             droppable,
     });
 
     $kanban.on('click', '.action-cancel', hideKanbanAction);
@@ -1605,7 +1599,7 @@ $(function()
         initRegionTabs();
     });
 
-    resetLaneHeight();
+    if(displayCards == 0) resetLaneHeight();
 
     /* Hide contextmenu when page scroll */
     $(window).on('scroll', function()

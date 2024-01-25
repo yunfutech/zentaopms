@@ -35,13 +35,14 @@ class userModel extends model
      * Get inside users list of current company.
      *
      * @param  string $params
+     * @param  string $fields
      * @access public
      * @return array
      */
-    public function getList($params = 'nodeleted')
+    public function getList($params = 'nodeleted', $fields = '*')
     {
-        return $this->dao->select('*')->from(TABLE_USER)
-            ->where(true)
+        return $this->dao->select($fields)->from(TABLE_USER)
+            ->where('1=1')
             ->beginIF(strpos($params, 'all') === false)->andWhere('type')->eq('inside')->fi()
             ->beginIF(strpos($params, 'nodeleted') !== false)->andWhere('deleted')->eq(0)->fi()
             ->orderBy('account')
@@ -120,7 +121,13 @@ class userModel extends model
             $this->config->user->moreLink = $moreLink;
         }
 
-        if($usersToAppended) $users += $this->dao->select($fields)->from(TABLE_USER)->where('account')->in($usersToAppended)->fetchAll($keyField);
+        if($usersToAppended)
+        {
+            $users += $this->dao->select($fields)->from(TABLE_USER)
+                ->where('account')->in($usersToAppended)
+                ->beginIF(strpos($params, 'nodeleted') !== false)->andWhere('deleted')->eq('0')->fi()
+                ->fetchAll($keyField);
+        }
 
         /* Cycle the user records to append the first letter of his account. */
         foreach($users as $account => $user)
@@ -158,7 +165,7 @@ class userModel extends model
     public function getAvatarPairs($params = 'nodeleted')
     {
         $avatarPairs = array();
-        $userList    = $this->getList($params);
+        $userList    = $this->getList($params, 'account,avatar');
         foreach($userList as $user) $avatarPairs[$user->account] = $user->avatar;
 
         return $avatarPairs;
@@ -624,8 +631,9 @@ class userModel extends model
             }
         }
 
-        $oldGroups = $this->dao->select('`group`')->from(TABLE_USERGROUP)->where('account')->eq($this->post->account)->fetchPairs('group', 'group');
-        $newGroups = zget($_POST, 'groups', array());
+        $userVisionList = $this->getVisionList();
+        $oldGroups      = array_keys($this->loadModel('group')->getByAccount($user->account, count($userVisionList) > 1 ? true : false));
+        $newGroups      = zget($_POST, 'groups', array());
         sort($oldGroups);
         sort($newGroups);
 
@@ -1140,12 +1148,10 @@ class userModel extends model
             }
         }
 
-        /* Set basic priv when no any priv. */
-        if(empty($rights))
-        {
-            $rights['index']['index'] = 1;
-            $rights['my']['index']    = 1;
-        }
+        /* Set basic privs. */
+        $rights['index']['index'] = 1;
+        $rights['my']['index']    = 1;
+
         return array('rights' => $rights, 'acls' => $acls, 'projects' => $canManageProjects, 'programs' => $canManagePrograms, 'products' => $canManageProducts, 'executions' => $canManageExecutions);
     }
 
@@ -1787,7 +1793,7 @@ class userModel extends model
 
             /* Init objects. */
             static $allProducts, $allPrograms, $allProjects, $allSprints, $teams, $stakeholders, $productWhiteList, $whiteList;
-            if($allProducts === null) $allProducts = $this->dao->select('id,PO,QD,RD,createdBy,acl,whitelist,program,createdBy')->from(TABLE_PRODUCT)->where('acl')->ne('open')->fetchAll('id');
+            if($allProducts === null) $allProducts = $this->dao->select('id,PO,QD,RD,acl,whitelist,program,createdBy')->from(TABLE_PRODUCT)->where('acl')->ne('open')->fetchAll('id');
             if($allProjects === null) $allProjects = $this->dao->select('id,PO,PM,QD,RD,acl,type,path,parent,openedBy')->from(TABLE_PROJECT)->where('acl')->ne('open')->andWhere('type')->eq('project')->fetchAll('id');
             if($allPrograms === null) $allPrograms = $this->dao->select('id,PO,PM,QD,RD,acl,type,path,parent,openedBy')->from(TABLE_PROGRAM)->where('acl')->ne('open')->andWhere('type')->eq('program')->fetchAll('id');
             if($allSprints  === null) $allSprints  = $this->dao->select('id,PO,PM,QD,RD,acl,project,path,parent,type,openedBy')->from(TABLE_PROJECT)->where('acl')->eq('private')->andWhere('type')->in('sprint,stage,kanban')->fetchAll('id');
@@ -1840,7 +1846,7 @@ class userModel extends model
             if($stakeholders === null)
             {
                 $stakeholders = array();
-                $stmt         = $this->dao->select('objectID,user')->from(TABLE_STAKEHOLDER)->query();
+                $stmt         = $this->dao->select('objectID,user')->from(TABLE_STAKEHOLDER)->where('deleted')->eq('0')->query();
                 while($stakeholder = $stmt->fetch()) $stakeholders[$stakeholder->objectID][$stakeholder->user] = $stakeholder->user;
             }
 
@@ -2072,34 +2078,21 @@ class userModel extends model
         if(isset($_SESSION['user']->admin)) $isAdmin = $this->session->user->admin;
         if(!isset($isAdmin)) $isAdmin = strpos($this->app->company->admins, ",{$account},") !== false;
 
+        /* 权限分组-视野维护的优先级最高，所以这里进行了替换操作。*/
+        /* View management has the highest priority, so there is a substitution. */
         if(!empty($acls['programs']) and !$isAdmin)
         {
-            $grantPrograms = '';
-            foreach($acls['programs'] as $programID)
-            {
-                if(strpos(",{$userView->programs},", ",{$programID},") !== false) $grantPrograms .= ",{$programID}";
-            }
-            $userView->programs = $grantPrograms;
+            $userView->programs = implode(',', $acls['programs']);
         }
         if(!empty($acls['projects']) and !$isAdmin)
         {
-            $grantProjects = '';
             /* If is project admin, set projectID to userview. */
             if($projects) $acls['projects'] = array_merge($acls['projects'], explode(',', $projects));
-            foreach($acls['projects'] as $projectID)
-            {
-                if(strpos(",{$userView->projects},", ",{$projectID},") !== false) $grantProjects .= ",{$projectID}";
-            }
-            $userView->projects = $grantProjects;
+            $userView->projects = implode(',', $acls['projects']);
         }
         if(!empty($acls['products']) and !$isAdmin)
         {
-            $grantProducts = '';
-            foreach($acls['products'] as $productID)
-            {
-                if(strpos(",{$userView->products},", ",{$productID},") !== false) $grantProducts .= ",{$productID}";
-            }
-            $userView->products = $grantProducts;
+            $userView->products = implode(',', $acls['products']);
         }
 
         /* Set opened sprints and stages into userview. */
@@ -2114,12 +2107,7 @@ class userModel extends model
 
         if(!empty($acls['sprints']) and !$isAdmin)
         {
-            $grantSprints= '';
-            foreach($acls['sprints'] as $sprintID)
-            {
-                if(strpos(",{$userView->sprints},", ",{$sprintID},") !== false) $grantSprints .= ",{$sprintID}";
-            }
-            $userView->sprints = $grantSprints;
+            $userView->sprints = implode(',', $acls['sprints']);
         }
 
         $userView->products = trim($userView->products, ',');
@@ -2607,6 +2595,8 @@ class userModel extends model
     public function checkProductPriv($product, $account, $groups, $teams, $stakeholders, $whiteList, $admins = array())
     {
         if(strpos($this->app->company->admins, ',' . $account . ',') !== false) return true;
+        if(strpos(",{$product->reviewer},", ',' . $account . ',') !== false)    return true;
+        if(strpos(",{$product->PMT},", ',' . $account . ',') !== false)         return true;
         if($product->PO == $account OR $product->QD == $account OR $product->RD == $account OR $product->createdBy == $account OR (isset($product->feedback) && $product->feedback == $account)) return true;
         if($product->acl == 'open') return true;
 
@@ -2726,7 +2716,12 @@ class userModel extends model
     {
         $users = array();
 
-        foreach(explode(',', trim($this->app->company->admins, ',')) as $admin) $users[$admin] = $admin;
+        foreach(explode(',', trim($this->app->company->admins, ',')) as $admin) $users[$admin]   = $admin;
+        foreach(explode(',', trim($product->reviewer, ',')) as $account)        $users[$account] = $account;
+        if(isset($product->PMT))
+        {
+            foreach(explode(',', trim($product->PMT, ',')) as $account) $users[$account] = $account;
+        }
 
         $users[$product->PO]        = $product->PO;
         $users[$product->QD]        = $product->QD;
@@ -2821,7 +2816,7 @@ class userModel extends model
         $action = strtolower($action);
 
         if($action == 'unbind' and empty($user->ranzhi)) return false;
-        if($action == 'unlock' and (strtotime(date('Y-m-d H:i:s')) - strtotime($user->locked)) >= $config->user->lockMinutes * 60) return false;
+        if($action == 'unlock' and (strtotime(date('Y-m-d H:i:s')) - strtotime($user->locked ? $user->locked : '0000-00-00 00:00:00')) >= $config->user->lockMinutes * 60) return false;
 
         return true;
     }
@@ -2885,7 +2880,7 @@ class userModel extends model
         $personalData['createdBugs']         = $this->dao->select($t1Count)->from(TABLE_BUG)->alias('t1')->leftjoin(TABLE_PRODUCT)->alias('t2')->on('t1.product = t2.id')->where('t1.openedBy')->eq($account)->andWhere('t1.deleted')->eq('0')->andWhere('t2.deleted')->eq('0')->fetch('count');
         $personalData['resolvedBugs']        = $this->dao->select($t1Count)->from(TABLE_BUG)->alias('t1')->leftjoin(TABLE_PRODUCT)->alias('t2')->on('t1.product = t2.id')->where('t1.resolvedBy')->eq($account)->andWhere('t1.deleted')->eq('0')->andWhere('t2.deleted')->eq('0')->fetch('count');
         $personalData['createdCases']        = $this->dao->select($count)->from(TABLE_CASE)->where('openedBy')->eq($account)->andWhere('deleted')->eq('0')->fetch('count');
-        if($this->config->edition == 'max')
+        if($this->config->edition == 'max' or $this->config->edition == 'ipd')
         {
             $personalData['createdRisks']   = $this->dao->select($t1Count)->from(TABLE_RISK)->alias('t1')->leftjoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')->where('t1.createdBy')->eq($account)->andWhere('t1.deleted')->eq('0')->andWhere('t2.deleted')->eq('0')->fetch('count');
             $personalData['resolvedRisks']  = $this->dao->select($t1Count)->from(TABLE_RISK)->alias('t1')->leftjoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')->where('t1.resolvedBy')->eq($account)->andWhere('t1.deleted')->eq('0')->andWhere('t2.deleted')->eq('0')->fetch('count');

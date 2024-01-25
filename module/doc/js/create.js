@@ -16,17 +16,24 @@ $(function()
         $('#modalBasicInfo #copyTitle').html($('.doc-title #editorTitle').val().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"));
     });
 
-    $('#saveDraft').click(function()
+    $('#saveDraft').click(function(event)
     {
-        if($('#editorTitle').val() == '')
+        if($.trim($('#editorTitle').val()) == '')
         {
             bootbox.alert(titleNotEmpty);
             return false;
         }
         $('#status').val('draft');
+        event.preventDefault();
         submit(this);
     });
-    $('#releaseBtn').click(function(){submit(this);});
+
+    $('#releaseBtn').click(function(event)
+    {
+        event.preventDefault();
+        submit(this);
+    });
+
     $('#basicInfoLink').click(function()
     {
         if($('#editorTitle').val() == '')
@@ -49,6 +56,7 @@ $(function()
         $('#status').val('normal');
     });
 
+    if(docType == 'html' || docType == 'template') docType = docContentType;
     setTimeout(function(){initPage(docType)}, 50);
     if(typeof(window.editor) != 'undefined')
     {
@@ -99,6 +107,15 @@ $(function()
 
 function toggleEditor(type)
 {
+    toggleEditorMode(type);
+    $('#contentType').val(type);
+
+    var link = createLink('custom', 'ajaxSaveCustomFields', 'module=doc&section=common&key=docContentType');
+    $.post(link, {fields: type});
+}
+
+function toggleEditorMode(type)
+{
     if(type == 'html')
     {
         $('.contenthtml').removeClass('hidden');
@@ -109,8 +126,6 @@ function toggleEditor(type)
         $('.contenthtml').addClass('hidden');
         $('.contentmarkdown').removeClass('hidden');
     }
-    $('#contentType').val(type);
-    return false;
 }
 
 function initPage(type)

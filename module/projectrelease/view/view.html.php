@@ -12,6 +12,7 @@
 ?>
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/tablesorter.html.php';?>
+<?php include '../../ai/view/promptmenu.html.php';?>
 <?php js::set('confirmUnlinkStory', $lang->release->confirmUnlinkStory)?>
 <?php js::set('confirmUnlinkBug', $lang->release->confirmUnlinkBug)?>
 <?php js::set('storySummary', $summary);?>
@@ -46,7 +47,7 @@
           <li <?php if($type == 'leftBug') echo "class='active'"?>><a href='#leftBugs' data-toggle='tab'><?php echo html::icon($lang->icons['bug'], 'text-red') . ' ' . $lang->release->generatedBugs;?></a></li>
           <li <?php if($type == 'releaseInfo') echo "class='active'"?>><a href='#releaseInfo' data-toggle='tab'><?php echo html::icon($lang->icons['plan'], 'text-info') . ' ' . $lang->release->view;?></a></li>
           <?php if($summary or $countBugs or $countLeftBugs):?>
-          <li class='pull-right'><div><?php common::printIcon('projectrelease', 'export', '', '', 'button', '', '', "export btn-sm");?></div></li>
+          <li class='pull-right'><div><?php common::printIcon('projectrelease', 'export', "releaseID=$release->id", '', 'button', '', '', "export btn-sm");?></div></li>
           <?php endif;?>
         </ul>
         <div class='tab-content'>
@@ -312,7 +313,7 @@
                     ?>
                     <td class='c-build' title='<?php echo $openedBuildName?>'><?php echo $openedBuildName;?></td>
                     <td class='c-user'><?php echo zget($users, $bug->openedBy);?></td>
-                    <td class='c-date'><?php echo $bug->openedDate?></td>
+                    <td class='c-date'><?php echo helper::isZeroDate($bug->openedDate) ? '' : substr($bug->openedDate, 5, 11);?></td>
                     <td class='c-actions'>
                       <?php
                       if(common::hasPriv('projectrelease', 'unlinkBug') and $canBeChanged)

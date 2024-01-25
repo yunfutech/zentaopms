@@ -136,7 +136,7 @@ class stageModel extends model
     {
         if($projectID)
         {
-            return $this->dao->select('id,name,type,percent,openedBy as createdBy,begin as createdDate,lastEditedBy as editedBy,end as editedDate,deleted')
+            return $this->dao->select('`id`,name,type,percent,openedBy as createdBy,`begin` as createdDate,lastEditedBy as editedBy,`end` as editedDate,deleted')
                 ->from(TABLE_EXECUTION)
                 ->where('type')->in('sprint,stage,kanban')
                 ->andWhere('deleted')->eq('0')
@@ -148,7 +148,18 @@ class stageModel extends model
         }
         else
         {
-            return $this->dao->select('*')->from(TABLE_STAGE)->where('deleted')->eq(0)->andWhere('projectType')->eq($type)->orderBy($orderBy)->fetchAll('id');
+            $stageType = '';
+            if($this->config->systemMode == 'PLM' and $this->app->rawMethod == 'create' and $this->app->rawModule == 'programplan' and $type == 'ipd')
+            {
+                $project = $this->loadModel('project')->getByID($this->session->project);
+                $stageType = $this->config->project->categoryStages[$project->category];
+            }
+            return $this->dao->select('*')->from(TABLE_STAGE)
+                ->where('deleted')->eq(0)
+                ->andWhere('projectType')->eq($type)
+                ->beginIF(!empty($stageType))->andWhere('type')->in($stageType)->fi()
+                ->orderBy($orderBy)
+                ->fetchAll('id');
         }
      }
 

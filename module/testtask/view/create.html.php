@@ -36,7 +36,9 @@
         <?php endif;?>
 
         <?php if(isset($noMultipleExecutionID)):?>
+        <tr class='hide'>
         <?php echo html::hidden('execution', $noMultipleExecutionID);?>
+        </tr>
         <?php else:?>
         <tr class='<?php echo ($app->tab == 'execution' and $executionID) ? 'hide' : '';?>'>
           <th class='w-100px'><?php echo $lang->testtask->execution;?></th>
@@ -70,6 +72,10 @@
               <?php echo html::select('pri', $lang->testtask->priList, 3, "class='form-control chosen'");?>
             </div>
           </td>
+        </tr>
+        <tr>
+          <th><?php echo $lang->testtask->members;?></th>
+          <td><?php echo html::select('members[]', $users, '', "class='form-control picker-select' multiple")?></td>
         </tr>
         <tr>
           <th><?php echo $lang->testtask->begin;?></th>

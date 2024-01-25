@@ -23,6 +23,7 @@ $lang->chart->groupWeek = '%s年第%s周';
 
 $lang->chart->noChart         = '暂时没有图表';
 $lang->chart->noChartSelected = '请选择至少一个图表。';
+$lang->chart->chartMaxChecked = '最多只能选择%s个图表。';
 
 $lang->chart->aggList = array();
 $lang->chart->aggList['count']    = '计数';
@@ -35,8 +36,11 @@ $lang->chart->aggList['min']      = '最小值';
 $lang->chart->typeList = array();
 $lang->chart->typeList['pie']         = '饼图';
 $lang->chart->typeList['line']        = '折线图';
+$lang->chart->typeList['waterpolo']   = '水球图';
 $lang->chart->typeList['radar']       = '雷达图';
 $lang->chart->typeList['cluBarY']     = '簇状条形图';
 $lang->chart->typeList['stackedBarY'] = '堆积条形图';
 $lang->chart->typeList['cluBarX']     = '簇状柱形图';
 $lang->chart->typeList['stackedBar']  = '堆积柱形图';
+
+$lang->chart->conditionList['eq'] = '=';

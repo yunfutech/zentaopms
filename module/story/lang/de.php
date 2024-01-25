@@ -82,6 +82,7 @@ $lang->story->twins              = 'Twins story';
 $lang->story->relieved           = 'Relieved';
 $lang->story->relievedTwins      = 'Relieved Twins';
 $lang->story->loadAllStories     = 'Load all stories';
+$lang->story->hasDividedTask     = 'has divided task';
 
 $lang->story->editAction      = "Edit {$lang->SRCommon}";
 $lang->story->changeAction    = "Change Story";
@@ -118,6 +119,7 @@ $lang->story->project          = $lang->projectCommon;
 $lang->story->branch           = "Branch/Platform";
 $lang->story->module           = 'Module';
 $lang->story->moduleAB         = 'Module';
+$lang->story->roadmap          = 'Roadmap';
 $lang->story->source           = 'Von';
 $lang->story->sourceNote       = 'Hinweis';
 $lang->story->fromBug          = 'Von Bug';
@@ -157,7 +159,7 @@ $lang->story->rejectedReason   = 'Abgelehnt weil';
 $lang->story->changedBy        = 'ChangedBy';
 $lang->story->changedDate      = 'ChangedDate';
 $lang->story->reviewedBy       = 'Prüfer';
-$lang->story->reviewer         = $lang->story->reviewedBy;
+$lang->story->reviewer         = 'Reviewers';
 $lang->story->reviewers        = 'Reviewers';
 $lang->story->reviewedDate     = 'Geprüft am';
 $lang->story->activatedDate    = 'Activated Date';
@@ -215,6 +217,13 @@ $lang->story->statusList['active']    = 'Aktiv';
 $lang->story->statusList['closed']    = 'Geschlossen';
 $lang->story->statusList['changing']  = 'Geändert';
 
+if($config->systemMode == 'PLM')
+{
+    $lang->story->statusList['launched']   = 'Launched';
+    $lang->story->statusList['developing'] = 'Developing';
+}
+
+$lang->story->stageList = array();
 $lang->story->stageList['']           = '';
 $lang->story->stageList['wait']       = 'Wartend';
 $lang->story->stageList['planned']    = 'Geplant';
@@ -314,6 +323,7 @@ $lang->story->mustChooseResult     = 'Ergebnis wählen';
 $lang->story->mustChoosePreVersion = 'Version wählen um es umzukhren.';
 $lang->story->noStory              = 'Keine Storys. ';
 $lang->story->noRequirement        = 'No Requirements';
+$lang->story->noRelatedRequirement = "No related requirements.";
 $lang->story->ignoreChangeStage    = 'The status of %s is Draft or Closed. This operation has been filtered.';
 $lang->story->cannotDeleteParent   = "Can not delete parent {$lang->SRCommon}";
 $lang->story->moveChildrenTips     = "Its Child {$lang->SRCommon} will be moved to the selected {$lang->productCommon} when editing the linked {$lang->productCommon} of Parent {$lang->SRCommon}.";
@@ -363,6 +373,9 @@ $lang->story->action->unlinkrelatedstory    = array('main' => '$date, Verknüpfu
 $lang->story->action->unlinkchildstory      = array('main' => '$date, Verknüpfung aufgelöst durch <strong>$actor</strong> Story <strong>$extra</strong>.');
 $lang->story->action->recalledchange        = array('main' => '$date, Undo changes by <strong>\$actor</strong>.');
 $lang->story->action->synctwins             = array('main' => "\$date, the system judges that this story is adjusted synchronously due to the \$operate of twin story <strong>\$extra</strong>.", 'operate' => 'operateList');
+$lang->story->action->linked2roadmap        = array('main' => '$date, linked by <strong>$actor</strong> to Roadmap <strong>$extra</strong>');
+$lang->story->action->unlinkedfromroadmap   = array('main' => '$date, unlinked by <strong>$actor</strong> from Roadmap <strong>$extra</strong>.');
+$lang->story->action->changedbycharter      = array('main' => '$date, launched by <strong>$actor</strong> for charter <strong>$extra</strong>, Synchronously adjust the story status to launched.');
 
 /* Statistical statement. */
 $lang->story->report = new stdclass();
@@ -469,6 +482,10 @@ $lang->story->categoryList['experience']  = 'Experience';
 $lang->story->categoryList['improve']     = 'Improve';
 $lang->story->categoryList['other']       = 'Other';
 
+$lang->story->ipdCategoryList['zhanlue']         = 'strategic';
+$lang->story->ipdCategoryList['maintainability'] = 'maintainability';
+$lang->story->ipdCategoryList['packing']         = 'packing';
+
 $lang->story->changeTip = 'Only active can be changed.';
 
 $lang->story->reviewTip = array();
@@ -533,3 +550,4 @@ $lang->story->notice->branch = 'Each branch will establish a requirement. The re
 $lang->story->relievedTwinsRelation     = 'Relieved twins relationship';
 $lang->story->relievedTwinsRelationTips = 'After the twins relationship is terminated, it cannot be restored and the shutdown of the requirement is no longer synchronized.';
 $lang->story->changeRelievedTwinsTips   = 'After the twins relationship is terminated, the twin stories are no longer synchronized.';
+$lang->story->storyUnlinkRoadmap        = 'This story was launched and then removed from the roadmap, and needs to be launched again before it can be viewed in the IPD rnd management page.';

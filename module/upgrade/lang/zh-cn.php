@@ -9,6 +9,7 @@
  * @version     $Id: zh-cn.php 5119 2013-07-12 08:06:42Z wyd621@gmail.com $
  * @link        http://www.zentao.net
  */
+global $config;
 $lang->upgrade->common          = '升级';
 $lang->upgrade->start           = '开始';
 $lang->upgrade->result          = '升级结果';
@@ -32,6 +33,22 @@ $lang->upgrade->warnningContent = <<<EOT
 </pre>
 EOT;
 
+if($config->db->driver == 'dm')
+{
+    $lang->upgrade->warnningContent = <<<EOT
+<p>升级对数据库权限要求较高，请使用管理员用户。<br>
+   升级有危险，请先备份数据库，以防万一。</p>
+<pre>
+1. 可以通过图形化客户端工具进行备份。
+2. 使用DIsql工具进行备份。
+   $> BACKUP DATABASE BACKUPSET  <span class='text-danger'>'filename'</span>;
+   语句执行完后会在默认的备份路径下生成名为“filename”的备份集目录。
+   默认的备份路径为 dm.ini 中 BAK_PATH 配置的路径，若未配置 BAK_PATH，则默认使用 SYSTEM_PATH 下的 bak 目录。
+   这是最简单的数据库备份语句，如果要设置其他的备份选项需了解联机备份数据库的语法。
+</pre>
+EOT;
+}
+
 $lang->upgrade->createFileWinCMD   = '打开命令行，执行<strong style="color:#ed980f">echo > %s</strong>';
 $lang->upgrade->createFileLinuxCMD = '在命令行执行: <strong style="color:#ed980f">touch %s</strong>';
 $lang->upgrade->setStatusFile      = '<h4>升级之前请先完成下面的操作：</h4>
@@ -51,7 +68,8 @@ $lang->upgrade->sureExecute   = '确认执行';
 $lang->upgrade->upgradingTips = '正在升级中，请耐心等待，切勿刷新页面、断电、关机！';
 $lang->upgrade->forbiddenExt  = '以下插件与新版本不兼容，已经自动禁用：';
 $lang->upgrade->updateFile    = '需要更新附件信息。';
-$lang->upgrade->noticeSQL     = '检查到你的数据库跟标准不一致，尝试修复失败。请执行以下SQL语句，再刷新页面检查。';
+$lang->upgrade->showSQLLog    = '检查到你的数据库跟标准不一致，正在尝试修复。以下是修复SQL语句。';
+$lang->upgrade->noticeErrSQL  = '检查到你的数据库跟标准不一致，尝试修复失败。请手动执行以下SQL语句，再刷新页面检查。';
 $lang->upgrade->afterDeleted  = '请执行上面命令删除文件， 删除后刷新！';
 $lang->upgrade->afterExec     = '请根据以上报错信息手动修改数据库，修改后刷新！';
 $lang->upgrade->mergeProgram  = '数据迁移';
@@ -132,7 +150,7 @@ $lang->upgrade->mergeExecutionTip = "系统将自动按年创建项目，将历�
 $lang->upgrade->createProgramTip  = "同时系统将自动创建一个默认的项目集，将所有的{$lang->projectCommon}都放在默认的项目集下。";
 $lang->upgrade->mergeManuallyTip  = '可以手工选择数据归并的方式。';
 
-$lang->upgrade->defaultGroup = '默认分组';
+$lang->upgrade->defaultGroup = '未分组';
 
 include dirname(__FILE__) . '/version.php';
 
@@ -142,3 +160,7 @@ $lang->upgrade->recoveryActions->review = '评审';
 
 $lang->upgrade->remark     = '备注';
 $lang->upgrade->remarkDesc = '后续您还可以在禅道的后台-系统设置-模式中进行切换。';
+
+$lang->upgrade->upgradingTip = '系统正在升级中，请耐心等待...';
+
+$lang->upgrade->addTraincoursePrivTips = '为了帮助大家更好的学习项目管理相关知识，默认给所有权限分组分配了学堂的课程和实践库权限，便于大家都能访问。如果您不需要该功能，可以到后台功能开关中关闭该功能。';

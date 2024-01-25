@@ -164,6 +164,16 @@ class baseDAO
     static public $cache = array();
 
     /**
+     * 实时记录日志设置，并设置记录文件。
+     * Open real time log and set real time file.
+     *
+     * @var array
+     * @access public
+     */
+    static public $realTimeLog  = false;
+    static public $realTimeFile = '';
+
+    /**
      * 构造方法。
      * The construct method.
      *
@@ -293,6 +303,18 @@ class baseDAO
     }
 
     /**
+     * 检查是否在事务内。
+     * Check in transaction.
+     *
+     * @access public
+     * @return bool
+     */
+    public function inTransaction()
+    {
+        return $this->dbh->inTransaction();
+    }
+
+    /**
      * 事务回滚。
      * Roll back
      *
@@ -406,7 +428,6 @@ class baseDAO
         if($orderPOS) $subLength = $orderPOS;
         if($groupPOS) $subLength = $groupPOS;
         $sql = substr($sql, 0, $subLength);
-        self::$querys[] = $sql;
 
         /*
          * 获取记录数。
@@ -414,7 +435,8 @@ class baseDAO
          **/
         try
         {
-            $row = $this->dbh->rawQuery($sql)->fetch(PDO::FETCH_OBJ);
+            $dbh = $this->slaveDBH ? $this->slaveDBH : $this->dbh;
+            $row = $dbh->query($sql)->fetch(PDO::FETCH_OBJ);
         }
         catch (PDOException $e)
         {
@@ -568,7 +590,7 @@ class baseDAO
      */
     public function get()
     {
-        return $this->processKeywords($this->processSQL(false));
+        return self::processKeywords($this->processSQL());
     }
 
     /**
@@ -605,7 +627,7 @@ class baseDAO
      * @access public
      * @return string the sql string after process.
      */
-    public function processSQL($record = true)
+    public function processSQL()
     {
         $sql = $this->sqlobj->get();
 
@@ -682,7 +704,6 @@ class baseDAO
             }
         }
 
-        if($record) self::$querys[] = $this->processKeywords($sql);
         return $sql;
     }
 
@@ -694,7 +715,7 @@ class baseDAO
      * @access public
      * @return string the sql string.
      */
-    public function processKeywords($sql)
+    static public function processKeywords($sql)
     {
         return str_replace(array(DAO::WHERE, DAO::GROUPBY, DAO::HAVING, DAO::ORDERBY, DAO::LIMIT), array('WHERE', 'GROUP BY', 'HAVING', 'ORDER BY', 'LIMIT'), $sql);
     }
@@ -740,20 +761,26 @@ class baseDAO
         }
         else
         {
-            $sql = $this->processSQL();
+            $sql = $this->dbh->formatSQL($this->processSQL());
         }
 
         try
         {
+            /* Real-time save log. */
+            if(dao::$realTimeLog && dao::$realTimeFile) file_put_contents(dao::$realTimeFile, $sql . "\n", FILE_APPEND);
+
             $method = $this->method;
             $this->reset();
 
-            if($this->slaveDBH and $method == 'select')
+            if($this->slaveDBH and in_array($method, array('select', 'desc')))
             {
                 return $this->slaveDBH->rawQuery($sql);
             }
             else
             {
+                /* Force to query from master db, if db has been changed. */
+                $this->slaveDBH = false;
+
                 return $this->dbh->rawQuery($sql);
             }
         }
@@ -845,8 +872,15 @@ class baseDAO
 
         try
         {
+            /* Real-time save log. */
+            if(dao::$realTimeLog && dao::$realTimeFile) file_put_contents(dao::$realTimeFile, $sql . "\n", FILE_APPEND);
+
             if($this->table) unset(dao::$cache[$this->table]);
             $this->reset();
+
+            /* Force to query from master db, if db has been changed. */
+            $this->slaveDBH = false;
+
             return $this->dbh->exec($sql);
         }
         catch (PDOException $e)
@@ -920,6 +954,7 @@ class baseDAO
         {
             $rows   = $stmt->fetchAll();
             $result = array();
+            if(!$rows) $rows = array();
             dao::$cache[$table][$key] = $rows;
             foreach($rows as $i => $row) $result[$i] = $this->getRow($row);
             return $result;
@@ -1472,7 +1507,18 @@ class baseDAO
         $message .= ' ' . helper::checkDB2Repair($exception);
 
         $sql = $this->sqlobj->get();
-        $this->app->triggerError($message . "<p>The sql is: $sql</p>", __FILE__, __LINE__, $exit = true);
+        $message .= "<p>The sql is: $sql</p>";
+
+        /*
+         * 如果开启了将sql错误作为异常抛出，那么拦截sql错误，不触发错误。
+         * If throwing sql errors as exceptions is enabled, sql errors are intercepted and not triggered.
+         */
+        if($this->app->throwError)
+        {
+            throw new Exception($message);
+            return;
+        }
+        $this->app->triggerError($message, __FILE__, __LINE__, $exit = true);
     }
 }
 
@@ -1570,6 +1616,24 @@ class baseSQL
      * @access public;
      */
     public $conditionIsTrue = false;
+
+    /**
+     * 条件层级。
+     * The condition level.
+     *
+     * @var bool
+     * @access public;
+     */
+    public $conditionLevel = 0;
+
+    /**
+     * 条件结果，beginIF 中表达式的结果会存储到这个数组中。
+     * Store the result of the expression.
+     *
+     * @var bool
+     * @access public;
+     */
+    public $conditionResults = array();
 
     /**
      * WHERE条件嵌套小括号标记。
@@ -1882,7 +1946,9 @@ class baseSQL
     public function beginIF($condition)
     {
         $this->inCondition = true;
-        $this->conditionIsTrue = $condition;
+        $this->conditionLevel += 1;
+        $this->conditionResults[$this->conditionLevel] = $condition;
+        $this->conditionIsTrue = !in_array(false, $this->conditionResults);
         return $this;
     }
 
@@ -1895,6 +1961,14 @@ class baseSQL
      */
     public function fi()
     {
+        unset($this->conditionResults[$this->conditionLevel]);
+        $this->conditionLevel -= 1;
+        if($this->conditionLevel > 0)
+        {
+            $this->conditionIsTrue = !in_array(false, $this->conditionResults);
+            return $this;
+        }
+
         $this->inCondition = false;
         $this->conditionIsTrue = false;
         return $this;
@@ -1924,7 +1998,7 @@ class baseSQL
         }
         else
         {
-            $condition = ctype_alnum($arg1) ? '`' . $arg1 . '`' : $arg1;
+            $condition = (is_string($arg1) && ctype_alnum($arg1)) ? '`' . $arg1 . '`' : $arg1;
         }
 
         if(!$this->inMark) $this->sql .= ' ' . DAO::WHERE ." $condition ";
@@ -1943,7 +2017,7 @@ class baseSQL
     public function andWhere($condition, $addMark = false)
     {
         if($this->inCondition and !$this->conditionIsTrue) return $this;
-        if(ctype_alnum($condition)) $condition = '`' . $condition . '`';
+        if(is_string($condition) && ctype_alnum($condition)) $condition = '`' . $condition . '`';
 
         $mark = $addMark ? '(' : '';
         $this->sql .= " AND {$mark} $condition ";
@@ -1961,7 +2035,7 @@ class baseSQL
     public function orWhere($condition)
     {
         if($this->inCondition and !$this->conditionIsTrue) return $this;
-        if(ctype_alnum($condition)) $condition = '`' . $condition . '`';
+        if(is_string($condition) && ctype_alnum($condition)) $condition = '`' . $condition . '`';
 
         $this->sql .= " OR $condition ";
         return $this;
@@ -2310,6 +2384,7 @@ class baseSQL
      */
     public function quote($value)
     {
+        if($value === null) return 'NULL';
         if($this->magicQuote) $value = stripslashes($value);
         return $this->dbh->quote((string)$value);
     }

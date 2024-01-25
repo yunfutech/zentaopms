@@ -23,6 +23,7 @@ $lang->chart->groupWeek = 'Week %s,%s';
 
 $lang->chart->noChart         = 'No Chart';
 $lang->chart->noChartSelected = 'Please select one chart.';
+$lang->chart->chartMaxChecked = 'You can only select up to %s charts.';
 
 $lang->chart->aggList = array();
 $lang->chart->aggList['count']    = 'Count';
@@ -35,8 +36,11 @@ $lang->chart->aggList['min']      = 'MIN';
 $lang->chart->typeList = array();
 $lang->chart->typeList['pie']         = 'Pie';
 $lang->chart->typeList['line']        = 'Line';
+$lang->chart->typeList['waterpolo']   = 'Liquid Fill';
 $lang->chart->typeList['radar']       = 'Radar';
-$lang->chart->typeList['cluBarY']     = 'clustered Bar Y';
-$lang->chart->typeList['stackedBarY'] = 'stacked Bar Y';
-$lang->chart->typeList['cluBarX']     = 'clustered Bar X';
-$lang->chart->typeList['stackedBar']  = 'stacked Bar';
+$lang->chart->typeList['cluBarY']     = 'Clustered Bar Y';
+$lang->chart->typeList['stackedBarY'] = 'Stacked Bar Y';
+$lang->chart->typeList['cluBarX']     = 'Clustered Bar X';
+$lang->chart->typeList['stackedBar']  = 'Stacked Bar X';
+
+$lang->chart->conditionList['eq'] = '=';

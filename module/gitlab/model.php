@@ -196,9 +196,9 @@ class gitlabModel extends model
         {
             foreach($zentaoUsers as $zentaoUser)
             {
-                if($gitlabUser->account == $zentaoUser->account) $matches->accounts[$gitlabUser->account][] = $zentaoUser->account;
-                if($gitlabUser->realname == $zentaoUser->realname) $matches->names[$gitlabUser->realname][] = $zentaoUser->account;
-                if($gitlabUser->email == $zentaoUser->email) $matches->emails[$gitlabUser->email][] = $zentaoUser->account;
+                if($gitlabUser->email == $zentaoUser->email)       $matches->emails[$gitlabUser->email][]     = $zentaoUser->account;
+                if($gitlabUser->account == $zentaoUser->account)   $matches->accounts[$gitlabUser->account][] = $zentaoUser->account;
+                if($gitlabUser->realname == $zentaoUser->realname) $matches->names[$gitlabUser->realname][]   = $zentaoUser->account;
             }
         }
 
@@ -213,21 +213,21 @@ class gitlabModel extends model
         {
             if(isset($bindedUsers[$gitlabUser->id]))
             {
-                $gitlabUser->zentaoAccount = $bindedUsers[$gitlabUser->id];
-                $matchedUsers[]            = $gitlabUser;
+                $gitlabUser->zentaoAccount     = $bindedUsers[$gitlabUser->id];
+                $matchedUsers[$gitlabUser->id] = $gitlabUser;
                 continue;
             }
 
             $matchedZentaoUsers = array();
+            if(isset($matches->emails[$gitlabUser->email]))     $matchedZentaoUsers = array_merge($matchedZentaoUsers, $matches->emails[$gitlabUser->email]);
+            if(isset($matches->names[$gitlabUser->realname]))   $matchedZentaoUsers = array_merge($matchedZentaoUsers, $matches->names[$gitlabUser->realname]);
             if(isset($matches->accounts[$gitlabUser->account])) $matchedZentaoUsers = array_merge($matchedZentaoUsers, $matches->accounts[$gitlabUser->account]);
-            if(isset($matches->emails[$gitlabUser->email])) $matchedZentaoUsers = array_merge($matchedZentaoUsers, $matches->emails[$gitlabUser->email]);
-            if(isset($matches->names[$gitlabUser->realname])) $matchedZentaoUsers = array_merge($matchedZentaoUsers, $matches->names[$gitlabUser->realname]);
 
             $matchedZentaoUsers = array_unique($matchedZentaoUsers);
             if(count($matchedZentaoUsers) == 1)
             {
-                $gitlabUser->zentaoAccount = current($matchedZentaoUsers);
-                $matchedUsers[]            = $gitlabUser;
+                $gitlabUser->zentaoAccount     = current($matchedZentaoUsers);
+                $matchedUsers[$gitlabUser->id] = $gitlabUser;
             }
         }
 
@@ -400,11 +400,14 @@ class gitlabModel extends model
      * @access public
      * @return array
      */
-    public function getCommits($repo, $entry, $revision = 'HEAD', $type = 'dir', $pager = null, $begin = 0, $end = 0)
+    public function getCommits($repo, $entry, $revision = 'HEAD', $type = 'dir', $pager = null, $begin = '', $end = '')
     {
         $scm = $this->app->loadClass('scm');
         $scm->setEngine($repo);
-        $comments = $scm->engine->getCommitsByPath($entry, '', '', isset($pager->recPerPage) ? $pager->recPerPage : 10, isset($pager->pageID) ? $pager->pageID : 1);
+        $comments = $scm->engine->getCommitsByPath($entry, '', '', isset($pager->recPerPage) ? $pager->recPerPage : 10, isset($pager->pageID) ? $pager->pageID : 1, false, $begin, $end);
+        if(!is_array($comments)) return array();
+
+        if(isset($pager->recTotal)) $pager->recTotal = count($comments) < $pager->recPerPage ? $pager->recPerPage * $pager->pageID : $pager->recPerPage * ($pager->pageID + 1);
 
         $designNames = $this->dao->select("commit, name")->from(TABLE_DESIGN)->where('deleted')->eq(0)->fetchPairs();
         $designIds   = $this->dao->select("commit, id")->from(TABLE_DESIGN)->where('deleted')->eq(0)->fetchPairs();
@@ -427,17 +430,6 @@ class gitlabModel extends model
     }
 
     /**
-     * Create a gitlab.
-     *
-     * @access public
-     * @return bool
-     */
-    public function create()
-    {
-        return $this->loadModel('pipeline')->create('gitlab');
-    }
-
-    /**
      * Update a gitlab.
      *
      * @param  int $id
@@ -447,6 +439,21 @@ class gitlabModel extends model
     public function update($id)
     {
         return $this->loadModel('pipeline')->update($id);
+    }
+
+    /**
+     * 设置项目信息。
+     * Set project data.
+     *
+     * @param  int    $gitlabID
+     * @param  int    $projectID
+     * @param  object $project
+     * @access public
+     * @return void
+     */
+    public function setProject(int $gitlabID, int $projectID, object $project): void
+    {
+        $this->projects[$gitlabID][$projectID] = $project;
     }
 
     /**
@@ -545,9 +552,11 @@ class gitlabModel extends model
         {
             /* Also use `per_page=20` to fetch users in API. Fetch active users only. */
             $url      = sprintf($apiRoot, "/users") . "&order_by={$order}&sort={$sort}&page={$page}&per_page={$perPage}&active=true";
-            $httpData = commonModel::httpWithHeader($url);
+            $httpData = commonModel::http($url, null, array(), array(), 'data', 'GET', 30, true, false);
+            if(empty($httpData['body'])) break;
+
             $result   = json_decode($httpData['body']);
-            if(!empty($result))
+            if(!empty($result) && is_array($result))
             {
                 $response = array_merge($response, $result);
                 $page += 1;
@@ -648,7 +657,7 @@ class gitlabModel extends model
      */
     public function apiGetGroups($gitlabID, $orderBy = 'id_desc', $minRole = '', $keyword = '')
     {
-        $apiRoot = $this->getApiRoot($gitlabID);
+        $apiRoot = $this->getApiRoot($gitlabID, $minRole == 'owner' ? true : false);
         $url     = sprintf($apiRoot, "/groups");
         if($minRole == 'owner')
         {
@@ -668,7 +677,8 @@ class gitlabModel extends model
         $allResults = array();
         for($page = 1; true; $page++)
         {
-            $results = json_decode(commonModel::http($url . "&statistics=true&order_by={$order}&sort={$sort}&page={$page}&per_page=100&all_available=true"));
+            $pageUrl = $url . "&statistics=true&order_by={$order}&sort={$sort}&page={$page}&per_page=100&all_available=true";
+            $results = json_decode(commonModel::http($pageUrl));
             if(!is_array($results)) break;
             if(!empty($results)) $allResults = array_merge($allResults, $results);
             if(count($results) < 100) break;
@@ -715,7 +725,7 @@ class gitlabModel extends model
         $order = explode('_', $orderBy);
 
         $keyword = urlencode($keyword);
-        $result  = commonModel::httpWithHeader($url . "&per_page={$pager->recPerPage}&order_by={$order[0]}&sort={$order[1]}&page={$pager->pageID}&search={$keyword}&search_namespaces=true");
+        $result  = commonModel::http($url . "&per_page={$pager->recPerPage}&order_by={$order[0]}&sort={$order[1]}&page={$pager->pageID}&search={$keyword}&search_namespaces=true", null, array(), array(), 'data', 'GET', 30, true, false);
 
         $header     = $result['header'];
         $recTotal   = $header['X-Total'];
@@ -1026,7 +1036,7 @@ class gitlabModel extends model
      * @access public
      * @return object
      */
-    public function apiGetSingleProject($gitlabID, $projectID, $useUser = false)
+    public function apiGetSingleProject($gitlabID, $projectID, $useUser = true)
     {
         if(isset($this->projects[$gitlabID][$projectID])) return $this->projects[$gitlabID][$projectID];
 
@@ -1050,10 +1060,10 @@ class gitlabModel extends model
             $requests[$id]['url'] = sprintf($this->getApiRoot($repo->serviceHost, false), "/projects/{$repo->serviceProject}");
         }
         $this->app->loadClass('requests', true);
-        $results = requests::request_multiple($requests);
+        $results = requests::request_multiple($requests, array('timeout' => 2));
         foreach($results as $id => $result)
         {
-            if(!empty($result->body) and substr($result->body, 0, 1) == '{') $this->projects[$repos[$id]->serviceHost][$repos[$id]->serviceProject] = json_decode($result->body);
+            $this->projects[$repos[$id]->serviceHost][$repos[$id]->serviceProject] = (!empty($result->body) and substr($result->body, 0, 1) == '{') ? json_decode($result->body) : '';
         }
     }
 
@@ -1260,12 +1270,15 @@ class gitlabModel extends model
      * @access public
      * @return bool
      */
-    public function addPushWebhook($repo)
+    public function addPushWebhook($repo, $token = '')
     {
+        $systemURL = dirname(common::getSysURL() . $_SERVER['REQUEST_URI']);
+
         $hook = new stdClass;
-        $hook->url = common::getSysURL() . '/api.php/v1/gitlab/webhook?repoID='. $repo->id;
+        $hook->url = $systemURL . '/api.php/v1/gitlab/webhook?repoID='. $repo->id;
         $hook->push_events           = true;
         $hook->merge_requests_events = true;
+        if($token) $hook->token = $token;
 
         /* Return an empty array if where is one existing webhook. */
         if($this->isWebhookExists($repo, $hook->url)) return array();
@@ -1288,6 +1301,7 @@ class gitlabModel extends model
         $hookList = $this->apiGetHooks($repo->gitService, $repo->project);
         foreach($hookList as $hook)
         {
+            if(empty($hook->url)) continue;
             if($hook->url == $url) return true;
         }
         return false;
@@ -1639,7 +1653,7 @@ class gitlabModel extends model
         {
             $apiRoot .= "&per_page={$pager->recPerPage}&page={$pager->pageID}";
             $url      = sprintf($apiRoot, "/projects/{$projectID}/repository/tags");
-            $result   = commonModel::httpWithHeader($url);
+            $result   = commonModel::http($url, null, array(), array(), 'data', 'GET', 30, true, false);
 
             $header = $result['header'];
             $pager->setRecTotal($header['X-Total']);
@@ -2899,8 +2913,8 @@ class gitlabModel extends model
     {
         $apiRoot  = rtrim($url, '/') . '/api/v4%s' . "?private_token={$token}";
         $url      = sprintf($apiRoot, "/users") . "&per_page=5&active=true";
-        $httpData = commonModel::httpWithHeader($url);
-        $users    = json_decode($httpData['body']);
+        $response = commonModel::http($url);
+        $users    = json_decode($response);
         if(empty($users)) return false;
         if(isset($users->message) or isset($users->error)) return null;
 
@@ -2961,5 +2975,82 @@ class gitlabModel extends model
         $apiRoot = $this->getApiRoot($gitlabID);
         $url     = sprintf($apiRoot, "/projects/$projectID/pipelines") . "&ref=$branch";
         return json_decode(commonModel::http($url));
+    }
+
+    /**
+     * 更新版本库的代码地址。
+     * Update repo code path.
+     *
+     * @param  int    $gitlabID
+     * @param  int    $projectID
+     * @param  int    $repoID
+     * @access public
+     * @return bool
+     */
+    public function updateCodePath(int $gitlabID, int $projectID, int $repoID): bool
+    {
+        $project = $this->apiGetSingleProject($gitlabID, $projectID);
+        if(is_object($project) and !empty($project->web_url))
+        {
+            $this->dao->update(TABLE_REPO)->set('path')->eq($project->web_url)->where('id')->eq($repoID)->exec();
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * 判断按钮是否可点击。
+     * Adjust the action clickable.
+     *
+     * @param  object $instance
+     * @param  string $action
+     * @access public
+     * @return bool
+     */
+    public function isClickable(object $gitlab, string $action): bool
+    {
+        return commonModel::hasPriv('space', 'browse');
+    }
+
+    /**
+     * 判断按钮是否显示在列表页。
+     * Judge an action is displayed in browse page.
+     *
+     * @param  object $sonarqube
+     * @param  string $action
+     * @access public
+     * @return bool
+     */
+    public static function isDisplay(object $sonarqube, string $action): bool
+    {
+        $action = strtolower($action);
+
+        if(!commonModel::hasPriv('space', 'browse')) return false;
+
+        if(!in_array(strtolower(strtolower($action)), array('browseproject', 'browsegroup', 'browseuser', 'browsebranch', 'browsetag')))
+        {
+            if(!commonModel::hasPriv('instance', 'manage')) return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Get data by api graphql.
+     *
+     * @param  int    $gitlabID
+     * @param  int    $query
+     * @access public
+     * @return object|null
+     */
+    public function apiGetByGraphql(int $gitlabID, array $query)
+    {
+        static $gitlab;
+        if(empty($gitlab)) $gitlab = $this->getByID($gitlabID);
+        if(!$gitlab) return array();
+
+        $url = rtrim($gitlab->url, '/') . '/api/graphql' . "?private_token={$gitlab->token}";
+        return json_decode(commonModel::http($url, $query, array(CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1)));
     }
 }

@@ -110,7 +110,7 @@ class datatable extends control
             $project = $this->loadModel('project')->getByID($this->session->project);
 
             if(!$project->multiple) unset($cols['execution']);
-            if(!$project->hasProduct and $project->model != 'scrum') unset($cols['plan']);
+            if(!$project->hasProduct && ($project->model != 'scrum' || !$project->multiple)) unset($cols['plan']);
             if(!$project->hasProduct) unset($cols['branch']);
         }
 
@@ -132,6 +132,7 @@ class datatable extends control
 
         $this->view->cols    = $cols;
         $this->view->setting = $setting;
+        $this->view->extra   = $extra;
         $this->display();
     }
 

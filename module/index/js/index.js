@@ -1,5 +1,11 @@
 (function()
 {
+    if(showFeatures && vision == 'rnd')
+    {
+        /* Show features dialog. */
+        new $.zui.ModalTrigger({url: $.createLink('misc', 'features'), type: 'iframe', width: 800, className: 'showFeatures', showHeader: false, backdrop: 'static', keyboard: false}).show();
+    }
+
     /* Init variables */
     var openedApps      = {}; // Key-value to save appCode-app pairs
     var appsMap         = {}; // Key-value to save opened appCode-app pairs
@@ -85,9 +91,10 @@
         if(link.hash && link.hash.indexOf('app=') === 0) return link.hash.substr(4);
 
         /* Handling special situations */
-        var moduleName      = link.moduleName;
-        var methodName      = link.methodName;
-        if (moduleName === 'index' && methodName === 'index') return 'my';
+        var moduleName        = link.moduleName;
+        var methodName        = link.methodName;
+        var moduleMethodLower = (moduleName + '-' + methodName).toLowerCase();
+        if (moduleMethodLower === 'index-index') return 'my';
 
         var methodLowerCase = methodName.toLowerCase();
         if(moduleName === 'doc')
@@ -170,10 +177,24 @@
                 return 'project';
             }
         }
-        if(moduleName === 'search' && methodLowerCase === 'buildindex') return 'admin';
+        if(['search-buildindex', 'ai-adminindex'].includes(moduleMethodLower)) return 'admin';
 
         code = window.navGroup[moduleName] || moduleName || urlOrModuleName;
         return appsMap[code] ? code : '';
+    }
+
+    /**
+     * Check if link1 and link2 are same link.
+     *
+     * @param {string} link1
+     * @param {string} link2
+     * @returns {boolean}
+     */
+    function isSameLink(link1, link2)
+    {
+        link2 = link2 || location;
+        if(typeof link2 === 'object') link2 = link2.href + link2.hash;
+        return $.parseLink(link1).url === $.parseLink(link2).url;
     }
 
     /**
@@ -208,9 +229,14 @@
                 var iframe = app.$iframe[0];
                 if(iframe && iframe.contentDocument && iframe.contentWindow && iframe.contentWindow.$)
                 {
-                    var result = iframe.contentWindow.$(iframe.contentDocument).triggerHandler('openapp.apps', [app, url]);
-                    if (result === false) {
-                        return 'cancel';
+                    var $iframeDoc = iframe.contentWindow.$(iframe.contentDocument);
+                    if ($iframeDoc.triggerHandler)
+                    {
+                        if ($iframeDoc.triggerHandler('openapp.apps', [app, url]) === false) return 'cancel';
+                    }
+                    else if($iframeDoc.trigger)
+                    {
+                        $iframeDoc.trigger('openapp.apps');
                     }
                 }
             }
@@ -260,7 +286,7 @@
 
         /* Show page app and update iframe source */
         var iframe = app.$iframe[0];
-        var isSameUrl = iframe && url && iframe.contentWindow.location.href.endsWith(url);
+        var isSameUrl = iframe && url && isSameLink(url, iframe.contentWindow.location);
         if (url && (!isSameUrl || forceReload !== false))
         {
             app.$app.toggleClass('open-from-hidden', app.zIndex < openedAppZIndex)
@@ -394,9 +420,14 @@
             var iframe = app.$iframe[0];
             if(iframe && iframe.contentDocument && iframe.contentWindow && iframe.contentWindow.$)
             {
-                var result = iframe.contentWindow.$(iframe.contentDocument).triggerHandler('closeapp.apps', [app]);
-                if (result === false) {
-                    return 'cancel';
+                var $iframeDoc = iframe.contentWindow.$(iframe.contentDocument);
+                if ($iframeDoc.triggerHandler)
+                {
+                    if ($iframeDoc.triggerHandler('openapp.apps', [app]) === false) return 'cancel';
+                }
+                else if($iframeDoc.trigger)
+                {
+                    $iframeDoc.trigger('openapp.apps');
                 }
             }
         }
@@ -439,7 +470,7 @@
         else if($.tabSession) url = $.tabSession.convertUrlWithTid(url);
 
         var iframe    = app.$iframe[0];
-        var isSameUrl = iframe && url && iframe.contentWindow.location.href.endsWith(url);
+        var isSameUrl = iframe && url && isSameLink(url, iframe.contentWindow.location);;
 
         app.$app.trigger('beforereloadapp');
 
@@ -497,6 +528,27 @@
         document.title = title;
     }
 
+    /**
+     * Logout current user.
+     *
+     * @param {string} url
+     */
+    function logout(url)
+    {
+        if(!url) url = getLastApp().appUrl;
+        $.get($.createLink('user', 'logout', 'referer=' + btoa(url)), function(data)
+        {
+            let load = $.createLink('user', 'login');
+            try
+            {
+                data = JSON.parse(data);
+                if(data.load) load = data.load;
+            }
+            catch (error) {}
+            location.href = load;
+        });
+    }
+
     /* Bind helper methods to global object "$.apps" */
     $.apps = window.apps =
     {
@@ -510,7 +562,8 @@
         getAppCode: getAppCodeFromUrl,
         getLastApp: getLastApp,
         openedApps: openedApps,
-        appsMap:    appsMap
+        appsMap:    appsMap,
+        logout:     logout
     };
 
     /**
@@ -758,6 +811,7 @@ $.extend(
                 var searchMethod = typeof(types[1]) == 'undefined' ? 'view' : types[1];
                 var searchLink   = createLink(searchModule, searchMethod, "id=" + objectValue);
                 var assetType    = ',story,issue,risk,opportunity,doc,';
+                if(vision == 'or' && searchModule == 'story') searchLink = createLink(searchModule, searchMethod, "id=" + objectValue + '&version=0&param=0&storyType=requirement');
                 if(assetType.indexOf(',' + searchModule + ',') > -1)
                 {
                     var link = createLink('index', 'ajaxGetViewMethod' , 'objectID=' + objectValue + '&objectType=' + searchModule);
@@ -895,7 +949,7 @@ $(function()
     });
 
     /* Update patch, plugin, news, publicclass from zetao.net. */
-    if(isAdminUser) $.get(createLink('admin', 'ajaxSetZentaoData'));
+    if(isAdminUser && !isIntranet) $.get(createLink('admin', 'ajaxSetZentaoData'));
 });
 
 /* Change the search object according to the module and method. */
@@ -916,9 +970,11 @@ function changeSearchObject()
     if(searchObjectList.indexOf(',' + searchType + ',') == -1) var searchType = 'bug';
 
     if(vision == 'lite') var searchType = 'story';
+    if(vision == 'or')   var searchType = 'demand';
 
     if(searchType == 'program')    var searchType = 'program-product';
     if(searchType == 'deploystep') var searchType = 'deploy-viewstep';
+    if(searchType == 'practice')   var searchType = 'traincource-practiceview';
 
     $("#searchType").val(searchType);
     $('#searchTypeMenu li:first').attr('class', 'search-type-all');

@@ -25,6 +25,7 @@ $lang->ellipsis  = '…';
 $lang->percent   = '%';
 $lang->dash      = '-';
 $lang->and       = 'and';
+$lang->separater = ',';
 
 $lang->zentaoPMS      = 'ZenTao';
 $lang->pmsName        = 'ALM';
@@ -32,6 +33,7 @@ $lang->proName        = 'Pro';
 $lang->bizName        = 'Biz';
 $lang->maxName        = 'Max';
 $lang->liteName       = 'Lite';
+$lang->devopsPrefix   = 'DevOps ';
 $lang->logoImg        = 'zt-logo-en.png';
 $lang->welcome        = "%s ALM";
 $lang->logout         = 'Déconnexion';
@@ -125,6 +127,7 @@ $lang->lineNumber      = 'Ligne No.';
 $lang->tutorialConfirm = 'Vous utilisez le didacticiel ZenTao. Voulez-vous quitter maintenant ？';
 $lang->levelExceeded   = 'The level has exceeded the display range. For more information, please go to the web page or view it through search.';
 $lang->noticeOkFile    = 'Pour des raisons de s?curit?, votre compte administrateur doit ?tre confirm?. \n Please login ZenTao server and create %s File.\n Note:\n 1. File is blank.\n 2. If the file existed, delete it and then create a new one.';
+$lang->noticeDrag      = 'Click to add or drag to upload, no more than %s';
 
 $lang->serviceAgreement = "Service Agreement";
 $lang->privacyPolicy    = "Privacy Policy";
@@ -147,6 +150,10 @@ $lang->selectedItems = '<strong>{0}</strong> items sélectionnés';
 
 $lang->future      = 'En Attente';
 $lang->year        = 'Année';
+$lang->month       = 'Month';
+$lang->hour        = 'Hour';
+$lang->minute      = 'Minute';
+$lang->second      = 'Second';
 $lang->workingHour = 'Heures';
 
 $lang->idAB         = 'ID';
@@ -174,12 +181,13 @@ $lang->kanban->common     = 'Kanban';
 $lang->qa->common         = 'QA';
 $lang->devops->common     = 'DevOps';
 $lang->doc->common        = 'Doc';
-$lang->repo->common       = 'Code';
+$lang->repo->common       = 'Code Repo';
 $lang->repo->codeRepo     = 'Code Repo';
 $lang->bi->common         = 'BI';
 $lang->screen->common     = 'Screen';
 $lang->pivot->common      = 'Pivot Table';
 $lang->chart->common      = 'Chart';
+$lang->metric->common       = 'Metric';
 $lang->report->common     = 'Report';
 $lang->system->common     = 'System';
 $lang->admin->common      = 'Admin';
@@ -225,6 +233,9 @@ $lang->zahost->common     = 'ZAhost';
 $lang->zanode->common     = 'ZAnode';
 $lang->dimension->common  = 'Dimension';
 $lang->contact->common    = 'Contacts';
+$lang->space->common      = 'Service';
+$lang->store->common      = 'Store';
+$lang->instance->common   = 'Instance';
 
 $lang->programstakeholder->common = 'Stakeholder';
 $lang->featureswitch->common      = 'Features On/Off';
@@ -255,6 +266,8 @@ $lang->projectreview->common      = 'Review';
 $lang->projecttrack->common       = 'Matrix';
 $lang->projectqa->common          = 'QA';
 $lang->holidayseason->common      = 'Holiday';
+$lang->codereview->common         = 'Review';
+$lang->repocode->common           = 'Code';
 
 $lang->personnel->common     = 'Member';
 $lang->personnel->invest     = 'Investment';
@@ -353,12 +366,29 @@ $lang->testcase->case      = 'Test Case';
 $lang->testcase->testsuite = 'Test Suite';
 $lang->testcase->caselib   = 'Case Library';
 
-$lang->devops->compile  = 'Pipelines';
-$lang->devops->mr       = 'Merge Request';
-$lang->devops->repo     = 'Repo';
-$lang->devops->rules    = 'Rule';
-$lang->devops->settings = 'Setting Merge Request';
-$lang->devops->set      = 'Set';
+$lang->devops->compile      = 'Pipelines';
+$lang->devops->mr           = 'Merge Request';
+$lang->devops->repo         = 'Repo';
+$lang->devops->rules        = 'Rule';
+$lang->devops->settings     = 'Setting Merge Request';
+$lang->devops->platform     = 'Platform';
+$lang->devops->set          = 'Set';
+$lang->devops->artifactrepo = 'Artifact Repo';
+$lang->devops->environment  = 'Environment';
+$lang->devops->resource     = 'Resource';
+$lang->devops->dblist       = 'Database';
+$lang->devops->domain       = 'Domain';
+$lang->devops->oss          = 'Oss';
+$lang->devops->host         = 'Host';
+$lang->devops->account      = 'Account';
+$lang->devops->serverroom   = 'IDC';
+$lang->devops->deploy       = 'Deploy';
+$lang->devops->provider     = 'IDC Provider';
+$lang->devops->cpuBrand     = 'CPU Brand';
+$lang->devops->city         = 'IDC Location';
+$lang->devops->os           = 'OS Version';
+$lang->devops->stage        = 'Stage';
+$lang->devops->service      = 'Service';
 
 $lang->admin->module      = 'Module';
 $lang->admin->system      = 'System';
@@ -411,6 +441,12 @@ $lang->exportTypeList['selected'] = 'Données sélectionnées';
 $lang->visionList = array();
 $lang->visionList['rnd']  = 'Full Feature Interface';
 $lang->visionList['lite'] = 'Operation Management Interface';
+
+if($config->edition == 'ipd')
+{
+    $lang->visionList['or']   = 'OR & MM Interface';
+    $lang->visionList['rnd']  = 'IPD Interface';
+}
 
 $lang->createObjects['todo']        = 'Todo';
 $lang->createObjects['effort']      = 'Effort';
@@ -474,6 +510,7 @@ $lang->error->editedByOther   = 'Cet enregistrement a peut-être été modifié.
 $lang->error->tutorialData    = "Aucune donnée ne peut être importée en mode tutoriel. Veuillez d'abord quitter le didacticiel !";
 $lang->error->noCurlExt       = 'Aucun module Curl installé';
 $lang->error->loginTimeout    = 'Login has timed out, please login again!';
+$lang->error->httpServerError = 'Server error';
 
 /* Page info. */
 $lang->pager = new stdclass();
@@ -500,6 +537,8 @@ $lang->pager->itemsRange   = "De <strong>{start}</strong> à <strong>{end}</stro
 $lang->pager->pageOfTotal  = "Page <strong>{page}</strong> sur <strong>{totalPage}</strong>";
 $lang->pager->totalCountAB = "Total: {recTotal} lignes";
 $lang->pager->pageSizeAB   = "{recPerPage} par page";
+
+$lang->pager->shortPageSize = '<strong>{recPerPage}</strong> / Page';
 
 $lang->colorPicker = new stdclass();
 $lang->colorPicker->errorTip = "Ce n'est pas une valeur de couleur valide";

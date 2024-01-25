@@ -2,7 +2,7 @@
 /**
  * The zh-tw file of design module.
  *
- * @copyright   Copyright 2009-2020 青島易軟天創網絡科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @copyright   Copyright 2009-2020 禪道軟件（青島）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
  * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Shujie Tian <tianshujie@easycorp.ltd>
  * @package     design
@@ -20,12 +20,12 @@ $lang->design->version       = '版本號';
 $lang->design->assignedTo    = '指派給';
 $lang->design->actions       = '操作';
 $lang->design->byQuery       = '搜索';
-$lang->design->products      = '所屬產品';
+$lang->design->products      = "所屬{$lang->productCommon}";
 $lang->design->story         = '相關需求';
 $lang->design->file          = '附件';
 $lang->design->desc          = '設計描述';
 $lang->design->range         = '影響範圍';
-$lang->design->product       = '所屬產品';
+$lang->design->product       = "所屬{$lang->productCommon}";
 $lang->design->basicInfo     = '基礎信息';
 $lang->design->commitBy      = '由誰提交';
 $lang->design->commitDate    = '提交時間';
@@ -33,10 +33,12 @@ $lang->design->affectedStory = "影響{$lang->SRCommon}";
 $lang->design->affectedTasks = '影響任務';
 $lang->design->reviewObject  = '評審對象';
 $lang->design->createdBy     = '由誰創建';
+$lang->design->createdByAB   = '創建者';
 $lang->design->createdDate   = '創建時間';
 $lang->design->basicInfo     = '基本信息';
 $lang->design->noAssigned    = '未指派';
 $lang->design->comment       = '註釋';
+$lang->design->more          = '更多';
 
 /* 動作列表. */
 $lang->design->common       = '設計';
@@ -44,8 +46,8 @@ $lang->design->create       = '創建設計';
 $lang->design->batchCreate  = '批量創建';
 $lang->design->edit         = '變更';
 $lang->design->delete       = '刪除';
-$lang->design->view         = '設計概況';
-$lang->design->browse       = '瀏覽列表';
+$lang->design->view         = '設計詳情';
+$lang->design->browse       = '設計列表';
 $lang->design->viewCommit   = '查看提交';
 $lang->design->linkCommit   = '關聯提交';
 $lang->design->unlinkCommit = '取消關聯';
@@ -62,6 +64,8 @@ $lang->design->typeList['HLDS'] = '概要設計';
 $lang->design->typeList['DDS']  = '詳細設計';
 $lang->design->typeList['DBDS'] = '資料庫設計';
 $lang->design->typeList['ADS']  = '介面設計';
+
+$lang->design->plusTypeList = $lang->design->typeList;
 
 $lang->design->rangeList           = array();
 $lang->design->rangeList['all']    = '全部記錄';

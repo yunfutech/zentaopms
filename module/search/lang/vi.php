@@ -2,12 +2,12 @@
 /**
  * The search module English file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @copyright   Copyright 2009-2023 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
  * @license  ZPL (http://zpl.pub/page/zplv12.html)
  * @author   Nguyễn Quốc Nho <quocnho@gmail.com>
  * @package  search
  * @version  $Id: vi.php 4129 2013-01-18 01:58:14Z wwccss $
- * @link  http://www.zentao.net
+ * @link  https://www.zentao.net
  */
 $lang->search->common        = 'Tìm kiếm';
 $lang->search->id            = 'ID';
@@ -72,7 +72,9 @@ $lang->search->index      = 'Full Text Search';
 $lang->search->buildIndex = 'Rebuild Index';
 $lang->search->preview    = 'Preview';
 
+$lang->search->inputWords        = 'Please input search words';
 $lang->search->result            = 'Kết quả tìm kiếm';
+$lang->search->resultCount       = '<strong>%s</strong> items';
 $lang->search->buildSuccessfully = 'Tìm kiếm khởi tạo chỉ mục.';
 $lang->search->executeInfo       = '%s kết quả tìm kiếm trong %s giây';
 $lang->search->buildResult       = "Create index %s and created <strong class='%scount'>%s</strong> records.";

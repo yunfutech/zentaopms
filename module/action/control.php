@@ -328,29 +328,58 @@ class action extends control
      */
     public function comment($objectType, $objectID)
     {
-        if(strtolower($objectType) == 'task')
+        if(!empty($_POST))
         {
-            $task       = $this->loadModel('task')->getById($objectID);
-            $executions = explode(',', $this->app->user->view->sprints);
-            if(!in_array($task->execution, $executions)) return print(js::error($this->lang->error->accessDenied));
-        }
-        elseif(strtolower($objectType) == 'story')
-        {
-            $story      = $this->loadModel('story')->getById($objectID);
-            $executions = explode(',', $this->app->user->view->sprints);
-            $products   = explode(',', $this->app->user->view->products);
-            if(!array_intersect(array_keys($story->executions), $executions) and !in_array($story->product, $products) and empty($story->lib)) return print(js::error($this->lang->error->accessDenied));
-        }
+            $isInZinPage = isInModal() || in_array($objectType, $this->config->action->newPageModule);
 
-        $actionID = $this->action->create($objectType, $objectID, 'Commented', $this->post->comment);
-        if(defined('RUN_MODE') && RUN_MODE == 'api')
-        {
-            return $this->send(array('status' => 'success', 'data' => $actionID));
-        }
-        else
-        {
+            if(strtolower($objectType) == 'task')
+            {
+                $task       = $this->loadModel('task')->getById($objectID);
+                $executions = explode(',', $this->app->user->view->sprints);
+                if(!in_array($task->execution, $executions))
+                {
+                    if($isInZinPage) return $this->send(array('result' => 'fail', 'message' => $this->lang->error->accessDenied));
+                    return print(js::error($this->lang->error->accessDenied));
+                }
+            }
+            elseif(strtolower($objectType) == 'story')
+            {
+                $story      = $this->loadModel('story')->getById($objectID);
+                $executions = explode(',', $this->app->user->view->sprints);
+                $products   = explode(',', $this->app->user->view->products);
+                if(!array_intersect(array_keys($story->executions), $executions) and !in_array($story->product, $products) and empty($story->lib))
+                {
+                    if($isInZinPage) return $this->send(array('result' => 'fail', 'message' => $this->lang->error->accessDenied));
+                    return print(js::error($this->lang->error->accessDenied));
+                }
+            }
+
+            $comment = isset($this->post->actioncomment) ? $this->post->actioncomment : $this->post->comment;
+            if($comment)
+            {
+                $actionID = $this->action->create($objectType, $objectID, 'Commented', $comment);
+                if(empty($actionID))
+                {
+                    if($isInZinPage) return $this->send(array('result' => 'fail', 'message' => $this->lang->error->accessDenied));
+                    return print(js::error($this->lang->error->accessDenied));
+                }
+                if(defined('RUN_MODE') && RUN_MODE == 'api')
+                {
+                    return $this->send(array('status' => 'success', 'data' => $actionID));
+                }
+            }
+
+            if($isInZinPage)
+            {
+                return $this->send(array('status' => 'success', 'closeModal' => true, 'callback' => array('name' => 'zui.HistoryPanel.update', 'params' => array('objectType' => $objectType, 'objectID' => (int)$objectID))));
+            }
             echo js::reload('parent');
         }
+
+        $this->view->title      = $this->lang->action->create;
+        $this->view->objectType = $objectType;
+        $this->view->objectID   = $objectID;
+        $this->display();
     }
 
     /**
@@ -362,16 +391,32 @@ class action extends control
      */
     public function editComment($actionID)
     {
-        if(strlen(trim(strip_tags($this->post->lastComment, '<img>'))) != 0)
+        if(!empty($_POST))
         {
-            $this->action->updateComment($actionID);
+            if(strlen(trim(strip_tags($this->post->lastComment, '<img>'))) != 0)
+            {
+                $this->action->updateComment($actionID);
+            }
+            else
+            {
+                dao::$errors['submit'][] = $this->lang->action->historyEdit;
+                return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+            }
+
+            $action = $this->action->getById($actionID);
+            if(isInModal() || in_array($action->objectType, $this->config->action->newPageModule))
+            {
+                return $this->send(array('status' => 'success', 'closeModal' => true, 'callback' => array('name' => 'zui.HistoryPanel.update', 'params' => array('objectType' => $action->objectType, 'objectID' => (int)$action->objectID))));
+            }
+            return $this->send(array('result' => 'success', 'locate' => 'reload', 'load' => true, 'closeModal' => true));
         }
-        else
-        {
-            dao::$errors['submit'][] = $this->lang->action->historyEdit;
-            return $this->send(array('result' => 'fail', 'message' => dao::getError()));
-        }
-        return $this->send(array('result' => 'success', 'locate' => 'reload'));
+
+        $action = $this->action->getById($actionID);
+
+        $this->view->title      = $this->lang->action->editComment;
+        $this->view->actionID   = $actionID;
+        $this->view->comment    = $this->action->formatActionComment($action->comment);
+        $this->display();
     }
 
     /**
@@ -452,5 +497,32 @@ class action extends control
         $this->programplan->computeProgress($startChangedStage->parent);
 
         return true;
+    }
+
+    /**
+     * Clear dynamic records older than one month.
+     *
+     * @access public
+     * @return void
+     */
+    public function cleanActions()
+    {
+        $this->action->cleanActions();
+    }
+
+    /**
+     * 通过 Ajax 获取操作记录列表。
+     * Get action list by ajax.
+     *
+     * @param  string $objectType
+     * @param  int    $objectID
+     * @access public
+     * @return void
+     */
+    public function ajaxGetList(string $objectType, int $objectID)
+    {
+        $actions = $this->action->getList($objectType, $objectID);
+        $actions = $this->action->buildActionList($actions);
+        return $this->send($actions);
     }
 }

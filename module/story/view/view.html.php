@@ -12,6 +12,7 @@
 ?>
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
+<?php include '../../ai/view/promptmenu.html.php';?>
 <?php $browseLink = $app->session->storyList ? $app->session->storyList : $this->createLink('product', 'browse', "productID=$story->product");?>
 <?php js::set('sysurl', common::getSysUrl());?>
 <?php js::set('storyType', $story->type);?>
@@ -84,58 +85,6 @@
         <div class="detail-title"><?php echo $lang->story->legendVerify;?></div>
         <div class="detail-content article-content"><?php echo $story->verify;?></div>
       </div>
-      <!--
-      <?php if($execution->model == 'waterfall' and $story->type == 'requirement'):?>
-        <?php if(!empty($track)):?>
-        <div class="detail">
-          <div class="detail-title"><?php echo $lang->story->track;?></div>
-          <div class="detail-content article-content main-table">
-            <table class="table">
-              <thead>
-                  <tr>
-                    <th class="w-120px"><?php echo $lang->story->story;?></th>
-                    <th class="w-120px"><?php echo $lang->story->design;?></th>
-                    <th class="w-120px"><?php echo $lang->story->case;?></th>
-                    <th class="w-60px"><?php echo $lang->story->repoCommit;?></th>
-                    <th class="w-120px"><?php echo $lang->story->bug;?></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <?php foreach($track as $storyID => $storyInfo):?>
-                  <tr>
-                     <td style='padding-left: 10px;'><?php echo html::a($this->createLink('story', 'view', "storyID=$storyID&version=0&param=0&storyType=$story->type"), $storyInfo->title, '', "title='$storyInfo->title'");?>
-                     </td>
-                     <td>
-                      <?php foreach($storyInfo->design as $designID => $design):?>
-                      <?php echo html::a($this->createLink('design', 'view', "designID=$designID"), $design->name, '', "title='$design->name'") . '<br/>';?>
-                      <?php endforeach;?>
-                     </td>
-                     <td>
-                       <?php foreach($storyInfo->case as $caseID => $case):?>
-                       <?php echo html::a($this->createLink('testcase', 'view', "caseID=$caseID"), $case->title, '', "title='$case->title'") . '<br/>';?>
-                       <?php endforeach;?>
-                     </td>
-                     <td>
-                       <?php foreach($storyInfo->revision as $revision => $repoID):?>
-                       <?php
-                       echo html::a($this->createLink('design', 'revision', "repoID=$revision"), '#'. $revision) . '<br/>';
-                       ?>
-                       <?php endforeach;?>
-                     </td>
-                     <td>
-                       <?php foreach($storyInfo->bug as $bugID => $bug):?>
-                       <?php echo html::a($this->createLink('bug', 'view', "bugID=$bugID"), $bug->title, '', "title='$bug->title'") . '<br/>';?>
-                       <?php endforeach;?>
-                     </td>
-                  </tr>
-                  <?php endforeach;?>
-                </tbody>
-            </table>
-          </div>
-        </div>
-        <?php endif;?>
-      <?php endif;?>
-      -->
       <?php echo $this->fetch('file', 'printFiles', array('files' => $story->files, 'fieldset' => 'true', 'object' => $story, 'method' => 'view', 'showDelete' => false));?>
       <?php
       $canBeChanged = common::canBeChanged('story', $story);
@@ -181,7 +130,7 @@
                   common::printIcon('story', 'close',      "storyID=$child->id&from=&storyType=$child->type", $child, 'list', '', '', 'iframe showinonlybody', true);
                   common::printIcon('story', 'activate',   "storyID=$child->id&storyType=$child->type", $child, 'list', '', '', 'iframe showinonlybody', true);
                   common::printIcon('story', 'edit',       "storyID=$child->id&kanbanGroup=default&storyType=$child->type", $child, 'list');
-                  common::printIcon('testcase', 'create', "productID=$child->product&branch=$child->branch&module=0&from=&param=0&story={$child->id}", $child, 'list', 'sitemap');
+                  common::printIcon('testcase', 'create', "productID=$child->product&branch=$child->branch&module=0&from=&param=0&story={$child->id}", $child, 'list', 'sitemap', '', 'iframe showinonlybody', true);
                   ?>
                 </td>
               </tr>
@@ -224,7 +173,18 @@
                 <?php if($product->type != 'normal'):?>
                 <tr>
                   <th class='w-90px'><?php echo $lang->product->branch;?></th>
-                  <td><?php common::printLink('product', 'browse', "productID=$story->product&branch=$story->branch", $branches[$story->branch], '', "data-app='product'");?></td>
+                  <td>
+                    <?php
+                    if(isonlybody())
+                    {
+                        echo $branches[$story->branch];
+                    }
+                    else
+                    {
+                        common::printLink('product', 'browse', "productID=$story->product&branch=$story->branch", $branches[$story->branch], '', "data-app='product'");
+                    }
+                    ?>
+                  </td>
                 </tr>
                 <?php endif;?>
                 <tr>
@@ -268,6 +228,26 @@
                   ?>
                   <td title='<?php echo $moduleTitle?>'><?php echo $printModule?></td>
                 </tr>
+                <?php if($config->edition == 'ipd' && $story->type == 'requirement'):?>
+                <tr>
+                  <th><?php echo $lang->story->roadmap;?></th>
+                  <td>
+                  <?php
+                  if($story->roadmap && isset($roadmaps[$story->roadmap]))
+                  {
+                      if(commonModel::hasPriv('roadmap', 'view'))
+                      {
+                          echo html::a($this->createLink('roadmap', 'view', "roadmapID={$story->roadmap}"), $roadmaps[$story->roadmap]);
+                      }
+                      else
+                      {
+                          echo $roadmaps[$story->roadmap];
+                      }
+                  }
+                  ?>
+                  </td>
+                </tr>
+                <?php endif;?>
                 <?php if($story->type != 'requirement' and $story->parent != -1 and !$hiddenPlan):?>
                 <tr class='plan-line'>
                   <th><?php echo $lang->story->plan;?></th>
@@ -295,7 +275,22 @@
                 </tr>
                 <tr>
                   <th><?php echo $lang->story->status;?></th>
-                  <td><span class='status-story status-<?php echo $story->status?>'><span class="label label-dot"></span> <?php echo $this->processStatus('story', $story);?></span></td>
+                  <td>
+                    <?php $statusClass = $story->URChanged ? 'status-changed' : "status-{$story->status}";?>
+                    <span class='status-story <?php echo $statusClass?>'>
+                      <span class="label label-dot"></span>
+                      <?php
+                      if($story->URChanged)
+                      {
+                         echo $this->lang->story->URChanged;
+                      }
+                      else
+                      {
+                        echo $this->processStatus('story', $story);
+                      }
+                      ?>
+                    </span>
+                  </td>
                 </tr>
                 <?php if($story->type != 'requirement'):?>
                 <tr class='stage-line'>
@@ -321,9 +316,9 @@
                   </td>
                 </tr>
                 <?php endif;?>
-                <tr>
+                <tr class='categoryTR'>
                   <th><?php echo $lang->story->category;?></th>
-                  <td><?php echo zget($lang->story->categoryList, $story->category, $story->category)?></td>
+                  <td><?php echo isset($lang->story->categoryList[$story->category]) ? zget($lang->story->categoryList, $story->category) : zget($lang->story->ipdCategoryList, $story->category)?></td>
                 </tr>
                 <tr>
                   <th><?php echo $lang->story->pri;?></th>
@@ -430,13 +425,13 @@
           <?php if(!empty($twins)):?>
           <li class='active'><a href='#legendTwins' data-toggle='tab'><?php echo $lang->story->twins;?></a></li>
           <?php endif;?>
-          <?php if($this->config->URAndSR and !$hiddenURS):?>
+          <?php if($this->config->URAndSR and !$hiddenURS and $config->vision != 'or'):?>
           <li class='<?php if(empty($twins)) echo 'active';?>'><a href='#legendStories' data-toggle='tab'><?php echo $story->type == 'story' ? $lang->story->requirement : $lang->story->story;?></a></li>
           <?php endif;?>
-          <?php if($story->type == 'story'):?>
+          <?php if($story->type == 'story' && common::hasPriv('story', 'tasks')):?>
           <li class="<?php if((!$this->config->URAndSR || $hiddenURS) and empty($twins)) echo 'active';?>"><a href='#legendProjectAndTask' data-toggle='tab'><?php echo $lang->story->legendProjectAndTask;?></a></li>
           <?php endif;?>
-          <li><a href='#legendRelated' data-toggle='tab'><?php echo $lang->story->legendRelated;?></a></li>
+          <li <?php if($config->vision == 'or') echo "class='active'";?>><a href='#legendRelated' data-toggle='tab'><?php echo $lang->story->legendRelated;?></a></li>
         </ul>
         <div class='tab-content'>
           <?php if(!empty($twins)):?>
@@ -446,7 +441,7 @@
             </ul>
           </div>
           <?php endif;?>
-          <?php if($this->config->URAndSR and !$hiddenURS):?>
+          <?php if($this->config->URAndSR and !$hiddenURS and $config->vision != 'or'):?>
           <div class='tab-pane <?php if(empty($twins)) echo 'active';?>' id='legendStories'>
             <ul class="list-unstyled">
               <?php
@@ -497,10 +492,11 @@
             </ul>
           </div>
           <?php endif;?>
-          <div class="tab-pane" id='legendRelated'>
+          <div class="tab-pane <?php if($config->vision == 'or') echo 'active';?>" id='legendRelated'>
             <table class="table table-data">
               <tbody>
                 <?php if($story->type == 'story'):?>
+                <?php if(common::hasPriv('story', 'bugs')):?>
                 <?php if(!empty($fromBug)):?>
                 <tr>
                   <th><?php echo $lang->story->legendFromBug;?></th>
@@ -525,6 +521,8 @@
                     </ul>
                   </td>
                 </tr>
+                <?php endif;?>
+                <?php if(common::hasPriv('story', 'cases')):?>
                 <tr>
                   <th><?php echo $lang->story->legendCases;?></th>
                   <td class='pd-0'>
@@ -540,6 +538,7 @@
                     </ul>
                   </td>
                 </tr>
+                <?php endif;?>
                 <tr>
                   <th><?php echo $lang->story->legendBuilds;?></th>
                   <td class='pd-0'>
@@ -608,7 +607,7 @@
                     {
                         if($mrPriv)
                         {
-                            echo "<li title='$linkMRTitle'>" . html::a($this->createLink('mr', 'view', "MRID=$MRID"), "#$MRID $linkMRTitle") . '</li>';
+                            echo "<li title='$linkMRTitle'>" . html::a($this->createLink('mr', 'view', "MRID=$MRID"), "#$MRID $linkMRTitle", '', 'data-app="devops"') . '</li>';
                         }
                         else
                         {
@@ -631,7 +630,7 @@
                         $commitTitle = $revision . ' ' . $commit->comment;
                         if($canViewRevision)
                         {
-                            echo "<li class='link-commit' title='$commitTitle'>" . html::a($this->createLink('repo', 'revision', "repoID={$commit->repo}&objectID=0&revision={$commit->revision}"), $revision) . ' ' . $commit->comment . '</li>';
+                            echo "<li class='link-commit' title='$commitTitle'>" . html::a($this->createLink('repo', 'revision', "repoID={$commit->repo}&objectID=0&revision={$commit->revision}"), $revision, '', 'data-app="devops"') . ' ' . $commit->comment . '</li>';
                         }
                         else
                         {
@@ -656,6 +655,7 @@
 </div>
 <?php endif;?>
 
+<?php if(in_array($config->edition, array('max', 'ipd'))):?>
 <div class="modal fade" id="importToLib">
   <div class="modal-dialog mw-500px">
     <div class="modal-content">
@@ -691,6 +691,7 @@
     </div>
   </div>
 </div>
+<?php endif;?>
 
 <div id="mainActions" class='main-actions'>
   <?php common::printPreAndNext($preAndNext);?>

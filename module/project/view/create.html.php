@@ -48,7 +48,7 @@
       <h2><?php echo $createTitle;?></h2>
       <?php if(!commonModel::isTutorialMode()): ?>
       <div class="pull-right btn-toolbar">
-      <?php if($config->edition != 'max' or $model == 'kanban'):?>
+      <?php if(!in_array($config->edition, array('max', 'ipd')) or $model == 'kanban' or $model == 'ipd'):?>
         <button type='button' class='btn btn-link' data-toggle='modal' data-target='#copyProjectModal'><?php echo html::icon($lang->icons['copy'], 'muted') . ' ' . $lang->project->copy;?></button>
       <?php else: ?>
         <button type='button' class='btn btn-link open-btn' data-toggle='modal' data-target='#maxCopyProjectModal'><?php echo html::icon($lang->icons['copy'], 'muted') . ' ' . $lang->project->copy;?></button>
@@ -148,7 +148,7 @@
         <?php $i = 0;?>
         <?php foreach($products as $product):?>
         <tr>
-          <th><?php if($i == 0) echo $lang->project->manageProductPlan;?></th>
+          <th id='productTitle'><?php if($i == 0) echo $lang->project->manageProductPlan;?></th>
           <td class='text-left productsBox' colspan="3">
             <div class='row'>
               <div class="col-sm-6">

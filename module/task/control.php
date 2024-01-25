@@ -232,6 +232,7 @@ class task extends control
 
                 $response['message'] = $this->lang->task->successSaved . $this->lang->task->afterChoices['continueAdding'];
                 $response['locate']  = $this->createLink('task', 'create', "executionID=$executionID&storyID={$storyParam}&moduleID=$moduleID");
+                if($this->app->tab == 'project') $response['locate']  = 'reload';
                 return $this->send($response);
             }
             elseif($this->post->after == 'toTaskList')
@@ -400,10 +401,6 @@ class task extends control
         $taskConsumed = 0;
         if($taskID) $taskConsumed = $this->dao->select('consumed')->from(TABLE_TASK)->where('id')->eq($taskID)->andWhere('parent')->eq(0)->fetch('consumed');
 
-        /* When common task are child tasks, query whether common task are consumed. */
-        $taskConsumed = 0;
-        if($taskID) $taskConsumed = $this->dao->select('consumed')->from(TABLE_TASK)->where('id')->eq($taskID)->andWhere('parent')->eq(0)->fetch('consumed');
-
         if(!empty($_POST))
         {
             $mails = $this->task->batchCreate($executionID, $extra);
@@ -538,6 +535,8 @@ class task extends control
 
         /* Set menu. */
         $this->execution->setMenu($this->view->execution->id);
+        if(!$this->view->execution->multiple) $this->loadModel('project')->setMenu($this->view->task->project);
+
         $this->view->position[] = html::a($this->createLink('execution', 'browse', "execution={$this->view->task->execution}"), $this->view->execution->name);
     }
 
@@ -555,6 +554,7 @@ class task extends control
     {
         $this->commonAction($taskID);
         $task = $this->task->getById($taskID);
+        if($this->app->tab == 'project') $this->loadModel('project')->setMenu($task->project);
 
         if(!empty($_POST))
         {
@@ -595,7 +595,7 @@ class task extends control
                 $execution    = $this->execution->getByID($task->execution);
                 $execLaneType = $this->session->execLaneType ? $this->session->execLaneType : 'all';
                 $execGroupBy  = $this->session->execGroupBy ? $this->session->execGroupBy : 'default';
-                if(($this->app->tab == 'execution' or ($this->config->vision == 'lite' and $this->app->tab == 'project')) and $execution->type == 'kanban')
+                if(($this->app->tab == 'execution' or ($this->config->vision == 'lite' and $this->app->tab == 'project' and $this->session->kanbanview == 'kanban')) and $execution->type == 'kanban')
                 {
                     $rdSearchValue = $this->session->rdSearchValue ? $this->session->rdSearchValue : '';
                     $kanbanData    = $this->loadModel('kanban')->getRDKanban($task->execution, $execLaneType, 'id_desc', 0, $execGroupBy, $rdSearchValue);
@@ -852,7 +852,15 @@ class task extends control
             return print(js::locate($this->createLink('task', 'view', "taskID=$taskID"), 'parent'));
         }
 
-        $members = $this->loadModel('user')->getTeamMemberPairs($executionID, 'execution', 'nodeleted');
+        // Ipd or vision research-stage module does not have team, so get research team members.
+        if($this->config->vision == 'or')
+        {
+            $members = $this->loadModel('user')->getTeamMemberPairs($executionID, 'project', 'nodeleted');
+        }
+        else
+        {
+            $members = $this->loadModel('user')->getTeamMemberPairs($executionID, 'execution', 'nodeleted');
+        }
 
         /* Compute next assignedTo. */
         if(!empty($task->team) and strpos('done,cencel,closed', $task->status) === false)
@@ -952,6 +960,7 @@ class task extends control
             if(defined('RUN_MODE') && RUN_MODE == 'api') return $this->send(array('status' => 'fail', 'code' => 404, 'message' => '404 Not found'));
             return print(js::error($this->lang->notFound) . js::locate($this->createLink('execution', 'all')));
         }
+        if(!$this->loadModel('common')->checkPrivByObject('execution', $task->execution)) return print(js::error($this->lang->execution->accessDenied) . js::locate($this->createLink('execution', 'all')));
 
         $this->session->set('executionList', $this->app->getURI(true), 'execution');
 
@@ -983,9 +992,10 @@ class task extends control
             $story = $this->story->getById($task->story, $task->storyVersion);
             $task->storySpec   = empty($story) ? '' : $this->loadModel('file')->setImgSize($story->spec);
             $task->storyVerify = empty($story) ? '' : $this->loadModel('file')->setImgSize($story->verify);
-            $task->storyFiles  = $this->loadModel('file')->getByObject('story', $task->story);
+            $task->storyFiles  = zget($story, 'files', array());
         }
 
+        $task->linkedBranch = $this->task->getLinkedBranch($taskID);
         if($task->team) $this->lang->task->assign = $this->lang->task->transfer;
 
         /* Update action. */
@@ -1009,9 +1019,7 @@ class task extends control
         $this->view->modulePath   = $this->tree->getParents($task->module);
         $this->view->linkMRTitles = $this->loadModel('mr')->getLinkedMRPairs($taskID, 'task');
         $this->view->linkCommits  = $this->loadModel('repo')->getCommitsByObject($taskID, 'task');
-        $this->view->methodName   = $this->methodName;
-        // $this->display();
-        $this->render();
+        $this->display();
     }
 
     /**
@@ -1089,7 +1097,7 @@ class task extends control
                 $execution    = $this->execution->getByID($task->execution);
                 $execLaneType = $this->session->execLaneType ? $this->session->execLaneType : 'all';
                 $execGroupBy  = $this->session->execGroupBy ? $this->session->execGroupBy : 'default';
-                if(($this->app->tab == 'execution' or ($this->config->vision == 'lite' and $this->app->tab == 'project')) and $execution->type == 'kanban')
+                if(($this->app->tab == 'execution' or ($this->config->vision == 'lite' and $this->app->tab == 'project' and $this->session->kanbanview == 'kanban')) and $execution->type == 'kanban')
                 {
                     $rdSearchValue = $this->session->rdSearchValue ? $this->session->rdSearchValue : '';
                     $regionID      = !empty($output['regionID']) ? $output['regionID'] : 0;
@@ -1166,7 +1174,7 @@ class task extends control
                 $execution     = $this->execution->getByID($task->execution);
                 $execLaneType  = $this->session->execLaneType ? $this->session->execLaneType : 'all';
                 $execGroupBy   = $this->session->execGroupBy ? $this->session->execGroupBy : 'default';
-                if(($this->app->tab == 'execution' or ($this->config->vision == 'lite' and $this->app->tab == 'project')) and $execution->type == 'kanban')
+                if(($this->app->tab == 'execution' or ($this->config->vision == 'lite' and $this->app->tab == 'project' and $this->session->kanbanview == 'kanban')) and $execution->type == 'kanban')
                 {
                     $rdSearchValue = $this->session->rdSearchValue ? $this->session->rdSearchValue : '';
                     $kanbanData    = $this->loadModel('kanban')->getRDKanban($task->execution, $execLaneType, 'id_desc', 0, $execGroupBy, $rdSearchValue);
@@ -1222,7 +1230,7 @@ class task extends control
             if($task->assignedTo == $currentAccount) $taskEffortFold = 1;
             if(!empty($task->team))
             {
-                $teamMember = array_column($task->team, 'account');
+                $teamMember = helper::arrayColumn($task->team, 'account');
                 if(in_array($currentAccount, $teamMember)) $taskEffortFold = 1;
             }
         }
@@ -1253,7 +1261,7 @@ class task extends control
             $changes = $this->task->updateEstimate($estimateID);
             if(dao::isError()) return print(js::error(dao::getError()));
 
-            $actionID = $this->loadModel('action')->create('task', $estimate->task, 'EditEstimate', $this->post->work);
+            $actionID = $this->loadModel('action')->create('task', $estimate->objectID, 'EditEstimate', $this->post->work);
             $this->action->logHistory($actionID, $changes);
 
             $url = $this->session->estimateList ? $this->session->estimateList : inlink('recordEstimate', "taskID={$estimate->task}");
@@ -1362,7 +1370,7 @@ class task extends control
                 $execution    = $this->execution->getByID($task->execution);
                 $execLaneType = $this->session->execLaneType ? $this->session->execLaneType : 'all';
                 $execGroupBy  = $this->session->execGroupBy ? $this->session->execGroupBy : 'default';
-                if(($this->app->tab == 'execution' or ($this->config->vision == 'lite' and $this->app->tab == 'project')) and $execution->type == "kanban")
+                if(($this->app->tab == 'execution' or ($this->config->vision == 'lite' and $this->app->tab == 'project' and $this->session->kanbanview == 'kanban')) and $execution->type == 'kanban')
                 {
                     $rdSearchValue = $this->session->rdSearchValue ? $this->session->rdSearchValue : '';
                     $regionID      = !empty($output['regionID']) ? $output['regionID'] : 0;
@@ -1433,7 +1441,11 @@ class task extends control
         {
             $this->loadModel('action');
             $changes = $this->task->pause($taskID, $extra);
-            if(dao::isError()) return print(js::error(dao::getError()));
+            if(dao::isError())
+            {
+                if($this->viewType == 'json' or (defined('RUN_MODE') && RUN_MODE == 'api')) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+                return print(js::error(dao::getError()));
+            }
 
             if($this->post->comment != '' or !empty($changes))
             {
@@ -1449,7 +1461,7 @@ class task extends control
                 $execution    = $this->execution->getByID($task->execution);
                 $execLaneType = $this->session->execLaneType ? $this->session->execLaneType : 'all';
                 $execGroupBy  = $this->session->execGroupBy ? $this->session->execGroupBy : 'default';
-                if(($this->app->tab == 'execution' or ($this->config->vision == 'lite' and $this->app->tab == 'project')) and $execution->type == 'kanban')
+                if(($this->app->tab == 'execution' or ($this->config->vision == 'lite' and $this->app->tab == 'project' and $this->session->kanbanview == 'kanban')) and $execution->type == 'kanban')
                 {
                     $rdSearchValue = $this->session->rdSearchValue ? $this->session->rdSearchValue : '';
                     $regionID      = !empty($output['regionID']) ? $output['regionID'] : 0;
@@ -1470,6 +1482,7 @@ class task extends control
                 }
                 return print(js::closeModal('parent.parent', 'this'));
             }
+            if($this->viewType == 'json' or (defined('RUN_MODE') && RUN_MODE == 'api')) return $this->send(array('result' => 'success'));
 
             return print(js::locate($this->createLink('task', 'view', "taskID=$taskID"), 'parent'));
         }
@@ -1499,7 +1512,11 @@ class task extends control
         {
             $this->loadModel('action');
             $changes = $this->task->start($taskID);
-            if(dao::isError()) return print(js::error(dao::getError()));
+            if(dao::isError())
+            {
+                if($this->viewType == 'json' or (defined('RUN_MODE') && RUN_MODE == 'api')) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+                return print(js::error(dao::getError()));
+            }
 
             $act = $this->post->left == 0 ? 'Finished' : 'Restarted';
             $actionID = $this->action->create('task', $taskID, $act, $this->post->comment);
@@ -1513,7 +1530,7 @@ class task extends control
                 $execution    = $this->execution->getByID($task->execution);
                 $execLaneType = $this->session->execLaneType ? $this->session->execLaneType : 'all';
                 $execGroupBy  = $this->session->execGroupBy ? $this->session->execGroupBy : 'default';
-                if(($this->app->tab == 'execution' or ($this->config->vision == 'lite' and $this->app->tab == 'project')) and $execution->type == 'kanban')
+                if(($this->app->tab == 'execution' or ($this->config->vision == 'lite' and $this->app->tab == 'project' and $this->session->kanbanview == 'kanban')) and $execution->type == 'kanban')
                 {
                     $rdSearchValue = $this->session->rdSearchValue ? $this->session->rdSearchValue : '';
                     $kanbanData    = $this->loadModel('kanban')->getRDKanban($task->execution, $execLaneType, 'id_desc', 0, $execGroupBy, $rdSearchValue);
@@ -1533,6 +1550,8 @@ class task extends control
                 }
                 return print(js::closeModal('parent.parent', 'this'));
             }
+
+            if($this->viewType == 'json' or (defined('RUN_MODE') && RUN_MODE == 'api')) return $this->send(array('result' => 'success'));
             return print(js::locate($this->createLink('task', 'view', "taskID=$taskID"), 'parent'));
         }
 
@@ -1594,7 +1613,7 @@ class task extends control
 
                 $execLaneType = $this->session->execLaneType ? $this->session->execLaneType : 'all';
                 $execGroupBy  = $this->session->execGroupBy ? $this->session->execGroupBy : 'default';
-                if(($this->app->tab == 'execution' or ($this->config->vision == 'lite' and $this->app->tab == 'project')) and $execution->type == 'kanban')
+                if(($this->app->tab == 'execution' or ($this->config->vision == 'lite' and $this->app->tab == 'project' and $this->session->kanbanview == 'kanban')) and $execution->type == 'kanban')
                 {
                     $rdSearchValue = $this->session->rdSearchValue ? $this->session->rdSearchValue : '';
                     $regionID      = !empty($output['regionID']) ? $output['regionID'] : 0;
@@ -1603,7 +1622,7 @@ class task extends control
 
                     return print(js::closeModal('parent.parent', '', "parent.parent.updateKanban($kanbanData, $regionID)"));
                 }
-                if($output['from'] == 'taskkanban')
+                if(isset($output['from']) && $output['from'] == 'taskkanban')
                 {
                     $taskSearchValue = $this->session->taskSearchValue ? $this->session->taskSearchValue : '';
                     $kanbanData      = $this->loadModel('kanban')->getExecutionKanban($task->execution, $execLaneType, $execGroupBy, $taskSearchValue);
@@ -1673,22 +1692,27 @@ class task extends control
      * @access public
      * @return void
      */
-    public function batchClose($skipTaskIdList = '')
+    public function batchClose($confirm = 0)
     {
-        if($this->post->taskIDList or $skipTaskIdList)
+        if(!empty($_POST['taskIDList']) or $confirm)
         {
             $taskIDList = $this->post->taskIDList;
-            if($taskIDList)     $taskIDList = array_unique($taskIDList);
-            if($skipTaskIdList) $taskIDList = $skipTaskIdList;
+            if(!isset($_POST['taskIDList']) && !empty($_SESSION['batchCloseTaskIDList']))
+            {
+                $taskIDList = explode(',', $this->session->batchCloseTaskIDList);
+                unset($_SESSION['batchCloseTaskIDList']);
+            }
+            if($taskIDList) $taskIDList = array_unique($taskIDList);
 
             unset($_POST['taskIDList']);
             unset($_POST['assignedTo']);
             $this->loadModel('action');
 
+            if(empty($taskIDList)) return print(js::reload('parent'));
             $tasks = $this->task->getByList($taskIDList);
             foreach($tasks as $taskID => $task)
             {
-                if(empty($skipTaskIdList) and ($task->status != 'done' and $task->status != 'cancel'))
+                if(($task->status != 'done' and $task->status != 'cancel') and empty($confirm))
                 {
                     $skipTasks[$taskID] = $taskID;
                     continue;
@@ -1711,11 +1735,12 @@ class task extends control
                     $this->action->logHistory($actionID, $changes);
                 }
             }
-            if(isset($skipTasks) and empty($skipTaskIdList))
+            if(isset($skipTasks) and empty($confirm))
             {
                 $skipTasks  = join(',', $skipTasks);
-                $confirmURL = $this->createLink('task', 'batchClose', "skipTaskIdList=$skipTasks");
+                $confirmURL = $this->createLink('task', 'batchClose', "confirm=1");
                 $cancelURL  = $this->server->HTTP_REFERER;
+                $this->session->set('batchCloseTaskIDList', $skipTasks, 'task');
                 return print(js::confirm(sprintf($this->lang->task->error->skipClose, $skipTasks), $confirmURL, $cancelURL, 'self', 'parent'));
             }
 
@@ -1766,7 +1791,7 @@ class task extends control
                 $execution    = $this->execution->getByID($task->execution);
                 $execLaneType = $this->session->execLaneType ? $this->session->execLaneType : 'all';
                 $execGroupBy  = $this->session->execGroupBy ? $this->session->execGroupBy : 'default';
-                if(($this->app->tab == 'execution' or ($this->config->vision == 'lite' and $this->app->tab == 'project')) and $execution->type == 'kanban')
+                if(($this->app->tab == 'execution' or ($this->config->vision == 'lite' and $this->app->tab == 'project' and $this->session->kanbanview == 'kanban')) and $execution->type == 'kanban')
                 {
                     $rdSearchValue = $this->session->rdSearchValue ? $this->session->rdSearchValue : '';
                     $regionID      = !empty($output['regionID']) ? $output['regionID'] : 0;
@@ -1832,7 +1857,7 @@ class task extends control
                 $execution    = $this->execution->getByID($task->execution);
                 $execLaneType = $this->session->execLaneType ? $this->session->execLaneType : 'all';
                 $execGroupBy  = $this->session->execGroupBy ? $this->session->execGroupBy : 'default';
-                if(($this->app->tab == 'execution' or ($this->config->vision == 'lite' and $this->app->tab == 'project')) and $execution->type == "kanban")
+                if(($this->app->tab == 'execution' or ($this->config->vision == 'lite' and $this->app->tab == 'project' and $this->session->kanbanview == 'kanban')) and $execution->type == 'kanban')
                 {
                     $rdSearchValue = $this->session->rdSearchValue ? $this->session->rdSearchValue : '';
                     $regionID      = !empty($output['regionID']) ? $output['regionID'] : 0;
@@ -1860,7 +1885,7 @@ class task extends control
 
         if(!empty($this->view->task->team))
         {
-            $teamAccounts = array_column($this->view->task->team, 'account');
+            $teamAccounts = helper::arrayColumn($this->view->task->team, 'account');
             $teamMembers  = array();
             foreach($this->view->members as $account => $name)
             {
@@ -1918,6 +1943,8 @@ class task extends control
                 $kanbanData      = json_encode($kanbanData);
                 return print(js::closeModal('parent', '', "parent.updateKanban(\"task\", $kanbanData)"));
             }
+
+            if($from == 'market') return print(js::locate($this->createLink('marketresearch', 'stage', "researchID=$task->project"), 'parent'));
 
             $locateLink = $this->session->taskList ? $this->session->taskList : $this->createLink('execution', 'task', "executionID={$task->execution}");
             return print(js::locate($locateLink, 'parent'));
@@ -2097,6 +2124,7 @@ class task extends control
         {
             $this->loadModel('file');
             $taskLang = $this->lang->task;
+            if($type == 'bysearch') $this->config->task->datatable->fieldList['module']['dataSource'] = array('module' => 'tree', 'method' => 'getAllModulePairs');
 
             /* Create field lists. */
             $sort   = common::appendOrder($orderBy);
@@ -2113,7 +2141,7 @@ class task extends control
             if($this->session->taskOnlyCondition)
             {
                 $tasks = $this->dao->select('*')->from(TABLE_TASK)->alias('t1')->where($this->session->taskQueryCondition)
-                    ->beginIF($this->post->exportType == 'selected')->andWhere('t1.id')->in($this->cookie->checkedItem)->fi()
+                    ->beginIF($this->post->exportType == 'selected')->andWhere('t1.id')->in($this->post->checkedItem)->fi()
                     ->orderBy($sort)->fetchAll('id');
 
                 foreach($tasks as $key => $task)
@@ -2136,13 +2164,14 @@ class task extends control
             }
             elseif($this->session->taskQueryCondition)
             {
-                $stmt = $this->dbh->query($this->session->taskQueryCondition . ($this->post->exportType == 'selected' ? " AND t1.id IN({$this->cookie->checkedItem})" : '') . " ORDER BY " . strtr($orderBy, '_', ' '));
+                $stmt = $this->dbh->query($this->session->taskQueryCondition . ($this->post->exportType == 'selected' ? " AND t1.id IN({$this->post->checkedItem})" : '') . " ORDER BY " . strtr($orderBy, '_', ' '));
                 while($row = $stmt->fetch()) $tasks[$row->id] = $row;
             }
 
             /* Get users and executions. */
             $users      = $this->loadModel('user')->getPairs('noletter');
-            $executions = $this->execution->getPairs($execution->project, 'all', 'all|nocode');
+            $projects   = $this->loadModel('project')->getPairs();
+            $executions = $this->execution->getPairs(0, 'all', 'all|nocode');
 
             /* Get related objects id lists. */
             $relatedStoryIdList  = array();
@@ -2270,6 +2299,7 @@ class task extends control
 
                 $task->fromBug = empty($task->fromBug) ? '' : "#$task->fromBug " . $bugs[$task->fromBug]->title;
 
+                if(isset($projects[$task->project]))                  $task->project      = $projects[$task->project] . "(#$task->project)";
                 if(isset($executions[$task->execution]))              $task->execution    = $executions[$task->execution] . "(#$task->execution)";
                 if(isset($taskLang->typeList[$task->type]))           $task->type         = $taskLang->typeList[$task->type];
                 if(isset($taskLang->priList[$task->pri]))             $task->pri          = $taskLang->priList[$task->pri];

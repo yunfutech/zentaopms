@@ -173,9 +173,30 @@ class designModel extends model
      * @access public
      * @return void
      */
-    public function linkCommit($designID = 0, $repoID = 0)
+    public function linkCommit(int $designID = 0, int $repoID = 0)
     {
+        $repo      = $this->loadModel('repo')->getByID($repoID);
         $revisions = $_POST['revision'];
+
+        if($repo->SCM == 'Gitlab')
+        {
+            $logs = array();
+            foreach($this->session->designRevisions as $key => $commit)
+            {
+                if(in_array($commit->revision, $revisions))
+                {
+                    $log = new stdclass();
+                    $log->committer = $commit->committer_name;
+                    $log->revision  = $commit->id;
+                    $log->comment   = $commit->message;
+                    $log->time      = date('Y-m-d H:i:s', strtotime($commit->created_at));
+
+                    $logs[] = $log;
+                }
+            }
+            $this->repo->saveCommit($repoID, array('commits' => $logs), 0);
+            $revisions = $this->dao->select('id')->from(TABLE_REPOHISTORY)->where('revision')->in($revisions)->andWhere('repo')->eq($repoID)->fetchPairs('id');
+        }
 
         foreach($revisions as $revision)
         {
@@ -247,10 +268,9 @@ class designModel extends model
         $design->files       = $this->loadModel('file')->getByObject('design', $designID);
         $design->productName = $design->product ? $this->dao->findByID($design->product)->from(TABLE_PRODUCT)->fetch('name') : $this->lang->product->all;
 
-
         $design->commit = '';
         $relations = $this->loadModel('common')->getRelations('design', $designID, 'commit');
-        foreach($relations as $relation) $design->commit .= html::a(helper::createLink('design', 'revision', "repoID=$relation->BID&projectID={$design->project}"), "#$relation->BID");
+        foreach($relations as $relation) $design->commit .= html::a(helper::createLink('design', 'revision', "revisionID=$relation->BID&projectID={$design->project}"), "#$relation->BID", '', 'data-app=devops');
 
         return $this->loadModel('file')->replaceImgURL($design, 'desc');
     }
@@ -405,7 +425,7 @@ class designModel extends model
     public function setMenu($projectID, $products, $productID = 0)
     {
         $project = $this->loadModel('project')->getByID($projectID);
-        if(!empty($project) and $project->model == 'waterfall') $typeList = 'typeList';
+        if(!empty($project) and (in_array($project->model,  array('waterfall', 'ipd')))) $typeList = 'typeList';
         if(!empty($project) and $project->model == 'waterfallplus') $typeList = 'plusTypeList';
 
         /* Show custom design types. */
@@ -429,21 +449,18 @@ class designModel extends model
 
         if($this->app->rawMethod == 'browse') $this->lang->waterfall->menu->design['subMenu']->bysearch = array('link' => '<a href="javascript:;" class="querybox-toggle"><i class="icon-search icon"></i> ' . $this->lang->searchAB . '</a>');
 
-        if(empty($products) || !$productID) return '';
+        if(empty($products)) return '';
 
-        if($productID)
-        {
-            $currentProduct = $this->loadModel('product')->getById($productID);
-            setCookie("lastProduct", $productID, $this->config->cookieLife, $this->config->webRoot, '', false, true);
-        }
-        else
+        $currentProduct = $this->loadModel('product')->getById($productID);
+        setCookie("lastProduct", $productID, $this->config->cookieLife, $this->config->webRoot, '', false, true);
+        $currentProduct = $this->loadModel('product')->getById($productID);
+        if(!empty($currentProduct->shadow)) return '';
+
+        if(!$productID)
         {
             $currentProduct = new stdclass();
             $currentProduct->name = $this->lang->product->all;
         }
-
-        $currentProduct = $this->loadModel('product')->getById($productID);
-        if(!empty($currentProduct->shadow)) return '';
 
         $output = '';
         if(!empty($products))

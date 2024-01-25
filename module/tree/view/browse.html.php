@@ -39,11 +39,13 @@ if($viewType == 'line')   $name = $lang->tree->line;
 if($viewType == 'api')    $name = $lang->tree->dir;
 if($viewType == 'doc')    $name = $lang->doc->catalogName;
 if($viewType == 'report') $name = $lang->tree->reportGroup;
+if($viewType == 'host')   $name = $this->lang->tree->groupName;;
 if($viewType == 'trainskill' or $viewType == 'trainpost') $name = $lang->tree->cate;
 
 $childTitle = $lang->tree->child;
 if(strpos($viewType, 'doc') !== false or $viewType == 'api') $childTitle = $lang->doc->childType;
 if($viewType == 'line' or $viewType == 'trainskill' or $viewType == 'trainpost') $childTitle = '';
+if($viewType == 'host') $childTitle = $lang->tree->childGroup;
 
 $editTitle   = $lang->tree->edit;
 $deleteTitle = $lang->tree->delete;
@@ -51,6 +53,11 @@ if($viewType == 'doc' or $viewType == 'api')
 {
     $editTitle   = $lang->doc->editType;
     $deleteTitle = $lang->doc->deleteType;
+}
+if($viewType == 'host')
+{
+    $deleteTitle = $lang->tree->deleteHost;
+    $editTitle   = $lang->tree->editHost;
 }
 ?>
 <!--div id="mainMenu" class="clearfix">
@@ -292,7 +299,7 @@ $(function()
             {
                 hiddenwin.location.href = action.linkTemplate.format(item.id);
             }
-            else if(action.type === 'sort' && event.item == null)
+            else if(action.type === 'sort')
             {
                 var orders = {};
                 $('#modulesTree').find('li:not(.tree-action-item)').each(function()
@@ -370,3 +377,4 @@ else
     include '../../common/view/footer.html.php';
 }
 ?>
+<?php include '../../ai/view/inputinject.html.php';?>

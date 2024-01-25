@@ -12,6 +12,7 @@
 ?>
 <?php include '../../common/view/header.html.php';?>
 <?php js::set('hasInternet', $hasInternet);?>
+<?php js::set('isIntranet',  $isIntranet);?>
 <div id='mainContent' class='main-content admin'>
   <div class="main <?php if(!$hasInternet) echo 'without-internet';?>">
     <div class="settings panel">
@@ -138,7 +139,7 @@
       </div>
       <?php endforeach;?>
     </div>
-    <?php if($config->edition != 'max'):?>
+    <?php if(!in_array($config->edition, array('max', 'ipd'))):?>
     <div class="border-gray mb-16 radius-4">
       <div class="h-40 pl-16 flex align-center justify-between">
         <div class="panel-title"><?php echo $lang->admin->upgradeRecommend?></div>

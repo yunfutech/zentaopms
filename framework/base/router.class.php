@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 /**
  * 此文件包括ZenTaoPHP框架的三个类：baseRouter, config, lang。
  * The router, config and lang class file of ZenTaoPHP framework.
@@ -348,6 +348,14 @@ class baseRouter
     public $sessionID;
 
     /**
+     * 请求开始时间。
+     * The start time of the request.
+     *
+     * @var float
+     */
+    public $startTime;
+
+    /**
      * 网站代号。
      * The code of current site.
      *
@@ -355,6 +363,22 @@ class baseRouter
      * @access public
      */
     public $siteCode;
+
+    /**
+     * zin 请求时发生的错误信息。
+     * The errors occurred when zin request.
+     *
+     * @var array
+     */
+    public $zinErrors = array();
+
+    /**
+     * 是否将mysql的错误作为异常抛出。
+     * Whether to throw mysql error as exception.
+     *
+     * @var bool
+     */
+    public $throwError = false;
 
     /**
      * 构造方法, 设置路径，类，超级变量等。注意：
@@ -372,7 +396,7 @@ class baseRouter
      * @access public
      * @return void
      */
-    public function __construct(string $appName = 'demo', string $appRoot = '')
+    public function __construct($appName = 'demo', $appRoot = '')
     {
         $this->setPathFix();
         $this->setBasePath();
@@ -408,6 +432,8 @@ class baseRouter
         if($this->config->framework->autoConnectDB) $this->connectDB();
         if($this->config->framework->multiLanguage) $this->setClientLang();
 
+        $this->setupXhprof();
+
         $this->setEdition();
         $this->setVision();
 
@@ -429,10 +455,23 @@ class baseRouter
      * @access public
      * @return static   the app object
      */
-    public static function createApp(string $appName = 'demo', string $appRoot = '', string $className = '')
+    public static function createApp($appName = 'demo', $appRoot = '', $className = '')
     {
-        if(empty($className)) $className = self::class;
+        if(empty($className)) $className = __CLASS__;
         return new $className($appName, $appRoot);
+    }
+
+    /**
+     * 设置请求开始时间。
+     * The start time of the request.
+     *
+     * @param  float    $startTime
+     * @access public
+     * @return void
+     */
+    public function setStartTime(float $startTime)
+    {
+        $this->startTime = $startTime;
     }
 
     //-------------------- 路径相关方法(Path related methods)--------------------//
@@ -445,7 +484,7 @@ class baseRouter
      * @access public
      * @return void
      */
-    public function setAppName(string $appName)
+    public function setAppName($appName)
     {
         $this->appName = $appName;
     }
@@ -471,7 +510,7 @@ class baseRouter
      */
     public function setBasePath()
     {
-        $this->basePath = realpath(dirname(__FILE__, 3)) . DS;
+        $this->basePath = realpath(dirname(dirname(dirname(__FILE__)))) . DS;
     }
 
     /**
@@ -507,7 +546,7 @@ class baseRouter
      * @access public
      * @return void
      */
-    public function setAppRoot(string $appName = 'demo', string $appRoot = '')
+    public function setAppRoot($appName = 'demo', $appRoot = '')
     {
         if(empty($appRoot))  $this->appRoot = $this->basePath . 'app' . DS . $appName . DS;
         if(!empty($appRoot)) $this->appRoot = realpath($appRoot) . DS;
@@ -583,7 +622,7 @@ class baseRouter
      */
     public function setWwwRoot()
     {
-        $this->wwwRoot = rtrim(dirname((string) $_SERVER['SCRIPT_FILENAME']), DS) . DS;
+        $this->wwwRoot = rtrim(dirname($_SERVER['SCRIPT_FILENAME']), DS) . DS;
     }
 
     /**
@@ -622,9 +661,9 @@ class baseRouter
         if(isset($_SERVER['REQUEST_URI']))
         {
             $URI = $_SERVER['REQUEST_URI'];
-            if(str_contains((string) $URI, '?'))
+            if(strpos($URI, '?') !== false)
             {
-                $parsedURL = parse_url((string) $URI);
+                $parsedURL = parse_url($URI);
                 if(isset($parsedURL['query']))
                 {
                     parse_str($parsedURL['query'], $parsedQuery);
@@ -648,12 +687,12 @@ class baseRouter
         if($this->config->framework->filterCSRF)
         {
             $httpType = (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == 'on') ? 'https' : 'http';
-            if(isset($_SERVER['HTTP_X_FORWARDED_PROTO']) and strtolower((string) $_SERVER['HTTP_X_FORWARDED_PROTO']) == 'https') $httpType = 'https';
-            if(isset($_SERVER['REQUEST_SCHEME']) and strtolower((string) $_SERVER['REQUEST_SCHEME']) == 'https') $httpType = 'https';
+            if(isset($_SERVER['HTTP_X_FORWARDED_PROTO']) and strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) == 'https') $httpType = 'https';
+            if(isset($_SERVER['REQUEST_SCHEME']) and strtolower($_SERVER['REQUEST_SCHEME']) == 'https') $httpType = 'https';
 
             $httpHost = zget($_SERVER, 'HTTP_HOST', '');
             $apiMode  = (defined('RUN_MODE') && RUN_MODE == 'api') || isset($_GET[$this->config->sessionVar]);
-            if(!$apiMode && (empty($httpHost) or !str_starts_with((string) $this->server->http_referer, "$httpType://$httpHost"))) $_FILES = $_POST = array();
+            if(!$apiMode && (empty($httpHost) or strpos($this->server->http_referer, "$httpType://$httpHost") !== 0)) $_FILES = $_POST = array();
         }
 
         $_FILES  = validater::filterFiles();
@@ -701,6 +740,47 @@ class baseRouter
     }
 
     /**
+     * 启用Xhprof。
+     * Setup xhprof.
+     *
+     * @return void
+     */
+    protected function setupXhprof()
+    {
+        if(!empty($this->config->debug) && $this->config->debug >= 4 && extension_loaded('xhprof')) xhprof_enable();
+    }
+
+    /**
+     * 输出Xhprof结果。
+     * Output xhprof.
+     *
+     * @return bool
+     */
+    public function outputXhprof()
+    {
+        if(empty($this->config->debug) || $this->config->debug < 4 || !extension_loaded('xhprof')) return false;
+
+        $log          = xhprof_disable();
+        $xhprofPath   = $this->getWwwRoot() . 'xhprof';
+        $libUtilsPath = $xhprofPath . DS . 'xhprof_lib' . DS . 'utils' . DS;
+        $outputDir    = ini_get('xhprof.output_dir');
+
+        if(!is_dir($xhprofPath) || !is_dir($libUtilsPath)) return false;
+        if(!$outputDir) $outputDir = $xhprofPath . DS . 'xhprof_runs';
+        if(!is_dir($outputDir)) mkdir($outputDir, 0777, true);
+
+        include_once $libUtilsPath . 'xhprof_lib.php';
+        include_once $libUtilsPath . 'xhprof_runs.php';
+
+        $xhprofRuns = new \XHProfRuns_Default($outputDir);
+        $type       = "{$this->moduleName}_{$this->methodName}";
+        $runID      = $xhprofRuns->save_run($log, $type);
+        if(!headers_sent()) header("Xhprof-RunID: {$runID}");
+
+        return true;
+    }
+
+    /**
      * 设置版本。
      * Set edition.
      *
@@ -711,7 +791,7 @@ class baseRouter
     {
         if(isset($this->config->edition)) return $this->config->edition;
 
-        $edition = substr((string) $this->config->version, 0, 3);
+        $edition = substr($this->config->version, 0, 3);
         if(in_array($edition, array('pro', 'biz', 'max'))) return $this->config->edition = $edition;
         $this->config->edition = 'open';
     }
@@ -728,28 +808,31 @@ class baseRouter
         $account = isset($_SESSION['user']) ? $_SESSION['user']->account : '';
         if(empty($account) and isset($_POST['account'])) $account = $_POST['account'];
         if(empty($account) and isset($_GET['account']))  $account = $_GET['account'];
+        if(empty($account))                              $account = $this->cookie->za;
 
         $vision = '';
         if($this->config->installed and validater::checkAccount($account))
         {
             $sql     = new sql();
             $account = $sql->quote($account);
-            $vision  = $this->dbh->query("SELECT * FROM " . TABLE_CONFIG . " WHERE owner = $account AND `key` = 'vision' LIMIT 1")->fetch();
+            $vision  = $this->dbQuery("SELECT * FROM " . TABLE_CONFIG . " WHERE owner = $account AND `key` = 'vision' LIMIT 1")->fetch();
             if($vision) $vision = $vision->value;
 
-            $user = $this->dbh->query("SELECT * FROM " . TABLE_USER . " WHERE account = $account AND deleted = '0' LIMIT 1")->fetch();
+            $user = $this->dbQuery("SELECT * FROM " . TABLE_USER . " WHERE account = $account AND deleted = '0' LIMIT 1")->fetch();
             if(!empty($user->visions))
             {
-                $userVisions = explode(',', (string) $user->visions);
+                $userVisions = explode(',', $user->visions);
                 if(!in_array($vision, $userVisions)) $vision = '';
-                if(empty($vision)) [$vision] = $userVisions;
+                if(empty($vision)) list($vision) = $userVisions;
             }
         }
 
-        [$defaultVision] = explode(',', trim((string) $this->config->visions, ','));
-        if($vision and !str_contains((string) $this->config->visions, ",{$vision},")) $vision = $defaultVision;
+        list($defaultVision) = explode(',', trim($this->config->visions, ','));
 
-        $this->config->vision = $vision ?: $defaultVision;
+        if($defaultVision != 'lite' && $defaultVision != 'or') $defaultVision = 'rnd';
+        if($vision and strpos($this->config->visions, ",{$vision},") === false) $vision = $defaultVision;
+
+        $this->config->vision = $vision ? $vision : $defaultVision;
     }
 
     /**
@@ -760,7 +843,7 @@ class baseRouter
      */
     public function getInstalledVersion()
     {
-        $version = $this->dbh->query("SELECT `value` FROM " . TABLE_CONFIG . " WHERE `owner` = 'system' AND `key` = 'version' AND `module` = 'common' AND `section` = 'global' LIMIT 1")->fetch();
+        $version = $this->dbQuery("SELECT `value` FROM " . TABLE_CONFIG . " WHERE `owner` = 'system' AND `key` = 'version' AND `module` = 'common' AND `section` = 'global' LIMIT 1")->fetch();
         $version = $version ? $version->value : '0.3.beta';                  // No version, set as 0.3.beta.
         if($version == '3.0.stable') $version = '3.0';    // convert 3.0.stable to 3.0.
         return $version;
@@ -775,7 +858,7 @@ class baseRouter
      */
     public function setErrorHandler()
     {
-        set_error_handler($this->saveError(...));
+        set_error_handler(array($this, 'saveError'));
         register_shutdown_function(array($this, 'shutdown'));
     }
 
@@ -1002,12 +1085,12 @@ class baseRouter
             {
                 $ztSessionHandler = new ztSessionHandler($_GET['tid']);
                 session_set_save_handler(
-                    $ztSessionHandler->open(...),
-                    $ztSessionHandler->close(...),
-                    $ztSessionHandler->read(...),
-                    $ztSessionHandler->write(...),
-                    $ztSessionHandler->destroy(...),
-                    $ztSessionHandler->gc(...)
+                    array($ztSessionHandler, "open"),
+                    array($ztSessionHandler, "close"),
+                    array($ztSessionHandler, "read"),
+                    array($ztSessionHandler, "write"),
+                    array($ztSessionHandler, "destroy"),
+                    array($ztSessionHandler, "gc")
                 );
             }
         }
@@ -1042,23 +1125,10 @@ class baseRouter
      */
     public function setOpenApp()
     {
-        if(isset($this->config->zin))
-        {
-            $module  = $this->rawModule;
-            $tab     = '';
-
-            if(isset($_SERVER['HTTP_X_ZIN_APP'])) $tab = $_SERVER['HTTP_X_ZIN_APP'];
-            elseif(isset($this->lang->navGroup)) $tab = zget($this->lang->navGroup, $module, 'my');
-            elseif(isset($_COOKIE['tab']) && $_COOKIE['tab'] && preg_match('/^\w+$/', $_COOKIE['tab'])) $tab = $_COOKIE['tab'];
-
-            $this->tab = empty($tab) ? 'my' : $tab;
-            return;
-        }
-
         $module    = $this->rawModule;
         $this->tab = 'my';
         if(isset($this->lang->navGroup)) $this->tab = zget($this->lang->navGroup, $module, 'my');
-        if(isset($_COOKIE['tab']) and $_COOKIE['tab'] and preg_match('/^\w+$/', (string) $_COOKIE['tab'])) $this->tab = $_COOKIE['tab'];
+        if(isset($_COOKIE['tab']) and $_COOKIE['tab'] and preg_match('/^\w+$/', $_COOKIE['tab'])) $this->tab = $_COOKIE['tab'];
     }
 
     /**
@@ -1089,7 +1159,7 @@ class baseRouter
             $this->clientLang = $this->config->default->lang;
         }
 
-        setcookie('lang', (string) $this->clientLang, array('expires' => $this->config->cookieLife, 'path' => (string) $this->config->webRoot, 'domain' => '', 'secure' => $this->config->cookieSecure, 'httponly' => false));
+        setcookie('lang', $this->clientLang, $this->config->cookieLife, $this->config->webRoot, '', $this->config->cookieSecure, false);
         if(!isset($_COOKIE['lang'])) $_COOKIE['lang'] = $this->clientLang;
 
         return true;
@@ -1107,12 +1177,12 @@ class baseRouter
         if(empty($_SERVER['HTTP_ACCEPT_LANGUAGE'])) return '';
 
         $raw  = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
-        $pos  = strpos((string) $raw, ',');
-        $lang = $pos === false ? $raw : substr((string) $raw, 0, $pos);
+        $pos  = strpos($raw, ',');
+        $lang = $pos === false ? $raw : substr($raw, 0, $pos);
 
         /* Fix clientLang for ie >= 10. https://www.drupal.org/node/365615. */
-        if(stripos((string) $lang, 'hans')) $lang = 'zh-cn';
-        if(stripos((string) $lang, 'hant')) $lang = 'zh-tw';
+        if(stripos($lang, 'hans')) $lang = 'zh-cn';
+        if(stripos($lang, 'hant')) $lang = 'zh-tw';
         return $lang;
     }
 
@@ -1143,7 +1213,7 @@ class baseRouter
             $this->clientTheme = $this->config->default->theme;
         }
 
-        setcookie('theme', (string) $this->clientTheme, array('expires' => $this->config->cookieLife, 'path' => (string) $this->config->webRoot, 'domain' => '', 'secure' => $this->config->cookieSecure, 'httponly' => false));
+        setcookie('theme', $this->clientTheme, $this->config->cookieLife, $this->config->webRoot, '', $this->config->cookieSecure, false);
         if(!isset($_COOKIE['theme'])) $_COOKIE['theme'] = $this->clientTheme;
 
         return true;
@@ -1163,13 +1233,13 @@ class baseRouter
         if($this->cookie->device == 'mobile')  $this->clientDevice = 'mobile';
         if($this->cookie->device == 'desktop') $this->clientDevice = 'desktop';
 
-        if(empty($this->cookie->device) || !str_contains('mobile,desktop', (string) $this->cookie->device))
+        if(empty($this->cookie->device) || strpos('mobile,desktop', $this->cookie->device) === false)
         {
             $mobile = new mobile();
             $this->clientDevice = ($mobile->isMobile() and !$mobile->isTablet()) ? 'mobile' : 'desktop';
         }
 
-        setcookie('device', $this->clientDevice, array('expires' => $this->config->cookieLife, 'path' => (string) $this->config->webRoot, 'domain' => '', 'secure' => $this->config->cookieSecure, 'httponly' => true));
+        setcookie('device', $this->clientDevice, $this->config->cookieLife, $this->config->webRoot, '', $this->config->cookieSecure, true);
         if(!isset($_COOKIE['device'])) $_COOKIE['device'] = $this->clientDevice;
 
         return $this->clientDevice;
@@ -1267,7 +1337,7 @@ class baseRouter
             {
                 $this->URI      = substr($pathInfo, 0, $dotPos);
                 $this->viewType = substr($pathInfo, $dotPos + 1);
-                if(!str_contains((string) $this->config->views, ',' . $this->viewType . ','))
+                if(strpos($this->config->views, ',' . $this->viewType . ',') === false)
                 {
                     $this->viewType = $this->config->default->view;
                 }
@@ -1307,9 +1377,9 @@ class baseRouter
         elseif(isset($this->URI))
         {
             $value = $this->URI;
-            $subpath = str_replace($_SERVER['DOCUMENT_ROOT'], '', dirname((string) $_SERVER['SCRIPT_FILENAME']));
+            $subpath = str_replace($_SERVER['DOCUMENT_ROOT'], '', dirname($_SERVER['SCRIPT_FILENAME']));
             if($subpath != '/') $subpath = '/' . $subpath;
-            if($subpath != '' and $subpath != '/' and str_starts_with($value, $subpath)) $value = substr($value, strlen($subpath));
+            if($subpath != '' and $subpath != '/' and strpos($value, $subpath) === 0) $value = substr($value, strlen($subpath));
         }
         else
         {
@@ -1317,12 +1387,12 @@ class baseRouter
             if(empty($value)) $value = @getenv('ORIG_PATH_INFO');
         }
 
-        if(str_contains((string) $value, (string) $_SERVER['SCRIPT_NAME'])) $value = str_replace($_SERVER['SCRIPT_NAME'], '', (string) $value);
-        if(!str_contains((string) $value, '?')) return trim((string) $value, '/');
+        if(strpos($value, $_SERVER['SCRIPT_NAME']) !== false) $value = str_replace($_SERVER['SCRIPT_NAME'], '', $value);
+        if(strpos($value, '?') === false) return trim($value, '/');
 
-        $value    = parse_url((string) $value);
-        $pathInfo = trim((string) zget($value, 'path', ''), '/');
-        if(trim($pathInfo, '/') == trim((string) $this->config->webRoot, '/')) $pathInfo = '';
+        $value    = parse_url($value);
+        $pathInfo = trim(zget($value, 'path', ''), '/');
+        if(trim($pathInfo, '/') == trim($this->config->webRoot, '/')) $pathInfo = '';
 
         return $pathInfo;
     }
@@ -1339,7 +1409,7 @@ class baseRouter
         if(isset($_GET[$this->config->viewVar]))
         {
             $this->viewType = $_GET[$this->config->viewVar];
-            if(!str_contains((string) $this->config->views, ',' . $this->viewType . ',')) $this->viewType = $this->config->default->view;
+            if(strpos($this->config->views, ',' . $this->viewType . ',') === false) $this->viewType = $this->config->default->view;
         }
         else
         {
@@ -1396,7 +1466,7 @@ class baseRouter
      * @access public
      * @return object|bool  the common model object or false if not exits.
      */
-    public function loadCommon(): object|bool
+    public function loadCommon()
     {
         $this->setModuleName('common');
         $commonModelFile = $this->setModelFile('common');
@@ -1419,7 +1489,7 @@ class baseRouter
      * @access  public
      * @return  void
      */
-    public function setModuleName(string $moduleName = '')
+    public function setModuleName($moduleName = '')
     {
         if($this->checkModuleName($moduleName)) $this->moduleName = strtolower($moduleName);
     }
@@ -1434,7 +1504,7 @@ class baseRouter
      * @access  public
      * @return  bool
      */
-    public function setControlFile(bool $exitIfNone = true)
+    public function setControlFile($exitIfNone = true)
     {
         $this->controlFile = $this->getModulePath() . 'control.php';
         if(file_exists($this->controlFile)) return true;
@@ -1449,7 +1519,7 @@ class baseRouter
      * @access public
      * @return void
      */
-    public function setMethodName(string $methodName = '')
+    public function setMethodName($methodName = '')
     {
         if($this->checkMethodName($methodName)) $this->methodName = strtolower($methodName);
     }
@@ -1489,13 +1559,12 @@ class baseRouter
 
             /* Check file is encode by ioncube. */
             $isEncrypted = false;
-            if(str_contains($file2Included, 'extension' . DS . $this->config->edition . DS))
+            if(strpos($file2Included, 'extension') !== false)
             {
                 $fp = fopen($file2Included, 'r');
                 $line1 = fgets($fp);
-                $line2 = fgets($fp);
                 fclose($fp);
-                if(str_starts_with($line1, '<?php //') and str_starts_with($line2, "if(!extension_loaded('ionCube Loader'))")) $isEncrypted = true;
+                if(strpos($line1, '<?php //') === 0) $isEncrypted = true;
             }
 
             /*
@@ -1542,7 +1611,21 @@ class baseRouter
                     $default = $param->getDefaultValue();
                 }
 
-                $defaultParams[$name] = $default;
+                $type = 'string';
+                if(isset($paramDefaultType[$appName][$className][$methodName][$name]))
+                {
+                    $type = $paramDefaultType[$appName][$className][$methodName][$name];
+                }
+                elseif(isset($paramDefaultType[$className][$methodName][$name]))
+                {
+                    $type = $paramDefaultType[$className][$methodName][$name];
+                }
+                elseif(!$isEncrypted && method_exists($param, 'hasType') && $param->hasType())
+                {
+                    $type = $param->getType()->getName();
+                }
+
+                $defaultParams[$name] = array('default' => $default, 'type' => $type);
             }
 
             /**
@@ -1595,7 +1678,7 @@ class baseRouter
      * @access public
      * @return string the module path
      */
-    public function getModulePath(string $appName = '', string $moduleName = '')
+    public function getModulePath($appName = '', $moduleName = '')
     {
         if($moduleName == '') $moduleName = $this->moduleName;
         $moduleName = strtolower($moduleName);
@@ -1605,7 +1688,7 @@ class baseRouter
             $modulePath = $this->getExtensionRoot() . 'saas' . DS . $moduleName . DS;
             if(is_dir($modulePath) and (file_exists($modulePath . 'control.php') or file_exists($modulePath . 'model.php'))) return $modulePath;
 
-            /* 1. 最后尝试在定制开发中寻找。 Finally, try to find the module in the custom dir. */
+            /* 1. 尝试在定制开发中寻找。 Finally, try to find the module in the custom dir. */
             $modulePath = $this->getExtensionRoot() . 'custom' . DS . $moduleName . DS;
             if(is_dir($modulePath) and (file_exists($modulePath . 'control.php') or file_exists($modulePath . 'model.php'))) return $modulePath;
 
@@ -1627,7 +1710,7 @@ class baseRouter
             $modulePath = $this->getExtensionRoot() . 'xuan' . DS . $moduleName . DS;
             if(is_dir($modulePath) and (file_exists($modulePath . 'control.php') or file_exists($modulePath . 'model.php'))) return $modulePath;
 
-            /* 5. 如果通用版本里有此模块，优先使用。 If module is in the open edition, use it. */
+            /* 5. 使用通用版本里的模块。 If module is in the open edition, use it. */
             return $this->getModuleRoot($appName) . $moduleName . DS;
         }
     }
@@ -1645,7 +1728,7 @@ class baseRouter
      * @access  public
      * @return  string the extension path.
      */
-    public function getModuleExtPath(string $appName, string $moduleName, string $ext)
+    public function getModuleExtPath($moduleName, $ext)
     {
         $saasExtPath = $this->getExtensionRoot() . 'saas' . DS . $moduleName . DS . 'ext' . DS . $ext . DS;
 
@@ -1680,7 +1763,7 @@ class baseRouter
      * @access public
      * @return bool
      */
-    public function checkModuleName(string $var, bool $exit = true)
+    public function checkModuleName($var, $exit = true)
     {
         global $filter;
         static $checkedModule = array();
@@ -1692,6 +1775,7 @@ class baseRouter
         }
         if($checkedModule[$var]) return true;
         if(!$exit) return false;
+        if(!$var) return false;
         $this->triggerError("'$var' illegal. ", __FILE__, __LINE__, $exit = true);
     }
 
@@ -1703,7 +1787,7 @@ class baseRouter
      * @access public
      * @return bool
      */
-    public function checkMethodName(string $var, bool $exit = true)
+    public function checkMethodName($var, $exit = true)
     {
         global $filter;
         $rule = $filter->default->methodName;
@@ -1722,7 +1806,7 @@ class baseRouter
      */
     public function setActionExtFile()
     {
-        $moduleExtPaths = $this->getModuleExtPath('', $this->moduleName, 'control');
+        $moduleExtPaths = $this->getModuleExtPath($this->moduleName, 'control');
 
         /* 如果扩展目录为空，不包含任何扩展文件。If there's no ext paths return false.*/
         if(empty($moduleExtPaths)) return false;
@@ -1766,7 +1850,7 @@ class baseRouter
      */
     public function checkAPIFile()
     {
-        $moduleExtPaths = $this->getModuleExtPath('', $this->moduleName, 'control');
+        $moduleExtPaths = $this->getModuleExtPath($this->moduleName, 'control');
 
         /* 如果扩展目录为空，不包含任何扩展文件。If there's no ext paths return false.*/
         if(empty($moduleExtPaths)) return false;
@@ -1798,7 +1882,7 @@ class baseRouter
      * @access public
      * @return string the model file
      */
-    public function setModelFile(string $moduleName, string $appName = '')
+    public function setModelFile($moduleName, $appName = '')
     {
         return $this->setTargetFile($moduleName, $appName);
     }
@@ -1813,7 +1897,7 @@ class baseRouter
      * @access public
      * @return string the target file
      */
-    public function setTargetFile(string $moduleName, string $appName = '', string $class = 'model')
+    public function setTargetFile($moduleName, $appName = '', $class = 'model')
     {
         if($appName == '') $appName = $this->getAppName();
 
@@ -1827,7 +1911,7 @@ class baseRouter
         $apiFiles      = array();
         $siteExtended  = false;
 
-        $targetExtPaths = $this->getModuleExtPath($appName, $moduleName, $class);
+        $targetExtPaths = $this->getModuleExtPath($moduleName, $class);
         foreach($targetExtPaths as $extType => $targetExtPath)
         {
             if(empty($targetExtPath)) continue;
@@ -1846,7 +1930,8 @@ class baseRouter
         if(empty($extFiles) and empty($hookFiles) and empty($apiFiles)) return $mainTargetFile;
 
         /* 计算合并之后的targetFile路径。Compute the merged target file path. */
-        $extTargetPrefix = $this->config->edition . DS . $this->config->vision . DS;
+        $runMode = PHP_SAPI == 'cli' ? '_cli' : '';
+        $extTargetPrefix = $this->config->edition . $runMode . DS . $this->config->vision . DS;
         if($siteExtended and !empty($this->siteCode)) $extTargetPrefix .= $this->siteCode[0] . DS . $this->siteCode;
 
         $mergedTargetDir  = $this->getTmpRoot() . $class . DS . $extTargetPrefix;
@@ -1870,12 +1955,12 @@ class baseRouter
      * @param  array     $extFiles
      * @param  array     $hookFiles
      * @param  array     $apiFiles
-     * @param  array     $targetExtPaths
+     * @param  string    $targetExtPaths
      * @param  string    $mainTargetFile
      * @access public
      * @return bool
      */
-    public function needTargetFileUpdate(string $mergedTargetFile, array $extFiles, array $hookFiles, array $apiFiles, array $targetExtPaths, string $mainTargetFile)
+    public function needTargetFileUpdate($mergedTargetFile, $extFiles, $hookFiles, $apiFiles, $targetExtPaths, $mainTargetFile)
     {
         $lastTime = file_exists($mergedTargetFile) ? filemtime($mergedTargetFile) : 0;
 
@@ -1911,7 +1996,7 @@ class baseRouter
      * @access public
      * @return void
      */
-    public function mergeTargetExtFiles(string $moduleName, array $extFiles, string $mergedTargetDir, string $class = 'model')
+    public function mergeTargetExtFiles($moduleName, $extFiles, $mergedTargetDir, $class = 'model')
     {
         /* 设置类名。Set the class names. */
         $targetClass    = $moduleName . ucfirst($class);
@@ -1925,7 +2010,7 @@ class baseRouter
 
         /* 将扩展文件的代码合并到代码中。Cycle all the extension files and merge them into target lines. */
         $extTargets = array();
-        foreach($extFiles  as $extFile)  $extTargets[basename((string) $extFile)] = $extFile;
+        foreach($extFiles  as $extFile)  $extTargets[basename($extFile)] = $extFile;
         foreach($extTargets as $extTarget) $targetLines .= self::removePHPTAG($extTarget);
 
         /* 做个标记，方便后面替换代码使用。Make a mark for replacing codes. */
@@ -1957,7 +2042,7 @@ class baseRouter
      * @access public
      * @return void
      */
-    public function mergeTargetHookFiles(string $moduleName, string $mainTargetFile, string $targetLines, array $hookFiles, string $mergedTargetDir, string $mergedTargetFile, array $apiFiles, string $class = 'model')
+    public function mergeTargetHookFiles($moduleName, $mainTargetFile, $targetLines, $hookFiles, $mergedTargetDir, $mergedTargetFile, $apiFiles, $class = 'model')
     {
         /* 定义相关变量。Init vars. */
         $targetClass    = $moduleName . ucfirst($class);
@@ -1971,8 +2056,8 @@ class baseRouter
         foreach($apiFiles as $apiFile)
         {
             /* 通过文件名获得其对应的方法名。Get methods according it's filename. */
-            $fileName = baseName((string) $apiFile);
-            [$method] = explode('.', $fileName);
+            $fileName = baseName($apiFile);
+            list($method) = explode('.', $fileName);
 
             $url = self::extractAPIURL($apiFile);
             if($url) $hookCodes[$method][] = "return helper::requestAPI('$url');";
@@ -1980,15 +2065,19 @@ class baseRouter
         foreach($hookFiles as $hookFile)
         {
             /* 通过文件名获得其对应的方法名。Get methods according it's filename. */
-            $fileName = baseName((string) $hookFile);
-            [$method] = explode('.', $fileName);
+            $fileName = baseName($hookFile);
+            list($method) = explode('.', $fileName);
             $hookCodes[$method][] = self::removePHPTAG($hookFile);
         }
 
         /* 合并Hook文件。Cycle the hook methods and merge hook codes. */
-        $hookedMethods    = array_keys($hookCodes);
+        $hookedMethods     = array_keys($hookCodes);
         $mainTargetCodes   = file($mainTargetFile);
         $mergedTargetCodes = file($tmpTargetFile);
+
+        /* 如果已经合并，不需要再合并了。 If merged by other thread, return directly. */
+        if(!$mergedTargetCodes) return;
+
         foreach($hookedMethods as $method)
         {
             /* 通过反射获得hook脚本对应的方法所在的文件和起止行数。Reflection the hooked method to get it's defined position. */
@@ -2022,11 +2111,10 @@ class baseRouter
      * @access public
      * @return string
      */
-    static public function removePHPTAG(string $fileName): string
+    static public function removePHPTAG($fileName)
     {
         $code = trim(file_get_contents($fileName));
-        if(str_starts_with($code, '<?php declare(strict_types=1);'))     $code = ltrim($code, '<?php declare(strict_types=1);');
-        if(str_starts_with($code, '<?php'))     $code = ltrim($code, '<?php');
+        if(strpos($code, '<?php') === 0)     $code = ltrim($code, '<?php');
         if(strrpos($code, '?' . '>')   !== false) $code = rtrim($code, '?' . '>');
         return trim($code);
     }
@@ -2039,7 +2127,7 @@ class baseRouter
      * @access public
      * @return string
      */
-    static public function extractAPIURL(string $fileName): string
+    static public function extractAPIURL($fileName)
     {
         global $config;
 
@@ -2047,7 +2135,7 @@ class baseRouter
         $lines = file($fileName);
         foreach($lines as $line)
         {
-            $line = trim((string) $line);
+            $line = trim($line);
 
             if(empty($line)) continue;
             if(preg_match('/^https?\:\/\//', $line))
@@ -2067,10 +2155,8 @@ class baseRouter
      * @access public
      * @return void
      */
-    public function sendAPI(string $apiFile)
+    public function sendAPI($apiFile)
     {
-        $css = null;
-        $js = null;
         $extension = substr($apiFile, strrpos($apiFile, '.') + 1);
         if($extension != '302' and $extension != 'api') return false;
 
@@ -2078,7 +2164,7 @@ class baseRouter
         $url   = '';
         foreach($lines as $line)
         {
-            $line = trim((string) $line);
+            $line = trim($line);
 
             if(empty($line)) continue;
             if(preg_match('/^https?\:\/\//', $line))
@@ -2089,7 +2175,7 @@ class baseRouter
         }
         if(empty($url)) return false;
 
-        $url .= (str_contains($url, '?') ? '&' : '?') . $this->config->sessionVar . '=' . session_id() . '&account=' . $_SESSION['user']->account;
+        $url .= (strpos($url, '?') !== false ? '&' : '?') . $this->config->sessionVar . '=' . session_id() . '&account=' . $_SESSION['user']->account;
         if($extension == '302')
         {
             header("location: $url");
@@ -2143,7 +2229,7 @@ class baseRouter
              * 根据$requestFix分割符，分割网址。
              * There's the request separator, split the URI by it.
              **/
-            if(str_contains($this->URI, (string) $this->config->requestFix))
+            if(strpos($this->URI, $this->config->requestFix) !== false)
             {
                 $items = explode($this->config->requestFix, $this->URI);
                 $this->setModuleName($items[0]);
@@ -2183,8 +2269,8 @@ class baseRouter
      */
     public function setRouteByGET()
     {
-        $moduleName = isset($_GET[$this->config->moduleVar]) ? strtolower((string) $_GET[$this->config->moduleVar]) : $this->config->default->module;
-        $methodName = isset($_GET[$this->config->methodVar]) ? strtolower((string) $_GET[$this->config->methodVar]) : $this->config->default->method;
+        $moduleName = isset($_GET[$this->config->moduleVar]) ? strtolower($_GET[$this->config->moduleVar]) : $this->config->default->module;
+        $methodName = isset($_GET[$this->config->methodVar]) ? strtolower($_GET[$this->config->methodVar]) : $this->config->default->method;
         $this->setModuleName($moduleName);
         $this->setMethodName($methodName);
         $this->setControlFile();
@@ -2209,19 +2295,62 @@ class baseRouter
     public function loadModule()
     {
         try {
-            if(is_null($this->params) and !$this->setParams()) return false;
+            if(is_null($this->params) and !$this->setParams())
+            {
+                $this->outputXhprof();
+                return false;
+            }
 
             /* 调用该方法   Call the method. */
             $module = $this->control;
 
             call_user_func_array(array($module, $this->methodName), $this->params);
             $this->checkAPIFile();
+            $this->outputXhprof();
             return $module;
         } catch (EndResponseException $endResponseException) {
             echo $endResponseException->getContent();
+            return false;
         }
 
-        return $module ?? false;
+        return isset($module) ? $module : false;
+    }
+
+    /**
+     * 输出内容。
+     * Output the content.
+     *
+     * @return string
+     */
+    public function outputPage()
+    {
+        $cacheEnable = $this->config->cache->enableFullPage;
+        /* If caching is not turned on, pages that do not need to be cached, or when searching, they are not cached. */
+        if(!$cacheEnable || !in_array("{$this->moduleName}|{$this->methodName}", $this->config->cache->fullPages) || stripos($this->server->request_uri, 'search') !== false || isset($_GET['_nocache']) || $this->server->http_x_zt_refresh)
+        {
+            $this->loadModule();
+            return helper::removeUTF8Bom(ob_get_clean());
+        }
+
+        $this->loadClass('cache', $static = true);
+        $cacheKey  = md5($this->server->request_uri);
+        $namespace = isset($this->session->user->account) ? $this->session->user->account : 'guest';
+        $cache     = cache::create($this->config->cache->fullPageDriver, $namespace, $this->config->cache->fullPageLifetime);
+
+        if($cache->has($cacheKey))
+        {
+            if(!headers_sent()) header('X-Zt-Hit-Cache: 1');
+            $content = $cache->get($cacheKey);
+        }
+        else
+        {
+            ob_start();
+            $result  = $this->loadModule();
+            $content = helper::removeUTF8Bom(ob_get_clean());
+            /* If the module is loaded successfully, cache the content. */
+            if($result !== false) $cache->set($cacheKey, $content);
+        }
+        return $content;
     }
 
     /**
@@ -2234,7 +2363,7 @@ class baseRouter
      * @access public
      * @return object|bool 如果没有model文件，返回false，否则返回model对象。If no model file, return false, else return the model object.
      */
-    public function loadTarget(string $moduleName = '', string $appName = '', string $class = 'model'): object|bool
+    public function loadTarget($moduleName = '', $appName = '', $class = 'model')
     {
         if(empty($moduleName)) $moduleName = $this->moduleName;
         if(empty($appName)) $appName = $this->appName;
@@ -2284,7 +2413,7 @@ class baseRouter
      * @access  public
      * @return  void
      */
-    public function setParamsByPathInfo(array $defaultParams = array(), string $type = '')
+    public function setParamsByPathInfo($defaultParams = array(), $type = '')
     {
         $params = array();
         if($type != 'fetch')
@@ -2319,7 +2448,7 @@ class baseRouter
      * @access  public
      * @return  void
      */
-    public function setParamsByGET(array $defaultParams, string $type = '')
+    public function setParamsByGET($defaultParams, $type = '')
     {
         $params = array();
         if($type != 'fetch')
@@ -2348,7 +2477,7 @@ class baseRouter
      * @access  public
      * @return  array the merged params.
      */
-    public function mergeParams(array $defaultParams, array $passedParams)
+    public function mergeParams($defaultParams, $passedParams)
     {
         global $filter;
 
@@ -2358,7 +2487,7 @@ class baseRouter
         unset($passedParams['HTTP_X_REQUESTED_WITH']);
 
         /* Check params from URL. */
-        $nameRule = $filter->{$this->moduleName}->{$this->methodName}->paramName ?? $filter->default->paramName;
+        $nameRule = isset($filter->{$this->moduleName}->{$this->methodName}->paramName)  ? $filter->{$this->moduleName}->{$this->methodName}->paramName  : $filter->default->paramName;
         foreach($passedParams as $param => $value)
         {
             if(!validater::checkByRule($param, $nameRule)) die('Bad Request!');
@@ -2373,15 +2502,17 @@ class baseRouter
 
         $passedParams = array_values($passedParams);
         $i = 0;
-        foreach($defaultParams as $key => $defaultValue)
+        foreach($defaultParams as $key => $defaultItem)
         {
             if(isset($passedParams[$i]))
             {
-                $defaultParams[$key] = strip_tags((string) $passedParams[$i]);
+                $defaultParams[$key] = helper::convertType(strip_tags((string) $passedParams[$i]), $defaultItem['type']);
             }
             else
             {
-                if($defaultValue === '_NOT_SET') $this->triggerError("The param '$key' should pass value. ", __FILE__, __LINE__, $exit = true);
+                if($defaultItem['default'] === '_NOT_SET') $this->triggerError("The param '$key' should pass value. ", __FILE__, __LINE__, $exit = true);
+
+                $defaultParams[$key] = $defaultItem['default'];
             }
             $i ++;
         }
@@ -2449,7 +2580,7 @@ class baseRouter
      * @access  public
      * @return  object|bool the instance of the class or just true.
      */
-    public function loadClass(string $className, bool $static = false): object|bool
+    public function loadClass($className, $static = false)
     {
         $className = strtolower($className);
 
@@ -2463,10 +2594,10 @@ class baseRouter
         if($static) return true;
 
         /* 实例化该类(Instance it) */
-        global ${$className};
+        global $$className;
         if(!class_exists($className)) $this->triggerError("the class $className not found in $classFile", __FILE__, __LINE__, $exit = true);
-        if(!is_object(${$className})) ${$className} = new $className();
-        return ${$className};
+        if(!is_object($$className)) $$className = new $className();
+        return $$className;
     }
 
     /**
@@ -2518,7 +2649,7 @@ class baseRouter
      * @access  public
      * @return  void
      */
-    public function loadModuleConfig(string $moduleName, string $appName = '')
+    public function loadModuleConfig($moduleName, $appName = '')
     {
         global $config;
 
@@ -2533,7 +2664,7 @@ class baseRouter
         foreach($configFiles as $configFile)
         {
             if(in_array($configFile, $loadedConfigs)) continue;
-            if(is_string($configFile) && file_exists($configFile)) include $configFile;
+            if(file_exists($configFile)) include $configFile;
             $loadedConfigs[] = $configFile;
         }
 
@@ -2553,7 +2684,7 @@ class baseRouter
      * @access public
      * @return void
      */
-    public  function mergeConfig(array $dbConfig, string $moduleName = 'common')
+    public  function mergeConfig($dbConfig, $moduleName = 'common')
     {
         global $config;
 
@@ -2602,7 +2733,7 @@ class baseRouter
         $view->URAndSR       = zget($this->config->custom, 'URAndSR', '0');
         $view->maxUploadSize = strtoupper(ini_get('upload_max_filesize'));
 
-        $this->session->set('random', random_int(0, 10000));
+        $this->session->set('random', mt_rand(0, 10000));
         $view->sessionName = session_name();
         $view->sessionID   = session_id();
         $view->random      = $this->session->random;
@@ -2621,7 +2752,7 @@ class baseRouter
      * @access  public
      * @return  string.
      */
-    private function getMainLangFile(string $moduleName, string $appName = '')
+    private function getMainLangFile($moduleName, $appName = '')
     {
         $path = $moduleName . DS . 'lang' . DS . $this->clientLang . '.php';
 
@@ -2666,7 +2797,7 @@ class baseRouter
      * @access  public
      * @return  bool|object the lang object or false.
      */
-    public function loadLang(string $moduleName, string $appName = ''): bool|object
+    public function loadLang($moduleName, $appName = '')
     {
         /* 计算最终要加载的语言文件。 Get the lang files to be loaded. */
         $langFilesToLoad = $this->getMainAndExtFiles($moduleName, $appName, 'lang');
@@ -2701,27 +2832,70 @@ class baseRouter
         global $config, $dbh, $slaveDBH;
         if(!isset($config->installed) or !$config->installed) return;
 
-        if(isset($config->db->host))      $this->dbh      = $dbh      = $this->connectByPDO($config->db);
-        if(isset($config->slaveDB->host)) $this->slaveDBH = $slaveDBH = $this->connectByPDO($config->slaveDB);
+        /* Set master db. */
+        if(isset($config->db->host)) $this->dbh = $dbh = $this->connectByPDO($config->db, 'MASTER');
+
+        /* Set slave db. */
+        if(empty($config->slaveDBList)) return;
+
+        $biIndex   = 0;
+        $slaveList = array();
+        foreach($config->slaveDBList as $index => $db)
+        {
+            if(isset($db->type) && $db->type == 'bi')
+            {
+                $biIndex = $index;
+            }
+            else
+            {
+                $slaveList[] = $index;
+            }
+        }
+        $slaveIndex = empty($slaveList) ? $biIndex : $slaveList[array_rand($slaveList)];
+
+        $config->biDB   = $this->initSlaveDB($biIndex);
+        $this->slaveDBH = $slaveDBH = $this->connectByPDO($this->initSlaveDB($slaveIndex), 'SLAVE');
+    }
+
+    /**
+     * Init config of slave db.
+     *
+     * @param  int     $slaveIndex
+     * @access private
+     * @return object
+     */
+    private function initSlaveDB($slaveIndex = 0)
+    {
+        global $config;
+
+        $slaveDB             = $config->slaveDBList[$slaveIndex];
+        $slaveDB->persistant = $config->db->persistant;
+        $slaveDB->driver     = $config->db->driver;
+        $slaveDB->encoding   = $config->db->encoding;
+        $slaveDB->strictMode = $config->db->strictMode;
+        $slaveDB->prefix     = $config->db->prefix;
+
+        return $slaveDB;
     }
 
     /**
      * 使用PDO连接数据库。
      * Connect database by PDO.
      *
-     * @param  object    $params    the database params.
+     * @param  object $params    the database params.
+     * @param  string $flag      the database flag.
      * @access public
+     * @return object|bool
      */
-    public function connectByPDO(object $params): object|bool
+    public function connectByPDO($params, $flag = 'MASTER')
     {
-        $dsn = null;
         if(!isset($params->driver)) self::triggerError('no pdo driver defined, it should be mysql or sqlite', __FILE__, __LINE__, $exit = true);
         if(!isset($params->user)) return false;
         try
         {
             $dbPassword = helper::decryptPassword($params->password);
 
-            $dbh = new dbh($params);
+            $dbh = new dbh($params, true, $flag);
             $dbh->exec("SET NAMES {$params->encoding}");
 
             /*
@@ -2735,6 +2909,7 @@ class baseRouter
 
             $dbh->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
             $dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $dbh->setAttribute(PDO::ATTR_ORACLE_NULLS, PDO::NULL_TO_STRING);
             if(isset($params->strictMode) and $params->strictMode == false) $dbh->exec("SET @@sql_mode= ''");
             if(isset($params->emulatePrepare)) $dbh->setAttribute(PDO::ATTR_EMULATE_PREPARES, $params->emulatePrepare);
             if(isset($params->bufferQuery))    $dbh->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, $params->bufferQuery);
@@ -2752,6 +2927,21 @@ class baseRouter
             }
             self::triggerError($message, __FILE__, __LINE__, $exit = true);
         }
+    }
+
+    /**
+     * Query from database, use master or slave db.
+     *
+     * @param  string $query
+     * @access public
+     * @return mixed
+     */
+    public function dbQuery($query)
+    {
+        if(!$this->dbh) return false;
+        if($this->slaveDBH && strtolower(substr($query, 0, 6)) == 'select') return $this->slaveDBH->query($query);
+
+        return $this->dbh->query($query);
     }
 
     //-------------------- 错误处理方法(Error methods) ------------------//
@@ -2788,9 +2978,8 @@ class baseRouter
      * @access public
      * @return void
      */
-    public function triggerError(string $message, string $file, int $line, bool $exit = false)
+    public function triggerError($message, $file, $line, $exit = false)
     {
-        $function = null;
         /* 设置错误信息(Set the error info) */
         $message = htmlSpecialString($message);
         if(preg_match('/[^\x00-\x80]/', $message)) $message = helper::convertEncoding($message, 'gbk');
@@ -2833,7 +3022,7 @@ class baseRouter
          * 删除设定时间之前的日志。
          * Delete the log before the set time.
          **/
-        if(random_int(0, 10) == 1)
+        if(mt_rand(0, 10) == 1)
         {
             $logDays = $this->config->framework->logDays ?? 14;
             $dayTime = time() - $logDays * 24 * 3600;
@@ -2847,7 +3036,7 @@ class baseRouter
          * 忽略该错误：Redefining already defined constructor。
          * Skip the error: Redefining already defined constructor.
          **/
-        if(str_contains($message, 'Redefining')) return true;
+        if(mb_strpos($message, 'Redefining') !== false) return true;
 
         /*
          * 设置错误信息。
@@ -2856,8 +3045,8 @@ class baseRouter
         if(preg_match('/[^\x00-\x80]/', $message)) $message = helper::convertEncoding($message, 'gbk');
         $errorLog  = "\n" . date('H:i:s') . " $message in <strong>$file</strong> on line <strong>$line</strong> ";
 
-        $URI = $this->getURI();
-        $errorLog .= "when visiting <strong>" . (empty($URI) ? '' : htmlspecialchars($URI)) . "</strong>\n";
+        $uri = $this->getURI();
+        $errorLog .= "when visiting <strong>" . (empty($uri) ? '' : htmlspecialchars($uri)) . "</strong>\n";
 
         /*
          * 为了安全起见，对公网环境隐藏脚本路径。
@@ -2870,33 +3059,36 @@ class baseRouter
         }
 
         /* 保存到日志文件(Save to log file) */
-        $errorFile = $this->logRoot . 'php.' . date('Ymd') . '.log.php';
+        $runMode = PHP_SAPI == 'cli' ? '_cli' : '';
+        $errorFile = $this->logRoot . "php$runMode." . date('Ymd') . '.log.php';
         if(!is_file($errorFile)) file_put_contents($errorFile, "<?php\n die();\n?" . ">\n");
 
         $fh = fopen($errorFile, 'a');
-        if($fh) fwrite($fh, strip_tags($errorLog)) and fclose($fh);
+        if($fh) fwrite($fh, strip_tags(htmlspecialchars_decode($errorLog))) and fclose($fh);
 
         /*
-         * 如果debug > 1，显示warning, notice级别的错误。
-         * If the debug > 1, show warning, notice error.
+         * 如果debug > 1，直接在页面显示非严重错误。
+         * If the debug > 1, show non-serious errors on page directly.
          **/
-        if($level == E_NOTICE or $level == E_WARNING or $level == E_STRICT or $level == 8192) // 8192: E_DEPRECATED
+        if(!empty($this->config->debug) && $this->config->debug > 1)
         {
-            if(!empty($this->config->debug) and $this->config->debug > 1)
+            /* Send non-serious errors to page in zin mode. */
+            $isZinRequest      = isset($this->config->zin) || isset($_SERVER['HTTP_X_ZIN_OPTIONS']);
+            $isNonSeriousError = $level !== E_ERROR && $level !== E_PARSE && $level !== E_CORE_ERROR && $level !== E_COMPILE_ERROR;
+            if($isZinRequest && $isNonSeriousError)
             {
-                if(isset($this->config->zin) || isset($_SERVER['HTTP_X_ZIN_OPTIONS']))
-                {
-                    if(!isset($this->zinErrors)) $this->zinErrors = [];
-                    $this->zinErrors[] = ['file' => $file, 'line' => $line, 'message' => $message];
-                }
-                else
-                {
-                    $cmd  = "vim +$line $file";
-                    $size = strlen($cmd);
+                $this->zinErrors[] = array('file' => $file, 'line' => $line, 'message' => $message, 'level' => $level);
+                return;
+            }
 
-                    echo "<pre class='alert alert-danger'>$message: ";
-                    echo "<input type='text' value='$cmd' size='$size' style='border:none; background:none;' onclick='this.select();' /></pre>";
-                }
+            /* Show non-serious errors to classic page. */
+            if($level == E_NOTICE or $level == E_WARNING or $level == E_STRICT or $level == 8192)
+            {
+                $cmd  = "vim +$line $file";
+                $size = strlen($cmd);
+
+                echo "<pre class='alert alert-danger'>$message: ";
+                echo "<input type='text' value='$cmd' size='$size' style='border:none; background:none;' onclick='this.select();' /></pre>";
             }
         }
 
@@ -2904,14 +3096,21 @@ class baseRouter
          * 如果是严重错误，停止程序。
          * If error level is serious, die.
          * */
-        if($level == E_ERROR or $level == E_PARSE or $level == E_CORE_ERROR or $level == E_COMPILE_ERROR or $level == E_USER_ERROR)
+        if(in_array($level, array(E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR)))
         {
-            if(empty($this->config->debug)) die();
-            if(PHP_SAPI == 'cli') die($errorLog);
+            if(empty($this->config->debug)) helper::end();
 
-            $htmlError  = "<html><head><meta http-equiv='Content-Type' content='text/html; charset=utf-8' /></head>";
-            $htmlError .= "<body>" . nl2br($errorLog) . "</body></html>";
-            die($htmlError);
+            if(PHP_SAPI == 'cli')
+            {
+                echo $errorLog;
+            }
+            else
+            {
+                $htmlError  = "<html><head><meta http-equiv='Content-Type' content='text/html; charset=utf-8' /></head>";
+                $htmlError .= "<body>" . nl2br($errorLog) . "</body></html>";
+                echo $htmlError;
+                helper::end();
+            }
         }
     }
 
@@ -2927,7 +3126,8 @@ class baseRouter
         if(!$this->config->debug) return true;
         if(!class_exists('dao')) return;
 
-        $sqlLog = $this->getLogRoot() . 'sql.' . date('Ymd') . '.log.php';
+        $runMode = PHP_SAPI == 'cli' ? '_cli' : '';
+        $sqlLog = $this->getLogRoot() . "sql$runMode." . date('Ymd') . '.log.php';
         if(!is_file($sqlLog)) file_put_contents($sqlLog, "<?php\n die();\n?" . ">\n");
 
         $fh = @fopen($sqlLog, 'a');
@@ -2944,9 +3144,31 @@ class baseRouter
      * @access public
      * @return bool
      */
-    public function isContainer(): bool
+    public function isContainer()
     {
         return strtolower(getenv('IS_CONTAINER')) == 'true';
+    }
+
+    /**
+     * Check app if it can be upgraded automatically.
+     *
+     * @access public
+     * @return bool
+     */
+    public function canAutoUpgrade()
+    {
+        return strtolower(getenv('ZT_AUTO_UPGRADE')) == 'true';
+    }
+
+    /**
+     * Check app if it need check safe file.
+     *
+     * @access public
+     * @return bool
+     */
+    public function hasValidSafeFile()
+    {
+        return strtolower(getenv('ZT_CHECK_SAFE_FILE')) == 'true';
     }
 
     /**
@@ -2958,9 +3180,8 @@ class baseRouter
      * @access public
      * @return array
      */
-    public function getMainAndExtFiles(string $moduleName, string $appName = '', string $type = 'lang')
+    public function getMainAndExtFiles($moduleName, $appName = '', $type = 'lang')
     {
-        $clientLang = null;
         /* 初始化变量。Init vars. */
         $modulePath  = $this->getModulePath($appName, $moduleName);
         $extFiles    = array();
@@ -2977,18 +3198,13 @@ class baseRouter
         }
         if($mainFile) $filesToLoad[] = $mainFile;
 
-        if($type == 'config')
-        {
-            $filesToLoad[] = helper::ls($modulePath . DS . 'config', '.php');
-        }
-
         /* 获取扩展文件。If extensionLevel > 0, get extension files. */
         if($this->config->framework->extensionLevel > 0)
         {
             $commonExtFiles = array();
             $siteExtFiles   = array();
 
-            $extPath = $this->getModuleExtPath($appName, $moduleName, $type);
+            $extPath = $this->getModuleExtPath($moduleName, $type);
             if($this->config->framework->extensionLevel >= 1)
             {
                 $clientLang = $type == 'lang' ? $this->clientLang : '';
@@ -3031,7 +3247,7 @@ class config
      * @access  public
      * @return  void
      */
-    public function set(string $key, $value)
+    public function set($key, $value)
     {
         helper::setMember('config', $key, $value);
     }
@@ -3060,7 +3276,7 @@ class language
      * @access  public
      * @return  void
      */
-    public function set(string $key, $value)
+    public function set($key, $value)
     {
         helper::setMember('lang', $key, $value);
     }
@@ -3074,10 +3290,10 @@ class language
      * @access  public
      * @return  void
      */
-    public function show(object $obj, string $key)
+    public function show($obj, $key)
     {
         $obj = (array)$obj;
-        echo $obj[$key] ?? '';
+        echo isset($obj[$key]) ? $obj[$key] : '';
     }
 }
 
@@ -3097,7 +3313,7 @@ class super
      * @access  public
      * @return  void
      */
-    public function __construct(string $scope, string $tab = '')
+    public function __construct($scope, $tab = '')
     {
         $this->scope = $scope;
         $this->tab   = $tab;
@@ -3113,7 +3329,7 @@ class super
      * @access  public
      * @return  void
      */
-    public function set(string $key, $value, string $tab = '')
+    public function set($key, $value, $tab = '')
     {
         if($this->scope == 'post')
         {
@@ -3154,7 +3370,7 @@ class super
      * @access public
      * @return mixed|bool     return the value of the key or false.
      */
-    public function __get(string $key)
+    public function __get($key)
     {
         if($this->scope == 'post')
         {
@@ -3261,6 +3477,7 @@ class EndResponseException extends \Exception
 class ztSessionHandler
 {
     public $sessSavePath;
+    public $tagID;
     public $sessionFile;
     public $sessionID;
     public $rawID;
@@ -3273,8 +3490,9 @@ class ztSessionHandler
      * @access public
      * @return void
      */
-    public function __construct(public string $tagID = '')
+    public function __construct($tagID = '')
     {
+        $this->tagID = $tagID;
         ini_set('session.save_handler', 'files');
         register_shutdown_function('session_write_close');
     }
@@ -3297,9 +3515,10 @@ class ztSessionHandler
      * @access public
      * @return string
      */
-    public function getSessionFile(string $id): string
+    public function getSessionFile($id)
     {
-        if(!empty($this->sessionFile)) return $this->sessionFile;
+        if(!empty($this->sessionFile))  return $this->sessionFile;
+        if(!preg_match('/^\w+$/', $id)) return false;
 
         $sessionID = $id;
         if($this->tagID) $sessionID = md5($id . $this->tagID);
@@ -3322,7 +3541,7 @@ class ztSessionHandler
      * @return bool
      */
     #[\ReturnTypeWillChange]
-    public function open(string $savePath, string $sessionName): bool
+    public function open($savePath, $sessionName)
     {
         $this->sessSavePath = $savePath;
         return true;
@@ -3335,7 +3554,7 @@ class ztSessionHandler
      * @return bool
      */
     #[\ReturnTypeWillChange]
-    public function close(): bool
+    public function close()
     {
         return true;
     }
@@ -3345,12 +3564,13 @@ class ztSessionHandler
      *
      * @param  string    $id
      * @access public
-     * @return string
+     * @return bool
      */
     #[\ReturnTypeWillChange]
-    public function read(string $id): string
+    public function read($id)
     {
         $sessFile = $this->getSessionFile($id);
+        if(!$sessFile) return false;
         if(!file_exists($sessFile))
         {
             ($this->tagID and file_exists($this->rawFile)) ? copy($this->rawFile, $sessFile) : touch($sessFile);
@@ -3368,19 +3588,21 @@ class ztSessionHandler
      * @return bool
      */
     #[\ReturnTypeWillChange]
-    public function write(string $id, string $sessData): bool
+    public function write($id, $sessData)
     {
         $sessFile = $this->getSessionFile($id);
+        if(!$sessFile) return false;
+
         touch($sessFile);
         touch($this->rawFile);
         if(md5_file($sessFile) == md5($sessData)) return true;
 
         if(file_put_contents($sessFile, $sessData, LOCK_EX))
         {
-            if(str_contains($sessData, 'user|'))
+            if(strpos($sessData, 'user|') !== false)
             {
                 $rawSessContent = (string) file_get_contents($this->rawFile, false, null, 0, 1024 * 2);
-                if(!str_contains($rawSessContent, 'user|')) file_put_contents($this->rawFile, $sessData, LOCK_EX);
+                if(strpos($rawSessContent, 'user|') === false) file_put_contents($this->rawFile, $sessData, LOCK_EX);
             }
 
             return true;
@@ -3396,7 +3618,7 @@ class ztSessionHandler
      * @return bool
      */
     #[\ReturnTypeWillChange]
-    public function destroy(string $id): bool
+    public function destroy($id)
     {
         $sessFile = $this->getSessionFile($id);
         if(file_exists($sessFile)) unlink($sessFile);
@@ -3414,7 +3636,7 @@ class ztSessionHandler
      * @return bool
      */
     #[\ReturnTypeWillChange]
-    public function gc(int $maxlifeTime): bool
+    public function gc($maxlifeTime)
     {
         $time = time();
         foreach(glob("$this->sessSavePath/sess_*") as $fileName)

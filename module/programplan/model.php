@@ -58,9 +58,9 @@ class programplanModel extends model
         $plans = $this->dao->select('t1.*')->from(TABLE_EXECUTION)->alias('t1')
             ->leftJoin(TABLE_PROJECTPRODUCT)->alias('t2')->on('t1.id = t2.project')
             ->where('1 = 1')
-            ->beginIF($projectModel != 'waterfallplus')->andWhere('t1.type')->eq('stage')->fi()
+            ->beginIF(!in_array($projectModel, array('waterfallplus', 'ipd')))->andWhere('t1.type')->eq('stage')->fi()
             ->beginIF($productID)->andWhere('t2.product')->eq($productID)->fi()
-            ->beginIF($browseType == 'all')->andWhere('t1.project')->eq($executionID)->fi()
+            ->beginIF($browseType == 'all' || $browseType == 'leaf')->andWhere('t1.project')->eq($executionID)->fi()
             ->beginIF($browseType == 'parent')->andWhere('t1.parent')->eq($executionID)->fi()
             ->beginIF(!$this->app->user->admin)->andWhere('t1.id')->in($this->app->user->view->sprints)->fi()
             ->andWhere('t1.deleted')->eq('0')
@@ -152,7 +152,7 @@ class programplanModel extends model
     /**
      * Get gantt data.
      *
-     * @param  int     $executionID
+     * @param  int     $projectID
      * @param  int     $productID
      * @param  int     $baselineID
      * @param  string  $selectCustom
@@ -160,12 +160,12 @@ class programplanModel extends model
      * @access public
      * @return string
      */
-    public function getDataForGantt($executionID, $productID, $baselineID = 0, $selectCustom = '', $returnJson = true)
+    public function getDataForGantt($projectID, $productID, $baselineID = 0, $selectCustom = '', $returnJson = true)
     {
         $this->loadModel('stage');
         $this->loadModel('execution');
 
-        $plans = $this->getStage($executionID, $productID, 'all', 'order');
+        $plans = $this->getStage($projectID, $productID, 'all', 'order');
         if($baselineID)
         {
             $baseline = $this->loadModel('cm')->getByID($baselineID);
@@ -182,14 +182,24 @@ class programplanModel extends model
             }
         }
 
-        $today       = helper::today();
-        $datas       = array();
-        $planIdList  = array();
-        $isMilestone = "<icon class='icon icon-flag icon-sm red'></icon> ";
-        $stageIndex  = array();
+        $project        = $this->loadModel('project')->getByID($projectID);
+        $today          = helper::today();
+        $datas          = array();
+        $planIdList     = array();
+        $isMilestone    = "<icon class='icon icon-flag icon-sm red'></icon> ";
+        $stageIndex     = array();
+        $reviewDeadline = array();
+
+        foreach($plans as $plan)
+        {
+            $plan->isParent = false;
+            if(isset($plans[$plan->parent])) $plans[$plan->parent]->isParent = true;
+        }
+
         foreach($plans as $plan)
         {
             $planIdList[$plan->id] = $plan->id;
+            $reviewDeadline[$plan->id]['stageEnd'] = $plan->end;
 
             $start     = helper::isZeroDate($plan->begin) ? '' : $plan->begin;
             $end       = helper::isZeroDate($plan->end)   ? '' : $plan->end;
@@ -210,10 +220,11 @@ class programplanModel extends model
             $data->deadline      = $end;
             $data->realBegan     = $realBegan ? substr($realBegan, 0, 10) : '';
             $data->realEnd       = $realEnd ? substr($realEnd, 0, 10) : '';;
-            $data->parent        = $plan->grade == 1 ? 0 :$plan->parent;
+            $data->parent        = $plan->grade == 1 ? 0 : $plan->parent;
+            $data->isParent      = $plan->isParent;
             $data->open          = true;
-            $data->start_date    = $realBegan ? $realBegan : $start;
-            $data->endDate       = $realEnd ? $realEnd : $end;
+            $data->start_date    = $start;
+            $data->endDate       = $end;
             $data->duration      = 1;
             $data->color         = $this->lang->execution->gantt->stage->color;
             $data->progressColor = $this->lang->execution->gantt->stage->progressColor;
@@ -223,7 +234,8 @@ class programplanModel extends model
             /* Determines if the object is delay. */
             $data->delay     = $this->lang->programplan->delayList[0];
             $data->delayDays = 0;
-            if($today > $end)
+
+            if(($today > $end) and $plan->status != 'closed')
             {
                 $data->delay     = $this->lang->programplan->delayList[1];
                 $data->delayDays = helper::diffDate($today, substr($end, 0, 10));
@@ -234,7 +246,7 @@ class programplanModel extends model
             if($data->start_date == '' or $data->endDate == '') $data->duration = 1;
 
             $datas['data'][$plan->id] = $data;
-            $stageIndex[$plan->id]    = array('planID' => $plan->id, 'parent' => $plan->parent, 'progress' => array('totalEstimate' => 0, 'totalConsumed' => 0, 'totalReal' => 0));
+            $stageIndex[$plan->id] = array('planID' => $plan->id, 'parent' => $plan->parent, 'progress' => array('totalEstimate' => 0, 'totalConsumed' => 0, 'totalReal' => 0));
         }
 
         $taskPri  = "<span class='label-pri label-pri-%s' title='%s'>%s</span> ";
@@ -267,15 +279,28 @@ class programplanModel extends model
         foreach($tasks as $task)
         {
             $execution = zget($plans, $task->execution, array());
-            $priIcon   = sprintf($taskPri, $task->pri, $task->pri, $task->pri);
+            $pri       = zget($this->lang->task->priList, $task->pri);
+            $pri       = mb_substr($pri, 0, 1, 'UTF-8');
+            $priIcon   = sprintf($taskPri, $task->pri, $pri, $pri);
 
             $estStart  = helper::isZeroDate($task->estStarted)  ? '' : $task->estStarted;
             $estEnd    = helper::isZeroDate($task->deadline)    ? '' : $task->deadline;
             $realBegan = helper::isZeroDate($task->realStarted) ? '' : $task->realStarted;
             $realEnd   = (in_array($task->status, array('done', 'closed')) and !helper::isZeroDate($task->finishedDate)) ? $task->finishedDate : '';
 
-            $start = $realBegan ? $realBegan : $estStart;
-            $end   = $realEnd   ? $realEnd   : $estEnd;
+            /* Get lastest task deadline. */
+            $taskExecutionID = $execution->parent ? $execution->parent : $execution->id;
+            if(isset($reviewDeadline[$taskExecutionID]['taskEnd']))
+            {
+                $reviewDeadline[$taskExecutionID]['taskEnd'] = $task->deadline > $reviewDeadline[$taskExecutionID]['taskEnd'] ? $task->deadline : $reviewDeadline[$taskExecutionID]['taskEnd'];
+            }
+            else
+            {
+                $reviewDeadline[$taskExecutionID]['taskEnd'] = $task->deadline;
+            }
+
+            $start = $estStart;
+            $end   = $estEnd;
             if(empty($start) and $execution) $start = $execution->begin;
             if(empty($end)   and $execution) $end   = $execution->end;
             if($start > $end) $end = $start;
@@ -312,10 +337,10 @@ class programplanModel extends model
             /* Determines if the object is delay. */
             $data->delay     = $this->lang->programplan->delayList[0];
             $data->delayDays = 0;
-            if($today > $end)
+            if(($today > $end) and $plan->status != 'closed')
             {
                 $data->delay     = $this->lang->programplan->delayList[1];
-                $data->delayDays = helper::diffDate($today, substr($end, 0, 10));
+                $data->delayDays = helper::diffDate(($task->status == 'done' || $task->status == 'closed') ? substr($task->finishedDate, 0, 10) : $today, substr($end, 0, 10));
             }
 
             /* If multi task then show the teams. */
@@ -338,14 +363,95 @@ class programplanModel extends model
                 {
                     $stageIndex[$index]['progress']['totalEstimate'] += $task->estimate;
                     $stageIndex[$index]['progress']['totalConsumed'] += $task->parent == '-1' ? 0 : $task->consumed;
-                    $stageIndex[$index]['progress']['totalReal']     += ($task->left + $task->consumed);
+                    $stageIndex[$index]['progress']['totalReal']     += ((($task->status == 'closed' || $task->status == 'cancel') ? 0 : $task->left) + $task->consumed);
 
                     $parent = $stage['parent'];
                     if(isset($stageIndex[$parent]))
                     {
                         $stageIndex[$parent]['progress']['totalEstimate'] += $task->estimate;
                         $stageIndex[$parent]['progress']['totalConsumed'] += $task->parent == '-1' ? 0 : $task->consumed;
-                        $stageIndex[$parent]['progress']['totalReal']     += ($task->left + $task->consumed);
+                        $stageIndex[$parent]['progress']['totalReal']     += ((($task->status == 'closed' || $task->status == 'cancel') ? 0 : $task->left) + $task->consumed);
+                    }
+                }
+            }
+        }
+
+        /* Build review points tree for ipd project. */
+        if($project->model == 'ipd' and $datas)
+        {
+            $this->loadModel('review');
+            $reviewPoints = $this->dao->select('t1.*, t2.status, t2.lastReviewedDate,t2.id as reviewID')->from(TABLE_OBJECT)->alias('t1')
+                ->leftJoin(TABLE_REVIEW)->alias('t2')->on('t1.id = t2.object')
+                ->where('t1.deleted')->eq('0')
+                ->andWhere('t1.project')->eq($projectID)
+                ->andWhere('t1.product')->eq($productID)
+                ->fetchAll('id');
+
+            foreach($datas['data'] as $plan)
+            {
+                if($plan->type != 'plan') continue;
+
+                foreach($reviewPoints as $id => $point)
+                {
+                    if(!isset($this->config->stage->ipdReviewPoint->{$plan->attribute})) continue;
+                    if(!isset($point->status)) $point->status = '';
+
+                    $categories = $this->config->stage->ipdReviewPoint->{$plan->attribute};
+                    if(in_array($point->category, $categories))
+                    {
+                        if($point->end and !helper::isZeroDate($point->end))
+                        {
+                            $end = $point->end;
+                        }
+                        else
+                        {
+                            $end = $reviewDeadline[$plan->id]['stageEnd'];
+                            if(strpos($point->category, "TR") !== false)
+                            {
+                                if(isset($reviewDeadline[$plan->id]['taskEnd']) and !helper::isZeroDate($reviewDeadline[$plan->id]['taskEnd']))
+                                {
+                                    $end = $reviewDeadline[$plan->id]['taskEnd'];
+                                }
+                                else
+                                {
+                                    $end = $this->getReviewDeadline($end);
+                                }
+                            }
+                            elseif(strpos($point->category, "DCP") !== false)
+                            {
+                                $end = $this->getReviewDeadline($end, 2);
+                            }
+                        }
+
+                        $data = new stdclass();
+                        $data->id            = $plan->id . '-' . $point->category . '-' . $point->id;
+                        $data->reviewID      = $point->reviewID;
+                        $data->type          = 'point';
+                        $data->text          = "<i class='icon-seal'></i> " . $point->title;
+                        $data->name          = $point->title;
+                        $data->attribute     = '';
+                        $data->milestone     = '';
+                        $data->owner_id      = '';
+                        $data->rawStatus     = $point->status;
+                        $data->status        = $point->status ? zget($this->lang->review->statusList, $point->status) : $this->lang->programplan->wait;
+                        $data->status        = "<span class='status-{$point->status}'>" . $data->status . '</span>';
+                        $data->begin         = $end;
+                        $data->deadline      = $end;
+                        $data->realBegan     = $point->createdDate;
+                        $data->realEnd       = $point->lastReviewedDate;;
+                        $data->parent        = $plan->id;
+                        $data->open          = true;
+                        $data->start_date    = $end;
+                        $data->endDate       = $end;
+                        $data->duration      = 1;
+                        $data->color         = isset($this->lang->programplan->reviewColorList[$point->status]) ? $this->lang->programplan->reviewColorList[$point->status] : '#FC913F';
+                        $data->progressColor = $this->lang->execution->gantt->stage->progressColor;
+                        $data->textColor     = $this->lang->execution->gantt->stage->textColor;
+                        $data->bar_height    = $this->lang->execution->gantt->bar_height;
+
+                        if($data->start_date) $data->start_date = date('d-m-Y', strtotime($data->start_date));
+
+                        if($selectCustom && strpos($selectCustom, "point") !== false && !$plan->parent) $datas['data'][$data->id] = $data;
                     }
                 }
             }
@@ -732,12 +838,14 @@ class programplanModel extends model
             if($setCode)    $plan->code    = $codes[$key];
             if($setPercent) $plan->percent = $percents[$key];
             $plan->attribute  = (empty($parentID) or $parentAttribute == 'mix') ? $attributes[$key] : $parentAttribute;
-            $plan->milestone  = $milestone[$key];
+            $plan->milestone  = $milestone[$key] ? 1 : 0;
             $plan->output     = empty($output[$key]) ? '' : implode(',', $output[$key]);
             $plan->acl        = empty($parentID) ? $acl[$key] : $parentACL;
             $plan->PM         = empty($PM[$key]) ? '' : $PM[$key];
             $plan->desc       = empty($desc[$key]) ? '' : $desc[$key];
             $plan->hasProduct = $project->hasProduct;
+            $plan->vision     = $this->config->vision;
+            $plan->market     = $project->market;
 
             if(!empty($begin[$key]))     $plan->begin     = $begin[$key];
             if(!empty($end[$key]))       $plan->end       = $end[$key];
@@ -868,16 +976,17 @@ class programplanModel extends model
         foreach($datas as $data)
         {
             /* Set planDuration and realDuration. */
-            if($this->config->edition == 'max')
+            if($this->config->edition == 'max' or $this->config->edition == 'ipd')
             {
                 $data->planDuration = $this->getDuration($data->begin, $data->end);
-                $data->realDuration = $this->getDuration($data->realBegan, $data->realEnd);
+                if(isset($data->realBegan) && isset($data->realEnd)) $data->realDuration = $this->getDuration($data->realBegan, $data->realEnd);
             }
 
             $projectChanged = false;
             $data->days     = helper::diffDate($data->end, $data->begin) + 1;
             $data->order    = current($orders);
 
+            next($orders);
 
             if($data->id)
             {
@@ -891,7 +1000,7 @@ class programplanModel extends model
                 $this->dao->update(TABLE_PROJECT)->data($data)
                     ->autoCheck()
                     ->batchCheck($this->config->programplan->edit->requiredFields, 'notempty')
-                    ->checkIF($plan->percent != '' and $setPercent, 'percent', 'float')
+                    ->checkIF(!empty($data->percent) and $setPercent, 'percent', 'float')
                     ->where('id')->eq($stageID)
                     ->exec();
 
@@ -948,12 +1057,16 @@ class programplanModel extends model
                 $this->dao->insert(TABLE_PROJECT)->data($data)
                     ->autoCheck()
                     ->batchCheck($this->config->programplan->create->requiredFields, 'notempty')
-                    ->checkIF($plan->percent != '' and $setPercent, 'percent', 'float')
+                    ->checkIF(!empty($data->percent) and $setPercent, 'percent', 'float')
                     ->exec();
 
                 if(!dao::isError())
                 {
                     $stageID = $this->dao->lastInsertID();
+
+                    /* Ipd project create default review points. */
+                    if($project->model == 'ipd' && $this->config->edition == 'ipd' && !$parentID) $this->loadModel('review')->createDefaultPoint($projectID, $productID, $data->attribute);
+
                     if($data->type == 'kanban')
                     {
                         $execution = $this->execution->getByID($stageID);
@@ -1027,8 +1140,6 @@ class programplanModel extends model
             if($parentID and $milestone) $this->dao->update(TABLE_PROJECT)->set('milestone')->eq(0)->where('id')->eq($parentID)->exec();
 
             if(dao::isError()) return print(js::error(dao::getError()));
-
-            next($orders);
         }
     }
 
@@ -1054,10 +1165,9 @@ class programplanModel extends model
         {
             $path['path']  = $parent->path . "{$stage->id},";
             $path['grade'] = $parent->grade + 1;
-
-            $children = $this->execution->getChildExecutions($planID);
         }
 
+        $children = $this->execution->getChildExecutions($planID);
         $this->dao->update(TABLE_PROJECT)->set('path')->eq($path['path'])->set('grade')->eq($path['grade'])->where('id')->eq($stage->id)->exec();
 
         if(!empty($children))
@@ -1148,10 +1258,10 @@ class programplanModel extends model
         }
 
         /* Set planDuration and realDuration. */
-        if($this->config->edition == 'max')
+        if($this->config->edition == 'max' or $this->config->edition == 'ipd')
         {
             $plan->planDuration = $this->getDuration($plan->begin, $plan->end);
-            $plan->realDuration = $this->getDuration($plan->realBegan, $plan->realEnd);
+            if(isset($plan->realBegan) && isset($plan->realEnd)) $plan->realDuration = $this->getDuration($plan->realBegan, $plan->realEnd);
         }
 
         if($planChanged)  $plan->version = $oldPlan->version + 1;
@@ -1430,7 +1540,6 @@ class programplanModel extends model
             ->leftJoin(TABLE_PROJECTPRODUCT)->alias('t2')->on('t1.id=t2.project')
             ->where('t2.product')->eq($productID)
             ->andWhere('t1.project')->eq($projectID)
-            ->andWhere('t1.type')->eq('stage')
             ->andWhere('t1.milestone')->eq(1)
             ->andWhere('t1.deleted')->eq(0)
             ->orderBy('t1.begin asc,path')
@@ -1477,15 +1586,19 @@ class programplanModel extends model
      */
     public function getParentStageList($executionID, $planID, $productID)
     {
-        $parentStage = $this->dao->select('t2.id, t2.name')->from(TABLE_PROJECTPRODUCT)
-            ->alias('t1')->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
-            ->where('t1.product')->eq($productID)
-            ->andWhere('t2.project')->eq($executionID)
-            ->andWhere('t2.type')->eq('stage')
-            ->andWhere('t2.deleted')->eq(0)
-            ->andWhere('t2.path')->notlike("%,$planID,%")
-            ->beginIF(!$this->app->user->admin)->andWhere('t2.id')->in($this->app->user->view->sprints)->fi()
-            ->orderBy('t2.id desc')
+        $parentStage = $this->dao->select('t1.id, t1.name')->from(TABLE_PROJECT)->alias('t1')
+            ->beginIF($productID)
+            ->leftJoin(TABLE_PROJECTPRODUCT)->alias('t2')->on('t1.id = t2.project')
+            ->fi()
+            ->where('t1.project')->eq($executionID)
+            ->beginIF($productID)
+            ->andWhere('t2.product')->eq($productID)
+            ->fi()
+            ->andWhere('t1.type')->eq('stage')
+            ->andWhere('t1.deleted')->eq(0)
+            ->andWhere('t1.path')->notlike("%,$planID,%")
+            ->beginIF(!$this->app->user->admin)->andWhere('t1.id')->in($this->app->user->view->sprints)->fi()
+            ->orderBy('t1.id desc')
             ->fetchPairs();
 
         $plan = $this->getByID($planID);
@@ -1517,7 +1630,7 @@ class programplanModel extends model
     {
         $stage   = $this->loadModel('execution')->getByID($stageID);
         $project = $this->loadModel('project')->getByID($stage->project);
-        if(empty($stage) or empty($stage->path) or ($project->model != 'waterfall' and $project->model != 'waterfallplus')) return false;
+        if(empty($stage) or empty($stage->path) or (!in_array($project->model, array('waterfall','waterfallplus','ipd', 'research')))) return false;
 
         $this->loadModel('execution');
         $this->loadModel('action');
@@ -1549,6 +1662,7 @@ class programplanModel extends model
             {
                 if($parent->status != 'closed')
                 {
+                    if($project->model == 'ipd' and $parent->parent == $project->id) break;
                     $newParent    = $this->execution->buildExecutionByStatus('closed');
                     $parentAction = 'closedbychild';
                 }
@@ -1690,5 +1804,35 @@ class programplanModel extends model
         }
 
         return $siblingStages;
+    }
+
+    /**
+     * Get five days ago.
+     *
+     * @param  string $date
+     * @access public
+     * @return void
+     */
+    public function getReviewDeadline($date, $counter = 5)
+    {
+        if(helper::isZeroDate($date)) return '';
+
+        $weekend_days = [6, 7];
+
+        $timestamp = strtotime($date);
+        $i         = 0;
+        $this->loadModel('holiday');
+        while($i < $counter)
+        {
+            $timestamp   = strtotime('-1 day', $timestamp);
+            $weekday     = date('N', $timestamp);
+            $currentDate = date('Y-m-d', $timestamp);
+            if(!in_array($weekday, $weekend_days) and !$this->holiday->isHoliday($currentDate))
+            {
+                $i ++;
+            }
+        }
+
+        return date('Y-m-d', $timestamp);
     }
 }

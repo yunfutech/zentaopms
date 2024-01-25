@@ -17,7 +17,7 @@
 <div id='mainMenu' class='clearfix'>
   <div class='btn-toolbar pull-left'>
     <span class='btn btn-link btn-active-text'>
-      <?php echo html::a("javascript:viod(0)", "<span class='text'> {$lang->personnel->addWhitelist}</span>");?>
+      <?php echo html::a("javascript:void(0)", "<span class='text'> {$lang->personnel->addWhitelist}</span>");?>
     </span>
     <div class='input-group space w-200px'>
       <span class='input-group-addon'><?php echo $lang->execution->selectDept;?></span>
@@ -40,6 +40,7 @@
         <?php $i = 1;?>
         <?php $whitelistUsers = array();?>
         <?php foreach($whitelist as $user):?>
+        <?php unset($users[$user->account]);?>
         <tr id="whitelist<?php echo $i;?>" data-id="<?php echo $i;?>">
           <td>
             <input type='text' name='realnames[]' value='<?php echo $user->realname;?>' readonly class='form-control' />

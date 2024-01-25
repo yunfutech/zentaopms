@@ -83,10 +83,12 @@
           <?php echo $this->fetch('file', 'buildform');?>
           </td>
         </tr>
+        <?php if($this->config->vision != 'or'):?>
         <tr>
           <th><?php echo $lang->story->checkAffection;?></th>
           <td><?php include './affected.html.php';?></td>
         </tr>
+        <?php endif;?>
         <tr>
           <td></td>
           <td class='text-center form-actions'>
@@ -114,4 +116,5 @@
 <?php js::set('storyType', $story->type);?>
 <?php js::set('rawModule', $this->app->rawModule);?>
 <?php js::set('page', $this->app->rawMethod);?>
+<?php include '../../ai/view/inputinject.html.php';?>
 <?php include '../../common/view/footer.html.php';?>

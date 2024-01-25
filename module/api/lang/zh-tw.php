@@ -2,7 +2,7 @@
 /**
  * The api module zh-tw file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青島易軟天創網絡科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @copyright   Copyright 2009-2015 禪道軟件（青島）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
  * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     api
@@ -12,14 +12,15 @@
 $lang->api->common   = 'API介面';
 $lang->api->getModel = '超級model調用介面';
 $lang->api->sql      = 'SQL查詢介面';
+$lang->api->manage   = '介面管理';
 
-$lang->api->index            = '介面庫主頁';
-$lang->api->editLib          = '編輯介面庫';
+$lang->api->index            = '介面空間';
+$lang->api->editLib          = '編輯庫';
 $lang->api->releases         = '版本管理';
 $lang->api->deleteRelease    = '刪除版本';
-$lang->api->deleteLib        = '刪除介面庫';
+$lang->api->deleteLib        = '刪除庫';
 $lang->api->createRelease    = '發佈介面';
-$lang->api->createLib        = '創建介面庫';
+$lang->api->createLib        = '創建庫';
 $lang->api->createApi        = '創建介面';
 $lang->api->createAB         = '創建';
 $lang->api->createDemo       = '導入禪道API';
@@ -35,17 +36,16 @@ $lang->api->result           = '返回結果';
 $lang->api->status           = '狀態';
 $lang->api->data             = '內容';
 $lang->api->noParam          = 'GET方式調試不需要輸入參數，';
-$lang->api->noModule         = '介面庫下沒有目錄，請先維護目錄';
+$lang->api->noModule         = '庫下沒有目錄，請先維護目錄';
 $lang->api->post             = 'POST方式調試請參照頁面表單';
-$lang->api->noUniqueName     = '介面庫名已存在。';
+$lang->api->noUniqueName     = '庫名已存在。';
 $lang->api->noUniqueVersion  = '版本已存在。';
-$lang->api->version          = '版本';
 $lang->api->createStruct     = '創建資料結構';
 $lang->api->editStruct       = '編輯資料結構';
 $lang->api->deleteStruct     = '刪除資料結構';
 $lang->api->create           = '創建介面';
 $lang->api->title            = '介面名稱';
-$lang->api->pageTitle        = '介面庫';
+$lang->api->pageTitle        = '庫';
 $lang->api->module           = '目錄';
 $lang->api->apiDoc           = '介面';
 $lang->api->manageType       = '維護目錄';
@@ -55,16 +55,23 @@ $lang->api->done             = '開發完成';
 $lang->api->basicInfo        = '基本信息';
 $lang->api->apiDesc          = '介面說明';
 $lang->api->confirmDelete    = "您確定刪除該介面嗎？";
-$lang->api->confirmDeleteLib = "您確定刪除該介面庫嗎？";
+$lang->api->confirmDeleteLib = "您確定刪除該庫嗎？";
 $lang->api->filterStruct     = "使用資料結構填充";
 $lang->api->defaultVersion   = "當前版本";
 $lang->api->zentaoAPI        = "禪道API文檔v1";
+$lang->api->search           = "搜索";
+$lang->api->allLibs          = "全部庫";
+$lang->api->noLinked         = "未關聯{$lang->productCommon}和{$lang->projectCommon}";
+$lang->api->addCatalog       = '添加目錄';
+$lang->api->editCatalog      = '編輯目錄';
+$lang->api->sortCatalog      = '目錄排序';
+$lang->api->deleteCatalog    = '刪除目錄';
 
 /* Common access control lang. */
 $lang->api->whiteList          = '白名單';
-$lang->api->aclList['open']    = '公開';
-$lang->api->aclList['private'] = '私有';
-$lang->api->aclList['custom']  = '自定義';
+$lang->api->aclList['open']    = "公開 <span class='acl-tip'>（有文檔視圖權限即可訪問）</span>";
+$lang->api->aclList['default'] = "預設 <span class='acl-tip'>（有所選%s訪問權限用戶可以訪問）</span>";
+$lang->api->aclList['private'] = "私有 <span class='acl-tip'>（僅創建者和白名單用戶可訪問）</span>";
 $lang->api->group              = '分組';
 $lang->api->user               = '用戶';
 
@@ -85,6 +92,7 @@ $lang->struct->desc            = '描述';
 $lang->struct->descPlaceholder = '參數說明';
 $lang->struct->action          = '操作';
 $lang->struct->addSubField     = '添加子欄位';
+$lang->struct->list            = '資料結構列表';
 
 $lang->struct->typeOptions = array(
     'formData' => 'FormData',
@@ -100,15 +108,15 @@ $lang->api->structType         = '類型';
 $lang->api->structAttr         = '屬性';
 $lang->api->structAddedBy      = '創建人';
 $lang->api->structAddedDate    = '創建時間';
-$lang->api->name               = '介面庫名稱';
-$lang->api->baseUrl            = '請求基路徑';
-$lang->api->baseUrlDesc        = '網址或者路徑，比如 test.zentao.net 或者 /v1';
+$lang->api->name               = '庫名稱';
+$lang->api->baseUrl            = '請求基礎路徑';
+$lang->api->baseUrlDesc        = '網址或者路徑，比如 http://test.zentao.net 或者 /v1';
 $lang->api->desc               = '描述';
 $lang->api->control            = '訪問控制';
-$lang->api->noLib              = '暫時沒有介面庫。';
+$lang->api->noLib              = '暫時沒有庫。';
 $lang->api->noApi              = '暫時沒有介面。';
 $lang->api->noStruct           = '暫時沒有資料結構。';
-$lang->api->lib                = '所屬介面庫';
+$lang->api->lib                = '所屬庫';
 $lang->api->apiList            = '介面列表';
 $lang->api->formTitle          = '介面名稱';
 $lang->api->path               = '請求路徑';
@@ -123,6 +131,12 @@ $lang->api->query              = '請求參數';
 $lang->api->params             = '請求體';
 $lang->api->response           = '請求響應';
 $lang->api->responseExample    = '響應示例';
+$lang->api->id                 = 'ID';
+$lang->api->addedBy            = '創建者';
+$lang->api->addedDate          = '創建時間';
+$lang->api->editedBy           = '修改者';
+$lang->api->editedDate         = '修改時間';
+$lang->api->version            = '版本號';
 $lang->api->res                = new stdClass();
 $lang->api->res->name          = '名稱';
 $lang->api->res->desc          = '描述';
@@ -140,6 +154,10 @@ $lang->api->default            = '預設值';
 $lang->api->desc               = '描述';
 $lang->api->customType         = '自定義結構';
 $lang->api->format             = '格式化';
+$lang->api->libType            = '介面庫類型';
+$lang->api->product            = '所屬' . $lang->productCommon;
+$lang->api->project            = '所屬' . $lang->projectCommon;
+
 $lang->api->methodOptions      = array(
     'GET'     => 'GET',
     'POST'    => 'POST',
@@ -160,6 +178,11 @@ $lang->api->requestTypeOptions = array();
 $lang->api->requestTypeOptions['application/json']                  = 'application/json';
 $lang->api->requestTypeOptions['application/x-www-form-urlencoded'] = 'application/x-www-form-urlencoded';
 $lang->api->requestTypeOptions['multipart/form-data']               = 'multipart/form-data';
+
+$lang->api->libTypeList = array();
+$lang->api->libTypeList['product'] = $lang->productCommon . '介面庫';
+$lang->api->libTypeList['project'] = $lang->projectCommon . '介面庫';
+$lang->api->libTypeList['nolink']  = '獨立介面庫';
 
 $lang->api->statusOptions      = array(
     'done'   => '開發完成',
@@ -202,8 +225,9 @@ $lang->apistruct = new stdClass();
 $lang->apistruct->name = '結構名';
 
 $lang->api_lib_release = new stdClass();
-$lang->api_lib_release->version = '版本';
+$lang->api_lib_release->version = '版本號';
 
 $lang->api->error             = new stdclass();
 $lang->api->error->onlySelect = 'SQL查詢介面只允許SELECT查詢';
 $lang->api->error->disabled   = '因為安全原因，該功能被禁用。可以到config目錄，修改配置項 %s，打開此功能。';
+$lang->api->error->notInput   = '因欄位參數類型限制，暫不支持調試';

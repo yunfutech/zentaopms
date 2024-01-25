@@ -2,7 +2,7 @@
 /**
  * The misc module zh-tw file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青島易軟天創網絡科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @copyright   Copyright 2009-2015 禪道軟件（青島）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
  * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     misc
@@ -12,9 +12,11 @@
 $lang->misc = new stdclass();
 $lang->misc->common  = '雜項';
 $lang->misc->ping    = '防超時';
+$lang->misc->view    = '查看';
+$lang->misc->cancel  = '取消';
 
 $lang->misc->zentao = new stdclass();
-$lang->misc->zentao->version           = '版本%s';
+$lang->misc->zentao->version           = '開源版 %s';
 $lang->misc->zentao->labels['about']   = '關於禪道';
 $lang->misc->zentao->labels['support'] = '技術支持';
 $lang->misc->zentao->labels['cowin']   = '幫助我們';
@@ -26,7 +28,7 @@ $lang->misc->zentao->icons['support'] = 'question-sign';
 $lang->misc->zentao->icons['cowin']   = 'hand-right';
 $lang->misc->zentao->icons['service'] = 'heart';
 
-$lang->misc->zentao->about['proversion']   = '升級專業版本';
+$lang->misc->zentao->about['bizversion']   = '升級企業版本';
 $lang->misc->zentao->about['official']     = "官方網站";
 $lang->misc->zentao->about['changelog']    = "版本歷史";
 $lang->misc->zentao->about['license']      = "授權協議";
@@ -42,13 +44,11 @@ $lang->misc->zentao->support['qqgroup']    = "官方QQ群";
 
 $lang->misc->zentao->cowin['reportbug']    = "反饋Bug";
 $lang->misc->zentao->cowin['feedback']     = "反饋需求";
-$lang->misc->zentao->cowin['translate']    = "參與翻譯";
 $lang->misc->zentao->cowin['recommend']    = "推薦給朋友";
 
-$lang->misc->zentao->service['zentaotrain']= '禪道使用培訓';
-$lang->misc->zentao->service['idc']        = '禪道在綫託管';
-$lang->misc->zentao->service['custom']     = '禪道定製開發';
-$lang->misc->zentao->service['servicemore']= '更多服務...';
+$lang->misc->zentao->service['zentaotrain'] = '禪道使用培訓';
+$lang->misc->zentao->service['idc']         = '禪道在綫託管';
+$lang->misc->zentao->service['custom']      = '禪道定製開發';
 
 global $config;
 $lang->misc->zentao->others['chanzhi']  = "<img src='{$config->webRoot}theme/default/images/main/chanzhi.ico' /> 蟬知門戶";
@@ -59,7 +59,7 @@ $lang->misc->zentao->others['meshiot' ] = "<img src='{$config->webRoot}theme/def
 
 $lang->misc->mobile      = "手機訪問";
 $lang->misc->noGDLib     = "請用手機瀏覽器訪問：<strong>%s</strong>";
-$lang->misc->copyright   = "&copy; 2009 - " . date('Y') . " <a href='https://www.easycorp.cn' target='_blank'>青島易軟天創網絡科技有限公司</a> 電話：4006-8899-23 Email：<a href='mailto:co@zentao.net'>co@zentao.net</a>  QQ：1492153927";
+$lang->misc->copyright   = "&copy; 2009 - " . date('Y') . " <a href='https://www.easycorp.cn' target='_blank'>禪道軟件（青島）有限公司</a> 電話：4006-8899-23 Email：<a href='mailto:co@zentao.net'>co@zentao.net</a>  QQ：1492153927";
 $lang->misc->checkTable  = "檢查修復數據表";
 $lang->misc->needRepair  = "修復表";
 $lang->misc->repairTable = "資料庫表可能因為斷電原因損壞，需要檢查修復！！";
@@ -72,6 +72,12 @@ $lang->misc->showAnnual  = '新增年度總結功能';
 $lang->misc->annualDesc  = '12.0版本後，新增年度總結功能，可以到『統計->年度總結』頁面查看。 是否現在<a href="%s" target="_blank" id="showAnnual" class="btn btn-mini btn-primary">查看</a>';
 $lang->misc->remind      = '新功能提醒';
 
+$lang->misc->expiredTipsTitle    = '尊敬的系統管理員，您好：';
+$lang->misc->expiredCountTips    = '系統中有<span class="expired-tips text-blue" data-toggle="tooltip" data-placement="bottom" title="%s">%s個插件</span>即將到期，為避免影響您的正常使用，請聯繫管理員及時續費或卸載。';
+$lang->misc->expiredPluginTips   = '已到期的插件為：%s。';
+$lang->misc->expiringPluginTips  = '即將到期的插件為：%s。';
+$lang->misc->expiredTipsForAdmin = '當前系統中有%s個插件即將到期，為避免影響功能的正常使用，請儘快到系統後台插件管理中進行續費或卸載處理。';
+
 $lang->misc->noticeRepair = "<h5>普通用戶請聯繫管理員進行修復</h5>
     <h5>管理員請登錄禪道所在的伺服器，創建<span>%s</span>檔案。</h5>
     <p>注意：</p>
@@ -81,19 +87,65 @@ $lang->misc->noticeRepair = "<h5>普通用戶請聯繫管理員進行修復</h5>
     </ol>";
 
 $lang->misc->feature = new stdclass();
-$lang->misc->feature->lastest        = '最新版本';
-$lang->misc->feature->detailed       = '詳情';
-$lang->misc->feature->introduction   = '新功能介紹';
-$lang->misc->feature->tutorial       = '新手引導教程';
-$lang->misc->feature->tutorialImage  = 'theme/default/images/main/tutorial.png';
-$lang->misc->feature->youngBlueTheme = '全新青春藍主題';
-$lang->misc->feature->youngBlueImage = 'theme/default/images/main/new_theme.png';
-$lang->misc->feature->nextStep       = '下一步';
-$lang->misc->feature->close          = '關閉';
-$lang->misc->feature->downloadFile   = '下載新版本功能介紹文檔';
-$lang->misc->feature->tutorialDesc   = "<p>禪道15系列新增了多項功能，您可以通過“<strong>新手引導教程</strong>”快速瞭解禪道的基本使用方法。</p><p>通過滑鼠經過 [<span style='color: #0c60e1'>頭像-新手引導</span>]，點擊新手引導，即可進入新手引導教程。</p>";
-$lang->misc->feature->themeDesc      = "<p>禪道15系列上線了全新的“青春藍”主題，頁面呈現更加美觀，體驗更加友好。</p><p>通過滑鼠經過 [<span style='color: #0c60e1'>頭像-主題-青春藍</span>]，點擊青春藍，即可設置成功。</p>";
+$lang->misc->feature->lastest           = '最新版本';
+$lang->misc->feature->detailed          = '詳情';
+$lang->misc->feature->introduction      = '新功能介紹';
+$lang->misc->feature->tutorial          = '新手引導教程';
+$lang->misc->feature->tutorialImage     = 'theme/default/images/main/tutorial.png';
+$lang->misc->feature->youngBlueTheme    = '全新青春藍主題';
+$lang->misc->feature->youngBlueImage    = 'theme/default/images/main/new_theme.png';
+$lang->misc->feature->visions           = "不同場景界面切換";
+$lang->misc->feature->nextStep          = '下一頁';
+$lang->misc->feature->prevStep          = '上一頁';
+$lang->misc->feature->close             = '開始體驗';
+$lang->misc->feature->learnMore         = '瞭解更多';
+$lang->misc->feature->downloadFile      = '下載新版本功能介紹文檔';
+$lang->misc->feature->tutorialDesc      = "<p>禪道15系列新增了多項功能，您可以通過“<strong>新手引導教程</strong>”快速瞭解禪道的基本使用方法。</p><p>通過滑鼠經過 [<span style='color: #0c60e1'>頭像-新手引導</span>]，點擊新手引導，即可進入新手引導教程。</p>";
+$lang->misc->feature->themeDesc         = "<p>禪道15系列上線了全新的“青春藍”主題，頁面呈現更加美觀，體驗更加友好。</p><p>通過滑鼠經過 [<span style='color: #0c60e1'>頭像-主題-青春藍</span>]，點擊青春藍，即可設置成功。</p>";
+$lang->misc->feature->visionsDesc       = "<p>從16.5開始增加了界面概念，用戶可以在<span style='color:#0c60e1'>[研發綜合界面]</span>中處理研發事務、在<span style='color:#0c60e1'>[運營管理界面]</span>處理日常辦公事務。</p><p>在頭像右側即可查看當前所處界面，點擊當前界面名稱可查看和切換其他的界面。</p>";
+$lang->misc->feature->visionsImage      = 'theme/default/images/main/visions.png';
+$lang->misc->feature->aiPrompts         = 'AI 提詞功能';
+$lang->misc->feature->aiPromptsImage    = 'theme/default/images/main/ai_prompts.svg';
+$lang->misc->feature->aiChat            = 'AI 會話功能';
+$lang->misc->feature->aiChatImage       = 'theme/default/images/main/ai_chat.svg';
+$lang->misc->feature->learnMoreLink     = 'https://www.zentao.net/book/zentaopms/1096.html';
 
+/* Release Date. */
+$lang->misc->releaseDate['18.10']       = '2023-12-18';
+$lang->misc->releaseDate['18.9']        = '2023-11-09';
+$lang->misc->releaseDate['18.8']        = '2023-09-28';
+$lang->misc->releaseDate['18.7']        = '2023-08-29';
+$lang->misc->releaseDate['18.6']        = '2023-08-15';
+$lang->misc->releaseDate['18.5']        = '2023-07-05';
+$lang->misc->releaseDate['18.4']        = '2023-06-14';
+$lang->misc->releaseDate['18.4.beta1']  = '2023-05-31';
+$lang->misc->releaseDate['18.4.alpha1'] = '2023-04-21';
+$lang->misc->releaseDate['18.3']        = '2023-03-15';
+$lang->misc->releaseDate['18.2']        = '2023-02-27';
+$lang->misc->releaseDate['18.1']        = '2023-02-08';
+$lang->misc->releaseDate['18.0']        = '2023-01-03';
+$lang->misc->releaseDate['18.0.beta3']  = '2022-12-26';
+$lang->misc->releaseDate['18.0.beta2']  = '2022-12-14';
+$lang->misc->releaseDate['18.0.beta1']  = '2022-11-16';
+$lang->misc->releaseDate['17.8']        = '2022-11-02';
+$lang->misc->releaseDate['17.7']        = '2022-10-19';
+$lang->misc->releaseDate['17.6.2']      = '2022-09-23';
+$lang->misc->releaseDate['17.6.1']      = '2022-09-08';
+$lang->misc->releaseDate['17.6']        = '2022-08-26';
+$lang->misc->releaseDate['17.5']        = '2022-08-11';
+$lang->misc->releaseDate['17.4']        = '2022-07-27';
+$lang->misc->releaseDate['17.3']        = '2022-07-13';
+$lang->misc->releaseDate['17.2']        = '2022-06-29';
+$lang->misc->releaseDate['17.1']        = '2022-06-16';
+$lang->misc->releaseDate['17.0']        = '2022-06-02';
+$lang->misc->releaseDate['17.0.beta2']  = '2022-05-26';
+$lang->misc->releaseDate['17.0.beta1']  = '2022-05-06';
+$lang->misc->releaseDate['16.5']        = '2022-03-24';
+$lang->misc->releaseDate['16.5.beta1']  = '2022-03-16';
+$lang->misc->releaseDate['16.4']        = '2022-02-15';
+$lang->misc->releaseDate['16.3']        = '2022-01-26';
+$lang->misc->releaseDate['16.2']        = '2022-01-17';
+$lang->misc->releaseDate['16.1']        = '2022-01-11';
 $lang->misc->releaseDate['16.0']        = '2021-12-24';
 $lang->misc->releaseDate['16.0.beta1']  = '2021-12-06';
 $lang->misc->releaseDate['15.7.1']      = '2021-11-02';
@@ -164,15 +216,51 @@ $lang->misc->releaseDate['7.2.stable']  = '2015-05-22';
 $lang->misc->releaseDate['7.1.stable']  = '2015-03-07';
 $lang->misc->releaseDate['6.3.stable']  = '2014-11-07';
 
-$lang->misc->feature->all['16.0'][]       = array('title' => '新增通用看板，完善分支管理，修復Bug。', 'desc' => '');
-$lang->misc->feature->all['16.0.beta1'][] = array('title' => '新增瀑布模型項目，新增任務看板，完善分支管理和細節，修復Bug。', 'desc' => '');
-$lang->misc->feature->all['15.7.1'][]     = array('title' => '修復Bug。', 'desc' => '');
-$lang->misc->feature->all['15.7'][]       = array('title' => '新增介面庫。修復Bug。', 'desc' => '');
-$lang->misc->feature->all['15.6'][]       = array('title' => '修復Bug。', 'desc' => '');
-$lang->misc->feature->all['15.5'][]       = array('title' => '增加項目集/產品/項目看板視圖、全局添加功能、新手引導。 修復Bug。', 'desc' => '');
-$lang->misc->feature->all['15.4'][]       = array('title' => '修復Bug', 'desc' => '');
-$lang->misc->feature->all['15.3'][]       = array('title' => '實現界面風格改動和文檔優化，修復Bug', 'desc' => '');
-$lang->misc->feature->all['15.2'][]       = array('title' => '優化新版本升級流程，增加執行看板。', 'desc' => '');
+/* Release Detail. */
+$lang->misc->feature->all['18.10'][]       = array('title' => '用例庫可以從其他用例庫導入用例，文檔導出可以按Word自適應圖片比例，歷史記錄排序方式增加cookie記錄，優化修改他人日誌邏輯。反饋、工單轉化時可自動帶入附件，反饋增加關鍵詞、抄送欄位，圖表類型新增水球圖，優化度量項的採集邏輯和展示樣式。', 'desc' => '');
+$lang->misc->feature->all['18.9'][]        = array('title' => '全面接入AI大模型，客戶端引入增強版會議，測試單增加參與人，視頻附件增加在綫預覽，評審檢查分類增加自定義等。', 'desc' => '');
+$lang->misc->feature->all['18.8'][]        = array('title' => 'BI中新增了度量項功能和應用巡檢報告大屏，DevOps平台版增加了配置嚮導，需求與市場管理界面中增加了市場管理功能，客戶端導航及個人中心全新改版。', 'desc' => '');
+$lang->misc->feature->all['18.7'][]        = array('title' => 'DevOps新增了雲原生平台、製品庫和應用管理功能，優化了導航結構和相關UI交互。同時，新增了AI提詞設計器功能，支持與大語言模型對接，支持自定義AI應用等。', 'desc' => '');
+$lang->misc->feature->all['18.6'][]        = array('title' => '優化了常用列表性能和BI功能的細節，並完善了瀑布項目的功能細節。修復Bug。', 'desc' => '');
+$lang->misc->feature->all['18.5'][]        = array('title' => '學堂課程支持從雲端導入，支持課程中PDF檔案的預覽，同時還優化了常用列表的加載速度，修復了多處Bug。', 'desc' => '');
+$lang->misc->feature->all['18.4'][]        = array('title' => '本次發佈優化了核心列表的性能，兼容達夢資料庫，修復了多處Bug。', 'desc' => '');
+$lang->misc->feature->all['18.4.beta1'][]  = array('title' => '解Bug。', 'desc' => '');
+$lang->misc->feature->all['18.4.alpha1'][] = array('title' => '優化權限、文檔交互體驗，測試新增場景概念，用例支持xmind導入，並對BI模組中的大屏、透視表、圖表、數據表進行了全面升級。', 'desc' => '');
+$lang->misc->feature->all['18.3'][]        = array('title' => '二次開發增加語言項自定義,支持對菜單和檢索標籤的語言項進行定義；二次開發增加編輯器功能，支持用戶按需開啟和關閉；表單意外退出支持表單暫存，下次進入自動代入填寫的未保存信息。', 'desc' => '');
+$lang->misc->feature->all['18.2'][]        = array('title' => '新增融合敏捷、融合瀑布管理模型，瀑布項目階段支持無限級拆分，後台進行全新UI改版。修復Bug。', 'desc' => '');
+$lang->misc->feature->all['18.1'][]        = array('title' => '自動化測試解決方案交互優化、新增快照管理功能。禪道客戶端實現了 PPT文檔在綫協作。修復Bug。', 'desc' => '');
+$lang->misc->feature->all['18.0'][]        = array('title' => '推出自動化測試解決方案；運營管理界面增加工單功能；審批流支持增加所有類型的通知以及掙值計算規則完善。', 'desc' => '');
+$lang->misc->feature->all['18.0.beta3'][]  = array('title' => '統計模組升級為BI，內置5張宏觀管理維度大屏。', 'desc' => '');
+$lang->misc->feature->all['18.0.beta2'][]  = array('title' => '優化多分支/多平台產品，支持創建孿生需求，計劃、版本、發佈支持跨分支關聯需求和bug，並且禪道客戶端實現了機器人會話機制。', 'desc' => '');
+$lang->misc->feature->all['18.0.beta1'][]  = array('title' => '主要對禪道多項核心流程進行改進，新增項目型項目、無迭代項目；支持項目跨項目集關聯產品；支持輕量管理模式和全生命周期管理模式進行切換。', 'desc' => '');
+$lang->misc->feature->all['17.8'][]        = array('title' => '列表狀態顏色、儀表盤顏色的改版和任務日誌頁面的優化。', 'desc' => '');
+$lang->misc->feature->all['17.7'][]        = array('title' => '過渡版本表格優化完成。新增工單功能，優化了反饋功能。修復Bug。', 'desc' => '');
+$lang->misc->feature->all['17.6.2'][]      = array('title' => '禪道更新葉蘭綠、禪道藍、青春藍三大主題。實現附件批量上傳功能。修復Bug。', 'desc' => '');
+$lang->misc->feature->all['17.6.1'][]      = array('title' => '優化了多人任務的處理邏輯，修復Bug。', 'desc' => '');
+$lang->misc->feature->all['17.6'][]        = array('title' => '優化了需求的處理邏輯，拆分了用需和軟需的權限。甘特圖支持手動拖拽維護任務關係。修復Bug。', 'desc' => '');
+$lang->misc->feature->all['17.5'][]        = array('title' => '提供高效的可視化統計工具。優化禪道性能，資料庫引擎從MyISAM調整為InnoDB。甘特圖優化升級，旗艦版的複製項目可以複製任務等更多信息。修復Bug。', 'desc' => '');
+$lang->misc->feature->all['17.4'][]        = array('title' => '詳情頁面的視覺優化和部分頁面跳轉邏輯優化。看板功能完善。文檔創建和編輯頁面優化。修復Bug。', 'desc' => '');
+$lang->misc->feature->all['17.3'][]        = array('title' => '統計、後台等模組的UI優化，用例庫同步用例信息功能優化。修復Bug。', 'desc' => '');
+$lang->misc->feature->all['17.2'][]        = array('title' => '調整敏捷項目區塊的展示，項目集、項目和測試相關UI優化，細節體驗優化。修復Bug。', 'desc' => '');
+$lang->misc->feature->all['17.1'][]        = array('title' => '修改執行、項目模組的交互問題，完成客戶巴高優先順序需求，細節體驗優化。修復Bug。', 'desc' => '');
+$lang->misc->feature->all['17.0'][]        = array('title' => '細節體驗優化。修復Bug。', 'desc' => '');
+$lang->misc->feature->all['17.0.beta2'][]  = array('title' => '細節體驗優化。修復Bug。', 'desc' => '');
+$lang->misc->feature->all['17.0.beta1'][]  = array('title' => '完成客戶巴高優先順序需求。修復Bug。', 'desc' => '');
+$lang->misc->feature->all['16.5'][]        = array('title' => '修復Bug。', 'desc' => '');
+$lang->misc->feature->all['16.5.beta1'][]  = array('title' => '將禪道收費版和開源版整合到一個包中，優化升級步驟。', 'desc' => '');
+$lang->misc->feature->all['16.4'][]        = array('title' => '實現JIRA導入功能，完善插件擴展機制。', 'desc' => '');
+$lang->misc->feature->all['16.3'][]        = array('title' => '看板增加關聯計劃/發佈/版本/迭代功能，細節體驗優化。', 'desc' => '');
+$lang->misc->feature->all['16.2'][]        = array('title' => '新增專業研發看板，可以創建看板模型項目，修復Bug。', 'desc' => '');
+$lang->misc->feature->all['16.1'][]        = array('title' => '計劃增加狀態管理和看板視圖，升級流程優化，修復Bug。', 'desc' => '');
+$lang->misc->feature->all['16.0'][]        = array('title' => '新增通用看板，完善分支管理，修復Bug。', 'desc' => '');
+$lang->misc->feature->all['16.0.beta1'][]  = array('title' => '新增瀑布模型項目，新增任務看板，完善分支管理和細節，修復Bug。', 'desc' => '');
+$lang->misc->feature->all['15.7.1'][]      = array('title' => '修復Bug。', 'desc' => '');
+$lang->misc->feature->all['15.7'][]        = array('title' => '新增介面庫。修復Bug。', 'desc' => '');
+$lang->misc->feature->all['15.6'][]        = array('title' => '修復Bug。', 'desc' => '');
+$lang->misc->feature->all['15.5'][]        = array('title' => '增加項目集/產品/項目看板視圖、全局添加功能、新手引導。 修復Bug。', 'desc' => '');
+$lang->misc->feature->all['15.4'][]        = array('title' => '修復Bug', 'desc' => '');
+$lang->misc->feature->all['15.3'][]        = array('title' => '實現界面風格改動和文檔優化，修復Bug', 'desc' => '');
+$lang->misc->feature->all['15.2'][]        = array('title' => '優化新版本升級流程，增加執行看板。', 'desc' => '');
 
 $lang->misc->feature->all['15.0.3'][]      = array('title' => '修復Bug', 'desc' => '');
 $lang->misc->feature->all['15.0.2'][]      = array('title' => '修復Bug', 'desc' => '');
@@ -281,7 +369,7 @@ $lang->misc->feature->all['8.2.stable'][] = array('title'=>'導出自定義', 'd
 $lang->misc->feature->all['8.2.stable'][] = array('title'=>"{$lang->SRCommon}、任務、Bug、用例組合檢索功能", 'desc' => "<p>在{$lang->SRCommon}、任務、Bug、用例列表頁面，可以實現模組和標籤的組合檢索。</p>");
 $lang->misc->feature->all['8.2.stable'][] = array('title'=>'增加新手教程', 'desc' => '<p>增加新手教程，方便新用戶瞭解禪道使用。</p>');
 
-$lang->misc->feature->all['7.4.beta'][] = array('title'=>'產品實現分支功能', 'desc' => "<p>產品增加分支/平台類型，相應的{$lang->SRCommon}、計劃、Bug、用例、模組等都增加分支。</p>");
+$lang->misc->feature->all['7.4.beta'][] = array('title'=>'產品實現分支功能', 'desc' => "<p>產品增加平台/分支類型，相應的{$lang->SRCommon}、計劃、Bug、用例、模組等都增加分支。</p>");
 $lang->misc->feature->all['7.4.beta'][] = array('title'=>'調整發佈模組', 'desc' => '<p>發佈增加停止維護操作，當發佈停止維護時，創建Bug將不顯示這個發佈。</p><p>發佈中遺留的bug改為手工關聯。</p>');
 $lang->misc->feature->all['7.4.beta'][] = array('title'=>"調整{$lang->SRCommon}和Bug的創建頁面", 'desc' => '');
 

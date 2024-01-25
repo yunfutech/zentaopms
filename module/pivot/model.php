@@ -12,6 +12,18 @@
 class pivotModel extends model
 {
     /**
+     * Construct.
+     *
+     * @access public
+     * @return void
+     */
+    public function __construct()
+    {
+        parent::__construct();
+        $this->loadBIDAO();
+    }
+
+    /**
      * Get pivot.
      *
      * @param  int    $pivotID
@@ -112,9 +124,19 @@ class pivotModel extends model
             $pivots = array_merge($pivots, $charts);
         }
 
-        $pager->setRecTotal(count($pivots));
-        $pager->setPageTotal();
-        if($pager->pageID > $pager->pageTotal) $pager->setPageID($pager->pageTotal);
+        if(!empty($pager))
+        {
+            $pager->setRecTotal(count($pivots));
+            $pager->setPageTotal();
+            if($pager->pageID > $pager->pageTotal) $pager->setPageID($pager->pageTotal);
+
+            if($pivots)
+            {
+                $pivots = array_chunk($pivots, $pager->recPerPage);
+                $pivots = $pivots[$pager->pageID - 1];
+            }
+
+        }
 
         return $this->processPivot($pivots, false);
     }
@@ -129,7 +151,7 @@ class pivotModel extends model
      */
     public function processDateVar($var, $type = 'date')
     {
-        if(empty($var)) return $var;
+        if(empty($var)) return NULL;
 
         $format = $type == 'datetime' ? 'Y-m-d H:i:s' : 'Y-m-d';
         switch($var)
@@ -186,9 +208,114 @@ class pivotModel extends model
                 }
                 $pivots[$index]->used = $this->screen->checkIFChartInUse($pivot->id, 'pivot', $screenList);
             }
+
+            if($isObject and $pivots[$index]->stage == 'published') $pivots[$index] = $this->processFieldSettings($pivots[$index]);
         }
 
         return $isObject ? reset($pivots) : $pivots;
+    }
+
+    /**
+     * Process pivot field settings, function like dataview/js/basequery.js getFieldSettings().
+     *
+     * @param  object $pivot
+     * @access public
+     * @return object
+     */
+    public function processFieldSettings($pivot)
+    {
+        if(isset($pivot->fieldSettings))
+        {
+            $fieldSettings = $pivot->fieldSettings;
+        }
+        else
+        {
+            $fieldSettings = (!empty($pivot->fields) and $pivot->fields != 'null') ? json_decode($pivot->fields) : array();
+        }
+        if(empty($fieldSettings)) return $pivot;
+
+        $this->loadModel('chart');
+        $this->loadModel('dataview');
+
+        $sql        = isset($pivot->sql)     ? $pivot->sql     : '';
+        $filters    = isset($pivot->filters) ? (is_array($pivot->filters) ? $pivot->filters : json_decode($pivot->filters, true)) : array();
+        $recPerPage = 20;
+        $pageID     = 1;
+
+        if(!empty($filters))
+        {
+            foreach($filters as $index => $filter)
+            {
+                if(empty($filter['default'])) continue;
+
+                $filters[$index]['default'] = $this->processDateVar($filter['default']);
+            }
+        }
+        $querySQL = $this->chart->parseSqlVars($sql, $filters);
+
+        $this->dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_SILENT);
+        $stmt = $this->dbh->query($querySQL);
+        if(!$stmt) return $pivot;
+
+        $columns      = $this->dataview->getColumns($querySQL);
+        $columnFields = array();
+        foreach($columns as $column => $type) $columnFields[$column] = $column;
+
+        $tableAndFields = $this->chart->getTables($querySQL);
+        $tables   = $tableAndFields['tables'];
+        $fields   = $tableAndFields['fields'];
+        $querySQL = $tableAndFields['sql'];
+
+        $moduleNames = array();
+        if($tables) $moduleNames = $this->dataview->getModuleNames($tables);
+
+        list($fieldPairs, $relatedObject) = $this->dataview->mergeFields($columnFields, $fields, $moduleNames);
+
+        /* Use fieldPairs, columns, relatedObject, objectFields refresh pivot fieldSettings .*/
+
+        $objectFields = array();
+        foreach($this->lang->dataview->objects as $object => $objectName) $objectFields[$object] = $this->dataview->getTypeOptions($object);
+
+        $fieldSettingsNew = new stdclass();
+
+        foreach($fieldPairs as $index => $field)
+        {
+            $defaultType   = $columns->$index;
+            $defaultObject = $relatedObject[$index];
+
+            if(!empty($objectFields) and isset($objectFields[$defaultObject]) and isset($objectFields[$defaultObject][$index])) $defaultType = $objectFields[$defaultObject][$index]['type'] == 'object' ? 'string' : $objectFields[$defaultObject][$index]['type'];
+
+            if(!isset($fieldSettings->$index))
+            {
+                $fieldItem = new stdclass();
+                $fieldItem->name   = $field;
+                $fieldItem->object = $defaultObject;
+                $fieldItem->field  = $index;
+                $fieldItem->type   = $defaultType;
+
+                $fieldSettingsNew->$index = $fieldItem;
+            }
+            else
+            {
+                if(!isset($fieldSettings->$index->object) or strlen($fieldSettings->$index->object) == 0) $fieldSettings->$index->object = $defaultObject;
+
+                if(!isset($fieldSettings->$index->field) or strlen($fieldSettings->$index->field) == 0)
+                {
+                    $fieldSettings->$index->field  = $index;
+                    $fieldSettings->$index->object = $defaultObject;
+                    $fieldSettings->$index->type   = 'string';
+                }
+
+                $object = $fieldSettings->$index->object;
+                $type   = $fieldSettings->$index->type;
+                if($object == $defaultObject && $type != $defaultType) $fieldSettings->$index->type = $defaultType;
+
+                $fieldSettingsNew->$index = $fieldSettings->$index;
+            }
+        }
+        $pivot->fieldSettings = $fieldSettingsNew;
+
+        return $pivot;
     }
 
     /**
@@ -1322,6 +1449,31 @@ class pivotModel extends model
     }
 
     /**
+     * Get sql field order.
+     *
+     * @param  string $field
+     * @param  object $statement sql parser statement[0]
+     * @access public
+     * @return string
+     */
+    public function getSqlFieldOrder($field, $statement)
+    {
+        $order = 'ASC';
+        if(!isset($statement->order)) return $order;
+
+        foreach($statement->order as $orderInfo)
+        {
+            if($orderInfo->expr->expr == $field)
+            {
+                $order = $orderInfo->type;
+                break;
+            }
+        }
+
+        return $order;
+    }
+
+    /**
      * Gen sheet.
      *
      * @param  array  $fields
@@ -1334,6 +1486,10 @@ class pivotModel extends model
      */
     public function genSheet($fields, $settings, $sql, $filters, $langs = array())
     {
+        $this->app->loadClass('sqlparser', true);
+        $parser    = new sqlparser($sql);
+        $statement = $parser->statements[0];
+
         $groups    = array();
         $sqlGroups = array();
 
@@ -1390,19 +1546,16 @@ class pivotModel extends model
 
         /* Process rows. */
         $connectSQL = '';
-        if(empty($settings['filterType']) or $settings['filterType'] == 'result')
+        if(!empty($filters) && !isset($filters[0]['from']))
         {
-            if(!empty($filters))
+            $wheres = array();
+            foreach($filters as $field => $filter)
             {
-                $wheres = array();
-                foreach($filters as $field => $filter)
-                {
-                    $wheres[] = "tt.`$field` {$filter['operator']} {$filter['value']}";
-                }
-
-                $whereStr    = implode(' and ', $wheres);
-                $connectSQL .= " where $whereStr";
+                $wheres[] = "tt.`$field` {$filter['operator']} {$filter['value']}";
             }
+
+            $whereStr    = implode(' and ', $wheres);
+            $connectSQL .= " where $whereStr";
         }
 
         $groupSQL = " group by $groupList";
@@ -1411,36 +1564,85 @@ class pivotModel extends model
         $number       = 0;
         $groupsRow    = array();
         $showColTotal = zget($settings, 'columnTotal', 'noShow');
+        $showOrigin   = false;
+
         foreach($settings['columns'] as $column)
         {
-            $stat   = $column['stat'];
-            $field  = $column['field'];
-            $slice  = zget($column, 'slice', 'noSlice');
-            $uuName = $field . $number;
-            $number ++;
+            if(isset($column['showOrigin']) and $column['showOrigin']) $showOrigin = true;
+        }
 
-            if($stat == 'distinct')
+        if(isset($settings['columns']))
+        {
+            foreach($settings['columns'] as $column)
             {
-                $columnSQL = "count(distinct tt.`$field`) as `$uuName`";
-            }
-            else
-            {
-                $columnSQL = "$stat(tt.`$field`) as `$uuName`";
-            }
+                if($column['showOrigin']) $column['slice'] = 'noSlice';
 
-            if($slice != 'noSlice') $columnSQL = "select $groupList,`$slice`,$columnSQL from ($sql) tt" . $connectSQL . $groupSQL . ",tt.`$slice`" . $orderSQL . ",tt.`$slice`";
-            if($slice == 'noSlice') $columnSQL = "select $groupList,$columnSQL from ($sql) tt" . $connectSQL . $groupSQL . $orderSQL;
+                $stat   = $column['stat'];
+                $field  = $column['field'];
+                $slice  = zget($column, 'slice', 'noSlice');
+                $uuName = $field . $number;
+                $number ++;
 
-            $columnRows = $this->dao->query($columnSQL)->fetchAll();
+                if($column['showOrigin'])
+                {
+                    $columnSQL = "select $groupList, tt.`$field` from ($sql) tt" . $connectSQL . $orderSQL;
+                }
+                else
+                {
+                    if($stat == 'distinct')
+                    {
+                        $columnSQL = "count(distinct tt.`$field`) as `$uuName`";
+                    }
+                    else
+                    {
+                        if($fields[$field]['type'] != 'number' and in_array($stat, array('avg', 'sum')))
+                        {
+                            $convertSql = $this->config->db->driver == 'mysql' ? "CAST(tt.`$field` AS DECIMAL(32, 2))" : "TO_DECIMAL(tt.`$field`)";
+                            $columnSQL  = "$stat($convertSql) as `$uuName`";
+                        }
+                        else
+                        {
+                            $columnSQL = "$stat(tt.`$field`) as `$uuName`";
+                        }
+                    }
 
-            $cols = $this->getTableHeader($columnRows, $column, $fields, $cols, $sql, $langs);
-            if($slice != 'noSlice') $columnRows = $this->processSliceData($columnRows, $groups, $slice, $uuName);
-            $columnRows = $this->processShowData($columnRows, $groups, $column, $showColTotal, $uuName);
+                    if($slice != 'noSlice')
+                    {
+                        $order         = $this->getSqlFieldOrder($slice, $statement);
+                        $sliceOrderSQL = " order by tt.`$slice` $order, $groupList";
+                        $columnSQL     = "select $groupList,`$slice`,$columnSQL from ($sql) tt" . $connectSQL . $groupSQL . ",tt.`$slice`" . $sliceOrderSQL;
+                    }
+                    else
+                    {
+                        $columnSQL = "select $groupList,$columnSQL from ($sql) tt" . $connectSQL . $groupSQL . $orderSQL;
+                    }
+                }
 
-            foreach($columnRows as $key => $row)
-            {
-                if(!isset($groupsRow[$key])) $groupsRow[$key] = new stdclass();
-                $groupsRow[$key] = (object)array_merge((array)$groupsRow[$key], (array)$row);
+                $columnRows = $this->dao->query($columnSQL)->fetchAll();
+
+                $rowcount = array_fill(0, count($columnRows), 1);
+                if($showOrigin && !$column['showOrigin'])
+                {
+                    $countSQL = "select $groupList, count(tt.`$field`) as rowCount from ($sql) tt" . $connectSQL . $groupSQL . $orderSQL;
+                    $countRows = $this->dao->query($countSQL)->fetchAll();
+                    foreach($countRows as $key => $countRow) $rowcount[$key] = $countRow->rowCount;
+                }
+
+                $cols = $this->getTableHeader($columnRows, $column, $fields, $cols, $sql, $langs, $column['showOrigin']);
+                if($slice != 'noSlice') $columnRows = $this->processSliceData($columnRows, $groups, $slice, $uuName);
+                $columnRows = $this->processShowData($columnRows, $groups, $column, $showColTotal, $uuName);
+
+                $rowIndex = 0;
+                foreach($columnRows as $key => $row)
+                {
+                    $count = isset($rowcount[$key]) ? $rowcount[$key] : 1;
+                    for($i = 0; $i < $count; $i++)
+                    {
+                        if(!isset($groupsRow[$rowIndex])) $groupsRow[$rowIndex] = new stdclass();
+                        $groupsRow[$rowIndex] = (object)array_merge((array)$groupsRow[$rowIndex], (array)$row);
+                        $rowIndex += 1;
+                    }
+                }
             }
         }
 
@@ -1457,25 +1659,24 @@ class pivotModel extends model
             $this->getColumnConfig($groupRows, $configs, $groups, $index, $haveNext);
         }
 
-        /* Get group field lang */
-        foreach($groups as $group)
+
+        $groupRows    = json_decode(json_encode($groupsRow), true);
+        $fieldOptions = $this->getFieldsOptions($fields, $sql);
+        foreach($groupRows as $key => $row)
         {
-            $options = $this->getSysOptions($fields[$group]['type'], $fields[$group]['object'], $fields[$group]['field'], $sql);
-            foreach($groupsRow as $row)
+            foreach($row as $field => $value)
             {
-                if(isset($row->$group))
-                {
-                    $value = $row->$group;
-                    $lang  = isset($options[$value]) ? $options[$value] : $value;
-                    $row->$group = $lang;
-                }
+                $optionList  = isset($fieldOptions[$field]) ? $fieldOptions[$field] : array();
+                $row[$field] = isset($optionList[$value]) ? $optionList[$value] : $value;
             }
+
+            $groupRows[$key] = $row;
         }
 
         $data              = new stdclass();
         $data->groups      = $groups;
         $data->cols        = $cols;
-        $data->array       = json_decode(json_encode($groupsRow), true);
+        $data->array       = $groupRows;
         $data->columnTotal = isset($settings['columnTotal']) ? $settings['columnTotal'] : '';
 
         /* $data->groups  array 代表分组，最多三个
@@ -1570,15 +1771,16 @@ class pivotModel extends model
      * @access public
      * @return array
      */
-    public function getTableHeader($columnRows, $column, $fields, $cols, $sql, $langs = array())
+    public function getTableHeader($columnRows, $column, $fields, $cols, $sql, $langs = array(), $showOrigin = false)
     {
         $stat       = zget($column, 'stat', '');
         $showMode   = zget($column, 'showMode', 'default');
         $monopolize = $showMode == 'default' ? '' : zget($column, 'monopolize', '');
 
         $col = new stdclass();
-        $col->name    = $column['field'];
-        $col->isGroup = false;
+        $col->name       = $column['field'];
+        $col->isGroup    = false;
+        $col->showOrigin = $showOrigin;
 
         $fieldObject  = $fields[$column['field']]['object'];
         $relatedField = $fields[$column['field']]['field'];
@@ -1593,9 +1795,12 @@ class pivotModel extends model
         $clientLang = $this->app->getClientLang();
         if(isset($langs[$column['field']]) and !empty($langs[$column['field']][$clientLang])) $colLabel = $langs[$column['field']][$clientLang];
 
-        $colLabel = str_replace('{$field}', $colLabel, $this->lang->pivot->colLabel);
-        $colLabel = str_replace('{$stat}', zget($this->lang->pivot->step2->statList, $stat), $colLabel);
-        if($showMode != 'default') $colLabel .= sprintf($this->lang->pivot->colShowMode, zget($this->lang->pivot->step2->showModeList, $showMode));
+        if(!$showOrigin)
+        {
+            $colLabel = str_replace('{$field}', $colLabel, $this->lang->pivot->colLabel);
+            $colLabel = str_replace('{$stat}', zget($this->lang->pivot->step2->statList, $stat), $colLabel);
+            if($showMode != 'default') $colLabel .= sprintf($this->lang->pivot->colShowMode, zget($this->lang->pivot->step2->showModeList, $showMode));
+        }
         $col->label = $colLabel;
 
         $slice = zget($column, 'slice', 'noSlice');
@@ -1773,7 +1978,7 @@ class pivotModel extends model
             {
                 if(in_array($field, $groups))
                 {
-                    $colTotalRow->$field = 0;
+                    $colTotalRow->$field = '$togalGroup$';
                 }
                 else
                 {
@@ -1892,7 +2097,7 @@ class pivotModel extends model
         switch($type)
         {
             case 'user':
-                $options = $this->loadModel('user')->getPairs();
+                $options = $this->loadModel('user')->getPairs('noletter');
                 break;
             case 'product':
                 $options = $this->loadModel('product')->getPairs();
@@ -1906,20 +2111,33 @@ class pivotModel extends model
             case 'dept':
                 $options = $this->loadModel('dept')->getOptionMenu(0);
                 break;
+            case 'project.status':
+                $this->app->loadLang('project');
+                $options = $this->lang->project->statusList;
+                break;
             case 'option':
                 if($field)
                 {
-                    $path = $this->app->getExtensionRoot() . 'biz' . DS . 'dataview' . DS . 'table' . DS . "$object.php";
-                    include $path;
-
-                    $options = $schema->fields[$field]['options'];
+                    $path = $this->app->getModuleRoot() . 'dataview' . DS . 'table' . DS . "$object.php";
+                    if(is_file($path))
+                    {
+                        include $path;
+                        $options = $schema->fields[$field]['options'];
+                    }
                 }
                 break;
             case 'object':
                 if($field)
                 {
-                    $table   = zget($this->config->objectTables, $object);
-                    $options = $this->dao->select("id, {$field}")->from($table)->fetchPairs();
+                    $table = zget($this->config->objectTables, $object, '');
+                    if($table)
+                    {
+                        $columns = $this->dbh->query("SHOW COLUMNS FROM $table")->fetchAll();
+                        foreach($columns as $id => $column) $columns[$id] = (array)$column;
+                        $fieldList = array_column($columns, 'Field');
+
+                        if(in_array($field, $fieldList)) $options = $this->dao->select("id, {$field}")->from($table)->fetchPairs();
+                    }
                 }
                 break;
             case 'string':
@@ -2028,22 +2246,83 @@ class pivotModel extends model
     }
 
     /**
+     * 通过合并单元格的数据对透视表进行分页
+     * Page pivot by configs merge cell data.
+     *
+     * @param  array $configs
+     * @param  int   $page
+     * @param  bool  $useColumnTotal
+     * @static
+     * @access public
+     * @return bool
+     */
+    public function pagePivot($configs, $page, $useColumnTotal)
+    {
+        $configs = array_values($configs);
+        // 当前在第几页
+        $nowPage   = 1;
+        // 一共多少行
+        $pageCount = 0;
+        // 当前页目前多少行
+        $nowCount  = 0;
+        // 记录当前第几个分组(项)，共有多少行
+        $itemRow   = array(0 => 0);
+        // 目标分页的起始行和结束行
+        $start = $end = -1;
+        foreach($configs as $key => $config)
+        {
+            if($nowPage == $page and $start == -1)   $start = $pageCount;
+            if($nowPage == $page + 1 and $end == -1) $end   = $pageCount;
+
+            $pageCount += $config[0];
+            $nowCount  += $config[0];
+            $itemRow[]  = $pageCount;
+            // 如果当前页超过了50行，换一页
+            if($nowCount >= $this->config->pivot->recPerPage)
+            {
+                $nowCount = 0;
+                if(isset($configs[$key + 1])) $nowPage += 1;
+            }
+        }
+        if($start == -1) $start = 0;
+        if($end == -1)   $end   = $pageCount;
+
+        // 获得当前页面有多少"项"
+        $endKey    = array_search($end, $itemRow);
+        $startKey  = array_search($start, $itemRow);
+        $itemCount = $endKey - $startKey;
+        // 如果是最后一页且使用了显示列的汇总，项数-1，
+        if($page == $nowPage and $useColumnTotal) $itemCount --;
+        return array($start, $end - 1, $itemCount, $nowPage);
+    }
+
+    /**
      * Build table use data and rowspan.
      *
      * @param  object $data
      * @param  array  $configs
-     * @param  array  $fields
+     * @param  int    $page
      * @access public
      * @return void
      *
      */
-    public function buildPivotTable($data, $configs, $fields = array(), $sql = '')
+    public function buildPivotTable($data, $configs, $page = 0)
     {
-        $clientLang  = $this->app->getClientLang();
-        $width       = 128;
+        $width = 128;
 
         /* Init table. */
-        $table  = "<table class='reportData table table-condensed table-striped table-bordered table-fixed datatable' style='width: auto; min-width: 100%' data-fixed-left-width='400'>";
+        $table  = "<div class='reportData'><table class='table table-condensed table-striped table-bordered table-fixed datatable' style='width: auto; min-width: 100%' data-fixed-left-width='400'>";
+
+        $showOrigins = array();
+        $hasShowOrigin = false;
+
+        foreach($data->cols[0] as $col)
+        {
+            $colspan = zget($col, 'colspan', 1);
+            $colShowOrigin = array_fill(0, $colspan, $col->showOrigin);
+            $showOrigins = array_merge($showOrigins, $colShowOrigin);
+            if($col->showOrigin) $hasShowOrigin = true;
+        }
 
         /* Init table thead. */
         $table .= "<thead>";
@@ -2069,10 +2348,17 @@ class pivotModel extends model
         /* Init table tbody. */
         $table .= "<tbody>";
         $rowCount = 0;
+
+        $useColumnTotal = (!empty($data->columnTotal) and $data->columnTotal === 'sum');
+        if($page) list($start, $end, $itemCount, $pageTotal) = $this->pagePivot($configs, $page, $useColumnTotal);
+
         for($i = 0; $i < count($data->array); $i ++)
         {
             $rowCount ++;
-            if(!empty($data->columnTotal) and $data->columnTotal === 'sum' and $rowCount == count($data->array)) continue;
+
+            if($page and ($i < $start or $i > $end)) continue;
+
+            if($useColumnTotal and $rowCount == count($data->array)) continue;
 
             $line   = array_values($data->array[$i]);
             $table .= "<tr class='text-center'>";
@@ -2081,6 +2367,13 @@ class pivotModel extends model
                 $isGroup = !empty($data->cols[0][$j]) ? $data->cols[0][$j]->isGroup : false;
                 $rowspan = isset($configs[$i][$j]) ? $configs[$i][$j] : 1;
                 $hidden  = isset($configs[$i][$j]) ? false : (!$isGroup ? false : true);
+
+                $showOrigin = $showOrigins[$j];
+                if($hasShowOrigin && !$isGroup && !$showOrigin)
+                {
+                    $rowspan = isset($configs[$i]) ? end($configs[$i]) : 1;
+                    $hidden  = isset($configs[$i]) ? false : true;
+                }
 
                 $lineValue = $line[$j];
                 if($isGroup)
@@ -2094,8 +2387,8 @@ class pivotModel extends model
             $table .= "</tr>";
         }
 
-        /* Add column total. */
-        if(!empty($data->columnTotal) and $data->columnTotal === 'sum' and !empty($data->array))
+        /* Add column total. 如果分页了，只在最后一页展示 */
+        if($useColumnTotal and !empty($data->array) and (!$page or $page == $pageTotal))
         {
             $table .= "<tr class='text-center'>";
             $table .= "<td colspan='" . count($data->groups) . "'>{$this->lang->pivot->step2->total}</td>";
@@ -2109,9 +2402,92 @@ class pivotModel extends model
         }
 
         $table .= "</tbody>";
-        $table .= "</table>";
+        $table .= "</table></div>";
+
+        if($page)
+        {
+            $recTotal  = $end - $start + 1;
+            $leftPage  = $page - 1;
+            $rightPage = $page + 1;
+
+            if($recTotal) $table .= $this->getTablePager($itemCount, $leftPage, $rightPage, $page, $pageTotal);
+        }
 
         echo $table;
+    }
+
+    public function getTablePager($itemCount, $leftPage, $rightPage, $page, $pageTotal)
+    {
+        $itemCountTip   = sprintf($this->lang->pivot->recTotalTip, $itemCount);
+        $leftPageClass  = $page == 1 ? 'disabled' : '';
+        $rightPageClass = $page == $pageTotal ? 'disabled' : '';
+
+        $pager = "
+            <div class='table-footer'>
+              <ul class='pager'>
+                <li><div class='pager-label recTotal'>{$itemCountTip}</div></li>
+                <li class='pager-item-left first-page $leftPageClass' onclick='queryPivotByPager(this)'>
+                  <a class='pager-item' data-page='1' href='javascript:;'><i class='icon icon-first-page'></i></a>
+                </li>
+                <li class='pager-item-left left-page $leftPageClass' onclick='queryPivotByPager(this)'>
+                  <a class='pager-item' data-page='{$leftPage}' href='javascript:;'><i class='icon icon-angle-left'></i></a>
+                </li>
+                <li><div class='pager-label page-number'><strong>{$page}/{$pageTotal}</strong></div></li>
+                <li class='pager-item-right right-page $rightPageClass' onclick='queryPivotByPager(this)'>
+                  <a class='pager-item' data-page='{$rightPage}' href='javascript:;'><i class='icon icon-angle-right'></i></a>
+                </li>
+                <li class='pager-item-right last-page $rightPageClass' onclick='queryPivotByPager(this)'>
+                  <a class='pager-item' data-page='{$pageTotal}' href='javascript:;'><i class='icon icon-last-page'></i></a>
+                </li>
+              </ul>
+            </div>";
+
+         return $pager;
+    }
+
+    public function getFullTablePager($recTotal, $recPerPage, $page, $leftPage, $rightPage, $pageTotal, $onclick = 'queryPivotByPager(this)')
+    {
+        $recTotalTip    = sprintf($this->lang->pivot->recTotalTip, $recTotal);
+        $recPerPageTip  = sprintf($this->lang->pivot->recPerPageTip, $recPerPage);
+        $leftPageClass  = $page == 1 ? 'disabled' : '';
+        $rightPageClass = $page == $pageTotal ? 'disabled' : '';
+
+        $dropdownMenu = '';
+        foreach($this->config->pivot->recPerPageList as $perPage)
+        {
+            $active = $perPage == $recPerPage ? 'active' : '';
+            $dropdownMenu .= "<li class='recPerPage {$active}' onclick='{$onclick}'><a href='javascript:;' data-size='{$perPage}'>{$perPage}</a></li>";
+        }
+
+        $pager = "
+            <div class='table-footer'>
+              <ul class='pager'>
+                <li class='hidden current-page' data-page='{$page}'></li>
+                <li class='hidden current-recperpage' data-recperpage='{$recPerPage}'></li>
+                <li><div class='pager-label recTotal'>{$recTotalTip}</div></li>
+                <li>
+                  <div class='btn-group pager-size-menu dropup'>
+                    <button type='button' class='btn dropdown-toggle' data-toggle='dropdown' style='border-radius: 4px;'>{$recPerPageTip}<span class='caret'></span></button>
+                    <ul class='dropdown-menu'>{$dropdownMenu}</ul>
+                  </div>
+                </li>
+                <li class='pager-item-left first-page $leftPageClass' onclick='{$onclick}'>
+                  <a class='pager-item' data-page='1' href='javascript:;'><i class='icon icon-first-page'></i></a>
+                </li>
+                <li class='pager-item-left left-page $leftPageClass' onclick='{$onclick}'>
+                  <a class='pager-item' data-page='{$leftPage}' href='javascript:;'><i class='icon icon-angle-left'></i></a>
+                </li>
+                <li><div class='pager-label page-number'><strong>{$page}/{$pageTotal}</strong></div></li>
+                <li class='pager-item-right right-page $rightPageClass' onclick='{$onclick}'>
+                  <a class='pager-item' data-page='{$rightPage}' href='javascript:;'><i class='icon icon-angle-right'></i></a>
+                </li>
+                <li class='pager-item-right last-page $rightPageClass' onclick='{$onclick}'>
+                  <a class='pager-item' data-page='{$pageTotal}' href='javascript:;'><i class='icon icon-last-page'></i></a>
+                </li>
+              </ul>
+            </div>";
+
+         return $pager;
     }
 
     /**
@@ -2136,6 +2512,116 @@ class pivotModel extends model
         return $sql;
     }
 
+    public function getFieldsOptions($fields, $sql)
+    {
+        $options = array();
+        foreach($fields as $key => $field)
+        {
+            $options[$key] = $this->getSysOptions($field['type'], $field['object'], $field['field'], $sql);
+        }
+
+        return $options;
+    }
+
+    /**
+     * Gen sheet by origin sql.
+     *
+     * @param  array  $fields
+     * @param  array  $settings
+     * @param  string $sql
+     * @param  array  $filters
+     * @param  array  $langs
+     * @access public
+     * @return string
+     */
+    public function genOriginSheet($fields, $settings, $sql, $filters, $langs = array())
+    {
+        $sql = $this->initVarFilter($filters, $sql);
+
+        /* Create sql. */
+        $sql = str_replace(';', '', $sql);
+
+        if(preg_match_all("/[\$]+[a-zA-Z0-9]+/", $sql, $out))
+        {
+            foreach($out[0] as $match) $sql = str_replace($match, "''", $sql);
+        }
+
+        /* Process rows. */
+        $connectSQL = '';
+        if(!empty($filters) && !isset($filters[0]['from']))
+        {
+            $wheres = array();
+            foreach($filters as $field => $filter)
+            {
+                $wheres[] = "tt.`$field` {$filter['operator']} {$filter['value']}";
+            }
+
+            $whereStr    = implode(' and ', $wheres);
+            $connectSQL .= " where $whereStr";
+        }
+
+        $this->app->loadClass('sqlparser', true);
+        $parser    = new sqlparser($sql);
+        $statement = $parser->statements[0];
+        if(!$statement->limit)
+        {
+            $statement->limit = new stdclass();
+            $statement->limit->offset   = 0;
+            $statement->limit->rowCount = 99999999;
+        }
+        $sql = $statement->build();
+
+        $columnSQL = "select * from ($sql) tt" . $connectSQL;
+        $rows = $this->dao->query($columnSQL)->fetchAll();
+        $rows = json_decode(json_encode($rows), true);
+
+        $cols = array();
+        $clientLang = $this->app->getClientLang();
+        /* Build cols. */
+        foreach($fields as $field)
+        {
+            $key = $field['field'];
+
+            $col = new stdclass();
+            $col->name    = $key;
+            $col->isGroup = true;
+
+            $fieldObject  = $field['object'];
+            $relatedField = $field['field'];
+
+            $colLabel = $key;
+            if($fieldObject)
+            {
+                $this->app->loadLang($fieldObject);
+                if(isset($this->lang->$fieldObject->$relatedField)) $colLabel = $this->lang->$fieldObject->$relatedField;
+            }
+
+            if(isset($langs[$key]) and !empty($langs[$key][$clientLang])) $colLabel = $langs[$key][$clientLang];
+            $col->label = $colLabel;
+
+            $cols[0][] = $col;
+        }
+
+        $fieldOptions = $this->getFieldsOptions($fields, $sql);
+        foreach($rows as $key => $row)
+        {
+            foreach($row as $field => $value)
+            {
+                $optionList  = isset($fieldOptions[$field]) ? $fieldOptions[$field] : array();
+                $row[$field] = isset($optionList[$value]) ? $optionList[$value] : $value;
+            }
+
+            $rows[$key] = $row;
+        }
+
+        $data = new stdclass();
+        $data->cols  = $cols;
+        $data->array = $rows;
+
+        $configs = array_fill(0, count($rows), array_fill(0, count($fields), 1));
+
+        return array($data, $configs);
+    }
 }
 
 /**

@@ -53,7 +53,10 @@
           <tr>
             <th><?php echo $lang->productplan->status;?></th>
             <?php $disabled = $plan->parent == -1 ? "disabled='disabled'" : '' ;?>
-            <td><?php echo html::select('status', array_slice($lang->productplan->statusList,($plan->status == 'wait' ? 0 : 1)), $plan->status, "class='form-control chosen' $disabled");?></td>
+            <td>
+              <?php echo html::select('status', array_slice($lang->productplan->statusList,($plan->status == 'wait' ? 0 : 1)), $plan->status, "class='form-control chosen' $disabled");?>
+              <?php if($disabled) echo html::hidden('status', $plan->status);?>
+            </td>
           </tr>
           <tr>
             <?php $checked = ($plan->begin  == $config->productplan->future and $plan->end == $config->productplan->future) ? "checked='checked'" : '';?>
@@ -89,4 +92,5 @@
     </form>
   </div>
 </div>
+<?php include '../../ai/view/inputinject.html.php';?>
 <?php include '../../common/view/footer.html.php';?>

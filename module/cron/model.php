@@ -32,14 +32,21 @@ class cronModel extends model
      */
     public function getCrons($params = '')
     {
-        return $this->dao->select('*')->from(TABLE_CRON)
-            ->where('1=1')
-            ->beginIF(strpos($params, 'nostop') !== false)->andWhere('status')->ne('stop')->fi()
-            ->beginIF($this->config->edition != 'max')
-            ->andWhere('command')->ne('moduleName=measurement&methodName=initCrontabQueue')
-            ->andWhere('command')->ne('moduleName=measurement&methodName=execCrontabQueue')
-            ->fi()
-            ->fetchAll('id');
+        $validCrons = $this->dao->select('*')->from(TABLE_CRON)->fetchAll('id');
+
+        $commandInMaxEdition = array(
+            'moduleName=measurement&methodName=initCrontabQueue',
+            'moduleName=measurement&methodName=execCrontabQueue',
+            'moduleName=weekly&methodName=computeWeekly',
+        );
+        foreach($validCrons as $id => $cron)
+        {
+            if(strpos($params, 'nostop') !== false and $cron->status == 'stop') unset($validCrons[$id]);
+
+            if($this->config->edition != 'max' and in_array($cron->command, $commandInMaxEdition)) unset($validCrons[$id]);
+        }
+
+        return $validCrons;
     }
 
     /**
@@ -66,7 +73,7 @@ class cronModel extends model
                     $parsedCron['schema']   = trim($matchs[0][0]);
                     $parsedCron['command']  = trim($matchs[0][1]);
                     $parsedCron['cron']     = CronExpression::factory($parsedCron['schema']);
-                    $parsedCron['time']     = $parsedCron['cron']->getNextRunDate();
+                    $parsedCron['time']     = $parsedCron['cron']->getNextRunDate($cron->datetime);
                     $parsedCrons[$cron->id] = $parsedCron;
                 }
                 catch(InvalidArgumentException $e)
@@ -76,7 +83,7 @@ class cronModel extends model
                 }
             }
         }
-        $this->dao->update(TABLE_CRON)->set('lastTime')->eq(date(DT_DATETIME1))->where('lastTime')->eq('0000-00-00 00:00:00')->andWhere('status')->ne('stop')->exec();
+
         return $parsedCrons;
     }
 
@@ -123,9 +130,11 @@ class cronModel extends model
      */
     public function logCron($log)
     {
+        $runMode = PHP_SAPI == 'cli' ? '_cli' : '';
+
         if(!is_writable($this->app->getLogRoot())) return false;
 
-        $file = $this->app->getLogRoot() . 'cron.' . date('Ymd') . '.log.php';
+        $file = $this->app->getLogRoot() . "cron$runMode." . date('Ymd') . '.log.php';
         if(!is_file($file)) $log = "<?php\n die();\n" . $log;
 
         $fp = fopen($file, "a");
@@ -134,15 +143,16 @@ class cronModel extends model
     }
 
     /**
-     * Get last execed time.
+     * Get the last executed time of cron process.
      *
      * @access public
-     * @return string
+     * @return string|null
      */
     public function getLastTime()
     {
-        $cron = $this->dao->select('*')->from(TABLE_CRON)->orderBy('lastTime desc')->limit(1)->fetch();
-        return isset($cron->lastTime) ? $cron->lastTime : '0000-00-00 00:00:00';
+        $lastTime =  $this->dao->select('lastTime')->from(TABLE_CRON)->where('id')->eq(1)->fetch('lastTime');
+        if(!dao::isError()) return $lastTime;
+        return null;
     }
 
     /**
@@ -171,7 +181,7 @@ class cronModel extends model
      */
     public function checkChange()
     {
-        $updatedCron = $this->dao->select('*')->from(TABLE_CRON)->where('lastTime')->eq('0000-00-00 00:00:00')->andWhere('status')->ne('stop')->fetch();
+        $updatedCron = $this->dao->select('*')->from(TABLE_CRON)->where('lastTime')->notZeroDatetime()->andWhere('status')->ne('stop')->fetch();
         return $updatedCron ? true : false;
     }
 
@@ -185,7 +195,7 @@ class cronModel extends model
     {
         $cron = fixer::input('post')
             ->add('status', 'normal')
-            ->add('lastTime', '0000-00-00 00:00:00')
+            ->add('lastTime', null)
             ->skipSpecial('m,h,dom,mon,dow,command')
             ->get();
 
@@ -217,7 +227,6 @@ class cronModel extends model
     public function update($cronID)
     {
         $cron = fixer::input('post')
-            ->add('lastTime', '0000-00-00 00:00:00')
             ->skipSpecial('m,h,dom,mon,dow,command')
             ->get();
 
@@ -300,5 +309,94 @@ class cronModel extends model
             ->andWhere('section')->eq('global')
             ->andWhere('`key`')->eq('cron')
             ->fetch('value');
+    }
+
+    /**
+     * Restart cron.
+     *
+     * @access public
+     * @return void
+     */
+    public function restartCron($execId)
+    {
+        $this->dao->update(TABLE_CONFIG)->set('value')->eq($execId)
+            ->where('owner')->eq('system')
+            ->andWhere('module')->eq('cron')
+            ->andWhere('section')->eq('scheduler')
+            ->andWhere('`key`')->eq($execId)
+            ->exec();
+        $this->dao->delete()->from(TABLE_QUEUE)->where('createdDate')->le(date("Y-m-d H:i:s", strtotime("-1 week")))->exec();
+
+        $this->logCron(date('G:i:s') . " restart\n\n");
+    }
+
+    /**
+     * Update last time of cron.
+     *
+     * @param string $role
+     * @param int    $execId
+     * @access public
+     * @return void
+     */
+    public function updateTime($role, $execId)
+    {
+        $now = date(DT_DATETIME1);
+
+        $settings = $this->dao->select('*')->from(TABLE_CONFIG)->where('owner')->eq('system')->andWhere('module')->eq('cron')->andWhere('section')->eq($role)->fetchAll('key');
+        if($role == 'scheduler')
+        {
+            if(isset($settings['execId']))
+            {
+                $setting = $settings['execId'];
+                if($setting->value != strval($execId)) $this->dao->update(TABLE_CONFIG)->set('value')->eq($execId)->where('id')->eq($setting->id)->exec();
+            }
+            else
+            {
+                $data = new stdclass();
+                $data->owner   = 'system';
+                $data->module  = 'cron';
+                $data->section = 'scheduler';
+                $data->key     = 'execId';
+                $data->value   = $execId;
+
+                $this->dao->insert(TABLE_CONFIG)->data($data)->exec();
+            }
+
+            if(isset($settings['lastTime']))
+            {
+                $setting = $settings['lastTime'];
+                $this->dao->update(TABLE_CONFIG)->set('value')->eq($now)->where('id')->eq($setting->id)->exec();
+            }
+            else
+            {
+                $data = new stdclass();
+                $data->owner   = 'system';
+                $data->module  = 'cron';
+                $data->section = 'scheduler';
+                $data->key     = 'lastTime';
+                $data->value   = $now;
+
+                $this->dao->insert(TABLE_CONFIG)->data($data)->exec();
+            }
+        }
+        else
+        {
+            if(isset($settings[strval($execId)]))
+            {
+                $setting = $settings[strval($execId)];
+                $this->dao->update(TABLE_CONFIG)->set('value')->eq($now)->where('id')->eq($setting->id)->exec();
+            }
+            else
+            {
+                $data = new stdclass();
+                $data->owner   = 'system';
+                $data->module  = 'cron';
+                $data->section = 'consumer';
+                $data->key     = $execId;
+                $data->value   = $now;
+
+                $this->dao->insert(TABLE_CONFIG)->data($data)->exec();
+            }
+        }
     }
 }

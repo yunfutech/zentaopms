@@ -64,6 +64,7 @@ $lang->task->teamOrder           = 'Order';
 $lang->task->manageTeam          = 'Manage Team';
 $lang->task->unfoldEffort        = 'Unfold Effort';
 $lang->task->foldEffort          = 'Fold Effort';
+$lang->task->relatedBranch       = 'Related Branch';
 
 $lang->task->common            = 'Task';
 $lang->task->id                = 'ID';
@@ -94,6 +95,7 @@ $lang->task->consumed          = 'Total Cost';
 $lang->task->currentConsumed   = 'Current Cost';
 $lang->task->myConsumed        = 'My Cost';
 $lang->task->consumedAB        = 'Cost';
+$lang->task->consumedHours     = 'Cost';
 $lang->task->hour              = 'Hours';
 $lang->task->consumedThisTime  = 'Cost';
 $lang->task->leftThisTime      = 'Left';
@@ -164,6 +166,7 @@ $lang->task->lblPri            = 'P';
 $lang->task->lblHour           = '(h)';
 $lang->task->lblTestStory      = 'Story Tested';
 $lang->task->teamMember        = 'Team Member';
+$lang->task->update            = 'Update';
 
 /* Fields of zt_taskestimate. */
 $lang->task->task    = 'Task';
@@ -259,9 +262,11 @@ $lang->task->deniedNotice              = 'Only the %s can %s the task.';
 $lang->task->deniedStatusNotice        = 'The task status is %s, the effort cannot be maintained.';
 $lang->task->transferNotice            = 'Linear task cannot be transferred.';
 $lang->task->noTask                    = 'No tasks yet. ';
+$lang->task->noModule                  = '<div>You have no modules.</div><div>Manage now</div>';
 $lang->task->createDenied              = 'Create Task is denied in this ' . $lang->projectCommon;
 $lang->task->cannotDeleteParent        = 'Cannot delete parent task';
 $lang->task->addChildTask              = 'Because the task has cost hours, ZenTao will create a child task with the same name to record the cost housrs to ensure data consistency.';
+$lang->task->effortOperateTips         = 'Only the project manager, the executive supervisor, and the department head have the authority to %s logs belonging to others.';
 
 $lang->task->error = new stdclass();
 $lang->task->error->totalNumber       = '"Total Cost" must be numbers.';

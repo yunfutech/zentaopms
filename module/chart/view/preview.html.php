@@ -13,6 +13,7 @@
 <?php include $app->getModuleRoot() . 'common/view/header.html.php';?>
 <?php js::import($jsRoot . 'moment/moment.min.js');?>
 <?php js::import($jsRoot . 'echarts/echarts.common.min.js');?>
+<?php js::import($jsRoot . 'echarts/echarts-liquidfill.min.js');?>
 <?php js::set('groupID', isset($group->id) ? $group->id : 0);?>
 <?php js::set('charts', $charts);?>
 <?php js::set('noChartSelected', $lang->chart->noChartSelected);?>
@@ -20,6 +21,8 @@
 <?php js::set('WIDTH_INPUT',  $config->chart->widthInput);?>
 <?php js::set('WIDTH_DATE',   $config->chart->widthDate);?>
 <?php js::set('pickerHeight', $config->bi->pickerHeight);?>
+<?php js::set('canLabelRotate', $this->config->chart->canLabelRotate);?>
+<?php js::set('labelMaxLength', $this->config->chart->labelMaxLength);?>
 <?php $queryDom = "<div class='queryBtn query-inside hidden'> <button type='submit' id='submit' onclick='queryData(this)' class='btn btn-primary btn-query' data-loading='Loading...'>{$lang->chart->query}</button></div>";?>
 <?php js::set('queryDom', $queryDom);?>
 
@@ -34,7 +37,7 @@
     }
     ?>
   </div>
-  <?php if($this->config->edition == 'biz' or $this->config->edition == 'max'):?>
+  <?php if($this->config->edition != 'open'):?>
   <div class='btn-toolbar pull-right child-position'>
     <?php common::printLink('chart', 'export', '', "<i class='icon icon-export muted'> </i> " . $lang->export, '', "class='btn btn-link btn-export' id='exportchart'");?>
     <?php common::printLink('chart', 'browse', '', $lang->chart->toDesign, '', "class='btn btn-primary '");?>
@@ -44,31 +47,32 @@
 
 <div id="mainContent" class='main-row'>
   <div class='side-col col-lg'>
-    <div class='panel'>
-      <div class='panel-heading'>
-        <div class='panel-title'><?php echo isset($group->name) ? $group->name : '';?></div>
-      </div>
-      <div class='panel-body'>
-        <?php if(!$chartTree):?>
-        <hr class="space">
-        <div class="text-center text-muted">
-          <?php echo $lang->chart->noChart;?>
+    <div class="cell">
+      <div class='panel'>
+        <div class='panel-heading text-ellipsis'>
+          <div class='panel-title'><?php echo isset($group->name) ? $group->name : '';?></div>
         </div>
-        <hr class="space">
-        <?php elseif($chartTree):?>
-        <form method='post'>
-          <?php echo $chartTree;?>
-          <div class='btn-toolbar'>
-            <?php echo html::selectAll();?>
-            <?php echo html::submitButton($lang->chart->preview, '', 'btn btn-primary');?>
+        <div class='panel-body'>
+          <?php if(!$chartTree):?>
+          <hr class="space">
+          <div class="text-center text-muted">
+            <?php echo $lang->chart->noChart;?>
           </div>
-        </form>
-        <?php endif;?>
-        <?php if($this->config->edition == 'open'):?>
-        <div class='text biz-version'>
-          <span class='text-important'><?php echo (!empty($config->isINT)) ? $lang->bizVersionINT : $lang->bizVersion;?></span>
+          <hr class="space">
+          <?php elseif($chartTree):?>
+          <form method='post'>
+            <?php echo $chartTree;?>
+            <div class='btn-toolbar'>
+              <?php echo html::submitButton($lang->chart->preview, '', 'btn btn-primary');?>
+            </div>
+          </form>
+          <?php endif;?>
+          <?php if($this->config->edition == 'open'):?>
+          <div class='text biz-version'>
+            <span class='text-important'><?php echo (!empty($config->isINT)) ? $lang->bizVersionINT : $lang->bizVersion;?></span>
+          </div>
+          <?php endif;?>
         </div>
-        <?php endif;?>
       </div>
     </div>
   </div>

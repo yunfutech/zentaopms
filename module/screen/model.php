@@ -28,9 +28,13 @@ class screenModel extends model
     public function __construct()
     {
         parent::__construct();
+
+        $this->loadBIDAO();
+
         $this->filter = new stdclass();
         $this->filter->screen  = '';
         $this->filter->year    = '';
+        $this->filter->month   = '';
         $this->filter->dept    = '';
         $this->filter->account = '';
         $this->filter->charts  = array();
@@ -45,7 +49,13 @@ class screenModel extends model
      */
     public function getList($dimensionID)
     {
-        return $this->dao->select('*')->from(TABLE_SCREEN)->where('dimension')->eq($dimensionID)->andWhere('deleted')->eq('0')->fetchAll('id');
+        $hasUsageReport = $this->config->edition !== 'open';
+
+        return $this->dao->select('*')->from(TABLE_SCREEN)
+            ->where('dimension')->eq($dimensionID)
+            ->andWhere('deleted')->eq('0')
+            ->beginIF(!$hasUsageReport)->andWhere('id')->ne(1001)->fi()
+            ->fetchAll('id');
     }
 
     /**
@@ -58,11 +68,11 @@ class screenModel extends model
      * @access public
      * @return object
      */
-    public function getByID($screenID, $year = '', $dept = '', $account = '')
+    public function getByID($screenID, $year = '', $month = '', $dept = '', $account = '')
     {
         $screen = $this->dao->select('*')->from(TABLE_SCREEN)->where('id')->eq($screenID)->fetch();
         if(!isset($screen->scheme) or empty($screen->scheme)) $screen->scheme = file_get_contents(__DIR__ . '/json/screen.json');
-        $screen->chartData = $this->genChartData($screen, $year, $dept, $account);
+        $screen->chartData = $this->genChartData($screen, $year, $month, $dept, $account);
 
         return $screen;
     }
@@ -77,16 +87,17 @@ class screenModel extends model
      * @access public
      * @return object
      */
-    public function genChartData($screen, $year, $dept, $account)
+    public function genChartData($screen, $year, $month, $dept, $account)
     {
         $this->filter = new stdclass();
         $this->filter->screen  = $screen->id;
         $this->filter->year    = $year;
+        $this->filter->month   = $month;
         $this->filter->dept    = $dept;
         $this->filter->account = $account;
         $this->filter->charts  = array();
 
-        if(!$screen->builtin or in_array($screen->id, $this->config->screen->builtinScreen)) return $this->genNewChartData($screen, $year, $dept, $account);
+        if(!$screen->builtin or in_array($screen->id, $this->config->screen->builtinScreen)) return $this->genNewChartData($screen, $year, $month, $dept, $account);
 
         $config = new stdclass();
         $config->width            = 1300;
@@ -139,7 +150,7 @@ class screenModel extends model
      * @access public
      * @return object
      */
-    public function genNewChartData($screen, $year, $dept, $account)
+    public function genNewChartData($screen, $year, $month, $dept, $account)
     {
         $this->loadModel('pivot');
         $scheme = json_decode($screen->scheme);
@@ -159,7 +170,7 @@ class screenModel extends model
             }
         }
 
-        foreach($scheme->componentList as $component)
+        foreach($scheme->componentList as $index => $component)
         {
             if(!empty($component->isGroup))
             {
@@ -168,9 +179,13 @@ class screenModel extends model
                     $groupComponent = $this->getLatestChart($groupComponent);
                 }
             }
-            else
+            else if($component)
             {
                 $component = $this->getLatestChart($component);
+            }
+            else
+            {
+                unset($scheme->componentList[$index]);
             }
         }
 
@@ -208,30 +223,9 @@ class screenModel extends model
      */
     public function genComponentData($chart, $type = 'chart', $component = null, $filters = '')
     {
-        $chart = clone($chart);
-        if($type == 'pivot' and $chart)
+        if(empty($chart) || ($chart->stage == 'draft' || $chart->deleted == '1'))
         {
-            $chart = $this->loadModel('pivot')->processPivot($chart);
-            $chart->settings = json_encode($chart->settings);
-        }
-
-        if(empty($filters) and !empty($chart->filters))
-        {
-            if($type == 'pivot')
-            {
-                list($sql, $filters) = $this->loadModel($type)->getFilterFormat($chart->sql, json_decode($chart->filters, true));
-                $chart->sql = $sql;
-            }
-            else
-            {
-                $filters = $this->loadModel($type)->getFilterFormat(json_decode($chart->filters, true));
-            }
-        }
-
-        list($component, $typeChanged) = $this->initComponent($chart, $type, $component);
-
-        if(empty($chart) || ($chart->stage == 'draft' || $chart->deleted === '1'))
-        {
+            if(empty($component)) $component = new stdclass();
             $component->option = new stdclass();
             if($type == 'chart')
             {
@@ -262,7 +256,30 @@ class screenModel extends model
             return $component;
         }
 
+        $chart = clone($chart);
+        if($type == 'pivot' and $chart)
+        {
+            $chart = $this->loadModel('pivot')->processPivot($chart);
+            $chart->settings = json_encode($chart->settings);
+        }
+
+        if(empty($filters) and !empty($chart->filters))
+        {
+            if($type == 'pivot')
+            {
+                list($sql, $filters) = $this->loadModel($type)->getFilterFormat($chart->sql, json_decode($chart->filters, true));
+                $chart->sql = $sql;
+            }
+            else
+            {
+                $filters = $this->loadModel($type)->getFilterFormat(json_decode($chart->filters, true));
+            }
+        }
+
+        list($component, $typeChanged) = $this->initComponent($chart, $type, $component);
+
         $component = $this->getChartOption($chart, $component, $filters);
+        if($type == 'chart') $component = $this->getAxisRotateOption($chart, $component);
 
         $component->chartConfig->dataset  = $component->option->dataset;
         $component->chartConfig->fields   = json_decode($chart->fields);
@@ -272,6 +289,7 @@ class screenModel extends model
         {
             if(!empty($component->option->series))
             {
+
                 $defaultSeries = $component->option->series;
                 if($component->type == 'radar')
                 {
@@ -281,6 +299,10 @@ class screenModel extends model
                     $legends = array();
                     foreach($component->option->dataset->seriesData as $seriesData) $legends[] = $seriesData->name;
                     $component->option->legend->data = $legends;
+                }
+                elseif($component->type == 'waterpolo')
+                {
+                    // Do nothing
                 }
                 else
                 {
@@ -326,10 +348,37 @@ class screenModel extends model
             case 'card':
                 return $this->buildCardChart($component, $chart);
             case 'waterpolo':
-                return $this->buildWaterPolo($component, $chart);
+                if(strpos($chart->settings, 'waterpolo') === false) return $this->buildWaterPolo($component, $chart);
+                return $this->getWaterPoloOption($component, $chart, $filters);
             default:
                 return '';
         }
+    }
+
+    /**
+     * Get chart option about rotate.
+     *
+     * @param  object $chart
+     * @param  object $component
+     * @access public
+     * @return object
+     */
+    public function getAxisRotateOption($chart, $component)
+    {
+        $settings = json_decode($chart->settings, true);
+        $setting  = $settings[0];
+
+        $component->chartConfig->xAxis = new stdclass();
+        $component->chartConfig->yAxis = new stdclass();
+        $component->chartConfig->xAxis->axisLabel = new stdclass();
+        $component->chartConfig->yAxis->axisLabel = new stdclass();
+
+        $component->chartConfig->xAxis->axisLabel->rotate = 0;
+        $component->chartConfig->yAxis->axisLabel->rotate = 0;
+        if(isset($setting['rotateX']) && $setting['rotateX'] == 'use') $component->chartConfig->xAxis->axisLabel->rotate = 30;
+        if(isset($setting['rotateY']) && $setting['rotateY'] == 'use') $component->chartConfig->yAxis->axisLabel->rotate = 30;
+
+        return $component;
     }
 
     /**
@@ -350,20 +399,23 @@ class screenModel extends model
 
             list($group, $metrics, $aggs, $xLabels, $yStats) = $this->loadModel('chart')->getMultiData($settings, $chart->sql, $filters);
 
-            $fields     = json_decode($chart->fields);
-            $dimensions = array($settings['xaxis'][0]['field']);
-            $sourceData = array();
-            $clientLang = $this->app->getClientLang();
+            $fields       = json_decode($chart->fields, true);
+            $dimensions   = array($settings['xaxis'][0]['field']);
+            $sourceData   = array();
+            $clientLang   = $this->app->getClientLang();
+            $xLabelValues = $this->processXLabel($xLabels, $fields[$group]['type'], $fields[$group]['object'], $fields[$group]['field']);
+
             foreach($yStats as $index => $dataList)
             {
                 $field     = zget($fields, $metrics[$index]);
-                $fieldName = $field->name; 
-                if(isset($langs[$field->field]) and !empty($langs[$field->field][$clientLang])) $fieldName = $langs[$field->field][$clientLang];
+                $fieldName = $field->name;
+                if(isset($langs[$field['field']]) and !empty($langs[$field['field']][$clientLang])) $fieldName = $langs[$field['field']][$clientLang];
                 $field = $fieldName . '(' . zget($this->lang->chart->aggList, $aggs[$index]) . ')';
                 $dimensions[] = $field;
 
                 foreach($dataList as $valueField => $value)
                 {
+                    $valueField = $xLabelValues[$valueField];
                     if(empty($sourceData[$valueField]))
                     {
                         $sourceData[$valueField] = new stdclass();
@@ -399,20 +451,23 @@ class screenModel extends model
 
             list($group, $metrics, $aggs, $xLabels, $yStats) = $this->loadModel('chart')->getMultiData($settings, $chart->sql, $filters);
 
-            $fields     = json_decode($chart->fields);
-            $dimensions = array($settings['xaxis'][0]['field']);
-            $sourceData = array();
-            $clientLang = $this->app->getClientLang();
+            $fields       = json_decode($chart->fields, true);
+            $dimensions   = array($settings['xaxis'][0]['field']);
+            $sourceData   = array();
+            $clientLang   = $this->app->getClientLang();
+            $xLabelValues = $this->processXLabel($xLabels, $fields[$group]['type'], $fields[$group]['object'], $fields[$group]['field']);
+
             foreach($yStats as $index => $dataList)
             {
                 $field     = zget($fields, $metrics[$index]);
                 $fieldName = $field->name;
-                if(isset($langs[$field->field]) and !empty($langs[$field->field][$clientLang])) $fieldName = $langs[$field->field][$clientLang];
+                if(isset($langs[$field['field']]) and !empty($langs[$field['field']][$clientLang])) $fieldName = $langs[$field['field']][$clientLang];
                 $field = $fieldName . '(' . zget($this->lang->chart->aggList, $aggs[$index]) . ')';
                 $dimensions[] = $field;
 
                 foreach($dataList as $valueField => $value)
                 {
+                    $valueField = $xLabelValues[$valueField];
                     if(empty($sourceData[$valueField]))
                     {
                         $sourceData[$valueField] = new stdclass();
@@ -502,15 +557,17 @@ class screenModel extends model
 
             list($group, $metrics, $aggs, $xLabels, $yStats) = $this->loadModel('chart')->getMultiData($settings, $chart->sql, $filters);
 
-            $fields         = json_decode($chart->fields);
+            $fields         = json_decode($chart->fields, true);
             $radarIndicator = array();
             $seriesData     = array();
             $max            = 0;
             $clientLang     = $this->app->getClientLang();
+            $xLabelValues   = $this->processXLabel($xLabels, $fields[$group]['type'], $fields[$group]['object'], $fields[$group]['field']);
+
             foreach($yStats as $index => $dataList)
             {
                 $field     = zget($fields, $metrics[$index]);
-                $fieldName = $field->name; 
+                $fieldName = $field->name;
 
                 if(isset($langs[$field->field]) and !empty($langs[$field->field][$clientLang])) $fieldName = $langs[$field->field][$clientLang];
                 $field = $fieldName . '(' . zget($this->lang->chart->aggList, $aggs[$index]) . ')';
@@ -532,7 +589,7 @@ class screenModel extends model
                 foreach($dataList as $valueField => $value)
                 {
                     $indicator = new stdclass();
-                    $indicator->name   = $valueField;
+                    $indicator->name   = $xLabelValues[$valueField];
                     $indicator->max    = $max;
                     $radarIndicator[]  = $indicator;;
                 }
@@ -558,12 +615,20 @@ class screenModel extends model
         if($chart->sql)
         {
             $settings = json_decode($chart->settings, true);
-            $fields   = json_decode($chart->fields, true);
+            $fields   = json_decode(json_encode($chart->fieldSettings), true);
             $langs    = json_decode($chart->langs, true);
-            list($options, $config) = $this->loadModel('pivot')->genSheet($fields, $settings, $chart->sql, $filters, $langs);
+
+            if(isset($settings['summary']) and $settings['summary'] == 'notuse')
+            {
+                list($options, $config) = $this->loadModel('pivot')->genOriginSheet($fields, $settings, $chart->sql, $filters, $langs);
+            }
+            else
+            {
+                list($options, $config) = $this->loadModel('pivot')->genSheet($fields, $settings, $chart->sql, $filters, $langs);
+            }
 
             $colspan = array();
-            if($options->columnTotal and $options->columnTotal == 'sum' and !empty($options->array))
+            if(isset($options->columnTotal) and $options->columnTotal == 'sum' and !empty($options->array))
             {
                 $optionsData = $options->array;
                 $count       = count($optionsData);
@@ -590,7 +655,7 @@ class screenModel extends model
                 {
                     for($k = 1; $k < $rowspan; $k ++)
                     {
-                        if(isset($dataset[$i + $k][$j])) unset($dataset[$i + $k][$j]);
+                        unset($dataset[$i + $k][$j]);
                     }
                 }
             }
@@ -716,6 +781,28 @@ class screenModel extends model
     }
 
     /**
+     * Process xLabel with lang
+     *
+     * @param  array   $xLabel
+     * @param  string  $type
+     * @param  string  $object
+     * @param  string  $field
+     * @access public
+     * @return array
+     */
+    public function processXLabel($xLabels, $type, $object, $field)
+    {
+        $options = $this->getSysOptions($type, $object, $field);
+        $xLabelValues = array();
+        foreach($xLabels as $index => $label)
+        {
+            $xLabelValues[$label] = isset($options[$label]) ? $options[$label] : $label;
+        }
+
+        return $xLabelValues;
+    }
+
+    /**
      * Get system options.
      *
      * @param string $type
@@ -742,33 +829,35 @@ class screenModel extends model
             case 'dept':
                 $options = $this->loadModel('dept')->getOptionMenu(0);
                 break;
+            case 'project.status':
+                $this->app->loadLang('project');
+                $options = $this->lang->project->statusList;
+                break;
             case 'option':
                 if($field)
                 {
-                    $path = $this->app->getExtensionRoot() . 'biz' . DS . 'dataview' . DS . 'table' . DS . "$object.php";
-                    include $path;
-
-                    $options = $schema->fields[$field]['options'];
+                    $path = $this->app->getModuleRoot() . 'dataview' . DS . 'table' . DS . "$object.php";
+                    if(is_file($path))
+                    {
+                        include $path;
+                        $options = $schema->fields[$field]['options'];
+                    }
                 }
                 break;
             case 'object':
                 if($field)
                 {
-                    $table   = zget($this->config->objectTables, $object);
-                    $options = $this->dao->select("id, {$field}")->from($table)->fetchPairs();
+                    $table = zget($this->config->objectTables, $object, '');
+                    if($table) $options = $this->dao->select("id, {$field}")->from($table)->fetchPairs();
                 }
                 break;
-            case 'string':
-                if($field)
+            default:
+                if($field && $sql)
                 {
-                    if($sql)
+                    $cols = $this->dao->query("select tt.`$field` from ($sql) tt group by tt.`$field` order by tt.`$field` desc")->fetchAll();
+                    foreach($cols as $col)
                     {
-                        $cols = $this->dbh->query($sql)->fetchAll();
-                        foreach($cols as $col)
-                        {
-                            $data = $col->$field;
-                            $options[$data] = $data;
-                        }
+                        $options[$col->$field] = $col->$field;
                     }
                 }
                 break;
@@ -857,14 +946,36 @@ class screenModel extends model
             case 'year':
                 $component->option->value = $this->filter->year;
 
-                $begin = $this->dao->select('YEAR(MIN(date)) year')->from(TABLE_ACTION)->where('date')->ne('0000-00-00')->fetch('year');
-                if($begin < 2009) $begin = 2009;
+                $beginYear = $this->dao->select('YEAR(MIN(date)) year')->from(TABLE_ACTION)->where('date')->notZeroDate()->fetch('year');
+                if($beginYear < 2009) $beginYear = 2009;
 
                 $options = array();
-                for($year = date('Y'); $year >= $begin; $year--) $options[] = array('label' => $year, 'value' => $year);
+                for($year = date('Y'); $year >= $beginYear; $year--) $options[] = array('label' => $year, 'value' => $year);
                 $component->option->dataset = $options;
 
-                $url = "createLink('screen', 'view', 'screenID=" . $this->filter->screen. "&year=' + value + '&dept=" . $this->filter->dept . "&account=" . $this->filter->account . "')";
+                $url = "createLink('screen', 'view', 'screenID=" . $this->filter->screen. "&year=' + value + '&month=" . $this->filter->month . "&dept=" . $this->filter->dept . "&account=" . $this->filter->account . "')";
+                $component->option->onChange = "window.location.href = $url";
+                break;
+            case 'month':
+                $component->option->value = $this->filter->month;
+
+                $beginYear  = $this->dao->select('YEAR(MIN(date)) year')->from(TABLE_ACTION)->where('date')->notZeroDate()->fetch('year');
+                $beginMonth = $this->dao->select('MONTH(MIN(date)) month')->from(TABLE_ACTION)->where('date')->notZeroDate()->fetch('month');
+
+                $currentYear  = date('Y');
+                $currentMonth = date('n');
+
+                $options = array();
+                for($month = 12; $month >= 1; $month--)
+                {
+                    if($currentYear == $this->filter->year && $month > $currentMonth) continue;
+                    if($currentYear == $beginYear && $month < $beginMonth) continue;
+
+                    $options[] = array('label' => $month, 'value' => $month);
+                }
+                $component->option->dataset = $options;
+
+                $url = "createLink('screen', 'view', 'screenID=" . $this->filter->screen. "&year=" . $this->filter->year . "&month=' + value + '&dept=" . $this->filter->dept . "&account=" . $this->filter->account . "')";
                 $component->option->onChange = "window.location.href = $url";
                 break;
             case 'dept':
@@ -927,6 +1038,11 @@ class screenModel extends model
                 return $this->buildCardChart($component, $chart);
                 break;
             case 'line':
+                if($chart->builtin == '0')
+                {
+                    $chart->sql = $this->setFilterSQL($chart);
+                    return $this->getLineChartOption($component, $chart, array());
+                }
                 return $this->buildLineChart($component, $chart);
                 break;
             case 'bar':
@@ -936,6 +1052,7 @@ class screenModel extends model
                 return $this->buildPieCircleChart($component, $chart);
                 break;
             case 'pie':
+                if($chart->builtin == '0') return $this->getPieChartOption($component, $chart, array());
                 return $this->buildPieChart($component, $chart);
                 break;
             case 'radar':
@@ -950,6 +1067,15 @@ class screenModel extends model
             case 'table':
                 return $this->buildTableChart($component, $chart);
                 break;
+            case 'cluBarY':
+            case 'stackedBarY':
+            case 'cluBarX':
+            case 'stackedBar':
+                $chart->sql = $this->setFilterSQL($chart);
+                return $this->getBarChartOption($component, $chart);
+                break;
+            case 'waterpolo':
+                return $this->getWaterPoloOption($component, $chart, array());
         }
     }
 
@@ -970,6 +1096,9 @@ class screenModel extends model
                 switch($key)
                 {
                     case 'year':
+                        $conditions[] = $field . " = '" . $this->filter->$key . "'";
+                        break;
+                    case 'month':
                         $conditions[] = $field . " = '" . $this->filter->$key . "'";
                         break;
                     case 'dept':
@@ -1024,8 +1153,12 @@ class screenModel extends model
                 {
                     $field   = $settings->value->field;
                     $sql     = $this->setFilterSQL($chart);
-                    $results = $this->dao->query($sql)->fetchAll();
+                    $results = $this->buildDataset($chart->id, $sql);
 
+                    if($settings->value->type === 'text')
+                    {
+                        $value = empty($results[0]) ? '' : $results[0]->$field;
+                    }
                     if($settings->value->type === 'value')
                     {
                         $value = empty($results[0]) ? 0 : $results[0]->$field;
@@ -1038,7 +1171,7 @@ class screenModel extends model
                     {
                         foreach($results as $result)
                         {
-                            $value += $result->$field;
+                            $value += intval($result->$field);
                         }
 
                         $value = round($value);
@@ -1147,7 +1280,8 @@ class screenModel extends model
                     }
 
                     $sql     = $this->setFilterSQL($chart);
-                    $results = $this->dao->query($sql)->fetchAll();
+                    $results = $this->buildDataset($chart->id, $sql);
+
                     foreach($results as $result)
                     {
                         $row = array();
@@ -1387,10 +1521,41 @@ class screenModel extends model
                     $result     = $this->dao->query($sql)->fetch();
                     $group      = $settings->group[0]->field;
                     $sourceData = zget($result, $group, 0);
+                    if(empty($sourceData)) $sourceData = 0;
                 }
                 $component->option->dataset = $sourceData;
             }
 
+            return $this->setComponentDefaults($component);
+        }
+    }
+
+    /**
+     * Get waterpolo option.
+     *
+     * @param  object $component
+     * @param  object $chart
+     * @access public
+     * @return object
+     */
+    public function getWaterPoloOption($component, $chart, $filters)
+    {
+        if(!$chart->settings)
+        {
+            $component->request     = json_decode('{"requestDataType":0,"requestHttpType":"get","requestUrl":"","requestIntervalUnit":"second","requestContentType":0,"requestParamsBodyType":"none","requestSQLContent":{"sql":"select * from  where"},"requestParams":{"Body":{"form-data":{},"x-www-form-urlencoded":{},"json":"","xml":""},"Header":{},"Params":{}}}');
+            $component->events      = json_decode('{"baseEvent":{},"advancedEvents":{}}');
+            $component->key         = "PieCircle";
+            $component->chartConfig = json_decode('{"key":"WaterPolo","chartKey":"VWaterPolo","conKey":"VCWaterPolo","title":"水球图","category":"Mores","categoryName":"更多","package":"Charts","chartFrame":"common","image":"water_WaterPolo.png"}');
+            $component->option      = json_decode('{"type":"nomal","series":[{"type":"liquidFill","radius":"90%","roseType":false}],"backgroundColor":"rgba(0,0,0,0)"}');
+
+            return $this->setComponentDefaults($component);
+        }
+        else
+        {
+            $setting = json_decode($chart->settings, true)[0];
+            $options = $this->loadModel('chart')->genWaterPolo(json_decode($chart->fieldSettings, true), $setting, $chart->sql, $filters);
+
+            $component->option->dataset = $options['series'][0]['data'][0];
             return $this->setComponentDefaults($component);
         }
     }
@@ -1559,7 +1724,7 @@ class screenModel extends model
     public function initComponent($chart, $type, $component = null)
     {
         if(!$component) $component = new stdclass();
-        if(!$chart) return $component;
+        if(!$chart) return array($component, false);
 
         $settings = is_string($chart->settings) ? json_decode($chart->settings) : $chart->settings;
 
@@ -1651,5 +1816,466 @@ class screenModel extends model
             }
         }
         return false;
+    }
+
+    /**
+     * 构建大屏图表的数据源。
+     * Build dataset of chart.
+     *
+     * @param  int    $chartID
+     * @param  string $sql
+     * @access public
+     * @return array
+     */
+    public function buildDataset($chartID, $sql = '')
+    {
+        if(!in_array($chartID, $this->config->screen->phpChart)) return $this->dao->query($sql)->fetchAll();
+
+        $year  = $this->filter->year;
+        $month = $this->filter->month;
+
+        $projectList = $this->getUsageReportProjects($year, $month);
+        $productList = $this->getUsageReportProducts($year, $month);
+
+        if($chartID == 20002) return $this->getActiveUserTable($year, $month, $projectList);
+        if($chartID == 20012) return $this->getProductStoryTable($year, $month, $productList);
+        if($chartID == 20011) return $this->getProductTestTable($year, $month, $productList);
+        if($chartID == 20004) return $this->getActiveProductCard($year, $month);
+        if($chartID == 20007) return $this->getActiveProjectCard($year, $month);
+        if($chartID == 20013) return $this->getProjectStoryTable($year, $month, $projectList);
+        if($chartID == 20010) return $this->getProjectTaskTable($year, $month, $projectList);
+    }
+
+    /**
+     * 获取应用健康度体检报告的活跃账号数项目间对比表格。
+     * Get table of active account per project in usage report.
+     *
+     * @param  string $year
+     * @param  string $month
+     * @param  array  $projectList
+     * @access public
+     * @return array
+     */
+    public function getActiveUserTable($year, $month, $projectList)
+    {
+        $date = date("Y-m-t", strtotime("$year-$month"));
+
+        $loginUserList = $this->dao->select('distinct actor')->from(TABLE_ACTION)
+            ->where('objectType')->eq('user')
+            ->andWhere('action')->eq('login')
+            ->andWhere('year(date)')->eq($year)
+            ->andWhere('month(date)')->eq($month)
+            ->fetchPairs();
+
+        $dataset = array();
+        foreach($projectList as $projectID => $projectName)
+        {
+            $teamMemberList = $this->dao->select('t2.id, t2.account')->from(TABLE_TEAM)->alias('t1')
+                ->leftJoin(TABLE_USER)->alias('t2')->on('t1.account=t2.account')
+                ->where('t1.root')->eq($projectID)
+                ->andWhere('t1.type')->eq('project')
+                ->andWhere('date(t1.join)')->le($date)
+                ->andWhere('t2.deleted')->eq('0')
+                ->fetchPairs();
+
+            $activeUser = array_filter($teamMemberList, function($item) use ($loginUserList)
+            {
+                return in_array($item, $loginUserList);
+            });
+
+            $row = new stdclass();
+            $row->id            = $projectID;
+            $row->name          = $projectName;
+            $row->year          = $year;
+            $row->month         = $month;
+            $row->totalAccount  = count($teamMemberList);
+            $row->activeAccount = count($activeUser);
+            $row->ratio         = $row->totalAccount == 0 ? '0.00%' : number_format(($row->activeAccount/$row->totalAccount) * 100, 2) . '%';
+
+            $dataset[] = $row;
+        }
+
+        return $dataset;
+    }
+
+    /**
+     * 获取应用健康度体检报告的活跃项目数卡片。
+     * Get card of active project in usage report.
+     *
+     * @param  string $year
+     * @param  string $month
+     * @access public
+     * @return array
+     */
+    public function getActiveProjectCard($year, $month)
+    {
+        return $this->dao->select('count(distinct t1.project) as count')->from(TABLE_ACTION)->alias('t1')
+            ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project=t2.id')
+            ->where('t1.project')->ne(0)
+            ->andWhere('year(t1.date)')->eq($year)
+            ->andWhere('month(t1.date)')->eq($month)
+            ->andWhere('t2.type')->eq('project')
+            ->andWhere('t2.deleted')->eq('0')
+            ->andWhere("NOT FIND_IN_SET('or', t2.vision)")
+            ->fetchAll();
+    }
+
+    /**
+     * 获取应用健康度体检报告的活跃产品数卡片。
+     * Get card of active product in usage report.
+     *
+     * @param  string $year
+     * @param  string $month
+     * @access public
+     * @return array
+     */
+    public function getActiveProductCard($year, $month)
+    {
+        $noDeletedProductList = $this->dao->select('id')->from(TABLE_PRODUCT)
+            ->where('deleted')->eq('0')
+            ->andWhere('shadow')->eq(0)
+            ->fetchPairs();
+
+        $activeProductList = $this->dao->select('distinct product')->from(TABLE_ACTION)
+            ->where('product')->ne(',0,')
+            ->andWhere('product')->ne(',,')
+            ->andWhere('product')->ne(',,0,,')
+            ->andWhere('objectType')->notin('project,execution,task')
+            ->andWhere('year(date)')->eq($year)
+            ->andWhere('month(date)')->eq($month)
+            ->fetchPairs();
+
+        $activeProductCount = 0;
+        foreach($activeProductList as $product)
+        {
+            $productID = trim($product, ',');
+            if(in_array($productID, $noDeletedProductList)) $activeProductCount ++;
+        }
+
+        $activeProductCard = new stdclass();
+        $activeProductCard->count = $activeProductCount;
+        $activeProductCard->year  = $year;
+        $activeProductCard->month = $month;
+        return array($activeProductCard);
+    }
+
+    /**
+     * 获取应用健康度体检报告的 产品测试表。
+     * Get table of product test summary in usage report.
+     *
+     * @param  string $year
+     * @param  string $month
+     * @param  array  $productList
+     * @access public
+     * @return array
+     */
+    public function getProductTestTable($year, $month, $productList)
+    {
+        foreach($productList as $productID => $productName)
+        {
+            $createdCaseCount = $this->dao->select('count(t2.id) as count')->from(TABLE_PRODUCT)->alias('t1')
+                ->leftJoin(TABLE_CASE)->alias('t2')->on('t1.id=t2.product')
+                ->where('t1.deleted')->eq('0')
+                ->andWhere('t2.deleted')->eq('0')
+                ->andWhere('year(t2.openedDate)')->eq($year)
+                ->andWhere('month(t2.openedDate)')->eq($month)
+                ->andWhere('t1.id')->eq($productID)
+                ->fetch();
+
+            $linkedBugCount = $this->dao->select('count(t3.id) as count')->from(TABLE_PRODUCT)->alias('t1')
+                ->leftJoin(TABLE_CASE)->alias('t2')->on('t1.id=t2.product')
+                ->leftJoin(TABLE_BUG)->alias('t3')->on('t2.id=t3.case')
+                ->where('t1.deleted')->eq('0')
+                ->andWhere('t2.deleted')->eq('0')
+                ->andWhere('t3.deleted')->eq('0')
+                ->andWhere('year(t2.openedDate)')->eq($year)
+                ->andWhere('month(t2.openedDate)')->eq($month)
+                ->andWhere('t1.id')->eq($productID)
+                ->fetch();
+
+            $createdBugCount = $this->dao->select('count(t2.id) as count')->from(TABLE_PRODUCT)->alias('t1')
+                ->leftJoin(TABLE_BUG)->alias('t2')->on('t1.id=t2.product')
+                ->where('t1.deleted')->eq('0')
+                ->andWhere('t2.deleted')->eq('0')
+                ->andWhere('year(t2.openedDate)')->eq($year)
+                ->andWhere('month(t2.openedDate)')->eq($month)
+                ->andWhere('t1.id')->eq($productID)
+                ->fetch();
+
+            $fixedBugList = $this->dao->select('t2.id,datediff(t2.closedDate, t2.openedDate) as fixedCycle')->from(TABLE_PRODUCT)->alias('t1')
+                ->leftJoin(TABLE_BUG)->alias('t2')->on('t1.id=t2.product')
+                ->where('t1.deleted')->eq('0')
+                ->andWhere('t2.deleted')->eq('0')
+                ->andWhere('t2.status')->eq('closed')
+                ->andWhere('t2.resolution')->eq('fixed')
+                ->andWhere('year(t2.closedDate)')->eq($year)
+                ->andWhere('month(t2.closedDate)')->eq($month)
+                ->andWhere('t1.id')->eq($productID)
+                ->fetchPairs();
+
+            $row = new stdclass();
+            $row->id            = $productID;
+            $row->name          = $productName;
+            $row->year          = $year;
+            $row->month         = $month;
+            $row->createdCases  = $createdCaseCount->count;
+            $row->avgBugsOfCase = $createdCaseCount->count == 0 ? 0 : round($linkedBugCount->count/$createdCaseCount->count, 2);
+            $row->createdBugs   = $createdBugCount->count;
+            $row->fixedBugs     = count($fixedBugList);
+            $row->avgFixedCycle = count($fixedBugList) == 0 ? 0 : round(array_sum($fixedBugList)/count($fixedBugList), 2);
+
+            if($row->createdCases === 0 && $row->avgBugsOfCase === 0 && $row->createdBugs === 0 && $row->fixedBugs === 0 && $row->avgFixedCycle === 0) continue;
+            $dataset[] = $row;
+        }
+
+        return $dataset;
+    }
+
+    /**
+     * 获取应用健康度体检报告的项目任务概况表。
+     * Get table of project task summary in usage report.
+     *
+     * @param  string $year
+     * @param  string $month
+     * @param  array  $projectList
+     * @access public
+     * @return array
+     */
+    public function getProjectTaskTable($year, $month, $projectList)
+    {
+        $deletedExecutionList = $this->dao->select('id')->from(TABLE_EXECUTION)
+            ->where('deleted')->eq('1')
+            ->andWhere('type')->in('sprint,stage,kanban')
+            ->fetchPairs();
+
+        $dataset = array();
+        foreach($projectList as $projectID => $projectName)
+        {
+            $createdTaskList = $this->dao->select('id,openedBy')->from(TABLE_TASK)
+                ->where('project')->eq($projectID)
+                ->andWhere('year(openedDate)')->eq($year)
+                ->andWhere('month(openedDate)')->eq($month)
+                ->andWhere('deleted')->eq('0')
+                ->andWhere("NOT FIND_IN_SET('or', vision)")
+                ->andWhere('execution')->notin($deletedExecutionList)
+                ->fetchPairs();
+
+            $finishedTaskList = $this->dao->select('id')->from(TABLE_TASK)
+                ->where('project')->eq($projectID)
+                ->andWhere('year(finishedDate)')->eq($year)
+                ->andWhere('month(finishedDate)')->eq($month)
+                ->andWhere('deleted')->eq('0')
+                ->andWhere("NOT FIND_IN_SET('or', vision)")
+                ->andWhere('execution')->notin($deletedExecutionList)
+                ->fetchPairs();
+
+            $row = new stdclass();
+            $row->name          = $projectName;
+            $row->year          = $year;
+            $row->month         = $month;
+            $row->createdTasks  = count(array_unique(array_keys($createdTaskList)));
+            $row->finishedTasks = count(array_unique($finishedTaskList));
+            $row->contributors  = count(array_unique(array_values($createdTaskList)));
+
+            if($row->createdTasks === 0 && $row->finishedTasks === 0 && $row->contributors === 0) continue;
+            $dataset[] = $row;
+        }
+
+        return $dataset;
+    }
+
+    /**
+     * 获取应用健康度体检报告的产品需求概况表。
+     * Get table of product story summary in usage report.
+     *
+     * @param  string $year
+     * @param  string $month
+     * @param  array  $productList
+     * @access public
+     * @return array
+     */
+    public function getProductStoryTable($year, $month, $productList)
+    {
+        $releasedStories = $this->dao->select('t2.id, t1.id as product')->from(TABLE_PRODUCT)->alias('t1')
+            ->leftJoin(TABLE_STORY)->alias('t2')->on('t1.id=t2.product')
+            ->leftJoin(TABLE_ACTION)->alias('t3')->on('t2.id=t3.objectID')
+            ->where('t1.deleted')->eq('0')
+            ->andWhere('t2.deleted')->eq('0')
+            ->andWhere("NOT FIND_IN_SET('or', t2.vision)")
+            ->andWhere('t2.stage')->eq('released')
+            ->andWhere('t3.objectType')->eq('story')
+            ->andWhere('t3.action')->eq('linked2release')
+            ->andWhere('year(t3.date)')->eq($year)
+            ->andWhere('month(t3.date)')->eq($month)
+            ->fetchPairs();
+
+        $releasedStoryGroups = array();
+        foreach($releasedStories as $storyID => $productID)
+        {
+            if(!isset($releasedStoryGroups[$productID])) $releasedStoryGroups[$productID] = array();
+            $releasedStoryGroups[$productID][] = $storyID;
+        }
+
+        $dataset = array();
+        foreach($productList as $productID => $productName)
+        {
+            $createdStoryCount = $this->dao->select('count(t2.id) as count')->from(TABLE_PRODUCT)->alias('t1')
+                ->leftJoin(TABLE_STORY)->alias('t2')->on('t1.id=t2.product')
+                ->where('t1.deleted')->eq('0')
+                ->andWhere('t2.deleted')->eq('0')
+                ->andWhere("NOT FIND_IN_SET('or', t2.vision)")
+                ->andWhere('t1.id')->eq($productID)
+                ->andWhere('year(t2.openedDate)')->eq($year)
+                ->andWhere('month(t2.openedDate)')->eq($month)
+                ->fetch();
+
+            $finishedStoryList = $this->dao->select('t2.id')->from(TABLE_PRODUCT)->alias('t1')
+                ->leftJoin(TABLE_STORY)->alias('t2')->on('t1.id=t2.product')
+                ->where('t1.deleted')->eq('0')
+                ->andWhere('t2.deleted')->eq('0')
+                ->andWhere("NOT FIND_IN_SET('or', t2.vision)")
+                ->andWhere('t1.id')->eq($productID)
+                ->andWhere('t2.closedReason')->eq('done')
+                ->andWhere('year(t2.closedDate)')->eq($year)
+                ->andWhere('month(t2.closedDate)')->eq($month)
+                ->fetchPairs();
+
+            $deliveredStoryCount = count(array_merge($finishedStoryList, (array)$releasedStoryGroups[$productID]));
+
+            $row = new stdclass();
+            $row->id               = $productID;
+            $row->name             = $productName;
+            $row->createdStories   = $createdStoryCount->count;
+            $row->deliveredStories = $deliveredStoryCount;
+
+            if($row->createdStories === 0 && $row->deliveredStories === 0) continue;
+            $dataset[] = $row;
+        }
+
+        return $dataset;
+    }
+
+    /**
+     * 获取应用健康度体检报告的项目需求概况表。
+     * Get table of project story summary in usage report.
+     *
+     * @param  string $year
+     * @param  string $month
+     * @param  array  $projectList
+     * @access public
+     * @return array
+     */
+    public function getProjectStoryTable($year, $month, $projectList)
+    {
+        $releasedStories = $this->dao->select('t3.id,t1.id as projectID')->from(TABLE_PROJECT)->alias('t1')
+            ->leftJoin(TABLE_PROJECTSTORY)->alias('t2')->on('t1.id=t2.project')
+            ->leftJoin(TABLE_STORY)->alias('t3')->on('t2.story=t3.id')
+            ->leftJoin(TABLE_ACTION)->alias('t4')->on('t3.id=t4.objectID')
+            ->where('t1.deleted')->eq('0')
+            ->andWhere('t3.deleted')->eq('0')
+            ->andWhere("NOT FIND_IN_SET('or', t1.vision)")
+            ->andWhere("NOT FIND_IN_SET('or', t3.vision)")
+            ->andWhere('t3.stage')->eq('released')
+            ->andWhere('t4.objectType')->eq('story')
+            ->andWhere('t4.action')->eq('linked2release')
+            ->andWhere('year(t4.date)')->eq($year)
+            ->andWhere('month(t4.date)')->eq($month)
+            ->fetchPairs();
+
+        $releasedStoryGroups = array();
+        foreach($releasedStories as $storyID => $projectID)
+        {
+            if(!isset($releasedStoryGroups[$projectID])) $releasedStoryGroups[$projectID] = array();
+            $releasedStoryGroups[$projectID][] = $storyID;
+        }
+
+        $dataset = array();
+        foreach($projectList as $projectID => $projectName)
+        {
+            $createdStoryCount = $this->dao->select('count(t3.id) as count')->from(TABLE_PROJECT)->alias('t1')
+                ->leftJoin(TABLE_PROJECTSTORY)->alias('t2')->on('t1.id=t2.project')
+                ->leftJoin(TABLE_STORY)->alias('t3')->on('t2.story=t3.id')
+                ->where('t1.deleted')->eq('0')
+                ->andWhere('t3.deleted')->eq('0')
+                ->andWhere("NOT FIND_IN_SET('or', t1.vision)")
+                ->andWhere("NOT FIND_IN_SET('or', t3.vision)")
+                ->andWhere('t1.type')->eq('project')
+                ->andWhere('t3.type')->eq('story')
+                ->andWhere('t1.id')->eq($projectID)
+                ->andWhere('year(t3.openedDate)')->eq($year)
+                ->andWhere('month(t3.openedDate)')->eq($month)
+                ->fetch();
+
+            $finishedStoryList = $this->dao->select('t3.id')->from(TABLE_PROJECT)->alias('t1')
+                ->leftJoin(TABLE_PROJECTSTORY)->alias('t2')->on('t1.id=t2.project')
+                ->leftJoin(TABLE_STORY)->alias('t3')->on('t2.story=t3.id')
+                ->where('t1.deleted')->eq('0')
+                ->andWhere('t3.deleted')->eq('0')
+                ->andWhere("NOT FIND_IN_SET('or', t1.vision)")
+                ->andWhere("NOT FIND_IN_SET('or', t3.vision)")
+                ->andWhere('t1.id')->eq($projectID)
+                ->andWhere('t3.closedReason')->eq('done')
+                ->andWhere('year(t3.closedDate)')->eq($year)
+                ->andWhere('month(t3.closedDate)')->eq($month)
+                ->fetchPairs();
+
+            $deliveredStoryCount = count(array_merge($finishedStoryList, (array)$releasedStoryGroups[$projectID]));
+
+            $row = new stdclass();
+            $row->id               = $projectID;
+            $row->name             = $projectName;
+            $row->createdStories   = $createdStoryCount->count;
+            $row->deliveredStories = $deliveredStoryCount;
+
+            if($row->createdStories === 0 && $row->deliveredStories === 0) continue;
+            $dataset[] = $row;
+        }
+
+        return $dataset;
+    }
+
+    /**
+     * 获取应用健康度体检报告的项目列表。
+     * Get project list for usage report.
+     *
+     * @param  string $year
+     * @param  string $month
+     * @access public
+     * @return array
+     */
+    public function getUsageReportProjects($year, $month)
+    {
+        $date = date("Y-m-t", strtotime("$year-$month"));
+
+        return $this->dao->select('id,name')->from(TABLE_PROJECT)
+            ->where('type')->eq('project')
+            ->andWhere('deleted')->eq('0')
+            ->andWhere('date(openedDate)')->le($date)
+            ->andWhere("NOT FIND_IN_SET('or', vision)")
+            ->andWhere('date(closedDate)', true)->gt($date)
+            ->orWhere('date(closedDate)')->eq('0000-00-00')
+            ->orWhere('closedDate')->in(NULL)
+            ->markRight(true)
+            ->fetchPairs();
+    }
+
+    /**
+     * 获取应用健康度体检报告的产品列表。
+     * Get product list for usage report.
+     *
+     * @param  string $year
+     * @param  string $month
+     * @access public
+     * @return array
+     */
+    public function getUsageReportProducts($year, $month)
+    {
+        $date = date("Y-m-t", strtotime("$year-$month"));
+
+        return $this->dao->select('id,name')->from(TABLE_PRODUCT)
+            ->where('deleted')->eq('0')
+            ->andWhere('shadow')->eq(0)
+            ->andWhere('date(createdDate)')->le($date)
+            ->fetchPairs();
     }
 }

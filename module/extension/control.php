@@ -338,6 +338,7 @@ class extension extends control
     public function uninstall($extension, $confirm = 'no')
     {
         /* Determine whether need to back up. */
+        $info   = $this->extension->getInfoFromDB($extension);
         $dbFile = $this->extension->getDBFile($extension, 'uninstall');
         if($confirm == 'no' and file_exists($dbFile))
         {
@@ -354,16 +355,20 @@ class extension extends control
             return $this->display();
         }
 
-        if($preUninstallHook = $this->extension->getHookFile($extension, 'preuninstall')) include $preUninstallHook;
+        $preUninstallHook = $this->extension->getHookFile($extension, 'preuninstall');
+        if($preUninstallHook && $info->status == 'installed') include $preUninstallHook;
 
         if(file_exists($dbFile)) $this->view->backupFile = $this->extension->backupDB($extension);
 
         $this->extension->executeDB($extension, 'uninstall');
         $this->extension->updateExtension($extension, array('status' => 'available'));
-        $this->view->removeCommands = $this->extension->removePackage($extension);
-        $this->view->title = $this->lang->extension->uninstallFinished;
+        $this->extension->togglePackageDisable($extension, 'disabled');
 
-        if($postUninstallHook = $this->extension->getHookFile($extension, 'postuninstall')) include $postUninstallHook;
+        $this->view->title          = $this->lang->extension->uninstallFinished;
+        $this->view->removeCommands = $this->extension->removePackage($extension);
+
+        $postUninstallHook = $this->extension->getHookFile($extension, 'postuninstall');
+        if($postUninstallHook && $info->status == 'installed') include $postUninstallHook;
         $this->display();
     }
 
@@ -388,6 +393,7 @@ class extension extends control
             }
         }
 
+        $this->extension->togglePackageDisable($extension, 'active');
         $this->extension->copyPackageFiles($extension);
         $this->extension->updateExtension($extension, array('status' => 'installed'));
         $this->view->title      = $this->lang->extension->activateFinished;
@@ -405,6 +411,7 @@ class extension extends control
     public function deactivate($extension)
     {
         $this->extension->updateExtension($extension, array('status' => 'deactivated'));
+        $this->extension->togglePackageDisable($extension, 'disabled');
         $this->view->removeCommands = $this->extension->removePackage($extension);
         $this->view->title      = $this->lang->extension->deactivateFinished;
         $this->view->position[] = $this->lang->extension->deactivateFinished;
@@ -419,6 +426,8 @@ class extension extends control
      */
     public function upload()
     {
+        $this->app->loadLang('file');
+
         $statusFile = $this->loadModel('common')->checkSafeFile();
         if($statusFile)
         {
@@ -433,6 +442,8 @@ class extension extends control
             $tmpName   = $_FILES['file']['tmp_name'];
             $fileName  = $_FILES['file']['name'];
             $dest      = $this->app->getTmpRoot() . "extension/$fileName";
+
+            if(!is_dir(dirname($dest))) mkdir(dirname($dest));
             if(!move_uploaded_file($tmpName, $dest))
             {
                 $downloadPath = $this->app->getTmpRoot() . 'extension/';
@@ -452,7 +463,7 @@ class extension extends control
             if(isset($info->code) and $info->code != $extension)
             {
                 $classFile = $this->app->loadClass('zfile');
-                $classFile->removeDir("ext/$extension");
+                $classFile->removeDir($this->extension->pkgRoot . $extension);
                 rename($this->app->getTmpRoot() . "/extension/$fileName", $this->app->getTmpRoot() . "/extension/{$info->code}.zip");
                 $extension = $info->code;
             }
@@ -463,6 +474,10 @@ class extension extends control
             return print(js::locate($link, 'parent'));
         }
 
+        $maxUploadSize = strtoupper(ini_get('upload_max_filesize'));
+
+        $this->view->maxUploadSize  = $maxUploadSize;
+        $this->view->exceedLimitMsg = sprintf($this->lang->file->errorFileSize, $maxUploadSize);
         $this->display();
     }
 

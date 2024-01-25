@@ -136,7 +136,7 @@ class story extends control
             setcookie('lastStoryModule', (int)$this->post->module, $this->config->cookieLife, $this->config->webRoot, '', $this->config->cookieSecure, false);
 
             $storyResult = $this->story->create($objectID, $bugID, $from = isset($fromObjectIDKey) ? $fromObjectIDKey : '', $extra);
-            if(!$storyResult or dao::isError())
+            if(dao::isError())
             {
                 $response['result']  = 'fail';
                 $response['message'] = dao::getError();
@@ -299,7 +299,7 @@ class story extends control
             $product         = $this->product->getById(($productID and array_key_exists($productID, $products)) ? $productID : key($products));
             $productBranches = $product->type != 'normal' ? $this->loadModel('execution')->getBranchByProduct($productID, $objectID, 'noclosed|withMain') : array();
             $branches        = isset($productBranches[$productID]) ? $productBranches[$productID] : array();
-            $branch          = key($branches);
+            $branch          = (int)key($branches);
         }
         else
         {
@@ -452,6 +452,9 @@ class story extends control
         $this->view->customFields = $customFields;
         $this->view->showFields   = $this->config->story->custom->createFields;
 
+        $requirementStatus = strpos($product->vision, 'or') !== false ? 'launched' : 'active';
+
+        $this->view->URS              = $storyType == 'story' ? $this->story->getProductStoryPairs($productID, $branch, $moduleIdList, $requirementStatus, 'id_desc', 0, '', 'requirement') : '';
         $this->view->title            = $product->name . $this->lang->colon . $this->lang->story->create;
         $this->view->position[]       = html::a($this->createLink('product', 'browse', "product=$productID&branch=$branch"), $product->name);
         $this->view->position[]       = $this->lang->story->common;
@@ -481,7 +484,6 @@ class story extends control
         $this->view->keywords         = $keywords;
         $this->view->mailto           = $mailto;
         $this->view->blockID          = $blockID;
-        $this->view->URS              = $storyType == 'story' ? $this->story->getProductStoryPairs($productID, $branch, $moduleIdList, 'changing,active,reviewing', 'id_desc', 0, '', 'requirement') : '';
         $this->view->needReview       = ($this->app->user->account == $product->PO or $objectID > 0 or $this->config->story->needReview == 0 or !$this->story->checkForceReview()) ? "checked='checked'" : "";
         $this->view->type             = $storyType;
         $this->view->category         = !empty($category) ? $category : 'feature';
@@ -511,12 +513,16 @@ class story extends control
         $this->view->hiddenProduct = false;
         $this->view->hiddenPlan    = false;
         /* Set menu. */
-        if($executionID)
+        if($this->app->tab == 'project' and $this->config->vision == 'lite')
+        {
+            $this->project->setMenu($this->session->project);
+        }
+        elseif($executionID)
         {
             $execution = $this->dao->findById((int)$executionID)->from(TABLE_EXECUTION)->fetch();
             if($execution->type == 'project')
             {
-                $model = $execution->model == 'waterfallplus' ? 'waterfall' : $execution->model;
+                $model = in_array($execution->model, array('waterfallplus', 'ipd')) ? 'waterfall' : $execution->model;
                 $model = $execution->model == 'agileplus' ? 'scrum' : $model;
                 $this->project->setMenu($executionID);
                 $this->lang->navGroup->story = 'project';
@@ -577,11 +583,29 @@ class story extends control
         if($storyID)
         {
             $story = $this->story->getById($storyID);
-            if(($story->status != 'active' or (empty($product->shadow) && $story->stage != 'wait') or (!empty($product->shadow) && $story->stage != 'projected') or $story->parent > 0) and $this->config->vision != 'lite') return print(js::alert($this->lang->story->errorNotSubdivide) . js::locate('back'));
+            if(($story->status != 'active' or (empty($product->shadow) && $story->stage != 'wait') or (!empty($product->shadow) && $story->stage != 'projected') or $story->parent > 0) and $this->config->vision != 'lite' and !in_array($story->status, array('launched', 'developing'))) return print(js::alert($this->lang->story->errorNotSubdivide) . js::locate('back'));
         }
 
         if(!empty($_POST))
         {
+            if($executionID)
+            {
+                $requiredFields = ',' . $this->config->story->create->requiredFields . ',';
+                if(strpos($requiredFields, ',plan,') !== false)
+                {
+                    /* Create a project with no execution, remove plan required check. */
+                    $project = $this->dao->findById((int)$executionID)->from(TABLE_PROJECT)->fetch();
+                    if(!empty($project->project)) $project = $this->dao->findById((int)$project->project)->from(TABLE_PROJECT)->fetch();
+
+                    if(empty($project->hasProduct))
+                    {
+                        if($project->model !== 'scrum' or !$project->multiple) $requiredFields = str_replace(',plan,', ',', $requiredFields);
+                    }
+                }
+
+                $this->config->story->create->requiredFields = trim($requiredFields, ',');
+            }
+
             $mails = $this->story->batchCreate($productID, $branch, $storyType);
             if(dao::isError()) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
 
@@ -626,7 +650,7 @@ class story extends control
                         $rdSearchValue = $this->session->rdSearchValue ? $this->session->rdSearchValue : '';
                         $kanbanData    = $this->loadModel('kanban')->getRDKanban($executionID, $execLaneType, 'id_desc', 0, $execGroupBy, $rdSearchValue);
                         $kanbanData    = json_encode($kanbanData);
-                        return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'closeModal' => true, 'callback' => "parent.parent.updateKanban($kanbanData)"));
+                        return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'closeModal' => true, 'callback' => "parent.updateKanban($kanbanData, 0)"));
                     }
                     else
                     {
@@ -679,7 +703,7 @@ class story extends control
         {
             $productBranches = $product->type != 'normal' ? $this->loadModel('execution')->getBranchByProduct($productID, $executionID, 'noclosed|withMain') : array();
             $branches        = isset($productBranches[$productID]) ? $productBranches[$productID] : array();
-            $branch          = key($branches);
+            $branch          = (int)key($branches);
         }
         else
         {
@@ -800,7 +824,14 @@ class story extends control
         /* Get datas. */
         $story    = $this->story->getById($storyID);
         $product  = $this->product->getById($story->product);
-        $products = $this->product->getPairs();
+        if($product->shadow)
+        {
+            $products = $this->product->getPairs('', 0, '', 'all');
+        }
+        else
+        {
+            $products = $this->product->getPairs();
+        }
         $moduleOptionMenu = $this->tree->getOptionMenu($product->id, $viewType = 'story', 0, $story->branch);
 
         /* Set menu. */
@@ -846,10 +877,16 @@ class story extends control
         $story = $this->story->getById($storyID, 0, true);
         $this->commonAction($storyID);
 
+        if($story->status != 'draft' and $story->status != 'changing') $this->config->story->edit->requiredFields = '';
+
         if(!empty($_POST))
         {
             $this->story->update($storyID);
-            if(dao::isError()) return print(js::error(dao::getError()));
+            if(dao::isError())
+            {
+                if(defined('RUN_MODE') && RUN_MODE == 'api') return $this->send(array('result' => 'fail', 'message' => dao::getError()));
+                return print(js::error(dao::getError()));
+            }
 
             $this->executeHooks($storyID);
 
@@ -895,8 +932,8 @@ class story extends control
 
         foreach($products as $product)
         {
-            if($product->status == 'normal' and $product->PO == $this->app->user->account) $myProducts[$product->id] = $product->name;
-            if($product->status == 'normal' and !($product->PO == $this->app->user->account)) $othersProducts[$product->id] = $product->name;
+            if($product->status != 'closed' and $product->PO == $this->app->user->account) $myProducts[$product->id] = $product->name;
+            if($product->status != 'closed' and !($product->PO == $this->app->user->account)) $othersProducts[$product->id] = $product->name;
             if($product->status == 'closed') continue;
         }
         $products = $myProducts + $othersProducts;
@@ -1013,7 +1050,7 @@ class story extends control
             $project = $this->dao->findByID($executionID)->from(TABLE_PROJECT)->fetch();
             if($project->type == 'project')
             {
-                if(!($project->model == 'scrum' and !$project->hasProduct and $project->multiple)) $this->view->hiddenPlan = true;
+                if((in_array($project->model, array('waterfallplus', 'waterfall')) and !$project->hasProduct) or !$project->multiple) $this->view->hiddenPlan = true;
                 $this->project->setMenu($executionID);
             }
             else
@@ -1147,6 +1184,8 @@ class story extends control
             $showFields = str_replace('plan',  '', $showFields);
             $showFields = str_replace('stage', '', $showFields);
         }
+        if(!$branchProduct) unset($customFields['branch']);
+        if($this->view->hiddenPlan) unset($customFields['plan']);
         $this->view->customFields = $customFields;
         $this->view->showFields   = $showFields;
 
@@ -1188,7 +1227,7 @@ class story extends control
         $this->view->priList           = array('0' => '', 'ditto' => $this->lang->story->ditto) + $this->lang->story->priList;
         $this->view->sourceList        = array('' => '',  'ditto' => $this->lang->story->ditto) + $this->lang->story->sourceList;
         $this->view->reasonList        = array('' => '',  'ditto' => $this->lang->story->ditto) + $this->lang->story->reasonList;
-        $this->view->stageList         = array('' => '',  'ditto' => $this->lang->story->ditto) + $this->lang->story->stageList;
+        $this->view->stageList         = array('ditto' => $this->lang->story->ditto) + $this->lang->story->stageList;
         $this->view->productID         = $productID;
         $this->view->products          = $products;
         $this->view->branchProduct     = $branchProduct;
@@ -1300,13 +1339,14 @@ class story extends control
         }
 
         $this->commonAction($storyID);
-        $this->story->getAffectedScope($this->view->story);
+        $story = $this->view->story;
+        if(!in_array($story->status, array('active', 'launched', 'developing'))) return print(js::locate($this->session->storyList, 'parent'));
+        $this->story->getAffectedScope($story);
         $this->app->loadLang('task');
         $this->app->loadLang('bug');
         $this->app->loadLang('testcase');
         $this->app->loadLang('execution');
 
-        $story    = $this->view->story;
         $reviewer = $this->story->getReviewerPairs($storyID, $story->version);
         $product  = $this->loadModel('product')->getByID($story->product);
 
@@ -1393,12 +1433,25 @@ class story extends control
      */
     public function view($storyID, $version = 0, $param = 0, $storyType = 'story')
     {
+        $story = $this->story->getById($storyID, $version, true);
+
+        $linkModuleName = $this->config->vision == 'lite' ? 'project' : 'product';
+        if(!$story)
+        {
+            $story = $this->dao->select('*')->from(TABLE_STORY)->where('id')->eq($storyID)->fetch();
+            if($story)
+            {
+                if(strpos($story->vision, $this->config->vision) === false && $story->status == 'active') return print(js::alert($this->lang->story->storyUnlinkRoadmap) . js::reload('parent'));
+            }
+            return print(js::error($this->lang->notFound) . js::locate($this->createLink($linkModuleName, 'all')));
+        }
+
         $uri     = $this->app->getURI(true);
         $tab     = $this->app->tab;
         $storyID = (int)$storyID;
-        $story   = $this->story->getById($storyID, $version, true);
-        $product = $this->product->getByID($story->product);
-        if($tab == 'product' and !empty($product->shadow))
+        $product = $this->loadModel('product')->getByID($story->product);
+
+        if(!(defined('RUN_MODE') && RUN_MODE == 'api') and $tab == 'product' and !empty($product->shadow))
         {
             $backLink = $this->session->productList ? $this->session->productList : inlink('product', 'all');
             $js       = js::start();
@@ -1410,11 +1463,9 @@ class story extends control
         $buildApp   = $tab == 'product' ?   'project' : $tab;
         $releaseApp = $tab == 'execution' ? 'product' : $tab;
         $this->session->set('productList', $uri . "#app={$tab}", 'product');
+        $this->session->set('productPlanList', $uri . "#app={$tab}", 'product');
         if(!isonlybody()) $this->session->set('buildList', $uri, $buildApp);
         $this->app->loadLang('bug');
-
-        $linkModuleName = $this->config->vision == 'lite' ? 'project' : 'product';
-        if(!$story) return print(js::error($this->lang->notFound) . js::locate($this->createLink($linkModuleName, 'index')));
 
         if(!$this->app->user->admin and strpos(",{$this->app->user->view->products},", ",$story->product,") === false) return print(js::error($this->lang->product->accessDenied) . js::locate('back'));
         if(!empty($story->fromBug)) $this->session->set('bugList', $uri, 'qa');
@@ -1445,6 +1496,7 @@ class story extends control
         elseif($from == 'project')
         {
             $projectID = $param ? $param : $this->session->project;
+            if(!$projectID) $projectID = $this->dao->select('project')->from(TABLE_PROJECTSTORY)->where('story')->eq($storyID)->fetch('project');
             $this->loadModel('project')->setMenu($projectID);
         }
         elseif($from == 'qa')
@@ -1461,7 +1513,7 @@ class story extends control
         $this->view->hiddenURS  = false;
         if(!empty($product->shadow))
         {
-            $projectInfo = $this->dao->select('t2.model, t2.multiple')->from(TABLE_PROJECTPRODUCT)->alias('t1')
+            $projectInfo = $this->dao->select('t2.model, t2.multiple, t2.id')->from(TABLE_PROJECTPRODUCT)->alias('t1')
                 ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
                 ->where('t1.product')->eq($product->id)
                 ->andWhere('t2.type')->eq('project')
@@ -1478,6 +1530,7 @@ class story extends control
             }
 
             if(!$projectInfo->multiple) $this->view->hiddenPlan = true;
+            $this->loadModel('project')->setMenu($projectInfo->id);
         }
 
         if($product->type != 'normal') $this->lang->product->branch = sprintf($this->lang->product->branch, $this->lang->product->branchName[$product->type]);
@@ -1486,6 +1539,11 @@ class story extends control
         $reviewedBy = trim($story->reviewedBy, ',');
 
         $this->executeHooks($storyID);
+
+        if($this->config->edition == 'ipd')
+        {
+            $this->view->roadmaps = $this->loadModel('roadmap')->getPairs($story->product);
+        }
 
         $title      = "STORY #$story->id $story->title - $product->name";
         $position[] = html::a($this->createLink('product', 'browse', "product=$product->id&branch=$story->branch"), $product->name);
@@ -1546,7 +1604,7 @@ class story extends control
         if($confirm == 'no')
         {
             if($storyType == 'requirement') $this->lang->story->confirmDelete = str_replace($this->lang->SRCommon, $this->lang->URCommon, $this->lang->story->confirmDelete);
-            return print(js::confirm($this->lang->story->confirmDelete, $this->createLink('story', 'delete', "story=$storyID&confirm=yes&from=$from&storyType=$storyType"), ''));
+            return print(js::confirm($this->lang->story->confirmDelete, $this->createLink('story', 'delete', "story=$storyID&confirm=yes&from=$from&storyType=$storyType")));
         }
         else
         {
@@ -1858,7 +1916,11 @@ class story extends control
         if(!empty($_POST))
         {
             $changes = $this->story->close($storyID);
-            if(dao::isError()) return print(js::error(dao::getError()));
+            if(dao::isError())
+            {
+                if(defined('RUN_MODE') && RUN_MODE == 'api') return $this->send(array('status' => 'fail', 'message' => dao::getError()));
+                return print(js::error(dao::getError()));
+            }
             $this->story->closeParentRequirement($storyID);
 
             if($changes)
@@ -1915,7 +1977,7 @@ class story extends control
         }
 
         /* Get story and product. */
-        $product = $this->dao->findById($story->product)->from(TABLE_PRODUCT)->fields('name, id, type')->fetch();
+        $product = $this->dao->findById($story->product)->from(TABLE_PRODUCT)->fields('name, id, `type`')->fetch();
 
         $this->story->replaceURLang($story->type);
 
@@ -2062,7 +2124,6 @@ class story extends control
                 if($from == 'work')       $this->lang->my->menu->work['subModule']       = 'story';
                 if($from == 'contribute') $this->lang->my->menu->contribute['subModule'] = 'story';
 
-                $this->view->position[] = html::a($this->createLink('my', 'story'), $this->lang->my->story);
                 $this->view->title      = $this->lang->story->batchEdit;
             }
         }
@@ -2074,8 +2135,6 @@ class story extends control
 
         unset($this->lang->story->reasonList['subdivided']);
 
-        $this->view->position[]       = $this->lang->story->common;
-        $this->view->position[]       = $this->lang->story->batchClose;
         $this->view->moduleOptionMenu = $this->tree->getOptionMenu($productID, $viewType = 'story');
         $this->view->plans            = $this->loadModel('productplan')->getPairs($productID);
         $this->view->productID        = $productID;
@@ -2455,8 +2514,8 @@ class story extends control
 
         if($type == 'remove')
         {
-            $result = $this->story->unlinkStory($storyID, $linkedStoryID);
-            helprt::end();
+            $this->story->unlinkStory($storyID, $linkedStoryID);
+            helper::end();
         }
 
         if($_POST)
@@ -2655,32 +2714,25 @@ class story extends control
      * @param  int    $limit
      * @param  string $type
      * @param  bool   $hasParent
-     * @param  int    $executionID
+     * @param  int    $objectID projectID || executionID
      * @param  int    $number
      * @access public
      * @return void
      */
-    public function ajaxGetProductStories($productID, $branch = 0, $moduleID = 0, $storyID = 0, $onlyOption = 'false', $status = '', $limit = 0, $type = 'full', $hasParent = 1, $executionID = 0, $number = '')
+    public function ajaxGetProductStories($productID, $branch = 0, $moduleID = 0, $storyID = 0, $onlyOption = 'false', $status = '', $limit = 0, $type = 'full', $hasParent = 1, $objectID = 0, $number = '')
     {
+        $hasParent = (bool)$hasParent;
         if($moduleID)
         {
             $moduleID = $this->loadModel('tree')->getStoryModule($moduleID);
             $moduleID = $this->tree->getAllChildID($moduleID);
         }
 
-        $storyStatus = '';
-        if($status == 'noclosed')
-        {
-            $storyStatus = $this->lang->story->statusList;
-            unset($storyStatus['closed']);
-            $storyStatus = array_keys($storyStatus);
-        }
+        $storyStatus = $this->story->getStatusList($status);
 
-        if($status == 'active') $storyStatus = $status;
-
-        if($executionID)
+        if($objectID)
         {
-            $stories = $this->story->getExecutionStoryPairs($executionID, $productID, $branch, $moduleID, $type);
+            $stories = $this->story->getExecutionStoryPairs($objectID, $productID, $branch, $moduleID, $type);
         }
         else
         {
@@ -3073,21 +3125,25 @@ class story extends control
     }
 
     /**
-     * AJAX: Get user requirements.
+     * AJAX: Get product user stories.
      *
      * @param  int    $productID
      * @param  int    $branchID
-     * @param  int    $moduleID
      * @param  string $requirementList
      * @access public
      * @return string
      */
-    public function ajaxGetURS($productID, $branchID = 0, $moduleID = 0, $requirementList = 0)
+    public function ajaxGetProductUserStories($productID, $branchID = 0, $requirementList = 0)
     {
-        $moduleIdList = $this->loadModel('tree')->getAllChildId($moduleID);
+        $URS = $this->story->getProductStoryPairs($productID, $branchID, 0, 'active,launched', 'id_desc', 0, '', 'requirement');
 
-        $URS = $this->story->getProductStoryPairs($productID, $branchID, $moduleIdList, 'changing,active,reviewing', 'id_desc', 0, '', 'requirement');
-
+        /* 获取当前项目下研发中的需求。*/
+        /* Get developing requirements.*/
+        if($this->config->vision and $this->app->tab == 'project')
+        {
+            $developingURS = $this->story->getExecutionStoryPairs($this->session->project, $productID, $branchID, 0, '', 'developing', 'requirement');
+            $URS = array_merge($developingURS, $URS);
+        }
         return print(html::select('URS[]', $URS, $requirementList, "class='form-control chosen' multiple"));
     }
 

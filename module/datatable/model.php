@@ -32,12 +32,19 @@ class datatableModel extends model
         if($this->session->currentProductType === 'normal') unset($this->config->$module->datatable->fieldList['branch']);
         foreach($this->config->$module->datatable->fieldList as $field => $items)
         {
+            if(zget($items, 'display', true) === false)
+            {
+                unset($this->config->$module->datatable->fieldList[$field]);
+                continue;
+            }
+
             if($field === 'branch')
             {
                 if($this->session->currentProductType === 'branch')   $this->config->$module->datatable->fieldList[$field]['title'] = $this->lang->datatable->branch;
                 if($this->session->currentProductType === 'platform') $this->config->$module->datatable->fieldList[$field]['title'] = $this->lang->datatable->platform;
                 continue;
             }
+
             $title = zget($this->lang->$module, $items['title'], zget($this->lang, $items['title'], $items['title']));
             $this->config->$module->datatable->fieldList[$field]['title'] = $title;
         }
@@ -99,12 +106,13 @@ class datatableModel extends model
                 $set->order = $order++;
                 $set->id    = $id;
                 $set->show  = true;
-                $set->width = $fieldList[$id]['width'];
-                $set->fixed = $fieldList[$id]['fixed'];
-                $set->title = $fieldList[$id]['title'];
                 $set->sort  = isset($fieldList[$id]['sort']) ? $fieldList[$id]['sort'] : 'yes';
                 $set->name  = isset($fieldList[$id]['name']) ? $fieldList[$id]['name'] : '';
 
+                if(isset($fieldList[$id]['type']))     $set->type = $fieldList[$id]['type'];
+                if(isset($fieldList[$id]['title']))    $set->title = $fieldList[$id]['title'];
+                if(isset($fieldList[$id]['fixed']))    $set->fixed = $fieldList[$id]['fixed'];
+                if(isset($fieldList[$id]['width']))    $set->width = $fieldList[$id]['width'];
                 if(isset($fieldList[$id]['minWidth'])) $set->minWidth = $fieldList[$id]['minWidth'];
                 if(isset($fieldList[$id]['maxWidth'])) $set->maxWidth = $fieldList[$id]['maxWidth'];
                 if(isset($fieldList[$id]['pri']))      $set->pri = $fieldList[$id]['pri'];
@@ -168,7 +176,7 @@ class datatableModel extends model
         $id = $col->id;
         if($col->show)
         {
-            $fixed = $col->fixed == 'no' ? 'true' : 'false';
+            $fixed = zget($col, 'fixed', 'no') == 'no' ? 'true' : 'false';
             $width = is_numeric($col->width) ? "{$col->width}px" : $col->width;
             $title = isset($col->title) ? "title='$col->title'" : '';
             $title = (isset($col->name) and $col->name) ? "title='$col->name'" : $title;
@@ -227,7 +235,7 @@ class datatableModel extends model
         $hasRightAuto = false;
         foreach($setting as $key => $value)
         {
-            if($value->fixed != 'no')
+            if(zget($value, 'fixed', 'no') != 'no')
             {
                 if($value->fixed == 'left' and $value->width == 'auto')  $hasLeftAuto  = true;
                 if($value->fixed == 'right' and $value->width == 'auto') $hasRightAuto = true;

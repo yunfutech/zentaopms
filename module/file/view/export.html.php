@@ -22,7 +22,15 @@
 
 #mainContent .c-name {width:120px;}
 #mainContent .c-fileName {width:300px;}
+#mainContent .actionBox {text-align: center;}
 </style>
+<?php if($config->edition == 'open' && empty($config->{$this->moduleName}->closeBizGuide)):?>
+<style>
+#exportTable .bizGuideBox span {color: #838a9d;}
+#closeBizGuideButton {vertical-align: initial;}
+#closeBizGuideButton .icon-close {font-size: 12px; color: #838a9d;}
+</style>
+<?php endif;?>
 <script>
 function setDownloading()
 {
@@ -213,8 +221,23 @@ $(document).ready(function()
     $('#fileType').change();
     setTimeout(function()
     {
-        if($.cookie('checkedItem') !== '') $('#exportType').val('selected').trigger('chosen:updated');
+        if($.cookie('checkedItem') !== '') $('#exportType').val('selected').change().trigger('chosen:updated');
     }, 150);
+
+    $('#exportType').change(function()
+    {
+        const $form = $(this).closest('form');
+        $form.find('input[name=checkedItem]').remove();
+
+        const exportType = $(this).val();
+        if(exportType == 'selected' && typeof window.parent.getCheckedItems === 'function')
+        {
+            const checkedItems = window.parent.getCheckedItems();
+            $form.append($('<input>').attr({name: 'checkedItem', type: 'hidden'}).val(checkedItems));
+        }
+    });
+
+    $('#exportType').change();
 
     if($('#customFields #exportFields').length > 0)
     {
@@ -240,6 +263,20 @@ $(document).ready(function()
         })
     }
 });
+
+/**
+ * 关闭升级到企业版提示。
+ * Close the biz guide.
+ *
+ * @access public
+ * @return void
+ */
+function closeBizGuide()
+{
+    var closeBizGuideLink = '<?php echo $this->createLink('file', 'ajaxcloseBizGuide', 'module=' . $this->moduleName);?>';
+    $.get(closeBizGuideLink);
+    $('.bizGuideBox').remove();
+}
 </script>
 <?php
 $isCustomExport = (!empty($customExport) and !empty($allExportFields));
@@ -268,7 +305,7 @@ if($isCustomExport)
         <h2><?php echo $lang->export;?></h2>
       </div>
       <form class='main-form' method='post' target='hiddenwin'>
-        <table class="table table-form">
+        <table class="table table-form" id='exportTable'>
           <tbody>
             <tr>
               <th class='c-name'><?php echo $lang->file->fileName;?></th>
@@ -333,10 +370,24 @@ if($isCustomExport)
             <?php endif?>
             <tr>
               <th></th>
-              <td class='text-center'>
+                <?php $colspan = $config->edition == 'open' && empty($config->{$this->moduleName}->closeBizGuide) ? "colspan='2'" : '';?>
+                <td class='text-center'>
                 <?php echo html::submitButton($lang->export, "onclick='setDownloading();'", 'btn btn-primary');?>
               </td>
             </tr>
+            <?php if($config->edition == 'open' && empty($config->{$this->moduleName}->closeBizGuide)):?>
+            <tr class='bizGuideBox'>
+              <th></th>
+              <td colspan='2'>
+                <div>
+                    <?php $bizGuideLink = common::checkNotCN() ? 'https://www.zentao.pm/page/zentao-pricing.html' : 'https://www.zentao.net/page/enterprise.html';?>
+                    <?php $bizName      = html::a($bizGuideLink, $lang->bizName, '', "class='text-primary' target='_blank'");?>
+                    <span><?php echo sprintf($lang->file->bizGuide, $bizName);?></span>
+                    <?php echo html::a('#', "<i class='icon-close'></i>", '', 'class="btn btn-link" id="closeBizGuideButton" onclick=closeBizGuide(this)');?>
+                </div>
+              </td>
+            </tr>
+            <?php endif;?>
           </tbody>
         </table>
       </form>

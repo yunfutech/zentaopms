@@ -61,14 +61,13 @@
           <th class='c-product'>   <?php common::printOrderLink('productTitle', $orderBy, $vars, $lang->story->product);?></th>
           <th class='c-user'>      <?php common::printOrderLink('openedBy',     $orderBy, $vars, $lang->story->openedByAB);?></th>
           <th class='c-hours'>     <?php common::printOrderLink('estimate',     $orderBy, $vars, $lang->story->estimateAB);?></th>
-          <th class='c-stage'>     <?php common::printOrderLink('stage',        $orderBy, $vars, $lang->story->stageAB);?></th>
           <th class='c-actions-6 text-center'> <?php echo $lang->actions;?></th>
         </tr>
       </thead>
       <tbody>
         <?php foreach($stories as $story):?>
         <?php
-        $storyLink    = $this->createLink('story', 'view', "id=$story->id&version=0&param=0&storyType=requirement");
+        $storyLink    = $this->createLink('story', 'view', "id=$story->id&version=0&param=0&storyType=requirement", '', $story->shadow ? true : false);
         $canBeChanged = common::canBeChanged('story', $story);
         $spanClass    = $canBatchAction ? 'c-span' : '';
         ?>
@@ -83,7 +82,8 @@
             <?php printf('%03d', $story->id);?>
           </td>
           <td class='c-name nobr <?php if(!empty($story->children)) echo "has-child" ?>'>
-            <?php echo common::hasPriv('requirement', 'view') ? html::a($storyLink, $story->title, null, "style='color: $story->color' data-group='product' title='$story->title'") : "<span title='$story->title'>$story->title</span>";?>
+            <?php $class = $story->shadow ? "class='iframe'" : '';?>
+            <?php echo common::hasPriv('requirement', 'view') ? html::a($storyLink, $story->title, null, "style='color: $story->color' data-group='product' title='$story->title' $class") : "<span title='$story->title'>$story->title</span>";?>
             <?php if(!empty($story->children)) echo '<a class="story-toggle" data-id="' . $story->id . '"><i class="icon icon-angle-right"></i></a>';?>
           </td>
           <td class='c-pri'><span class='label-pri <?php echo 'label-pri-' . $story->pri;?>' title='<?php echo zget($lang->story->priList, $story->pri, $story->pri);?>'><?php echo zget($lang->story->priList, $story->pri, $story->pri);?></span></td>
@@ -91,7 +91,6 @@
           <td class='c-product' title="<?php echo $story->productTitle;?>"><?php echo $story->productTitle;?></td>
           <td class='c-user'><?php echo zget($users, $story->openedBy);?></td>
           <td class='c-hours' title="<?php echo $story->estimate . ' ' . $lang->hourCommon;?>"><?php echo $story->estimate . $config->hourUnit;?></td>
-          <td class='c-stage'><?php echo zget($lang->story->stageList, $story->stage);?></td>
           <td class='c-actions'>
             <?php
             if($canBeChanged)
@@ -148,7 +147,6 @@
           <td class='c-product' title="<?php echo $child->productTitle;?>"><?php echo $child->productTitle;?></td>
           <td class='c-user'><?php echo zget($users, $child->openedBy);?></td>
           <td class='c-hours'><?php echo $child->estimate . $config->hourUnit;?></td>
-          <td class='c-stage'><?php echo zget($lang->story->stageList, $child->stage);?></td>
           <td class='c-actions'>
             <?php
             if($canBeChanged)

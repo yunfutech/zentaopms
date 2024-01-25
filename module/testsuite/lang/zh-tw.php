@@ -2,16 +2,15 @@
 /**
  * The testsuite module zh-tw file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青島易軟天創網絡科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @copyright   Copyright 2009-2015 禪道軟件（青島）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
  * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Yidong Wang <yidong@cnezsoft.com>
  * @package     testsuite
  * @version     $Id: zh-tw.php 4490 2013-02-27 03:27:05Z wyd621@gmail.com $
  * @link        http://www.zentao.net
  */
-$lang->testsuite->index            = "套件首頁";
 $lang->testsuite->create           = "建套件";
-$lang->testsuite->delete           = "刪除";
+$lang->testsuite->delete           = "刪除套件";
 $lang->testsuite->view             = "概況";
 $lang->testsuite->edit             = "編輯套件";
 $lang->testsuite->browse           = "套件列表";
@@ -24,8 +23,9 @@ $lang->testsuite->deleted          = '已刪除';
 $lang->testsuite->successSaved     = '保存成功';
 
 $lang->testsuite->id             = '編號';
+$lang->testsuite->pri            = '優先順序';
 $lang->testsuite->common         = '套件';
-$lang->testsuite->project        = '所屬項目';
+$lang->testsuite->project        = '所屬' . $lang->projectCommon;
 $lang->testsuite->product        = '所屬' . $lang->productCommon;
 $lang->testsuite->name           = '名稱';
 $lang->testsuite->type           = '類型';
@@ -54,3 +54,5 @@ $lang->testsuite->lblUnlinkCase = '移除用例';
 
 $lang->testsuite->authorList['private'] = '私有';
 $lang->testsuite->authorList['public']  = '公開';
+
+$lang->testsuite->featureBar['browse']['all'] = '套件列表';

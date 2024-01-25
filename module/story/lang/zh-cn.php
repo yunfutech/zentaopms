@@ -82,6 +82,7 @@ $lang->story->twins              = '孪生需求';
 $lang->story->relieved           = '解除';
 $lang->story->relievedTwins      = '解除孪生需求';
 $lang->story->loadAllStories     = '加载所有需求';
+$lang->story->hasDividedTask     = '已经分解任务';
 
 $lang->story->editAction      = "编辑{$lang->SRCommon}";
 $lang->story->changeAction    = "变更{$lang->SRCommon}";
@@ -118,6 +119,7 @@ $lang->story->project          = "所属{$lang->projectCommon}";
 $lang->story->branch           = "平台/分支";
 $lang->story->module           = '所属模块';
 $lang->story->moduleAB         = '模块';
+$lang->story->roadmap          = '所属路标';
 $lang->story->source           = "来源";
 $lang->story->sourceNote       = '来源备注';
 $lang->story->fromBug          = '来源Bug';
@@ -156,8 +158,8 @@ $lang->story->closedReason     = '关闭原因';
 $lang->story->rejectedReason   = '拒绝原因';
 $lang->story->changedBy        = '由谁变更';
 $lang->story->changedDate      = '变更时间';
-$lang->story->reviewedBy       = '评审者';
-$lang->story->reviewer         = $lang->story->reviewedBy;
+$lang->story->reviewedBy       = '由谁评审';
+$lang->story->reviewer         = '评审者';
 $lang->story->reviewers        = '评审人员';
 $lang->story->reviewedDate     = '评审时间';
 $lang->story->activatedDate    = '激活日期';
@@ -215,6 +217,13 @@ $lang->story->statusList['active']    = '激活';
 $lang->story->statusList['closed']    = '已关闭';
 $lang->story->statusList['changing']  = '变更中';
 
+if($config->systemMode == 'PLM')
+{
+    $lang->story->statusList['launched']   = '已立项';
+    $lang->story->statusList['developing'] = '研发中';
+}
+
+$lang->story->stageList = array();
 $lang->story->stageList['']           = '';
 $lang->story->stageList['wait']       = '未开始';
 $lang->story->stageList['planned']    = "已计划";
@@ -314,6 +323,7 @@ $lang->story->mustChooseResult      = '必须选择评审意见';
 $lang->story->mustChoosePreVersion  = '必须选择回溯的版本';
 $lang->story->noStory               = "暂时没有{$lang->SRCommon}。";
 $lang->story->noRequirement         = "暂时没有{$lang->URCommon}。";
+$lang->story->noRelatedRequirement  = "暂无相关{$lang->URCommon}。";
 $lang->story->ignoreChangeStage     = "{$lang->SRCommon} %s 状态为草稿或已关闭，本次操作已被过滤。";
 $lang->story->cannotDeleteParent    = "不能删除父{$lang->SRCommon}";
 $lang->story->moveChildrenTips      = "修改父{$lang->SRCommon}的所属{$lang->productCommon}会将其下的子{$lang->SRCommon}也移动到所选{$lang->productCommon}下。";
@@ -363,6 +373,9 @@ $lang->story->action->unlinkrelatedstory    = array('main' => "\$date, 由 <stro
 $lang->story->action->unlinkchildstory      = array('main' => "\$date, 由 <strong>\$actor</strong> 移除细分{$lang->SRCommon} <strong>\$extra</strong>。");
 $lang->story->action->recalledchange        = array('main' => "\$date, 由 <strong>\$actor</strong> 撤销变更。");
 $lang->story->action->synctwins             = array('main' => "\$date, 系统判断由于孪生需求 <strong>\$extra</strong> \$operate，本需求同步调整。", 'operate' => 'operateList');
+$lang->story->action->linked2roadmap        = array('main' => '$date, 由 <strong>$actor</strong> 关联到路标 <strong>$extra</strong>。');
+$lang->story->action->unlinkedfromroadmap   = array('main' => '$date, 由 <strong>$actor</strong> 从路标 <strong>$extra</strong> 移除。');
+$lang->story->action->changedbycharter      = array('main' => '$date, 由 <strong>$actor</strong> 通过立项申请 <strong>$extra</strong> ，需求状态同步调整为已立项。');
 
 /* 统计报表。*/
 $lang->story->report = new stdclass();
@@ -469,6 +482,10 @@ $lang->story->categoryList['experience']  = '体验';
 $lang->story->categoryList['improve']     = '改进';
 $lang->story->categoryList['other']       = '其他';
 
+$lang->story->ipdCategoryList['zhanlue']         = '战略';
+$lang->story->ipdCategoryList['maintainability'] = '可维护性';
+$lang->story->ipdCategoryList['packing']         = '包装';
+
 $lang->story->changeTip = "只有激活状态的{$lang->SRCommon}，才能进行变更";
 
 $lang->story->reviewTip = array();
@@ -514,7 +531,7 @@ $lang->requirement->activateAction     = "激活{$lang->URCommon}";
 $lang->requirement->deleteAction       = "删除{$lang->URCommon}";
 $lang->requirement->exportAction       = "导出{$lang->URCommon}";
 $lang->requirement->reportAction       = "统计报表";
-$lang->requirement->recall             = $lang->story->recallAction;
+$lang->requirement->recall             = $lang->story->recall;
 $lang->requirement->batchReview        = '批量评审';
 $lang->requirement->batchEdit          = "批量编辑";
 $lang->requirement->batchClose         = '批量关闭';
@@ -533,3 +550,4 @@ $lang->story->notice->branch = "每个分支会建立一个需求，需求间互
 $lang->story->relievedTwinsRelation     = '解除孪生关系';
 $lang->story->relievedTwinsRelationTips = '孪生关系解除后无法恢复，需求的关闭将不再同步。';
 $lang->story->changeRelievedTwinsTips   = '孪生关系解除后无法恢复，孪生需求间内容不再同步。';
+$lang->story->storyUnlinkRoadmap        = '该用户需求立项通过后又从路标中进行了移除，需要再次立项通过后才能在IPD研发管理界面中查看。';

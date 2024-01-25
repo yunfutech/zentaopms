@@ -96,6 +96,8 @@ class upgrade extends control
             $this->config->version = ($this->config->edition == 'biz' ? 'LiteVIP' : 'Lite') . $this->config->liteVersion;
         }
 
+        if($_POST) return print(js::locate(helper::createLink('upgrade', 'confirm', "fromVersion={$this->post->fromVersion}")));
+
         $this->view->title      = $this->lang->upgrade->common . $this->lang->colon . $this->lang->upgrade->selectVersion;
         $this->view->position[] = $this->lang->upgrade->common;
         $this->view->version    = $version;
@@ -105,22 +107,31 @@ class upgrade extends control
     /**
      * Confirm the version.
      *
+     * @param  string  $fromVersion
      * @access public
      * @return void
      */
-    public function confirm()
+    public function confirm($fromVersion = '')
     {
-        if(strpos($this->post->fromVersion, 'lite') !== false) $this->post->fromVersion = $this->config->upgrade->liteVersion[$this->post->fromVersion];
-        $confirmSql = $this->upgrade->getConfirm($this->post->fromVersion);
-        $confirmSql = str_replace('ENGINE=InnoDB', 'ENGINE=MyISAM', $confirmSql);
+        $this->view->fromVersion = $fromVersion;
+
+        if(strpos($fromVersion, 'lite') !== false) $fromVersion = $this->config->upgrade->liteVersion[$fromVersion];
+        if(strpos($fromVersion, 'ipd') !== false)  $fromVersion = $this->config->upgrade->ipdVersion[$fromVersion];
+
+        $writable = true;
+        if (!is_writable($this->app->getTmpRoot())) $writable = false;
+        if(file_exists($this->app->getTmpRoot() . 'upgradeSqlLines')) @unlink($this->app->getTmpRoot() . 'upgradeSqlLines');
+        $confirmSql = $this->upgrade->getConfirm($fromVersion);
 
         $this->session->set('step', '');
-        $this->view->title       = $this->lang->upgrade->confirm;
-        $this->view->position[]  = $this->lang->upgrade->common;
-        $this->view->confirm     = $confirmSql;
-        $this->view->fromVersion = $this->post->fromVersion;
+        $this->view->title    = $this->lang->upgrade->confirm;
+        $this->view->confirm  = $confirmSql;
+        $this->view->writable = $writable;
+
         /* When sql is empty then skip it. */
-        if(empty($this->view->confirm)) $this->locate(inlink('execute', "fromVersion={$this->post->fromVersion}"));
+        if(empty($confirmSql)) $this->locate(inlink('execute', "fromVersion={$fromVersion}"));
+
+        if($_POST) $this->locate(inlink('execute', "fromVersion={$this->post->fromVersion}"));
 
         $this->display();
     }
@@ -133,40 +144,45 @@ class upgrade extends control
      */
     public function execute($fromVersion = '')
     {
+        session_write_close();
         $this->session->set('step', '');
 
-        $this->view->title      = $this->lang->upgrade->result;
-        $this->view->position[] = $this->lang->upgrade->common;
+        $this->view->title       = $this->lang->upgrade->result;
+        $this->view->fromVersion = $fromVersion;
 
         $result = $this->upgrade->deleteFiles();
         if($result)
         {
             $this->view->result = 'fail';
-            $this->view->errors  = $result;
+            $this->view->errors = $result;
 
             return $this->display();
         }
 
-        $fromVersion = isset($_POST['fromVersion']) ? $this->post->fromVersion : $fromVersion;
-        if(strpos($fromVersion, 'lite') !== false) $fromVersion = $this->config->upgrade->liteVersion[$fromVersion];
-        $this->upgrade->execute($fromVersion);
+        $rawFromVersion = isset($_POST['fromVersion']) ? $this->post->fromVersion : $fromVersion;
+        if(strpos($fromVersion, 'lite') !== false) $rawFromVersion = $this->config->upgrade->liteVersion[$fromVersion];
+
+        $installedVersion = $this->loadModel('setting')->getItem('owner=system&module=common&section=global&key=version');
+        if($this->config->version != $installedVersion) $this->upgrade->execute($rawFromVersion);
 
         if(!$this->upgrade->isError())
         {
-            $systemMode = $this->loadModel('setting')->getItem('owner=system&module=common&section=global&key=mode');
+            $this->setting->updateVersion($this->config->version);
+
+            $systemMode = $this->setting->getItem('owner=system&module=common&section=global&key=mode');
 
             /* Delete all patch actions if upgrade success. */
             $this->loadModel('action')->deleteByType('patch');
 
-            $openVersion = $this->upgrade->getOpenVersion(str_replace('.', '_', $fromVersion));
-            $selectMode = true;
+            $openVersion = $this->upgrade->getOpenVersion(str_replace('.', '_', $rawFromVersion));
+            $selectMode  = true;
 
             if($systemMode == 'classic')
             {
-                $this->loadModel('setting')->setItem('system.common.global.mode', 'light');
+                $this->setting->setItem('system.common.global.mode', 'light');
 
                 $programID = $this->loadModel('program')->createDefaultProgram();
-                $this->loadModel('setting')->setItem('system.common.global.defaultProgram', $programID);
+                $this->setting->setItem('system.common.global.defaultProgram', $programID);
 
                 /* Set default program for product and project with no program. */
                 $this->upgrade->relateDefaultProgram($programID);
@@ -179,7 +195,7 @@ class upgrade extends control
                 $this->upgrade->setDefaultPriv();
                 $this->dao->update(TABLE_CONFIG)->set('value')->eq('0_0')->where('`key`')->eq('productProject')->exec();
 
-                $hourPoint = $this->loadModel('setting')->getItem('owner=system&module=custom&key=hourPoint');
+                $hourPoint = $this->setting->getItem('owner=system&module=custom&key=hourPoint');
                 if(empty($hourPoint)) $this->setting->setItem('system.custom.hourPoint', 0);
 
                 $sprints = $this->dao->select('id')->from(TABLE_PROJECT)->where('type')->eq('sprint')->fetchAll('id');
@@ -191,13 +207,26 @@ class upgrade extends control
             }
             if(version_compare($openVersion, '15_0_rc1', '>=') and $systemMode == 'new')
             {
-                $this->loadModel('setting')->setItem('system.common.global.mode', 'ALM');
+                $this->setting->setItem('system.common.global.mode', 'ALM');
                 if(empty($this->config->URAndSR)) $this->setting->setItem('system.common.closedFeatures', 'productUR');
                 $selectMode = false;
             }
             if(version_compare($openVersion, '18_0_beta1', '>=')) $selectMode = false;
 
-            if($selectMode) $this->locate(inlink('to18Guide', "fromVersion=$fromVersion"));
+            if($this->config->edition == 'ipd' and strpos($fromVersion, 'ipd') === false)
+            {
+                $this->setting->setItem('system.common.global.mode', 'PLM');
+                $this->setting->setItem('system.custom.URAndSR', '1');
+                $this->setting->setItem('system.common.closedFeatures', '');
+                $this->setting->setItem('system.common.disabledFeatures', '');
+                $this->upgrade->addORPriv();
+            }
+
+            if($selectMode)
+            {
+                if($this->config->edition == 'ipd') $this->locate(inlink('to18Guide', "fromVersion=$fromVersion&mode=ALM"));
+                $this->locate(inlink('to18Guide', "fromVersion=$fromVersion"));
+            }
 
             $this->locate(inlink('afterExec', "fromVersion=$fromVersion"));
         }
@@ -214,12 +243,13 @@ class upgrade extends control
      * @access public
      * @return void
      */
-    public function to18Guide($fromVersion)
+    public function to18Guide($fromVersion, $mode = '')
     {
-        if($_POST)
+        if($_POST or $mode)
         {
-            $mode = fixer::input('post')->get('mode');
+            if($_POST) $mode = fixer::input('post')->get('mode');
             $this->loadModel('setting')->setItem('system.common.global.mode', $mode);
+            if($this->config->edition == 'ipd') $this->loadModel('setting')->setItem('system.common.global.mode', 'PLM');
             $this->loadModel('custom')->disableFeaturesByMode($mode);
 
             /* Update sprint concept. */
@@ -265,10 +295,11 @@ class upgrade extends control
      * @param  string $type
      * @param  int    $programID
      * @param  string $projectType project|execution
+     * @param  string $fromVersion
      * @access public
      * @return void
      */
-    public function mergeProgram($type = 'productline', $programID = 0, $projectType = 'project')
+    public function mergeProgram($type = 'productline', $programID = 0, $projectType = 'project', $fromVersion = '')
     {
         set_time_limit(0);
 
@@ -447,7 +478,7 @@ class upgrade extends control
                 }
             }
 
-            return print(js::locate($this->createLink('upgrade', 'mergeProgram', "type=$type&programID=$programID&projectType=$projectType"), 'parent'));
+            return print(js::locate($this->createLink('upgrade', 'mergeProgram', "type=$type&programID=$programID&projectType=$projectType&fromVersion=$fromVersion"), 'parent'));
         }
 
         /* Get no merged product and project count. */
@@ -469,7 +500,7 @@ class upgrade extends control
             /* Update sprints history. */
             $sprints = $this->dao->select('id')->from(TABLE_PROJECT)->where('type')->eq('sprint')->fetchAll('id');
             $this->dao->update(TABLE_ACTION)->set('objectType')->eq('execution')->where('objectID')->in(array_keys($sprints))->andWhere('objectType')->eq('project')->exec();
-            return print(js::locate($this->createLink('upgrade', 'mergeRepo')));
+            return print(js::locate($this->createLink('upgrade', 'mergeRepo', "fromVersion=$fromVersion")));
         }
 
         $this->view->noMergedProductCount = $noMergedProductCount;
@@ -486,7 +517,7 @@ class upgrade extends control
             $productlines = $this->dao->select('*')->from(TABLE_MODULE)->where('type')->eq('line')->andWhere('root')->eq(0)->orderBy('id_desc')->fetchAll('id');
 
             $noMergedProducts = $this->dao->select('*')->from(TABLE_PRODUCT)->where('line')->in(array_keys($productlines))->andWhere('vision')->eq('rnd')->orderBy('id_desc')->fetchAll('id');
-            if(empty($productlines) || empty($noMergedProducts)) $this->locate($this->createLink('upgrade', 'mergeProgram', "type=product&programID=0&projectType=$projectType"));
+            if(empty($productlines) || empty($noMergedProducts)) $this->locate($this->createLink('upgrade', 'mergeProgram', "type=product&programID=0&projectType=$projectType&fromVersion=$fromVersion"));
 
             $noMergedSprints = $this->dao->select('t1.*')->from(TABLE_PROJECT)->alias('t1')
                 ->leftJoin(TABLE_PROJECTPRODUCT)->alias('t2')->on('t1.id=t2.project')
@@ -568,7 +599,7 @@ class upgrade extends control
             /* Add products without sprints. */
             $noMergedProducts += $this->dao->select('*')->from(TABLE_PRODUCT)->where('program')->eq(0)->andWhere('vision')->eq('rnd')->fetchAll('id');
 
-            if(empty($noMergedProducts)) $this->locate($this->createLink('upgrade', 'mergeProgram', "type=sprint&programID=0&projectType=$projectType"));
+            if(empty($noMergedProducts)) $this->locate($this->createLink('upgrade', 'mergeProgram', "type=sprint&programID=0&projectType=$projectType&fromVersion=$fromVersion"));
 
             /* Group project by product. */
             $productGroups = array();
@@ -599,7 +630,7 @@ class upgrade extends control
             $projectProducts = $this->dao->select('*')->from(TABLE_PROJECTPRODUCT)->where('project')->in(array_keys($noMergedSprints))->fetchGroup('project', 'product');
             foreach($projectProducts as $sprintID => $products) unset($noMergedSprints[$sprintID]);
 
-            if(empty($noMergedSprints)) $this->locate($this->createLink('upgrade', 'mergeProgram', "type=moreLink"));
+            if(empty($noMergedSprints)) $this->locate($this->createLink('upgrade', 'mergeProgram', "type=moreLink&programID=0&projectType=project&fromVersion=$fromVersion"));
 
             $this->view->noMergedSprints = $noMergedSprints;
             if(!$programID && $systemMode == 'light') $programID = $this->loadModel('setting')->getItem('owner=system&module=common&section=global&key=defaultProgram');
@@ -676,7 +707,7 @@ class upgrade extends control
         if($_POST)
         {
             $mergeMode = $this->post->projectType;
-            if($mergeMode == 'manually') $this->locate(inlink('mergeProgram'));
+            if($mergeMode == 'manually') $this->locate(inlink('mergeProgram', "type=productline&programID=0&projectType=project&fromVersion=$fromVersion"));
 
             if($mode == 'light') $programID = $this->loadModel('setting')->getItem('owner=system&module=common&section=global&key=defaultProgram');
             if($mode == 'ALM')   $programID = $this->loadModel('program')->createDefaultProgram();
@@ -744,15 +775,16 @@ class upgrade extends control
     /**
      * Merge Repos.
      *
+     * @param  string $fromVersion
      * @access public
      * @return void
      */
-    public function mergeRepo()
+    public function mergeRepo($fromVersion = '')
     {
         if($_POST)
         {
             $this->upgrade->mergeRepo();
-            return print(js::locate($this->createLink('upgrade', 'mergeRepo'), 'parent'));
+            return print(js::locate($this->createLink('upgrade', 'mergeRepo', "fromVersion=$fromVersion"), 'parent'));
         }
 
         $repoes   = $this->dao->select('id, name')->from(TABLE_REPO)->where('deleted')->eq(0)->andWhere('product')->eq('')->fetchPairs();
@@ -762,7 +794,7 @@ class upgrade extends control
             $this->dao->delete()->from(TABLE_BLOCK)->exec();
             $this->dao->delete()->from(TABLE_CONFIG)->where('`key`')->eq('blockInited')->exec();
             $this->loadModel('setting')->deleteItems('owner=system&module=common&section=global&key=upgradeStep');
-            return print(js::locate($this->createLink('upgrade', 'afterExec', "fromVersion=&processed=no")));
+            return print(js::locate($this->createLink('upgrade', 'afterExec', "fromVersion=$fromVersion&processed=no")));
         }
 
         $this->view->title    = $this->lang->upgrade->mergeRepo;
@@ -771,6 +803,85 @@ class upgrade extends control
         $this->view->programs = $this->dao->select('id, name')->from(TABLE_PROGRAM)->where('deleted')->eq(0)->andWhere('type')->eq('program')->fetchPairs();
 
         $this->display();
+    }
+
+    /**
+     * Ajax get progress.
+     *
+     * @param  int    $offset
+     * @access public
+     * @return void
+     */
+    public function ajaxGetProgress($offset = 0)
+    {
+        $tmpProgressFile = $this->app->getTmpRoot() . 'upgradeSqlLines';
+        $upgradeLogFile  = $this->upgrade->getLogFile();
+
+        $progress = 1;
+        if(file_exists($tmpProgressFile) && $offset != 0)
+        {
+            $sqlLines = file_get_contents($tmpProgressFile);
+            if(empty($sqlLines)) $progress = $this->session->upgradeProgress ? $this->session->upgradeProgress : 1;
+            if($sqlLines == 'completed') $progress = 100;
+            if(strpos($sqlLines, '-') !== false)
+            {
+                $sqlLines = explode('-', $sqlLines);
+                $progress = round((int)$sqlLines[1] / (int)$sqlLines[0] * 100);
+            }
+
+            if($progress >= 100) $progress = 99;
+            $this->session->set('upgradeProgress', $progress);
+        }
+
+        $log  = !file_exists($upgradeLogFile) ? '' : file_get_contents($upgradeLogFile, false, null, $offset);
+        $size = 10 * 1024;
+        if(!empty($log) && mb_strlen($log) > $size)
+        {
+            $left     = mb_substr($log, $size);
+            $log      = mb_substr($log, 0, $size);
+            $position = strpos($left, "\n");
+            if($position !== false) $log .= substr($left, 0, $position + 1);
+        }
+        $log = trim($log);
+        return print(json_encode(array('log' => str_replace("\n", "<br />", $log) . ($log ? '<br />' : ''), 'progress' => $progress, 'offset' => $offset + strlen($log))));
+    }
+
+    /**
+     * Ajax get fix consistency logs.
+     *
+     * @param  int    $offset
+     * @access public
+     * @return void
+     */
+    public function ajaxGetFixLogs($offset = 0)
+    {
+        $logFile  = $this->upgrade->getConsistencyLogFile();
+        $lines    = !file_exists($logFile) ? array() : file($logFile);
+        $total    = (int)array_shift($lines);
+
+        $progress = 0;
+        if($total) $progress = round((count($lines) / $total) * 100);
+        if($progress >= 100) $progress = 99;
+
+        $log = array_slice($lines, $offset);
+        $finished = ($log and end($log) == 'Finished') ? true : false;
+        if($finished) $progress = 100;
+
+        return print(json_encode(array('log' => implode("<br />", $log) . (empty($log) ? '' : '<br />'), 'finished' => $finished, 'progress' => $progress, 'offset' => count($lines))));
+    }
+
+    /**
+     * Ajax fix for consistency.
+     *
+     * @param  string $version
+     * @access public
+     * @return void
+     */
+    public function ajaxFixConsistency($version)
+    {
+        set_time_limit(0);
+        session_write_close();
+        $this->upgrade->fixConsistency($version);
     }
 
     /**
@@ -814,9 +925,15 @@ class upgrade extends control
         $alterSQL = $this->upgrade->checkConsistency($this->config->version);
         if(!empty($alterSQL))
         {
+            $logFile  = $this->upgrade->getConsistencyLogFile();
+            $hasError = $this->upgrade->hasConsistencyError();
+            if(file_exists($logFile)) unlink($logFile);
+
             $this->view->title    = $this->lang->upgrade->consistency;
+            $this->view->hasError = $hasError;
             $this->view->alterSQL = $alterSQL;
-            return print($this->display('upgrade', 'consistency'));
+            $this->view->version  = $this->config->version;
+            return $this->display('upgrade', 'consistency');
         }
 
         $extFiles = $this->upgrade->getExtFiles();
@@ -837,17 +954,28 @@ class upgrade extends control
         if($processed == 'no')
         {
             $this->app->loadLang('install');
+
+            $showPrivTips = false;
+            if(is_numeric($fromVersion[0]) and version_compare($fromVersion, '18.9', '<='))               $showPrivTips = true;
+            if(strpos($fromVersion, 'pro') !== false)                                                     $showPrivTips = true;
+            if(strpos($fromVersion, 'biz') !== false and version_compare($fromVersion, 'biz8.9',   '<=')) $showPrivTips = true;
+            if(strpos($fromVersion, 'max') !== false and version_compare($fromVersion, 'max4.9',   '<=')) $showPrivTips = true;
+            if(strpos($fromVersion, 'ipd') !== false and version_compare($fromVersion, 'ipd1.1.1', '<=')) $showPrivTips = true;
+            if($showPrivTips and $this->config->edition == 'open') $showPrivTips = false;
+
             $this->view->title      = $this->lang->upgrade->result;
             $this->view->position[] = $this->lang->upgrade->common;
 
             $needProcess = $this->upgrade->checkProcess();
-            $this->view->needProcess = $needProcess;
-            $this->view->fromVersion = $fromVersion;
+            $this->view->needProcess  = $needProcess;
+            $this->view->fromVersion  = $fromVersion;
+            $this->view->showPrivTips = $showPrivTips;
             $this->display();
         }
         if(empty($needProcess) or $processed == 'yes')
         {
-            $this->loadModel('setting')->updateVersion($this->config->version);
+            $zfile = $this->app->loadClass('zfile');
+            $zfile->removeDir($this->app->getTmpRoot() . 'model/');
 
             $installFile = $this->app->getAppRoot() . 'www/install.php';
             $upgradeFile = $this->app->getAppRoot() . 'www/upgrade.php';
@@ -866,8 +994,12 @@ class upgrade extends control
     public function consistency($netConnect = true)
     {
         set_time_limit(0);
+
+        $logFile  = $this->upgrade->getConsistencyLogFile();
+        $hasError = $this->upgrade->hasConsistencyError();
+        if(file_exists($logFile)) unlink($logFile);
+
         $alterSQL = $this->upgrade->checkConsistency();
-        $alterSQL = str_replace('ENGINE=InnoDB', 'ENGINE=MyISAM', $alterSQL);
         if(empty($alterSQL))
         {
             if(!$netConnect) $this->locate(inlink('selectVersion'));
@@ -875,7 +1007,9 @@ class upgrade extends control
         }
 
         $this->view->title    = $this->lang->upgrade->consistency;
+        $this->view->hasError = $hasError;
         $this->view->alterSQL = $alterSQL;
+        $this->view->version  = $this->config->installedVersion;
         $this->display();
     }
 
@@ -1012,5 +1146,31 @@ class upgrade extends control
         $this->view->fromVersion  = $fromVersion;
 
         $this->display();
+    }
+
+    /**
+     * Process old metrics in order to easy of test.
+     *
+     * @param  bool $isDelete
+     * @access public
+     * @return void
+     */
+    public function processOldMetrics($isDelete = false)
+    {
+        if($isDelete)
+        {
+            $this->dao->delete()->from(TABLE_METRIC)->where('fromID')->ne(0)->exec();
+        }
+        else
+        {
+            $this->upgrade->processOldMetrics();
+        }
+        echo 'ok';
+    }
+
+    public function processHistoryDataForMetric()
+    {
+        $this->upgrade->processHistoryDataForMetric();
+        echo 'ok';
     }
 }

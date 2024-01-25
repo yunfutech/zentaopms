@@ -58,6 +58,7 @@ $lang->testtask->run              = 'Test Run ID';
 $lang->testtask->job              = 'Job';
 $lang->testtask->compile          = 'Compile';
 $lang->testtask->duration         = 'Duration';
+$lang->testtask->myInvolved       = 'Involved';
 
 $lang->testtask->viewAction     = "View Request";
 $lang->testtask->casesAction    = 'Browse Cases List';
@@ -76,6 +77,7 @@ $lang->testtask->execution         = $lang->execution->common;
 $lang->testtask->type              = 'Type';
 $lang->testtask->build             = 'Build';
 $lang->testtask->owner             = 'Owner';
+$lang->testtask->members           = 'Participant';
 $lang->testtask->executor          = 'Executeur';
 $lang->testtask->execTime          = 'Durée Exec';
 $lang->testtask->pri               = 'Priorité';
@@ -154,6 +156,7 @@ $lang->testtask->titleOfAuto       = "%s tests automatisés";
 $lang->testtask->cannotBeParsed    = 'The content of the imported XML file is in the wrong format and cannot be parsed.';
 $lang->testtask->finishedDateLess  = 'Actual Finished Date cannot be <= Begin Date %s';
 $lang->testtask->finishedDateMore  = 'Actual Finished Date cannot be > Today';
+$lang->testtask->accessDenied      = 'You have no access to the testtask.';
 
 $lang->testtask->assignedToMe  = 'Affecté à Moi';
 $lang->testtask->allCases      = 'Tous les CasTests';
@@ -202,6 +205,7 @@ $lang->testtask->report->options->width  = 500;
 $lang->testtask->report->options->height = 140;
 
 $lang->testtask->featureBar['browse']['totalStatus'] = $lang->testtask->totalStatus;
+$lang->testtask->featureBar['browse']['myinvolved']  = $lang->testtask->myInvolved;
 $lang->testtask->featureBar['browse']['wait']        = $lang->testtask->wait;
 $lang->testtask->featureBar['browse']['doing']       = $lang->testtask->testing;
 $lang->testtask->featureBar['browse']['blocked']     = $lang->testtask->blocked;

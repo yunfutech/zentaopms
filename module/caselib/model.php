@@ -183,7 +183,7 @@ class caselibModel extends model
         $lib = fixer::input('post')
             ->stripTags($this->config->caselib->editor->create['id'], $this->config->allowedTags)
             ->setForce('type', 'library')
-            ->setIF($this->lang->navGroup->caselib != 'qa', 'project', $this->session->project)
+            ->setIF($this->lang->navGroup->caselib != 'qa', 'project', (int)$this->session->project)
             ->add('addedBy', $this->app->user->account)
             ->add('addedDate', helper::now())
             ->remove('uid')
@@ -403,6 +403,7 @@ class caselibModel extends model
         if(dao::isError()) helper::end(js::error(dao::getError()));
 
         $forceNotReview = $this->testcase->forceNotReview();
+        $this->dao->begin();
         foreach($cases as $key => $caseData)
         {
             if(!empty($_POST['id'][$key]) and empty($_POST['insert']))
@@ -519,6 +520,7 @@ class caselibModel extends model
                 }
             }
         }
+        $this->dao->commit();
 
         if($this->post->isEndPage)
         {

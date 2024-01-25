@@ -2,14 +2,13 @@
 /**
  * The todo module zh-tw file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青島易軟天創網絡科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @copyright   Copyright 2009-2015 禪道軟件（青島）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
  * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     todo
  * @version     $Id: zh-tw.php 5022 2013-07-05 06:50:39Z chencongzhi520@gmail.com $
  * @link        http://www.zentao.net
  */
-$lang->todo->common       = '待辦';
 $lang->todo->index        = "待辦一覽";
 $lang->todo->create       = "添加待辦";
 $lang->todo->createCycle  = "創建周期待辦";
@@ -28,14 +27,16 @@ $lang->todo->finish       = "完成待辦";
 $lang->todo->batchFinish  = "批量完成";
 $lang->todo->export       = "導出待辦";
 $lang->todo->delete       = "刪除待辦";
-$lang->todo->import2Today = "導入到今天";
+$lang->todo->import2Today = "修改日期";
 $lang->todo->import       = "導入";
 $lang->todo->legendBasic  = "基本信息";
 $lang->todo->cycle        = "周期";
 $lang->todo->cycleConfig  = "周期設置";
-$lang->todo->project      = "所屬項目";
-$lang->todo->product      = "所屬產品";
+$lang->todo->project      = "所屬{$lang->projectCommon}";
+$lang->todo->product      = "所屬{$lang->productCommon}";
 $lang->todo->execution    = "所屬{$lang->execution->common}";
+$lang->todo->changeDate   = "修改日期";
+$lang->todo->future       = '待定';
 
 $lang->todo->reasonList['story'] = "轉{$lang->SRCommon}";
 $lang->todo->reasonList['task']  = "轉任務";
@@ -70,6 +71,7 @@ $lang->todo->closedBy     = '由誰關閉';
 $lang->todo->closedDate   = '關閉時間';
 $lang->todo->deadline     = '過期時間';
 $lang->todo->deleted      = '已刪除';
+$lang->todo->ditto        = '同上';
 
 $lang->todo->cycleDaysLabel  = '間隔天數';
 $lang->todo->beforeDaysLabel = '提前天數';
@@ -81,9 +83,12 @@ $lang->todo->beforeDays   = "<span class='input-group-addon'>提前</span>%s<spa
 $lang->todo->dayNames     = array(1 => '星期一', 2 => '星期二', 3 => '星期三', 4 => '星期四', 5 => '星期五', 6 => '星期六', 0 => '星期日');
 $lang->todo->specifiedDay = array(1 => 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31);
 
-$lang->todo->confirmBug   = '該Todo關聯的是Bug #%s，需要修改它嗎？';
-$lang->todo->confirmTask  = '該Todo關聯的是Task #%s，需要修改它嗎？';
-$lang->todo->confirmStory = '該Todo關聯的是Story #%s，需要修改它嗎？';
+$lang->todo->confirmBug     = '該待辦關聯的是Bug #%s，需要修改它嗎？';
+$lang->todo->confirmTask    = '該待辦關聯的是Task #%s，需要修改它嗎？';
+$lang->todo->confirmStory   = '該待辦關聯的是Story #%s，需要修改它嗎？';
+$lang->todo->noOptions      = '您暫時沒有待處理的%s，請重新選擇待辦類型。';
+$lang->todo->summary        = '本頁共 <strong>%s</strong> 項待辦，未開始 <strong>%s</strong>，進行中 <strong>%s</strong>。';
+$lang->todo->checkedSummary = '共選擇 <strong>%total%</strong> 項待辦，未開始 <strong>%wait%</strong>，進行中 <strong>%doing%</strong>。';
 
 $lang->todo->statusList['wait']   = '未開始';
 $lang->todo->statusList['doing']  = '進行中';
@@ -113,8 +118,9 @@ $lang->todo->noTodo         = '該類型沒有待辦事務';
 $lang->todo->noAssignedTo   = '被指派人不能為空';
 $lang->todo->unfinishedTodo = '待辦ID %s 不是完成狀態，不能關閉。';
 $lang->todo->today          = '今日待辦';
+$lang->todo->selectProduct  = "請選擇{$lang->productCommon}";
 
-$lang->todo->periods['all']             = '所有';
+$lang->todo->periods['all']             = '指派自己';
 $lang->todo->periods['before']          = '未完';
 $lang->todo->periods['future']          = '待定';
 $lang->todo->periods['thisWeek']        = '本週';

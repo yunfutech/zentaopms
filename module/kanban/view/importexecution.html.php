@@ -29,7 +29,7 @@
     <span class='input-group-addon'><?php echo $lang->kanban->selectedProject;?></span>
     <?php echo html::select('project', $projects, $selectedProjectID, "onchange='reloadObjectList(this.value)' class='form-control chosen' data-drop_direction='down'");?>
     <span class='input-group-addon'><?php echo $lang->kanban->selectedLane;?></span>
-    <?php echo html::select('lane', $lanePairs, '', "onchange='setTargetLane(this.value)' class='form-control chosen' data-drop_direction='down'");?>
+    <?php echo html::select('lane', $lanePairs, '', "onchange='setTargetLane(this.value)' class='form-control chosen' data-drop_direction='down' data-width='250'");?>
   </div>
   <?php if($executions2Imported):?>
   <form class='main-table' method='post' data-ride='table' target='hiddenwin' id='importExecutionForm'>
@@ -79,9 +79,9 @@
           <td title='<?php echo zget($lang->execution->statusList, $execution->status);?>'><?php echo zget($lang->execution->statusList, $execution->status);?></td>
           <td title='<?php echo zget($users, $execution->PM);?>'><?php echo zget($users, $execution->PM);?></td>
           <td title='<?php echo $execution->end;?>'><?php echo $execution->end;?></td>
-          <td title='<?php echo $execution->hours->totalEstimate;?>'><?php echo $execution->hours->totalEstimate;?></td>
-          <td title='<?php echo $execution->hours->totalConsumed;?>'><?php echo $execution->hours->totalConsumed;?></td>
-          <td title='<?php echo $execution->hours->totalLeft;?>'><?php echo $execution->hours->totalLeft;?></td>
+          <td title='<?php echo $execution->estimate;?>'><?php echo $execution->estimate;?></td>
+          <td title='<?php echo $execution->consumed;?>'><?php echo $execution->consumed;?></td>
+          <td title='<?php echo $execution->left;?>'><?php echo $execution->left;?></td>
         </tr>
         <?php endforeach;?>
         <tr><?php echo html::hidden('targetLane', key($lanePairs));?></tr>

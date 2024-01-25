@@ -2,7 +2,7 @@
 /**
  * The extension module zh-tw file of ZenTaoPMS.
  *
- * @copyright   Copyright 2009-2015 青島易軟天創網絡科技有限公司(QingDao Nature Easy Soft Network Technology Co,LTD, www.cnezsoft.com)
+ * @copyright   Copyright 2009-2015 禪道軟件（青島）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
  * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
  * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
  * @package     extension
@@ -92,13 +92,14 @@ $lang->extension->viewInstalled            = '查看已安裝插件';
 $lang->extension->viewAvailable            = '查看可安裝插件';
 $lang->extension->viewDeactivated          = '查看已禁用插件';
 $lang->extension->backDBFile               = '插件相關數據已經備份到 %s 檔案中！';
-$lang->extension->noticeOkFile             = '<h5>為了安全起見，系統需要確認您的管理員身份</h5>
+$lang->extension->noticeOkFile             = "<h5>為了安全起見，系統需要確認您的管理員身份</h5>
     <h5>請登錄禪道所在的伺服器，創建%s檔案。</h5>
+    <p>可以執行命令：echo '' > %s</p>
     <p>注意：</p>
     <ol>
     <li>檔案內容為空。</li>
     <li>如果之前檔案存在，刪除之後重新創建。</li>
-    </ol>';
+    </ol>";
 
 $lang->extension->upgradeExt     = '升級';
 $lang->extension->installExt     = '安裝';

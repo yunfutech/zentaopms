@@ -12,6 +12,7 @@
 ?>
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
+<?php include '../../ai/view/promptmenu.html.php';?>
 <?php $browseLink = $app->session->taskList != false ? $app->session->taskList : $this->createLink('execution', 'browse', "executionID=$task->execution");?>
 <?php js::set('sysurl', common::getSysUrl());?>
 <?php if(strpos($_SERVER["QUERY_STRING"], 'isNotice=1') === false):?>
@@ -74,7 +75,7 @@
         <div class='detail-content article-content'>
           <?php echo (!empty($task->storySpec) || !empty($task->storyFiles)) ? $task->storySpec : "<div class='text-center text-muted'>" . $lang->noData . '</div>';?>
         </div>
-        <?php echo $this->fetch('file', 'printFiles', array('files' => $task->storyFiles, 'fieldset' => 'false'));?>
+        <?php echo $this->fetch('file', 'printFiles', array('files' => $task->storyFiles, 'fieldset' => 'false', 'object' => $task, 'method' => 'view', 'showDelete' => false));?>
       </div>
       <div class='detail'>
         <div class='detail-title'><?php echo $lang->task->storyVerify;?></div>
@@ -195,7 +196,7 @@
                 </tr>
                 <?php endif;?>
                 <tr>
-                  <th><?php echo $lang->task->module;?></th>
+                  <th class='task-basic-info'><?php echo $lang->task->module;?></th>
                   <?php
                   $moduleTitle = '';
                   ob_start();
@@ -234,7 +235,13 @@
                     <?php
                     if(!$task->storyTitle) echo $lang->noData;
                     $class = isonlybody() ? 'showinonlybody' : 'iframe';
-                    if($task->storyTitle and !common::printLink('execution', 'storyView', "storyID=$task->story", $task->storyTitle, '', "class=$class data-width='80%'", true, true)) echo $task->storyTitle;
+
+                    /* Fix bug #32710, link to story-view if no executions under project. */
+                    $project = $this->loadModel('project')->getByID($task->project);
+                    $moduleName = !$project->multiple ? 'story' : 'execution';
+                    $methodName = !$project->multiple ? 'view'  : 'storyView';
+
+                    if($task->storyTitle and !common::printLink($moduleName, $methodName, "storyID=$task->story", $task->storyTitle, '', "class=$class data-width='80%'", true, true)) echo $task->storyTitle;
                     if($task->needConfirm)
                     {
                         echo "(<span class='warning'>{$lang->story->changed}</span> ";
@@ -274,7 +281,7 @@
                 <?php endif;?>
                 <tr>
                   <th><?php echo $lang->task->type;?></th>
-                  <td><?php echo $lang->task->typeList[$task->type];?></td>
+                  <td><?php echo zget($this->lang->task->typeList, $task->type, $task->type);?></td>
                 </tr>
                 <tr>
                   <th><?php echo $lang->task->status;?></th>
@@ -401,6 +408,12 @@
           </div>
           <div class='tab-pane' id='legendMisc'>
             <table class="table table-data">
+              <?php if($task->linkedBranch):?>
+              <tr>
+                <th class='MRThWidth'><?php echo $lang->task->relatedBranch;?></th>
+                <td><?php echo current($task->linkedBranch);?></td>
+              </tr>
+              <?php endif;?>
               <tr>
                 <th class='MRThWidth'><?php echo $lang->task->linkMR;?></th>
                 <td>
@@ -408,7 +421,7 @@
                   $canViewMR = common::hasPriv('mr', 'view');
                   foreach($linkMRTitles as $MRID => $linkMRTitle)
                   {
-                      echo ($canViewMR ? html::a($this->createLink('mr', 'view', "MRID=$MRID"), "#$MRID $linkMRTitle") : "#$MRID $linkMRTitle") . '<br />';
+                      echo ($canViewMR ? html::a($this->createLink('mr', 'view', "MRID=$MRID"), "#$MRID $linkMRTitle", '', "data-app={$app->tab}") : "#$MRID $linkMRTitle") . '<br />';
                   }
                   ?>
                 </td>
@@ -422,7 +435,7 @@
                   {
                       $revision    = substr($commit->revision, 0, 10);
                       $commitTitle = $revision . ' ' . $commit->comment;
-                      echo "<div class='link-commit' title='$commitTitle'>" . ($canViewRevision ? html::a($this->createLink('repo', 'revision', "repoID={$commit->repo}&objectID=0&revision={$commit->revision}"), "$revision") . ' ' . $commit->comment : $commitTitle) . '<br />';
+                      echo "<div class='link-commit' title='$commitTitle'>" . ($canViewRevision ? html::a($this->createLink('repo', 'revision', "repoID={$commit->repo}&objectID={$task->execution}&revision={$commit->revision}"), "$revision", '', "data-app={$app->tab}") . ' ' . $commit->comment : $commitTitle) . '<br />';
                   }
                   ?>
                 </td>

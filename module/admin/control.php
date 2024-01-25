@@ -32,11 +32,14 @@ class admin extends control
 
     /**
      * Index page.
+     *
      * @access public
      * @return void
      */
     public function index()
     {
+        set_time_limit(0);
+
         $community = zget($this->config->global, 'community', '');
         if(!$community or $community == 'na')
         {
@@ -53,19 +56,17 @@ class admin extends control
 
         $this->loadModel('misc');
 
-        $clientLang = $this->app->getClientLang();
         $langNotCN  = common::checkNotCN();
         $dateUsed   = $this->admin->genDateUsed();
-
-        $zentaoData  = $this->admin->getZentaoData();
-        $hasInternet = $zentaoData->hasData;
+        $zentaoData = $this->admin->getZentaoData();
 
         $this->view->title       = $this->lang->admin->common;
         $this->view->position[]  = $this->lang->admin->index;
         $this->view->plugins     = $zentaoData->plugins;
         $this->view->patches     = $zentaoData->patches;
         $this->view->dateUsed    = $dateUsed;
-        $this->view->hasInternet = $hasInternet;
+        $this->view->hasInternet = $zentaoData->hasData;
+        $this->view->isIntranet  = helper::isIntranet();
         $this->view->dynamics    = $zentaoData->news;
         $this->view->publicClass = $zentaoData->publicclass;
         $this->view->langNotCN   = $langNotCN;
@@ -80,6 +81,8 @@ class admin extends control
      */
     public function ajaxSetZentaoData()
     {
+        if(helper::isIntranet()) return $this->send(array('result' => 'ignore'));
+
         $hasInternet = $this->admin->checkInternet();
 
         if($hasInternet)
@@ -87,13 +90,10 @@ class admin extends control
             $nextWeek   = date('Y-m-d', strtotime('-7 days'));
             $zentaoData = $this->loadModel('block')->getZentaoData($nextWeek);
 
-            if(empty($zentaoData))
-            {
-                $this->admin->setExtensionsByAPI('plugin', 6);
-                $this->admin->setExtensionsByAPI('patch', 5);
-                $this->admin->setDynamicsByAPI(3);
-                $this->admin->setPublicClassByAPI(3);
-            }
+            if(empty($zentaoData['plugin']))      $this->admin->setExtensionsByAPI('plugin', 6);
+            if(empty($zentaoData['patch']))       $this->admin->setExtensionsByAPI('patch', 5);
+            if(empty($zentaoData['news']))        $this->admin->setDynamicsByAPI(3);
+            if(empty($zentaoData['publicclass'])) $this->admin->setPublicClassByAPI(3);
         }
 
         return $this->send(array('result' => 'success'));
@@ -219,8 +219,10 @@ class admin extends control
             $this->loadModel('setting')->setItems('system.common.safe', $data);
             return $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'reload'));
         }
+
         $this->view->title      = $this->lang->admin->safe->common . $this->lang->colon . $this->lang->admin->safe->set;
         $this->view->position[] = $this->lang->admin->safe->common;
+        $this->view->gdInfo     = function_exists('gd_info') ? gd_info() : array();
         $this->display();
     }
 
@@ -299,7 +301,7 @@ class admin extends control
             $closedFeatures = rtrim($closedFeatures, ',');
             $this->loadModel('setting')->setItem('system.common.closedFeatures', $closedFeatures);
             $this->loadModel('setting')->setItem('system.common.global.scoreStatus', $this->post->module['myScore'][0]);
-            $this->loadModel('setting')->setItem('system.custom.URAndSR', $this->post->module['productUR'][0]);
+            $this->loadModel('setting')->setItem('system.custom.URAndSR', $this->config->edition == 'ipd' ? 1 : $this->post->module['productUR'][0]);
             $this->loadModel('custom')->processMeasrecordCron();
             $this->send(array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => 'top'));
         }
@@ -478,7 +480,7 @@ class admin extends control
         $response['thisTable'] = '';
         $response['nextTable'] = '';
 
-        $tableEngines = $this->loadModel('misc')->getTableEngines();
+        $tableEngines = $this->dao->getTableEngines();
 
         $thisTable = '';
         $nextTable = '';
@@ -539,5 +541,37 @@ class admin extends control
         }
 
         return print(json_encode($response));
+    }
+
+    /**
+     * AJAX: Get drop menu.
+     *
+     * @param  string $currentMenuKey
+     * @access public
+     * @return void
+     */
+    public function ajaxGetDropMenu($currentMenuKey = '')
+    {
+        $this->admin->checkPrivMenu();
+        $data = array();
+        foreach($this->lang->admin->menuList as $menuKey => $menuGroup)
+        {
+            if($this->config->vision == 'lite' and !in_array($menuKey, $this->config->admin->liteMenuList)) continue;
+            $data[] = array(
+                'id'        => $menuKey,
+                'name'      => $menuKey,
+                'content'   => array('html' => "<div class='flex items-center my-2'><img class='mr-2' src='static/svg/admin-{$menuKey}.svg'/> {$menuGroup['name']}</div>"),
+                'text'      => '',
+                'type'      => 'item',
+                'disabled'  => $menuGroup['disabled'],
+                'url'       => $menuGroup['disabled'] ? '' : $menuGroup['link'],
+                'active'    => $currentMenuKey == $menuKey,
+                'rootClass' => 'admin-menu-item',
+                'attrs'     => array('disabled' => $menuGroup['disabled'])
+            );
+        }
+
+        $this->view->data = $data;
+        $this->display();
     }
 }

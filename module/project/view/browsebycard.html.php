@@ -21,6 +21,7 @@
 #cards .panel-body {padding: 0 16px 16px;}
 #cards .project-type-label {padding: 1px 0px;}
 #cards .icon {font-size: 8px;}
+#cards .table-empty-tip .icon {font-size: 14px;}
 #cards .project-name {font-size: 14px; display: inline-block; max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle;}
 #cards .project-infos {font-size: 12px;}
 #cards .project-infos > span {display: inline-block; line-height: 12px; border: 1px solid #E4E9F7;}
@@ -134,7 +135,7 @@
             <div class='row'>
               <div class='col-xs-4'>
                 <div><span class='statistics-title'><?php echo $lang->project->progress;?></span></div>
-                <?php echo html::ring($project->hours->progress); ?>
+                <?php echo html::ring($project->progress); ?>
               </div>
               <div class='col-xs-4'>
                 <span class='statistics-title'><?php echo $lang->project->leftTasks;?></span>
@@ -142,7 +143,7 @@
               </div>
               <div class='col-xs-4'>
                 <span class='statistics-title'><?php echo $lang->project->leftHours;?></span>
-                <span class='totalLeft' title="<?php echo empty($project->hours->totalLeft) ? '—' : $project->hours->totalLeft . $lang->execution->workHour;?>"><?php echo empty($project->hours->totalLeft) ? '—' : $project->hours->totalLeft . $lang->execution->workHourUnit;?></span>
+                <span class='totalLeft' title="<?php echo empty($project->left) ? '—' : $project->left . $lang->execution->workHour;?>"><?php echo empty($project->left) ? '—' : $project->left . $lang->execution->workHourUnit;?></span>
               </div>
             </div>
           </div>

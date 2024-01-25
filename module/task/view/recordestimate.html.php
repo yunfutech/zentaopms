@@ -69,8 +69,8 @@ if(!empty($members) && $task->mode == 'linear')
           <th class="w-120px"><?php common::printOrderLink('date', !strpos($orderBy, ',') ? $orderBy : 'date_asc', $vars, $lang->task->date);?></th>
           <th class="w-120px text-center"><?php echo $lang->task->recordedBy;?></th>
           <th class='text-left'><?php echo $lang->task->work;?></th>
-          <th class="thWidth text-center"><?php echo $lang->task->consumed;?></th>
-          <th class="thWidth text-center"><?php echo $lang->task->left;?></th>
+          <th class="thWidth text-center"><?php echo $lang->task->consumedHours;?></th>
+          <th class="thWidth text-center"><?php echo $lang->task->leftAB;?></th>
           <th class='c-actions-2'><?php echo $lang->actions;?></th>
         </tr>
       </thead>
@@ -87,8 +87,9 @@ if(!empty($members) && $task->mode == 'linear')
           <td align='center' class='c-actions'>
             <?php
             $canOperateEffort = $this->task->canOperateEffort($task, $effort);
-            common::printIcon('task', 'editEstimate', "effortID=$effort->id", '', 'list', 'edit', '', 'showinonlybody', true, $canOperateEffort ? '' : 'disabled');
-            common::printIcon('task', 'deleteEstimate', "effortID=$effort->id", '', 'list', 'trash', 'hiddenwin', 'showinonlybody', false, $canOperateEffort ? '' : 'disabled');
+            $operateTips      = (empty($task->team) && !$canOperateEffort) ? $lang->task->effortOperateTips : '';
+            common::printIcon('task', 'editEstimate', "effortID=$effort->id", '', 'list', 'edit', '', 'showinonlybody', true, $canOperateEffort ? '' : 'disabled', $operateTips ? sprintf($operateTips, $lang->task->update) : '');
+            common::printIcon('task', 'deleteEstimate', "effortID=$effort->id", '', 'list', 'trash', 'hiddenwin', 'showinonlybody', false, $canOperateEffort ? '' : 'disabled', $operateTips ? sprintf($operateTips, $lang->delete) : '');
             ?>
           </td>
         </tr>
@@ -138,7 +139,7 @@ if(!empty($members) && $task->mode == 'linear')
             <th class="w-60px <?php if(count($reverseOrders) == 1) echo "hidden"?>"><?php echo $lang->task->teamOrder;?></th>
             <?php endif;?>
             <th><?php echo $lang->task->work;?></th>
-            <th class="w-100px required"><?php echo $lang->task->consumedAB;?></th>
+            <th class="w-100px required"><?php echo $lang->task->consumedHours;?></th>
             <th class="w-100px <?php if(empty($readonly)) echo 'required'?>"><?php echo $lang->task->leftAB;?></th>
           </tr>
         </thead>

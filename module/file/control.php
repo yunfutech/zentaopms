@@ -110,6 +110,19 @@ class file extends control
     }
 
     /**
+     * Preview a file.
+     *
+     * @param  int    $fileID
+     * @param  string $mouse
+     * @access public
+     * @return void
+     */
+    public function preview($fileID, $mouse = '')
+    {
+        return print($this->fetch('file', 'download', "fileID=$fileID&mouse=$mouse"));
+    }
+
+    /**
      * Down a file.
      *
      * @param  int    $fileID
@@ -136,7 +149,7 @@ class file extends control
 
         /* Judge the mode, down or open. */
         $mode      = 'down';
-        $fileTypes = 'txt|jpg|jpeg|gif|png|bmp|xml|html';
+        $fileTypes = 'txt|jpg|jpeg|gif|png|bmp|xml|html|mp4';
         if(stripos($fileTypes, $file->extension) !== false && $mouse == 'left') $mode = 'open';
         if($file->extension == 'txt')
         {
@@ -151,11 +164,11 @@ class file extends control
             /* If the mode is open, locate directly. */
             if($mode == 'open')
             {
-                if(stripos('txt|jpg|jpeg|gif|png|bmp', $file->extension) !== false)
+                if(stripos('txt|jpg|jpeg|gif|png|bmp|mp4', $file->extension) !== false)
                 {
                     $this->view->file     = $file;
                     $this->view->charset  = $this->get->charset ? $this->get->charset : $this->config->charset;
-                    $this->view->fileType = ($file->extension == 'txt') ? 'txt' : 'image';
+                    $this->view->fileType = $file->extension == 'txt' ? 'txt' : ($file->extension == 'mp4' ? 'video' : 'image');
                     $this->display();
                 }
                 else
@@ -488,6 +501,14 @@ class file extends control
     public function read($fileID)
     {
         $file = $this->file->getById($fileID);
+
+        if(!$this->file->checkPriv($file))
+        {
+            echo(js::alert($this->lang->file->accessDenied));
+            if(isonlybody()) return print(js::reload('parent.parent'));
+            return print(js::locate(helper::createLink('my', 'index'), 'parent.parent'));
+        }
+
         if(empty($file) or !$this->file->fileExists($file)) return false;
 
         $obLevel = ob_get_level();
@@ -508,5 +529,19 @@ class file extends control
             while(!feof($handle)) echo fgets($handle);
             fclose($handle);
         }
+    }
+
+    /**
+     * 关闭升级到企业版提示。
+     * Close the biz guide.
+     *
+     * @param  string $moduleName
+     * @access public
+     * @return void
+     */
+    public function ajaxcloseBizGuide($moduleName)
+    {
+        $path = "{$this->app->user->account}.{$moduleName}.closeBizGuide@rnd";
+        $this->loadModel('setting')->setItem($path, 1);
     }
 }

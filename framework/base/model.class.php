@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 /**
  * ZenTaoPHP的baseModel类。
  * The baseModel class file of ZenTaoPHP framework.
@@ -135,7 +135,7 @@ class baseModel
      * @access public
      * @return void
      */
-    public function __construct(string $appName = '')
+    public function __construct($appName = '')
     {
         global $app, $config, $lang, $dbh;
         $this->app     = $app;
@@ -150,13 +150,14 @@ class baseModel
 
         $this->loadDAO();
         $this->setSuperVars();
+        $this->loadCache();
 
         /**
          * 读取当前模块的tao类。
          * Load the tao file auto.
          */
         $taoClass      = $moduleName . 'Tao';
-        $selfClass     = static::class;
+        $selfClass     = get_class($this);
         $parentClasses = class_parents($this);
         if($selfClass != $taoClass && !isset($parentClasses[$taoClass])) $this->loadTao($moduleName, $this->appName);
     }
@@ -177,9 +178,9 @@ class baseModel
      * @access public
      * @return string the module name.
      */
-    public function getModuleName(): string
+    public function getModuleName()
     {
-        $className     = static::class;
+        $className     = get_class($this);
         $parentClasses = class_parents($this);
         if(count($parentClasses) > 2) $className = current(array_slice($parentClasses, -3, 1));
         if(strtolower(substr($className, -5)) == 'model') $className = strtolower(substr($className, 0, strlen($className) - 5));
@@ -213,7 +214,7 @@ class baseModel
      * @access public
      * @return object|bool 如果没有model文件，返回false，否则返回model对象。If no model file, return false, else return the model object.
      */
-    public function loadModel(string $moduleName, string $appName = ''): object|bool
+    public function loadModel($moduleName, $appName = '')
     {
         $model = $this->app->loadTarget($moduleName, $appName);
         if(!$model) return false;
@@ -233,7 +234,7 @@ class baseModel
      * @access public
      * @return object|bool 如果没有tao文件，返回false，否则返回tao对象。If no tao file, return false, else return the tao object.
      */
-    public function loadTao(string $moduleName, string $appName = ''): object|bool
+    public function loadTao($moduleName, $appName = '')
     {
         $tao = $this->app->loadTarget($moduleName, $appName, 'tao');
         if(!$tao) return false;
@@ -259,9 +260,9 @@ class baseModel
      * @param  string $extensionName
      * @param  string $moduleName
      * @access public
-     * @return mixed
+     * @return void
      */
-    public function loadExtension(string $extensionName, string $moduleName = ''): mixed
+    public function loadExtension($extensionName, $moduleName = '')
     {
         if(empty($extensionName)) return false;
         if(empty($moduleName)) $moduleName = $this->getModuleName();
@@ -270,7 +271,7 @@ class baseModel
         $extensionName = strtolower($extensionName);
 
         $type      = 'model';
-        $className = strtolower(static::class);
+        $className = strtolower(get_class($this));
         if($className == $moduleName . 'tao' || $className == 'ext' . $moduleName . 'tao') $type = 'tao';
 
         /* 设置扩展类的名字。Set the extension class name. */
@@ -279,7 +280,7 @@ class baseModel
         if(isset($this->$extensionClass)) return $this->$extensionClass;
 
         /* 设置扩展的名字和相应的文件。Set extenson name and extension file. */
-        $moduleExtPath = $this->app->getModuleExtPath($this->appName, $moduleName, $type);
+        $moduleExtPath = $this->app->getModuleExtPath($moduleName, $type);
         if(!empty($moduleExtPath['site'])) $extensionFile = $moduleExtPath['site'] . 'class/' . $extensionName . '.class.php';
         if(!isset($extensionFile) or !file_exists($extensionFile)) $extensionFile = $moduleExtPath['saas']   . 'class/' . $extensionName . '.class.php';
         if(!isset($extensionFile) or !file_exists($extensionFile)) $extensionFile = $moduleExtPath['custom'] . 'class/' . $extensionName . '.class.php';
@@ -321,6 +322,20 @@ class baseModel
 
         $dao = new $driver();
         $this->dao = $dao;
+    }
+
+    /**
+     * 加载缓存类。
+     * Load cache class.
+     *
+     * @access public
+     * @return void
+     */
+    public function loadCache()
+    {
+        $this->app->loadClass('cache', $static = true);
+        $namespace   = isset($this->session->user->account) ? $this->session->user->account : 'guest';
+        $this->cache = cache::create($this->config->cache->driver, $namespace, $this->config->cache->lifetime);
     }
 
     /**

@@ -60,17 +60,19 @@ function computeDaysDelta(date1, date2)
  */
 function computeWorkDays(currentID)
 {
-    isBactchEdit = false;
+    isBatchEdit   = false;
+    var beginDate = '';
+    var endDate   = '';
     if(currentID)
     {
-        index = currentID.replace(/\w*\[|\]/g, '');
-        if(!isNaN(index)) isBactchEdit = true;
+        index = currentID.replace(/[a-zA-Z]*/g, '');
+        if(!isNaN(index)) isBatchEdit = true;
     }
 
-    if(isBactchEdit)
+    if(isBatchEdit)
     {
-        beginDate = $('#begins\\[' + index + '\\]').val();
-        endDate   = $('#ends\\[' + index + '\\]').val();
+        beginDate = $("input[name=begins\\[" + index + "\\]]").val();
+        endDate   = $("input[name=ends\\[" + index + "\\]]").val();
     }
     else
     {
@@ -80,8 +82,8 @@ function computeWorkDays(currentID)
 
     if(beginDate && endDate)
     {
-        if(isBactchEdit)  $('#dayses\\[' + index + '\\]').val(computeDaysDelta(beginDate, endDate));
-        if(!isBactchEdit) $('#days').val(computeDaysDelta(beginDate, endDate));
+        if(isBatchEdit)  $("input[name=dayses\\[" + index + "\\]]").val(computeDaysDelta(beginDate, endDate));
+        if(!isBatchEdit) $('#days').val(computeDaysDelta(beginDate, endDate));
     }
     else if($('input[checked="true"]').val())
     {
@@ -246,6 +248,7 @@ function addNewLine(obj)
     newLine.find("select[name^='products']").attr('name', 'products[' + index + ']').attr('id', 'products' + index).val('').chosen();
     newLine.find("select[name^='plans']").attr('name', 'plans[' + index + '][' + 0 + '][]').chosen();
     newLine.find("div[id^='plan']").attr('id', 'plan' + index);
+    newLine.find('[name*=products]').removeAttr('data-last');
 
     $(obj).closest('tr').after(newLine);
     var product = newLine.find("select[name^='products']");
@@ -307,10 +310,10 @@ function hidePlanBox(attribute)
     else
     {
         $('.productsBox .planBox').removeClass('hide');
-        $('.productsBox .planBox select').attr('disabled', '');
+        $('.productsBox .planBox select').removeAttr('disabled');
         $('#productTitle').text(manageProductPlanLang);
 
         $('#plansBox').closest('tr').removeClass('hide');
-        $('#plansBox').attr('disabled', '');
+        $('#plansBox').removeAttr('disabled');
     }
 }

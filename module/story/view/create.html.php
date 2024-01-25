@@ -17,8 +17,12 @@
 <?php js::set('feedbackSource', $config->story->feedbackSource); ?>
 <?php js::set('storyType', $type);?>
 <?php js::set('requiredFields', $config->story->create->requiredFields);?>
+<?php js::set('systemMode', $config->systemMode);?>
 <?php if($type == 'requirement'): ?>
-<style>.input-group .control-branch + .chosen-container-single .chosen-single {border-radius: 0 2px 2px 0; border-left-width: 0px;}</style>
+<style>
+.input-group .control-branch + .chosen-container-single .chosen-single {border-radius: 0 2px 2px 0; border-left-width: 0px;}
+#sourceNote {width: 140px;}
+</style>
 <?php endif; ?>
 <?php
 foreach(explode(',', $config->story->create->requiredFields) as $field)
@@ -67,7 +71,9 @@ foreach(explode(',', $config->story->create->requiredFields) as $field)
               </div>
             </td>
             <?php endif;?>
+            <?php if($this->app->tab != 'project'):?>
             <td class='w-60px <?php if((!$branches and $type == 'story') or $type == 'requirement') echo "hidden"; ?> switchBranch'></td>
+            <?php endif;?>
             <td colspan="2" class='<?php if($branches and $type == 'story') echo "hidden"; ?> switchBranch'>
             <div class='input-group' id='moduleIdBox'>
               <?php if(!$hiddenProduct):?>
@@ -109,7 +115,8 @@ foreach(explode(',', $config->story->create->requiredFields) as $field)
                 <div class='table-col' id='planIdBox'>
                   <div class='input-group'>
                     <span class='input-group-addon fix-border'><?php echo $lang->story->plan;?></span>
-                    <?php echo html::select('plans[0]', $plans, $planID, "class='form-control chosen'");?>
+                    <?php $required = strpos($config->story->create->requiredFields, 'plan') === false ? '' : 'required';?>
+                    <?php echo html::select('plans[0]', $plans, $planID, "class='form-control chosen' $required");?>
                   </div>
                 </div>
               </div>
@@ -189,20 +196,20 @@ foreach(explode(',', $config->story->create->requiredFields) as $field)
             <td colspan='2' id='assignedToBox'>
               <?php echo html::select('assignedTo', $hiddenProduct ? $teamUsers : $users, '', "class='form-control picker-select'");?>
             </td>
-            <td colspan="<?php echo $showFeedbackBox ? 1 : 2;?>" class="sourceTd <?php echo $hiddenSource?> sourceBox">
+            <td colspan="2" class="sourceTd <?php echo $hiddenSource?> sourceBox">
               <div class="input-group">
                 <div class="input-group">
                   <div class="input-group-addon" style="min-width: 77px;"><?php echo $lang->story->source;?></div>
                   <?php echo html::select('source', $lang->story->sourceList, $source, "class='form-control chosen'");?>
                   <span class='input-group-addon' id="sourceNoteBox"><?php echo $lang->story->sourceNote;?></span>
-                  <?php echo html::input('sourceNote', $sourceNote, "class='form-control' style='width:140px;'");?>
+                  <?php echo html::input('sourceNote', $sourceNote, "class='form-control'");?>
                 </div>
               </div>
             </td>
           </tr>
           <?php endif;?>
           <tr>
-            <th><?php echo $lang->story->reviewedBy;?></th>
+            <th><?php echo $lang->story->reviewers;?></th>
             <td colspan='2' id='reviewerBox'>
               <div class="table-row">
                 <?php $required = $this->story->checkForceReview() ? 'required' : '';?>
@@ -219,10 +226,11 @@ foreach(explode(',', $config->story->create->requiredFields) as $field)
             <th><?php echo $hiddenURS ? $lang->story->parent : $lang->story->requirement;?></th>
             <td colspan="2" class="<?php if($hiddenURS) echo 'hidden';?>">
               <div class='input-group'>
-                <?php echo html::select('URS[]', $URS, '', "class='form-control chosen' multiple");?>
-                <span class='input-group-btn'><?php echo html::commonButton($lang->story->loadAllStories, "class='btn btn-default' onclick='loadURS(true)' data-toggle='tooltip'");?></span>
+                <div class='URSBox'><?php echo html::select('URS[]', $URS, '', "class='form-control picker-select' multiple");?></div>
+                <span class='input-group-btn'><?php echo html::commonButton($lang->story->loadAllStories, "class='btn btn-default' onclick='loadURS()' data-toggle='tooltip'");?></span>
               </div>
             </td>
+            <?php if($app->tab == 'product'):?>
             <td colspan="2" <?php if($hiddenParent) echo 'hidden';?>>
               <div class='input-group' id='moduleIdBox'>
                 <?php if(!$hiddenURS):?>
@@ -231,6 +239,7 @@ foreach(explode(',', $config->story->create->requiredFields) as $field)
                 <?php echo html::select('parent', $stories, '', "class='form-control chosen'");?>
               </div>
             </td>
+            <?php endif;?>
           </tr>
           <?php else:?>
           <tr <?php if($hiddenParent) echo 'hidden';?>>
@@ -335,7 +344,15 @@ foreach(explode(',', $config->story->create->requiredFields) as $field)
           <?php $this->printExtendFields('', 'table', 'columns=4');?>
           <tr>
             <th><?php echo $lang->story->legendAttatch;?></th>
-            <td colspan='4'><?php echo $this->fetch('file', 'buildform');?></td>
+            <td colspan='4'>
+              <?php
+              if(isset($sourceFiles))
+              {
+                  echo $this->fetch('file', 'printFiles', array('files' => $sourceFiles, 'fieldset' => 'false', 'object' => null, 'method' => 'edit', 'showDelete' => true, 'showEdit' => false));
+              }
+              echo $this->fetch('file', 'buildform');
+              ?>
+            </td>
           </tr>
           <?php $hiddenMailto = strpos(",$showFields,", ',mailto,') !== false ? '' : 'hidden';?>
           <tr class="<?php echo $hiddenMailto?> mailtoBox">
@@ -424,4 +441,5 @@ setTimeout(() => {
 }, 600);
 
 </script>
+<?php include '../../ai/view/inputinject.html.php';?>
 <?php include '../../common/view/footer.html.php';?>

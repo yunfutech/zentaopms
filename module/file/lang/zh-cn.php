@@ -32,11 +32,13 @@ $lang->file->exportRange   = "要导出的数据";
 $lang->file->defaultTPL    = "默认模板";
 $lang->file->setExportTPL  = "设置";
 $lang->file->preview       = "预览";
+$lang->file->previewFile   = "预览附件";
 $lang->file->addFile       = '添加文件';
 $lang->file->beginUpload   = '开始上传';
 $lang->file->uploadSuccess = '上传成功';
 $lang->file->batchExport   = '分批导出';
 $lang->file->downloadFile  = '下载';
+$lang->file->playFailed    = '视频预览失败，请联系管理员';
 
 $lang->file->pathname  = '路径';
 $lang->file->title     = '标题';
@@ -56,7 +58,7 @@ $lang->file->uploadImagesExplain = '注：请上传"jpg, jpeg, gif, png"格式�
 $lang->file->saveAndNext         = '保存并跳转下一页';
 $lang->file->importPager         = '共有<strong>%s</strong>条记录，当前第<strong>%s</strong>页，共有<strong>%s</strong>页';
 $lang->file->importSummary       = "本次导入共有<strong id='allCount'>%s</strong>条记录，每页导入%s条，需要导入<strong id='times'>%s</strong>次";
-$lang->file->accessDenied        = '您无权下载该附件！';
+$lang->file->accessDenied        = '您无权访问该附件！';
 
 $lang->file->errorNotExists   = "<span class='text-red'>文件夹 '%s' 不存在</span>";
 $lang->file->errorCanNotWrite = "<span class='text-red'>文件夹 '%s' 不可写,请改变文件夹的权限。在linux中输入指令: <span class='code'>sudo chmod -R 777 %s</span></span>";
@@ -70,6 +72,7 @@ $lang->file->errorSuffix      = '压缩包格式错误，只能上传zip压缩�
 $lang->file->errorExtract     = '解压缩失败！可能文件已经损坏，或压缩包里含有非法上传文件。';
 $lang->file->fileNotFound     = '未找到该文件，可能物理文件已被删除！';
 $lang->file->fileContentEmpty = '上传文件内容为空，请检查后重新上传。';
+$lang->file->bizGuide         = '如需使用Excel导入导出功能，可升级到 %s';
 
 $lang->file->uploadError[1] = "上传的文件大小超过了限制，请修改 php.ini 中 upload_max_filesize 与 post_max_size 选项限制的值";
 $lang->file->uploadError[2] = '上传文件的大小超过了 HTML 表单中 MAX_FILE_SIZE 选项指定的值';

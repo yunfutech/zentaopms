@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 /**
  * 禅道API的entry类。
  * The entry class file of ZenTao API.
@@ -83,10 +83,11 @@ class baseEntry
      * Get request data(POST or PUT)
      *
      * @param  string $key
+     * @param  mixed  $defaultValue
      * @access public
      * @return mixed
      */
-    public function request(string $key, $defaultValue = '')
+    public function request($key, $defaultValue = '')
     {
         if(isset($this->requestBody->$key)) return $this->requestBody->$key;
         return $defaultValue;
@@ -97,10 +98,11 @@ class baseEntry
      * Get request params.
      *
      * @param  string $key
+     * @param  mixed  $defaultValue
      * @access public
      * @return mixed
      */
-    public function param(string $key, $defaultValue = '')
+    public function param($key, $defaultValue = '')
     {
         if(isset($_GET[$key])) return $_GET[$key];
         return $defaultValue;
@@ -111,10 +113,11 @@ class baseEntry
      * Set request param.
      *
      * @param  string|array  $key   if is array, set params by its key-value pairs.
+     * @param  mixed         $value
      * @access public
      * @return void
      */
-    public function setParam(string|array $key, $value = null)
+    public function setParam($key, $value = null)
     {
         if(is_array($key))
         {
@@ -199,10 +202,11 @@ class baseEntry
      * Send response data
      *
      * @param  int   $code
+     * @param  mixed $data
      * @access public
      * @return string
      */
-    public function send(int $code, $data = '')
+    public function send($code, $data = '')
     {
         header("Access-Control-Allow-Origin: *");
         header("Access-Control-Allow-Credentials: true");
@@ -223,7 +227,7 @@ class baseEntry
      * @access public
      * @return string
      */
-    public function sendError(int $code, string $msg)
+    public function sendError($code, $msg)
     {
         $response = new stdclass();
         $response->error = $msg;
@@ -240,7 +244,7 @@ class baseEntry
      * @access public
      * @return string
      */
-    public function sendSuccess(int $code, string $msg)
+    public function sendSuccess($code, $msg)
     {
         $response = new stdclass();
         $response->message = $msg;
@@ -255,7 +259,7 @@ class baseEntry
      * @access public
      * @return string
      */
-    public function send400(string $message = 'error')
+    public function send400($message = 'error')
     {
         return $this->sendError(400, $message);
     }
@@ -280,7 +284,7 @@ class baseEntry
      * @access public
      * @return object
      */
-    public function loadController(string $moduleName, string $methodName)
+    public function loadController($moduleName, $methodName)
     {
         ob_start();
 
@@ -311,7 +315,7 @@ class baseEntry
             }
 
             $file2Included = $isExt ? $app->extActionFile : $app->controlFile;
-            chdir(dirname((string) $file2Included));
+            chdir(dirname($file2Included));
             helper::import($file2Included);
         }
 
@@ -337,7 +341,7 @@ class baseEntry
      * @access  public
      * @return  object|bool 如果没有model文件，返回false，否则返回model对象。If no model file, return false, else return the model object.
      */
-    public function loadModel(string $moduleName = '', string $appName = '')
+    public function loadModel($moduleName = '', $appName = '')
     {
         if(empty($moduleName)) $moduleName = $this->app->moduleName;
         if(empty($appName))    $appName    = $this->app->appName;
@@ -396,8 +400,8 @@ class baseEntry
     public function getData()
     {
         $output = helper::removeUTF8Bom(ob_get_clean());
-        $output = json_decode((string) $output);
-        if(isset($output->data)) $output->data = json_decode((string) $output->data);
+        $output = json_decode($output);
+        if(isset($output->data)) $output->data = json_decode($output->data);
 
         return $output;
     }
@@ -407,6 +411,7 @@ class baseEntry
      * Add data to $_POST.
      *
      * @param  string $key
+     * @param  mixed  $value
      * @access public
      * @return void
      */
@@ -420,10 +425,11 @@ class baseEntry
      * Batch set data to $_POST.
      *
      * @param  string $fields
+     * @param  mixed  $object
      * @access public
      * @return void
      */
-    public function batchSetPost(string $fields, $object = '')
+    public function batchSetPost($fields, $object = '')
     {
         $fields = explode(',', $fields);
         foreach($fields as $field)
@@ -451,10 +457,11 @@ class baseEntry
      * Make sure the fields is not empty.
      *
      * @param  string $fields
+     * @param  mixed  $object
      * @access public
      * @return void
      */
-    public function requireFields(string $fields)
+    public function requireFields($fields)
     {
         $fields = explode(',', $fields);
         foreach($fields as $field)
@@ -462,11 +469,24 @@ class baseEntry
             if(!isset($_POST[$field]))
             {
                 $module = $this->app->moduleName;
-                $name   = $this->app->lang->$module->$field ?? $field;
+                $name   = isset($this->app->lang->$module->$field) ? $this->app->lang->$module->$field : $field;
                 throw EndResponseException::create($this->sendError(400, sprintf($this->app->lang->error->notempty, $name)));
             }
         }
     }
+
+    /**
+     * 检查是否在后台启用了代号.
+     * Check whether config->setCode are used in product,project,execution.
+     *
+     * @access public
+     * @return bool
+     */
+    public function checkCodeUsed()
+    {
+        return isset($this->config->setCode) ? $this->config->setCode : 0;
+    }
+
 
     /**
      * 格式化数据的字段类型.
@@ -477,7 +497,7 @@ class baseEntry
      * @access public
      * @return object|array
      */
-    public function format(object|array $data, string $fields)
+    public function format($data, $fields)
     {
         if(is_array($data))
         {
@@ -497,7 +517,7 @@ class baseEntry
      * @access public
      * @return object
      */
-    private function formatFields(object &$object, string $fields)
+    private function formatFields(&$object, $fields)
     {
         $fields = explode(',', $fields);
 
@@ -516,7 +536,7 @@ class baseEntry
                 $isArray = true;
                 $type    = substr($type, $pos + 1);
             }
-            else if(str_contains($type, 'array'))
+            else if(strpos($type, 'array') !== false)
             {
                 $isArray = true;
                 $type    = 'object';
@@ -525,7 +545,7 @@ class baseEntry
             /* Format value. */
             if(!$isArray)
             {
-                $object->$key = $this->cast(trim((string) $object->$key, ','), $type);
+                $object->$key = $this->cast(trim($object->$key, ','), $type);
                 continue;
             }
 
@@ -552,11 +572,11 @@ class baseEntry
      * Filter fields.
      *
      * @param  object $object
-     * @param  string $allowable
+     * @param  array  $filters
      * @access public
      * @return object
      */
-    public function filterFields(object $object, string $allowable = '')
+    public function filterFields($object, $allowable = '')
     {
         if(empty($allowable)) return $object;
         if(is_string($allowable)) $allowable = explode(',', $allowable);
@@ -564,7 +584,7 @@ class baseEntry
         $filtered = new stdclass();
         foreach($allowable as $field)
         {
-            $field = trim((string) $field);
+            $field = trim($field);
             if(empty($field)) continue;
             if(!isset($object->$field)) continue;
             $filtered->$field = $object->$field;
@@ -576,12 +596,12 @@ class baseEntry
     /**
      * Format user.
      *
-     * @param  string       $account
-     * @param  array|object $users
+     * @param  string    $account
+     * @param  array     $users
      * @access public
      * @return array
      */
-    public function formatUser(string $account, array|object $users)
+    public function formatUser($account, $users)
     {
         $user = array();
         $user['account']  = $account;
@@ -599,7 +619,7 @@ class baseEntry
      * @access public
      * @return mixed
      */
-    private function cast($value, string $type)
+    private function cast($value, $type)
     {
         switch($type)
         {
@@ -608,7 +628,7 @@ class baseEntry
                 if($timeFormat == 'utc')
                 {
                     if(!$value or $value == '0000-00-00 00:00:00') return null;
-                    return gmdate("Y-m-d\TH:i:s\Z", strtotime((string) $value));
+                    return gmdate("Y-m-d\TH:i:s\Z", strtotime($value));
                 }
                 return $value;
             case 'date':
@@ -619,7 +639,7 @@ class baseEntry
             case 'int':
                 return (int) $value;
             case 'idList':
-                $values = explode(',', (string) $value);
+                $values = explode(',', $value);
                 if(empty($values)) return array();
 
                 $idList = array();
@@ -629,7 +649,7 @@ class baseEntry
                 }
                 return $idList;
             case 'stringList':
-                $values = explode(',', (string) $value);
+                $values = explode(',', $value);
                 if(empty($values)) return array();
 
                 $stringList = array();
@@ -647,7 +667,7 @@ class baseEntry
                 if(empty($this->users)) $this->users = $this->dao->select('id,account,avatar,realname')->from(TABLE_USER)->fetchAll('account');
                 return zget($this->users, $value, null);
             case 'userList':
-                $values = explode(',', (string) $value);
+                $values = explode(',', $value);
                 if(empty($values)) return array();
 
                 $userList = array();
@@ -672,7 +692,7 @@ class baseEntry
      * @access public
      * @return mixed
      */
-    public function fetch(string $entry, string $method, array $params = array())
+    public function fetch($entry, $method, $params = array())
     {
         include($this->app->appRoot . "api/{$this->app->version}/entries/" . strtolower($entry) . ".php");
 
@@ -704,7 +724,7 @@ class baseEntry
      * @access public
      * @return void
      */
-    public function resetOpenApp(string $tab)
+    public function resetOpenApp($tab)
     {
         $_COOKIE['tab'] = $tab;
         $this->app->tab = $tab;

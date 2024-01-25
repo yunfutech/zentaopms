@@ -28,12 +28,6 @@ class report extends control
     public function __construct()
     {
         parent::__construct();
-
-        /* Set report menu group. */
-        $this->projectID = isset($_GET['project']) ? $_GET['project'] : 0;
-        if(!$this->projectID) $this->lang->navGroup->report = 'report';
-
-        if($this->config->edition != 'open' && $this->lang->navGroup->report == 'report' && common::hasPriv('report', 'custom')) $this->lang->report->mainMenuAction = html::a(helper::createLink('report', 'custom'), $this->lang->crystal->custom, '', "class='btn btn-link'");
     }
 
     /**
@@ -118,11 +112,11 @@ class report extends control
      *
      * @param  string $year
      * @param  string $dept
-     * @param  string $userID
+     * @param  string $account
      * @access public
      * @return void
      */
-    public function annualData($year = '', $dept = '', $userID = '')
+    public function annualData($year = '', $month = '', $dept = '', $account = '')
     {
         $this->app->loadLang('story');
         $this->app->loadLang('task');
@@ -131,7 +125,7 @@ class report extends control
         $this->loadModel('dept');
         $this->loadModel('user');
 
-        $super = common::hasPriv('report', 'allAnnualData');
+        $super = common::hasPriv('screen', 'allAnnualData');
 
         $firstAction = $this->dao->select('*')->from(TABLE_ACTION)->orderBy('id')->limit(1)->fetch();
         $currentYear = date('Y');
@@ -154,19 +148,15 @@ class report extends control
         }
 
         /* Get users and depts. */
-        $accounts = array();
-        if($userID)
+        if($account)
         {
-            $user     = $this->user->getById($userID, 'id');
-            $dept     = $user->dept;
-            $users    = array('' => $this->lang->report->annualData->allUser) + $this->dept->getDeptUserPairs($dept, 'id');
-            $accounts = array($user->account => ($user->realname ? $user->realname : $user->account));
+            $user = $this->user->getByID($account);
+            $dept = $user->dept;
         }
-        else
-        {
-            $users    = array('' => $this->lang->report->annualData->allUser) + $this->dept->getDeptUserPairs($dept, 'id');
-            $accounts = $this->dept->getDeptUserPairs($dept);
-        }
+
+        $userPairs = $this->dept->getDeptUserPairs($dept);
+        $accounts  = !empty($user) ? array($user->account) : array_keys($userPairs);
+        $users     = array('' => $this->lang->report->annualData->allUser) + $userPairs;
 
         $noDepartment = array('0' => '/' . $this->lang->dept->noDepartment);
         $depts        = $this->dept->getOptionMenu();
@@ -182,13 +172,11 @@ class report extends control
             $depts += $noDepartment;
         }
 
-        if($accounts) $accounts = array_keys($accounts);
-
         /* Get annual data. */
         $data = array();
-        if(!$userID)
+        if(!$account)
         {
-            $data['users'] = $dept ? count($accounts) :  (count($users) - 1);
+            $data['users'] = $dept ? count($accounts) : (count($users) - 1);
         }
         else
         {
@@ -208,7 +196,7 @@ class report extends control
         $yearEfforts = $this->report->getUserYearEfforts($accounts, $year);
         $data['consumed'] = $yearEfforts->consumed;
 
-        if(empty($dept) and empty($userID)) $data['statusStat'] = $this->report->getAllTimeStatusStat();
+        if(empty($dept) and empty($account)) $data['statusStat'] = $this->report->getAllTimeStatusStat();
 
         $contributionGroups = array();
         $maxCount           = 0;
@@ -240,14 +228,14 @@ class report extends control
             }
         }
 
-        $this->view->title  = sprintf($this->lang->report->annualData->title, ($userID ? zget($users, $userID, '') : (($dept !== '') ? substr($depts[$dept], strrpos($depts[$dept], '/') + 1) : $depts[''])), $year);
+        $this->view->title  = sprintf($this->lang->report->annualData->title, ($account ? zget($users, $account, '') : (($dept !== '') ? substr($depts[$dept], strrpos($depts[$dept], '/') + 1) : '')), $year);
         $this->view->data               = $data;
         $this->view->year               = $year;
         $this->view->users              = $users;
         $this->view->depts              = $depts;
         $this->view->years              = $years;
         $this->view->dept               = $dept;
-        $this->view->userID             = $userID;
+        $this->view->account            = $account;
         $this->view->months             = $this->report->getYearMonths($year);
         $this->view->contributionGroups = $contributionGroups;
         $this->view->radarData          = $contributionGroups[$year];

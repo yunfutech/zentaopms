@@ -12,6 +12,7 @@
 ?>
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
+<?php include '../../ai/view/promptmenu.html.php';?>
 <?php if(!common::checkNotCN()):?>
 <style> table.data-stats > tbody > tr.statsTr > td:first-child {width: 60px;}</style>
 <?php endif;?>
@@ -24,7 +25,7 @@
             <div class="panel-title"><?php echo $lang->execution->latestDynamic;?></div>
             <?php if($project->model != 'kanban' and common::hasPriv('project', 'dynamic')):?>
             <nav class="panel-actions nav nav-default">
-              <li><?php common::printLink('project', 'dynamic', "projectID=$project->id&type=all", strtoupper($lang->more), '', "title=$lang->more");?></li>
+              <li><?php common::printLink('project', 'dynamic', "projectID=$project->id&type=all", mb_strtoupper($lang->more), '', "title=$lang->more");?></li>
             </nav>
             <?php endif;?>
           </div>
@@ -48,7 +49,7 @@
             <div class="panel-title"><?php echo $lang->execution->relatedMember;?></div>
             <?php if(common::hasPriv('project', 'team')):?>
             <nav class="panel-actions nav nav-default">
-              <li><?php common::printLink('project', 'team', "projectID=$project->id", strtoupper($lang->more), '', "title=$lang->more");?></li>
+              <li><?php common::printLink('project', 'team', "projectID=$project->id", mb_strtoupper($lang->more), '', "title=$lang->more");?></li>
             </nav>
             <?php endif;?>
           </div>
@@ -162,7 +163,7 @@
           <div class="detail">
             <div class="detail-title">
               <strong><?php echo $lang->project->manageProducts;?></strong>
-              <?php common::printLink('project', 'manageproducts', "projectID=$project->id", strtoupper($lang->more), '', "class='btn btn-link pull-right muted'");?>
+              <?php common::printLink('project', 'manageproducts', "projectID=$project->id", mb_strtoupper($lang->more), '', "class='btn btn-link pull-right muted'");?>
             </div>
             <div class="detail-content">
               <div class="row row-grid">
@@ -203,10 +204,9 @@
                   <tr class='statsTr'><td></td><td></td><td></td><td></td></tr>
                   <tr>
                     <td colspan="4">
-                      <?php $progress = $project->model == 'waterfall' ? $this->project->getWaterfallProgress($project->id) : (($workhour->totalConsumed + $workhour->totalLeft) ? floor($workhour->totalConsumed / ($workhour->totalConsumed + $workhour->totalLeft) * 1000) / 1000 * 100 : 0);?>
-                      <?php echo $lang->project->progress;?> <?php echo $progress . $lang->percent;?> &nbsp;
+                      <?php echo $lang->project->progress;?> <?php echo $project->progress . $lang->percent;?> &nbsp;
                       <div class="progress inline-block">
-                        <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="<?php echo $progress;?>" aria-valuemin="0" aria-valuemax="100" style="width: <?php echo $progress . $lang->percent;?>"></div>
+                        <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="<?php echo $project->progress;?>" aria-valuemin="0" aria-valuemax="100" style="width: <?php echo $project->progress . $lang->percent;?>"></div>
                       </div>
                     </td>
                   </tr>

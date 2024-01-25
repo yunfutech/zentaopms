@@ -1735,8 +1735,8 @@ class kanbanModel extends model
                     if(empty($object)) continue;
 
                     $cardData = array();
-                    if(in_array($groupBy, array('module', 'story', 'pri', 'severity')) and (int)$object->$groupBy !== $laneID) continue;
-                    if(in_array($groupBy, array('type', 'category', 'source')) and $object->$groupBy !== $laneID) continue;
+                    if(in_array($groupBy, array('module', 'story', 'pri', 'severity')) and $object->$groupBy != $laneID) continue;
+                    if(in_array($groupBy, array('type', 'category', 'source')) and $object->$groupBy != $laneID) continue;
                     if($groupBy == 'assignedTo')
                     {
                         $laneID = (string)$laneID;
@@ -3068,7 +3068,7 @@ class kanbanModel extends model
             dao::$errors[] = $this->lang->kanbancard->error->progressIllegal;
             return false;
         }
-        $this->dao->update(TABLE_KANBANCARD)->set('progress')->eq($this->post->progress)->set('status')->eq('doing')->where('id')->eq($cardID)->exec();
+        $this->dao->update(TABLE_KANBANCARD)->set('progress')->eq($this->post->progress ? $this->post->progress : 0)->set('status')->eq('doing')->where('id')->eq($cardID)->exec();
     }
 
     /**
@@ -3705,7 +3705,7 @@ class kanbanModel extends model
     public function getColumnsByObject($objectType = '', $objectID = 0, $archived = 0, $deleted = '0')
     {
         return $this->dao->select('*')->from(TABLE_KANBANCOLUMN)
-            ->where(true)
+            ->where('1=1')
             ->beginIF($objectType)->andWhere($objectType)->eq($objectID)->fi()
             ->beginIF($archived != '')->andWhere('archived')->eq($archived)->fi()
             ->beginIF($deleted != '')->andWhere('deleted')->eq($deleted)->fi()
@@ -3817,7 +3817,7 @@ class kanbanModel extends model
     public function getCardsByObject($objectType = '', $objectID = 0, $archived = '0', $deleted = '0')
     {
         return $this->dao->select('*')->from(TABLE_KANBANCARD)
-            ->where(true)
+            ->where('1=1')
             ->beginIF($objectType)->andWhere($objectType)->eq($objectID)->fi()
             ->beginIF($archived != '')->andWhere('archived')->eq($archived)->fi()
             ->beginIF($deleted != '')->andWhere('deleted')->eq($deleted)->fi()

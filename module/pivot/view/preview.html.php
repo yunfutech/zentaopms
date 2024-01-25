@@ -1,22 +1,18 @@
 <?php include '../../common/view/header.html.php';?>
 <script>
-$('#subNavbar li').not('[data-id=<?php echo $group;?>]').removeClass('active');
+$('#subNavbar li').not('[data-id=<?php echo $groupID;?>]').removeClass('active');
 </script>
-<?php if($this->config->edition != 'open'):?>
-<style>#mainContent > .side-col.col-lg{width: 210px}</style>
-<style>.hide-sidebar #sidebar{width: 0 !important}</style>
-<?php endif;?>
 <?php js::set('dimension', $dimension);?>
-<?php js::set('group', $group);?>
+<?php js::set('groupID', $groupID);?>
 
 <div id='mainMenu' class='clearfix main-position'>
   <div class="btn-toolbar pull-left parent-position">
     <?php foreach($lang->pivot->featureBar['preview'] as $key => $label):?>
-    <?php $active = ($key == $group) ? ' btn-active-text' : '';?>
+    <?php $active = ($key == $groupID) ? ' btn-active-text' : '';?>
     <?php echo html::a(inlink('preview', "dimension=$dimension&group=$key"), "<span class='text'>$label</span>", '', "class='btn btn-link {$active}'");?>
     <?php endforeach;?>
   </div>
-  <?php if($this->config->edition == 'biz' or $this->config->edition == 'max'):?>
+  <?php if($this->config->edition != 'open'):?>
   <div class='btn-toolbar pull-right child-position'>
     <?php if(common::hasPriv('pivot', 'export')):?>
     <a href="#" class="btn btn-link btn-export hidden" data-toggle="modal" data-target="#export"><?php echo '<i class="icon-export muted"> </i>' . $lang->export;?></a>
@@ -25,8 +21,8 @@ $('#subNavbar li').not('[data-id=<?php echo $group;?>]').removeClass('active');
   </div>
   <?php endif;?>
 </div>
-<?php if($this->config->edition == 'biz' or $this->config->edition == 'max'):?>
-<?php $pivotPath = $this->app->getModuleExtPath('', 'pivot', 'view');?>
+<?php if($this->config->edition != 'open'):?>
+<?php $pivotPath = $this->app->getModuleExtPath('pivot', 'view');?>
 <?php include $pivotPath['common'] . 'exportdata.html.php';?>
 <?php endif;?>
 
@@ -37,8 +33,8 @@ $('#subNavbar li').not('[data-id=<?php echo $group;?>]').removeClass('active');
     </div>
     <div class="cell">
       <div class='panel'>
-        <div class='panel-heading'>
-          <div class='panel-title'><?php echo $lang->pivot->list;?></div>
+        <div class='panel-heading text-ellipsis'>
+          <div class='panel-title'><?php echo isset($group->name) ? $group->name : '';?></div>
         </div>
         <div class='panel-body'>
           <div class='list-group'>

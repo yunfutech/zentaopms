@@ -75,14 +75,17 @@ class Subversion
         foreach($listObject as $list)
         {
             $info = new stdclass();
+            $info->size     = 0;
             $info->name     = (string)$list->name;
+            $info->path     = $resourcePath . '/' . $list->name;
             $info->kind     = (string)$list['kind'];
             $info->revision = (int)$list->commit['revision'];
             $info->account  = (string)$list->commit->author;
             $info->date     = date('Y-m-d H:i:s', strtotime($list->commit->date));
-            $info->size     = $info->kind == 'file' ? (int)$list->size > 1024 ? round((int)$list->size / 1024, 2) . "KB" : (int)$list->size . 'Bytes' : 0;
             $info->comment  = '';
-            $infos[]        = $info;
+
+            if($info->kind == 'file') $info->size = (int)$list->size > 1024 ? round((int)$list->size / 1024, 2) . "KB" : (int)$list->size . 'Bytes';
+            $infos[] = $info;
         }
 
         /* Sort by kind */
@@ -263,10 +266,11 @@ class Subversion
      *
      * @param  string $path
      * @param  int    $revision
+     * @param  bool   $showComment
      * @access public
      * @return array
      */
-    public function blame($path, $revision)
+    public function blame($path, $revision, $showComment = true)
     {
         if(!scm::checkRevision($revision)) return array();
 
@@ -309,10 +313,14 @@ class Subversion
                     $blame['time']      = date('Y-m-d H:i:s', strtotime($line->commit->date));
                     $blame['line']      = (int)$line['line-number'];
                     $blame['lines']     = 1;
-                    $blame['content']   = $content[$blame['line'] - 1];
+                    $blame['content']   = isset($content[$blame['line'] - 1]) ? $content[$blame['line'] - 1] : '';
+                    $blame['message']   = '';
 
-                    $log = $this->log('', $blame['revision'], 'HEAD', 1);
-                    $blame['message'] = $log[0]->comment;
+                    if($showComment)
+                    {
+                        $log = $this->log('', $blame['revision'], 'HEAD', 1);
+                        $blame['message'] = $log[0]->comment;
+                    }
 
                     $revision         = $blame['revision'];
                     $revLine          = $blame['line'];
@@ -705,7 +713,7 @@ class Subversion
         /* Get repo name. */
         $pathList = explode('/', trim($this->root, '/'));
         $repoDir  = $savePath . DS . end($pathList);
-        execCmd($this->replaceAuth(escapeCmd("$this->client export $this->root $repoDir")));
+        execCmd($this->replaceAuth(escapeCmd($this->buildCMD("$this->root $repoDir", 'export', ''))));
 
         $fileName = $savePath . DS . "{$this->repo->name}.zip";
         $app->loadClass('pclzip', true);

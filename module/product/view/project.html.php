@@ -37,7 +37,7 @@
       <thead>
         <tr>
           <th class='c-id'><?php echo $lang->idAB;?></th>
-          <?php if($config->systemMode == 'ALM'):?>
+          <?php if(in_array($config->systemMode, array('ALM', 'PLM'))):?>
           <th class='c-program'><?php echo $lang->program->common;?></th>
           <?php endif;?>
           <th><?php echo $lang->project->name;?></th>
@@ -68,7 +68,7 @@
         <?php if($project->status == 'closed')    $closedCount ++;?>
         <tr>
           <td><?php printf('%03d', $project->id);?></td>
-          <?php if($config->systemMode == 'ALM'):?>
+          <?php if(in_array($config->systemMode, array('ALM', 'PLM'))):?>
           <td title='<?php echo $project->programName;?>' class='text-ellipsis'><?php echo $project->programName;?></td>
           <?php endif;?>
           <td class='text-left'>
@@ -92,11 +92,11 @@
           <td title='<?php echo $budgetTitle;?>' class="text-ellipsis text-right"><?php echo $budgetTitle;?></td>
           <td class='padding-right text-left'><?php echo $project->begin;?></td>
           <td class='padding-right text-left'><?php echo $project->end;?></td>
-          <td class="text-right" title="<?php echo $project->hours->totalEstimate . ' ' . $lang->execution->workHour;?>"><?php echo $project->hours->totalEstimate . $lang->execution->workHourUnit;?></td>
-          <td class="text-right" title="<?php echo $project->hours->totalConsumed . ' ' . $lang->execution->workHour;?>"><?php echo $project->hours->totalConsumed . $lang->execution->workHourUnit;?></td>
+          <td class="text-right" title="<?php echo $project->estimate . ' ' . $lang->execution->workHour;?>"><?php echo $project->estimate . $lang->execution->workHourUnit;?></td>
+          <td class="text-right" title="<?php echo $project->consumed . ' ' . $lang->execution->workHour;?>"><?php echo $project->consumed . $lang->execution->workHourUnit;?></td>
           <td>
-            <div class='progress-pie' data-doughnut-size='90' data-color='#3CB371' data-value='<?php echo round($project->hours->progress);?>' data-width='24' data-height='24' data-back-color='#e8edf3'>
-              <div class='progress-info'><?php echo round($project->hours->progress);?></div>
+            <div class='progress-pie' data-doughnut-size='90' data-color='#3CB371' data-value='<?php echo round($project->progress);?>' data-width='24' data-height='24' data-back-color='#e8edf3'>
+              <div class='progress-info'><?php echo round($project->progress);?></div>
             </div>
           </td>
         </tr>

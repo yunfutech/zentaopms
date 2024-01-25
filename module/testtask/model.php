@@ -20,7 +20,7 @@ class testtaskModel extends model
      * @access public
      * @return void
      */
-    function create($projectID = 0)
+    public function create($projectID = 0)
     {
         if($this->post->execution)
         {
@@ -28,16 +28,25 @@ class testtaskModel extends model
             $projectID = $execution->project;
         }
 
+        if($this->post->build && empty($projectID))
+        {
+            $build     = $this->loadModel('build')->getById($this->post->build);
+            $projectID = $build->project;
+        }
+
         $task = fixer::input('post')
             ->setDefault('build', '')
             ->setDefault('project', $projectID)
             ->setDefault('createdBy', $this->app->user->account)
             ->setDefault('createdDate', helper::now())
+            ->setDefault('members', '')
             ->stripTags($this->config->testtask->editor->create['id'], $this->config->allowedTags)
             ->join('mailto', ',')
             ->join('type', ',')
+            ->join('members', ',')
             ->remove('files,labels,uid,contactListMenu')
             ->get();
+        $task->members = trim($task->members, ',');
 
         $task = $this->loadModel('file')->processImgURL($task, $this->config->testtask->editor->create['id'], $this->post->uid);
         $this->dao->insert(TABLE_TESTTASK)->data($task)
@@ -82,19 +91,24 @@ class testtaskModel extends model
             ->leftJoin(TABLE_EXECUTION)->alias('t3')->on('t1.execution = t3.id')
             ->leftJoin(TABLE_BUILD)->alias('t4')->on('t1.build = t4.id')
             ->leftJoin(TABLE_PROJECT)->alias('t5')->on('t3.project = t5.id')
-
             ->where('t1.deleted')->eq(0)
             ->andWhere('t1.auto')->ne('unit')
-            ->beginIF(!$this->app->user->admin)->andWhere('t3.id')->in("0,{$this->app->user->view->sprints}")->fi()
+            ->beginIF(!$this->app->user->admin)->andWhere('t1.execution')->in("0,{$this->app->user->view->sprints}")->fi()
             ->beginIF($scopeAndStatus[0] == 'local')->andWhere('t1.product')->eq((int)$productID)->fi()
             ->beginIF($scopeAndStatus[0] == 'all')->andWhere('t1.product')->in($products)->fi()
+            ->beginIF(strtolower($scopeAndStatus[1]) == 'myinvolved')
+            ->andWhere('(t1.owner')->eq($this->app->user->account)
+            ->orWhere("FIND_IN_SET('{$this->app->user->account}', t1.members)")
+            ->markRight(1)
+            ->fi()
             ->beginIF(strtolower($scopeAndStatus[1]) == 'totalstatus')->andWhere('t1.status')->in('blocked,doing,wait,done')->fi()
-            ->beginIF(!in_array(strtolower($scopeAndStatus[1]), array('totalstatus', 'review'), true))->andWhere('t1.status')->eq($scopeAndStatus[1])->fi()
+            ->beginIF(!in_array(strtolower($scopeAndStatus[1]), array('totalstatus', 'review', 'myinvolved'), true))->andWhere('t1.status')->eq($scopeAndStatus[1])->fi()
             ->beginIF($branch !== 'all')->andWhere("CONCAT(',', t4.branch, ',')")->like("%,$branch,%")->fi()
             ->beginIF($beginTime)->andWhere('t1.begin')->ge($beginTime)->fi()
             ->beginIF($endTime)->andWhere('t1.end')->le($endTime)->fi()
             ->beginIF($branch == BRANCH_MAIN)
             ->orWhere('(t1.build')->eq('trunk')
+            ->andWhere('t1.deleted')->eq(0)
             ->andWhere('t1.product')->eq((int)$productID)
             ->markRight(1)
             ->fi()
@@ -105,6 +119,7 @@ class testtaskModel extends model
             ->orderBy($orderBy)
             ->page($pager)
             ->fetchAll('id');
+
         foreach($tasks as $taskID => $task)
         {
             if($task->multiple)
@@ -321,7 +336,9 @@ class testtaskModel extends model
             ->where('t1.deleted')->eq(0)
             ->andWhere('t4.deleted')->eq(0)
             ->andWhere('t1.auto')->ne('unit')
-            ->andWhere('t1.owner')->eq($account)
+            ->andWhere('(t1.owner')->eq($account)
+            ->orWhere("FIND_IN_SET('$account', t1.members)")
+            ->markRight(1)
             ->andWhere('t2.id')->in($this->app->user->view->sprints)
             ->beginIF($type == 'wait')->andWhere('t1.status')->ne('done')->fi()
             ->beginIF($type == 'done')->andWhere('t1.status')->eq('done')->fi()
@@ -773,11 +790,27 @@ class testtaskModel extends model
             ->setDefault('type', '')
             ->setDefault('mailto', '')
             ->setDefault('deleteFiles', array())
+            ->setDefault('members', '')
             ->stripTags($this->config->testtask->editor->edit['id'], $this->config->allowedTags)
             ->join('mailto', ',')
             ->join('type', ',')
+            ->join('members', ',')
             ->remove('files,labels,uid,comment,contactListMenu')
             ->get();
+        $task->members = trim($task->members, ',');
+
+        /* Fix bug #35419. */
+        $execution = $this->loadModel('execution')->getByID($task->execution);
+        if(!$execution)
+        {
+            $build         = $this->loadModel('build')->getById($task->build);
+            $task->project = $build->project;
+        }
+        else
+        {
+            $task->project = $execution->project;
+        }
+
         $task = $this->loadModel('file')->processImgURL($task, $this->config->testtask->editor->edit['id'], $this->post->uid);
 
         $this->dao->update(TABLE_TESTTASK)->data($task, 'deleteFiles')
@@ -926,6 +959,7 @@ class testtaskModel extends model
     {
         if($this->post->cases == false) return;
         $postData = fixer::input('post')->get();
+        $task     = $this->getById($taskID);
 
         if($type == 'bybuild') $assignedToPairs = $this->dao->select('`case`, assignedTo')->from(TABLE_TESTRUN)->where('`case`')->in($postData)->fetchPairs('case', 'assignedTo');
         foreach($postData->cases as $caseID)
@@ -940,18 +974,32 @@ class testtaskModel extends model
             $this->dao->replace(TABLE_TESTRUN)->data($row)->exec();
 
             /* When the cases linked the testtask, the cases link to the project. */
-            if($this->app->tab != 'qa')
+            if($task->project or $task->execution)
             {
-                $projectID = $this->app->tab == 'project' ? $this->session->project : $this->session->execution;
-                $lastOrder = (int)$this->dao->select('*')->from(TABLE_PROJECTCASE)->where('project')->eq($projectID)->orderBy('order_desc')->limit(1)->fetch('order');
-
                 $data = new stdclass();
-                $data->project = $projectID;
-                $data->product = $this->session->product;
                 $data->case    = $caseID;
                 $data->version = 1;
-                $data->order   = ++ $lastOrder;
-                $this->dao->replace(TABLE_PROJECTCASE)->data($data)->exec();
+                $data->product = $task->product;
+
+                if($task->project)
+                {
+                    $projectID = $task->project;
+                    $lastOrder = (int)$this->dao->select('*')->from(TABLE_PROJECTCASE)->where('project')->eq($projectID)->orderBy('order_desc')->limit(1)->fetch('order');
+
+                    $data->project = $projectID;
+                    $data->order   = ++ $lastOrder;
+                    $this->dao->replace(TABLE_PROJECTCASE)->data($data)->exec();
+                }
+
+                if($task->execution)
+                {
+                    $projectID = $task->execution;
+                    $lastOrder = (int)$this->dao->select('*')->from(TABLE_PROJECTCASE)->where('project')->eq($projectID)->orderBy('order_desc')->limit(1)->fetch('order');
+
+                    $data->project = $projectID;
+                    $data->order   = ++ $lastOrder;
+                    $this->dao->replace(TABLE_PROJECTCASE)->data($data)->exec();
+                }
             }
             $this->loadModel('action')->create('case', $caseID, 'linked2testtask', '', $taskID);
         }
@@ -1106,7 +1154,7 @@ class testtaskModel extends model
             $fieldToSort   = substr($sort, 0, strpos($sort, '_'));
             $orderBy       = strpos($specialFields, ',' . $fieldToSort . ',') !== false ? ('t1.' . $sort) : ('t2.' . $sort);
 
-            $runs = $this->dao->select('t2.*,t1.*, t2.version as caseVersion,t3.title as storyTitle,t2.status as caseStatus')->from(TABLE_TESTRUN)->alias('t1')
+            $runs = $this->dao->select('t2.*,t1.*,t2.version as caseVersion,t3.title as storyTitle,t2.status as caseStatus')->from(TABLE_TESTRUN)->alias('t1')
                 ->leftJoin(TABLE_CASE)->alias('t2')->on('t1.case = t2.id')
                 ->leftJoin(TABLE_STORY)->alias('t3')->on('t2.story = t3.id')
                 ->where($caseQuery)
@@ -1185,6 +1233,95 @@ class testtaskModel extends model
             ->leftJoin(TABLE_BUILD)->alias('t3')->on('t2.build = t3.id')
             ->where('t1.case')->in($caseIDList)
             ->fetchGroup('case', 'id');
+    }
+
+    /**
+     * Get scene list include sub scenes and runs.
+     *
+     * @param  int    $productID
+     * @param  array  $runs
+     * @param  string $orderBy
+     * @access public
+     * @return void
+     */
+    public function getSceneCases($productID, $runs, $orderBy = 'id_desc')
+    {
+        $sceneCases = array();
+
+        $runs = $this->loadModel('testcase')->appendData($runs, 'run');
+        foreach($runs as $id => $run)
+        {
+            $run->run     = $run->id;
+            $run->id      = 'case_' . $run->case;
+            $run->parent  = 0;
+            $run->isScene = false;
+            if($run->scene)
+            {
+                $sceneCases[$run->scene][$run->id] = $run;
+                unset($runs[$id]);
+            }
+        }
+
+        $scenes = $this->dao->select('*')->from(TABLE_SCENE)
+            ->where('deleted')->eq('0')
+            ->andWhere('product')->eq($productID)
+            ->orderBy('grade_desc, sort_asc')
+            ->fetchAll('id');
+
+        if(!$scenes) return array('scenes' => array(), 'runs' => $runs);
+
+        $this->dao->setTable(TABLE_CASE);
+        $fieldTypes = $this->dao->getFieldsType();
+
+        /* Set scene path. */
+        $scenePath = '';
+        foreach($scenes as $id => $scene) if(isset($sceneCases[$id])) $scenePath .= ',' . $scene->path;
+
+        foreach($scenes as $id => $scene)
+        {
+            /* 如果场景下没有用例,则跳过. */
+            /* Check the scene path. */
+            if(strpos($scenePath, ',' . $scene->id . ',') === false)
+            {
+                unset($scenes[$id]);
+                continue;
+            }
+
+            /* Set default value for the fields exist in TABLE_CASE but not in TABLE_SCENE. */
+            foreach($fieldTypes as $field => $type)
+            {
+                if(isset($scene->$field)) continue;
+                $scene->$field = $type['rule'] == 'int' ? '0' : '';
+            }
+
+            $scene->bugs       = 0;
+            $scene->results    = 0;
+            $scene->caseFails  = 0;
+            $scene->stepNumber = 0;
+            $scene->isScene    = true;
+
+            if(isset($sceneCases[$id]))
+            {
+                foreach($sceneCases[$id] as $case)
+                {
+                    $case->parent  = $id;
+                    $case->grade   = $scene->grade + 1;
+                    $case->path    = $scene->path . $case->id . ',';
+                    $case->isScene = false;
+
+                    $scene->cases[$case->id] = $case;
+                }
+            }
+
+            if(!isset($scenes[$scene->parent])) continue;
+
+            $parent = $scenes[$scene->parent];
+            $parent->children[$id] = $scene;
+
+            unset($scenes[$id]);
+        }
+
+        return array('scenes' => $scenes, 'runs' => $runs);
     }
 
     /**
@@ -1337,7 +1474,7 @@ class testtaskModel extends model
             $postReals   = $postData->reals[$caseID];
 
             $caseResult  = $result ? $result : 'pass';
-            if($postData->node) $caseResult = '';
+            if(!empty($postData->node)) $caseResult = '';
             $stepResults = array();
             if($dbSteps)
             {
@@ -1586,18 +1723,73 @@ class testtaskModel extends model
     }
 
     /**
+     * Print rows of cases.
+     *
+     * @param  array  $cases
+     * @param  array  $setting
+     * @param  array  $users
+     * @param  array  $branchOption
+     * @param  array  $modulePairs
+     * @param  string $browseType
+     * @param  string $mode
+     * @access public
+     * @return int
+     */
+    public function printRow($cases, $setting, $users, $task, $branchOption, $modulePairs, $browseType, $mode)
+    {
+        foreach($cases as $case)
+        {
+            $trClass = '';
+            $trAttrs = "data-id='{$case->id}' data-auto='" . zget($case, 'auto', '') . "' data-order='{$case->sort}' data-parent='{$case->parent}' data-product='{$case->product}'";
+            if($case->isScene)
+            {
+                $trAttrs .= " data-nested='true'";
+                $trClass .= $case->parent == '0' ? ' is-top-level table-nest-child-hide' : ' table-nest-hide';
+            }
+
+            if($case->parent)
+            {
+                if(!$case->isScene) $trClass .= ' is-nest-child';
+                $trClass .= ' table-nest-hide';
+                $trAttrs .= " data-nest-parent='{$case->parent}' data-nest-path='{$case->path}'";
+            }
+            elseif(!$case->isScene)
+            {
+                $trClass .= ' no-nest';
+            }
+            $trAttrs .= " class='row-case $trClass'";
+
+            $case->id = str_replace(array('case_', 'scene_'), '', $case->id);   // Remove the prefix of case id.
+
+            $isScene = $case->isScene ? 1 : 0;
+            echo "<tr data-is-scene='{$isScene}' {$trAttrs}>";
+            foreach($setting as $key => $value) $this->printCell($value, $case, $users, $task, $branchOption, $modulePairs, $mode);
+            echo '</tr>';
+
+            if(!empty($case->children) || !empty($case->cases))
+            {
+                if(!empty($case->children)) $this->printRow($case->children, $setting, $users, $task, $branchOption, $modulePairs, $browseType, $mode);
+                if(!empty($case->cases))    $this->printRow($case->cases,    $setting, $users, $task, $branchOption, $modulePairs, $browseType, $mode);
+            }
+        }
+    }
+
+    /**
      * Print cell data.
      *
-     * @param  object  $col
-     * @param  object  $run
-     * @param  array   $users
-     * @param  object  $task
-     * @param  array   $branches
+     * @param mixed $col
+     * @param mixed $run
+     * @param mixed $users
+     * @param mixed $task
+     * @param mixed $branches
+     * @param mixed $modulePairs
+     * @param string $mode
      * @access public
      * @return void
      */
-    public function printCell($col, $run, $users, $task, $branches, $mode = 'datatable')
+    public function printCell($col, $run, $users, $task, $branches, $modulePairs, $mode = 'datatable')
     {
+        $isScene        = $run->isScene;
         $canBatchEdit   = common::hasPriv('testcase', 'batchEdit');
         $canBatchUnlink = common::hasPriv('testtask', 'batchUnlinkCases');
         $canBatchAssign = common::hasPriv('testtask', 'batchAssign');
@@ -1606,34 +1798,66 @@ class testtaskModel extends model
         $canBatchAction = ($canBatchEdit or $canBatchUnlink or $canBatchAssign or $canBatchRun);
 
         $canView     = common::hasPriv('testcase', 'view');
-        $caseLink    = helper::createLink('testcase', 'view', "caseID=$run->case&version=$run->version&from=testtask&taskID=$run->task");
+        $caseLink    = helper::createLink('testcase', 'view', "caseID=$run->id&version=$run->version&from=testtask&taskID=$task->id");
         $account     = $this->app->user->account;
         $id          = $col->id;
+
+        $run->caseVersion = isset($run->caseVersion) ? $run->caseVersion : 1;
+        $run->assignedTo  = isset($run->assignedTo) ? $run->assignedTo : '';
         $caseChanged = $run->version < $run->caseVersion;
         $fromCaseID  = $run->fromCaseID;
 
         if($col->show)
         {
             $class = "c-$id ";
+            $title = '';
             if($id == 'status') $class .= "{$run->status} status-testcase status-{$run->caseStatus}";
-            if($id == 'title')  $class .= ' text-left';
+            if($id == 'title')
+            {
+                $class .= ' text-left';
+                $title  = "title='{$run->title}'";
+            }
             if($id == 'id')     $class .= ' cell-id';
             if($id == 'lastRunResult') $class .= "result-testcase $run->lastRunResult";
             if($id == 'assignedTo' && $run->assignedTo == $account) $class .= ' red';
             if($id == 'actions') $class .= 'c-actions';
 
-            echo "<td class='" . $class . "'" . ($id=='title' ? "title='{$run->title}'":'') . ">";
+            if($id == 'title')
+            {
+                if($isScene)
+                {
+                    echo "<td class='c-name table-nest-title text-left sort-handler has-prefix has-suffix' {$title}><span class='table-nest-icon icon '></span>";
+                }
+                else
+                {
+                    $icon = $run->auto == 'auto' ? 'icon-ztf' : 'icon-test';
+                    echo "<td class='c-name table-nest-title text-left sort-handler has-prefix has-suffix' {$title}><span class='table-nest-icon icon {$icon}'></span>";
+                }
+            }
+            else
+            {
+                echo "<td class='" . $class . "'" . ($id=='title' ? "title='{$run->title}'":'') . ">";
+            }
+
             if($this->config->edition != 'open') $this->loadModel('flow')->printFlowCell('testcase', $run, $id);
             switch ($id)
             {
             case 'id':
+                $showID = sprintf('%03d', $run->id);
                 if($canBatchAction)
                 {
-                    echo html::checkbox('caseIDList', array($run->case => sprintf('%03d', $run->case)));
+                    if(!$isScene)
+                    {
+                        echo html::checkbox('caseIDList', array($run->id => ''), '') . html::a(helper::createLink('testcase', 'view', "caseID=$run->id"), $showID, '', "data-app='{$this->app->tab}'");
+                    }
+                    else
+                    {
+                        echo html::checkbox('sceneIDList', array($run->id => ''), '');
+                    }
                 }
                 else
                 {
-                    printf('%03d', $run->case);
+                    echo $showID;
                 }
                 break;
             case 'pri':
@@ -1642,8 +1866,9 @@ class testtaskModel extends model
                 echo "</span>";
                 break;
             case 'title':
-                if(!empty($branches)) echo "<span class='label label-badge label-outline'>{$branches[$run->branch]}</span>";
-                if($canView)
+                if(!empty($branches)) echo "<span class='label label-badge label-outline'>{$branches[$run->branch]}</span> ";
+                if($modulePairs and $run->module and isset($modulePairs[$run->module])) echo "<span class='label label-gray label-badge'>{$modulePairs[$run->module]}</span> ";
+                if($canView and !$isScene)
                 {
                     if($fromCaseID)
                     {
@@ -1730,29 +1955,30 @@ class testtaskModel extends model
                 echo "<span class='$btnTextClass'>" . zget($users, $run->assignedTo) . '</span>';
                 break;
             case 'bugs':
-                echo (common::hasPriv('testcase', 'bugs') and $run->bugs) ? html::a(helper::createLink('testcase', 'bugs', "runID={$run->id}&caseID={$run->case}"), $run->bugs, '', "class='iframe'") : $run->bugs;
+                echo (common::hasPriv('testcase', 'bugs') and $run->bugs) ? html::a(helper::createLink('testcase', 'bugs', "runID={$run->run}&caseID={$run->case}"), $run->bugs, '', "class='iframe'") : $run->bugs;
                 break;
             case 'results':
-                echo (common::hasPriv('testtask', 'results') and $run->results) ? html::a(helper::createLink('testtask', 'results', "runID={$run->id}&caseID={$run->case}"), $run->results, '', "class='iframe'") : $run->results;
+                echo (common::hasPriv('testtask', 'results') and $run->results) ? html::a(helper::createLink('testtask', 'results', "runID={$run->run}&caseID={$run->case}"), $run->results, '', "class='iframe'") : $run->results;
                 break;
             case 'stepNumber':
                 echo $run->stepNumber;
                 break;
             case 'actions':
+                if($isScene) break;
                 if($run->caseStatus != 'wait' and $caseChanged)
                 {
                     common::printIcon('testcase', 'confirmChange', "id=$run->case&taskID=$run->task&from=list", $run, 'list', 'search', 'hiddenwin');
                     break;
                 }
 
-                common::printIcon('testcase', 'createBug', "product=$run->product&branch=$run->branch&extra=executionID=$task->execution,buildID=$task->build,caseID=$run->case,version=$run->version,runID=$run->id,testtask=$task->id", $run, 'list', 'bug', '', 'iframe', '', "data-width='90%'");
+                common::printIcon('testcase', 'createBug', "product=$run->product&branch=$run->branch&extra=executionID=$task->execution,buildID=$task->build,caseID=$run->case,version=$run->version,runID=$run->run,testtask=$task->id", $run, 'list', 'bug', '', 'iframe', '', "data-width='90%'");
 
-                common::printIcon('testtask', 'runCase', "id=$run->id", $run, 'list', 'play', '', 'runCase iframe', false, "data-width='95%'");
-                common::printIcon('testtask', 'results', "id=$run->id", $run, 'list', '', '', 'iframe', '', "data-width='90%'");
+                common::printIcon('testtask', 'runCase', "id=$run->run", $run, 'list', 'play', '', 'runCase iframe', false, "data-width='95%'");
+                common::printIcon('testtask', 'results', "id=$run->run", $run, 'list', '', '', 'iframe', '', "data-width='90%'");
 
                 if(common::hasPriv('testtask', 'unlinkCase', $run))
                 {
-                    $unlinkURL = helper::createLink('testtask', 'unlinkCase', "caseID=$run->id&confirm=yes");
+                    $unlinkURL = helper::createLink('testtask', 'unlinkCase', "caseID=$run->run&confirm=yes");
                     echo html::a("javascript:void(0)", '<i class="icon-unlink"></i>', '', "title='{$this->lang->testtask->unlinkCase}' class='btn' onclick='ajaxDelete(\"$unlinkURL\", \"casesForm\", confirmUnlink)'");
                 }
 
@@ -1772,7 +1998,7 @@ class testtaskModel extends model
     public function getToAndCcList($testtask)
     {
         /* Set toList and ccList. */
-        $toList   = $testtask->owner;
+        $toList   = $testtask->owner . ',' . $testtask->members . ',';
         $ccList   = str_replace(' ', '', trim($testtask->mailto, ','));
 
         if(empty($toList))
@@ -1790,6 +2016,7 @@ class testtaskModel extends model
                 $ccList   = substr($ccList, $commaPos + 1);
             }
         }
+
         return array($toList, $ccList);
     }
 
@@ -2240,17 +2467,21 @@ class testtaskModel extends model
 
             $case = new stdclass();
             if(!empty($caseResult->id)) $case->id = $caseResult->id;
-            $case->product    = $productID;
-            if(empty($caseResult->id)) $case->title = $caseResult->title;
-            $case->pri        = 3;
-            $case->type       = 'unit';
-            $case->stage      = 'unittest';
-            $case->status     = 'normal';
-            $case->openedBy   = $this->app->user->account;
-            $case->openedDate = $now;
-            $case->version    = 1;
-            if(empty($caseResult->id)) $case->auto = 'unit';
-            $case->frame      = $frame;
+            $case->status = 'normal';
+            $case->frame  = $frame;
+
+            if(empty($caseResult->id))
+            {
+                $case->type       = 'unit';
+                $case->stage      = 'unittest';
+                $case->product    = $productID;
+                $case->title      = $caseResult->title;
+                $case->pri        = 3;
+                $case->openedBy   = $this->app->user->account;
+                $case->openedDate = $now;
+                $case->version    = 1;
+                $case->auto       = 'unit';
+            }
 
             $result = new stdclass();
             $result->case       = 0;
@@ -2308,19 +2539,22 @@ class testtaskModel extends model
             if(!isset($suites[$suiteIndex])) $suites[$suiteIndex] = $suite;
 
             $case = new stdclass();
-            if(isset($caseResult->id)) $case->id = $caseResult->id;
-            if(!isset($caseResult->id)) $case->product = $productID;
-            $case->title      = $caseResult->title;
-            $case->pri        = 3;
-            $case->type       = 'feature';
-            $case->stage      = 'feature';
-            $case->status     = 'normal';
-            $case->openedBy   = $this->app->user->account;
-            $case->openedDate = $now;
-            $case->version    = 1;
-            $case->auto       = 'func';
-            $case->frame      = $frame;
-            $case->steps      = array();
+            if(!empty($caseResult->id)) $case->id = $caseResult->id;
+            $case->title  = $caseResult->title;
+            $case->frame  = $frame;
+            $case->status = 'normal';
+            $case->steps  = array();
+            $case->auto   = 'func';
+            if(empty($caseResult->id))
+            {
+                $case->product    = $productID;
+                $case->pri        = 3;
+                $case->type       = 'feature';
+                $case->stage      = 'feature';
+                $case->openedBy   = $this->app->user->account;
+                $case->openedDate = $now;
+                $case->version    = 1;
+            }
 
             $result = new stdclass();
             $result->case       = 0;

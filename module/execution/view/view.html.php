@@ -12,6 +12,7 @@
 ?>
 <?php include '../../common/view/header.html.php';?>
 <?php include '../../common/view/kindeditor.html.php';?>
+<?php include '../../ai/view/promptmenu.html.php';?>
 <?php js::import($this->config->webRoot . 'js/echarts/echarts.common.min.js'); ?>
 <?php js::set('type', $type);?>
 <?php js::set('chartData', $chartData);?>
@@ -31,7 +32,7 @@
               </div>
               <?php if(common::hasPriv('execution', 'burn')):?>
               <nav class="panel-actions nav nav-default">
-                <li><?php common::printLink('execution', 'burn', "executionID=$execution->id", strtoupper($lang->more), '', "title=$lang->more");?></li>
+                <li><?php common::printLink('execution', 'burn', "executionID=$execution->id", mb_strtoupper($lang->more), '', "title=$lang->more");?></li>
               </nav>
               <?php endif;?>
             </div>
@@ -60,7 +61,7 @@
               <div class="panel-title"><?php echo $lang->execution->latestDynamic;?></div>
               <?php if(common::hasPriv('execution', 'dynamic')):?>
               <nav class="panel-actions nav nav-default">
-                <li><?php common::printLink('execution', 'dynamic', "executionID=$execution->id&type=all", strtoupper($lang->more), '', "title=$lang->more");?></li>
+                <li><?php common::printLink('execution', 'dynamic', "executionID=$execution->id&type=all", mb_strtoupper($lang->more), '', "title=$lang->more");?></li>
               </nav>
               <?php endif;?>
             </div>
@@ -84,7 +85,7 @@
               <div class="panel-title"><?php echo $lang->execution->relatedMember;?></div>
               <?php if(common::hasPriv('execution', 'team')):?>
               <nav class="panel-actions nav nav-default">
-                <li><?php common::printLink('execution', 'team', "executionID=$execution->id", strtoupper($lang->more), '', "title=$lang->more");?></li>
+                <li><?php common::printLink('execution', 'team', "executionID=$execution->id", mb_strtoupper($lang->more), '', "title=$lang->more");?></li>
               </nav>
               <?php endif;?>
             </div>
@@ -130,7 +131,7 @@
             <div class="panel-title"><?php echo $lang->execution->doclib;?></div>
               <?php if(common::hasPriv('execution', 'doc')):?>
               <nav class="panel-actions nav nav-default">
-                <li><?php common::printLink('execution', 'doc', "executionID=$execution->id", strtoupper($lang->more), '', "title=$lang->more");?></li>
+                <li><?php common::printLink('execution', 'doc', "executionID=$execution->id", mb_strtoupper($lang->more), '', "title=$lang->more");?></li>
               </nav>
               <?php endif;?>
             </div>
@@ -142,9 +143,17 @@
                 <?php if($i > 8) break;?>
                 <div class="col-xs-6 text-ellipsis">
                   <?php if($libID == 'files'):?>
-                  <?php echo html::a($this->createLink('doc', 'showFiles', "type=execution&objectID=$execution->id"), "<i class='icon icon-folder text-yellow'></i> " . $docLib->name);?>
+                    <?php if(isonlybody()):?>
+                    <?php echo "<i class='icon icon-folder text-yellow'></i> " . $docLib->name;?>
+                    <?php else:?>
+                    <?php echo html::a($this->createLink('doc', 'showFiles', "type=execution&objectID=$execution->id"), "<i class='icon icon-folder text-yellow'></i> " . $docLib->name);?>
+                    <?php endif;?>
                   <?php else:?>
-                  <?php echo html::a($this->createLink('execution', 'doc', "objectID={$execution->id}&libID=$libID"), "<i class='icon icon-folder text-yellow'></i> " . $docLib->name, '', "data-app='execution' title='$docLib->name'");?>
+                    <?php if(isonlybody()):?>
+                    <?php echo "<i class='icon icon-folder text-yellow'></i> " . $docLib->name;?>
+                    <?php else:?>
+                    <?php echo html::a($this->createLink('execution', 'doc', "objectID={$execution->id}&libID=$libID"), "<i class='icon icon-folder text-yellow'></i> " . $docLib->name, '', "data-app='execution' title='$docLib->name'");?>
+                    <?php endif;?>
                   <?php endif;?>
                 </div>
                 <?php $i++;?>
@@ -164,7 +173,7 @@
               <div class="panel-title"><?php echo $execution->name . $lang->execution->CFD;?></div>
               <?php if(common::hasPriv('execution', 'cfd')):?>
               <nav class="panel-actions nav nav-default">
-                <li><?php common::printLink('execution', 'cfd', "executionID=$execution->id&type=task&withWeekend=false&begin=$begin&end=$end", strtoupper($lang->more), '', "title=$lang->more");?></li>
+                <li><?php common::printLink('execution', 'cfd', "executionID=$execution->id&type=task&withWeekend=false&begin=$begin&end=$end", mb_strtoupper($lang->more), '', "title=$lang->more");?></li>
               </nav>
               <?php endif;?>
             </div>
@@ -189,7 +198,7 @@
               <div class="panel-title"><?php echo $lang->execution->relatedMember;?></div>
               <?php if(common::hasPriv('execution', 'team')):?>
               <nav class="panel-actions nav nav-default">
-                <li><?php common::printLink('execution', 'team', "executionID=$execution->id", strtoupper($lang->more), '', "title=$lang->more");?></li>
+                <li><?php common::printLink('execution', 'team', "executionID=$execution->id", mb_strtoupper($lang->more), '', "title=$lang->more");?></li>
               </nav>
               <?php endif;?>
             </div>
@@ -358,7 +367,7 @@
                         $planIDList = explode(',', $planIDList);
                         foreach($planIDList as $planID)
                         {
-                            if(isset($planGroups[$productID][$planID])) echo '<div class="col-xs-12">' . "<i class='icon icon-calendar text-muted'></i> " . html::a($this->createLink('productplan', 'view', "planID={$planID}"), $product->name . '/' . $planGroups[$productID][$planID]) . '</div>';
+                            if(isset($planGroups[$productID][$planID])) echo '<div class="col-xs-12">' . "<i class='icon icon-calendar text-muted'></i> " . html::a($this->createLink('productplan', 'view', "planID={$planID}"), $product->name . '/' . $planGroups[$productID][$planID], '_self', $execution->projectInfo->hasProduct ? '' : "data-app='project'") . '</div>';
                         }
                     }
                 }

@@ -27,7 +27,7 @@ $lang->branch->mergeBranch       = '合併@branch@';
 $lang->branch->mergeBranchAction = '合併分支';
 
 $lang->branch->id          = 'ID';
-$lang->branch->product     = '所屬產品';
+$lang->branch->product     = "所屬{$lang->productCommon}";
 $lang->branch->name        = '%s名稱';
 $lang->branch->status      = '狀態';
 $lang->branch->createdDate = '創建時間';
@@ -46,17 +46,17 @@ $lang->branch->confirmClose      = '是否關閉該@branch@？';
 $lang->branch->confirmActivate   = '是否激活該@branch@？';
 $lang->branch->existName         = '@branch@名稱已存在';
 $lang->branch->mergedMain        = '主幹不支持被合併。';
-$lang->branch->mergeTips         = '合併@branch@後，會將@branch@下面對應的發佈、計劃、模組、需求、Bug、用例都合併到新的@branch@下。';
+$lang->branch->mergeTips         = '合併@branch@後，會將@branch@下面對應的發佈、計劃、版本、模組、需求、Bug、用例都合併到新的@branch@下。';
 $lang->branch->targetBranchTips  = '您可以將其合併到已有的一個@branch@，也可以合併到主幹，也可以新創建一個@branch@。';
 $lang->branch->confirmMerge      = '"mergedBranch"的數據將被合併到"targetBranch",請確認是否要執行分支合併操作，合併後數據將不可再恢復！';
 
 $lang->branch->noData     = '暫時沒有分支。';
-$lang->branch->mainBranch = '產品預設主幹%s。';
+$lang->branch->mainBranch = "{$lang->productCommon}預設主幹%s。";
 
 $lang->branch->statusList = array();
 $lang->branch->statusList['active'] = '激活';
 $lang->branch->statusList['closed'] = '已關閉';
 
-$lang->branch->featureBar['manage']['all']    = '所有';
+$lang->branch->featureBar['manage']['all']    = '全部';
 $lang->branch->featureBar['manage']['active'] = '激活';
 $lang->branch->featureBar['manage']['closed'] = '已關閉';

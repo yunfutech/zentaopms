@@ -21,18 +21,20 @@ $filter->default->paramValue = 'reg::paramValue';
 
 $filter->default->get['onlybody']              = 'equal::yes';
 $filter->default->get['_single']               = 'equal::1';
+$filter->default->get['_nocache']              = 'equal::1';
 $filter->default->get['tid']                   = 'reg::word';
 $filter->default->get['HTTP_X_REQUESTED_WITH'] = 'equal::XMLHttpRequest';
 
-$filter->default->cookie['lang']        = 'reg::lang';
-$filter->default->cookie['theme']       = 'reg::word';
-$filter->default->cookie['fingerprint'] = 'reg::word';
-$filter->default->cookie['hideMenu']    = 'equal::true';
-$filter->default->cookie['tab']         = 'reg::word';
-$filter->default->cookie['goback']      = 'reg::any';
-$filter->default->cookie['maxImport']   = 'reg::any';
-$filter->default->cookie['za']          = 'reg::any';
-$filter->default->cookie['zp']          = 'reg::any';
+$filter->default->cookie['lang']         = 'reg::lang';
+$filter->default->cookie['theme']        = 'reg::word';
+$filter->default->cookie['fingerprint']  = 'reg::word';
+$filter->default->cookie['hideMenu']     = 'equal::true';
+$filter->default->cookie['tab']          = 'reg::word';
+$filter->default->cookie['goback']       = 'reg::any';
+$filter->default->cookie['maxImport']    = 'reg::any';
+$filter->default->cookie['za']           = 'reg::any';
+$filter->default->cookie['zp']           = 'reg::any';
+$filter->default->cookie['historyOrder'] = 'reg::word';
 
 $filter->index        = new stdclass();
 $filter->my           = new stdclass();
@@ -85,6 +87,8 @@ $filter->bug->browse              = new stdclass();
 $filter->bug->default             = new stdclass();
 $filter->bug->create              = new stdclass();
 $filter->bug->export              = new stdclass();
+$filter->bug->ajaxgetproductcases = new stdclass();
+$filter->bug->ajaxgetproductbugs  = new stdclass();
 $filter->caselib->create          = new stdclass();
 $filter->doc->create              = new stdclass();
 $filter->doc->browse              = new stdclass();
@@ -184,6 +188,7 @@ $filter->kanban->space            = new stdclass();
 $filter->execution->kanban        = new stdclass();
 $filter->execution->all           = new stdclass();
 $filter->group->editmanagepriv    = new stdclass();
+$filter->caselib->default         = new stdclass();
 
 $filter->index->index->get['open'] = 'reg::base64';
 
@@ -217,6 +222,7 @@ $filter->bug->create->cookie['sonarqubeIssue'] = 'reg::any';
 $filter->bug->export->cookie['checkedItem']    = 'reg::checked';
 
 $filter->caselib->create->cookie['lastLibCaseModule'] = 'int';
+$filter->caselib->default->cookie['preBranch']        = 'reg::word';
 
 $filter->doc->create->cookie['lastDocModule']               = 'int';
 $filter->doc->browse->cookie['browseType']                  = 'reg::browseType';
@@ -300,7 +306,9 @@ $filter->project->task->cookie['windowWidth']            = 'int';
 $filter->project->export->cookie['checkedItem']          = 'reg::checked';
 $filter->project->execution->cookie['pagerExecutionAll'] = 'int';
 $filter->project->execution->cookie['showTask']          = 'code';
+$filter->project->execution->cookie['showStage']         = 'code';
 $filter->project->testcase->cookie['showAutoCase']       = 'int';
+$filter->project->testcase->cookie['onlyScene']          = 'code';
 
 $filter->projectstory->story->cookie['storyModuleParam']   = 'int';
 $filter->projectstory->story->cookie['pagerProductBrowse'] = 'int';
@@ -347,6 +355,7 @@ $filter->testreport->default->cookie['lastProduct']  = 'int';
 $filter->testreport->default->cookie['lastProject']  = 'int';
 $filter->testreport->default->cookie['preProductID'] = 'int';
 $filter->testreport->default->cookie['projectMode']  = 'code';
+$filter->testreport->default->cookie['preBranch']    = 'reg::word';
 
 $filter->testsuite->default->cookie['lastCaseLib']   = 'int';
 $filter->testsuite->default->cookie['lastProduct']   = 'int';
@@ -361,9 +370,6 @@ $filter->testtask->cases->cookie['taskCaseModule'] = 'int';
 $filter->testtask->default->cookie['lastProduct']  = 'int';
 $filter->testtask->default->cookie['preProductID'] = 'int';
 $filter->testcase->browse->cookie['onlyScene']     = 'code';
-
-if(empty($filter->project->testcase)) $filter->project->testcase = new stdclass();
-$filter->project->testcase->cookie = array('onlyScene' => 'code');
 
 $filter->todo->export->cookie['checkedItem'] = 'reg::checked';
 
@@ -433,6 +439,7 @@ $filter->repo->default->get['entry']    = 'reg::base64';
 $filter->repo->apigetrepobyurl->get['url'] = 'reg::any';
 
 $filter->repo->default->cookie['repoBranch']        = 'reg::any';
+$filter->repo->default->cookie['repoCodePath']      = 'reg::any';
 $filter->repo->diff->cookie['arrange']              = 'reg::word';
 $filter->repo->diff->cookie['repoPairs']            = 'array';
 $filter->repo->view->cookie['repoPairs']            = 'array';
@@ -468,3 +475,9 @@ $filter->tree->browse->cookie['preBranch']    = 'reg::word';
 $filter->kanban->space->cookie['showClosed'] = 'code';
 
 $filter->group->editmanagepriv->cookie['managePrivEditType'] = 'string';
+
+$filter->bug->ajaxgetproductcases->get['search']    = 'reg::any';
+$filter->bug->ajaxgetproductcases->get['limit']     = 'int';
+
+$filter->bug->ajaxgetproductbugs->get['search']      = 'reg::any';
+$filter->bug->ajaxgetproductbugs->get['limit']       = 'int';

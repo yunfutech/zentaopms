@@ -1,4 +1,14 @@
 <?php
+/**
+ * The pivot module German file of ZenTaoPMS.
+ *
+ * @copyright   Copyright 2009-2015 禅道软件（青岛）有限公司(ZenTao Software (Qingdao) Co., Ltd. www.cnezsoft.com)
+ * @license     ZPL(http://zpl.pub/page/zplv12.html) or AGPL(https://www.gnu.org/licenses/agpl-3.0.en.html)
+ * @author      Chunsheng Wang <chunsheng@cnezsoft.com>
+ * @package     pivot
+ * @version     $Id: de.php 5080 2013-07-10 00:46:59Z wyd621@gmail.com $
+ * @link        http://www.zentao.net
+ */
 $lang->pivot->index        = 'Home';
 $lang->pivot->list         = 'Liste';
 $lang->pivot->preview      = 'View pivot';
@@ -10,6 +20,7 @@ $lang->pivot->design       = 'Design pivot';
 $lang->pivot->export       = 'Export pivot';
 $lang->pivot->query        = 'Query';
 $lang->pivot->browseAction = 'Design in Pivot Table';
+$lang->pivot->designAB     = 'Design';
 
 $lang->pivot->id          = 'ID';
 $lang->pivot->name        = 'Name';
@@ -61,6 +72,17 @@ $lang->pivot->percent     = '%';
 $lang->pivot->undefined   = 'Undefiniert';
 $lang->pivot->project     = $lang->projectCommon;
 $lang->pivot->PO          = 'PO';
+$lang->pivot->showPivot   = 'Show Pivot';
+$lang->pivot->showOrigin  = 'Show Origin Data';
+
+$lang->pivot->showOriginItem = 'Show origin item';
+$lang->pivot->recTotalTip    = '<strong> %s </strong> items in total';
+$lang->pivot->recPerPageTip  = " <strong>%s</strong> per page";
+
+$lang->pivot->showOriginPlaceholder = new stdclass();
+$lang->pivot->showOriginPlaceholder->slice    = 'No need to configure';
+$lang->pivot->showOriginPlaceholder->calcMode = 'No need to configure';
+$lang->pivot->showOriginPlaceholder->showMode = 'No need to configure';
 
 $lang->pivot->colors[] = 'AFD8F8';
 $lang->pivot->colors[] = 'AFD8F8';
@@ -251,7 +273,7 @@ $lang->pivot->noChartSelected = 'Please select one pivot.';
 $lang->pivot->beginGtEnd      = 'Begin time should not be >= end time.';
 $lang->pivot->resetSettings   = 'The configuration of the query data has been modified, requiring redesign of the pivot, whether to continue.';
 $lang->pivot->clearSettings   = 'The configuration of the query data has been modified, whether to clear the pivot and save.';
-$lang->pivot->draftSave       = 'Released content is edited, will be overwritten, whether to continue?';
+$lang->pivot->draftSave       = 'The pivot table has been published and will be in draft state. Do you want to continue?';
 $lang->pivot->cannotAddQuery  = 'Result filter has been added, query filter cannot be added.';
 $lang->pivot->cannotAddResult = 'Query filter has been added, result filter cannot be added.';
 
@@ -322,6 +344,7 @@ $lang->pivot->typeOptions['dept']      = 'Dept';
 
 $lang->pivot->step2 = new stdclass();
 $lang->pivot->step2->group       = 'Row Grouping';
+$lang->pivot->step2->summary     = 'Summary Setting';
 $lang->pivot->step2->column      = 'Column Settings';
 $lang->pivot->step2->groupTip    = 'Select Field';
 $lang->pivot->step2->groupNum    = array('One', 'Two', 'Three');
@@ -334,6 +357,7 @@ $lang->pivot->step2->columnField = 'Field';
 $lang->pivot->step2->calcMode    = 'Calc Mode';
 
 $lang->pivot->step2->moreThanOne = 'Select at least one group field.';
+$lang->pivot->step2->summaryTip  = 'After this parameter is selected, you can configure Row Grouping, Column Settings, and Show column totals';
 $lang->pivot->step2->groupsTip   = 'By selecting a grouping field, the data of the SQL query is grouped and displayed hierarchically in the pivot table.';
 $lang->pivot->step2->columnsTip  = 'Add 1 column to the pivot table and set it.';
 

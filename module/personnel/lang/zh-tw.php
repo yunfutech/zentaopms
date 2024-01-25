@@ -7,13 +7,13 @@ $lang->personnel->realName   = '真實姓名';
 $lang->personnel->userName   = '用戶名';
 $lang->personnel->job        = '崗位';
 $lang->personnel->genders    = '性別';
-$lang->personnel->project    = '項目';
+$lang->personnel->project    = $lang->projectCommon;
 $lang->personnel->search     = '搜索';
 $lang->personnel->delete     = '移除';
 $lang->personnel->role       = '角色';
 
 $lang->personnel->name          = '人員名稱';
-$lang->personnel->projects      = '項目數';
+$lang->personnel->projects      = $lang->projectCommon . '數';
 $lang->personnel->executions    = '執行數';
 $lang->personnel->workingHours  = '工時';
 $lang->personnel->task          = '任務';
@@ -32,10 +32,10 @@ $lang->personnel->SR            = $lang->SRCommon;
 
 $lang->personnel->whitelist       = '白名單列表';
 $lang->personnel->addWhitelist    = '添加白名單';
-$lang->personnel->unbindWhitelist = '刪除白名單';
+$lang->personnel->unbindWhitelist = '移除白名單';
 $lang->personnel->confirmDelete   = '確認將該用戶移除白名單？';
 $lang->personnel->copy            = '複製白名單';
 
 $lang->personnel->openedPGMTip     = '該項目集是公開狀態，有項目集視圖權限的人員即可訪問。';
-$lang->personnel->selectObjectTips = '請選擇一個%s白名單來複制';
+$lang->personnel->selectObjectTips = '請選擇一個%s白名單';
 $lang->personnel->countTip         = '（%s人）';

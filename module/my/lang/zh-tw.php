@@ -5,18 +5,20 @@ global $config;
 $lang->my->index           = '首頁';
 $lang->my->data            = '我的數據';
 $lang->my->todo            = '我的待辦';
+$lang->my->todoAction      = '日程列表';
 $lang->my->calendar        = '日程';
 $lang->my->work            = '待處理';
 $lang->my->contribute      = '貢獻';
 $lang->my->task            = '我的任務';
 $lang->my->bug             = '我的Bug';
-$lang->my->testTask        = '我的版本';
-$lang->my->testCase        = '我的用例';
+$lang->my->myTestTask      = '我的版本';
+$lang->my->myTestCase      = '我的用例';
 $lang->my->story           = "我的{$lang->SRCommon}";
 $lang->my->doc             = "我的文檔";
-$lang->my->createProgram   = '添加項目';
-$lang->my->project         = "我的項目";
-$lang->my->execution       = "我的{$lang->executionCommon}";
+$lang->my->createProgram   = '添加' . $lang->projectCommon;
+$lang->my->project         = '我的' . $lang->projectCommon;
+$lang->my->execution       = "我的{$lang->execution->common}";
+$lang->my->audit           = '審批';
 $lang->my->issue           = '我的問題';
 $lang->my->risk            = '我的風險';
 $lang->my->profile         = '我的檔案';
@@ -41,6 +43,11 @@ $lang->my->requirement     = "我的{$lang->URCommon}";
 $lang->my->testtask        = '我的測試單';
 $lang->my->testcase        = '我的用例';
 $lang->my->storyConcept    = $config->URAndSR ? '預設需求概念組合' : '預設需求概念';
+$lang->my->pri             = '優先順序';
+$lang->my->alert           = '後續您可以點擊右上方的頭像，選擇“個性化設置”修改信息。';
+$lang->my->assignedToMe    = '指派給我';
+$lang->my->byQuery         = '搜索';
+$lang->my->contactList     = '聯繫人列表';
 
 $lang->my->indexAction      = '地盤儀表盤';
 $lang->my->calendarAction   = '我的日程';
@@ -52,12 +59,8 @@ $lang->my->dynamicAction    = '動態';
 $lang->my->myExecutions = "我參與的階段/衝刺/迭代";
 $lang->my->name         = '名稱';
 $lang->my->code         = '代號';
-$lang->my->projects     = '所屬項目';
+$lang->my->projects     = '所屬' . $lang->projectCommon;
 $lang->my->executions   = "所屬{$lang->executionCommon}";
-
-$lang->my->executionMenu = new stdclass();
-$lang->my->executionMenu->undone = '未結束';
-$lang->my->executionMenu->done   = '已完成';
 
 $lang->my->taskMenu = new stdclass();
 $lang->my->taskMenu->assignedToMe = '指派給我';
@@ -73,13 +76,20 @@ $lang->my->storyMenu->reviewByMe   = '待我評審';
 $lang->my->storyMenu->openedByMe   = '由我創建';
 $lang->my->storyMenu->reviewedByMe = '由我評審';
 $lang->my->storyMenu->closedByMe   = '由我關閉';
+$lang->my->storyMenu->assignedByMe = '由我指派';
 
-$lang->my->projectMenu = new stdclass();
-$lang->my->projectMenu->doing      = '進行中';
-$lang->my->projectMenu->wait       = '未開始';
-$lang->my->projectMenu->suspended  = '已掛起';
-$lang->my->projectMenu->closed     = '已關閉';
-$lang->my->projectMenu->openedbyme = '由我創建';
+$lang->my->auditField = new stdclass();
+$lang->my->auditField->title  = '評審標題';
+$lang->my->auditField->time   = '提交時間';
+$lang->my->auditField->type   = '評審對象';
+$lang->my->auditField->result = '評審結果';
+$lang->my->auditField->status = '狀態';
+
+$lang->my->auditField->oaTitle['attend']   = '%s的考勤申請：%s';
+$lang->my->auditField->oaTitle['leave']    = '%s的請假申請：%s';
+$lang->my->auditField->oaTitle['makeup']   = '%s的補班申請：%s';
+$lang->my->auditField->oaTitle['overtime'] = '%s的加班申請：%s';
+$lang->my->auditField->oaTitle['lieu']     = '%s的調休申請：%s';
 
 $lang->my->form = new stdclass();
 $lang->my->form->lblBasic   = '基本信息';
@@ -87,34 +97,34 @@ $lang->my->form->lblContact = '聯繫信息';
 $lang->my->form->lblAccount = '帳號信息';
 
 $lang->my->programLink   = '項目集預設着陸頁';
-$lang->my->productLink   = '產品預設着陸頁';
-$lang->my->projectLink   = '項目預設着陸頁';
+$lang->my->productLink   = $lang->productCommon .'預設着陸頁';
+$lang->my->projectLink   = $lang->projectCommon . '預設着陸頁';
 $lang->my->executionLink = '執行預設着陸頁';
 
 $lang->my->programLinkList = array();
-$lang->my->programLinkList['program-browse']  = '預設進入項目集列表，可以查看所有的項目集';
-$lang->my->programLinkList['program-project'] = '預設進入最近一個項目集的項目列表，可以查看當前項目集下所有項目';
-$lang->my->programLinkList['program-kanban'] = '預設進入項目集看板，可以可視化的查看到所有項目集的進展情況';
+$lang->my->programLinkList['program-browse']  = '項目集列表/可以查看所有的項目集';
+$lang->my->programLinkList['program-kanban']  = '項目集看板/可以可視化的查看到所有項目集的進展情況';
+$lang->my->programLinkList['program-project'] = "最近一個項目集的{$lang->projectCommon}列表/可以查看當前項目集下所有{$lang->projectCommon}";
 
 $lang->my->productLinkList = array();
-$lang->my->productLinkList['product-index']     = '預設進入產品主頁，可以瞭解公司整體的產品狀況';
-$lang->my->productLinkList['product-all']       = '預設進入產品列表，可以查看所有的產品';
-$lang->my->productLinkList['product-dashboard'] = '預設進入最近一個產品儀表盤，可以查看當前產品概況';
-$lang->my->productLinkList['product-browse']    = '預設進入最近一個產品的需求列表，可以查看當前產品下的需求信息';
-$lang->my->productLinkList['product-kanban']    = '預設進入產品看板，可以可視化的查看到所有產品的進展情況';
+$lang->my->productLinkList['product-all']       = "{$lang->productCommon}列表/可以查看所有{$lang->productCommon}";
+$lang->my->productLinkList['product-kanban']    = "{$lang->productCommon}看板/以可視化的方式查看到所有{$lang->productCommon}的整體情況";
+$lang->my->productLinkList['product-index']     = "所有{$lang->productCommon}儀表盤/可以查看所有{$lang->productCommon}的統計,概況，總覽等";
+$lang->my->productLinkList['product-dashboard'] = "最近一個{$lang->productCommon}儀表盤/可以查看最近查看過的一個{$lang->productCommon}儀表盤";
+$lang->my->productLinkList['product-browse']    = "最近一個{$lang->productCommon}的需求列表/可以進入最近查看過的一個{$lang->productCommon}下的研發需求列表";
 
-global $config;
 $lang->my->projectLinkList = array();
-$lang->my->projectLinkList['project-browse']    = '預設進入項目列表，可以查看所有的項目';
-$lang->my->projectLinkList['project-execution'] = '預設進入項目下所有執行列表，查看所有執行信息';
-$lang->my->projectLinkList['project-index']     = '預設進入最近一個項目儀表盤，可以查看當前項目概況';
-$lang->my->projectLinkList['project-kanban'] = '預設進入項目看板，可以可視化的查看到所有項目的進展情況';
+$lang->my->projectLinkList['project-browse']    = "{$lang->projectCommon}列表/可以查看所有{$lang->projectCommon}";
+$lang->my->projectLinkList['project-kanban']    = "{$lang->projectCommon}看板/以可視化的查看到所有{$lang->projectCommon}的整體情況";
+$lang->my->projectLinkList['project-execution'] = "最近一個{$lang->projectCommon}執行列表/可以查看{$lang->projectCommon}下所有的執行列表";
+$lang->my->projectLinkList['project-index']     = "最近一個{$lang->projectCommon}儀表盤/可以進入最近查看過的一個{$lang->projectCommon}的儀表盤";
 
 $lang->my->executionLinkList = array();
-$lang->my->executionLinkList['execution-all']             = '預設進入執行列表，可以查看所有的執行';
-$lang->my->executionLinkList['execution-task']            = '預設進入最近一個執行的任務列表，可以查看當前迭代下的任務信息';
-$lang->my->executionLinkList['execution-executionkanban'] = '預設進入執行看板，可以查看進行中項目的執行情況';
+$lang->my->executionLinkList['execution-all']             = '執行列表/可以查看所有執行';
+$lang->my->executionLinkList['execution-executionkanban'] = '執行看板/以可視化的方式查看所有執行的整體情況';
+$lang->my->executionLinkList['execution-task']            = '最近一個執行的任務列表/可以查看最近創建的一個執行下的任務';
 
+$lang->my->confirmReview['pass'] = '您確定要執行通過操作嗎？';
 $lang->my->guideChangeTheme = <<<EOT
 <p class='theme-title'>全新<span style='color: #0c60e1'>“青春藍”</span>主題上線了！</p>
 <div>
@@ -122,3 +132,74 @@ $lang->my->guideChangeTheme = <<<EOT
   <p>滑鼠經過<span style='color: #0c60e1'>【頭像-主題-青春藍】</span>，點擊青春藍，設置成功！</p>
 </div>
 EOT;
+
+$lang->my->featureBar['todo']['all']             = '指派自己';
+$lang->my->featureBar['todo']['before']          = '未完';
+$lang->my->featureBar['todo']['future']          = '待定';
+$lang->my->featureBar['todo']['thisWeek']        = '本週';
+$lang->my->featureBar['todo']['thisMonth']       = '本月';
+$lang->my->featureBar['todo']['thisYear']        = '本年';
+$lang->my->featureBar['todo']['assignedToOther'] = '指派他人';
+$lang->my->featureBar['todo']['cycle']           = '周期';
+
+$lang->my->featureBar['audit']['all']      = '全部';
+$lang->my->featureBar['audit']['demand']   = '需求池需求';
+$lang->my->featureBar['audit']['story']    = '需求';
+$lang->my->featureBar['audit']['testcase'] = '用例';
+if(($config->edition == 'max' or $config->edition == 'ipd') and (helper::hasFeature('waterfall') or helper::hasFeature('waterfallplus'))) $lang->my->featureBar['audit']['project'] = $lang->projectCommon;
+if($config->edition != 'open') $lang->my->featureBar['audit']['feedback'] = '反饋';
+if($config->edition != 'open' and helper::hasFeature('OA')) $lang->my->featureBar['audit']['oa'] = '辦公';
+
+$lang->my->featureBar['project']['doing']      = '進行中';
+$lang->my->featureBar['project']['wait']       = '未開始';
+$lang->my->featureBar['project']['suspended']  = '已掛起';
+$lang->my->featureBar['project']['closed']     = '已關閉';
+$lang->my->featureBar['project']['openedbyme'] = '由我創建';
+
+$lang->my->featureBar['execution']['undone'] = '未完成';
+$lang->my->featureBar['execution']['done']   = '已完成';
+
+$lang->my->featureBar['dynamic']['all']       = '全部';
+$lang->my->featureBar['dynamic']['today']     = '今天';
+$lang->my->featureBar['dynamic']['yesterday'] = '昨天';
+$lang->my->featureBar['dynamic']['thisWeek']  = '本週';
+$lang->my->featureBar['dynamic']['lastWeek']  = '上周';
+$lang->my->featureBar['dynamic']['thisMonth'] = '本月';
+$lang->my->featureBar['dynamic']['lastMonth'] = '上月';
+
+$lang->my->featureBar['work']['task']['assignedTo']     = $lang->my->assignedToMe;
+$lang->my->featureBar['work']['testcase']['assigntome'] = $lang->my->assignedToMe;
+
+$lang->my->featureBar['work']['requirement'] = $lang->my->featureBar['work']['task'];
+$lang->my->featureBar['work']['requirement']['reviewBy'] = '待我評審';
+
+$lang->my->featureBar['work']['story'] = $lang->my->featureBar['work']['requirement'];
+$lang->my->featureBar['work']['bug']   = $lang->my->featureBar['work']['task'];
+
+$lang->my->featureBar['contribute']['task']['openedBy']   = '由我創建';
+$lang->my->featureBar['contribute']['task']['finishedBy'] = '由我完成';
+$lang->my->featureBar['contribute']['task']['closedBy']   = '由我關閉';
+$lang->my->featureBar['contribute']['task']['canceledBy'] = '由我取消';
+$lang->my->featureBar['contribute']['task']['assignedBy'] = '由我指派';
+
+$lang->my->featureBar['contribute']['requirement']['openedBy']   = '由我創建';
+$lang->my->featureBar['contribute']['requirement']['reviewedBy'] = '由我評審';
+$lang->my->featureBar['contribute']['requirement']['closedBy']   = '由我關閉';
+$lang->my->featureBar['contribute']['requirement']['assignedBy'] = '由我指派';
+
+$lang->my->featureBar['contribute']['bug']['openedBy']   = '由我創建';
+$lang->my->featureBar['contribute']['bug']['resolvedBy'] = '由我解決';
+$lang->my->featureBar['contribute']['bug']['closedBy']   = '由我關閉';
+$lang->my->featureBar['contribute']['bug']['assignedBy'] = '由我指派';
+
+$lang->my->featureBar['contribute']['story'] = $lang->my->featureBar['contribute']['requirement'];
+
+$lang->my->featureBar['contribute']['testcase']['openedbyme'] = '我建的用例';
+
+$lang->my->featureBar['contribute']['testtask']['done'] = '已測測試單';
+
+$lang->my->featureBar['contribute']['audit']['reviewedbyme'] = '由我評審';
+$lang->my->featureBar['contribute']['audit']['createdbyme']  = '由我發起';
+
+$lang->my->featureBar['contribute']['doc']['openedbyme'] = '由我創建';
+$lang->my->featureBar['contribute']['doc']['editedbyme'] = '由我編輯';

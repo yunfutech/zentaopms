@@ -1,4 +1,6 @@
 <?php
+global $config;
+
 /* Actions. */
 $lang->project->createGuide         = 'Select Template';
 $lang->project->index               = 'Dashboard';
@@ -70,12 +72,6 @@ $lang->project->allProjects         = "All {$lang->projectCommon}s";
 $lang->project->ignore              = 'Ignore';
 $lang->project->disableExecution    = "{$lang->projectCommon} of disable {$lang->executionCommon}";
 $lang->project->selectProduct       = "Select {$lang->productCommon}";
-$lang->project->manageRepo          = 'Manage Repo';
-$lang->project->linkedRepo          = 'Link Repo';
-$lang->project->unlinkedRepo        = 'Unlink Repo';
-$lang->project->executionCount      = 'Total Executions';
-$lang->project->storyCount          = 'Story Points';
-$lang->project->invested            = 'Invested';
 
 /* Fields. */
 $lang->project->common             = $lang->projectCommon;
@@ -184,9 +180,7 @@ $lang->project->product            = $lang->productCommon;
 $lang->project->branch             = 'Platform/Branch';
 $lang->project->plan               = 'Plan';
 $lang->project->createKanban       = 'Create Kanban';
-$lang->project->kanban             = 'Kanban';
-$lang->project->moreActions        = 'More Actions';
-$lang->project->other              = 'Other Actions';
+$lang->project->kanban             = 'Project Kanban';
 
 /* Project Kanban. */
 $lang->project->projectTypeList = array();
@@ -235,14 +229,6 @@ $lang->project->allSummary             = "Total {$lang->projectCommon}s: <strong
 $lang->project->checkedSummary         = 'Seleted: <strong>%total%</strong>.';
 $lang->project->checkedAllSummary      = 'Seleted: <strong>%total%</strong>, Wait: <strong>%wait%</strong>, Doing: <strong>%doing%</strong>, Suspended: <strong>%suspended%</strong>, Closed: <strong>%closed%</strong>.';
 
-$lang->project->tip = new stdclass();
-$lang->project->tip->closed     = 'The project has been closed. Re-close is not available.';
-$lang->project->tip->notSuspend = 'The project has been closed. Suspend is not available.';
-$lang->project->tip->suspended  = 'The project has been suspended. Re-suspend is not available.';
-$lang->project->tip->actived    = 'The project has been activated. Re-activated is not available.';
-$lang->project->tip->group      = "It's a Kanban project. Editing privilege group is not available.";
-$lang->project->tip->whitelist  = "It's a public project with open permissions. No need to edit whitelists.";
-
 $lang->project->tenThousand    = 'Ten Thousand';
 $lang->project->hundredMillion = 'Hundred Million';
 
@@ -283,6 +269,7 @@ $lang->project->currencySymbol['THB'] = '฿';
 $lang->project->currencySymbol['SGD'] = 'S$';
 
 $lang->project->modelList['']          = '';
+if($config->systemMode == 'PML') $lang->project->modelList['ipd']       = "IPD";
 $lang->project->modelList['scrum']     = "Scrum";
 if(helper::hasFeature('waterfall')) $lang->project->modelList['waterfall'] = "CMMI";
 $lang->project->modelList['kanban']    = "Kanban";
@@ -293,9 +280,8 @@ $lang->project->featureBar['browse']['all']       = 'All';
 $lang->project->featureBar['browse']['undone']    = 'Unfinished';
 $lang->project->featureBar['browse']['wait']      = 'Waiting';
 $lang->project->featureBar['browse']['doing']     = 'Doing';
-$lang->project->featureBar['browse']['exceeded']  = 'Exceeded';
-$lang->project->featureBar['browse']['risky']     = 'Risky';
-$lang->project->featureBar['browse']['more']      = 'More';
+$lang->project->featureBar['browse']['suspended'] = 'Suspended';
+$lang->project->featureBar['browse']['closed']    = 'Closed';
 
 $lang->project->featureBar['index']['all']       = 'All';
 $lang->project->featureBar['index']['undone']    = 'Unfinished';
@@ -344,7 +330,6 @@ $lang->project->kanbanSubAclList['private'] = "Private (Only the {$lang->project
 $lang->project->kanbanSubAclList['open']    = "Open (accessible with {$lang->projectCommon} view permissions)";
 $lang->project->kanbanSubAclList['program'] = "Open in the program (all upper-level program team leaders and stakeholders, the {$lang->projectCommon} leader, team members can access)";
 
-global $config;
 if($config->systemMode == 'light')
 {
     unset($lang->project->subAclList['program']);
@@ -367,11 +352,12 @@ $lang->project->endList[186] = 'Half year';
 $lang->project->endList[365] = 'One year';
 $lang->project->endList[999] = 'Longtime';
 
+$lang->project->ipdTitle           = "Integrated Product Development";
 $lang->project->scrumTitle         = 'Agile Development Management';
 $lang->project->waterfallTitle     = "Waterfall {$lang->projectCommon} Management";
 $lang->project->kanbanTitle        = "Kanban {$lang->projectCommon} Management";
-$lang->project->agileplusTitle     = "Agile + Kanban {$lang->projectCommon} Management";
-$lang->project->waterfallplusTitle = "Waterfall + Agile + Kanban {$lang->projectCommon} Management";
+$lang->project->agileplusTitle     = "Scrum + Kanban {$lang->projectCommon} Management";
+$lang->project->waterfallplusTitle = "Waterfall + Scrum + Kanban {$lang->projectCommon} Management";
 $lang->project->moreModelTitle     = 'Please look forward to more models...';
 
 $lang->project->empty                  = "No {$lang->projectCommon}.";
@@ -381,6 +367,7 @@ $lang->project->membersUnit            = '%s men';
 $lang->project->lastIteration          = "Recent {$lang->executionCommon}";
 $lang->project->lastKanban             = 'Recent Kanban';
 $lang->project->ongoingStage           = 'Ongoing stage';
+$lang->project->ipd                    = 'IPD';
 $lang->project->scrum                  = 'Scrum';
 $lang->project->waterfall              = 'Waterfall';
 $lang->project->agileplus              = 'Agile +';
@@ -442,9 +429,3 @@ $lang->project->featureBar['dynamic']['thisWeek']  = 'This Week';
 $lang->project->featureBar['dynamic']['lastWeek']  = 'Last Week';
 $lang->project->featureBar['dynamic']['thisMonth'] = 'This Month';
 $lang->project->featureBar['dynamic']['lastMonth'] = 'Last Month';
-
-$lang->project->moreSelects = array();
-$lang->project->moreSelects['suspended'] = 'Suspended';
-$lang->project->moreSelects['closed']    = 'Closed';
-
-$lang->project->manDay = 'Man Day';

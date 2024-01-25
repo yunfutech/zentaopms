@@ -41,13 +41,14 @@ class mrModel extends model
      * @param  string     $mode
      * @param  string     $param
      * @param  string     $orderBy
-     * @param  object     $pager
      * @param  array|bool $filterProjects
      * @param  int        $repoID
+     * @param  int        $objectID
+     * @param  object     $pager
      * @access public
      * @return array
      */
-    public function getList($mode = 'all', $param = 'all', $orderBy = 'id_desc', $pager = null, $filterProjects = array(), $repoID = 0)
+    public function getList($mode = 'all', $param = 'all', $orderBy = 'id_desc', $filterProjects = array(), $repoID = 0, $objectID = 0, $pager = null)
     {
         /* If filterProjects equals false,it means no permission. */
         if($filterProjects === false) return array();
@@ -72,6 +73,7 @@ class mrModel extends model
             ->beginIF($mode == 'creator' and $param != 'all')->andWhere('createdBy')->eq($param)->fi()
             ->beginIF($filterProjectSql)->andWhere($filterProjectSql)->fi()
             ->beginIF($repoID)->andWhere('repoID')->eq($repoID)->fi()
+            ->beginIF($objectID)->andWhere('executionID')->eq($objectID)->fi()
             ->orderBy($orderBy)
             ->page($pager)
             ->fetchAll('id');
@@ -92,7 +94,7 @@ class mrModel extends model
             ->where('deleted')->eq('0')
             ->andWhere('repoID')->eq($repoID)
             ->orderBy('id')->fetchPairs('id', 'title');
-        return array('' => '') + $MR;
+        return $MR;
     }
 
     /**
@@ -123,7 +125,7 @@ class mrModel extends model
     public function getGiteaProjects($hostID = 0)
     {
         $projects = $this->loadModel('gitea')->apiGetProjects($hostID);
-        return array($hostID => array_column($projects, null, 'full_name'));
+        return array($hostID => helper::arrayColumn($projects, null, 'full_name'));
     }
 
     /**
@@ -136,7 +138,7 @@ class mrModel extends model
     public function getGogsProjects($hostID = 0)
     {
         $projects = $this->loadModel('gogs')->apiGetProjects($hostID);
-        return array($hostID => array_column($projects, null, 'full_name'));
+        return array($hostID => helper::arrayColumn($projects, null, 'full_name'));
     }
 
     /**
@@ -219,6 +221,7 @@ class mrModel extends model
             ->setDefault('removeSourceBranch','0')
             ->setDefault('needCI', 0)
             ->setDefault('squash', 0)
+            ->setIF($this->post->needCI == 0, 'jobID', 0)
             ->add('createdBy', $this->app->user->account)
             ->add('createdDate', helper::now())
             ->get();
@@ -285,7 +288,7 @@ class mrModel extends model
         $this->linkObjects($MR);
 
         if(dao::isError()) return array('result' => 'fail', 'message' => dao::getError());
-        return array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => helper::createLink('mr', 'browse'));
+        return array('result' => 'success', 'message' => $this->lang->saveSuccess, 'locate' => helper::createLink('mr', 'browse', $this->app->tab == 'execution' ? "repoID=0&mode=status&param=opened&objectID={$this->post->executionID}" : ''));
     }
 
     /**
@@ -427,8 +430,9 @@ class mrModel extends model
 
         $MR = $this->getByID($MRID);
         $this->linkObjects($MR);
-
-        $this->loadModel('action')->create('mr', $MRID, 'edited');
+        $changes = common::createChanges($oldMR, $MR);
+        $actionID = $this->loadModel('action')->create('mr', $MRID, 'edited');
+        if(!empty($changes)) $this->action->logHistory($actionID, $changes);
         $this->createMRLinkedAction($MRID, 'editmr', $MR->editedDate);
 
         if(dao::isError()) return array('result' => 'fail', 'message' => dao::getError());
@@ -516,11 +520,11 @@ class mrModel extends model
      * Batch Sync GitLab MR Database.
      *
      * @param  object $MRList
-     * @param  string $scm
+     * @param  array  $repoList
      * @access public
      * @return array
      */
-    public function batchSyncMR($MRList, $scm = 'Gitlab')
+    public function batchSyncMR($MRList, $repoList = array())
     {
         if(empty($MRList)) return array();
 
@@ -530,6 +534,8 @@ class mrModel extends model
         foreach($MRList as $key => $MR)
         {
             if($MR->status != 'opened') continue;
+
+            $scm = empty($repoList[$MR->repoID]) ? 'Gitlab' : $repoList[$MR->repoID]->SCM;
 
             if(!isset($rawMRList[$MR->hostID][$MR->targetProject])) $rawMRList[$MR->hostID][$MR->targetProject] = $this->apiGetMRList($MR->hostID, $MR->targetProject, $scm);
             $rawMR = new stdClass();
@@ -720,7 +726,7 @@ class mrModel extends model
             $MRObject->head = $MR->sourceBranch;
             $MRObject->base = $MR->targetBranch;
             $MRObject->body = $MR->description;
-            if($MR->assignee)
+            if(!$MR->assignee)
             {
                 $assignee = $this->{$host->type}->getUserIDByZentaoAccount($this->post->hostID, $MR->assignee);
                 if($assignee) $MRObject->assignee = $assignee;
@@ -761,11 +767,12 @@ class mrModel extends model
         }
 
         $response = json_decode(commonModel::http($url, $data = null, $options = array(), $headers = array(), $dataType = 'data', $method = 'POST', $timeout = 30, $httpCode = false, $log = false));
-        if(empty($response)) $response = array();
+        if(empty($response) || isset($response->message)) $response = array();
         if($scm == 'Gitea')
         {
             foreach($response as $MR)
             {
+                if(empty($MR)) continue;
                 $MR->iid   = $MR->number;
                 $MR->state = $MR->state == 'open' ? 'opened' : $MR->state;
                 if($MR->merged) $MR->state = 'merged';
@@ -821,7 +828,7 @@ class mrModel extends model
             foreach($response as $MR)
             {
                 if(empty($MR->source_project_id) or empty($MR->target_project_id)) return null;
-                if($MR->source_project_id == $sourceProject and $MR->target_project_id == $targetProject) return $MMRR;
+                if($MR->source_project_id == $sourceProject and $MR->target_project_id == $targetProject) return $MR;
             }
         }
         return null;
@@ -842,10 +849,10 @@ class mrModel extends model
         $host = $this->loadModel('pipeline')->getByID($hostID);
         if($host->type == 'gitlab')
         {
-            $url = sprintf($this->gitlab->getApiRoot($hostID), "/projects/$projectID/merge_requests/$MRID");
+            $url = sprintf($this->gitlab->getApiRoot($hostID, false), "/projects/$projectID/merge_requests/$MRID");
             $MR  = json_decode(commonModel::http($url));
         }
-        else if($host->type == 'gitea')
+        elseif($host->type == 'gitea')
         {
             $url = sprintf($this->loadModel('gitea')->getApiRoot($hostID), "/repos/$projectID/pulls/$MRID");
             $MR  = json_decode(commonModel::http($url));
@@ -868,7 +875,7 @@ class mrModel extends model
                 $MR->has_conflicts     = empty($diff) ? true : false;
             }
         }
-        else if($host->type == 'gogs')
+        elseif($host->type == 'gogs')
         {
             $url = sprintf($this->loadModel('gogs')->getApiRoot($hostID), "/repos/$projectID/pulls/$MRID");
             $MR  = json_decode(commonModel::http($url));
@@ -945,11 +952,11 @@ class mrModel extends model
             $newMR->squash               = $MR->squash == '1' ? 1 : 0;
             if($MR->assignee)
             {
-                $gitlabAssignee = $this->gitlab->getUserIDByZentaoAccount($oldMR->hostID, $MR->assignee);
+                $gitlabAssignee = $this->gitlab->getUserIDByZentaoAccount($hostID, $MR->assignee);
                 if($gitlabAssignee) $newMR->assignee_ids = $gitlabAssignee;
             }
             $url = sprintf($this->gitlab->getApiRoot($hostID), "/projects/$projectID/merge_requests/$MRID");
-            return json_decode(commonModel::http($url, $MR, $options = array(CURLOPT_CUSTOMREQUEST => 'PUT')));
+            return json_decode(commonModel::http($url, $newMR, $options = array(CURLOPT_CUSTOMREQUEST => 'PUT')));
         }
         else
         {
@@ -962,7 +969,6 @@ class mrModel extends model
                 $assignee = $this->{$host->type}->getUserIDByZentaoAccount($this->post->hostID, $MR->assignee);
                 if($assignee) $newMR->assignee = $assignee;
             }
-
             $mergeResult = json_decode(commonModel::http($url, $newMR, array(), array(), 'json', 'PATCH'));
             if(isset($mergeResult->number)) $mergeResult->iid = $host->type == 'gitea' ? $mergeResult->number : $mergeResult->id;
             if(isset($mergeResult->mergeable))
@@ -1141,7 +1147,9 @@ class mrModel extends model
         $host = $this->loadModel('pipeline')->getByID($MR->hostID);
         $scm  = $host->type;
 
-        $repo = $this->loadModel('repo')->getRepoByID($MR->repoID);
+        $repo = $this->loadModel('repo')->getByID($MR->repoID);
+        if(!$repo) return array();
+
         $repo->gitService = $host->id;
         $repo->project    = $MR->targetProject;
         $repo->password   = $host->token;
@@ -1334,7 +1342,7 @@ class mrModel extends model
                     ->exec();
                 if (dao::isError()) return array('result' => 'fail', 'message' => dao::getError());
 
-                return array('result' => 'success', 'message' => $this->lang->saveSuccess, 'closeModal' => true, 'callback' => 'parent.refresh()');
+                return array('result' => 'success', 'message' => $this->lang->saveSuccess, 'closeModal' => true, 'load' => true);
             }
         }
         return array('result' => 'fail', 'message' => $this->lang->mr->repeatedOperation, 'locate' => helper::createLink('mr', 'view', "mr={$MR->id}"));
@@ -1530,7 +1538,7 @@ class mrModel extends model
         {
             $bugID = $this->dao->lastInsertID();
             $this->loadModel('file')->updateObjectID($this->post->uid, $bugID, 'bug');
-            setcookie("repoPairs[$repoID]", $data->product);
+            helper::setcookie("repoPairs[$repoID]", $data->product);
 
             $bugInfo = array();
             $bugInfo['result']     = 'success';
@@ -1796,7 +1804,7 @@ class mrModel extends model
         $host = $this->loadModel('pipeline')->getByID($MR->hostID);
         if($host->type == 'gogs')
         {
-            $repo = $this->loadModel('repo')->getRepoByID($MR->repoID);
+            $repo = $this->loadModel('repo')->getByID($MR->repoID);
             $scm  = $this->app->loadClass('scm');
             $scm->setEngine($repo);
             return $scm->getMRCommits($MR->sourceBranch, $MR->targetBranch);
@@ -1971,9 +1979,11 @@ class mrModel extends model
      */
     public function getMRProduct($MR)
     {
-        $product = array();
+        $product = new stdclass();
+        $product->id = 0;
 
-        if($MR->repoID)
+        $productID = 0;
+        if(is_object($MR) && $MR->repoID)
         {
             $productID = $this->dao->select('product')->from(TABLE_REPO)->where('id')->eq($MR->repoID)->fetch('product');
         }
@@ -2093,16 +2103,20 @@ class mrModel extends model
     }
 
     /**
+     * 判断按钮是否可点击。
      * Adjust the action clickable.
      *
      * @param  object $MR
      * @param  string $action
      * @access public
-     * @return void
+     * @return bool
      */
-    public static function isClickable($MR, $action)
+    public static function isClickable(object $MR, string $action): bool
     {
         if($action == 'edit' and !$MR->synced) return false;
+        if($action == 'edit')   return $MR->canEdit != 'disabled';
+        if($action == 'delete') return $MR->canDelete != 'disabled';
+
         return true;
     }
 }

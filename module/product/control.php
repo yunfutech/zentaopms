@@ -149,6 +149,7 @@ class product extends control
 
         if($product && !isset($this->products[$product->id])) $this->products[$product->id] = $product->name;
 
+        if(!is_string($this->cookie->preBranch) and !is_int($this->cookie->preBranch)) $this->cookie->preBranch = (int)$this->cookie->preBranch;
         if($product and $product->type != 'normal')
         {
             $branchPairs = $this->loadModel('branch')->getPairs($productID, 'all');
@@ -177,9 +178,10 @@ class product extends control
         /* Lower browse type. */
         $browseType = strtolower($browseType);
 
-        /* Load datatable and execution. */
+        /* Load datatable, execution and projectstory. */
         $this->loadModel('datatable');
         $this->loadModel('execution');
+        $this->app->loadLang('projectstory');
 
         /* Set product, module and query. */
         setcookie('preProductID', $productID, $this->config->cookieLife, $this->config->webRoot, '', $this->config->cookieSecure, true);
@@ -211,6 +213,7 @@ class product extends control
         {
             setcookie('treeBranch', $branch, 0, $this->config->webRoot, '', $this->config->cookieSecure, false);
             $browseType = 'unclosed';
+            if($this->config->vision == 'or') $browseType = 'assignedtome';
         }
         else
         {
@@ -250,7 +253,7 @@ class product extends control
 
         /* Get stories. */
         $projectProducts = array();
-        if($isProjectStory and $storyType == 'story')
+        if($isProjectStory)
         {
             $showBranch = $this->loadModel('branch')->showBranch($productID, 0, $projectID);
 
@@ -261,7 +264,7 @@ class product extends control
             $productPlans    = $this->execution->getPlans($projectProducts, 'skipParent,unexpired,noclosed', $projectID);
 
             if($browseType == 'bybranch') $param = $branchID;
-            $stories = $this->story->getExecutionStories($projectID, $productID, $branchID, $sort, $browseType, $param, $storyType, '', $pager);
+            $stories = $this->story->getExecutionStories($projectID, $productID, $branchID, $sort, $browseType, $param, $storyType, '', '', $pager);
         }
         else
         {
@@ -385,11 +388,10 @@ class product extends control
         $this->view->projectProducts = isset($projectProducts) ? $projectProducts : array();
         $this->view->storyType       = $storyType;
         $this->view->from            = $this->app->tab;
+        $this->view->isProjectStory  = $isProjectStory;
         $this->view->modulePairs     = $showModule ? $this->tree->getModulePairs($productID, 'story', $showModule) : array();
         $this->view->project         = $project;
-        $this->view->recTotal        = $pager->recTotal;
-
-        $this->render();
+        $this->display();
     }
 
     /**
@@ -448,7 +450,7 @@ class product extends control
         if(!empty($this->config->user->moreLink)) $this->config->moreLinks["RD"] = $this->config->user->moreLink;
 
         $lines = array();
-        if($programID and $this->config->systemMode == 'ALM') $lines = array('') + $this->product->getLinePairs($programID);
+        if($programID and in_array($this->config->systemMode, array('ALM', 'PLM'))) $lines = array('') + $this->product->getLinePairs($programID);
 
         if($this->app->tab == 'doc') unset($this->lang->doc->menu->product['subMenu']);
 
@@ -464,7 +466,6 @@ class product extends control
         $this->view->poUsers    = $poUsers;
         $this->view->qdUsers    = $qdUsers;
         $this->view->rdUsers    = $rdUsers;
-        $this->view->fields     = $this->product->buildFormFields($this->config->product->create->fields);
         $this->view->users      = $this->user->getPairs('nodeleted|noclosed');
         $this->view->programs   = array('') + $this->loadModel('program')->getTopPairs('', 'noclosed');
         $this->view->lines      = $lines;
@@ -536,7 +537,7 @@ class product extends control
         if(!empty($this->config->user->moreLink)) $this->config->moreLinks["RD"] = $this->config->user->moreLink;
 
         $lines = array();
-        if($product->program and $this->config->systemMode == 'ALM') $lines = array('') + $this->product->getLinePairs($product->program);
+        if($product->program and in_array($this->config->systemMode, array('ALM', 'PLM'))) $lines = array('') + $this->product->getLinePairs($product->program);
 
         /* Get programs. */
         $programs = $this->loadModel('program')->getTopPairs('', 'noclosed');
@@ -557,15 +558,13 @@ class product extends control
         $this->view->poUsers              = $poUsers;
         $this->view->qdUsers              = $qdUsers;
         $this->view->rdUsers              = $rdUsers;
-        $this->view->fields               = $this->product->buildFormFields($this->config->product->edit->fields, $product);
         $this->view->users                = $this->user->getPairs('nodeleted|noclosed');
         $this->view->programs             = array('') + $programs;
         $this->view->lines                = $lines;
         $this->view->URSRPairs            = $this->loadModel('custom')->getURSRPairs();
 
         unset($this->lang->product->typeList['']);
-        //$this->display();
-        $this->render();
+        $this->display();
     }
 
     /**
@@ -601,6 +600,8 @@ class product extends control
         /* Set menu when page come from program. */
         if($this->app->tab == 'program') $this->loadModel('program')->setMenu(0);
 
+        if($this->config->vision == 'or') unset($this->lang->product->statusList['normal']);
+
         /* Set custom. */
         foreach(explode(',', $this->config->product->customBatchEditFields) as $field) $customFields[$field] = $this->lang->product->$field;
         $this->view->customFields = $customFields;
@@ -627,7 +628,7 @@ class product extends control
 
         $programs             = array();
         $unauthorizedPrograms = array();
-        if($this->config->systemMode == 'ALM')
+        if(in_array($this->config->systemMode, array('ALM', 'PLM')))
         {
             $programs = $this->loadModel('program')->getTopPairs();
 
@@ -706,6 +707,39 @@ class product extends control
     }
 
     /**
+     * Activate a product.
+     *
+     * @param  int    $productID
+     * @access public
+     * @return void
+     */
+    public function activate($productID)
+    {
+        $product = $this->product->getById($productID);
+        $actions = $this->loadModel('action')->getList('product', $productID);
+
+        if(!empty($_POST))
+        {
+            $changes = $this->product->activate($productID);
+            if(dao::isError()) return print(js::error(dao::getError()));
+
+            if($this->post->comment != '' or !empty($changes))
+            {
+                $actionID = $this->action->create('product', $productID, 'Activate', $this->post->comment);
+                $this->action->logHistory($actionID, $changes);
+            }
+
+            return print(js::reload('parent.parent'));
+        }
+
+        $this->view->product = $product;
+        $this->view->title   = $this->view->product->name . $this->lang->colon .$this->lang->activate;
+        $this->view->actions = $actions;
+        $this->view->users   = $this->loadModel('user')->getPairs('noletter');
+        $this->display();
+    }
+
+    /**
      * View a product.
      *
      * @param  int    $productID
@@ -720,7 +754,7 @@ class product extends control
         if(!$product)
         {
             if(defined('RUN_MODE') && RUN_MODE == 'api') return $this->send(array('status' => 'fail', 'code' => 404, 'message' => '404 Not found'));
-            return print(js::error($this->lang->notFound) . js::locate($this->createLink('product', 'index')));
+            return print(js::error($this->lang->notFound) . js::locate($this->createLink('product', 'all')));
         }
 
         $product->desc = $this->loadModel('file')->setImgSize($product->desc);
@@ -834,10 +868,6 @@ class product extends control
         /* Append id for secend sort. */
         $orderBy = $direction == 'next' ? 'date_desc' : 'date_asc';
 
-        /* Load pager. */
-        $this->app->loadClass('pager', $static = true);
-        $pager = new pager($recTotal, $recPerPage = 50, $pageID = 1);
-
         /* Set the user and type. */
         $account = 'all';
         if($type == 'account')
@@ -845,30 +875,26 @@ class product extends control
             $user = $this->loadModel('user')->getById((int)$param, 'id');
             if($user) $account = $user->account;
         }
-        $period  = $type == 'account' ? 'all'  : $type;
-        $date    = empty($date) ? '' : date('Y-m-d', $date);
-        $actions = $this->loadModel('action')->getDynamic($account, $period, $orderBy, $pager, $productID, 'all', 'all', $date, $direction);
-        if(empty($recTotal)) $recTotal = count($actions);
+        $period     = $type == 'account' ? 'all'  : $type;
+        $date       = empty($date) ? '' : date('Y-m-d', $date);
+        $actions    = $this->loadModel('action')->getDynamic($account, $period, $orderBy, 50, $productID, 'all', 'all', $date, $direction);
+        $dateGroups = $this->action->buildDateGroup($actions, $direction, $type);
 
-        /* The header and position. */
-        $this->view->title      = $this->products[$productID] . $this->lang->colon . $this->lang->product->dynamic;
-        $this->view->position[] = html::a($this->createLink($this->moduleName, 'browse'), $this->products[$productID]);
-        $this->view->position[] = $this->lang->product->dynamic;
-
-        $this->view->userIdPairs  = $this->loadModel('user')->getPairs('noletter|nodeleted|noclosed|useid');
-        $this->view->accountPairs = $this->user->getPairs('noletter|nodeleted|noclosed');
+        if(empty($recTotal)) $recTotal = count($dateGroups) < 2 ? count($actions) : $this->action->getDynamicCount();
 
         /* Assign. */
-        $this->view->productID  = $productID;
-        $this->view->type       = $type;
-        $this->view->orderBy    = $orderBy;
-        $this->view->account    = $account;
-        $this->view->user       = isset($user) ? $user : '';
-        $this->view->param      = $param;
-        $this->view->pager      = $pager;
-        $this->view->dateGroups = $this->action->buildDateGroup($actions, $direction, $type);
-        $this->view->direction  = $direction;
-        $this->view->recTotal   = $recTotal;
+        $this->view->title        = $this->products[$productID] . $this->lang->colon . $this->lang->product->dynamic;
+        $this->view->userIdPairs  = $this->loadModel('user')->getPairs('noletter|nodeleted|noclosed|useid');
+        $this->view->accountPairs = $this->user->getPairs('noletter|nodeleted|noclosed');
+        $this->view->productID    = $productID;
+        $this->view->type         = $type;
+        $this->view->orderBy      = $orderBy;
+        $this->view->account      = $account;
+        $this->view->user         = isset($user) ? $user : '';
+        $this->view->param        = $param;
+        $this->view->dateGroups   = $dateGroups;
+        $this->view->direction    = $direction;
+        $this->view->recTotal     = $recTotal;
         $this->display();
     }
 
@@ -892,19 +918,12 @@ class product extends control
         $product->desc = $this->loadModel('file')->setImgSize($product->desc);
         $this->product->setMenu($productID);
 
-        /* Load pager. */
-        $this->app->loadClass('pager', $static = true);
-        $pager = new pager(0, 30, 1);
-
-        $this->view->title      = $product->name . $this->lang->colon . $this->lang->product->view;
-        $this->view->position[] = html::a($this->createLink($this->moduleName, 'browse'), $product->name);
-        $this->view->position[] = $this->lang->product->view;
-
+        $this->view->title    = $product->name . $this->lang->colon . $this->lang->product->view;
         $this->view->product  = $product;
         $this->view->actions  = $this->loadModel('action')->getList('product', $productID);
         $this->view->users    = $this->user->getPairs('noletter');
         $this->view->lines    = array('') + $this->product->getLinePairs();
-        $this->view->dynamics = $this->action->getDynamic('all', 'all', 'date_desc', $pager, $productID);
+        $this->view->dynamics = $this->action->getDynamic('all', 'all', 'date_desc', 30, $productID);
         $this->view->roadmaps = $this->product->getRoadmap($productID, 0, 6);
 
         $this->display();
@@ -1276,16 +1295,20 @@ class product extends control
      *
      * @param  string $browseType
      * @param  string $orderBy
+     * @param  int    $param
+     * @param  int    $recTotal
+     * @param  int    $recPerPage
+     * @param  int    $pageID
      * @access public
      * @return void
      */
-    public function all($browseType = 'noclosed', $orderBy = 'program_asc', $param = 0, $recTotal = 0, $recPerPage = 20, $pageID = 1, $programID = 0)
+    public function all($browseType = 'noclosed', $orderBy = 'program_asc', $param = 0, $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
         /* Load module and set session. */
         $this->loadModel('program');
         $this->session->set('productList', $this->app->getURI(true), 'product');
 
-        $queryID  = ($browseType == 'bySearch' or !empty($param)) ? (int)$param : 0;
+        $queryID = $browseType == 'bySearch' ? (int)$param : 0;
 
         if($this->app->viewType == 'mhtml')
         {
@@ -1295,6 +1318,8 @@ class product extends control
 
         $this->app->loadClass('pager', $static = true);
         $pager = new pager($recTotal, $recPerPage, $pageID);
+
+        $this->product->refreshStats(); // Refresh stats fields of products.
 
         /* Process product structure. */
         if($this->config->systemMode == 'light' and $orderBy == 'program_asc') $orderBy = 'order_asc';
@@ -1327,13 +1352,8 @@ class product extends control
         $this->view->browseType       = $browseType;
         $this->view->pager            = $pager;
         $this->view->showBatchEdit    = $this->cookie->showProductBatchEdit;
-        $this->view->param            = $param;
-        $this->view->recPerPage       = $recPerPage;
-        $this->view->pageID           = $pageID;
-        $this->view->programID        = $programID;
 
-        //$this->display();
-        $this->render();
+        $this->display();
     }
 
     /**
@@ -1497,15 +1517,9 @@ class product extends control
             {
                 $product->line              = zget($lines, $product->line, '');
                 $product->manager           = zget($users, $product->PO, '');
-                $product->draftStories      = (int)$product->stories['draft'];
-                $product->activeStories     = (int)$product->stories['active'];
-                $product->changedStories    = (int)$product->stories['changing'];
-                $product->reviewingStories  = (int)$product->stories['reviewing'];
-                $product->closedStories     = (int)$product->stories['closed'];
-                $product->totalStories      = $product->activeStories + $product->changedStories + $product->draftStories + $product->closedStories + $product->reviewingStories;
+                $product->changedStories    = (int)$product->changingStories;
                 $product->storyCompleteRate = ($product->totalStories == 0 ? 0 : round($product->closedStories / $product->totalStories, 3) * 100) . '%';
-                $product->unResolvedBugs    = (int)$product->unResolved;
-                $product->assignToNullBugs  = (int)$product->assignToNull;
+                $product->unResolvedBugs    = (int)$product->unresolvedBugs;
                 $product->bugFixedRate      = (($product->unResolved + $product->fixedBugs) == 0 ? 0 : round($product->fixedBugs / ($product->unResolved + $product->fixedBugs), 3) * 100) . '%';
                 $product->program           = $product->programName;
 
@@ -1533,7 +1547,7 @@ class product extends control
 
                 if($this->post->exportType == 'selected')
                 {
-                    $checkedItem = $this->cookie->checkedItem;
+                    $checkedItem = $this->post->checkedItem;
                     if(strpos(",$checkedItem,", ",{$product->id},") === false) unset($productStats[$i]);
                 }
             }
@@ -1575,7 +1589,7 @@ class product extends control
      */
     public function track($productID, $branch = '', $projectID = 0, $recTotal = 0, $recPerPage = 20, $pageID = 1)
     {
-        $branch = ($this->cookie->preBranch !== '' and $branch === '') ? $this->cookie->preBranch : $branch;
+        $branch = ($this->cookie->preBranch and $branch === '') ? $this->cookie->preBranch : $branch;
         setcookie('preBranch', $branch, $this->config->cookieLife, $this->config->webRoot, '', $this->config->cookieSecure, true);
 
         /* Set menu. The projectstory module does not execute. */

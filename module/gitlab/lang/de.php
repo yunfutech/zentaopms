@@ -29,6 +29,10 @@ $lang->gitlab->addWebhookSuccess = 'Webhook created successfully';
 $lang->gitlab->failCreateWebhook = 'Failed to create Webhook, please view the log';
 $lang->gitlab->placeholderSearch = 'Enter name';
 
+$lang->gitlab->bindStatus['binded']      = $lang->gitlab->binded;
+$lang->gitlab->bindStatus['notBind']     = "<span class='text-danger'>{$lang->gitlab->notBind}</span>";
+$lang->gitlab->bindStatus['bindedError'] = "<span class='text-danger'>{$lang->gitlab->bindedError}</span>";
+
 $lang->gitlab->browseAction         = 'GitLab List';
 $lang->gitlab->deleteAction         = 'Delete GitLab';
 $lang->gitlab->gitlabProject        = "GitLab Project";
@@ -104,7 +108,10 @@ $lang->gitlab->apiError[2] = 'is too short (minimum is 8 characters)';
 $lang->gitlab->apiError[3] = "can contain only letters, digits, '_', '-' and '.'. Cannot start with '-', end in '.git' or end in '.atom'";
 $lang->gitlab->apiError[4] = 'Branch already exists';
 $lang->gitlab->apiError[5] = 'Failed to save group {:path=>["has already been taken"]}';
-$lang->gitlab->apiError[6] = '403 Forbidden';
+$lang->gitlab->apiError[6] = 'Failed to save group {:path=>["已经被使用"]}';
+$lang->gitlab->apiError[7] = '403 Forbidden';
+$lang->gitlab->apiError[8] = 'is invalid';
+$lang->gitlab->apiError[9] = 'admin is a reserved name';
 
 $lang->gitlab->errorLang[0] = 'You cannot set Internal as its Visibility Level, if it is private in GitLab.';
 $lang->gitlab->errorLang[1] = 'You cannot set Public as its Visibility Level, if it is private in GitLab.';
@@ -112,7 +119,13 @@ $lang->gitlab->errorLang[2] = 'Password is too short (minimum is 8 characters)';
 $lang->gitlab->errorLang[3] = 'It should contain only letters, digits, underscore, hyphen and period.  It should not start with hypen, or end with .git or .atom.';
 $lang->gitlab->errorLang[4] = 'Branch already exists.';
 $lang->gitlab->errorLang[5] = 'Failed to save group, path has already been taken.';
-$lang->gitlab->errorLang[6] = $lang->gitlab->noAccess;
+$lang->gitlab->errorLang[6] = 'Failed to save group, path has already been taken.';
+$lang->gitlab->errorLang[7] = $lang->gitlab->noAccess;
+$lang->gitlab->errorLang[8] = "Is invalid";
+$lang->gitlab->errorLang[9] = 'admin is a reserved name';
+
+$lang->gitlab->errorResonse['Email has already been taken']    = 'Email has already been taken';
+$lang->gitlab->errorResonse['Username has already been taken'] = 'Username has already been taken';
 
 $lang->gitlab->project = new stdclass;
 $lang->gitlab->project->id                         = "Project ID";
@@ -235,3 +248,7 @@ $lang->gitlab->tag->accessLevel        = 'Allow creation';
 $lang->gitlab->tag->protectConfirmDel  = 'Do you want to delete this GitLab tag protected?';
 $lang->gitlab->tag->emptyPrivNameError = 'Tag cannot be empty.';
 $lang->gitlab->tag->issetPrivNameError = 'The protection tag already exists.';
+
+$lang->gitlab->featureBar['binduser']['all']     = $lang->gitlab->all;
+$lang->gitlab->featureBar['binduser']['notBind'] = $lang->gitlab->notBind;
+$lang->gitlab->featureBar['binduser']['binded']  = $lang->gitlab->binded;

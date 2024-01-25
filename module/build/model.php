@@ -254,7 +254,7 @@ class buildModel extends model
             $buildIdList = str_replace('trunk', '0', $buildIdList);
             $selectedBuilds = $this->dao->select('id, name')->from(TABLE_BUILD)
                 ->where('id')->in($buildIdList)
-                ->beginIF($products)->andWhere('product')->in($productIdList)->fi()
+                ->beginIF($products and $products != 'all')->andWhere('product')->in($productIdList)->fi()
                 ->beginIF($objectType === 'execution' and $objectID)->andWhere('execution')->eq($objectID)->fi()
                 ->beginIF($objectType === 'project' and $objectID)->andWhere('project')->eq($objectID)->fi()
                 ->beginIF(strpos($params, 'hasdeleted') === false)->andWhere('deleted')->eq(0)->fi()
@@ -270,11 +270,11 @@ class buildModel extends model
             ->leftJoin(TABLE_RELEASE)->alias('t3')->on("FIND_IN_SET(t1.id,t3.build)")
             ->leftJoin(TABLE_PRODUCT)->alias('t4')->on('t1.product = t4.id')
             ->where('1=1')
-            ->beginIf(!empty($shaows))->andWhere('t1.id')->notIN($shadows)->fi()
+            ->beginIf(!empty($shadows))->andWhere('t1.id')->notIN($shadows)->fi()
             ->beginIF(strpos($params, 'hasdeleted') === false)->andWhere('t1.deleted')->eq(0)->fi()
             ->beginIF(strpos($params, 'hasproject') !== false)->andWhere('t1.project')->ne(0)->fi()
             ->beginIF(strpos($params, 'singled') !== false)->andWhere('t1.execution')->ne(0)->fi()
-            ->beginIF($products)->andWhere('t1.product')->in($productIdList)->fi()
+            ->beginIF($products and $products != 'all')->andWhere('t1.product')->in($productIdList)->fi()
             ->beginIF($objectType === 'execution' and $objectID)->andWhere('t1.execution')->eq($objectID)->fi()
             ->beginIF($objectType === 'project' and $objectID)->andWhere('t1.project')->eq($objectID)->fi()
             ->orderBy('t1.date desc, t1.id desc')->fetchAll('id');
@@ -416,7 +416,7 @@ class buildModel extends model
         $build->bugs    = '';
 
         $build = fixer::input('post')
-            ->setDefault('project,execution,product,branch', 0)
+            ->setDefault('project,execution,product,branch,artifactRepoID', 0)
             ->setDefault('builds,stories,bugs', '')
             ->cleanInt('product')
             ->add('createdBy', $this->app->user->account)
@@ -424,7 +424,7 @@ class buildModel extends model
             ->stripTags($this->config->build->editor->create['id'], $this->config->allowedTags)
             ->join('builds', ',')
             ->join('branch', ',')
-            ->remove('resolvedBy,allchecker,files,labels,isIntegrated,uid')
+            ->remove('resolvedBy,allchecker,files,labels,isIntegrated,uid,isArtifactRepo')
             ->get();
 
         if($this->post->isIntegrated == 'yes')

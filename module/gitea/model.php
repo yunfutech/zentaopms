@@ -82,17 +82,6 @@ class giteaModel extends model
     }
 
     /**
-     * Create a gitea.
-     *
-     * @access public
-     * @return bool
-     */
-    public function create()
-    {
-        return $this->loadModel('pipeline')->create('gitea');
-    }
-
-    /**
      * Update a gitea.
      *
      * @param  int $id
@@ -127,7 +116,7 @@ class giteaModel extends model
 
         if(count($repeatUsers))
         {
-            dao::$errors[] = sprintf($this->lang->gitea->bindUserError, join(',', $repeatUsers));
+            dao::$errors = sprintf($this->lang->gitea->bindUserError, join(',', $repeatUsers));
             return false;
         }
 
@@ -179,8 +168,7 @@ class giteaModel extends model
         {
             if(is_string($response->message))
             {
-                $errorKey = array_search($response->message, $this->lang->gitea->apiError);
-                dao::$errors[] = $errorKey === false ? $response->message : zget($this->lang->gitea->errorLang, $errorKey);
+                $this->parseApiError($response->message);
             }
             else
             {
@@ -188,15 +176,13 @@ class giteaModel extends model
                 {
                     if(is_string($fieldErrors))
                     {
-                        $errorKey = array_search($fieldErrors, $this->lang->gitea->apiError);
-                        if($fieldErrors) dao::$errors[$field][] = $errorKey === false ? $fieldErrors : zget($this->lang->gitea->errorLang, $errorKey);
+                        $this->parseApiError($response->message);
                     }
                     else
                     {
                         foreach($fieldErrors as $error)
                         {
-                            $errorKey = array_search($error, $this->lang->gitea->apiError);
-                            if($error) dao::$errors[$field][] = $errorKey === false ? $error : zget($this->lang->gitea->errorLang, $errorKey);
+                            $this->parseApiError($response->message);
                         }
                     }
                 }
@@ -205,6 +191,27 @@ class giteaModel extends model
 
         if(!$response) dao::$errors[] = false;
         return false;
+    }
+
+    /**
+     * 解析api返回的错误信息。
+     *
+     * @param  string $message
+     * @access public
+     * @return void
+     */
+    public function parseApiError($message)
+    {
+        $errorKey = array_search($message, $this->lang->gitea->apiError);
+        if($errorKey === false)
+        {
+            dao::$errors[] = $message;
+        }
+        else
+        {
+            $field = $this->lang->gitea->errorKey[$errorKey];
+            dao::$errors[$field] = zget($this->lang->gitea->errorLang, $errorKey);
+        }
     }
 
     /**
@@ -258,8 +265,8 @@ class giteaModel extends model
     {
         $apiRoot  = rtrim($url, '/') . '/api/v1%s' . "?token={$token}";
         $url      = sprintf($apiRoot, "/admin/users") . "&limit=1";
-        $httpData = commonModel::httpWithHeader($url);
-        $users    = json_decode($httpData['body']);
+        $response = commonModel::http($url);
+        $users    = json_decode($response);
         if(empty($users)) return false;
         if(isset($users->message) or isset($users->error)) return null;
         return true;
@@ -340,10 +347,10 @@ class giteaModel extends model
         $matchedUsers = array();
         foreach($giteaUsers as $giteaUser)
         {
-            if(isset($bindedUsers[$giteaUser->account]))
+            if(isset($bindedUsers[$giteaUser->id]))
             {
-                $giteaUser->zentaoAccount = $bindedUsers[$giteaUser->account];
-                $matchedUsers[]           = $giteaUser;
+                $giteaUser->zentaoAccount     = $bindedUsers[$giteaUser->id];
+                $matchedUsers[$giteaUser->id] = $giteaUser;
                 continue;
             }
 
@@ -355,8 +362,8 @@ class giteaModel extends model
             $matchedZentaoUsers = array_unique($matchedZentaoUsers);
             if(count($matchedZentaoUsers) == 1)
             {
-                $giteaUser->zentaoAccount = current($matchedZentaoUsers);
-                $matchedUsers[]           = $giteaUser;
+                $giteaUser->zentaoAccount     = current($matchedZentaoUsers);
+                $matchedUsers[$giteaUser->id] = $giteaUser;
             }
         }
 
@@ -388,6 +395,7 @@ class giteaModel extends model
             $gitea = $this->getByID($giteaID);
             $oauth = "oauth2:{$gitea->token}@";
             $project->tokenCloneUrl = preg_replace('/(http(s)?:\/\/)/', "\$1$oauth", $project->html_url);
+            $project->tokenCloneUrl = str_replace(array('https://', 'http://'), strstr($url, ':', true) . '://', $project->tokenCloneUrl);
         }
 
         return $project;
@@ -411,12 +419,37 @@ class giteaModel extends model
         for($page = 1; true; $page++)
         {
             $results = json_decode(commonModel::http($url . "&page={$page}&limit=50"));
-            if(!is_array($results->data)) break;
-            if(!empty($results->data)) $allResults = array_merge($allResults, $results->data);
+            if(empty($results) || empty($results->data) || !is_array($results->data)) break;
+            $allResults = array_merge($allResults, $results->data);
             if(count($results->data) < 50) break;
         }
 
         return $allResults;
+    }
+
+    /**
+     * Get groups by api.
+     *
+     * @param  int    $giteaID
+     * @param  int    $sudo
+     * @access public
+     * @return array
+     */
+    public function apiGetGroups($giteaID, $sudo = true)
+    {
+         $apiRoot = $this->getApiRoot($giteaID, $sudo);
+         if(!$apiRoot) return array();
+
+         $url        = sprintf($apiRoot, "/orgs");
+         $allResults = array();
+         for($page = 1; true; $page++)
+         {
+             $results = json_decode(commonModel::http($url . "&page={$page}&limit=50"));
+             if(empty($results)) break;
+             $allResults = array_merge($allResults, $results);
+             if(count($results) < 50) break;
+         }
+         return $allResults;
     }
 
     /**
@@ -603,5 +636,29 @@ class giteaModel extends model
         }
 
         return $newBranches;
+    }
+
+    /**
+     * 创建代码库。
+     *
+     * @param  int    $giteaID
+     * @param  string $name
+     * @param  string $org
+     * @param  string $desc
+     * @access public
+     * @return void
+     */
+    public function apiCreateRepository($giteaID, $name, $org, $desc)
+    {
+        $data = new stdclass();
+        $data->name        = $name;
+        $data->description = $desc;
+        $data->auto_init   = true;
+        $data->template    = false;
+
+        $url    = sprintf($this->getApiRoot($giteaID), "/orgs/{$org}/repos");
+        $result = json_decode(commonModel::http($url, $data));
+
+        return $result;
     }
 }
