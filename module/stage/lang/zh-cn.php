@@ -10,6 +10,7 @@
  * @link        http://www.zentao.net
  */
 /* Actions. */
+$lang->stage->error       = new stdclass();
 $lang->stage->browse      = '瀑布阶段列表';
 $lang->stage->create      = '新建';
 $lang->stage->batchCreate = '批量新建';
@@ -38,6 +39,6 @@ $lang->stage->viewList      = '浏览列表';
 $lang->stage->noStage       = '暂时没有阶段';
 $lang->stage->confirmDelete = '您确定要执行删除操作吗？';
 
-$lang->stage->error              = new stdclass();
+// $lang->stage->error              = new stdclass();
 $lang->stage->error->percentOver = '工作量占比累计不应当超过100%';
 $lang->stage->error->notNum      = '工作量占比应当是数字';

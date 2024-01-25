@@ -357,6 +357,13 @@ define('TABLE_DATASET',   '`' . $config->db->prefix . 'dataset`');
 define('TABLE_DATAVIEW',  '`' . $config->db->prefix . 'dataview`');
 define('TABLE_DIMENSION', '`' . $config->db->prefix . 'dimension`');
 
+define('TABLE_IM_CHAT',                       '`' . $config->db->prefix . 'im_chat`');
+define('TABLE_IM_CHAT_MESSAGE_INDEX',         '`' . $config->db->prefix . 'im_chat_message_index`');
+define('TABLE_IM_CHATUSER',                   '`' . $config->db->prefix . 'im_chatuser`');
+define('TABLE_IM_CLIENT',                     '`' . $config->db->prefix . 'im_client`');
+define('TABLE_IM_MESSAGE',                    '`' . $config->db->prefix . 'im_message`');
+define('TABLE_IM_MZT_IM_MESSAGESTATUSESSAGE', '`' . $config->db->prefix . 'im_messagestatus`');
+
 $config->objectTables['product']      = TABLE_PRODUCT;
 $config->objectTables['productplan']  = TABLE_PRODUCTPLAN;
 $config->objectTables['story']        = TABLE_STORY;
