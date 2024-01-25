@@ -1054,6 +1054,7 @@ class commonModel extends model
                 }
             }
 
+            if($group == 'report' and $currentModule == 'screen' and $currentMethod == 'browse') $display = true;
             if(!$display) continue;
 
             /* Assign vars. */
