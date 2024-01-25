@@ -2336,6 +2336,13 @@ class projectModel extends model
                     echo empty($project->PC) ? '' : html::a($PCLink, $userName, '', "title='{$userName}' data-toggle='modal' data-type='iframe' data-width='600'");
                     break;
                 case 'PM':
+                    $user     = $this->loadModel('user')->getByID($project->PM, 'account');
+                    $userID   = !empty($user) ? $user->id : '';
+                    $PCLink   = helper::createLink('user', 'profile', "userID=$userID", '', true);
+                    $userName = zget($users, $project->PC);
+                    echo empty($project->PC) ? '' : html::a($PCLink, $userName, '', "title='{$userName}' data-toggle='modal' data-type='iframe' data-width='600'");
+                    break;
+                case 'PM':
                     $user       = $this->loadModel('user')->getByID($project->PM, 'account');
                     $userID     = !empty($user) ? $user->id : '';
                     $userAvatar = !empty($user) ? $user->avatar : '';

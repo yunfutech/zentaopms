@@ -91,6 +91,10 @@
           <td><?php echo html::select('pri', $lang->execution->priList, '', "class='form-control' required");?></td><td></td><td></td>
         </tr>
         <tr>
+          <th><?php echo $lang->execution->pri;?></th>
+          <td><?php echo html::select('pri', $lang->execution->priList, '', "class='form-control' required");?></td><td></td><td></td>
+        </tr>
+        <tr>
           <th><?php echo $lang->execution->dateRange;?></th>
           <td>
             <div class='input-group'>

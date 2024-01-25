@@ -2080,4 +2080,11 @@ $lang->resource->projectweekly->edit              = 'edit';
 $lang->resource->projectweekly->view              = 'view';
 $lang->resource->projectweekly->weeklyboard                 = 'weeklyboard';
 
+$lang->resource->projectweekly = new stdclass();
+$lang->resource->projectweekly->projectweeklylist = 'projectweeklylist';
+$lang->resource->projectweekly->generateWeekly    = 'generateWeekly';
+$lang->resource->projectweekly->edit              = 'edit';
+$lang->resource->projectweekly->view              = 'view';
+$lang->resource->projectweekly->weeklyboard                 = 'weeklyboard';
+
 include (dirname(__FILE__) . '/changelog.php');

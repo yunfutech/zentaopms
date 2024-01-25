@@ -540,6 +540,7 @@ $lang->doc->menu->api['subMenu']->index  = array('link' => "{$lang->doc->apiDoc}
 $lang->doc->menu->api['subMenu']->struct = array('link' => "{$lang->doc->apiStruct}|api|struct|libID=%s", 'alias' => 'createstruct,editstruct');
 
 /* Report menu.*/
+// <<<<<<< HEAD
 $lang->report->menu             = new stdclass();
 $lang->report->menu->screen     = array('link' => "{$lang->screen->common}|screen|browse");
 $lang->report->menu->pivotTable = array('link' => "{$lang->report->pivotTable}|report|productsummary", 'alias' => 'projectdeviation,bugcreate,workload,bugassign,taskboard');
@@ -555,11 +556,30 @@ $lang->report->menu->pivotTable['subMenu']->test       = array('link' => "{$lang
 $lang->report->menu->pivotTable['subMenu']->staff      = array('link' => "{$lang->system->common}|report|workload");
 $lang->report->menu->pivotTable['subMenu']->taskboard  = array('link' => "{$lang->task->common}|report|taskboard");
 
-$lang->report->menu->pivotTable['menuOrder'][5]    = 'product';
-$lang->report->menu->pivotTable['menuOrder'][10]   = 'project';
-$lang->report->menu->pivotTable['menuOrder'][15]   = 'test';
-$lang->report->menu->pivotTable['menuOrder'][20]   = 'staff';
-$lang->report->menu->pivotTable['menuOrder'][25]   = 'taskboard';
+$lang->report->menu->pivotTable['menuOrder'][5]    = 'annual';
+$lang->report->menu->pivotTable['menuOrder'][10]   = 'product';
+$lang->report->menu->pivotTable['menuOrder'][15]   = 'project';
+$lang->report->menu->pivotTable['menuOrder'][20]   = 'test';
+$lang->report->menu->pivotTable['menuOrder'][25]   = 'staff';
+$lang->report->menu->pivotTable['menuOrder'][30]   = 'taskboard';
+
+// $lang->report->menu          = new stdclass();
+// $lang->report->menu->annual  = array('link' => "{$lang->report->annual}|report|annualData|year=&dept=&userID=" . (isset($_SESSION['user']) ? zget($_SESSION['user'], 'id', 0) : 0), 'target' => '_blank');
+// $lang->report->menu->product = array('link' => "{$lang->product->common}|report|productsummary");
+// $lang->report->menu->project = array('link' => "{$lang->project->common}|report|projectdeviation");
+// $lang->report->menu->test    = array('link' => "{$lang->qa->common}|report|bugcreate", 'alias' => 'bugassign');
+// $lang->report->menu->staff   = array('link' => "{$lang->system->common}|report|workload");
+// $lang->report->menu->taskboard   = array('link' => "{$lang->task->common}|report|taskboard");
+// $lang->report->menu->projectweekly  = array('link' => "{$lang->report->projectweekly}|projectweekly|weeklyboard");
+
+// /* Report menu order. */
+// $lang->report->menuOrder[5]  = 'annual';
+// $lang->report->menuOrder[10] = 'product';
+// $lang->report->menuOrder[15] = 'project';
+// $lang->report->menuOrder[20] = 'test';
+// $lang->report->menuOrder[25] = 'staff';
+// $lang->report->menuOrder[30] = 'taskboard';
+
 
 /* Company menu.*/
 $lang->company->menu              = new stdclass();
