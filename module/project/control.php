@@ -79,14 +79,14 @@ class project extends control
             $this->loadModel('product');
             foreach($projects as $i => $project)
             {
-                $hasProduct = $project->hasProduct;
-
-                $project->PM         = zget($users, $project->PM);
-                $project->status     = $this->processStatus('project', $project);
-                $project->model      = zget($projectLang->modelList, $project->model);
-                $project->budget     = $project->budget != 0 ? $project->budget . zget($projectLang->unitList, $project->budgetUnit) : $this->lang->project->future;
-                $project->parent     = $project->parentName;
-                $project->hasProduct = zget($projectLang->projectTypeList, $project->hasProduct);
+                $project->PM       = zget($users, $project->PM);
+                $project->PC       = zget($users, $project->PC);
+                $project->PP       = zget($users, $project->PP);
+                $project->status   = $this->processStatus('project', $project);
+                $project->model    = zget($projectLang->modelList, $project->model);
+                $project->product  = zget($projectLang->productList, $project->product);
+                $project->budget   = $project->budget . zget($projectLang->unitList, $project->budgetUnit);
+                $project->parent   = $project->parentName;
 
                 $linkedProducts = $this->product->getProducts($project->id, 'all', '', false);
                 $project->linkedProducts = implode('，', $linkedProducts);
@@ -98,7 +98,9 @@ class project extends control
                     if(strpos(",$checkedItem,", ",{$project->id},") === false) unset($projects[$i]);
                 }
             }
+
             if($this->config->edition != 'open') list($fields, $projects) = $this->loadModel('workflowfield')->appendDataFromFlow($fields, $projects);
+
             $this->post->set('fields', $fields);
             $this->post->set('rows', $projects);
             $this->post->set('kind', 'project');
@@ -403,7 +405,7 @@ class project extends control
      * @access public
      * @return void
      */
-    public function browse($programID = 0, $browseType = 'doing', $param = 0, $orderBy = 'order_asc', $recTotal = 0, $recPerPage = 15, $pageID = 1)
+    public function browse($programID = 0, $browseType = 'doing', $param = 0, $orderBy = 'end_desc', $recTotal = 0, $recPerPage = 15, $pageID = 1)
     {
         $this->loadModel('datatable');
         $this->loadModel('execution');
@@ -629,6 +631,8 @@ class project extends control
 
         $this->view->title               = $this->lang->project->create;
         $this->view->gobackLink          = (isset($output['from']) and $output['from'] == 'global') ? $this->createLink('project', 'browse') : '';
+        $this->view->ppUsers             = $this->loadModel('user')->getPairs('noclosed|nodeleted|ppfirst');
+        $this->view->pcUsers             = $this->loadModel('user')->getPairs('noclosed|nodeleted|pcfirst');
         $this->view->pmUsers             = $this->loadModel('user')->getPairs('noclosed|nodeleted|pmfirst');
         $this->view->users               = $this->user->getPairs('noclosed|nodeleted');
         $this->view->copyProjects        = $this->project->getPairsByModel($model);
@@ -791,6 +795,8 @@ class project extends control
         $this->view->title      = $this->lang->project->edit;
         $this->view->position[] = $this->lang->project->edit;
 
+        $this->view->PPUsers                  = $this->user->getPairs('noclosed|nodeleted|ppfirst',  $project->PM);
+        $this->view->PCUsers                  = $this->user->getPairs('noclosed|nodeleted|pcfirst',  $project->PM);
         $this->view->PMUsers                  = $this->user->getPairs('noclosed|nodeleted|pmfirst',  $project->PM);
         $this->view->users                    = $this->user->getPairs('noclosed|nodeleted');
         $this->view->project                  = $project;

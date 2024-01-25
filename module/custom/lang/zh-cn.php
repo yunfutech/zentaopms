@@ -64,6 +64,9 @@ $lang->custom->beginAndEndDate      = '起止日期';
 $lang->custom->beginAndEndDateRange = '起止日期范围';
 $lang->custom->limitTaskDateAction  = '设置起止日期必填';
 
+if($config->systemMode == 'new') $lang->custom->execution = '迭代';
+if($config->systemMode == 'classic' || !$config->systemMode) $lang->custom->execution = $lang->executionCommon;
+
 $lang->custom->unitList['efficiency'] = '工时/';
 $lang->custom->unitList['manhour']    = '人时/';
 $lang->custom->unitList['cost']       = '元/小时';

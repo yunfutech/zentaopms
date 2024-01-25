@@ -63,6 +63,7 @@ th.c-confirmed, th.c-confirm {text-align: center;}
 .c-severity {width: 50px;}
 .c-sort, .c-progress {width: 60px;}
 .c-estimate {width: 70px;}
+.c-consumed {width: 70px;}
 .c-number, .c-stage, .c-role, .c-estimate-box, .c-result {width: 80px;}
 .c-company, .c-budget {width: 80px;}
 .c-status, .c-type, .c-user, .c-date, .c-encode, .c-resolution, .c-pri-box, .c-extend {width: 100px;}

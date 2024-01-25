@@ -7909,7 +7909,7 @@ class upgradeModel extends model
         $sender->avatar   = commonModel::getSysURL() . '/www/favicon.ico';
         $sender->id       = 'upgradeArchive';
         $sender->realname = $this->lang->upgrade->archiveChangeNoticeTitle;
-        $this->loadModel('im')->messageCreateNotify(array_keys($noticeUsers), '', '', $this->lang->upgrade->archiveChangeNoticeContent, 'text', '', array(), $sender);
+        // $this->loadModel('im')->messageCreateNotify(array_keys($noticeUsers), '', '', $this->lang->upgrade->archiveChangeNoticeContent, 'text', '', array(), $sender);
         return !dao::isError();
     }
 

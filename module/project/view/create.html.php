@@ -100,6 +100,30 @@
           </td>
         </tr>
         <tr>
+          <th><?php echo $lang->project->pri;?></th>
+          <td><?php echo html::select('pri', $lang->project->priList, '', "class='form-control' required");?></td>
+        </tr>
+        <tr>
+          <th><?php echo $lang->project->PP ;?></th>
+          <td><?php echo html::select('PP', $ppUsers, '', "class='form-control chosen'" . (strpos($requiredFields, 'PM') !== false ? ' required' : ''));?></td>
+        </tr>
+        <tr>
+          <th><?php echo $lang->project->PC;?></th>
+          <td><?php echo html::select('PC', $pcUsers, '', "class='form-control chosen'" . (strpos($requiredFields, 'PM') !== false ? ' required' : ''));?></td>
+        </tr>
+        <tr>
+          <th><?php echo $lang->project->pri;?></th>
+          <td><?php echo html::select('pri', $lang->project->priList, '', "class='form-control' required");?></td>
+        </tr>
+        <tr>
+          <th><?php echo $lang->project->PP ;?></th>
+          <td><?php echo html::select('PP', $ppUsers, '', "class='form-control chosen'" . (strpos($requiredFields, 'PM') !== false ? ' required' : ''));?></td>
+        </tr>
+        <tr>
+          <th><?php echo $lang->project->PC;?></th>
+          <td><?php echo html::select('PC', $pcUsers, '', "class='form-control chosen'" . (strpos($requiredFields, 'PM') !== false ? ' required' : ''));?></td>
+        </tr>
+        <tr>
           <th><?php echo $lang->project->PM;?></th>
           <td><?php echo html::select('PM', $pmUsers, '', "class='form-control chosen'" . (strpos($requiredFields, 'PM') !== false ? ' required' : ''));?></td>
         </tr>

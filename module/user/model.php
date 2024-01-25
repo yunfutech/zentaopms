@@ -90,6 +90,8 @@ class userModel extends model
         if(strpos($params, 'pdfirst') !== false) $fields .= ", INSTR(',po,pd,', role) AS roleOrder";
         if(strpos($params, 'qafirst') !== false) $fields .= ", INSTR(',qd,qa,', role) AS roleOrder";
         if(strpos($params, 'qdfirst') !== false) $fields .= ", INSTR(',qa,qd,', role) AS roleOrder";
+        if(strpos($params, 'ppfirst') !== false) $fields .= ", INSTR(',pm,dev,', role) AS roleOrder";
+        if(strpos($params, 'pcfirst') !== false) $fields .= ", INSTR(',top,', role) AS roleOrder";
         if(strpos($params, 'pmfirst') !== false) $fields .= ", INSTR(',td,pm,', role) AS roleOrder";
         if(strpos($params, 'devfirst')!== false) $fields .= ", INSTR(',td,pm,qd,qa,dev,', role) AS roleOrder";
         $orderBy = strpos($params, 'first') !== false ? 'roleOrder DESC, account' : 'account';

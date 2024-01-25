@@ -174,9 +174,9 @@ $lang->my->common         = '地盘';
 $lang->todo->common       = '待办';
 $lang->block->common      = '区块';
 $lang->program->common    = '项目集';
-$lang->product->common    = $lang->productCommon;
-$lang->project->common    = $lang->projectCommon;
-$lang->execution->common  = '执行';
+$lang->product->common    = '产品';
+$lang->project->common    = '项目';
+$lang->execution->common  = $config->systemMode == 'new' ? '迭代' : $lang->executionCommon;
 $lang->kanban->common     = '看板';
 $lang->qa->common         = '测试';
 $lang->devops->common     = 'DevOps';
@@ -359,6 +359,9 @@ $lang->product->kanban = $lang->productCommon . '看板';
 $lang->project->report = '报告';
 
 $lang->report->weekly       = '周报';
+$lang->report->projectweekly  = '项目周报看板';
+$lang->report->annual       = '年度总结';
+$lang->report->pivotTable   = '透视表';
 $lang->report->notice       = new stdclass();
 $lang->report->notice->help = '注：统计报表的数据来源于列表页面的检索结果，生成统计报表前请先在列表页面进行检索。比如列表页面我们检索的是%tab%，那么报表就是基于之前检索的%tab%的结果集进行统计。';
 

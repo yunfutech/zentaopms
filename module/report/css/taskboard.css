@@ -1,0 +1,172 @@
+.bgred{background:#f1ced0;}
+.bgorange{background: #fdf7be;}
+.bggreen{background:#d4fbb1;}
+.bgblue{background:#b2d6ef}
+
+.table>tbody>tr>td .content {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    padding-left: 10px;
+    line-height: 100%;
+    vertical-align: middle;
+}
+.table>tbody>tr>td .bg{
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    z-index: 1;
+    width: 100%;
+}
+.table>tbody>tr>td .fg{
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    z-index: 2;
+}
+
+.task-detail {
+    vertical-align: middle;
+}
+
+.overview {
+    width: 80px;
+    text-align: center;
+    background: #13ce66;
+    color: #fff;
+    border-radius: 4px;
+    padding: 5px;
+    display: inline-block;
+}
+
+.table>tbody>tr.expired-1 td {
+    background:#f1ced0
+}
+.table>tbody>tr.expired-1 .td-1{
+    background:#f9f9f9
+}
+.bigbox table td{
+    padding: 2px 5px;
+    border-bottom: 0;
+    border-top: 0;
+}
+.bigbox table td.td-line {
+    border-bottom: 1px solid #cbd0db;
+}
+.bigbox table a{
+    vertical-align: initial;
+    padding: 0;
+}
+.bigbox table .checkbox {
+    margin: 0;
+    margin-top: -3px;
+}
+.user {
+    margin-right: 4px;
+}
+.workload2 {
+    margin-bottom: 10px !important;
+}
+.project-name{
+    display: inline-block;
+    width: 300px;
+    color: #fff;
+    border-radius: 4px;
+    padding: 5px;
+    background: #81c19e;
+}
+.module-name {
+    display: inline-block;
+    width: 120px;
+    color: #fff;
+    background: #81c19e;
+    border-radius: 4px;
+    padding: 5px;
+}
+.no-module-name {
+    display: inline-block;
+    width: 120px;
+    background: #999b9a;
+    border-radius: 4px;
+    padding: 5px;
+}
+.story-name {
+    display: inline-block;
+    width: 300px;
+    color: #fff;
+    background: #81c19e;
+    border-radius: 4px;
+    padding: 5px;
+}
+.no-story-name {
+    display: inline-block;
+    width: 300px;
+    background: #999b9a;
+    border-radius: 4px;
+    padding: 5px;
+}
+.task-name{
+    display: inline-block;
+    background: #67967c;
+    color: #fff;
+    border-radius: 4px;
+    padding: 5px;
+}
+.project-name a,.task-name a{
+    color: #fff;
+    width: 100%;
+    height: 100%;
+}
+.task-detail {
+    vertical-align: middle;
+}
+.checkbox {
+    display: inline-block;
+}
+.table-footer {
+    border:1px solid #cbd0db;
+    border-top: none;
+}
+.bigbox {
+    position: relative;
+}
+.pri {
+    width: 20px;
+    height: 20px;
+    text-align: center;
+    line-height: 20px;
+    margin-right: 5px;
+    display: inline-block;
+    border-radius: 50%;
+    background: #81511C;
+    color: #fff;
+}
+.pri_1 {
+    background: #d50000;
+}
+.pri_2 {
+    background: #ff9800;
+}
+.pri_3 {
+    background: #2098ee;
+}
+.pri_4 {
+    background: #009688;
+}
+.taskid {
+    width: 70px;
+    margin-left: 15px;
+    display: inline-block;
+    background: #81511C;
+    color: #fff;
+    padding: 5px;
+    text-align: center;
+    border-radius: 4px;
+}
+.taskstatus {
+    margin: 0 5px;
+}

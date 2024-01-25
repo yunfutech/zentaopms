@@ -1135,6 +1135,7 @@ class commonModel extends model
                 }
             }
 
+            if($group == 'report' and $currentModule == 'report' and $currentMethod == 'productsummary') $display = true;
             if(!$display) continue;
 
             /* Assign vars. */

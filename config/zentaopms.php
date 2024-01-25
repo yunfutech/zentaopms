@@ -361,6 +361,7 @@ define('TABLE_RELEASE',       '`' . $config->db->prefix . 'release`');
 
 define('TABLE_PROGRAM',       '`' . $config->db->prefix . 'project`');
 define('TABLE_PROJECT',       '`' . $config->db->prefix . 'project`');
+define('TABLE_PROJECTWEEKLY', '`' . $config->db->prefix . 'projectweekly`');
 define('TABLE_EXECUTION',     '`' . $config->db->prefix . 'project`');
 define('TABLE_TASK',          '`' . $config->db->prefix . 'task`');
 define('TABLE_TASKSPEC',      '`' . $config->db->prefix . 'taskspec`');
@@ -464,6 +465,13 @@ define('TABLE_METRIC', '' . $config->db->prefix . 'metric');
 define('TABLE_METRICLIB', '' . $config->db->prefix . 'metriclib');
 define('TABLE_METRICRECORDS', '' . $config->db->prefix . 'metricrecords');
 define('TABLE_BASICMEAS', '' . $config->db->prefix . 'basicmeas');
+
+define('TABLE_IM_CHAT',                       '`' . $config->db->prefix . 'im_chat`');
+define('TABLE_IM_CHAT_MESSAGE_INDEX',         '`' . $config->db->prefix . 'im_chat_message_index`');
+define('TABLE_IM_CHATUSER',                   '`' . $config->db->prefix . 'im_chatuser`');
+define('TABLE_IM_CLIENT',                     '`' . $config->db->prefix . 'im_client`');
+define('TABLE_IM_MESSAGE',                    '`' . $config->db->prefix . 'im_message`');
+define('TABLE_IM_MZT_IM_MESSAGESTATUSESSAGE', '`' . $config->db->prefix . 'im_messagestatus`');
 
 $config->objectTables['product']      = TABLE_PRODUCT;
 $config->objectTables['productplan']  = TABLE_PRODUCTPLAN;

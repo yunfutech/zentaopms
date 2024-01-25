@@ -912,6 +912,8 @@ $lang->resource->task->recordEstimate     = 'recordEstimateAction';
 $lang->resource->task->editEstimate       = 'editEstimate';
 $lang->resource->task->deleteEstimate     = 'deleteEstimate';
 $lang->resource->task->report             = 'reportChart';
+$lang->resource->task->remind             = 'remind';
+$lang->resource->task->generateTasks      = 'generateTasks';
 
 $lang->task->methodOrder[5]   = 'create';
 $lang->task->methodOrder[10]  = 'batchCreate';
@@ -1749,6 +1751,24 @@ $lang->metric->methodOrder[5]  = 'preview';
 $lang->metric->methodOrder[6]  = 'details';
 /* Report . */
 $lang->resource->report = new stdclass();
+$lang->resource->report->index            = 'index';
+$lang->resource->report->projectDeviation = 'projectDeviation';
+$lang->resource->report->productSummary   = 'productSummary';
+$lang->resource->report->bugCreate        = 'bugCreate';
+$lang->resource->report->bugAssign        = 'bugAssign';
+$lang->resource->report->workload         = 'workload';
+$lang->resource->report->annualData       = 'annual';
+$lang->resource->report->allAnnualData    = 'viewEveryoneAnnual';
+$lang->resource->report->taskboard       = 'taskboard';
+
+$lang->report->methodOrder[0]  = 'index';
+$lang->report->methodOrder[5]  = 'projectDeviation';
+$lang->report->methodOrder[10] = 'productSummary';
+$lang->report->methodOrder[15] = 'bugCreate';
+$lang->report->methodOrder[20] = 'bugAssign';
+$lang->report->methodOrder[25] = 'workload';
+$lang->report->methodOrder[30] = 'annual';
+$lang->report->methodOrder[35] = 'allAnnualData';
 
 /* Search. */
 $lang->resource->search = new stdclass();
@@ -2090,5 +2110,19 @@ if(!$inUpgrade)
 
     if(!$config->systemScore) unset($lang->resource->my->score);
 }
+
+$lang->resource->projectweekly = new stdclass();
+$lang->resource->projectweekly->projectweeklylist = 'projectweeklylist';
+$lang->resource->projectweekly->generateWeekly    = 'generateWeekly';
+$lang->resource->projectweekly->edit              = 'edit';
+$lang->resource->projectweekly->view              = 'view';
+$lang->resource->projectweekly->weeklyboard                 = 'weeklyboard';
+
+$lang->resource->projectweekly = new stdclass();
+$lang->resource->projectweekly->projectweeklylist = 'projectweeklylist';
+$lang->resource->projectweekly->generateWeekly    = 'generateWeekly';
+$lang->resource->projectweekly->edit              = 'edit';
+$lang->resource->projectweekly->view              = 'view';
+$lang->resource->projectweekly->weeklyboard                 = 'weeklyboard';
 
 include (dirname(__FILE__) . '/changelog.php');

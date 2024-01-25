@@ -244,4 +244,73 @@ class report extends control
 
         $this->display();
     }
+
+    /**
+     * 任务看板
+     */
+    public function taskboard($date = 0, $dept = -1, $director = '', $project = 0, $pp = 0)
+    {
+        $this->app->loadLang('task');
+        if ($_POST) {
+            $data = fixer::input('post')->get();
+            $dept = $data->dept;
+            $date = $data->date;
+        }
+        if ($dept > -1) {
+            $dept = $dept;
+        } else {
+            $dept = $this->app->user->dept;
+        }
+        if ($date == '' || $date == 0 || $date == 'today' || !$date) {
+            $date = date('Y-m-d');
+        } else {
+            $date = date('Y-m-d', strtotime($date));
+        }
+
+        # TODO: 项目负责人
+        $pps = ['' => '全部'] + $this->loadModel('project')->getPPs();
+        if ($pp == '') {
+            $projects = [0 => '全部'] + $this->loadModel('project')->getAll();
+        } else {
+            $projects = [0 => '全部'] + $this->loadModel('project')->getProjectsFilterPP(
+                $mode = '', $director = '', $type = 'project', $pp = $pp);
+        }
+
+        // if ($director == '' && $product == 0) {
+        //     $independentProjects = $this->loadModel('project')->getIndependentProjects();
+        // } else {
+        //     $independentProjects = [];
+        // }
+        $independentProjects = [];
+
+        $projectIDs = array_keys($projects);
+
+
+        $result = $this->report->getTaskStatistics($dept, $date, $projectIDs, $project, $independentProjects);
+        $this->view->user2detail = $result['tasks'];
+        $this->view->short = $result['short'];
+        $this->view->exceed = $result['exceed'];
+
+        $this->view->users = $this->loadModel('user')->getPairs('noletter|noclosed|nodeleted');
+        $this->view->pps  = $pps;
+        $this->view->pp  = $pp;
+
+        $this->view->date = $date;
+        $this->view->toady = date('Ymd');
+        $this->view->prev_day = date("Ymd", strtotime("-1 days", strtotime($date)));
+        $this->view->next_day = date("Ymd", strtotime("+1 days", strtotime($date)));
+
+        $this->view->depts = $this->loadModel('dept')->getOptionMenu();
+        $this->view->projects = $projects;
+
+        $this->view->dept = $dept;
+        $this->view->project = $project;
+        $this->view->director = $director;
+
+        $this->app->loadConfig('project');
+        $this->app->session->set('taskList',  $this->app->getURI(true));
+        $this->view->title = $this->lang->report->taskboard;
+        $this->view->position[] = $this->lang->report->taskboard;
+        $this->display();
+    }
 }

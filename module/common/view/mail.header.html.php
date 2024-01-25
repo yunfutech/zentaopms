@@ -14,9 +14,9 @@ if($onlybody) $_GET['onlybody'] = 'no';
   　<table border='0' cellpadding='0' cellspacing='0' width='100%' style='font-size: 13px; color: #333; line-height: 20px; font-family: "Helvetica Neue",Helvetica,"Microsoft Yahei","Hiragino Sans GB","WenQuanYi Micro Hei",Tahoma,Arial,sans-serif;'>
       <tr>
         <td>
-          <table align='center' border='0' cellpadding='0' cellspacing='0' width='600' style='border: none; border-collapse: collapse;'>
+          <table align='center' border='0' cellpadding='0' cellspacing='0' width='800' style='border: none; border-collapse: collapse;'>
             <tr>
               <td style='padding: 10px 0; border: none; vertical-align: middle;'><strong style='font-size: 16px'><?php echo $this->app->company->name ?></strong></td>
             </tr>
           </table>
-          <table align='center' border='0' cellpadding='0' cellspacing='0' width='600' style='border-collapse: collapse; background-color: #fff; border: 1px solid #cfcfcf; box-shadow: 0 0px 6px rgba(0, 0, 0, 0.1); margin-bottom: 20px; font-size:13px;'>
+          <table align='center' border='0' cellpadding='0' cellspacing='0' width='800' style='border-collapse: collapse; background-color: #fff; border: 1px solid #cfcfcf; box-shadow: 0 0px 6px rgba(0, 0, 0, 0.1); margin-bottom: 20px; font-size:13px;'>
