@@ -31,10 +31,10 @@
             </div>
           </div>
           <div class='col-sm-3'>
-            <?php echo html::a($this->createLink('report', 'taskboard', "date={$prev_day}&dept={$dept}&director={$director}&project={$project}"), '上一天', '', "class='btn btn-primary next'"); ?>
-            <?php echo html::a($this->createLink('report', 'taskboard', "date={$toady}&dept={$dept}&director={$director}&project={$project}"), '今天', '', "class='btn btn-primary next'"); ?>
-            <?php echo html::a($this->createLink('report', 'taskboard', "date={$next_day}&dept={$dept}&director={$director}&project={$project}"), '下一天', '', "class='btn btn-primary next'"); ?>
-            <?php echo html::a($this->createLink('report', 'export', "&dept={$dept}&director={$director}&project={$project}"), "<i class='icon icon-export muted'> </i>导出", '', "class='btn btn-primary downtask-btn'"); ?>
+            <?php echo html::a($this->createLink('report', 'taskboard', "date={$prev_day}&dept={$dept}&t=html&director={$director}&project={$project}&pp={$pp}"), '上一天', '', "class='btn btn-primary next'"); ?>
+            <?php echo html::a($this->createLink('report', 'taskboard', "date={$toady}&dept={$dept}&t=html&director={$director}&project={$project}&pp={$pp}"), '今天', '', "class='btn btn-primary next'"); ?>
+            <?php echo html::a($this->createLink('report', 'taskboard', "date={$next_day}&dept={$dept}&t=html&director={$director}&project={$project}&pp={$pp}"), '下一天', '', "class='btn btn-primary next'"); ?>
+            <?php echo html::a($this->createLink('report', 'export', "&dept={$dept}&t=html&director={$director}&project={$project}&pp={$pp}"), "<i class='icon icon-export muted'> </i>导出", '', "class='btn btn-primary downtask-btn'"); ?>
           </div>
         </div>
       </form>
