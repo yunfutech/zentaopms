@@ -269,7 +269,7 @@ class report extends control
 
         # TODO: 项目负责人
         $pps = ['' => '全部'] + $this->loadModel('project')->getPPs();
-        if ($pp == '') {
+        if ($pp == '' || $pp == '0') {
             $projects = [0 => '全部'] + $this->loadModel('project')->getAll();
         } else {
             $projects = [0 => '全部'] + $this->loadModel('project')->getProjectsFilterPP(
