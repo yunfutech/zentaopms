@@ -8,7 +8,10 @@ class programMenu extends wg
 {
     private $programs = array();
 
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'programs?: array',
         'activeClass?: string="active"',
         'activeIcon?: string="check"',
@@ -17,7 +20,10 @@ class programMenu extends wg
         'leadingAngle?: bool'
     );
 
-    public static function getPageCSS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageCSS()
     {
         return file_get_contents(__DIR__ . DS . 'css' . DS . 'v1.css');
     }

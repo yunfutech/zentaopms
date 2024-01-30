@@ -28,7 +28,7 @@ class mainNavbar extends nav
      * @var array
      * @access protected
      */
-    protected static array $defineBlocks = array
+    protected static $defineBlocks = array
     (
         'left' => array('map' => 'dropdown'),
         'right' => array('map' => 'toolbar')
@@ -40,7 +40,7 @@ class mainNavbar extends nav
      * @access public
      * @return string|false
      */
-    public static function getPageCSS(): string|false
+    public static function getPageCSS()
     {
         return file_get_contents(__DIR__ . DS . 'css' . DS . 'v1.css');
     }
@@ -130,7 +130,7 @@ class mainNavbar extends nav
      * @access protected
      * @return array
      */
-    protected function buildSwitcher(): array|null
+    protected function buildSwitcher()
     {
         global $app, $config;
 

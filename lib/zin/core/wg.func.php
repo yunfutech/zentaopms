@@ -35,7 +35,7 @@ function wg(): wg
  * @param  mixed                   $value
  * @return directive|null
  */
-function set(string|array|props|null $name, mixed $value = null): ?directive
+function set($name, $value = null): ?directive
 {
     if($name === null) return null;
 
@@ -62,8 +62,9 @@ function setClass(/* array|string|null ...$classList */): directive
  * Set widget style attribute.
  *
  * @return directive
+ * @param mixed[]|string $name
  */
-function setStyle(array|string $name, ?string $value = null): directive
+function setStyle($name, ?string $value = null): directive
 {
     return directive('style', is_array($name) ? $name : array($name => $value));
 }
@@ -72,8 +73,9 @@ function setStyle(array|string $name, ?string $value = null): directive
  * Set widget CSS variable.
  *
  * @return directive
+ * @param mixed[]|string $name
  */
-function setCssVar(array|string $name, ?string $value = null): directive
+function setCssVar($name, ?string $value = null): directive
 {
     return directive('cssVar', is_array($name) ? $name : array($name => $value));
 }
@@ -105,7 +107,7 @@ function setTag(string $id): directive
  * @param  mixed        $value
  * @return directive
  */
-function setData(string|array $name, mixed $value = null): directive
+function setData($name, $value = null): directive
 {
     $map   = is_array($name) ? $name : array($name => $value);
     $attrs = array();
@@ -127,7 +129,7 @@ function setData(string|array $name, mixed $value = null): directive
  * @param  bool|string|array $handler
  * @param  array             $options
  */
-function on(string $name, bool|string|array $handler, array|string|bool $options = null): directive
+function on(string $name, $handler, $options = null): directive
 {
     if(is_string($options) && is_string($handler))
     {
@@ -221,7 +223,7 @@ function after(): directive
  * @param  wg|array $item
  * @return array
  */
-function inherit(wg|array $item): array
+function inherit($item): array
 {
     if(!($item instanceof wg)) $item = new wg($item);
     return array(set($item->props), directive('block', $item->blocks), $item->children());
@@ -233,7 +235,7 @@ function inherit(wg|array $item): array
  * @param  wg|array $item
  * @return array
  */
-function divorce(wg|array $item): wg|array
+function divorce($item)
 {
     if($item instanceof wg)
     {
@@ -253,7 +255,7 @@ function divorce(wg|array $item): wg|array
  * @param  string   $type
  * @return bool
  */
-function hasWgInList(wg|array $items, string $type): bool
+function hasWgInList($items, string $type): bool
 {
     if(!is_array($items)) $items = array($items);
     foreach($items as $item)
@@ -270,7 +272,7 @@ function hasWgInList(wg|array $items, string $type): bool
  * @param  string   $types
  * @return array
  */
-function groupWgInList(wg|array $items, string|array $types): array
+function groupWgInList($items, $types): array
 {
     if(is_string($types)) $types = explode(',', $types);
     $typesMap = array();

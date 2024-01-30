@@ -23,7 +23,7 @@ class classlist
      * @access private
      * @var    array
      */
-    private array $list = array();
+    private $list = array();
 
     /**
      * Create classname instance
@@ -68,7 +68,7 @@ class classlist
      * @param bool              $reset
      * @return classlist
      */
-    public function set(string|array|null $list, bool $reset = false): classlist
+    public function set($list, bool $reset = false): classlist
     {
         if(is_string($list)) $list = explode(' ', $list);
 
@@ -141,7 +141,7 @@ class classlist
      * @param array|string $list - classname string joined by space or string array
      * @return classlist
      */
-    public function remove(array|string $list): classlist
+    public function remove($list): classlist
     {
         if(is_string($list)) $list = explode(' ', $list);
 
@@ -171,7 +171,7 @@ class classlist
      * @param string $name - classname string
      * @return classlist
      */
-    public function toggle(string $name, bool|null $toggle = null): classlist
+    public function toggle(string $name, ?bool $toggle = null): classlist
     {
         $name = trim($name);
         if(strlen($name))
@@ -192,8 +192,9 @@ class classlist
      *
      *     // Check multiple names
      *     echo $classlist->has('btn primary'); // Output true
+     * @param mixed[]|string $list
      */
-    public function has(array|string $list): bool
+    public function has($list): bool
     {
         if(is_string($list)) $list = explode(' ', $list);
 

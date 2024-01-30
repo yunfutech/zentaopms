@@ -378,7 +378,23 @@ class zdb
     public function addslashes($data)
     {
         if(is_string($data)) return addslashes($data);
-        if((function_exists('array_is_list') && array_is_list($data)) || (is_array($data) && array_keys($data) === array_keys(array_keys($data))))
+        $arrayIsList = function (array $array) : bool {
+            if (function_exists('array_is_list')) {
+                return array_is_list($array);
+            }
+            if ($array === []) {
+                return true;
+            }
+            $current_key = 0;
+            foreach ($array as $key => $noop) {
+                if ($key !== $current_key) {
+                    return false;
+                }
+                ++$current_key;
+            }
+            return true;
+        };
+        if((function_exists('array_is_list') && $arrayIsList($data)) || (is_array($data) && array_keys($data) === array_keys(array_keys($data))))
         {
             $result = array();
             foreach($data as $item)

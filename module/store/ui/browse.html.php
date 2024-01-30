@@ -67,17 +67,7 @@ foreach ($cloudApps as $group)
                     $lang->store->author,
                     span($cloudApp->author, setClass('font-semibold ml-2'))
                 ),
-                btn
-                (
-                    $lang->store->install,
-                    setClass('primary btn size-sm install-btn'),
-                    setData('prevent', true),
-                    setData('toggle', 'modal'),
-                    setData('size', 'sm'),
-                    in_array($cloudApp->id, $installedApps) ? setData('confirm', $lang->store->alreadyInstalled) : null,
-                    setData('url', $this->createLink('space', 'createApplication', "id={$cloudApp->id}")),
-                    on::click('installApp', array('stop' => true)),
-                )
+                btn($lang->store->install, setClass('primary btn size-sm install-btn'), setData('prevent', true), setData('toggle', 'modal'), setData('size', 'sm'), in_array($cloudApp->id, $installedApps) ? setData('confirm', $lang->store->alreadyInstalled) : null, setData('url', $this->createLink('space', 'createApplication', "id={$cloudApp->id}")), on::click('installApp', array('stop' => true)))
             )
         );
     }
@@ -89,63 +79,21 @@ foreach ($cloudApps as $group)
     );
 }
 
-div
+div(setID('cloudAppContainer'), setClass('mb-5 flex col'), div(setClass('flex'), backBtn
 (
-    setID('cloudAppContainer'),
-    setClass('mb-5 flex col'),
-
-    div
-    (
-        setClass('flex'),
-        backBtn
-        (
-            set::icon('back'),
-            set::back('GLOBAL'),
-            setClass('ghost'),
-            $lang->goback
-        ),
-        div(setClass('divider w-px h-5 mx-2'), setStyle('align-self', 'center')),
-       featureBar
-       (
-            set::current($sortType),
-            set::linkParams("sortType={key}"),
-       ),
-
-        toolbar
-        (
-            formGroup
-            (
-                set::name('name'),
-                set::control(array
-                (
-                    'type'        => 'inputControl',
-                    'prefixWidth' => 'icon',
-                    'placeholder' => $lang->store->searchApp,
-                    'value'       => $keyword,
-                )),
-            ),
-        ),
-    ),
-
-    div(...$groups),
-    count($cloudApps) ? pager(
-        set::props(array('id' => 'storePager')),
-        set::page($setting['page']),
-        set::recTotal($setting['recTotal']),
-        set::recPerPage($setting['recPerPage']),
-        set::linkCreator($setting['linkCreator']),
-        set::items($setting['items']),
-        set::gap($setting['gap']),
-    ) : null,
-);
+    set::icon('back'),
+    set::back('GLOBAL'),
+    setClass('ghost'),
+    $lang->goback
+), div(setClass('divider w-px h-5 mx-2'), setStyle('align-self', 'center')), featureBar(set::current($sortType), set::linkParams("sortType={key}")), toolbar(formGroup(set::name('name'), set::control(array
+(
+    'type'        => 'inputControl',
+    'prefixWidth' => 'icon',
+    'placeholder' => $lang->store->searchApp,
+    'value'       => $keyword,
+))))), div(...$groups), count($cloudApps) ? pager(set::props(array('id' => 'storePager')), set::page($setting['page']), set::recTotal($setting['recTotal']), set::recPerPage($setting['recPerPage']), set::linkCreator($setting['linkCreator']), set::items($setting['items']), set::gap($setting['gap'])) : null);
 
 count($cloudApps) ? sidebar
 (
-    treeEditor
-    (
-        setID('storeTree'),
-        set::items($tree),
-        set::canSplit(false),
-        set::onClickItem(jsRaw('window.treeClick')),
-    )
+    treeEditor(setID('storeTree'), set::items($tree), set::canSplit(false), set::onClickItem(jsRaw('window.treeClick')))
 ) : null;

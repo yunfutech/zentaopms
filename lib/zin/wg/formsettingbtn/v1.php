@@ -14,17 +14,26 @@ namespace zin;
 
 class formSettingBtn extends wg
 {
-    protected static array $defaultProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defaultProps = array(
         'customFields' => array(),
         'urlParams'    => ''
     );
 
-    public static function getPageCSS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageCSS()
     {
         return file_get_contents(__DIR__ . DS . 'css' . DS . 'v1.css');
     }
 
-    public static function getPageJS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageJS()
     {
         return file_get_contents(__DIR__ . DS . 'js' . DS . 'v1.js');
     }

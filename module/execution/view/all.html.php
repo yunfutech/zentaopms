@@ -79,110 +79,67 @@ js::set('isCNLang', !$this->loadModel('common')->checkNotCN());
     </p>
   </div>
   <?php else:?>
-  <?php $canBatchEdit = common::hasPriv('execution', 'batchEdit'); ?>
-  <form class='main-table' id='executionsForm' method='post' action='<?php echo inLink('batchEdit');?>' data-ride='table'>
-    <table class='table has-sort-head table-fixed' id='executionList'>
-      <?php $vars = "status=$status&projectID=$projectID&orderBy=%s&productID=$productID&recTotal={$pager->recTotal}&recPerPage={$pager->recPerPage}&pageID={$pager->pageID}";?>
-      <thead>
-        <tr>
-          <th class='c-id'>
-            <?php if($canBatchEdit):?>
-            <div class="checkbox-primary check-all" title="<?php echo $lang->selectAll?>">
-              <label></label>
-            </div>
-            <?php endif;?>
-            <?php common::printOrderLink('id', $orderBy, $vars, $lang->idAB);?>
-          </th>
-          <th class='c-pri'><?php common::printOrderLink('pri', $orderBy, $vars, $lang->priAB);?></th>
-          <th><?php common::printOrderLink('name', $orderBy, $vars, ($from == 'execution' and $config->systemMode == 'new') ? $lang->execution->execName : $lang->execution->name);?></th>
-          <?php if(!$isStage):?>
-          <th class='c-code'><?php common::printOrderLink('code', $orderBy, $vars, ($from == 'execution' and $config->systemMode == 'new') ? $lang->execution->execCode : $lang->execution->code);?></th>
-          <?php endif;?>
-          <?php if($config->systemMode == 'new' and $this->app->tab == 'execution'):?>
-          <th class='c-begin'><?php common::printOrderLink('projectName', $orderBy, $vars, $lang->execution->projectName);?></th></th>
-          <?php endif;?>
-          <th class='c-pm'><?php common::printOrderLink('PM', $orderBy, $vars, $lang->execution->owner);?></th>
-          <th class='c-status'><?php common::printOrderLink('status', $orderBy, $vars, $from == 'execution' ? $lang->execution->execStatus : $lang->execution->status);?></th>
-          <th class='c-progress'><?php echo $lang->execution->progress;?></th>
-          <?php if($isStage):?>
-          <th class='c-percent'><?php common::printOrderLink('percent', $orderBy, $vars, $lang->programplan->percent);?></th>
-          <th class='c-attribute'><?php common::printOrderLink('attribute', $orderBy, $vars, $lang->programplan->attribute);?></th>
-          <th class='c-begin'><?php common::printOrderLink('begin', $orderBy, $vars, $lang->execution->begin);?></th>
-          <th class='c-end'><?php common::printOrderLink('end', $orderBy, $vars, $lang->execution->end);?></th>
-          <th class='c-realBegan'><?php common::printOrderLink('realBegan', $orderBy, $vars, $lang->execution->realBegan);?></th>
-          <th class='c-realEnd'><?php common::printOrderLink('realEnd', $orderBy, $vars, $lang->execution->realEnd);?></th>
-          <th class='c-action'><?php echo $lang->actions;?></th>
-          <?php else:;?>
-          <th class='c-begin'><?php common::printOrderLink('begin', $orderBy, $vars, $lang->execution->begin);?></th>
-          <th class='c-end'><?php common::printOrderLink('end', $orderBy, $vars, $lang->execution->end);?></th>
-          <th class='c-estimate text-right hours'><?php echo $lang->execution->totalEstimate;?></th>
-          <th class='c-consumed text-right hours'><?php echo $lang->execution->totalConsumed;?></th>
-          <th class='c-left text-right hours'><?php echo $lang->execution->totalLeft;?></th>
-          <?php endif;?>
+  <form class='main-table' id='executionForm' method='post'>
+    <div class="table-header fixed-right">
+      <nav class="btn-toolbar pull-right setting"></nav>
+    </div>
+    <div id="dtable"></div>
+    <div class='table-footer'>
+      <div class="table-actions btn-toolbar">
+        <?php
+        if($canBatchEdit)
+        {
+            $actionLink = $this->createLink('project', 'batchEdit');
+            $misc       = "id='batchEditBtn'";
+            echo html::commonButton($lang->edit, $misc);
+        }
+        if($canBatchChangeStatus)
+        {
+            $changeStatusHtml  = "<div class='btn-group dropup'>";
+            $changeStatusHtml .= "<button data-toggle='dropdown' type='button' class='btn'>{$this->lang->statusAB} <span class='caret'></span></button>";
+            $changeStatusHtml .= "<div class='dropdown-menu search-list'><div class='list-group'>";
+            foreach($this->lang->execution->statusList as $status => $statusText)
+            {
+                $actionLink        = $this->createLink('execution', 'batchChangeStatus', "status=$status");
+                $changeStatusHtml .= html::a('#', $statusText, '', "class='statusLink' data-link='$actionLink'  onmouseover=\"setBadgeStyle(this, true);\" onmouseout=\"setBadgeStyle(this, false)\"");
+            }
+            $changeStatusHtml .= "</div></div></div>";
 
-          <?php if(!$isStage):?>
-          <th class='c-burn'><?php echo $lang->execution->burn;?></th>
-          <?php endif;?>
-          <?php
-          $extendFields = $this->execution->getFlowExtendFields();
-          foreach($extendFields as $extendField) echo "<th rowspan='2'>{$extendField->name}</th>";
-          ?>
-        </tr>
-      </thead>
-      <tbody class='sortable' id='executionTableList'>
-        <?php foreach($executionStats as $execution):?>
-        <tr data-id='<?php echo $execution->id ?>' data-order='<?php echo $execution->order ?>'>
-          <td class='c-id'>
-            <?php if($canBatchEdit):?>
-            <div class="checkbox-primary">
-              <input type='checkbox' name='executionIDList[<?php echo $execution->id;?>]' value='<?php echo $execution->id;?>' autocomplete='off' />
-              <label></label>
-            </div>
-            <?php endif;?>
-            <?php printf('%03d', $execution->id);?>
-          </td>
-          <td class='c-pri'><span class='label-pri label-pri-<?php echo $execution->pri?>' title='<?php echo zget($lang->execution->priList, $execution->pri);?>'><?php echo zget($lang->execution->priList, $execution->pri)?></span></td>
-          <td class='text-left c-name <?php if(!empty($execution->children)) echo 'has-child';?> flex' title='<?php echo $execution->name?>'>
-            <?php if($config->systemMode == 'new'):?>
-            <span class='project-type-label label label-outline <?php echo $execution->type == 'stage' ? 'label-warning' : 'label-info';?>'><?php echo $lang->execution->typeList[$execution->type]?></span>
-            <?php endif;?>
-            <?php
-            $executionLink = $execution->projectModel == 'kanban' ? html::a($this->createLink('execution', 'kanban', 'executionID=' . $execution->id), $execution->name, '', "class='text-ellipsis'") : html::a($this->createLink('execution', 'task', 'execution=' . $execution->id), $execution->name, '', "class='text-ellipsis'");
-            echo !empty($execution->children) ? $execution->name :  $executionLink;
-            if(isset($execution->delay)) echo "<span class='label label-danger label-badge'>{$lang->execution->delayed}</span> ";
-            ?>
-            <?php if(!empty($execution->children)):?>
-              <a class="plan-toggle" data-id="<?php echo $execution->id;?>"><i class="icon icon-angle-double-right"></i></a>
-            <?php endif;?>
-          </td>
-          <?php if(!$isStage):?>
-          <td title='<?php echo $execution->code;?>'><?php echo $execution->code;?></td>
-          <?php endif;?>
-          <?php if($config->systemMode == 'new' and $this->app->tab == 'execution'):?>
-          <td class='c-begin' title='<?php echo $execution->projectName;?>'>
-             <span class="status-execution status-<?php echo $execution->projectName?>"><?php echo $execution->projectName;?></span>
-          </td>
-          <?php endif;?>
-          <td><?php echo zget($users, $execution->PM);?></td>
-          <?php $executionStatus = $this->processStatus('execution', $execution);?>
-          <td class='c-status text-center' title='<?php echo $executionStatus;?>'>
-            <span class="status-execution status-<?php echo $execution->status?>"><?php echo $executionStatus;?></span>
-          </td>
-          <td class="c-progress">
-            <?php echo html::ring($execution->hours->progress); ?>
-          </td>
-          <?php if($isStage):?>
-          <td><?php echo $execution->percent . '%';?></td>
-          <td><?php echo zget($lang->stage->typeList, $execution->attribute, '');?></td>
-          <td><?php echo helper::isZeroDate($execution->begin)     ? '' : $execution->begin;?></td>
-          <td><?php echo helper::isZeroDate($execution->end)       ? '' : $execution->end;?></td>
-          <td><?php echo helper::isZeroDate($execution->realBegan) ? '' : $execution->realBegan;?></td>
-          <td><?php echo helper::isZeroDate($execution->realEnd)   ? '' : $execution->realEnd;?></td>
-          <td class="c-actions text-center c-actions">
-            <?php
-                common::printIcon('execution', 'start', "executionID={$execution->id}", $execution, 'list', '', '', 'iframe', true);
-                $class = !empty($execution->children) ? 'disabled' : '';
-                common::printIcon('task', 'create', "executionID={$execution->id}", $execution, 'list', '', '', $class, false, "data-app='execution'");
+            echo $changeStatusHtml;
+        }
+        ?>
+      </div>
+      <?php $pager->show('right', 'pagerjs');?>
+    </div>
+  </form>
+  <script>
+  cols = JSON.parse(cols);
+  data = JSON.parse(data);
+  const options =
+  {
+      striped: true,
+      plugins: ['nested', 'checkable'],
+      checkOnClickRow: true,
+      sortLink: createSortLink,
+      cols: cols,
+      data: data,
+      footer: false,
+      responsive: true,
+      onCheckChange: toggleActions,
+      height: function(height)
+      {
+          return Math.min($(window).height() - $('#header').outerHeight() - $('#mainMenu').outerHeight() - $('.table-footer').outerHeight() - 30, height);
+      },
+      onRenderCell: function(result, info)
+      {
+          if(info.col.name === 'burn' && Array.isArray(info.row.data.burns) && info.row.data.burns.length)
+          {
+              tryRenderSparkline();
+              return [{html: '<span class="sparkline pending text-left no-padding" values="' + info.row.data.burns.join(',') + '"></span>'}];
+          }
+          return result;
+      },
+  };
 
   function renderSparkline()
   {

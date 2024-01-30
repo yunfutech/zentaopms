@@ -13,12 +13,7 @@ declare(strict_types=1);
 namespace zin;
 
 /* zin: Define the set::module('compile') feature bar on main menu. */
-featureBar
-(
-    to::leading(array(backBtn(set::icon('back'), set::className('secondary'), $lang->goback))),
-    set::current($type),
-    set::link($this->createLink('gitlab', 'binduser', "gitlabID=$gitlabID&type={key}")),
-);
+featureBar(to::leading(array(backBtn(set::icon('back'), set::className('secondary'), $lang->goback))), set::current($type), set::link($this->createLink('gitlab', 'binduser', "gitlabID=$gitlabID&type={key}")));
 
 /* zin: Define the toolbar on main menu. */
 toolbar();
@@ -35,29 +30,19 @@ form
     set::action(createLink('gitlab', 'bindUser', "gitlabID={$gitlabID}")),
     set::actions(array()),
     on::change('input[name^="zentaoUsers"]', 'setUserEmail'),
-    dtable
-    (
-        set::cols($config->gitlab->dtable->bindUser->fieldList),
-        set::data($userList),
-        set::plugins(array('form')),
-        set::rowHeight(50),
-        set::showToolbarOnChecked(false),
-        set::footer(array('toolbar')),
-        set::rowKey('gitlabID'),
-        set::footToolbar(array(
-            'className' => 'w-full form-actions form-group no-label',
-            'items'     => array(
-                array(
-                    'text'    => $lang->save,
-                    'btnType' => 'primary',
-                    'onClick' => jsRaw("bindUser")
-                ),
-                array(
-                    'text'    => $lang->goback,
-                    'btnType' => 'info',
-                    'onClick' => jsRaw('() => {goBack()}'),
-                )
+    dtable(set::cols($config->gitlab->dtable->bindUser->fieldList), set::data($userList), set::plugins(array('form')), set::rowHeight(50), set::showToolbarOnChecked(false), set::footer(array('toolbar')), set::rowKey('gitlabID'), set::footToolbar(array(
+        'className' => 'w-full form-actions form-group no-label',
+        'items'     => array(
+            array(
+                'text'    => $lang->save,
+                'btnType' => 'primary',
+                'onClick' => jsRaw("bindUser")
+            ),
+            array(
+                'text'    => $lang->goback,
+                'btnType' => 'info',
+                'onClick' => jsRaw('() => {goBack()}'),
             )
-        )),
-    )
+        )
+    )))
 );

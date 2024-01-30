@@ -2087,35 +2087,11 @@ class taskModel extends model
             ->get();
 
         $currentConsumed = trim($this->post->currentConsumed);
-        if(!is_numeric($currentConsumed))
-        {
-            dao::$errors[] = $this->lang->task->error->consumedNumber;
-            return false;
-        }
-
-        if(empty($currentConsumed))
-        {
-            dao::$errors[] = $this->lang->task->error->consumedEmpty;
-            return false;
-        }
-
-        // if(!$this->post->realStarted)
-        // {
-        //     dao::$errors[] = $this->lang->task->error->realStartedEmpty;
-        //     return false;
-        // }
-
-        if(!$this->post->finishedDate)
-        {
-            dao::$errors[] = $this->lang->task->error->finishedDateEmpty;
-            return false;
-        }
-
-        if($this->post->realStarted and $this->post->realStarted > $this->post->finishedDate)
-        {
-            dao::$errors[] = $this->lang->task->error->finishedDateSmall;
-            return false;
-        }
+        if(!is_numeric($currentConsumed)) return dao::$errors[] = $this->lang->task->error->consumedNumber;
+        if(empty($currentConsumed) and $oldTask->consumed == '0') return dao::$errors[] = $this->lang->task->error->consumedEmpty;
+        if(!$this->post->realStarted) return dao::$errors[] = $this->lang->task->error->realStartedEmpty;
+        if(!$this->post->finishedDate) return dao::$errors[] = $this->lang->task->error->finishedDateEmpty;
+        if($this->post->realStarted > $this->post->finishedDate) return dao::$errors[] = $this->lang->task->error->finishedDateSmall;
 
         /* Record consumed and left. */
         if(empty($oldTask->team))
@@ -2710,12 +2686,10 @@ class taskModel extends model
             ->orWhere('t5.status')->eq("done")
             ->markRight(1)
             ->fi()
-            // ->beginIF($type == 'assignedTo' and ($this->app->rawModule == 'my' or $this->app->rawModule == 'block'))->andWhere('t2.status', true)->ne('suspended')->orWhere('t4.status')->ne('suspended')->markRight(1)->fi()
-            // ->beginIF($type != 'all' and $type != 'finishedBy' and $type != 'assignedTo')->andWhere("t1.`$type`")->eq($account)->fi()
-            // ->beginIF($type == 'assignedTo')->andWhere("(t1.assignedTo = '{$account}' or (t1.mode = 'multi' and t5.`account` = '{$account}' and t1.status != 'closed' and t5.status != 'done') )")->fi()
-            // ->beginIF($type == 'assignedTo' and $this->app->rawModule == 'my' and $this->app->rawMethod == 'work')->andWhere('t1.status')->notin('closed,cancel')->fi()
-            // ->beginIF($this->app->rawModule == 'my' or $this->app->rawModule == 'block')->andWhere('(t2.status')->ne('suspended')->orWhere('t4.status')->ne('suspended')->markRight(1)->fi()
-            ->beginIF($type != 'all' and $type != 'finishedBy')->andWhere("t1.`$type`")->eq($account)->fi()
+            ->beginIF($type == 'assignedTo' and ($this->app->rawModule == 'my' or $this->app->rawModule == 'block'))->andWhere('t2.status', true)->ne('suspended')->orWhere('t4.status')->ne('suspended')->markRight(1)->fi()
+            ->beginIF($type != 'all' and $type != 'finishedBy' and $type != 'assignedTo')->andWhere("t1.`$type`")->eq($account)->fi()
+            ->beginIF($type == 'assignedTo')->andWhere("(t1.assignedTo = '{$account}' or (t1.mode = 'multi' and t5.`account` = '{$account}' and t1.status != 'closed' and t5.status != 'done') )")->fi()
+            ->beginIF($type == 'assignedTo' and $this->app->rawModule == 'my' and $this->app->rawMethod == 'work')->andWhere('t1.status')->notin('closed,cancel')->fi()
             ->orderBy($orderBy)
             ->beginIF($limit > 0)->limit($limit)->fi()
             ->page($pager, 't1.id')

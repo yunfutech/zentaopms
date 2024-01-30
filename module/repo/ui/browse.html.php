@@ -49,12 +49,7 @@ $menuData = array('branch' => $branchMenus, 'tag' => $tagMenus);
 /* Prepare breadcrumb navigation data. */
 $base64BranchID    = helper::safe64Encode(base64_encode($branchID));
 $breadcrumbItems   = array();
-$breadcrumbItems[] = h::a
-(
-    set::href($this->repo->createLink('browse', "repoID=$repoID&branchID=$base64BranchID&objectID=$objectID")),
-    set('data-app', $app->tab),
-    $repo->name,
-);
+$breadcrumbItems[] = h::a(set::href($this->repo->createLink('browse', "repoID=$repoID&branchID=$base64BranchID&objectID=$objectID")), set('data-app', $app->tab), $repo->name);
 $breadcrumbItems[] = h::span('/', setStyle('margin', '0 5px'));
 
 $paths    = explode('/', $path);
@@ -63,37 +58,20 @@ $postPath = '';
 foreach($paths as $index => $pathName)
 {
     $postPath .= $pathName . '/';
-    $breadcrumbItems[] = h::a
-    (
-        set::href($this->repo->createLink('browse', "repoID=$repoID&branchID=$base64BranchID&objectID=$objectID&path=" . $this->repo->encodePath($postPath))),
-        set('data-app', $app->tab),
-        trim($pathName, '/'),
-    );
+    $breadcrumbItems[] = h::a(set::href($this->repo->createLink('browse', "repoID=$repoID&branchID=$base64BranchID&objectID=$objectID&path=" . $this->repo->encodePath($postPath))), set('data-app', $app->tab), trim($pathName, '/'));
     $breadcrumbItems[] = h::span('/', setStyle('margin', '0 5px'));
 }
 if($fileName) $breadcrumbItems[] = h::span($fileName);
 
 /* zin: Define the set::module('repo') feature bar on main menu. */
 \zin\featureBar(
-    formGroup
+    formGroup(set::className('repo-select'), set::required(true), (in_array($app->tab, array('project', 'execution')) && count($repoPairs) > 1) ? dropmenu
     (
-        set::className('repo-select'),
-        set::required(true),
-        (in_array($app->tab, array('project', 'execution')) && count($repoPairs) > 1) ? dropmenu
-        (
-            set::id('repoDropmenu'),
-            set::text($repo->name),
-            set::objectID($repo->id),
-            set::url(createLink('repo', 'ajaxGetDropMenu', "repoID={$repo->id}&module=repo&method=browse&projectID={$objectID}"))
-        ) : null,
-        ($repo->SCM != 'Subversion' && ($branches || $tags)) ? dropmenu
-        (
-            setID('repoBranchDropMenu'),
-            set::objectID($selected),
-            set::text($selected),
-            set::data(array('data' => $menuData, 'tabs' => $tabs)),
-        ) : null,
-    ),
+        set::id('repoDropmenu'),
+        set::text($repo->name),
+        set::objectID($repo->id),
+        set::url(createLink('repo', 'ajaxGetDropMenu', "repoID={$repo->id}&module=repo&method=browse&projectID={$objectID}"))
+    ) : null, ($repo->SCM != 'Subversion' && ($branches || $tags)) ? dropmenu(setID('repoBranchDropMenu'), set::objectID($selected), set::text($selected), set::data(array('data' => $menuData, 'tabs' => $tabs))) : null),
     ...$breadcrumbItems
 );
 
@@ -105,146 +83,54 @@ $createItem = array('text' => $lang->repo->createAction, 'url' => createLink('re
 
 $tableData = initTableData($infos, $config->repo->repoDtable->fieldList, $this->repo);
 
-$downloadWg = div
+$downloadWg = div(set::id('modal-downloadCode'), set::title($lang->repo->downloadCode), on('click', '', array('capture' => true, 'prevent' => true, 'stop' => true)), !empty($cloneUrl->svn) ? div(p(set::className('repo-downloadCode'), $lang->repo->cloneUrl), formRow
 (
-    set::id('modal-downloadCode'),
-    set::title($lang->repo->downloadCode),
-    on('click', '', array('capture' => true, 'prevent' => true, 'stop' => true)),
-    !empty($cloneUrl->svn) ? div
+    formGroup(set::width('450px'), input(set::type('text'), set::name('svnUrl'), set::value($cloneUrl->svn), set::readOnly(true))),
+    formGroup
     (
-        p(set::className('repo-downloadCode'), $lang->repo->cloneUrl),
-        formRow
-        (
-            formGroup
-            (
-                set::width('450px'),
-                input
-                (
-                    set::type('text'),
-                    set::name('svnUrl'),
-                    set::value($cloneUrl->svn),
-                    set::readOnly(true),
-                ),
-            ),
-            formGroup
-            (
-                set::width('50px'),
-                btn
-                (
-                    set::icon('copy'),
-                )
-            )
-        ),
-    ) : null,
-
-    !empty($cloneUrl->ssh) ? div
-    (
-        p(set::className('repo-downloadCode'), $lang->repo->sshClone),
-        formRow
-        (
-            formGroup
-            (
-                set::width('450px'),
-                input
-                (
-                    set::type('text'),
-                    set::name('sshUrl'),
-                    set::value($cloneUrl->ssh),
-                    set::readOnly(true),
-                ),
-            ),
-            formGroup
-            (
-                set::width('50px'),
-                btn
-                (
-                    set::className('copy-btn'),
-                    set::icon('copy'),
-                )
-            )
-        ),
-    ) : null,
-
-    !empty($cloneUrl->http) ? div
-    (
-        p(set::className('repo-downloadCode'), $lang->repo->httpClone),
-        formRow
-        (
-            formGroup
-            (
-                set::width('450px'),
-                input
-                (
-                    set::type('text'),
-                    set::name('httpUrl'),
-                    set::value($cloneUrl->http),
-                    set::readOnly(true),
-                ),
-            ),
-            formGroup
-            (
-                set::width('50px'),
-                btn
-                (
-                    set::className('copy-btn'),
-                    set::icon('copy'),
-                )
-            )
-        ),
-    ) : null,
-
-    div
-    (
-        setStyle(array('margin-top' => '20px')),
-        btn
-        (
-            set::icon('down-circle'),
-            set::className('downloadZip-btn'),
-            set::text($lang->repo->downloadZip),
-        )
-    ),
-);
-
-toolbar
+        set::width('50px'),
+        btn(set::icon('copy'))
+    )
+)) : null, !empty($cloneUrl->ssh) ? div(p(set::className('repo-downloadCode'), $lang->repo->sshClone), formRow
 (
-    span(
-        set::className('last-sync-time'),
-        $lang->repo->notice->lastSyncTime . $cacheTime
-    ),
-    $repo->SCM != 'Gitlab' ? item(set($refreshItem)) : null,
-    dropdown
+    formGroup(set::width('450px'), input(set::type('text'), set::name('sshUrl'), set::value($cloneUrl->ssh), set::readOnly(true))),
+    formGroup
     (
-        set::staticMenu(true),
-        btn
-        (
-            setClass('primary download-btn'),
-            set::icon('download'),
-            $lang->repo->download
-        ),
-        to::items
-        (
-            array($downloadWg)
-        ),
-    ),
-    hasPriv('repo', 'create') && $app->tab == 'project' ? item
-    (
-        set($createItem + array
-        (
-            'icon'  => 'plus',
-            'class' => 'btn primary',
-        )),
-        set('data-app', $this->app->tab),
-    ) : null,
-);
-
-dtable
+        set::width('50px'),
+        btn(set::className('copy-btn'), set::icon('copy'))
+    )
+)) : null, !empty($cloneUrl->http) ? div(p(set::className('repo-downloadCode'), $lang->repo->httpClone), formRow
 (
-    set::cols($config->repo->repoDtable->fieldList),
-    set::data($tableData),
-    set::onRenderCell(jsRaw('window.renderCell')),
-    set::canRowCheckable(jsRaw('function(rowID){return false;}')),
-    set::footPager(),
-);
+    formGroup(set::width('450px'), input(set::type('text'), set::name('httpUrl'), set::value($cloneUrl->http), set::readOnly(true))),
+    formGroup
+    (
+        set::width('50px'),
+        btn(set::className('copy-btn'), set::icon('copy'))
+    )
+)) : null, div
+(
+    setStyle(array('margin-top' => '20px')),
+    btn(set::icon('down-circle'), set::className('downloadZip-btn'), set::text($lang->repo->downloadZip))
+));
+
+toolbar(span(
+    set::className('last-sync-time'),
+    $lang->repo->notice->lastSyncTime . $cacheTime
+), $repo->SCM != 'Gitlab' ? item(set($refreshItem)) : null, dropdown(set::staticMenu(true), btn
+(
+    setClass('primary download-btn'),
+    set::icon('download'),
+    $lang->repo->download
+), to::items
+(
+    array($downloadWg)
+)), hasPriv('repo', 'create') && $app->tab == 'project' ? item(set($createItem + array
+(
+    'icon'  => 'plus',
+    'class' => 'btn primary',
+)), set('data-app', $this->app->tab)) : null);
+
+dtable(set::cols($config->repo->repoDtable->fieldList), set::data($tableData), set::onRenderCell(jsRaw('window.renderCell')), set::canRowCheckable(jsRaw('function(rowID){return false;}')), set::footPager());
 
 /* zin: Define the sidebar in main content. */
 $encodePath  = $this->repo->encodePath($path);
@@ -267,22 +153,6 @@ $readAllLink = $this->repo->createLink('log', "repoID=$repoID&objectID=$objectID
 $footToolbar['items'][] = array('text' => $lang->repo->diff, 'className' => "btn primary size-sm btn-diff", 'btnType' => 'primary', 'onClick' => jsRaw('window.diffClick'));
 $footToolbar['items'][] = array('text' => $lang->repo->allLog, 'url' => $readAllLink, 'data-app' => $this->app->tab);
 
-sidebar
-(
-    set::side('right'),
-    dtable
-    (
-        set::id('repo-comments-table'),
-        set::cols($config->repo->commentDtable->fieldList),
-        set::data($commentsTableData),
-        set::onRenderCell(jsRaw('window.renderCommentCell')),
-        set::onCheckChange(jsRaw('window.checkedChange')),
-        set::canRowCheckable(jsRaw('window.canRowCheckable')),
-        set::footToolbar($footToolbar),
-        set::footer(array('toolbar', 'flex', 'pager')),
-        set::footPager(usePager('pager', 'noTotalCount')),
-        set::showToolbarOnChecked(false),
-    ),
-);
+sidebar(set::side('right'), dtable(set::id('repo-comments-table'), set::cols($config->repo->commentDtable->fieldList), set::data($commentsTableData), set::onRenderCell(jsRaw('window.renderCommentCell')), set::onCheckChange(jsRaw('window.checkedChange')), set::canRowCheckable(jsRaw('window.canRowCheckable')), set::footToolbar($footToolbar), set::footer(array('toolbar', 'flex', 'pager')), set::footPager(usePager('pager', 'noTotalCount')), set::showToolbarOnChecked(false)));
 
 render();

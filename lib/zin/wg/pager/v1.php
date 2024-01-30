@@ -4,7 +4,10 @@ namespace zin;
 
 class pager extends wg
 {
-    protected static array $defineProps = array
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array
     (
         'type?: string="full"',
         'page?: int',

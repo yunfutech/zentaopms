@@ -24,7 +24,7 @@ class priPicker extends wg
      * @var    array
      * @access protected
      */
-    protected static array $defineProps = array
+    protected static $defineProps = array
     (
         'id?: string="$GID"',               // 组件根元素的 ID。
         'formID?: string',                  // 组件隐藏的表单元素 ID。

@@ -4,7 +4,10 @@ namespace zin;
 
 class cell extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'flex?: string',        // flex 类型或具体的值，例如：'auto'、'none'、'1'、'auto 1 1'。
         'order?: int',          // flex-order 属性。
         'grow?: int',           // flex-grow 属性。

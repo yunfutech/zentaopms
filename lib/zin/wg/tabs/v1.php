@@ -13,14 +13,20 @@ class tabs extends wg
      */
     private $tabPanes = array();
 
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         /* Tabs direction: h - horizontal, v - vertical */
         'direction?:string="h"',
         'collapse?: bool=false',
         'headerClass?:string=""'
     );
 
-    public static function getPageCSS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageCSS()
     {
         return file_get_contents(__DIR__ . DS . 'css' . DS . 'v1.css');
     }

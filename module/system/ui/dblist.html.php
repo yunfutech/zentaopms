@@ -14,21 +14,12 @@ $config->system->dtable->dbList->fieldList['actions']['list']['dblist']['url'] =
 
 $dbList = initTableData($dbList, $config->system->dtable->dbList->fieldList);
 
-panel
+panel(set::size('lg'), set::title($lang->system->dbList), div(setStyle('width', '66.6%'), dtable
 (
-    set::size('lg'),
-    set::title($lang->system->dbList),
-    div
-    (
-        setStyle('width', '66.6%'),
-        dtable
-        (
-            set::cols($config->system->dtable->dbList->fieldList),
-            set::data($dbList),
-            set::onRenderCell(jsRaw('window.renderDbList'))
-        ),
-    ),
-);
+    set::cols($config->system->dtable->dbList->fieldList),
+    set::data($dbList),
+    set::onRenderCell(jsRaw('window.renderDbList'))
+)));
 
 render();
 

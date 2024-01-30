@@ -21,23 +21,13 @@ $createItem = array('text' => $lang->gitea->create, 'url' => $createLink, 'class
 
 $tableData = initTableData($giteaList, $config->gitea->dtable->fieldList, $this->gitea);
 
-toolbar
-(
-    $canCreate ? item(set($createItem)) : null,
-);
+toolbar($canCreate ? item(set($createItem)) : null);
 
 jsVar('confirmDelete',    $lang->gitea->confirmDelete);
 jsVar('orderBy',          $orderBy);
 jsVar('canBrowseProject', common::hasPriv('gitea', 'browseProject'));
 jsVar('sortLink',         helper::createLink('gitea', 'browse', "orderBy={orderBy}&recTotal={$pager->recTotal}&recPerPage={$pager->recPerPage}&pageID={$pager->pageID}"));
 
-dtable
-(
-    set::cols(array_values($config->gitea->dtable->fieldList)),
-    set::data($tableData),
-    set::sortLink(jsRaw('createSortLink')),
-    set::onRenderCell(jsRaw('window.renderCell')),
-    set::footPager(usePager()),
-);
+dtable(set::cols(array_values($config->gitea->dtable->fieldList)), set::data($tableData), set::sortLink(jsRaw('createSortLink')), set::onRenderCell(jsRaw('window.renderCell')), set::footPager(usePager()));
 
 render();

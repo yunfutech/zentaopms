@@ -90,7 +90,7 @@ class artifactrepoModel extends model
      * @access public
      * @return false|int
      */
-    public function create(object $artifactRepo): false|int
+    public function create(object $artifactRepo)
     {
         $this->dao->insert(TABLE_ARTIFACTREPO)->data($artifactRepo)
             ->check('name', 'unique', "name = '{$artifactRepo->name}'")
@@ -111,7 +111,7 @@ class artifactrepoModel extends model
      * @access public
      * @return void
      */
-    public function update(object $artifactRepo, $artifactRepoID): array|false
+    public function update(object $artifactRepo, $artifactRepoID)
     {
         $oldArtifactRepo = $this->getByID($artifactRepoID);
 

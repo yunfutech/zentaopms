@@ -9,9 +9,15 @@ require_once dirname(__DIR__) . DS . 'main' . DS . 'v1.php';
 
 class page extends pageBase
 {
-    protected static array $defaultProps = array('zui' => true);
+    /**
+     * @var mixed[]
+     */
+    protected static $defaultProps = array('zui' => true);
 
-    protected static array $defineBlocks = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineBlocks = array(
         'head'     => array(),
         'header'   => array('map' => 'header'),
         'heading'  => array('map' => 'heading'),
@@ -20,7 +26,10 @@ class page extends pageBase
         'footer'   => array()
     );
 
-    protected function buildHeader(): array|wg
+    /**
+     * @return mixed[]|\zin\wg
+     */
+    protected function buildHeader()
     {
         if($this->hasBlock('header')) return $this->block('header');
 

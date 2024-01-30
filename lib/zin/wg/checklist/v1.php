@@ -6,7 +6,10 @@ require_once dirname(__DIR__) . DS . 'checkbox' . DS . 'v1.php';
 
 class checkList extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'primary: bool=true',
         'type: string="checkbox"',
         'name?: string',

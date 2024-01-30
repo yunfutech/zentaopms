@@ -8,13 +8,16 @@ require_once dirname(__DIR__) . DS . 'actionitem' . DS . 'v1.php';
 
 class toolbar extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'items?:array',
         'btnClass?:string',
         'btnProps?: array'
     );
 
-    public function onBuildItem($item): wg|null
+    public function onBuildItem($item): ?\zin\wg
     {
         if($item === null) return null;
 
@@ -31,12 +34,7 @@ class toolbar extends wg
 
         list($btnClass, $btnProps) = $this->prop(array('btnClass', 'btnProps'));
         $btn = empty($item->prop('back')) ? '\zin\btn' : '\zin\backBtn';
-        return new $btn
-        (
-            setClass('toolbar-item', $btnClass),
-            is_array($btnProps) ? set($btnProps) : null,
-            inherit($item)
-        );
+        return new $btn(setClass('toolbar-item', $btnClass), is_array($btnProps) ? set($btnProps) : null, inherit($item));
     }
 
     protected function build(): wg

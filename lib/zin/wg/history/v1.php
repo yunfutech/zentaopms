@@ -12,7 +12,10 @@ require_once dirname(__DIR__) . DS . 'section' . DS . 'v1.php';
  */
 class history extends wg
 {
-    protected static array $defineProps = array
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array
     (
         'panel?: bool=true',            // 是否渲染为面板。
         'objectType?: string',          // 操作对象类型。
@@ -25,7 +28,7 @@ class history extends wg
         'commentBtn?: string|array'     // 是否允许添加备注。
     );
 
-    protected function onCheckErrors(): array | null
+    protected function onCheckErrors(): ?array
     {
         if(empty($this->prop('objectID'))) return array('The property "objectID" of widget "history" is undefined.');
         return null;

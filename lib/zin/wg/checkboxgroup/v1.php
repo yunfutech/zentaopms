@@ -4,22 +4,34 @@ namespace zin;
 
 class checkboxGroup extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'title: array',
         'items: array'
     );
 
-    private static array $checkboxProps = array(
+    /**
+     * @var mixed[]
+     */
+    private static $checkboxProps = array(
         'checked' => false,
         'disabled' => false
     );
 
-    public static function getPageCSS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageCSS()
     {
         return file_get_contents(__DIR__ . DS . 'css' . DS . 'v1.css');
     }
 
-    public static function getPageJS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageJS()
     {
         return file_get_contents(__DIR__ . DS . 'js' . DS . 'v1.js');
     }

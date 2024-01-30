@@ -4,7 +4,10 @@ namespace zin;
 
 class dtable extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'className?:string="shadow-sm rounded"', // 表格样式。
         'id?:string',                            // ID。
         'customCols?: bool|array',               // 是否支持自定义列。
@@ -227,7 +230,7 @@ class dtable extends wg
      * @access protected
      * @return array|string
      */
-    protected function getLink(array $setting): array|string
+    protected function getLink(array $setting)
     {
         if(!empty($setting['url']))
         {

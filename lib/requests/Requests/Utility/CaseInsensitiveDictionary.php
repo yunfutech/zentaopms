@@ -50,7 +50,7 @@ class Requests_Utility_CaseInsensitiveDictionary implements ArrayAccess, Iterato
      * @return string|null Item value (null if offsetExists is false)
      */
     #[\ReturnTypeWillChange]
-    public function offsetGet($key): string|null {
+    public function offsetGet($key): ?string {
         $key = strtolower($key);
         if (!isset($this->data[$key])) {
             return null;

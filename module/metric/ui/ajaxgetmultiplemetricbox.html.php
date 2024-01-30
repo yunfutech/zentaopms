@@ -45,15 +45,10 @@ $fnGenerateQueryForm = function() use($metricRecordType, $metric, $metricID, $da
                 $label
             );
         }
-        $formGroups[] = formGroup
+        $formGroups[] = formGroup(setClass('query-calc-date query-inline w-64'), btngroup
         (
-            setClass('query-calc-date query-inline w-64'),
-            btngroup
-            (
-                $btnLabels
-            ),
-            on::click('.query-calc-date button.btn', 'window.handleCalcDateClick(target)'),
-        );
+            $btnLabels
+        ), on::click('.query-calc-date button.btn', 'window.handleCalcDateClick(target)'));
     }
 
     if($metricRecordType == 'date' || $metricRecordType == 'scope-date')
@@ -69,18 +64,12 @@ $fnGenerateQueryForm = function() use($metricRecordType, $metric, $metricID, $da
                 $label
             );
         }
-        $formGroups[] = formGroup
+        $formGroups[] = formGroup(setClass('query-date query-inline w-64'), btngroup
         (
-            setClass('query-date query-inline w-64'),
-            btngroup
-            (
-                $btnLabels
-            ),
-            on::click('.query-date button.btn', 'window.handleDateLabelClick(target)'),
-        );
+            $btnLabels
+        ), on::click('.query-date button.btn', 'window.handleDateLabelClick(target)'));
 
-        $formGroups[] = formGroup
-        (
+        $formGroups[] = formGroup(
             setClass('query-inline w-80'),
             // set::label($this->lang->metric->date),
             inputGroup
@@ -101,7 +90,7 @@ $fnGenerateQueryForm = function() use($metricRecordType, $metric, $metricID, $da
                     set::placeholder($this->lang->metric->placeholder->select)
                 )
             ),
-            on::change('.query-date-picker', 'window.handleDatePickerChange(target)'),
+            on::change('.query-date-picker', 'window.handleDatePickerChange(target)')
         );
     }
 

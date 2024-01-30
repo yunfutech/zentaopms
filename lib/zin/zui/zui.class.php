@@ -20,7 +20,10 @@ require_once __DIR__ . DS . 'toggle.class.php';
 
 class zui extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         '_name:string',
         '_to?:string',
         '_tag:string="div"',
@@ -33,7 +36,10 @@ class zui extends wg
         '_initWithShareData?: bool',
     );
 
-    protected function build(): wg|array
+    /**
+     * @return \zin\wg|mixed[]
+     */
+    protected function build()
     {
         list($name, $target, $tagName, $targetProps, $size, $id, $class, $map, $call, $initWithShareData) = $this->prop(array('_name', '_to', '_tag', '_props', '_size', '_id', '_class', '_map', '_call', '_initWithShareData'));
         list($width, $height) = $size;
@@ -72,16 +78,7 @@ class zui extends wg
 
         if(empty($target))
         {
-            return h
-            (
-                $tagName,
-                setClass($class),
-                setID($id),
-                setStyle('width', $width),
-                setStyle('height', $height),
-                set($targetProps),
-                $children,
-            );
+            return h($tagName, setClass($class), setID($id), setStyle('width', $width), setStyle('height', $height), set($targetProps), $children);
         }
 
         return  $children;

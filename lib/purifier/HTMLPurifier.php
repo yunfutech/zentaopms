@@ -189,7 +189,7 @@ class HTMLPurifier
                 continue;
             }
             $class = "HTMLPurifier_Filter_$filter";
-            $filters[] = new $class;
+            $filters[] = new $class();
         }
         foreach ($custom_filters as $filter) {
             // maybe "HTMLPurifier_Filter_$filter", but be consistent with AutoFormat

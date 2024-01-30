@@ -58,53 +58,25 @@ foreach($config->mr->view->operateList as $operate)
 
 if($MR->compileID)
 {
-    $job = tableData
-        (
-            item
-            (
-                set::name($lang->job->common),
-                $compile->name
-            ),
-            item
-            (
-                set::name($lang->compile->atTime),
-                $compile->createdDate,
-            ),
-            ($compileJob && !empty($compileJob->id)) ?  item
-            (
-                set::name($lang->compile->result),
-                zget($lang->compile->statusList, $compile->status),
-                h::a
-                (
-                    setClass('ml-1'),
-                    set::href($this->createLink('job', 'view', "jobID={$compileJob->id}&compileID={$compile->id}")),
-                    set('data-toggle', 'modal'),
-                    icon('search'),
-                    $lang->compile->logs,
-                ),
-            ) : null,
-        );
+    $job = tableData(item
+    (
+        set::name($lang->job->common),
+        $compile->name
+    ), item(set::name($lang->compile->atTime), $compile->createdDate), ($compileJob && !empty($compileJob->id)) ?  item(set::name($lang->compile->result), zget($lang->compile->statusList, $compile->status), h::a(setClass('ml-1'), set::href($this->createLink('job', 'view', "jobID={$compileJob->id}&compileID={$compile->id}")), set('data-toggle', 'modal'), icon('search'), $lang->compile->logs)) : null);
 }
 elseif($MR->needCI)
 {
     $compileUrl = $this->createLink('job', 'view', "jobID={$MR->jobID}");
-    $job = div
-        (
-            h::a
-            (
-                set::href($compileUrl),
-                set::target('_blank'),
-                $lang->compile->statusList[$MR->compileStatus]
-            ),
-        );
+    $job = div(h::a
+    (
+        set::href($compileUrl),
+        set::target('_blank'),
+        $lang->compile->statusList[$MR->compileStatus]
+    ));
 }
 else
 {
-    $job = div
-        (
-            setClass('text-center'),
-            $lang->mr->noCompileJob,
-        );
+    $job = div(setClass('text-center'), $lang->mr->noCompileJob);
 }
 
 detailHeader
@@ -133,160 +105,84 @@ detailHeader
 );
 
 
-panel
+panel(div
 (
-    div
+    set::id('mrMenu'),
+    nav(li
     (
-        set::id('mrMenu'),
-        nav
+        setClass('nav-item'),
+        a($lang->mr->view, setClass('active'))
+    ), li
+    (
+        setClass('nav-item'),
+        a
         (
-            li
-            (
-                setClass('nav-item'),
-                a($lang->mr->view, setClass('active'))
-            ),
-            li
-            (
-                setClass('nav-item'),
-                a
-                (
-                    $lang->mr->viewDiff,
-                    set::href(inlink('diff', "MRID={$MR->id}")),
-                    set('data-app', $app->tab)
-                )
-            ),
-            li
-            (
-                setClass('nav-item'),
-                a
-                (
-                    icon($lang->icons['story']),
-                    $lang->productplan->linkedStories,
-                    set::href(inlink('link', "MRID={$MR->id}&type=story")),
-                    set('data-app', $app->tab)
-                )
-            ),
-            li
-            (
-                setClass('nav-item'),
-                a
-                (
-                    icon($lang->icons['bug']),
-                    $lang->productplan->linkedBugs,
-                    set::href(inlink('link', "MRID={$MR->id}&type=bug")),
-                    set('data-app', $app->tab)
-                )
-            ),
-            li
-            (
-                setClass('nav-item'),
-                a
-                (
-                    icon('todo'),
-                    $lang->mr->linkedTasks,
-                    set::href(inlink('link', "MRID={$MR->id}&type=task")),
-                    set('data-app', $app->tab)
-                )
-            ),
+            $lang->mr->viewDiff,
+            set::href(inlink('diff', "MRID={$MR->id}")),
+            set('data-app', $app->tab)
         )
-    ),
-    div
-        (
-            setClass('flex items-center mt-4'),
-            cell
-            (
-                setClass('mr-4'),
-                set::grow(1),
-                set::align('flex-start'),
-                cell
-                (
-                    setClass('cell mb-2'),
-                    h::span
-                    (
-                        setClass('font-bold mt-2 mb-2 inline-block'),
-                        $lang->mr->from,
-                        h::a
-                        (
-                            setClass('font-normal ml-2 mr-2'),
-                            set::href($sourceProjectURL),
-                            set::target('_blank'),
-                            set::disabled($sourceDisabled),
-                            $sourceProjectName . ':' . $MR->sourceBranch
-                        ),
-                        $lang->mr->to,
-                        h::a
-                        (
-                            setClass('font-normal ml-2 mr-2'),
-                            set::href($targetProjectURL),
-                            set::target('_blank'),
-                            $targetProjectName . ':' . $MR->targetBranch,
-                        ),
-                    ),
-                    tableData
-                    (
-                        item
-                        (
-                            set::name($lang->mr->status),
-                            (!empty($MR->syncError) && $MR->synced === '0') ? h::span
-                            (
-                                setClass('danger'),
-                                $MR->status
-                            ) : zget($lang->mr->statusList, $MR->status),
-                        ),
-                        item
-                        (
-                            set::name($lang->mr->mergeStatus),
-                            ($MR->synced && empty($rawMR->changes_count)) ? span($lang->mr->cantMerge, h::code($lang->mr->noChanges)
-                            ) : zget($lang->mr->mergeStatusList, !empty($rawMR->merge_status) ? $rawMR->merge_status : $MR->mergeStatus),
-                        ),
-                        item
-                        (
-                            set::name($lang->mr->MRHasConflicts),
-                            $hasNoConflict ? $lang->mr->hasConflicts : $lang->mr->hasNoConflict,
-                        ),
-                        item
-                        (
-                            set::name($lang->mr->description),
-                            !empty($MR->description) ? html(nl2br($MR->description)) : $lang->noData,
-                        ),
-                    ),
-                ),
-                cell
-                (
-                    setClass('cell mb-2'),
-                    html(sprintf($lang->mr->commandDocument, $httpRepoURL, $MR->sourceBranch, $branchPath, $MR->targetBranch, $branchPath, $MR->targetBranch)),
-                ),
-                cell
-                (
-                    setClass('cell cell-history'),
-                    history(set::objectID($MR->id))
-                ),
-            ),
-            cell
-            (
-                setClass('cell'),
-                set::width('30%'),
-                set::align('baseline'),
-                div
-                (
-                    setClass('article-h1'),
-                    $lang->mr->jobID,
-                ),
-                $job
-            ),
-        ),
-);
-
-div
-(
-    setClass('flex justify-center items-center pt-6'),
-    floatToolbar
+    ), li
     (
-        set::object($MR),
-        isAjaxRequest('modal') ? null : to::prefix(backBtn(set::icon('back'), $lang->goback)),
-        set::main($mainActions),
-        set::suffix($suffixActions)
-    ),
-);
+        setClass('nav-item'),
+        a
+        (
+            icon($lang->icons['story']),
+            $lang->productplan->linkedStories,
+            set::href(inlink('link', "MRID={$MR->id}&type=story")),
+            set('data-app', $app->tab)
+        )
+    ), li
+    (
+        setClass('nav-item'),
+        a
+        (
+            icon($lang->icons['bug']),
+            $lang->productplan->linkedBugs,
+            set::href(inlink('link', "MRID={$MR->id}&type=bug")),
+            set('data-app', $app->tab)
+        )
+    ), li
+    (
+        setClass('nav-item'),
+        a
+        (
+            icon('todo'),
+            $lang->mr->linkedTasks,
+            set::href(inlink('link', "MRID={$MR->id}&type=task")),
+            set('data-app', $app->tab)
+        )
+    ))
+), div(setClass('flex items-center mt-4'), cell(setClass('mr-4'), set::grow(1), set::align('flex-start'), cell(setClass('cell mb-2'), h::span(setClass('font-bold mt-2 mb-2 inline-block'), $lang->mr->from, h::a
+(
+    setClass('font-normal ml-2 mr-2'),
+    set::href($sourceProjectURL),
+    set::target('_blank'),
+    set::disabled($sourceDisabled),
+    $sourceProjectName . ':' . $MR->sourceBranch
+), $lang->mr->to, h::a(setClass('font-normal ml-2 mr-2'), set::href($targetProjectURL), set::target('_blank'), $targetProjectName . ':' . $MR->targetBranch)), tableData(item(set::name($lang->mr->status), (!empty($MR->syncError) && $MR->synced === '0') ? h::span
+(
+    setClass('danger'),
+    $MR->status
+) : zget($lang->mr->statusList, $MR->status)), item(set::name($lang->mr->mergeStatus), ($MR->synced && empty($rawMR->changes_count)) ? span($lang->mr->cantMerge, h::code($lang->mr->noChanges)
+) : zget($lang->mr->mergeStatusList, !empty($rawMR->merge_status) ? $rawMR->merge_status : $MR->mergeStatus)), item(set::name($lang->mr->MRHasConflicts), $hasNoConflict ? $lang->mr->hasConflicts : $lang->mr->hasNoConflict), item(set::name($lang->mr->description), !empty($MR->description) ? html(nl2br($MR->description)) : $lang->noData))), cell(setClass('cell mb-2'), html(sprintf($lang->mr->commandDocument, $httpRepoURL, $MR->sourceBranch, $branchPath, $MR->targetBranch, $branchPath, $MR->targetBranch))), cell
+(
+    setClass('cell cell-history'),
+    history(set::objectID($MR->id))
+)), cell
+(
+    setClass('cell'),
+    set::width('30%'),
+    set::align('baseline'),
+    div(setClass('article-h1'), $lang->mr->jobID),
+    $job
+)));
+
+div(setClass('flex justify-center items-center pt-6'), floatToolbar
+(
+    set::object($MR),
+    isAjaxRequest('modal') ? null : to::prefix(backBtn(set::icon('back'), $lang->goback)),
+    set::main($mainActions),
+    set::suffix($suffixActions)
+));
 
 render();

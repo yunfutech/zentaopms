@@ -44,12 +44,7 @@ formPanel
             set::items($branches)
         )
     ),
-    formGroup
-    (
-        set::name('name'),
-        set::label($lang->repo->branchName),
-        set::required(true),
-    ),
+    formGroup(set::name('name'), set::label($lang->repo->branchName), set::required(true)),
     set::actions(array('submit'))
 );
 

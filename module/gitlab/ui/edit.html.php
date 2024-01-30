@@ -12,40 +12,31 @@ declare(strict_types=1);
 
 namespace zin;
 
-formPanel
+formPanel(set::id('gitlabCreateForm'), set::title($lang->gitlab->edit), set::submitBtnText($lang->save), set::actions(array('submit', array('text' => $lang->cancel, 'data-type' => 'submit', 'data-dismiss' => 'modal'))), formRow
 (
-    set::id('gitlabCreateForm'),
-    set::title($lang->gitlab->edit),
-    set::submitBtnText($lang->save),
-    set::actions(array('submit', array('text' => $lang->cancel, 'data-type' => 'submit', 'data-dismiss' => 'modal'))),
-    formRow
+    formGroup
     (
-        formGroup
-        (
-            set::name('name'),
-            set::label($lang->gitlab->name),
-            set::value($gitlab->name),
-            set::placeholder($lang->gitlab->placeholder->name)
-        )
-    ),
-    formRow
+        set::name('name'),
+        set::label($lang->gitlab->name),
+        set::value($gitlab->name),
+        set::placeholder($lang->gitlab->placeholder->name)
+    )
+), formRow
+(
+    formGroup
     (
-        formGroup
-        (
-            set::name('url'),
-            set::label($lang->gitlab->url),
-            set::value($gitlab->url),
-            set::placeholder($lang->gitlab->placeholder->url)
-        )
-    ),
-    formRow
+        set::name('url'),
+        set::label($lang->gitlab->url),
+        set::value($gitlab->url),
+        set::placeholder($lang->gitlab->placeholder->url)
+    )
+), formRow
+(
+    formGroup
     (
-        formGroup
-        (
-            set::name('token'),
-            set::label($lang->gitlab->token),
-            set::value($gitlab->token),
-            set::placeholder($lang->gitlab->placeholder->token)
-        )
-    ),
-);
+        set::name('token'),
+        set::label($lang->gitlab->token),
+        set::value($gitlab->token),
+        set::placeholder($lang->gitlab->placeholder->token)
+    )
+));

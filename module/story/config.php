@@ -55,7 +55,8 @@ $config->story->excludeCheckFileds = ',uploadImage,category,reviewer,reviewDitto
 
 global $lang, $app;
 $config->story->datatable = new stdclass();
-$config->story->datatable->defaultField = array('id', 'pri', 'title', 'plan', 'openedBy', 'assignedTo', 'estimate', 'consumed', 'status', 'stage', 'taskCount', 'progress', 'actions');
+
+$config->story->datatable->defaultField = array('id', 'title', 'pri', 'plan', 'status', 'estimate', 'reviewedBy', 'stage', 'assignedTo', 'openedBy', 'openedDate', 'actions');
 
 $config->story->datatable->fieldList['id']['title']    = 'idAB';
 $config->story->datatable->fieldList['id']['fixed']    = 'left';
@@ -140,11 +141,6 @@ $config->story->datatable->fieldList['reviewedDate']['type']     = 'html';
 $config->story->datatable->fieldList['reviewedDate']['sortType'] = true;
 $config->story->datatable->fieldList['reviewedDate']['width']    = '95';
 $config->story->datatable->fieldList['reviewedDate']['required'] = 'no';
-$config->story->datatable->fieldList['consumed']['title']    = 'consumed';
-$config->story->datatable->fieldList['consumed']['fixed']    = 'no';
-$config->story->datatable->fieldList['consumed']['width']    = '50';
-$config->story->datatable->fieldList['consumed']['sort']     = 'yes';
-$config->story->datatable->fieldList['consumed']['name']     = $lang->story->consumed;
 
 $config->story->datatable->fieldList['stage']['title']    = 'stageAB';
 $config->story->datatable->fieldList['stage']['fixed']    = 'no';
@@ -292,13 +288,6 @@ $config->story->datatable->fieldList['taskCount']['type']     = 'html';
 $config->story->datatable->fieldList['taskCount']['required'] = 'no';
 $config->story->datatable->fieldList['taskCount']['name']     = $lang->story->taskCount;
 $config->story->datatable->fieldList['taskCount']['sort']     = 'no';
-
-$config->story->datatable->fieldList['progress']['title']    = 'progress';
-$config->story->datatable->fieldList['progress']['fixed']    = 'no';
-$config->story->datatable->fieldList['progress']['width']    = '40';
-$config->story->datatable->fieldList['progress']['required'] = 'no';
-$config->story->datatable->fieldList['progress']['sort']     = 'no';
-$config->story->datatable->fieldList['progress']['name']     = $lang->story->taskCount;
 
 $config->story->datatable->fieldList['bugCount']['title']    = 'B';
 $config->story->datatable->fieldList['bugCount']['fixed']    = 'no';

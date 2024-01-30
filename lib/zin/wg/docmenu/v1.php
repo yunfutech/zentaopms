@@ -4,11 +4,20 @@ namespace zin;
 
 class docMenu extends wg
 {
-    private array $modules = array();
+    /**
+     * @var mixed[]
+     */
+    private $modules = array();
 
-    private array $mineTypes = array('mine', 'view', 'collect', 'createdby', 'editedby');
+    /**
+     * @var mixed[]
+     */
+    private $mineTypes = array('mine', 'view', 'collect', 'createdby', 'editedby');
 
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'modules: array',
         'activeKey?: int',
         'settingLink?: string',
@@ -23,12 +32,18 @@ class docMenu extends wg
         'hover?: bool=true'
     );
 
-    public static function getPageCSS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageCSS()
     {
         return file_get_contents(__DIR__ . DS . 'css' . DS . 'v1.css');
     }
 
-    public static function getPageJS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageJS()
     {
         return file_get_contents(__DIR__ . DS . 'js' . DS . 'v1.js');
     }
@@ -203,7 +218,7 @@ class docMenu extends wg
         }
     }
 
-    private function getActions($item): array|null
+    private function getActions($item): ?array
     {
         $versionBtn = array();
         if(isset($item->versions) && $item->versions)
@@ -380,7 +395,7 @@ class docMenu extends wg
         return '';
     }
 
-    private function buildBtns(): wg|null
+    private function buildBtns(): ?\zin\wg
     {
         $settingLink = $this->prop('settingLink');
         $settingText = $this->prop('settingText');

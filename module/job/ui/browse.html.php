@@ -19,11 +19,7 @@ if($repoID)
 }
 
 /* zin: Define the set::module('job') feature bar on main menu. */
-featureBar
-(
-    set::current('job'),
-    set::link($this->createLink('{key}', 'browse', "repoID=$repoID")),
-);
+featureBar(set::current('job'), set::link($this->createLink('{key}', 'browse', "repoID=$repoID")));
 
 /* zin: Define the toolbar on main menu. */
 $canCreate  = hasPriv('job', 'create');
@@ -32,23 +28,13 @@ $createItem = array('text' => $lang->job->create, 'url' => $createLink, 'class' 
 
 $tableData = initTableData($jobList, $config->job->dtable->fieldList, $this->job);
 
-toolbar
-(
-    $canCreate ? item(set($createItem)) : null,
-);
+toolbar($canCreate ? item(set($createItem)) : null);
 
 jsVar('confirmDelete',    $lang->job->confirmDelete);
 jsVar('orderBy',          $orderBy);
 jsVar('canBrowseProject', common::hasPriv('job', 'browseProject'));
 jsVar('sortLink',         helper::createLink('job', 'browse', "repoID={$repoID}&orderBy={orderBy}&recTotal={$pager->recTotal}&recPerPage={$pager->recPerPage}&pageID={$pager->pageID}"));
 
-dtable
-(
-    set::cols($config->job->dtable->fieldList),
-    set::data($tableData),
-    set::sortLink(jsRaw('createSortLink')),
-    set::onRenderCell(jsRaw('window.renderCell')),
-    set::footPager(usePager()),
-);
+dtable(set::cols($config->job->dtable->fieldList), set::data($tableData), set::sortLink(jsRaw('createSortLink')), set::onRenderCell(jsRaw('window.renderCell')), set::footPager(usePager()));
 
 render();

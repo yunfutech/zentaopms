@@ -56,8 +56,7 @@ $lang->mainNav->qa        = "{$lang->navIcons['qa']} {$lang->qa->common}|qa|inde
 $lang->mainNav->devops    = "{$lang->navIcons['devops']} DevOps|repo|maintain|";
 $lang->mainNav->kanban    = "{$lang->navIcons['kanban']} {$lang->kanban->common}|kanban|space|";
 $lang->mainNav->doc       = "{$lang->navIcons['doc']} {$lang->doc->common}|doc|index|";
-// $lang->mainNav->bi        = "{$lang->navIcons['bi']} {$lang->bi->common}|screen|browse|";
-$lang->mainNav->report    = "{$lang->navIcons['bi']} {$lang->report->common}|report|taskboard|";
+$lang->mainNav->bi        = "{$lang->navIcons['bi']} {$lang->bi->common}|screen|browse|";
 $lang->mainNav->system    = "{$lang->navIcons['system']} {$lang->system->common}|my|team|";
 $lang->mainNav->admin     = "{$lang->navIcons['admin']} {$lang->admin->common}|admin|index|";
 
@@ -73,9 +72,8 @@ $lang->mainNav->menuOrder[35] = 'devops';
 $lang->mainNav->menuOrder[40] = 'kanban';
 $lang->mainNav->menuOrder[45] = 'doc';
 $lang->mainNav->menuOrder[50] = 'bi';
-$lang->mainNav->menuOrder[55] = 'report';
-$lang->mainNav->menuOrder[60] = 'system';
-$lang->mainNav->menuOrder[65] = 'admin';
+$lang->mainNav->menuOrder[55] = 'system';
+$lang->mainNav->menuOrder[60] = 'admin';
 
 if($config->systemMode == 'light') unset($lang->mainNav->program, $lang->mainNav->menuOrder[10]);
 
@@ -217,20 +215,19 @@ $lang->project->homeMenu->browse = array('link' => "{$lang->project->list}|proje
 $lang->project->homeMenu->kanban = array('link' => "{$lang->project->kanban}|project|kanban|");
 
 /* Scrum menu. */
-$lang->scrum->menu            = new stdclass();
-$lang->scrum->menu->index     = array('link' => "{$lang->dashboard}|project|index|project=%s");
-$lang->scrum->menu->execution = array('link' => "$lang->executionCommon|project|execution|status=all&projectID=%s", 'exclude' => 'execution-testreport');
+$lang->scrum->menu              = new stdclass();
+$lang->scrum->menu->index       = array('link' => "{$lang->dashboard}|project|index|project=%s");
+$lang->scrum->menu->execution   = array('link' => "$lang->executionCommon|project|execution|status=all&projectID=%s", 'exclude' => 'execution-testreport', 'subModule' => 'task');
 $lang->scrum->menu->storyGroup  = array('link' => "{$lang->common->story}|projectstory|story|projectID=%s&product=%s",'class' => 'dropdown dropdown-hover', 'exclude' => 'tree-browse');
-$lang->scrum->menu->story     = array('link' => "$lang->SRCommon|projectstory|story|projectID=%s", 'subModule' => 'projectstory,tree', 'alias' => 'story,track');
+$lang->scrum->menu->story       = array('link' => "$lang->SRCommon|projectstory|story|projectID=%s", 'subModule' => 'projectstory,tree', 'alias' => 'story,track', 'exclude' => 'tree-browse');
 $lang->scrum->menu->projectplan = array('link' => "{$lang->productplan->shortCommon}|projectplan|browse|productID=%s", 'subModule' => 'productplan');
-$lang->scrum->menu->doc       = array('link' => "{$lang->doc->common}|doc|tableContents|type=project&objectID=%s", 'subModule' => 'doc');
-$lang->scrum->menu->qa        = array('link' => "{$lang->qa->common}|project|bug|projectID=%s", 'subModule' => 'testcase,testtask,bug,testreport,execution', 'alias' => 'bug,testtask,testcase,testreport', 'exclude' => 'execution-create,execution-batchedit');
-$lang->scrum->menu->devops    = array('link' => "{$lang->repo->common}|repo|browse|repoID=0&branchID=&objectID=%s", 'subModule' => 'repo');
-$lang->scrum->menu->build     = array('link' => "{$lang->build->common}|project|build|project=%s");
-$lang->scrum->menu->release   = array('link' => "{$lang->release->common}|projectrelease|browse|project=%s", 'subModule' => 'projectrelease');
-$lang->scrum->menu->dynamic   = array('link' => "$lang->dynamic|project|dynamic|project=%s");
-$lang->scrum->menu->weekly    = array('link' => "周报|projectweekly|projectweeklylist|projectID=%s");
-$lang->scrum->menu->settings  = array('link' => "$lang->settings|project|view|project=%s", 'subModule' => 'stakeholder', 'alias' => 'edit,manageproducts,group,managemembers,manageview,managepriv,whitelist,addwhitelist,team');
+$lang->scrum->menu->doc         = array('link' => "{$lang->doc->common}|doc|projectSpace|objectID=%s", 'subModule' => 'doc,api');
+$lang->scrum->menu->qa          = array('link' => "{$lang->qa->common}|project|bug|projectID=%s", 'subModule' => 'testcase,testtask,bug,testreport', 'alias' => 'bug,testtask,testcase,testreport', 'exclude' => 'execution-create,execution-batchedit');
+$lang->scrum->menu->devops      = array('link' => "{$lang->repo->common}|repo|browse|repoID=0&branchID=&objectID=%s", 'subModule' => 'repo');
+$lang->scrum->menu->build       = array('link' => "{$lang->build->common}|projectbuild|browse|project=%s", 'subModule' => 'projectbuild');
+$lang->scrum->menu->release     = array('link' => "{$lang->release->common}|projectrelease|browse|project=%s", 'subModule' => 'projectrelease');
+$lang->scrum->menu->dynamic     = array('link' => "$lang->dynamic|project|dynamic|project=%s");
+$lang->scrum->menu->settings    = array('link' => "$lang->settings|project|view|project=%s", 'subModule' => 'tree,stakeholder', 'alias' => 'edit,manageproducts,group,managemembers,manageview,managepriv,whitelist,addwhitelist,team', 'exclude' => 'tree-browsetask');
 
 $lang->scrum->menu->storyGroup['dropMenu'] = new stdclass();
 $lang->scrum->menu->storyGroup['dropMenu']->story       = array('link' => "{$lang->SRCommon}|projectstory|story|projectID=%s&productID=%s", 'subModule' => 'projectstory,tree');
@@ -544,68 +541,28 @@ $lang->doc->dividerMenu = ',product,';
 
 /* Doc menu order. */
 $lang->doc->menuOrder[5]  = 'dashboard';
+$lang->doc->menuOrder[10] = 'my';
+$lang->doc->menuOrder[15] = 'product';
+$lang->doc->menuOrder[20] = 'project';
+$lang->doc->menuOrder[25] = 'api';
+$lang->doc->menuOrder[30] = 'custom';
 
-// $lang->doc->menuOrder[10] = 'my';
-// $lang->doc->menuOrder[15] = 'product';
-// $lang->doc->menuOrder[20] = 'project';
-// $lang->doc->menuOrder[25] = 'api';
-// $lang->doc->menuOrder[30] = 'custom';
+/* BI menu.*/
+$lang->bi->menu         = new stdclass();
+$lang->bi->menu->screen = array('link' => "{$lang->screen->common}|screen|browse");
+$lang->bi->menu->pivot  = array('link' => "{$lang->pivot->common}|pivot|preview");
+$lang->bi->menu->chart  = array('link' => "{$lang->chart->common}|chart|preview");
+$lang->bi->menu->metric = array('link' => "{$lang->metric->common}|metric|preview");
+$lang->bi->menu->report = array('link' => "{$lang->taskboard->common}|pivot|taskboard");
 
-// /* BI menu.*/
-// $lang->bi->menu         = new stdclass();
-// $lang->bi->menu->screen = array('link' => "{$lang->screen->common}|screen|browse");
-// $lang->bi->menu->pivot  = array('link' => "{$lang->pivot->common}|pivot|preview");
-// $lang->bi->menu->chart  = array('link' => "{$lang->chart->common}|chart|preview");
-// $lang->bi->menu->metric = array('link' => "{$lang->metric->common}|metric|preview");
+$lang->bi->dividerMenu = ',metric,';
 
-// $lang->bi->dividerMenu = ',metric,';
-
-// /* BI menu order. */
-// $lang->bi->menuOrder[5]  = 'screen';
-// $lang->bi->menuOrder[10] = 'pivot';
-// $lang->bi->menuOrder[15] = 'chart';
-// $lang->bi->menuOrder[50] = 'metric';
-
-$lang->doc->menuOrder[10] = 'recent';
-$lang->doc->menuOrder[15] = 'my';
-$lang->doc->menuOrder[20] = 'collect';
-$lang->doc->menuOrder[25] = 'product';
-$lang->doc->menuOrder[30] = 'project';
-$lang->doc->menuOrder[35] = 'execution';
-$lang->doc->menuOrder[36] = 'api';
-$lang->doc->menuOrder[40] = 'custom';
-
-$lang->doc->menu->product['subMenu']   = new stdclass();
-$lang->doc->menu->project['subMenu']   = new stdclass();
-$lang->doc->menu->execution['subMenu'] = new stdclass();
-$lang->doc->menu->custom['subMenu']    = new stdclass();
-
-$lang->doc->menu->api['subMenu'] = new stdclass();
-$lang->doc->menu->api['subMenu']->index  = array('link' => "{$lang->doc->apiDoc}|api|index|libID=%s", 'alias' => 'create,edit');
-$lang->doc->menu->api['subMenu']->struct = array('link' => "{$lang->doc->apiStruct}|api|struct|libID=%s", 'alias' => 'createstruct,editstruct');
-
-/* Report menu.*/
-$lang->report->menu             = new stdclass();
-$lang->report->menu->screen     = array('link' => "{$lang->screen->common}|screen|browse");
-$lang->report->menu->pivotTable = array('link' => "{$lang->report->pivotTable}|report|taskboard", 'alias' => 'projectdeviation,bugcreate,workload,bugassign,taskboard');
-
-/* Report menu order. */
-$lang->report->menuOrder[5]  = 'screen';
-$lang->report->menuOrder[10] = 'pivotTable';
-
-$lang->report->menu->pivotTable['subMenu'] = new stdclass();
-$lang->report->menu->pivotTable['subMenu']->product    = array('link' => "{$lang->product->common}|report|product");
-$lang->report->menu->pivotTable['subMenu']->project    = array('link' => "{$lang->project->common}|report|projectdeviation");
-$lang->report->menu->pivotTable['subMenu']->test       = array('link' => "{$lang->qa->common}|report|bugcreate", 'alias' => 'bugassign');
-$lang->report->menu->pivotTable['subMenu']->staff      = array('link' => "{$lang->system->common}|report|workload");
-$lang->report->menu->pivotTable['subMenu']->taskboard  = array('link' => "{$lang->task->common}|report|taskboard");
-
-$lang->report->menu->pivotTable['menuOrder'][5]    = 'annual';
-$lang->report->menu->pivotTable['menuOrder'][10]   = 'product';
-$lang->report->menu->pivotTable['menuOrder'][15]   = 'project';
-$lang->report->menu->pivotTable['menuOrder'][20]   = 'test';
-$lang->report->menu->pivotTable['menuOrder'][25]   = 'staff';
-$lang->report->menu->pivotTable['menuOrder'][30]   = 'taskboard';
+/* BI menu order. */
+$lang->bi->menuOrder[5]  = 'screen';
+$lang->bi->menuOrder[10] = 'pivot';
+$lang->bi->menuOrder[15] = 'chart';
+$lang->bi->menuOrder[50] = 'metric';
+$lang->bi->menuOrder[60] = 'pivot';
 
 /* Company menu.*/
 $lang->company->menu              = new stdclass();

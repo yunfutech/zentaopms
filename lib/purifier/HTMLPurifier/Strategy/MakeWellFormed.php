@@ -111,7 +111,7 @@ class HTMLPurifier_Strategy_MakeWellFormed extends HTMLPurifier_Strategy
             if (!$b) {
                 continue;
             }
-            $this->injectors[] = new $injector;
+            $this->injectors[] = new $injector();
         }
         foreach ($def_injectors as $injector) {
             // assumed to be objects
@@ -123,7 +123,7 @@ class HTMLPurifier_Strategy_MakeWellFormed extends HTMLPurifier_Strategy
             }
             if (is_string($injector)) {
                 $injector = "HTMLPurifier_Injector_$injector";
-                $injector = new $injector;
+                $injector = new $injector();
             }
             $this->injectors[] = $injector;
         }

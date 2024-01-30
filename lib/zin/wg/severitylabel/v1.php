@@ -4,13 +4,20 @@ namespace zin;
 
 class severityLabel extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'level: string|int',     // 严重程度等级。
         'text?: string|array',   // 标签文本或标签文本映射对象。
         'isIcon?: bool=false'    // 是否显示为图标。
     );
 
-    protected function onAddChild(mixed $child): mixed
+    /**
+     * @param mixed $child
+     * @return mixed
+     */
+    protected function onAddChild($child)
     {
         if(is_string($child) || is_int($child))
         {

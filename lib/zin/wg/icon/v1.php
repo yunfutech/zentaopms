@@ -4,7 +4,10 @@ namespace zin;
 
 class icon extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'name: string',
         'size?: string|int'
     );

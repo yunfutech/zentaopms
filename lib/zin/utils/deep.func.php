@@ -2,7 +2,12 @@
 declare(strict_types=1);
 namespace zin\utils;
 
-function deepGet(object|array &$data, string $namePath, mixed $defaultValue = null): mixed
+/**
+ * @param object|mixed[] $data
+ * @param mixed $defaultValue
+ * @return mixed
+ */
+function deepGet(&$data, string $namePath, $defaultValue = null)
 {
     $names = explode('.', $namePath);
     foreach($names as $name)
@@ -19,7 +24,10 @@ function deepGet(object|array &$data, string $namePath, mixed $defaultValue = nu
     return $data === null ? $defaultValue : $data;
 }
 
-function deepSet(array &$data, string $namePath, mixed $value)
+/**
+ * @param mixed $value
+ */
+function deepSet(array &$data, string $namePath, $value)
 {
     $names = explode('.', $namePath);
     $lastName = array_pop($names);

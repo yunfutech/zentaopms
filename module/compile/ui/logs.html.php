@@ -25,14 +25,7 @@ detailHeader(
     (
         div
         (
-            $job->engine == 'gitlab' ? btn
-            (
-                set::id('refreshBtn'),
-                set::className('mr-3 secondary'),
-                set::icon('eye'),
-                set::text($lang->compile->refresh),
-                on::click('refreshLogs'),
-            ) : '',
+            $job->engine == 'gitlab' ? btn(set::id('refreshBtn'), set::className('mr-3 secondary'), set::icon('eye'), set::text($lang->compile->refresh), on::click('refreshLogs')) : '',
             backBtn
             (
                 set::icon('back'),
@@ -45,15 +38,12 @@ detailHeader(
 );
 detailBody
 (
-    sectionList
+    sectionList(section
     (
-        section
-        (
-            set::title(' '),
-            set::content($logs),
-            set::useHtml(true)
-        ),
-    )
+        set::title(' '),
+        set::content($logs),
+        set::useHtml(true)
+    ))
 );
 
 render();

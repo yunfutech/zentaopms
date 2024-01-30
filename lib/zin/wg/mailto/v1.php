@@ -15,7 +15,10 @@ requireWg('users');
 
 class mailto extends users
 {
-    protected static array $defaultProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defaultProps = array(
         'name' => 'mailto[]'
     );
 }

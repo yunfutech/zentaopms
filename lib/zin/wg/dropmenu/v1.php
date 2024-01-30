@@ -26,7 +26,7 @@ class dropmenu extends wg
      * @var array
      * @access protected
      */
-    protected static array $defineProps = array
+    protected static $defineProps = array
     (
         'id?:       string="dropmenu"', // ID，当页面有多个 dropmenu 时确保有唯一的 ID。
         'tab?:      string,',           // 应用名。
@@ -47,7 +47,7 @@ class dropmenu extends wg
      * @access public
      * @return string|false
      */
-    public static function getPageCSS(): string|false
+    public static function getPageCSS()
     {
         return file_get_contents(__DIR__ . DS . 'css' . DS . 'v1.css');
     }

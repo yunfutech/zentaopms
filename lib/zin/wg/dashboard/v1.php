@@ -26,7 +26,7 @@ class dashboard extends wg
      * @var    array
      * @access protected
      */
-    protected static array $defineProps = array(
+    protected static $defineProps = array(
         'id?: string',                        // ID。
         'cache?: bool|string',                // 是否启用缓存。
         'responsive?: bool',                  // 是否启用响应式。

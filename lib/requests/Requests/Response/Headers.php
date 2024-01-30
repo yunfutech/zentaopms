@@ -23,7 +23,7 @@ class Requests_Response_Headers extends Requests_Utility_CaseInsensitiveDictiona
 	 * @param string $key
 	 * @return string|null Header value
 	 */
-	public function offsetGet($key): string|null {
+	public function offsetGet($key): ?string {
 		$key = strtolower($key);
 		if (!isset($this->data[$key])) {
 			return null;

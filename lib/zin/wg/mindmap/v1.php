@@ -17,7 +17,10 @@ namespace zin;
  */
 class mindmap extends wg
 {
-    protected static array $defineProps = array
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array
     (
         'data?: array',
         'width?: string|number="100%"',

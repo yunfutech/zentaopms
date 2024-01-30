@@ -7,7 +7,10 @@ require_once dirname(__DIR__) . DS . 'formpanel' . DS . 'v1.php';
 
 class pageForm extends page
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'formPanel?: array'
     );
 

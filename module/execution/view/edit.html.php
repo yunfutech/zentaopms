@@ -56,14 +56,6 @@
         </tr>
         <?php if(isset($config->setCode) and $config->setCode == 1):?>
         <tr>
-          <th class='w-120px'><?php echo $lang->execution->pri;?></th>
-          <td><?php echo html::select('pri', $lang->execution->priList, $execution->pri, "class='form-control' required");?></td><td></td>
-        </tr>
-        <tr>
-          <th class='w-120px'><?php echo $lang->execution->pri;?></th>
-          <td><?php echo html::select('pri', $lang->execution->priList, $execution->pri, "class='form-control' required");?></td><td></td>
-        </tr>
-        <tr>
           <th><?php echo $lang->execution->code;?></th>
           <td><?php echo html::input('code', $execution->code, "class='form-control' required");?></td>
         </tr>

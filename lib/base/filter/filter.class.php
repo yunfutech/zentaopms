@@ -1100,7 +1100,7 @@ class baseFixer
         $data = preg_replace('/<[^>]+</', '<', $data);
         $data = preg_replace('/>[^<]+>/', '>', $data);
         if($usePurifier) $data = str_replace('&nbsp;', '&spnb;', $data);
-        $data = $usePurifier ? $purifier->purify($data) : strip_tags($data, $allowedTags);
+        $data = $usePurifier ? $purifier->purify($data) : strip_tags($data, $allowedTags !== null && is_array($allowedTags) ? '<' . implode('><', $allowedTags) . '>' : $allowedTags);
         if($usePurifier) $data = str_replace('&amp;spnb;', '&nbsp;', $data);
 
         return $data;

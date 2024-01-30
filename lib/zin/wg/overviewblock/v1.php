@@ -16,7 +16,10 @@ require_once dirname(__DIR__) . DS . 'blockpanel' . DS . 'v1.php';
 
 class overviewBlock extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'id?: string',
         'title?: string',
         'block?: object',

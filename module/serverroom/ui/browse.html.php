@@ -15,7 +15,9 @@ namespace zin;
 $queryMenuLink = createLink('serverroom', 'browse', "browseType=bySearch&param={queryID}");
 featureBar
 (
-    set::queryMenuLinkCallback(fn($key) => str_replace('{queryID}', (string)$key, $queryMenuLink)),
+    set::queryMenuLinkCallback(function ($key) use ($queryMenuLink) {
+        return str_replace('{queryID}', (string)$key, $queryMenuLink);
+    }),
     li(searchToggle())
 );
 
@@ -26,21 +28,11 @@ $createItem = array('text' => $lang->serverroom->create, 'url' => $createLink, '
 
 $tableData = initTableData($serverRoomList, $config->serverroom->dtable->fieldList, $this->serverroom);
 
-toolbar
-(
-    $canCreate ? item(set($createItem)) : null,
-);
+toolbar($canCreate ? item(set($createItem)) : null);
 
 jsVar('orderBy',  $orderBy);
 jsVar('sortLink', helper::createLink('serverroom', 'browse', "browseType=$browseType&param=$param&orderBy={orderBy}&recTotal={$pager->recTotal}&recPerPage={$pager->recPerPage}"));
 
-dtable
-(
-    set::userMap($users),
-    set::cols(array_values($config->serverroom->dtable->fieldList)),
-    set::data($tableData),
-    set::sortLink(jsRaw('createSortLink')),
-    set::footPager(usePager()),
-);
+dtable(set::userMap($users), set::cols(array_values($config->serverroom->dtable->fieldList)), set::data($tableData), set::sortLink(jsRaw('createSortLink')), set::footPager(usePager()));
 
 render();

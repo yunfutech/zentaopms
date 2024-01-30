@@ -21,23 +21,13 @@ $createItem = array('text' => $lang->gitlab->create, 'url' => $createLink, 'clas
 
 $tableData = initTableData($gitlabList, $config->gitlab->dtable->fieldList, $this->gitlab);
 
-toolbar
-(
-    $canCreate ? item(set($createItem)) : null,
-);
+toolbar($canCreate ? item(set($createItem)) : null);
 
 jsVar('confirmDelete',    $lang->gitlab->confirmDelete);
 jsVar('orderBy',          $orderBy);
 jsVar('canBrowseProject', common::hasPriv('gitlab', 'browseProject'));
 jsVar('sortLink',         helper::createLink('gitlab', 'browse', "orderBy={orderBy}&recTotal={$pager->recTotal}&recPerPage={$pager->recPerPage}&pageID={$pager->pageID}"));
 
-dtable
-(
-    set::cols(array_values($config->gitlab->dtable->fieldList)),
-    set::data($tableData),
-    set::sortLink(jsRaw('createSortLink')),
-    set::onRenderCell(jsRaw('window.renderCell')),
-    set::footPager(usePager()),
-);
+dtable(set::cols(array_values($config->gitlab->dtable->fieldList)), set::data($tableData), set::sortLink(jsRaw('createSortLink')), set::onRenderCell(jsRaw('window.renderCell')), set::footPager(usePager()));
 
 render();

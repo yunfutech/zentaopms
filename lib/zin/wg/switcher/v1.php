@@ -6,7 +6,10 @@ require_once dirname(__DIR__) . DS . 'checkbox' . DS . 'v1.php';
 
 class switcher extends checkbox
 {
-    protected static array $defaultProps = array
+    /**
+     * @var mixed[]
+     */
+    protected static $defaultProps = array
     (
         'typeClass' => 'switch switch'
     );

@@ -6,7 +6,10 @@ require_once dirname(__DIR__) . DS . 'control' . DS . 'v1.php';
 
 class inputControl extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'prefix?: mixed',
         'suffix?: mixed',
         'prefixWidth?: string|int',
@@ -14,7 +17,10 @@ class inputControl extends wg
         'class?: string'
     );
 
-    protected static array $defineBlocks = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineBlocks = array(
         'prefix' => array(),
         'suffix' => array()
     );

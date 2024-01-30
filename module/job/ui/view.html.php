@@ -11,16 +11,9 @@ declare(strict_types=1);
 namespace zin;
 global $lang;
 
-detailHeader
-(
-    isAjaxRequest('modal') ? to::prefix() : '',
-    to::title(
-        entityLabel(
-            set(array('entityID' => $job->id, 'level' => 1, 'text' => $job->name))
-        ),
-        $job->deleted ? span(setClass('label danger'), $lang->product->deleted) : null,
-    ),
-);
+detailHeader(isAjaxRequest('modal') ? to::prefix() : '', to::title(entityLabel(
+    set(array('entityID' => $job->id, 'level' => 1, 'text' => $job->name))
+), $job->deleted ? span(setClass('label danger'), $lang->product->deleted) : null));
 
 $hasResult = ($compile and !empty($compile->testtask));
 $hasLog    = ($compile and !empty($compile->logs));
@@ -53,87 +46,55 @@ if($job->customParam)
     }
 }
 
-detailBody
+detailBody(sectionList(tabs(tabPane(set::key('job-basic'), set::title($lang->job->lblBasic), set::active(!$hasResult && !$hasLog), tableData(item
 (
-    sectionList
+    set::name($lang->job->engine),
+    zget($lang->job->engineList, $job->engine)
+), item
+(
+    set::name($lang->job->repo),
+    $repo->name
+), item
+(
+    set::name($lang->job->product),
+    $product->name
+), item
+(
+    set::name($lang->job->frame),
+    zget($lang->job->frameList, $job->frame)
+), item
+(
+    set::name($lang->job->server),
+    urldecode($job->pipeline) . '@' . $jenkins->name
+), item
+(
+    set::name($lang->job->triggerType),
+    $this->job->getTriggerConfig($job)
+), item
+(
+    set::name($lang->compile->status),
+    !empty($status) ? $status : ''
+), item
+(
+    set::name($lang->compile->time),
+    !empty($time) ? $time : ''
+), item(set::name($lang->job->customParam), html($customParam)))), $hasResult ? tabPane
+(
+    set::key('job-result'),
+    set::title($lang->compile->result),
+    set::active(true),
+    div(setID('jobCases'), setData('task', $compile->testtask))
+) : '', $hasLog ? tabPane
+(
+    set::key('job-log'),
+    set::title($lang->compile->logs),
+    set::active(!$hasResult),
+    tableData
     (
-        tabs
+        div
         (
-            tabPane
-            (
-                set::key('job-basic'),
-                set::title($lang->job->lblBasic),
-                set::active(!$hasResult && !$hasLog),
-                tableData
-                (
-                    item
-                    (
-                        set::name($lang->job->engine),
-                        zget($lang->job->engineList, $job->engine)
-                    ),
-                    item
-                    (
-                        set::name($lang->job->repo),
-                        $repo->name
-                    ),
-                    item
-                    (
-                        set::name($lang->job->product),
-                        $product->name
-                    ),
-                    item
-                    (
-                        set::name($lang->job->frame),
-                        zget($lang->job->frameList, $job->frame)
-                    ),
-                    item
-                    (
-                        set::name($lang->job->server),
-                        urldecode($job->pipeline) . '@' . $jenkins->name
-                    ),
-                    item
-                    (
-                        set::name($lang->job->triggerType),
-                        $this->job->getTriggerConfig($job)
-                    ),
-                    item
-                    (
-                        set::name($lang->compile->status),
-                        !empty($status) ? $status : ''
-                    ),
-                    item
-                    (
-                        set::name($lang->compile->time),
-                        !empty($time) ? $time : ''
-                    ),
-                    item
-                    (
-                        set::name($lang->job->customParam),
-                        html($customParam),
-                    ),
-                ),
-            ),
-            $hasResult ? tabPane
-            (
-                set::key('job-result'),
-                set::title($lang->compile->result),
-                set::active(true),
-                div(setID('jobCases'), setData('task', $compile->testtask))
-            ) : '',
-            $hasLog ? tabPane
-            (
-                set::key('job-log'),
-                set::title($lang->compile->logs),
-                set::active(!$hasResult),
-                tableData
-                (
-                    div
-                    (
-                        set::className('mt-4'),
-                        html(nl2br($compile->logs))
-                    )
-                )
-            ) : '',
-        ),
-    ),
-);
+            set::className('mt-4'),
+            html(nl2br($compile->logs))
+        )
+    )
+) : '')));

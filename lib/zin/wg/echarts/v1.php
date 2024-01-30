@@ -4,7 +4,11 @@ namespace zin;
 
 class echarts extends wg
 {
-    public function size(string|int $width, string|int $height): echarts
+    /**
+     * @param string|int $width
+     * @param string|int $height
+     */
+    public function size($width, $height): echarts
     {
         if(is_numeric($width))  $width  = "{$width}px";
         if(is_numeric($height)) $height = "{$height}px";
@@ -12,7 +16,10 @@ class echarts extends wg
         return $this;
     }
 
-    public function theme(string|array $value): echarts
+    /**
+     * @param string|mixed[] $value
+     */
+    public function theme($value): echarts
     {
         $this->setProp('theme', $value);
         return $this;

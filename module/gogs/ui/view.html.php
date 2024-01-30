@@ -11,28 +11,17 @@ declare(strict_types=1);
 namespace zin;
 global $lang;
 
-detailHeader
-(
-    isAjaxRequest('modal') ? to::prefix() : '',
-    to::title(
-        entityLabel(
-            set(array('entityID' => $gogs->id, 'level' => 1, 'text' => $gogs->name))
-        )
-    ),
-);
+detailHeader(isAjaxRequest('modal') ? to::prefix() : '', to::title(
+    entityLabel(
+        set(array('entityID' => $gogs->id, 'level' => 1, 'text' => $gogs->name))
+    )
+));
 
-detailBody
+detailBody(sectionList(section
 (
-    sectionList
-    (
-        section
-        (
-            set::title($lang->gogs->url),
-            set::content("<a href='{$gogs->url}' target='_blank'>{$gogs->url}</a>"),
-            set::useHtml(true)
-        ),
-    ),
-    history(),
-);
+    set::title($lang->gogs->url),
+    set::content("<a href='{$gogs->url}' target='_blank'>{$gogs->url}</a>"),
+    set::useHtml(true)
+)), history());
 
 render();

@@ -4,7 +4,10 @@ namespace zin;
 
 class fragment extends wg
 {
-    protected static array $defineProps = array
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array
     (
         'rawContent?: bool'
     );

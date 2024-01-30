@@ -12,7 +12,10 @@ require_once dirname(__DIR__) . DS . 'formbase' . DS . 'v1.php';
  */
 class form extends formBase
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'items?: array',    // 使用一个列定义对象数组来定义表单项。
         'grid?: bool=true', // 是否启用网格部件，禅道中所有表单都是网格布局，除非有特殊目的，无需设置此项。
         'labelWidth?: int', // 标签宽度，单位为像素。
@@ -38,7 +41,10 @@ class form extends formBase
         $this->setDefaultProps($defaultProps);
     }
 
-    public function onBuildItem(item|array $item): wg
+    /**
+     * @param \zin\item|mixed[] $item
+     */
+    public function onBuildItem($item): wg
     {
         if(!($item instanceof item))
         {
@@ -51,7 +57,7 @@ class form extends formBase
         return new formGroup(inherit($item));
     }
 
-    protected function buildActions(): wg|null
+    protected function buildActions(): ?\zin\wg
     {
         $actions = parent::buildActions();
         if($this->prop('grid') && !empty($actions)) $actions = div(setClass('form-row'), $actions);

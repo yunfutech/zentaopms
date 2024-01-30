@@ -4,14 +4,20 @@ namespace zin;
 
 class section extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'title?: string',         // 标题
         'content?: string|array', // 内容
         'useHtml?: bool=false',   // 内容是否解析 HTML 标签
         'required?: bool=false'   // 标题上是否显示必填标记
     );
 
-    protected static array $defineBlocks = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineBlocks = array(
         'subtitle' => array(),
         'actions'  => array()
     );
@@ -36,10 +42,7 @@ class section extends wg
             return div
             (
                 setClass('article-h1', 'mb-2', 'inline-flex'),
-                $required ? h::label
-                (
-                    setClass('form-label required mr-1'),
-                ) : null,
+                $required ? h::label(setClass('form-label required mr-1')) : null,
                 $title
             );
         }
@@ -50,17 +53,17 @@ class section extends wg
             div
             (
                 setClass('article-h1', 'inline-flex'),
-                $required ? h::label
-                (
-                    setClass('form-label required mr-1'),
-                ) : null,
+                $required ? h::label(setClass('form-label required mr-1')) : null,
                 $title
             ),
             $actionsView
         );
     }
 
-    private function content(string|wg $content): wg
+    /**
+     * @param string|\zin\wg $content
+     */
+    private function content($content): wg
     {
         $useHtml = $this->prop('useHtml') === true && is_string($content);
 
@@ -72,7 +75,10 @@ class section extends wg
 
     }
 
-    private function buildContent(): wg|array|null
+    /**
+     * @return \zin\wg|mixed[]|null
+     */
+    private function buildContent()
     {
         $content = $this->prop('content');
         if(!isset($content)) return null;

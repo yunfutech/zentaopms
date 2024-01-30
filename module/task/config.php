@@ -8,9 +8,9 @@ $config->task->start    = new stdclass();
 $config->task->finish   = new stdclass();
 $config->task->activate = new stdclass();
 
-$config->task->create->requiredFields      = 'execution,name,type,assignedTo,deadline';
+$config->task->create->requiredFields      = 'execution,name,type';
 $config->task->edit->requiredFields        = $config->task->create->requiredFields;
-$config->task->finish->requiredFields      = 'finishedDate,currentConsumed';
+$config->task->finish->requiredFields      = 'realStarted,finishedDate,currentConsumed';
 $config->task->activate->requiredFields    = 'left';
 
 $config->task->editor = new stdclass();
@@ -57,7 +57,6 @@ global $app, $lang;
 $config->task->datatable->fieldList['id']['title']    = 'idAB';
 $config->task->datatable->fieldList['id']['fixed']    = 'left';
 $config->task->datatable->fieldList['id']['minWidth'] = '70';
-$config->task->datatable->fieldList['id']['width']    = '100';
 $config->task->datatable->fieldList['id']['required'] = 'yes';
 $config->task->datatable->fieldList['id']['type']     = 'checkID';
 $config->task->datatable->fieldList['id']['sortType'] = true;

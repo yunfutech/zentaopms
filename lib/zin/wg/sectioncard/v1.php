@@ -4,7 +4,10 @@ namespace zin;
 
 class sectionCard extends wg
 {
-    protected static array $defineBlocks = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineBlocks = array(
         'title' => array('map' => 'entityLabel')
     );
 

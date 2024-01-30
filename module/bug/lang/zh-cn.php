@@ -296,7 +296,7 @@ $lang->bug->resolutionList['duplicate']  = '重复Bug';
 $lang->bug->resolutionList['external']   = '外部原因';
 $lang->bug->resolutionList['fixed']      = '已解决';
 $lang->bug->resolutionList['notrepro']   = '无法重现';
-// $lang->bug->resolutionList['postponed']  = '延期处理';
+$lang->bug->resolutionList['postponed']  = '延期处理';
 $lang->bug->resolutionList['willnotfix'] = "不予解决";
 $lang->bug->resolutionList['tostory']    = "转为{$lang->SRCommon}";
 

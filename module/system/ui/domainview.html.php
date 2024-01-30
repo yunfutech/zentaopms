@@ -12,32 +12,10 @@ namespace zin;
 
 $expiredDate = !empty($cert) ? zget($cert, 'expiredDate', '') : '';
 
-panel
+panel(set::size('lg'), set::title($lang->system->domain->common), to::headingActions(btn(setClass('primary'), $lang->system->domain->editDomain, set::url($this->createLink('system', 'editDomain')))), tableData(item(set::name($lang->system->domain->currentDomain), zget($domainSettings, 'customDomain', '')), item
 (
-    set::size('lg'),
-    set::title($lang->system->domain->common),
-    to::headingActions
-    (
-        btn
-        (
-            setClass('primary'),
-            $lang->system->domain->editDomain,
-            set::url($this->createLink('system', 'editDomain')),
-        ),
-    ),
-    tableData
-    (
-        item
-        (
-            set::name($lang->system->domain->currentDomain),
-            zget($domainSettings, 'customDomain', ''),
-        ),
-        item
-        (
-            set::name($lang->system->domain->expiredDate),
-            $expiredDate
-        ),
-    ),
-);
+    set::name($lang->system->domain->expiredDate),
+    $expiredDate
+)));
 
 render();

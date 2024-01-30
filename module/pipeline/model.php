@@ -93,7 +93,7 @@ class pipelineModel extends model
      * @access public
      * @return bool
      */
-    public function create(object $pipeline): int|false
+    public function create(object $pipeline)
     {
         $type = $pipeline->type;
         if($type == 'gitlab') $pipeline->url = rtrim($pipeline->url, '/');

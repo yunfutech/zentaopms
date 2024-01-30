@@ -5,7 +5,10 @@ namespace zin;
 
 class password extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'id?: string="password1"',
         'name?: string="password1"',
         'checkStrength?: bool=false',
@@ -13,12 +16,18 @@ class password extends wg
         'strengthClass?: string="passwordStrength"'
     );
 
-    public static function getPageJS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageJS()
     {
         return file_get_contents(__DIR__ . DS . 'js' . DS . 'v1.js');
     }
 
-    protected function build(): array|wg
+    /**
+     * @return mixed[]|\zin\wg
+     */
+    protected function build()
     {
         global $app, $config, $lang;
         $app->loadLang('user');

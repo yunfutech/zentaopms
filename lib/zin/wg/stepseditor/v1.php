@@ -25,7 +25,7 @@ class stepsEditor extends wg
      * @var    array
      * @access protected
      */
-    protected static array $defineProps = array
+    protected static $defineProps = array
     (
         'id?: string="$GID"',               // 组件根元素的 ID。
         'name?: string="steps"',            // 步骤输入框作为表单项的名称。
@@ -39,12 +39,18 @@ class stepsEditor extends wg
         'dragNestedTip?: string'            // 拖拽超出提示。
     );
 
-    public static function getPageJS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageJS()
     {
         return file_get_contents(__DIR__ . DS . 'js' . DS . 'v1.js');
     }
 
-    public static function getPageCSS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageCSS()
     {
         return file_get_contents(__DIR__ . DS . 'css' . DS . 'v1.css');
     }

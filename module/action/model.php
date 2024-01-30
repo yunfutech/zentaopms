@@ -1136,7 +1136,7 @@ class actionModel extends model
      */
     public function formatActionComment($comment): string
     {
-        if(str_contains($comment, '<pre class="prettyprint lang-html">'))
+        if(strpos($comment, '<pre class="prettyprint lang-html">') !== false)
         {
             $before   = explode('<pre class="prettyprint lang-html">', $comment);
             $after    = explode('</pre>', $before[1]);
@@ -1175,7 +1175,7 @@ class actionModel extends model
 
             if($action->action === 'assigned' || $action->action === 'toaudit') $action->extra = zget($users, $action->extra);
             $action->actor = zget($users, $action->actor);
-            if(str_contains($action->actor, ':')) $action->actor = substr($action->actor, strpos($action->actor, ':') + 1);
+            if(strpos($action->actor, ':') !== false) $action->actor = substr($action->actor, strpos($action->actor, ':') + 1);
 
             if(!empty($action->history)) $item->historyChanges = $this->renderChanges($action->objectType, $action->history);
 
@@ -2454,7 +2454,7 @@ class actionModel extends model
     public function updateComment($actionID)
     {
         $action = $this->getById($actionID);
-        $action->comment = trim(strip_tags($this->post->lastComment, $this->config->allowedTags));
+        $action->comment = trim(strip_tags($this->post->lastComment, $this->config->allowedTags !== null && is_array($this->config->allowedTags) ? '<' . implode('><', $this->config->allowedTags) . '>' : $this->config->allowedTags));
 
         /* Process action. */
         $action = $this->loadModel('file')->processImgURL($action, 'comment', $this->post->uid);

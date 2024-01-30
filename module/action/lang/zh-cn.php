@@ -103,8 +103,8 @@ $lang->action->objectTypes['design']           = '设计';
 $lang->action->objectTypes['productplan']      = '计划';
 $lang->action->objectTypes['release']          = '发布';
 $lang->action->objectTypes['program']          = '项目集';
-$lang->action->objectTypes['project']          = '项目';
-$lang->action->objectTypes['execution']        = $config->systemMode == 'new' ? '迭代' : $lang->executionCommon;
+$lang->action->objectTypes['project']          = $lang->projectCommon;
+$lang->action->objectTypes['execution']        = '执行';
 $lang->action->objectTypes['task']             = '任务';
 $lang->action->objectTypes['build']            = '版本';
 $lang->action->objectTypes['job']              = '流水线';
@@ -830,15 +830,9 @@ $lang->action->label->productplan = "计划|productplan|view|productID=%s";
 $lang->action->label->release     = '发布|release|view|productID=%s';
 $lang->action->label->story       = "{$lang->SRCommon}|story|view|storyID=%s";
 $lang->action->label->program     = "项目集|program|product|programID=%s";
-$lang->action->label->project     = "项目|project|index|projectID=%s";
-if($config->systemMode == 'new')
-{
-    $lang->action->label->execution = "迭代|execution|task|executionID=%s";
-}
-else
-{
-    $lang->action->label->execution = "$lang->executionCommon|execution|task|executionID=%s";
-}
+$lang->action->label->project     = "{$lang->projectCommon}|project|index|projectID=%s";
+$lang->action->label->execution   = "执行|execution|task|executionID=%s";
+
 $lang->action->label->task         = '任务|task|view|taskID=%s';
 $lang->action->label->build        = '版本|build|view|buildID=%s';
 $lang->action->label->bug          = 'Bug|bug|view|bugID=%s';
@@ -886,8 +880,8 @@ $lang->action->search = new stdclass();
 $lang->action->search->objectTypeList['']            = '';
 $lang->action->search->objectTypeList['product']     = $lang->productCommon;
 $lang->action->search->objectTypeList['program']     = '项目集';
-$lang->action->search->objectTypeList['project']     = '项目';
-$lang->action->search->objectTypeList['execution']   = '迭代';
+$lang->action->search->objectTypeList['project']     = $lang->projectCommon;
+$lang->action->search->objectTypeList['execution']   = '执行';
 $lang->action->search->objectTypeList['bug']         = 'Bug';
 $lang->action->search->objectTypeList['case']        = '用例';
 $lang->action->search->objectTypeList['caseresult']  = '用例结果';

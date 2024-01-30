@@ -13,11 +13,7 @@ namespace zin;
 jsVar('restoreName', $restoreName);
 jsVar('error', $error);
 
-div
-(
-    setClass('restoreProgress text-3xl'),
-    $lang->system->backup->waittingStore,
-);
+div(setClass('restoreProgress text-3xl'), $lang->system->backup->waittingStore);
 
 render();
 

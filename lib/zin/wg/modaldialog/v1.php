@@ -4,7 +4,10 @@ namespace zin;
 
 class modalDialog extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'title?: string',
         'titleClass?: string',
         'size?: string|number',
@@ -22,7 +25,10 @@ class modalDialog extends wg
         'rawContent?: bool'
     );
 
-    protected static array $defineBlocks = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineBlocks = array(
         'header' => array('map' => 'modalHeader'),
         'actions' => array(),
         'footer' => array('map' => 'toolbar')

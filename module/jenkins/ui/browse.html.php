@@ -21,23 +21,13 @@ $createItem = array('text' => $lang->jenkins->create, 'url' => $createLink, 'cla
 
 $tableData = initTableData($jenkinsList, $config->jenkins->dtable->fieldList, $this->jenkins);
 
-toolbar
-(
-    $canCreate ? item(set($createItem)) : null,
-);
+toolbar($canCreate ? item(set($createItem)) : null);
 
 jsVar('confirmDelete',    $lang->jenkins->confirmDelete);
 jsVar('orderBy',          $orderBy);
 jsVar('canBrowseProject', common::hasPriv('jenkins', 'browseProject'));
 jsVar('sortLink',         helper::createLink('jenkins', 'browse', "orderBy={orderBy}&recTotal={$pager->recTotal}&recPerPage={$pager->recPerPage}&pageID={$pager->pageID}"));
 
-dtable
-(
-    set::cols(array_values($config->jenkins->dtable->fieldList)),
-    set::data($tableData),
-    set::sortLink(jsRaw('createSortLink')),
-    set::onRenderCell(jsRaw('window.renderCell')),
-    set::footPager(usePager()),
-);
+dtable(set::cols(array_values($config->jenkins->dtable->fieldList)), set::data($tableData), set::sortLink(jsRaw('createSortLink')), set::onRenderCell(jsRaw('window.renderCell')), set::footPager(usePager()));
 
 render();

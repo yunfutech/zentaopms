@@ -32,7 +32,7 @@ class formPanel extends panel
      * @var    array
      * @access protected
      */
-    protected static array $defineProps = array(
+    protected static $defineProps = array(
         'class?: string="panel-form"', // 类名。
         'size?: string="lg"',                          // 额外尺寸。
         'id?: string="$GID"',                          // ID，如果不指定则自动生成（使用 zin 部件 GID）。
@@ -59,11 +59,14 @@ class formPanel extends panel
      * @var    array
      * @access protected
      */
-    protected static array $defaultProps = array(
+    protected static $defaultProps = array(
         'customFields' => array(),
     );
 
-    public static function getPageJS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageJS()
     {
         return file_get_contents(__DIR__ . DS . 'js' . DS . 'v1.js');
     }
@@ -125,11 +128,7 @@ class formPanel extends panel
             if($listFields && $key)
             {
                 $urlParams        = "module={$app->rawModule}&section=custom&key={$key}";
-                $headingActions[] = formSettingBtn
-                (
-                    set::customFields(array('list' => $listFields, 'show' => $showFields)),
-                    set::urlParams(zget($customFields, 'urlParams', $urlParams)),
-                );
+                $headingActions[] = formSettingBtn(set::customFields(array('list' => $listFields, 'show' => $showFields)), set::urlParams(zget($customFields, 'urlParams', $urlParams)));
 
                 $this->setProp('headingActions', $headingActions);
             }

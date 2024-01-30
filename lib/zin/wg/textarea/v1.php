@@ -4,7 +4,10 @@ namespace zin;
 
 class textarea extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'name?: string',
         'id?: string',
         'class?: string',
@@ -15,12 +18,18 @@ class textarea extends wg
         'value?: string'
     );
 
-    protected static array $defaultProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defaultProps = array(
         'class' => 'form-control',
         'rows' => 10
     );
 
-    protected function onAddChild(array|string|wg|directive $child)
+    /**
+     * @param mixed[]|string|\zin\wg|\zin\directive $child
+     */
+    protected function onAddChild($child)
     {
         if(is_string($child) && !$this->props->has('value'))
         {

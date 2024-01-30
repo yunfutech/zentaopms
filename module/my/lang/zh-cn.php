@@ -97,10 +97,9 @@ $lang->my->form->lblContact = '联系信息';
 $lang->my->form->lblAccount = '帐号信息';
 
 $lang->my->programLink   = '项目集默认着陆页';
-$lang->my->productLink   = '产品默认着陆页';
-$lang->my->projectLink   = '项目默认着陆页';
-if($config->systemMode == 'classic') $lang->my->executionLink = $lang->executionCommon . '默认着陆页';
-if($config->systemMode == 'new') $lang->my->executionLink = '迭代默认着陆页';
+$lang->my->productLink   = $lang->productCommon .'默认着陆页';
+$lang->my->projectLink   = $lang->projectCommon . '默认着陆页';
+$lang->my->executionLink = '执行默认着陆页';
 
 $lang->my->programLinkList = array();
 $lang->my->programLinkList['program-browse']  = '项目集列表/可以查看所有的项目集';
@@ -115,20 +114,15 @@ $lang->my->productLinkList['product-dashboard'] = "最近一个{$lang->productCo
 $lang->my->productLinkList['product-browse']    = "最近一个{$lang->productCommon}的需求列表/可以进入最近查看过的一个{$lang->productCommon}下的研发需求列表";
 
 $lang->my->projectLinkList = array();
-$lang->my->projectLinkList['project-browse']    = '默认进入项目列表，可以查看所有的项目';
+$lang->my->projectLinkList['project-browse']    = "{$lang->projectCommon}列表/可以查看所有{$lang->projectCommon}";
 $lang->my->projectLinkList['project-kanban']    = "{$lang->projectCommon}看板/以可视化的查看到所有{$lang->projectCommon}的整体情况";
-$lang->my->projectLinkList['project-execution'] = '默认进入项目下所有迭代列表，查看所有迭代信息';
-$lang->my->projectLinkList['project-index']     = '默认进入最近一个项目仪表盘，可以查看当前项目概况';
-if($config->systemMode == 'new') $lang->my->projectLinkList['project-kanban'] = '默认进入项目看板，可以可视化的查看到所有项目的进展情况';
+$lang->my->projectLinkList['project-execution'] = "最近一个{$lang->projectCommon}执行列表/可以查看{$lang->projectCommon}下所有的执行列表";
+$lang->my->projectLinkList['project-index']     = "最近一个{$lang->projectCommon}仪表盘/可以进入最近查看过的一个{$lang->projectCommon}的仪表盘";
 
 $lang->my->executionLinkList = array();
-if($config->systemMode == 'new')
-{
-    $lang->my->executionLinkList['execution-all']             = '默认进入迭代列表，可以查看所有的迭代';
-    $lang->my->executionLinkList['execution-task']            = '默认进入最近一个迭代的任务列表或看板视图，可以查看当前迭代下的任务信息';
-    $lang->my->executionLinkList['execution-executionkanban'] = '默认进入迭代看板，可以查看进行中项目的迭代情况';
-}
-if($config->systemMode == 'classic') $lang->my->executionLinkList['execution-task'] = "默认进入最近一个{$lang->executionCommon}的任务列表，可以查看当前{$lang->executionCommon}下的任务信息";
+$lang->my->executionLinkList['execution-all']             = '执行列表/可以查看所有执行';
+$lang->my->executionLinkList['execution-executionkanban'] = '执行看板/以可视化的方式查看所有执行的整体情况';
+$lang->my->executionLinkList['execution-task']            = '最近一个执行的任务列表/可以查看最近创建的一个执行下的任务';
 
 $lang->my->confirmReview['pass'] = '您确定要执行通过操作吗？';
 $lang->my->guideChangeTheme = <<<EOT

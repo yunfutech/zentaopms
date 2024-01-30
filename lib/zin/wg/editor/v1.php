@@ -6,7 +6,10 @@ require_once dirname(__DIR__) . DS . 'textarea' . DS . 'v1.php';
 
 class editor extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'createInput?: bool=true',        // 是否创建一个隐藏的 input 存储编辑器内容
         'uploadUrl?: string',             // 图片上传链接
         'placeholder?: string=""',        // 占位文本
@@ -21,12 +24,18 @@ class editor extends wg
         'uid?: string'                    // 图片上传uid
     );
 
-    public static function getPageCSS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageCSS()
     {
         return file_get_contents(__DIR__ . DS . 'css' . DS . 'v1.css');
     }
 
-    public static function getPageJS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageJS()
     {
         // global $app;
         // $jsFile = $app->getWebRoot() . 'js/zeneditor/tiptap-component.esm.js';

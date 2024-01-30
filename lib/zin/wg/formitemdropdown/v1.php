@@ -5,7 +5,10 @@ namespace zin;
 
 class formItemDropdown extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'items?:array',
         'value?:array',
         'method?: string',
@@ -14,7 +17,10 @@ class formItemDropdown extends wg
         'target?: string'
     );
 
-    public static function getPageCSS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageCSS()
     {
         return file_get_contents(__DIR__ . DS . 'css' . DS . 'v1.css');
     }

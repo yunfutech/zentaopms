@@ -4,14 +4,20 @@ namespace zin;
 
 class globalSearch extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'commonSearchText?: string',
         'commonSearchUrl?: string',
         'searchItems?: array',
         'searchFunc?: callable'
     );
 
-    public static function getPageJS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageJS()
     {
         return file_get_contents(__DIR__ . DS . 'js' . DS . 'v1.js');
     }

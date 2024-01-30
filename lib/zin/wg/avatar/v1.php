@@ -4,7 +4,10 @@ namespace zin;
 
 class avatar extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'className?: string',
         'style?: array',
         'size?: int=32',

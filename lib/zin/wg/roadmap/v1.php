@@ -4,7 +4,10 @@ namespace zin;
 
 class roadMap extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'releases: array'
     );
 
@@ -18,7 +21,10 @@ class roadMap extends wg
         return file_get_contents(__DIR__ . DS . 'css' . DS . 'v1.css');
     }
 
-    private function releaseHead(string|int $title, string $subtitle)
+    /**
+     * @param string|int $title
+     */
+    private function releaseHead($title, string $subtitle)
     {
         return div
         (
@@ -70,7 +76,10 @@ class roadMap extends wg
         );
     }
 
-    private function releasePath(string|int $year, array $yearReleases)
+    /**
+     * @param string|int $year
+     */
+    private function releasePath($year, array $yearReleases)
     {
         $releaseLines = array();
         $count = 0;

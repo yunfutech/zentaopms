@@ -4,7 +4,10 @@ namespace zin;
 
 class btnGroup extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'items?:array',
         'disabled?:bool',
         'size?:string'

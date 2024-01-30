@@ -17,7 +17,7 @@ namespace zin;
  * @param string|object $selector
  * @return object|null
  */
-function parseWgSelector(string|object $selector): ?object
+function parseWgSelector($selector): ?object
 {
     if(is_object($selector)) return $selector;
 
@@ -126,7 +126,7 @@ function parseWgSelector(string|object $selector): ?object
  * @param object|string|object[]|string[] $selectors
  * @return object[]
  */
-function parseWgSelectors(object|string|array $selectors): array
+function parseWgSelectors($selectors): array
 {
     if(is_object($selectors)) return array($selectors);
     if(is_string($selectors)) $selectors = explode(',', trim($selectors));
@@ -144,7 +144,7 @@ function parseWgSelectors(object|string|array $selectors): array
  * @param object|object[] $selector
  * @return string
  */
-function stringifyWgSelectors(array|object|null $selector): string
+function stringifyWgSelectors($selector): string
 {
     if(empty($selector)) return '';
     if(is_array($selector))

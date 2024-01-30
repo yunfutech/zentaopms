@@ -12,55 +12,31 @@ declare(strict_types=1);
 
 namespace zin;
 
-formPanel
+formPanel(set::id('jenkinsCreateForm'), set::title($lang->jenkins->lblCreate), formRow
 (
-    set::id('jenkinsCreateForm'),
-    set::title($lang->jenkins->lblCreate),
-    formRow
+    formGroup(set::name('name'), set::label($lang->jenkins->name), set::value($jenkins->name))
+), formRow
+(
+    formGroup(set::name('url'), set::label($lang->jenkins->url), set::value($jenkins->url))
+), formRow
+(
+    formGroup(set::name('account'), set::label($lang->jenkins->account), set::value($jenkins->account))
+), formRow
+(
+    formGroup
     (
-        formGroup
-        (
-            set::name('name'),
-            set::label($lang->jenkins->name),
-            set::value($jenkins->name),
-        )
-    ),
-    formRow
+        set::name('token'),
+        set::label($lang->jenkins->token),
+        set::value($jenkins->token),
+        set::placeholder($lang->jenkins->tokenFirst)
+    )
+), formRow
+(
+    formGroup
     (
-        formGroup
-        (
-            set::name('url'),
-            set::label($lang->jenkins->url),
-            set::value($jenkins->url),
-        )
-    ),
-    formRow
-    (
-        formGroup
-        (
-            set::name('account'),
-            set::label($lang->jenkins->account),
-            set::value($jenkins->account),
-        )
-    ),
-    formRow
-    (
-        formGroup
-        (
-            set::name('token'),
-            set::label($lang->jenkins->token),
-            set::value($jenkins->token),
-            set::placeholder($lang->jenkins->tokenFirst)
-        )
-    ),
-    formRow
-    (
-        formGroup
-        (
-            set::name('password'),
-            set::label($lang->jenkins->password),
-            set::value($jenkins->password),
-            set::placeholder($lang->jenkins->tips)
-        )
-    ),
-);
+        set::name('password'),
+        set::label($lang->jenkins->password),
+        set::value($jenkins->password),
+        set::placeholder($lang->jenkins->tips)
+    )
+));

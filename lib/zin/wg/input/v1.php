@@ -4,7 +4,10 @@ namespace zin;
 
 class input extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'type: string',
         'name?: string',
         'id?: string',
@@ -17,7 +20,10 @@ class input extends wg
         'disabled?: bool'
     );
 
-    protected static array $defaultProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defaultProps = array(
         'type' => 'text',
         'class' => 'form-control'
     );

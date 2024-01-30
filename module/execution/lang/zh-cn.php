@@ -663,9 +663,3 @@ $lang->execution->featureBar['dynamic']['thisWeek']  = '本周';
 $lang->execution->featureBar['dynamic']['lastWeek']  = '上周';
 $lang->execution->featureBar['dynamic']['thisMonth'] = '本月';
 $lang->execution->featureBar['dynamic']['lastMonth'] = '上月';
-
-$lang->execution->priList[0] = '';
-$lang->execution->priList[1] = '1';
-$lang->execution->priList[2] = '2';
-$lang->execution->priList[3] = '3';
-$lang->execution->priList[4] = '4';

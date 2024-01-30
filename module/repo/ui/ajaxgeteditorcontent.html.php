@@ -39,7 +39,7 @@ if($showEditor) jsVar('codeContent', $content);
 $lang = 'php';
 foreach($this->config->repo->fileExt as $langName => $exts)
 {
-    foreach($exts as $ext) if(isset($pathInfo['extension']) && str_contains('.' . $pathInfo['extension'], $ext)) $lang = $langName;
+    foreach($exts as $ext) if(isset($pathInfo['extension']) && strpos('.' . $pathInfo['extension'], $ext) !== false) $lang = $langName;
 }
 
 if(strpos($config->repo->images, "|$suffix|") !== false)

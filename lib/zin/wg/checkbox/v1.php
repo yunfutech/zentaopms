@@ -4,7 +4,10 @@ namespace zin;
 
 class checkbox extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'text?: string',
         'checked?: bool',
         'name?: string',

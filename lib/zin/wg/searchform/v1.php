@@ -24,7 +24,7 @@ class searchForm extends wg
      * @var    array
      * @access protected
      */
-    protected static array $defineProps = array
+    protected static $defineProps = array
     (
         'id?: string',                  // ID，可以与 searchToggle 配合使用。
         'module: string',               // 模块。

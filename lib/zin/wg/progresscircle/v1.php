@@ -24,7 +24,7 @@ class progressCircle extends wg
      * @var    array
      * @access protected
      */
-    protected static array $defineProps = array
+    protected static $defineProps = array
     (
         'percent?: int',           // 百分比。
         'size?: int',              // 大小。

@@ -26,11 +26,7 @@ detailHeader
         ),
         label
         (
-            to::before(icon
-            (
-                setClass('warning500 margin-left8'),
-                'help',
-            )),
+            to::before(icon(setClass('warning500 margin-left8'), 'help')),
             set::text($lang->metric->implement->tip),
             setClass('label ghost')
         )
@@ -94,37 +90,28 @@ panel
         set::url(helper::createLink('metric', 'downloadTemplate', "metricID={$metric->id}")),
         set::target('_blank')
     ),
-    div
+    div(h1
     (
-        h1
+        setClass('border-bottom margin-top24'),
+        span
         (
-            setClass('border-bottom margin-top24'),
-            span
-            (
 
-                $lang->metric->implement->instruction,
-                setClass('gray-pale text-md font-bold')
-            )
-        ),
-        div
+            $lang->metric->implement->instruction,
+            setClass('gray-pale text-md font-bold')
+        )
+    ), div
+    (
+        setClass('leading-loose'),
+        $fnGenerateInstructions()
+    ), h1
+    (
+        setClass('border-bottom margin-top24'),
+        span
         (
-            setClass('leading-loose'),
-            $fnGenerateInstructions()
-        ),
-        h1
-        (
-            setClass('border-bottom margin-top24'),
-            span
-            (
-                $lang->metric->verifyResult,
-                setClass('gray-pale text-md font-bold')
-            )
-        ),
-        empty($result) ? div
-        (
-            setClass('verify-content'),
-        ) : $fnGenerateDataDisplay(),
-    ),
+            $lang->metric->verifyResult,
+            setClass('gray-pale text-md font-bold')
+        )
+    ), empty($result) ? div(setClass('verify-content')) : $fnGenerateDataDisplay()),
 
     set::footerClass('footer-actions'),
     set::footerActions

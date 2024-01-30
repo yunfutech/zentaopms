@@ -6,7 +6,10 @@ require_once dirname(__DIR__) . DS . 'nav' . DS . 'v1.php';
 
 class featureBar extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'items?:array',
         'current?:string',
         'link?:string',
@@ -19,7 +22,10 @@ class featureBar extends wg
         'app?: string=""'
     );
 
-    protected static array $defineBlocks = array
+    /**
+     * @var mixed[]
+     */
+    protected static $defineBlocks = array
     (
         'nav'      => array('map' => 'nav'),
         'leading'  => array(),

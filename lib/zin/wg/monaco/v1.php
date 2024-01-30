@@ -4,7 +4,10 @@ namespace zin;
 
 class monaco extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'id:string',
         'action?:string',
         'options?:array',
@@ -13,14 +16,20 @@ class monaco extends wg
         'onMouseMouse?:string'
     );
 
-    protected static array $defaultProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defaultProps = array(
         'action'  => 'create',
         'options' => array(),
         'diffContent' => array(),
         'onMouseDown' => '',
         'onMouseMouse' => ''
     );
-    public static function getPageJS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageJS()
     {
         return file_get_contents(__DIR__ . DS . 'js' . DS . 'v1.js');
     }

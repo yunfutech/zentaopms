@@ -70,7 +70,7 @@ class Requests_Cookie_Jar implements ArrayAccess, IteratorAggregate {
 	 * @param string $key Item key
 	 * @return string|null Item value (null if offsetExists is false)
 	 */
-	public function offsetGet($key): string|null {
+	public function offsetGet($key): ?string {
 		if (!isset($this->cookies[$key])) {
 			return null;
 		}

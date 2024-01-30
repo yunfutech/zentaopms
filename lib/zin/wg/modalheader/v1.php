@@ -4,7 +4,10 @@ namespace zin;
 
 class modalHeader extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'inModal?: bool',
         'title?: string',
         'titleClass?: string',
@@ -12,7 +15,10 @@ class modalHeader extends wg
         'entityID?: int'
     );
 
-    protected static array $defineBlocks = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineBlocks = array(
         'suffix' => array()
     );
 
@@ -34,7 +40,10 @@ class modalHeader extends wg
         $this->setDefaultProps(array('title' => $title, 'entityText' => $entityText, 'entityID' => $entityID));
     }
 
-    protected function build(): wg|array
+    /**
+     * @return \zin\wg|mixed[]
+     */
+    protected function build()
     {
         list($title, $entityText, $entityID, $inModal) = $this->prop(array('title', 'entityText', 'entityID', 'inModal'));
         if(empty($inModal)) $inModal = false;

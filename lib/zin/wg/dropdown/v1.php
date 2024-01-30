@@ -7,7 +7,10 @@ require_once dirname(__DIR__) . DS . 'btn' . DS . 'v1.php';
 
 class dropdown extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'items?:array',
         'placement?:string',
         'strategy?:string',
@@ -23,7 +26,10 @@ class dropdown extends wg
         'staticMenu?: bool'
     );
 
-    protected static array $defineBlocks = array
+    /**
+     * @var mixed[]
+     */
+    protected static $defineBlocks = array
     (
         'trigger' => array('map' => 'btn,a'),
         'menu'    => array('map' => 'menu'),

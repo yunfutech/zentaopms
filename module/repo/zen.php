@@ -20,7 +20,7 @@ class repoZen extends repo
      * @access protected
      * @return object|false
      */
-    protected function prepareCreate(form $formData, bool $isPipelineServer): object|false
+    protected function prepareCreate(form $formData, bool $isPipelineServer)
     {
         if($this->config->inContainer || $this->config->inQuickon)
         {
@@ -87,7 +87,7 @@ class repoZen extends repo
      * @access protected
      * @return object|false
      */
-    protected function prepareCreateRepo(form $formData, bool $isPipelineServer): object|false
+    protected function prepareCreateRepo(form $formData, bool $isPipelineServer)
     {
         $serviceHost = $_POST['serviceHost'];
         $namespace   = $_POST['namespace'];
@@ -163,7 +163,7 @@ class repoZen extends repo
      * @access protected
      * @return object|false
      */
-    protected function prepareEdit(form $formData, object $oldRepo, bool $isPipelineServer): object|false
+    protected function prepareEdit(form $formData, object $oldRepo, bool $isPipelineServer)
     {
         if($oldRepo->client != $this->post->client and !$this->checkClient()) return false;
         if(!$this->checkConnection()) return false;
@@ -226,7 +226,7 @@ class repoZen extends repo
      * @access protected
      * @return array|false
      */
-    protected function checkACL(): array|false
+    protected function checkACL()
     {
         $acl = $this->post->acl;
         if($acl['acl'] == 'custom')
@@ -545,7 +545,7 @@ class repoZen extends repo
      * @access protected
      * @return array|false
      */
-    protected function prepareBatchCreate(): array|false
+    protected function prepareBatchCreate()
     {
         if(!$this->post->serviceProject) return false;
 
@@ -855,7 +855,7 @@ class repoZen extends repo
      * @access protected
      * @return array
      */
-    protected function setBranchTag(object $repo, string $branchID, array|bool $branchInfo = false, array|bool $tagInfo = false): array
+    protected function setBranchTag(object $repo, string $branchID, $branchInfo = false, $tagInfo = false): array
     {
         $repoID   = $repo->id;
         $branches = $tags = $branchesAndTags = array();
@@ -1204,7 +1204,7 @@ class repoZen extends repo
      * @access protected
      * @return string
      */
-    protected function getSCM(int|string $serviceHost)
+    protected function getSCM($serviceHost)
     {
         $server = $this->loadModel('pipeline')->getByID($serviceHost);
 

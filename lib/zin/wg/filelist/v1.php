@@ -6,7 +6,10 @@ require_once dirname(__DIR__) . DS . 'section' . DS . 'v1.php';
 
 class fileList extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'files?:array',
         'fieldset?:bool=true',
         'method?:string="view"',
@@ -16,12 +19,18 @@ class fileList extends wg
         'padding?:bool=true'
     );
 
-    public static function getPageCSS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageCSS()
     {
         return file_get_contents(__DIR__ . DS . 'css' . DS . 'v1.css');
     }
 
-    public static function getPageJS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageJS()
     {
         return file_get_contents(__DIR__ . DS . 'js' . DS . 'v1.js');
     }

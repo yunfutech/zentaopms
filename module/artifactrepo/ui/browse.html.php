@@ -37,24 +37,14 @@ featureBar
 (
 );
 
-toolBar
+toolBar($canCreate ? item(set(array
 (
-    $canCreate ? item(set(array
-    (
-        'text'  => $lang->artifactrepo->create,
-        'icon'  => 'plus',
-        'class' => 'btn primary',
-        'url'   => createLink('artifactrepo', 'create'),
-    ))) : null,
-);
+    'text'  => $lang->artifactrepo->create,
+    'icon'  => 'plus',
+    'class' => 'btn primary',
+    'url'   => createLink('artifactrepo', 'create'),
+))) : null);
 
-dtable
-(
-    set::cols($config->artifactrepo->dtable->fieldList),
-    set::data($artifactRepos),
-    set::onRenderCell(jsRaw('window.renderList')),
-    set::sortLink(jsRaw('createSortLink')),
-    set::footPager(usePager()),
-);
+dtable(set::cols($config->artifactrepo->dtable->fieldList), set::data($artifactRepos), set::onRenderCell(jsRaw('window.renderList')), set::sortLink(jsRaw('createSortLink')), set::footPager(usePager()));
 
 render();

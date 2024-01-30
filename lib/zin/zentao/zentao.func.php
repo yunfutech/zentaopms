@@ -42,18 +42,31 @@ class stdClass extends \stdClass
 {
 }
 
-function createLink(string $moduleName, string $methodName = 'index', string|array $vars = array(), string $viewType = '', bool $onlybody = false): string
+/**
+ * @param string|mixed[] $vars
+ */
+function createLink(string $moduleName, string $methodName = 'index', $vars = array(), string $viewType = '', bool $onlybody = false): string
 {
     if(empty($moduleName)) return '';
     return \helper::createLink($moduleName, $methodName, $vars, $viewType, $onlybody);
 }
 
-function inLink(string $methodName = 'index', string|array $vars = '', string $viewType = '', bool $onlybody = false): string
+/**
+ * @param string|mixed[] $vars
+ */
+function inLink(string $methodName = 'index', $vars = '', string $viewType = '', bool $onlybody = false): string
 {
     return \inlink($methodName, $vars, $viewType, $onlybody);
 }
 
-function zget(array|object $var, string|int|bool $key, mixed $valueWhenNone = false, mixed $valueWhenExists = false): mixed
+/**
+ * @param mixed[]|object $var
+ * @param string|int|bool $key
+ * @param mixed $valueWhenNone
+ * @param mixed $valueWhenExists
+ * @return mixed
+ */
+function zget($var, $key, $valueWhenNone = false, $valueWhenExists = false)
 {
     return \zget($var, $key, $valueWhenNone, $valueWhenExists);
 }
@@ -97,7 +110,7 @@ function isAjaxRequest(?string $type = null): bool
  * @param  bool|string|array $callback
  * @param  array             $options
  */
-function bind(string $name, bool|string|array $callback, array|string $options = null): directive
+function bind(string $name, $callback, $options = null): directive
 {
     if(is_string($options) && is_string($callback))
     {
@@ -130,7 +143,7 @@ function bind(string $name, bool|string|array $callback, array|string $options =
  * @param int   $flags  json encode flags.
  * @return void
  */
-function renderJson(mixed $data, int $flags = 0)
+function renderJson($data, int $flags = 0)
 {
     ob_end_flush();
     zin::$rendered = true;

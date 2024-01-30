@@ -6,7 +6,10 @@ require_once dirname(__DIR__) . DS . 'actionitem' . DS . 'v1.php';
 
 class menu extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'items?:array'
     );
 

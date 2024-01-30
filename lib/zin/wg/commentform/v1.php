@@ -4,7 +4,10 @@ namespace zin;
 
 class commentForm extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'url?:string',
         'name?:string="comment"',
         'closeModal?: bool',

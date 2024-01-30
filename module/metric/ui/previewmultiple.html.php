@@ -96,10 +96,7 @@ nav
                 setClass('common'),
                 $lang->metric->filter->common
             ),
-            span
-            (
-                setClass('checked'),
-            )
+            span(setClass('checked'))
         ),
         panel
         (
@@ -174,15 +171,10 @@ $fnGenerateQueryForm = function() use($metricRecordType, $current, $dateLabels, 
                 $label
             );
         }
-        $formGroups[] = formGroup
+        $formGroups[] = formGroup(setClass('query-calc-date query-inline w-64'), btngroup
         (
-            setClass('query-calc-date query-inline w-64'),
-            btngroup
-            (
-                $btnLabels
-            ),
-            on::click('.query-calc-date button.btn', 'window.handleCalcDateClick(target)'),
-        );
+            $btnLabels
+        ), on::click('.query-calc-date button.btn', 'window.handleCalcDateClick(target)'));
     }
 
     if($metricRecordType == 'date' || $metricRecordType == 'scope-date')
@@ -198,18 +190,12 @@ $fnGenerateQueryForm = function() use($metricRecordType, $current, $dateLabels, 
                 $label
             );
         }
-        $formGroups[] = formGroup
+        $formGroups[] = formGroup(setClass('query-date query-inline w-64'), btngroup
         (
-            setClass('query-date query-inline w-64'),
-            btngroup
-            (
-                $btnLabels
-            ),
-            on::click('.query-date button.btn', 'window.handleDateLabelClick(target)'),
-        );
+            $btnLabels
+        ), on::click('.query-date button.btn', 'window.handleDateLabelClick(target)'));
 
-        $formGroups[] = formGroup
-        (
+        $formGroups[] = formGroup(
             setClass('query-inline w-80'),
             // set::label($this->lang->metric->date),
             inputGroup
@@ -230,7 +216,7 @@ $fnGenerateQueryForm = function() use($metricRecordType, $current, $dateLabels, 
                     set::placeholder($this->lang->metric->placeholder->select)
                 )
             ),
-            on::change('.query-date-picker', 'window.handleDatePickerChange(target)'),
+            on::change('.query-date-picker', 'window.handleDatePickerChange(target)')
         );
     }
 
@@ -296,28 +282,24 @@ sidebar
 (
     set::width('25%'),
     set::onToggle(jsRaw("window.handleSidebarToggle")),
-    div
+    div(setClass('side'), div
     (
-        setClass('side'),
+        setClass('canvas'),
         div
         (
-            setClass('canvas'),
-            div
+            setClass('title flex items-center'),
+            span
             (
-                setClass('title flex items-center'),
-                span
-                (
-                    setClass('name-color side-title'),
-                    $metricList
-                )
-            ),
-            div
-            (
-                setClass('metric-tree'),
-                $metricTrees
+                setClass('name-color side-title'),
+                $metricList
             )
         ),
-    )
+        div
+        (
+            setClass('metric-tree'),
+            $metricTrees
+        )
+    ))
 );
 
 $star = (!empty($current->collector) and strpos($current->collector, ',' . $app->user->account . ',') !== false) ? 'star' : 'star-empty';

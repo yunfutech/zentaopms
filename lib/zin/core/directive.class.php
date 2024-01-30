@@ -16,13 +16,25 @@ require_once __DIR__ . DS . 'zin.class.php';
 
 class directive
 {
-    public string $type;
+    /**
+     * @var string
+     */
+    public $type;
 
-    public mixed $data;
+    /**
+     * @var mixed
+     */
+    public $data;
 
-    public ?array $options;
+    /**
+     * @var mixed[]|null
+     */
+    public $options;
 
-    public ?wg $parent = null;
+    /**
+     * @var \zin\wg|null
+     */
+    public $parent;
 
     /**
      * Construct a directive object
@@ -31,7 +43,7 @@ class directive
      * @param  array  $options
      * @access public
      */
-    public function __construct(string $type, mixed $data, ?array $options = null)
+    public function __construct(string $type, $data, ?array $options = null)
     {
         $this->type    = $type;
         $this->data    = $data;
@@ -49,7 +61,10 @@ class directive
         );
     }
 
-    public static function is(mixed $item, ?string $type = null): bool
+    /**
+     * @param mixed $item
+     */
+    public static function is($item, ?string $type = null): bool
     {
         return $item instanceof directive && ($type === null || $item->type === $type);
     }
@@ -60,7 +75,10 @@ function directive($type, $data, $options = null): directive
     return new directive($type, $data, $options);
 }
 
-function isDirective(mixed $item, ?string $type = null): bool
+/**
+ * @param mixed $item
+ */
+function isDirective($item, ?string $type = null): bool
 {
     return directive::is($item, $type);
 }

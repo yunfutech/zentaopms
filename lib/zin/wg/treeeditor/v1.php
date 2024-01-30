@@ -4,7 +4,10 @@ namespace zin;
 
 class treeEditor extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'items: array',
         'type?: string',
         'id?: string',
@@ -18,7 +21,10 @@ class treeEditor extends wg
         'canSplit?: bool=true'
     );
 
-    public static function getPageJS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageJS()
     {
         return file_get_contents(__DIR__ . DS . 'js' . DS . 'v1.js');
     }

@@ -12,37 +12,13 @@ declare(strict_types=1);
 
 namespace zin;
 
-formPanel
+formPanel(set::id('gogsCreateForm'), set::title($lang->gogs->edit), set::submitBtnText($lang->save), set::actions(array('submit', array('text' => $lang->cancel, 'data-type' => 'submit', 'data-dismiss' => 'modal'))), formRow
 (
-    set::id('gogsCreateForm'),
-    set::title($lang->gogs->edit),
-    set::submitBtnText($lang->save),
-    set::actions(array('submit', array('text' => $lang->cancel, 'data-type' => 'submit', 'data-dismiss' => 'modal'))),
-    formRow
-    (
-        formGroup
-        (
-            set::name('name'),
-            set::label($lang->gogs->name),
-            set::value($gogs->name),
-        )
-    ),
-    formRow
-    (
-        formGroup
-        (
-            set::name('url'),
-            set::label($lang->gogs->url),
-            set::value($gogs->url),
-        )
-    ),
-    formRow
-    (
-        formGroup
-        (
-            set::name('token'),
-            set::label($lang->gogs->token),
-            set::value($gogs->token),
-        )
-    ),
-);
+    formGroup(set::name('name'), set::label($lang->gogs->name), set::value($gogs->name))
+), formRow
+(
+    formGroup(set::name('url'), set::label($lang->gogs->url), set::value($gogs->url))
+), formRow
+(
+    formGroup(set::name('token'), set::label($lang->gogs->token), set::value($gogs->token))
+));

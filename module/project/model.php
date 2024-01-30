@@ -1368,10 +1368,7 @@ class projectModel extends model
 
             /* Set team of project. */
             $members = isset($_POST['teamMembers']) ? $_POST['teamMembers'] : array();
-            array_push($members, $project->PP, $project->openedBy);
-            array_push($members, $project->PC, $project->openedBy);
             array_push($members, $project->PM, $project->openedBy);
-
             $members = array_unique($members);
             $roles   = $this->loadModel('user')->getUserRoles(array_values($members));
 
@@ -1739,7 +1736,6 @@ class projectModel extends model
             $projects[$projectID]->name           = $projectName;
             $projects[$projectID]->model          = $oldProjects[$projectID]->model;
             $projects[$projectID]->PM             = $data->PMs[$projectID];
-            $projects[$projectID]->pri             = $data->pris[$projectID];
             $projects[$projectID]->begin          = $data->begins[$projectID];
             $projects[$projectID]->end            = $data->ends[$projectID] == $this->lang->project->longTime ? LONG_TIME : $data->ends[$projectID];
             $projects[$projectID]->days           = $data->ends[$projectID] == $this->lang->project->longTime ? 0 : $data->dayses[$projectID];
@@ -1755,8 +1751,6 @@ class projectModel extends model
                 if(is_array($projects[$projectID]->{$extendField->field})) $projects[$projectID]->{$extendField->field} = join(',', $projects[$projectID]->{$extendField->field});
 
                 $projects[$projectID]->{$extendField->field} = htmlSpecialString($projects[$projectID]->{$extendField->field});
-                $message = $this->checkFlowRule($extendField, $projects[$projectID]->{$extendField->field});
-                if($message) helper::end(js::alert($message));
             }
         }
         if(dao::isError()) return false;
@@ -2320,11 +2314,6 @@ class projectModel extends model
                         printf('%03d', $project->id);
                     }
                     break;
-                case 'pri':
-                    echo "<span class='label-pri label-pri-" . $project->pri . "' title='" . zget($this->lang->project->priList, $project->pri, $project->pri) . "'>";
-                    echo zget($this->lang->project->priList, $project->pri, $project->pri);
-                    echo "</span>";
-                    break;
                 case 'name':
                     $prefix      = '';
                     $suffix      = '';
@@ -2340,27 +2329,6 @@ class projectModel extends model
                     break;
                 case 'code':
                     echo $project->code;
-                    break;
-                case 'PP':
-                    $user     = $this->loadModel('user')->getByID($project->PP, 'account');
-                    $userID   = !empty($user) ? $user->id : '';
-                    $PPLink   = helper::createLink('user', 'profile', "userID=$userID", '', true);
-                    $userName = zget($users, $project->PP);
-                    echo empty($project->PP) ? '' : html::a($PPLink, $userName, '', "title='{$userName}' data-toggle='modal' data-type='iframe' data-width='600'");
-                    break;
-                case 'PC':
-                    $user     = $this->loadModel('user')->getByID($project->PC, 'account');
-                    $userID   = !empty($user) ? $user->id : '';
-                    $PCLink   = helper::createLink('user', 'profile', "userID=$userID", '', true);
-                    $userName = zget($users, $project->PC);
-                    echo empty($project->PC) ? '' : html::a($PCLink, $userName, '', "title='{$userName}' data-toggle='modal' data-type='iframe' data-width='600'");
-                    break;
-                case 'PM':
-                    $user     = $this->loadModel('user')->getByID($project->PM, 'account');
-                    $userID   = !empty($user) ? $user->id : '';
-                    $PCLink   = helper::createLink('user', 'profile', "userID=$userID", '', true);
-                    $userName = zget($users, $project->PC);
-                    echo empty($project->PC) ? '' : html::a($PCLink, $userName, '', "title='{$userName}' data-toggle='modal' data-type='iframe' data-width='600'");
                     break;
                 case 'PM':
                     $user       = $this->loadModel('user')->getByID($project->PM, 'account');
@@ -2675,138 +2643,6 @@ class projectModel extends model
             ->andWhere('type')->eq('project')
             ->andWhere('account')->notIN($currentMembers)
             ->fetchAll('account');
-    }
-
-    /**
-     * Get project stats.
-     *
-     * @param  int     $projectID
-     * @param  string  $status
-     * @param  int     $productID
-     * @param  int     $itemCounts
-     * @param  string  $orderBy
-     * @param  object  $pager
-     * @access public
-     * @return array
-     */
-    public function getStats($projectID = 0, $status = 'undone', $productID = 0, $branch = 0, $itemCounts = 30, $orderBy = 'id_asc', $pager = null)
-    {
-        if(empty($productID))
-        {
-            $myExecutionIDList = array();
-            if($status == 'involved')
-            {
-                $myExecutionIDList = $this->dao->select('root')->from(TABLE_TEAM)
-                    ->where('account')->eq($this->app->user->account)
-                    ->andWhere('type')->eq('execution')
-                    ->fetchPairs();
-            }
-
-            $executions = $this->dao->select('t1.*,t2.name projectName, t2.model as projectModel')->from(TABLE_EXECUTION)->alias('t1')
-                ->leftJoin(TABLE_PROJECT)->alias('t2')->on('t1.project = t2.id')
-                ->where('t1.type')->in('sprint,stage,kanban')
-                ->beginIF($projectID != 0)->andWhere('t1.project')->eq($projectID)->fi()
-                ->beginIF($projectID == 0 && $this->config->vision)->andWhere('t1.vision')->eq($this->config->vision)->fi()
-                ->beginIF(!empty($myExecutionIDList))->andWhere('t1.id')->in(array_keys($myExecutionIDList))->fi()
-                ->beginIF($status == 'undone')->andWhere('t1.status')->notIN('done,closed')->fi()
-                ->beginIF($status != 'all' and $status != 'undone' and $status != 'involved')->andWhere('t1.status')->eq($status)->fi()
-                ->beginIF(!$this->app->user->admin)->andWhere('t1.id')->in($this->app->user->view->sprints)->fi()
-                ->andWhere('t1.vision')->eq($this->config->vision)
-                ->andWhere('t1.deleted')->eq('0')
-                ->orderBy($orderBy)
-                ->page($pager)
-                ->fetchAll('id');
-        }
-        else
-        {
-            $executions = $this->dao->select('t2.*,t3.name projectName, t3.model as projectModel')->from(TABLE_PROJECTPRODUCT)->alias('t1')
-                ->leftJoin(TABLE_EXECUTION)->alias('t2')->on('t1.project=t2.id')
-                ->leftJoin(TABLE_PROJECT)->alias('t3')->on('t2.project=t3.id')
-                ->where('t1.product')->eq($productID)
-                ->beginIF($projectID)->andWhere('t2.project')->eq($projectID)->fi()
-                ->beginIF($status == 'undone')->andWhere('t2.status')->notIN('done,closed')->fi()
-                ->beginIF($status != 'all' and $status != 'undone')->andWhere('t2.status')->eq($status)->fi()
-                ->beginIF(!$this->app->user->admin)->andWhere('t2.id')->in($this->app->user->view->sprints)->fi()
-                ->andWhere('t2.deleted')->eq('0')
-                ->andWhere('t2.vision')->eq($this->config->vision)
-                ->orderBy($orderBy)
-                ->page($pager)
-                ->fetchAll('id');
-        }
-
-        $hours     = $this->computerProgress($executions);
-        $emptyHour = array('totalEstimate' => 0, 'totalConsumed' => 0, 'totalLeft' => 0, 'progress' => 0);
-
-        /* Get burndown charts datas. */
-        $burns = $this->dao->select('execution, date AS name, `left` AS value')
-            ->from(TABLE_BURN)
-            ->where('execution')->in(array_keys($executions))
-            ->andWhere('task')->eq(0)
-            ->orderBy('date desc')
-            ->fetchGroup('execution', 'name');
-
-        $this->loadModel('execution');
-        foreach($burns as $executionID => $executionBurns)
-        {
-            /* If executionBurns > $itemCounts, split it, else call processBurnData() to pad burns. */
-            $begin = $executions[$executionID]->begin;
-            $end   = $executions[$executionID]->end;
-            if(helper::isZeroDate($begin)) $begin = $executions[$executionID]->openedDate;
-            $executionBurns = $this->execution->processBurnData($executionBurns, $itemCounts, $begin, $end);
-
-            /* Shorter names. */
-            foreach($executionBurns as $executionBurn)
-            {
-                $executionBurn->name = substr($executionBurn->name, 5);
-                unset($executionBurn->execution);
-            }
-
-            ksort($executionBurns);
-            $burns[$executionID] = $executionBurns;
-        }
-
-        /* Process executions. */
-        $parents  = array();
-        $children = array();
-        foreach($executions as $key => $execution)
-        {
-            /* Process the end time. */
-            $execution->end = date(DT_DATE1, strtotime($execution->end));
-
-            /* Judge whether the execution is delayed. */
-            if($execution->status != 'done' and $execution->status != 'closed' and $execution->status != 'suspended')
-            {
-                $delay = helper::diffDate(helper::today(), $execution->end);
-                if($delay > 0) $execution->delay = $delay;
-            }
-
-            /* Process the burns. */
-            $execution->burns = array();
-            $burnData = isset($burns[$execution->id]) ? $burns[$execution->id] : array();
-            foreach($burnData as $data) $execution->burns[] = $data->value;
-
-            /* Process the hours. */
-            $execution->hours = isset($hours[$execution->id]) ? $hours[$execution->id] : (object)$emptyHour;
-
-            $execution->children = array();
-            $execution->grade == 1 ? $parents[$execution->id] = $execution : $children[$execution->parent][] = $execution;
-        }
-
-        /* In the case of the waterfall model, calculate the sub-stage. */
-        $project = $this->getByID($projectID);
-        if($project and $project->model == 'waterfall')
-        {
-            foreach($parents as $id => $execution)
-            {
-                $execution->children = isset($children[$id]) ? $children[$id] : array();
-                unset($children[$id]);
-            }
-        }
-
-        $orphan = array();
-        foreach($children as $child) $orphan = array_merge($child, $orphan);
-
-        return array_merge($parents, $orphan);
     }
 
     /**
@@ -3415,6 +3251,21 @@ class projectModel extends model
         $this->dao->update(TABLE_PROJECT)->set('firstEnd')->eq($project->end)->where('id')->eq($projectID)->exec();
         return !dao::isError();
     }
+
+    /**
+     * 获取全部项目负责人
+     */
+    public function getPPs() {
+        $PPs = $this->dao->select('t1.PP, t2.realname')
+            ->from(TABLE_PROJECT)->alias('t1')
+            ->leftJoin(TABLE_USER)->alias('t2')->on('t1.PP= t2.account')
+            ->where('t1.deleted')->eq(0)
+            ->andWhere('t2.deleted')->eq(0)
+            ->andWhere('t2.id')->notin($this->config->project->ppExcludes)
+            ->fetchPairs('PP');
+        return $PPs;
+    }
+
     /**
      * 获取全部项目
      */
@@ -3444,20 +3295,5 @@ class projectModel extends model
             ->beginIF($director != '')->andWhere('director')->eq($director)->fi()
             ->fetchPairs('id', 'name');
         return $projects;
-    }
-
-
-    /**
-     * 获取全部项目负责人
-     */
-    public function getPPs() {
-        $PPs = $this->dao->select('t1.PP, t2.realname')
-            ->from(TABLE_PROJECT)->alias('t1')
-            ->leftJoin(TABLE_USER)->alias('t2')->on('t1.PP= t2.account')
-            ->where('t1.deleted')->eq(0)
-            ->andWhere('t2.deleted')->eq(0)
-            ->andWhere('t2.id')->notin($this->config->project->ppExcludes)
-            ->fetchPairs('PP');
-        return $PPs;
     }
 }

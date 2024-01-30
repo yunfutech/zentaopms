@@ -12,48 +12,16 @@ declare(strict_types=1);
 
 namespace zin;
 
-formPanel
+formPanel(set::id('appCreateForm'), set::title($lang->edit . $lang->space->appType[$app->type]), set::submitBtnText($lang->save), set::actions(array('submit', array('text' => $lang->cancel, 'data-type' => 'submit', 'data-dismiss' => 'modal'))), formRow
 (
-    set::id('appCreateForm'),
-    set::title($lang->edit . $lang->space->appType[$app->type]),
-    set::submitBtnText($lang->save),
-    set::actions(array('submit', array('text' => $lang->cancel, 'data-type' => 'submit', 'data-dismiss' => 'modal'))),
-    formRow
-    (
-        formGroup
-        (
-            set::name('name'),
-            set::required(true),
-            set::label($lang->sonarqube->name),
-            set::value($app->name),
-        )
-    ),
-    formRow
-    (
-        formGroup
-        (
-            set::name('url'),
-            set::required(true),
-            set::label($lang->sonarqube->url),
-            set::value($app->url),
-        )
-    ),
-    formRow
-    (
-        formGroup
-        (
-            set::name('account'),
-            set::label($lang->sonarqube->account),
-            set::value($app->account),
-        )
-    ),
-    formRow
-    (
-        formGroup
-        (
-            set::name('password'),
-            set::label($lang->sonarqube->password),
-            set::value($app->password),
-        )
-    ),
-);
+    formGroup(set::name('name'), set::required(true), set::label($lang->sonarqube->name), set::value($app->name))
+), formRow
+(
+    formGroup(set::name('url'), set::required(true), set::label($lang->sonarqube->url), set::value($app->url))
+), formRow
+(
+    formGroup(set::name('account'), set::label($lang->sonarqube->account), set::value($app->account))
+), formRow
+(
+    formGroup(set::name('password'), set::label($lang->sonarqube->password), set::value($app->password))
+));

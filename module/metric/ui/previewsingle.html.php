@@ -118,25 +118,7 @@ featureBar
 
 $firstScope = current(array_keys($this->lang->metric->featureBar['preview']));
 $exchangeScope = $scope == 'filter' ? $firstScope : $scope;
-toolbar
-(
-    btn
-    (
-        setClass('btn text-black ghost primary-hover-500'),
-        set::icon('exchange'),
-        set::iconClass('icon-18'),
-        set::url(helper::createLink('metric', 'preview', "scope=$exchangeScope&viewType=multiple&metricID={$currentID}")),
-        $lang->metric->viewType->multiple,
-    ),
-    /*
-    common::hasPriv('metric', 'preview') ? btn
-    (
-        setClass('btn primary'),
-        set::url(helper::createLink('metric', 'browse')),
-        $lang->metric->manage
-    ) : null
-    */
-);
+toolbar(btn(setClass('btn text-black ghost primary-hover-500'), set::icon('exchange'), set::iconClass('icon-18'), set::url(helper::createLink('metric', 'preview', "scope=$exchangeScope&viewType=multiple&metricID={$currentID}")), $lang->metric->viewType->multiple));
 
 $fnGenerateQueryForm = function() use($metricRecordType, $current, $dateLabels, $defaultDate)
 {
@@ -170,15 +152,10 @@ $fnGenerateQueryForm = function() use($metricRecordType, $current, $dateLabels, 
                 $label
             );
         }
-        $formGroups[] = formGroup
+        $formGroups[] = formGroup(setClass('query-calc-date query-inline w-64'), btngroup
         (
-            setClass('query-calc-date query-inline w-64'),
-            btngroup
-            (
-                $btnLabels
-            ),
-            on::click('.query-calc-date button.btn', 'window.handleCalcDateClick(target)'),
-        );
+            $btnLabels
+        ), on::click('.query-calc-date button.btn', 'window.handleCalcDateClick(target)'));
     }
 
     if($metricRecordType == 'date' || $metricRecordType == 'scope-date')
@@ -194,39 +171,29 @@ $fnGenerateQueryForm = function() use($metricRecordType, $current, $dateLabels, 
                 $label
             );
         }
-        $formGroups[] = formGroup
+        $formGroups[] = formGroup(setClass('query-date query-inline w-64'), btngroup
         (
-            setClass('query-date query-inline w-64'),
-            btngroup
-            (
-                $btnLabels
-            ),
-            on::click('.query-date button.btn', 'window.handleDateLabelClick(target)'),
-        );
+            $btnLabels
+        ), on::click('.query-date button.btn', 'window.handleDateLabelClick(target)'));
 
-        $formGroups[] = formGroup
+        $formGroups[] = formGroup(setClass('query-inline w-80'), inputGroup
         (
-            setClass('query-inline w-80'),
-            inputGroup
+            datePicker
             (
-                datePicker
-                (
-                    setClass('query-date-picker'),
-                    set::name('dateBegin'),
-                    set('id', 'dateBegin'),
-                    set::placeholder($this->lang->metric->placeholder->select)
-                ),
-                $this->lang->metric->to,
-                datePicker
-                (
-                    setClass('query-date-picker'),
-                    set::name('dateEnd'),
-                    set('id', 'dateEnd'),
-                    set::placeholder($this->lang->metric->placeholder->select)
-                )
+                setClass('query-date-picker'),
+                set::name('dateBegin'),
+                set('id', 'dateBegin'),
+                set::placeholder($this->lang->metric->placeholder->select)
             ),
-            on::change('.query-date-picker', 'window.handleDatePickerChange(target)'),
-        );
+            $this->lang->metric->to,
+            datePicker
+            (
+                setClass('query-date-picker'),
+                set::name('dateEnd'),
+                set('id', 'dateEnd'),
+                set::placeholder($this->lang->metric->placeholder->select)
+            )
+        ), on::change('.query-date-picker', 'window.handleDatePickerChange(target)'));
     }
 
     return form
@@ -259,28 +226,24 @@ sidebar
 (
     set::width('25%'),
     set::onToggle(jsRaw("window.handleSidebarToggle")),
-    div
+    div(setClass('side'), div
     (
-        setClass('side'),
+        setClass('canvas'),
         div
         (
-            setClass('canvas'),
-            div
+            setClass('title flex items-center'),
+            span
             (
-                setClass('title flex items-center'),
-                span
-                (
-                    setClass('name-color'),
-                    $sideTitle
-                )
-            ),
-            div
-            (
-                setClass('metric-tree'),
-                $fnGenerateSide($groupMetrics, $current, $viewType, $scope, $lang)
+                setClass('name-color'),
+                $sideTitle
             )
         ),
-    )
+        div
+        (
+            setClass('metric-tree'),
+            $fnGenerateSide($groupMetrics, $current, $viewType, $scope, $lang)
+        )
+    ))
 );
 div
 (

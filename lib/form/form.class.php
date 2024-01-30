@@ -259,7 +259,7 @@ class form extends fixer
      * @access public
      * @return mixed
      */
-    public function specialArray($data): mixed
+    public function specialArray($data)
     {
         if(!is_array($data))
         {
@@ -302,7 +302,7 @@ class form extends fixer
      * @access public
      * @return mixed
      */
-    public function get($fields = ''): mixed
+    public function get($fields = '')
     {
         global $config;
 

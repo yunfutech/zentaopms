@@ -14,69 +14,48 @@ global $lang;
 if(isAjaxRequest('modal')) unset($config->account->actionList['edit']['data-toggle']);
 $actions = $this->loadModel('common')->buildOperateMenu($account);
 
-detailHeader
-(
-    isAjaxRequest('modal') ? to::prefix() : '',
-    to::title(
-        entityLabel(
-            set(array('entityID' => $account->id, 'level' => 1, 'text' => $account->name))
-        )
-    ),
-);
+detailHeader(isAjaxRequest('modal') ? to::prefix() : '', to::title(
+    entityLabel(
+        set(array('entityID' => $account->id, 'level' => 1, 'text' => $account->name))
+    )
+));
 
-detailBody
+detailBody(sectionList(section
 (
-    sectionList
+    tableData(item
     (
-        section
-        (
-            tableData
-            (
-                item
-                (
-                    set::name($lang->account->name),
-                    $account->name
-                ),
-                item
-                (
-                    set::name($lang->account->provider),
-                    \zget($lang->serverroom->providerList, $account->provider)
-                ),
-                item
-                (
-                    set::name($lang->account->adminURI),
-                    $account->adminURI
-                ),
-                item
-                (
-                    set::name($lang->account->account),
-                    $account->account
-                ),
-                item
-                (
-                    set::name($lang->account->password),
-                    $account->password
-                ),
-                item
-                (
-                    set::name($lang->account->email),
-                    $account->email
-                ),
-                item
-                (
-                    set::name($lang->account->mobile),
-                    $account->mobile
-                ),
-            )
-        ),
-    ),
-    history(),
-    floatToolbar
+        set::name($lang->account->name),
+        $account->name
+    ), item
     (
-        set::object($account),
-        isAjaxRequest('modal') ? null : to::prefix(backBtn(set::icon('back'), set::className('ghost text-white'), $lang->goback)),
-        set::suffix($actions['suffixActions'])
-    ),
-);
+        set::name($lang->account->provider),
+        \zget($lang->serverroom->providerList, $account->provider)
+    ), item
+    (
+        set::name($lang->account->adminURI),
+        $account->adminURI
+    ), item
+    (
+        set::name($lang->account->account),
+        $account->account
+    ), item
+    (
+        set::name($lang->account->password),
+        $account->password
+    ), item
+    (
+        set::name($lang->account->email),
+        $account->email
+    ), item
+    (
+        set::name($lang->account->mobile),
+        $account->mobile
+    ))
+)), history(), floatToolbar
+(
+    set::object($account),
+    isAjaxRequest('modal') ? null : to::prefix(backBtn(set::icon('back'), set::className('ghost text-white'), $lang->goback)),
+    set::suffix($actions['suffixActions'])
+));
 
 render();

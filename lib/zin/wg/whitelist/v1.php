@@ -15,7 +15,10 @@ requireWg('users');
 
 class whitelist extends users
 {
-    protected static array $defaultProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defaultProps = array(
         'name' => 'whitelist[]'
     );
 }

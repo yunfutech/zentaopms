@@ -21,23 +21,13 @@ $createItem = array('text' => $lang->sonarqube->create, 'url' => $createLink, 'c
 
 $tableData = initTableData($sonarqubeList, $config->sonarqube->dtable->fieldList, $this->sonarqube);
 
-toolbar
-(
-    $canCreate ? item(set($createItem)) : null,
-);
+toolbar($canCreate ? item(set($createItem)) : null);
 
 jsVar('confirmDelete',    $lang->sonarqube->confirmDelete);
 jsVar('orderBy',          $orderBy);
 jsVar('canBrowseProject', common::hasPriv('sonarqube', 'browseProject'));
 jsVar('sortLink',         helper::createLink('sonarqube', 'browse', "orderBy={orderBy}&recTotal={$pager->recTotal}&recPerPage={$pager->recPerPage}&pageID={$pager->pageID}"));
 
-dtable
-(
-    set::cols(array_values($config->sonarqube->dtable->fieldList)),
-    set::data($tableData),
-    set::sortLink(jsRaw('createSortLink')),
-    set::onRenderCell(jsRaw('window.renderCell')),
-    set::footPager(usePager()),
-);
+dtable(set::cols(array_values($config->sonarqube->dtable->fieldList)), set::data($tableData), set::sortLink(jsRaw('createSortLink')), set::onRenderCell(jsRaw('window.renderCell')), set::footPager(usePager()));
 
 render();

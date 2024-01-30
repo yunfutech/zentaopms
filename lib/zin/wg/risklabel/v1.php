@@ -4,17 +4,27 @@ namespace zin;
 
 class riskLabel extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'text?: string', // 标签文本
         'level?: string' // 风险等级：高('high' 或 'h')、中('middle' 或 'm')、低('low' 或 'l')
     );
 
-    public static function getPageCSS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageCSS()
     {
         return file_get_contents(__DIR__ . DS . 'css' . DS . 'v1.css');
     }
 
-    protected function onAddChild(mixed $child): mixed
+    /**
+     * @param mixed $child
+     * @return mixed
+     */
+    protected function onAddChild($child)
     {
         if(is_string($child) && !$this->props->has('text'))
         {

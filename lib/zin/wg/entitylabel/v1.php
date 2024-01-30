@@ -6,7 +6,10 @@ require_once dirname(__DIR__) . DS . 'label' . DS . 'v1.php';
 
 class entityLabel extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'entityID?: string|int', // 实体编号
         'level?: string|int',    // 标题层级
         'text?: string',         // 实体文本
@@ -18,17 +21,27 @@ class entityLabel extends wg
         'labelProps?: array'     // 标签属性
     );
 
-    protected static array $defineBlocks = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineBlocks = array(
         'prefix' => array(),
         'suffix' => array()
     );
 
-    public static function getPageCSS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageCSS()
     {
         return file_get_contents(__DIR__ . DS . 'css' . DS . 'v1.css');
     }
 
-    protected function onAddChild(mixed $child): mixed
+    /**
+     * @param mixed $child
+     * @return mixed
+     */
+    protected function onAddChild($child)
     {
         if(is_string($child) && !$this->props->has('text'))
         {

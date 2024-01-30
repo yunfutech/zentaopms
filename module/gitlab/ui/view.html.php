@@ -11,28 +11,17 @@ declare(strict_types=1);
 namespace zin;
 global $lang;
 
-detailHeader
-(
-    isAjaxRequest('modal') ? to::prefix() : '',
-    to::title(
-        entityLabel(
-            set(array('entityID' => $gitlab->id, 'level' => 1, 'text' => $gitlab->name))
-        )
-    ),
-);
+detailHeader(isAjaxRequest('modal') ? to::prefix() : '', to::title(
+    entityLabel(
+        set(array('entityID' => $gitlab->id, 'level' => 1, 'text' => $gitlab->name))
+    )
+));
 
-detailBody
+detailBody(sectionList(section
 (
-    sectionList
-    (
-        section
-        (
-            set::title($lang->gitlab->url),
-            set::content("<a href='{$gitlab->url}' target='_blank'>{$gitlab->url}</a>"),
-            set::useHtml(true)
-        ),
-    ),
-    history(),
-);
+    set::title($lang->gitlab->url),
+    set::content("<a href='{$gitlab->url}' target='_blank'>{$gitlab->url}</a>"),
+    set::useHtml(true)
+)), history());
 
 render();

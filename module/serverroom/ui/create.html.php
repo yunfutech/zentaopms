@@ -12,68 +12,22 @@ declare(strict_types=1);
 
 namespace zin;
 
-formPanel
+formPanel(set::id('serverroomCreateForm'), set::title($lang->serverroom->create), formRow
 (
-    set::id('serverroomCreateForm'),
-    set::title($lang->serverroom->create),
-    formRow
-    (
-        formGroup
-        (
-            set::name('name'),
-            set::label($lang->serverroom->name),
-        )
-    ),
-    formRow
-    (
-        formGroup
-        (
-            set::name('bandwidth'),
-            set::label($lang->serverroom->bandwidth),
-        )
-    ),
-    formRow
-    (
-        formGroup
-        (
-            set::width('1/2'),
-            set::label($lang->serverroom->city),
-            set::control('picker'),
-            set::name('city'),
-            set::items($lang->serverroom->cityList),
-        )
-    ),
-    formRow
-    (
-        formGroup
-        (
-            set::width('1/2'),
-            set::label($lang->serverroom->line),
-            set::control('picker'),
-            set::name('line'),
-            set::items($lang->serverroom->lineList),
-        )
-    ),
-    formRow
-    (
-        formGroup
-        (
-            set::width('1/2'),
-            set::label($lang->serverroom->provider),
-            set::control('picker'),
-            set::name('provider'),
-            set::items($lang->serverroom->providerList),
-        )
-    ),
-    formRow
-    (
-        formGroup
-        (
-            set::width('1/2'),
-            set::label($lang->serverroom->owner),
-            set::control('picker'),
-            set::name('owner'),
-            set::items($users),
-        )
-    ),
-);
+    formGroup(set::name('name'), set::label($lang->serverroom->name))
+), formRow
+(
+    formGroup(set::name('bandwidth'), set::label($lang->serverroom->bandwidth))
+), formRow
+(
+    formGroup(set::width('1/2'), set::label($lang->serverroom->city), set::control('picker'), set::name('city'), set::items($lang->serverroom->cityList))
+), formRow
+(
+    formGroup(set::width('1/2'), set::label($lang->serverroom->line), set::control('picker'), set::name('line'), set::items($lang->serverroom->lineList))
+), formRow
+(
+    formGroup(set::width('1/2'), set::label($lang->serverroom->provider), set::control('picker'), set::name('provider'), set::items($lang->serverroom->providerList))
+), formRow
+(
+    formGroup(set::width('1/2'), set::label($lang->serverroom->owner), set::control('picker'), set::name('owner'), set::items($users))
+));

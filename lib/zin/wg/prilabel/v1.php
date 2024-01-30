@@ -4,12 +4,19 @@ namespace zin;
 
 class priLabel extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'pri: int|string',      // 优先级的值。
         'text?: string|array'   // 优先级显示的文本或优先级文本映射对象。
     );
 
-    protected function onAddChild(mixed $child): mixed
+    /**
+     * @param mixed $child
+     * @return mixed
+     */
+    protected function onAddChild($child)
     {
         if(is_string($child) || is_int($child))
         {

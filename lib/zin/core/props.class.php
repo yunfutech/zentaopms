@@ -30,7 +30,7 @@ class props extends \zin\utils\dataset
      * @access public
      * @var    style
      */
-    public style $style;
+    public $style;
 
     /**
      * Class property
@@ -38,9 +38,12 @@ class props extends \zin\utils\dataset
      * @access public
      * @var    classlist
      */
-    public classlist $class;
+    public $class;
 
-    public static array $booleanAttrs = array('allowfullscreen', 'async', 'autofocus', 'autoplay', 'checked', 'controls', 'default', 'defer', 'disabled', 'formnovalidate', 'inert', 'ismap', 'itemscope', 'loop', 'multiple', 'muted', 'nomodule', 'novalidate', 'open', 'playsinline', 'readonly', 'required', 'reversed', 'selected');
+    /**
+     * @var mixed[]
+     */
+    public static $booleanAttrs = array('allowfullscreen', 'async', 'autofocus', 'autoplay', 'checked', 'controls', 'default', 'defer', 'disabled', 'formnovalidate', 'inert', 'ismap', 'itemscope', 'loop', 'multiple', 'muted', 'nomodule', 'novalidate', 'open', 'playsinline', 'readonly', 'required', 'reversed', 'selected');
 
     /**
      * Create properties instance
@@ -63,7 +66,7 @@ class props extends \zin\utils\dataset
      * @param string   $prop        - Property name or properties list
      * @param mixed          $value       - Property value
      */
-    protected function setVal(string $prop, mixed $value): props
+    protected function setVal(string $prop, $value): \zin\utils\dataset
     {
         if($prop === 'class' || $prop === '.')     $this->class->set($value);
         elseif($prop === 'style' || $prop === '~') $this->style->set($value);
@@ -79,7 +82,10 @@ class props extends \zin\utils\dataset
         return $this;
     }
 
-    protected function getVal(string $prop): mixed
+    /**
+     * @return mixed
+     */
+    protected function getVal(string $prop)
     {
         if($prop === 'class' || $prop === '.')
         {
@@ -98,7 +104,7 @@ class props extends \zin\utils\dataset
      * @param string|string[] $name
      * @param mixed $value
      */
-    public function reset(array|string $name, mixed $value = null)
+    public function reset($name, $value = null)
     {
         if(is_array($name))
         {
@@ -148,7 +154,10 @@ class props extends \zin\utils\dataset
         return false;
     }
 
-    public function hx(array|string $name, ?string $value = null)
+    /**
+     * @param mixed[]|string $name
+     */
+    public function hx($name, ?string $value = null)
     {
         if(is_array($name))
         {
@@ -174,8 +183,9 @@ class props extends \zin\utils\dataset
      *     // Output string: id="sayHelloBtn" data-title="Say &quot;Hello&quot;!" data-show="true"
      *
      * @access public
+     * @param mixed[]|string $skipProps
      */
-    public function toStr(array|string $skipProps = array()): string
+    public function toStr($skipProps = array()): string
     {
         if(is_string($skipProps)) $skipProps = explode(',', $skipProps);
 
@@ -224,7 +234,10 @@ class props extends \zin\utils\dataset
         return $data;
     }
 
-    public function skip(array|string $skipProps = array(), bool $skipFalse = false): array
+    /**
+     * @param mixed[]|string $skipProps
+     */
+    public function skip($skipProps = array(), bool $skipFalse = false): array
     {
         if(is_string($skipProps)) $skipProps = explode(',', $skipProps);
 
@@ -238,7 +251,10 @@ class props extends \zin\utils\dataset
         return $data;
     }
 
-    public function split(array|string $firstListProps = array()): array
+    /**
+     * @param mixed[]|string $firstListProps
+     */
+    public function split($firstListProps = array()): array
     {
         if(is_string($firstListProps)) $firstListProps = explode(',', $firstListProps);
 
@@ -255,7 +271,10 @@ class props extends \zin\utils\dataset
         return array($firstList, $restList);
     }
 
-    public function pick(array|string $pickProps = array()): array
+    /**
+     * @param mixed[]|string $pickProps
+     */
+    public function pick($pickProps = array()): array
     {
         if(is_string($pickProps)) $pickProps = explode(',', $pickProps);
 

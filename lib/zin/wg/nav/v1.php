@@ -6,7 +6,10 @@ require_once dirname(__DIR__) . DS . 'actionitem' . DS . 'v1.php';
 
 class nav extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'stacked?: bool',    // 是否为垂直模式。
         'justified?: bool',  // 是否为自适应模式。
         'type?: string',     // 导航类型，包括 primary, tabs, secondary，pills

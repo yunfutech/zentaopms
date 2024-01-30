@@ -4,7 +4,10 @@ namespace zin;
 
 class imgCutter extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'src: string',
         'btnText?: string',
         'tipText?: string',

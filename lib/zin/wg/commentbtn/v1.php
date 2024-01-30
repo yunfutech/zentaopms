@@ -4,7 +4,10 @@ namespace zin;
 
 class commentBtn extends btn
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'dataTarget?:string',
         'dataUrl?:string',
         'dataType?:string',

@@ -88,33 +88,18 @@ featureBar
     set::current($mode != 'status' ? $mode : $param),
     set::linkParams("repoID={$repoID}&mode=status&param={key}&objectID={$objectID}"),
     count($repoPairs) > 1 ? to::leading(
-        dropdown
-        (
-            btn(setClass('dropdown-toggle ghost btn square btn-default'), zget($repoPairs, $repoID, $lang->mr->statusList['all'])),
-            set::items($repoData),
-            set::placement('bottom-end'),
-        )
+        dropdown(btn(setClass('dropdown-toggle ghost btn square btn-default'), zget($repoPairs, $repoID, $lang->mr->statusList['all'])), set::items($repoData), set::placement('bottom-end'))
     ) : null
 );
 
-toolBar
-(
-    hasPriv('mr', 'create') ? item(
-        set::text($lang->mr->create),
-        set::icon('plus'),
-        set::className('btn primary'),
-        set::url(createLink('mr', 'create', "repoID=" . ($repoID ? $repoID : key($repoList)) . "&objectID={$objectID}")),
-        set('data-app', $app->tab)
-    ) : null,
-);
+toolBar(hasPriv('mr', 'create') ? item(
+    set::text($lang->mr->create),
+    set::icon('plus'),
+    set::className('btn primary'),
+    set::url(createLink('mr', 'create', "repoID=" . ($repoID ? $repoID : key($repoList)) . "&objectID={$objectID}")),
+    set('data-app', $app->tab)
+) : null);
 
-dtable
-(
-    set::userMap($users),
-    set::cols($config->mr->dtable->fieldList),
-    set::data($MRs),
-    set::sortLink(jsRaw('createSortLink')),
-    set::footPager(usePager()),
-);
+dtable(set::userMap($users), set::cols($config->mr->dtable->fieldList), set::data($MRs), set::sortLink(jsRaw('createSortLink')), set::footPager(usePager()));
 
 render();

@@ -225,13 +225,7 @@
                   <?php echo html::hidden('status', $story->status);?>
                 </td>
               </tr>
-              <tr>
-                <th id='progress'><?php echo $lang->story->progress;?></th>
-                <td>
-                  <?php echo html::input('progress', $story->progress, "class='form-control'");?>
-                </td>
-              </tr>
-              <?php if($story->status != 'draft' and $story->type == 'story'):?>
+              <?php if($story->type == 'story'):?>
               <tr>
                 <th><?php echo $lang->story->stage;?></th>
                 <td>

@@ -6,9 +6,15 @@ require_once dirname(__DIR__) . DS . 'btn' . DS . 'v1.php';
 
 class moduleMenu extends wg
 {
-    private static array $filterMap = array();
+    /**
+     * @var mixed[]
+     */
+    private static $filterMap = array();
 
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'modules: array',
         'activeKey?: int|string',
         'settingLink?: string',
@@ -22,14 +28,23 @@ class moduleMenu extends wg
         'onCheck?: function'
     );
 
-    public static function getPageCSS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageCSS()
     {
         return file_get_contents(__DIR__ . DS . 'css' . DS . 'v1.css');
     }
 
-    private array $modules = array();
+    /**
+     * @var mixed[]
+     */
+    private $modules = array();
 
-    private function buildMenuTree(int|string $parentID = 0): array
+    /**
+     * @param int|string $parentID
+     */
+    private function buildMenuTree($parentID = 0): array
     {
         $children = $this->getChildModule($parentID);
         if(count($children) === 0) return [];
@@ -63,7 +78,10 @@ class moduleMenu extends wg
         return $treeItems;
     }
 
-    private function getChildModule(int|string $id): array
+    /**
+     * @param int|string $id
+     */
+    private function getChildModule($id): array
     {
         return array_filter($this->modules, function($module) use($id)
         {
@@ -107,7 +125,7 @@ class moduleMenu extends wg
         return '';
     }
 
-    private function buildActions(): wg|null
+    private function buildActions(): ?\zin\wg
     {
         $settingLink = $this->prop('settingLink');
         $settingText = $this->prop('settingText');
@@ -144,7 +162,7 @@ class moduleMenu extends wg
         );
     }
 
-    private function buildCloseBtn(): wg|null
+    private function buildCloseBtn(): ?\zin\wg
     {
         $closeLink = $this->prop('closeLink');
         if(!$closeLink) return null;

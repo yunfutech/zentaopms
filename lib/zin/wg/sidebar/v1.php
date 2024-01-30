@@ -4,7 +4,10 @@ namespace zin;
 
 class sidebar extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'side?:string="left"',
         'width?:string|number=40',
         'maxWidth?:string|number=400',

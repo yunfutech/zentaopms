@@ -17,7 +17,10 @@ namespace zin;
  */
 class treemap extends wg
 {
-    protected static array $defineProps = array
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array
     (
         'width?: string|number="100%"',  // 宽度。
         'height?: string|number="300px"', // 高度。

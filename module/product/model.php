@@ -903,7 +903,7 @@ class productModel extends model
             $products[$productID]->RD      = $data->RDs[$productID];
             $products[$productID]->type    = $data->types[$productID];
             $products[$productID]->status  = $data->statuses[$productID];
-            $products[$productID]->desc    = strip_tags($this->post->descs[$productID], $this->config->allowedTags);
+            $products[$productID]->desc    = strip_tags($this->post->descs[$productID], $this->config->allowedTags !== null && is_array($this->config->allowedTags) ? '<' . implode('><', $this->config->allowedTags) . '>' : $this->config->allowedTags);
             $products[$productID]->acl     = $data->acls[$productID];
             $products[$productID]->id      = $productID;
 

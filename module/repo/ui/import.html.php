@@ -25,43 +25,18 @@ foreach($repoList as $repo)
     $repo->no             = $no ++;
 }
 
-\zin\featureBar
+\zin\featureBar(h::a(setClass('form-title'), set::href($this->createLink('repo', 'import')), $lang->repo->batchCreate), picker
 (
-    h::a
-    (
-        setClass('form-title'),
-        set::href($this->createLink('repo', 'import')),
-        $lang->repo->batchCreate,
-    ),
-    picker
-    (
-        setClass('ml-3'),
-        width('200px'),
-        on::change('selectServer'),
-        set::name('servers'),
-        set::id('servers'),
-        set::placeholder($lang->repo->importServer),
-        set::items(array('' => '') + $gitlabPairs),
-        set::value($gitlab->id)
-    ),
-);
+    setClass('ml-3'),
+    width('200px'),
+    on::change('selectServer'),
+    set::name('servers'),
+    set::id('servers'),
+    set::placeholder($lang->repo->importServer),
+    set::items(array('' => '') + $gitlabPairs),
+    set::value($gitlab->id)
+));
 
-formBatchPanel
-(
-    h::input
-    (
-        set::type('hidden'),
-        set::name('serviceHost'),
-        set::value($gitlab->id),
-    ),
-    set::id('repoList'),
-    set::back('repo-maintain'),
-    set::mode(count($repoList) == 0 ? 'edit' : 'add'),
-    set::addRowIcon('false'),
-    set::items($items),
-    set::data($repoList),
-    set::maxRows(count($repoList)),
-    on::change('[data-name="product"]', 'loadProductProjects'),
-);
+formBatchPanel(h::input(set::type('hidden'), set::name('serviceHost'), set::value($gitlab->id)), set::id('repoList'), set::back('repo-maintain'), set::mode(count($repoList) == 0 ? 'edit' : 'add'), set::addRowIcon('false'), set::items($items), set::data($repoList), set::maxRows(count($repoList)), on::change('[data-name="product"]', 'loadProductProjects'));
 
 render();

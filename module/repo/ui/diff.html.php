@@ -37,12 +37,7 @@ jsVar('browser', $browser['name']);
 jsVar('edition', $config->edition);
 
 $breadcrumbItems = array();
-$breadcrumbItems[] = h::a
-(
-    set::href($this->repo->createLink('browse', "repoID=$repoID&branchID=&objectID=$objectID"), $repo->name, '', "data-app='{$app->tab}'"),
-    set('data-app', $app->tab),
-    $repo->name,
-);
+$breadcrumbItems[] = h::a(set::href($this->repo->createLink('browse', "repoID=$repoID&branchID=&objectID=$objectID"), $repo->name, '', "data-app='{$app->tab}'"), set('data-app', $app->tab), $repo->name);
 
 $breadcrumbItems[] = h::span('/', setStyle('margin', '0 5px'));
 
@@ -54,12 +49,7 @@ $base64BranchID = helper::safe64Encode(base64_encode($branchID));
 foreach($paths as $pathName)
 {
     $postPath .= $pathName . '/';
-    $breadcrumbItems[] = h::a
-    (
-        set::href($this->repo->createLink('browse', "repoID=$repoID&branchID=$base64BranchID&objectID=$objectID&path=" . $this->repo->encodePath($postPath))),
-        set('data-app', $app->tab),
-        trim($pathName, '/'),
-    );
+    $breadcrumbItems[] = h::a(set::href($this->repo->createLink('browse', "repoID=$repoID&branchID=$base64BranchID&objectID=$objectID&path=" . $this->repo->encodePath($postPath))), set('data-app', $app->tab), trim($pathName, '/'));
 
     $breadcrumbItems[] = h::span('/', setStyle('margin', '0 5px'));
 }
@@ -104,23 +94,9 @@ else
     $oldRevision = $oldRevision == '^' ? $newRevision - 1 : $oldRevision;
 
     $breadcrumbItems[] = input(set::type('hidden'), set::name('isBranchOrTag'), set::value($isBranchOrTag));
-    $breadcrumbItems[] = input
-    (
-        setClass('svn-version mr-2'),
-        setStyle('width', '160px'),
-        set::name('oldRevision'),
-        set::value($oldRevision),
-        set::placeholder($lang->repo->source),
-    );
+    $breadcrumbItems[] = input(setClass('svn-version mr-2'), setStyle('width', '160px'), set::name('oldRevision'), set::value($oldRevision), set::placeholder($lang->repo->source));
     $breadcrumbItems[] = span(setClass('label label-exchange mr-2'), icon('exchange'));
-    $breadcrumbItems[] = input
-    (
-        setClass('svn-version mr-2'),
-        setStyle('width', '160px'),
-        set::name('newRevision'),
-        set::value($newRevision),
-        set::placeholder($lang->repo->target),
-    );
+    $breadcrumbItems[] = input(setClass('svn-version mr-2'), setStyle('width', '160px'), set::name('newRevision'), set::value($newRevision), set::placeholder($lang->repo->target));
     $breadcrumbItems[] = btn
     (
         set::id('diffForm'),
@@ -131,12 +107,7 @@ else
     );
 }
 
-\zin\featureBar
-(
-    backBtn(set::icon('back'), setClass('bg-transparent diff-back-btn'), set::back('GLOBAL'), $lang->goback),
-    item(set::type('divider')),
-    ...$breadcrumbItems,
-);
+\zin\featureBar(backBtn(set::icon('back'), setClass('bg-transparent diff-back-btn'), set::back('GLOBAL'), $lang->goback), item(set::type('divider')), ...$breadcrumbItems);
 
 if($diffs) include 'diffeditor.html.php';
 

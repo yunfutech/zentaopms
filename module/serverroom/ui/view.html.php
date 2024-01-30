@@ -13,78 +13,56 @@ global $lang;
 
 $actions = $this->loadModel('common')->buildOperateMenu($serverRoom);
 
-detailHeader
-(
-    isAjaxRequest('modal') ? to::prefix() : '',
-    to::title(
-        entityLabel(
-            set(array('entityID' => $serverRoom->id, 'level' => 1, 'text' => $serverRoom->name))
-        )
-    ),
-);
+detailHeader(isAjaxRequest('modal') ? to::prefix() : '', to::title(
+    entityLabel(
+        set(array('entityID' => $serverRoom->id, 'level' => 1, 'text' => $serverRoom->name))
+    )
+));
 
-detailBody
+detailBody(sectionList(section
 (
-    sectionList
+    tableData(item
     (
-        section
-        (
-            tableData
-            (
-                item
-                (
-                    set::name($lang->serverroom->name),
-                    $serverRoom->name
-                ),
-                item
-                (
-                    set::name($lang->serverroom->city),
-                    \zget($lang->serverroom->cityList, $serverRoom->city)
-                ),
-                item
-                (
-                    set::name($lang->serverroom->line),
-                    \zget($lang->serverroom->lineList, $serverRoom->line)
-                ),
-                item
-                (
-                    set::name($lang->serverroom->bandwidth),
-                    $serverRoom->bandwidth
-                ),
-                item
-                (
-                    set::name($lang->serverroom->provider),
-                    \zget($lang->serverroom->providerList, $serverRoom->provider)
-                ),
-                item
-                (
-                    set::name($lang->serverroom->owner),
-                    \zget($users, $serverRoom->owner)
-                ),
-                item
-                (
-                    set::name($lang->serverroom->createdBy),
-                    \zget($users, $serverRoom->createdBy)
-                ),
-                item
-                (
-                    set::name($lang->serverroom->createdDate),
-                    $serverRoom->createdDate
-                ),
-            )
-        ),
-    ),
-    history
+        set::name($lang->serverroom->name),
+        $serverRoom->name
+    ), item
     (
-        set::objectType('serverroom'),
-        set::objectID($serverRoom->id)
-    ),
-    floatToolbar
+        set::name($lang->serverroom->city),
+        \zget($lang->serverroom->cityList, $serverRoom->city)
+    ), item
     (
-        set::object($serverRoom),
-        isAjaxRequest('modal') ? null : to::prefix(backBtn(set::icon('back'), set::className('ghost text-white'), $lang->goback)),
-        set::suffix($actions['suffixActions'])
-    ),
-);
+        set::name($lang->serverroom->line),
+        \zget($lang->serverroom->lineList, $serverRoom->line)
+    ), item
+    (
+        set::name($lang->serverroom->bandwidth),
+        $serverRoom->bandwidth
+    ), item
+    (
+        set::name($lang->serverroom->provider),
+        \zget($lang->serverroom->providerList, $serverRoom->provider)
+    ), item
+    (
+        set::name($lang->serverroom->owner),
+        \zget($users, $serverRoom->owner)
+    ), item
+    (
+        set::name($lang->serverroom->createdBy),
+        \zget($users, $serverRoom->createdBy)
+    ), item
+    (
+        set::name($lang->serverroom->createdDate),
+        $serverRoom->createdDate
+    ))
+)), history
+(
+    set::objectType('serverroom'),
+    set::objectID($serverRoom->id)
+), floatToolbar
+(
+    set::object($serverRoom),
+    isAjaxRequest('modal') ? null : to::prefix(backBtn(set::icon('back'), set::className('ghost text-white'), $lang->goback)),
+    set::suffix($actions['suffixActions'])
+));
 
 render();

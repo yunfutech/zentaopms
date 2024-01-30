@@ -9,14 +9,20 @@ require_once dirname(__DIR__) . DS . 'collapsebtn' . DS . 'v1.php';
 
 class tableData extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'title?: string',
         'useTable?: bool=true',
         'class?: string',
         'required?: bool=false'
     );
 
-    public static function getPageCSS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageCSS()
     {
         return file_get_contents(__DIR__ . DS . 'css' . DS . 'v1.css');
     }

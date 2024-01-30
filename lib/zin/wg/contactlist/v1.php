@@ -13,14 +13,20 @@ namespace zin;
 
 class contactList extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'name?: string="contactList"',  // 控件名称。
         'target?: string',              // 选中项改变时更新的目标
         'items?: array',                // picker 列表项或表项获取方法。
         'placeholder?: string',         // picker 占位符。
     );
 
-    public static function getPageJS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageJS()
     {
         return file_get_contents(__DIR__ . DS . 'js' . DS . 'v1.js');
     }
@@ -45,7 +51,10 @@ class contactList extends wg
         }
     }
 
-    protected function build(): wg|array
+    /**
+     * @return \zin\wg|mixed[]
+     */
+    protected function build()
     {
         global $app, $lang;
         $app->loadLang('user');
@@ -57,14 +66,7 @@ class contactList extends wg
         (
             setID('contactBox'),
             setClass('input-group-addon' . ($items ? ' p-0 w-24' : '')),
-            picker
-            (
-                $items ? null : setClass('hidden'),
-                set::name($this->prop('name')),
-                set::items($items),
-                set::placeholder($this->prop('placeholder')),
-                on::change("loadContactUsers('{$target}', ele)"),
-            ),
+            picker($items ? null : setClass('hidden'), set::name($this->prop('name')), set::items($items), set::placeholder($this->prop('placeholder')), on::change("loadContactUsers('{$target}', ele)")),
             a
             (
                 $items ? setClass('hidden') : null,

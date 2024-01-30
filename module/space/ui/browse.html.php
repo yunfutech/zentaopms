@@ -22,48 +22,31 @@ jsVar('idList',    array_keys($statusMap));
 
 $instances = initTableData($instances, $config->space->dtable->fieldList, $this->instance);
 
-featureBar
-(
-    set::current($browseType),
-    set::linkParams("spaceID=&browseType={key}"),
-);
+featureBar(set::current($browseType), set::linkParams("spaceID=&browseType={key}"));
 
-toolBar
+toolBar($config->inQuickon && $solutionID && hasPriv('install', 'progress') ? item(set(array
 (
-    $config->inQuickon && $solutionID && hasPriv('install', 'progress') ? item(set(array
-    (
-        'text'        => $lang->solution->progress,
-        'icon'        => 'spinner-indicator',
-        'class'       => 'btn ghost',
-        'url'         => createLink('install', 'progress', "solutionID=$solutionID&install=true", '', true),
-        'data-size'   => 800,
-        'data-toggle' => 'iframeModal',
-    ))) : null,
-    $config->inQuickon && $canInstall ? item(set(array
-    (
-        'text'  => $lang->store->cloudStore,
-        'icon'  => 'program',
-        'class' => 'btn ghost',
-        'url'   => createLink('store', 'browse'),
-    ))) : null,
-    $canInstall ? item(set(array
-    (
-        'text'  => $lang->space->install,
-        'icon'  => 'plus',
-        'class' => 'btn primary',
-        'url'   => createLink('space', 'createApplication'),
-    ))) : null,
-);
+    'text'        => $lang->solution->progress,
+    'icon'        => 'spinner-indicator',
+    'class'       => 'btn ghost',
+    'url'         => createLink('install', 'progress', "solutionID=$solutionID&install=true", '', true),
+    'data-size'   => 800,
+    'data-toggle' => 'iframeModal',
+))) : null, $config->inQuickon && $canInstall ? item(set(array
+(
+    'text'  => $lang->store->cloudStore,
+    'icon'  => 'program',
+    'class' => 'btn ghost',
+    'url'   => createLink('store', 'browse'),
+))) : null, $canInstall ? item(set(array
+(
+    'text'  => $lang->space->install,
+    'icon'  => 'plus',
+    'class' => 'btn primary',
+    'url'   => createLink('space', 'createApplication'),
+))) : null);
 
-dtable
-(
-    set::userMap($users),
-    set::cols($config->space->dtable->fieldList),
-    set::data($instances),
-    set::onRenderCell(jsRaw('window.renderInstanceList')),
-    set::sortLink(jsRaw('createSortLink')),
-    set::footPager(usePager()),
-);
+dtable(set::userMap($users), set::cols($config->space->dtable->fieldList), set::data($instances), set::onRenderCell(jsRaw('window.renderInstanceList')), set::sortLink(jsRaw('createSortLink')), set::footPager(usePager()));
 
 a(setStyle('display', 'none'), setID('editLinkContainer'), setData('toggle', 'modal'));
 

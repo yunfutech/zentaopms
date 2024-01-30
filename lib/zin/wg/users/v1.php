@@ -13,7 +13,10 @@ namespace zin;
 
 class users extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'label?: string',                   // 控件标签。
         'id?: string',                      // 控件 ID。
         'name?: string="users[]"',          // 控件名称。
@@ -24,7 +27,10 @@ class users extends wg
         'contactList?: boolean=true'        // 是否显示联系人列表。
     );
 
-    protected static array $defaultProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defaultProps = array(
         'multiple' => true
     );
 
@@ -40,7 +46,10 @@ class users extends wg
         }
     }
 
-    protected function build(): wg|array
+    /**
+     * @return \zin\wg|mixed[]
+     */
+    protected function build()
     {
         return inputGroup
         (

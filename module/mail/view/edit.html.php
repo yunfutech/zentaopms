@@ -86,7 +86,7 @@
           <th><?php echo $lang->mail->charset; ?></th>
           <td><?php echo html::radio('charset', $config->charsets[$this->cookie->lang], $mailConfig->charset);?></td>
         </tr>
-  
+
         <tr>
           <td colspan='4' class='text-center'>
             <?php echo html::submitButton();?>

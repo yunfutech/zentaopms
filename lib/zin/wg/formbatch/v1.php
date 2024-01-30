@@ -29,7 +29,7 @@ class formBatch extends formBase
      * @var    array
      * @access protected
      */
-    protected static array $defineProps = array(
+    protected static $defineProps = array(
         'items?: array[]',              // 使用一个列定义对象数组来定义批量表单项。
         'minRows?: int',                // 最小显示的行数目。
         'maxRows?: int',                // 最多显示的行数目。
@@ -49,7 +49,7 @@ class formBatch extends formBase
      * @var    array
      * @access protected
      */
-    protected static array $defaultProps = array(
+    protected static $defaultProps = array(
         'minRows' => 1,
         'maxRows' => 100,
         'mode'    => 'add'
@@ -62,7 +62,7 @@ class formBatch extends formBase
      * @access public
      * @return wg
      */
-    public function onBuildItem(wg|array $item): wg
+    public function onBuildItem($item): wg
     {
         if($item instanceof formBatchItem) return $item;
 
@@ -81,7 +81,7 @@ class formBatch extends formBase
      * @access protected
      * @return array|wg
      */
-    protected function buildContent(): array|wg
+    protected function buildContent()
     {
         $items         = array_merge($this->children(), $this->prop('items', array()));
         $templateItems = array();
@@ -119,12 +119,7 @@ class formBatch extends formBase
             div
             (
                 setClass('form-batch-container'),
-                h::table
-                (
-                    setClass('table form-batch-table'),
-                    h::thead(h::tr($headItems)),
-                    h::tbody(),
-                )
+                h::table(setClass('table form-batch-table'), h::thead(h::tr($headItems)), h::tbody())
             ),
             template(setClass('form-batch-template'), h::tr($templateItems)),
             $otherItems

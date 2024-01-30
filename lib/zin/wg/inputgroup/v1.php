@@ -8,7 +8,10 @@ require_once dirname(__DIR__) . DS . 'inputcontrol' . DS . 'v1.php';
 
 class inputGroup extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'items?:array',
         'seg?:bool'
     );

@@ -18,23 +18,12 @@ dropmenu
     set::url(createLink($module, $app->tab == 'devops' ? 'ajaxGetDropMenu' : 'ajaxGetDropMenuData', "objectID=$objectID&module={$app->rawModule}&method={$app->rawMethod}"))
 );
 
-detailHeader
+detailHeader(to::title(entityLabel
 (
-    to::title
-    (
-        entityLabel
-        (
-            set::entityID($MR->id),
-            set::level(1),
-            set::text($MR->title)
-        ),
-        $MR->deleted ? h::span
-        (
-            setClass('label danger'),
-            $lang->product->deleted,
-        ) : null,
-    ),
-);
+    set::entityID($MR->id),
+    set::level(1),
+    set::text($MR->title)
+), $MR->deleted ? h::span(setClass('label danger'), $lang->product->deleted) : null));
 
 $entry        = count($diffs) ? $diffs[0]->fileName : '';
 $currentEntry = $this->repo->encodePath($entry);
@@ -63,122 +52,74 @@ panel
     div
     (
         set::id('mrMenu'),
-        nav
+        nav(li
         (
-            li
+            setClass('nav-item'),
+            a
             (
-                setClass('nav-item'),
-                a
-                (
-                    $lang->mr->view,
-                    set::href(inlink('view', "MRID={$MR->id}")),
-                    set('data-app', $app->tab)
-                )
-            ),
-            li
+                $lang->mr->view,
+                set::href(inlink('view', "MRID={$MR->id}")),
+                set('data-app', $app->tab)
+            )
+        ), li
+        (
+            setClass('nav-item'),
+            a
             (
-                setClass('nav-item'),
-                a
-                (
-                    $lang->mr->viewDiff,
-                    setClass('active'),
-                    set('data-app', $app->tab)
-                )
-            ),
-            li
+                $lang->mr->viewDiff,
+                setClass('active'),
+                set('data-app', $app->tab)
+            )
+        ), li
+        (
+            setClass('nav-item story'),
+            a
             (
-                setClass('nav-item story'),
-                a
-                (
-                    icon($lang->icons['story']),
-                    $lang->productplan->linkedStories,
-                    set::href(inlink('link', "MRID={$MR->id}&type=story")),
-                    set('data-app', $app->tab)
-                )
-            ),
-            li
+                icon($lang->icons['story']),
+                $lang->productplan->linkedStories,
+                set::href(inlink('link', "MRID={$MR->id}&type=story")),
+                set('data-app', $app->tab)
+            )
+        ), li
+        (
+            setClass('nav-item bug'),
+            a
             (
-                setClass('nav-item bug'),
-                a
-                (
-                    icon($lang->icons['bug']),
-                    $lang->productplan->linkedBugs,
-                    set::href(inlink('link', "MRID={$MR->id}&type=bug")),
-                    set('data-app', $app->tab)
-                )
-            ),
-            li
+                icon($lang->icons['bug']),
+                $lang->productplan->linkedBugs,
+                set::href(inlink('link', "MRID={$MR->id}&type=bug")),
+                set('data-app', $app->tab)
+            )
+        ), li
+        (
+            setClass('nav-item task'),
+            a
             (
-                setClass('nav-item task'),
-                a
-                (
-                    icon('todo'),
-                    $lang->mr->linkedTasks,
-                    set::href(inlink('link', "MRID={$MR->id}&type=task")),
-                    set('data-app', $app->tab)
-                )
-            ),
-        )
+                icon('todo'),
+                $lang->mr->linkedTasks,
+                set::href(inlink('link', "MRID={$MR->id}&type=task")),
+                set('data-app', $app->tab)
+            )
+        ))
     ),
     empty($diffs) ? p(setClass('detail-content'), $lang->mr->noChanges) : div(
         setID('diff-sidebar-left'),
         div
         (
             set::id('fileTabs'),
-            tabs
+            tabs(set::id('monacoTabs'), set::className('relative'), div(setStyle(array('position' => 'absolute', 'width' => '100%', 'height' => '35px', 'background' => '#efefef', 'top' => '0px'))), tabPane(set::title($fileInfo['basename']), set::active(true), set::key('tab-' . str_replace('=', '-', $currentEntry)), to::suffix
             (
-                set::id('monacoTabs'),
-                set::className('relative'),
-                div(setStyle(array('position' => 'absolute', 'width' => '100%', 'height' => '35px', 'background' => '#efefef', 'top' => '0px'))),
-                tabPane
-                (
-                    set::title($fileInfo['basename']),
-                    set::active(true),
-                    set::key('tab-' . str_replace('=', '-', $currentEntry)),
-                    to::suffix
-                    (
-                        icon
-                        (
-                            'close',
-                            set::className('monaco-close'),
-                        )
-                    ),
-                    div(set::id('tab-' . $currentEntry)),
-                ),
-                dropdown
-                (
-                    set::arrow(false),
-                    set::staticMenu(true),
-                    set::className('absolute top-0 right-0 z-10 monaco-dropmenu'),
-                    btn
-                    (
-                        setClass('ghost text-black pull-right'),
-                        set::icon('ellipsis-v rotate-90'),
-                    ),
-                    set::items
-                    (
-                        $dropMenus
-                    ),
-                ),
-                div(set::className('absolute top-0 left-0 z-20 arrow-left btn-left'), icon('chevron-left')),
-                div(set::className('absolute top-0 right-0 z-20 arrow-right btn-right'), icon('chevron-right')),
-            )
+                icon('close', set::className('monaco-close'))
+            ), div(set::id('tab-' . $currentEntry))), dropdown(set::arrow(false), set::staticMenu(true), set::className('absolute top-0 right-0 z-10 monaco-dropmenu'), btn(setClass('ghost text-black pull-right'), set::icon('ellipsis-v rotate-90')), set::items
+            (
+                $dropMenus
+            )), div(set::className('absolute top-0 left-0 z-20 arrow-left btn-left'), icon('chevron-left')), div(set::className('absolute top-0 right-0 z-20 arrow-right btn-right'), icon('chevron-right')))
         ),
 
         sidebar
         (
             set::side('left'),
-            treeEditor
-            (
-                set::id('monacoTree'),
-                set::items($tree),
-                set::canSplit(false),
-                set::collapsedIcon('folder'),
-                set::expandedIcon('folder-open'),
-                set::normalIcon('file-text-alt'),
-                set::activeKey($entry),
-                set::onClickItem(jsRaw('window.treeClick')),
-            )
+            treeEditor(set::id('monacoTree'), set::items($tree), set::canSplit(false), set::collapsedIcon('folder'), set::expandedIcon('folder-open'), set::normalIcon('file-text-alt'), set::activeKey($entry), set::onClickItem(jsRaw('window.treeClick')))
         ),
         a(set::className('iframe'), setData('size', '1200px'), setData('toggle', 'modal'), set::id('linkObject'))
     )

@@ -26,17 +26,32 @@ class wg
      *
      * @var array
      */
-    protected static array $defineProps = array();
+    protected static $defineProps = array();
 
-    protected static array $defaultProps = array();
+    /**
+     * @var mixed[]
+     */
+    protected static $defaultProps = array();
 
-    protected static array $defineBlocks = array();
+    /**
+     * @var mixed[]
+     */
+    protected static $defineBlocks = array();
 
-    protected static array $wgToBlockMap = array();
+    /**
+     * @var mixed[]
+     */
+    protected static $wgToBlockMap = array();
 
-    protected static array $definedPropsMap = array();
+    /**
+     * @var mixed[]
+     */
+    protected static $definedPropsMap = array();
 
-    protected static array $pageResources = array();
+    /**
+     * @var mixed[]
+     */
+    protected static $pageResources = array();
 
     /**
      * The props of the element
@@ -44,19 +59,37 @@ class wg
      * @access public
      * @var    props
      */
-    public props $props;
+    public $props;
 
-    public array $blocks = array();
+    /**
+     * @var mixed[]
+     */
+    public $blocks = array();
 
-    public ?wg $parent = null;
+    /**
+     * @var \zin\wg|null
+     */
+    public $parent;
 
-    public string $gid;
+    /**
+     * @var string
+     */
+    public $gid;
 
-    public bool $displayed = false;
+    /**
+     * @var bool
+     */
+    public $displayed = false;
 
-    public bool $removed = false;
+    /**
+     * @var bool
+     */
+    public $removed = false;
 
-    protected array $renderOptions = array();
+    /**
+     * @var mixed[]
+     */
+    protected $renderOptions = array();
 
     public function __construct(/* string|element|object|array|null ...$args */)
     {
@@ -87,7 +120,7 @@ class wg
      * Check if the element is match any of the selectors
      * @param  string|array|object $selectors
      */
-    public function isMatch(string|array|object $selectors): bool
+    public function isMatch($selectors): bool
     {
         $list = parseWgSelectors($selectors);
         foreach($list as $selector)
@@ -113,13 +146,13 @@ class wg
         $options   = $this->renderOptions;
         $selectors = (!empty($options) && isset($options['selector'])) ? $options['selector'] : null;
 
-        return new dom
-        (
+        return new dom(
             $this,
             [$before, $children, $after],
             $selectors,
-            (!empty($options) && isset($options['type'])) ? $options['type'] : 'html', // TODO: () may not work in lower php
-            (!empty($options) && isset($options['data'])) ? $options['data'] : null,
+            (!empty($options) && isset($options['type'])) ? $options['type'] : 'html',
+            // TODO: () may not work in lower php
+            (!empty($options) && isset($options['data'])) ? $options['data'] : null
         );
     }
 
@@ -150,7 +183,7 @@ class wg
      * @return array
      * @access public
      */
-    public function find(string|array|object $selector, string $blockName = '', bool $nested = true): array
+    public function find($selector, string $blockName = '', bool $nested = true): array
     {
         $selectors = parseWgSelectors($selector);
         $result    = array();
@@ -187,7 +220,7 @@ class wg
      * @return wg|null
      * @access public
      */
-    public function first(string $selector = ''): wg | null
+    public function first(string $selector = ''): ?\zin\wg
     {
         return reset($this->find($selector));
     }
@@ -199,7 +232,7 @@ class wg
      * @return wg|null
      * @access public
      */
-    public function last(string $selector = ''): wg | null
+    public function last(string $selector = ''): ?\zin\wg
     {
         return end($this->find($selector));
     }
@@ -297,7 +330,10 @@ class wg
         return $this->block('after');
     }
 
-    protected function build(): array|wg|directive
+    /**
+     * @return mixed[]|\zin\wg|\zin\directive
+     */
+    protected function build()
     {
         if($this->removed) return array();
 
@@ -342,17 +378,27 @@ class wg
     }
 
 
-    protected function onAddBlock(array|string|wg|directive $child, string $name)
+    /**
+     * @param mixed[]|string|\zin\wg|\zin\directive $child
+     */
+    protected function onAddBlock($child, string $name)
     {
         return $child;
     }
 
-    protected function onAddChild(array|string|wg|directive $child)
+    /**
+     * @param mixed[]|string|\zin\wg|\zin\directive $child
+     */
+    protected function onAddChild($child)
     {
         return $child;
     }
 
-    protected function onSetProp(array|string $prop, mixed $value)
+    /**
+     * @param mixed[]|string $prop
+     * @param mixed $value
+     */
+    protected function onSetProp($prop, $value)
     {
         if($prop === 'id' && $value === '$GID') $value = $this->gid;
         if($prop[0] === '@')
@@ -363,7 +409,11 @@ class wg
         $this->props->set($prop, $value);
     }
 
-    protected function onGetProp(string $prop, mixed $defaultValue): mixed
+    /**
+     * @param mixed $defaultValue
+     * @return mixed
+     */
+    protected function onGetProp(string $prop, $defaultValue)
     {
         return $this->props->get($prop, $defaultValue);
     }
@@ -390,7 +440,11 @@ class wg
         return $this;
     }
 
-    public function addToBlock(array|string $name, array|string|null|wg|directive $child = null)
+    /**
+     * @param mixed[]|string $name
+     * @param mixed[]|string|null|\zin\wg|\zin\directive $child
+     */
+    public function addToBlock($name, $child = null)
     {
         if(is_array($name))
         {
@@ -455,8 +509,9 @@ class wg
 
     /**
      * Apply directive
+     * @param mixed[]|string $blockName
      */
-    public function directive(directive &$directive, array|string $blockName)
+    public function directive(directive &$directive, $blockName)
     {
         $data = $directive->data;
         $type = $directive->type;
@@ -496,7 +551,12 @@ class wg
         }
     }
 
-    public function prop(array|string $name, mixed $defaultValue = null): mixed
+    /**
+     * @param mixed[]|string $name
+     * @param mixed $defaultValue
+     * @return mixed
+     */
+    public function prop($name, $defaultValue = null)
     {
         if(is_array($name))
         {
@@ -518,7 +578,7 @@ class wg
      * @param props|array|string   $prop        - Property name or properties list
      * @param mixed          $value       - Property value
      */
-    public function setProp(props|array|string $prop, mixed $value = null)
+    public function setProp($prop, $value = null)
     {
         if($prop instanceof props) $prop = $prop->toJSON();
 
@@ -669,17 +729,23 @@ class wg
      * @access protected
      * @return array|null
      */
-    protected function onCheckErrors(): array|null
+    protected function onCheckErrors(): ?array
     {
         return null;
     }
 
-    public static function getPageCSS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageCSS()
     {
         return false; // No css
     }
 
-    public static function getPageJS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageJS()
     {
         return false; // No js
     }
@@ -719,7 +785,10 @@ class wg
         return wg::$wgToBlockMap[$wgName];
     }
 
-    public static function getBlockNameForWg(wg|string $wg): ?string
+    /**
+     * @param \zin\wg|string $wg
+     */
+    public static function getBlockNameForWg($wg): ?string
     {
         $wgType = ($wg instanceof wg) ? $wg->type() : $wg;
         $wgBlockMap = static::wgBlockMap();

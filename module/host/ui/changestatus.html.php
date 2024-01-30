@@ -12,18 +12,4 @@ declare(strict_types=1);
 
 namespace zin;
 
-formPanel
-(
-    set::id('hostChangeStatusForm'),
-    set::title($reason),
-    formRow
-    (
-        formGroup
-        (
-            set::name('reason'),
-            set::label(' '),
-            set::control('editor'),
-            set::required(true),
-        ),
-    ),
-);
+formPanel(set::id('hostChangeStatusForm'), set::title($reason), formRow(formGroup(set::name('reason'), set::label(' '), set::control('editor'), set::required(true))));

@@ -22,7 +22,10 @@ require_once dirname(__DIR__) . DS . 'panel' . DS . 'v1.php';
  */
 class blockPanel extends panel
 {
-    protected static array $defineProps = array
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array
     (
         'class?: string="rounded bg-canvas panel-block"', // 类名。
         'id?: string',                      // ID。

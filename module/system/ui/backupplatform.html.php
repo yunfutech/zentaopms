@@ -13,21 +13,9 @@ namespace zin;
 jsVar('waitting', $lang->system->backup->waitting);
 
 modalHeader(set::title($lang->system->backup->backup));
-formPanel
+formPanel(on::click('#startBackup', 'startBackup'), set::id('backupForm'), formGroup(set::label($lang->comment), set::name('comment'), set::control('textarea'), set::rows('6')), set::actions(array
 (
-    on::click('#startBackup', 'startBackup'),
-    set::id('backupForm'),
-    formGroup
-    (
-        set::label($lang->comment),
-        set::name('comment'),
-        set::control('textarea'),
-        set::rows('6'),
-    ),
-    set::actions(array
-    (
-        array('text' => $lang->confirm, 'id' => 'startBackup', 'class' => 'primary'),
-    )),
-);
+    array('text' => $lang->confirm, 'id' => 'startBackup', 'class' => 'primary'),
+)));
 
 render();

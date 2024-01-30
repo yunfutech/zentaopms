@@ -4,7 +4,10 @@ namespace zin;
 
 class btn extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'text?:string',              // 按钮的文本。
         'icon?:string',              // 图标名称。
         'iconClass?:string',         // 图标的样式类。

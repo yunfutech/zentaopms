@@ -84,19 +84,15 @@ $fnGenerateDataDisplay = function() use($resultData, $resultHeader, $lang, $metr
     if(count($resultData) == 1 && count((array)$resultData[0]) == 1) return div
         (
             set::className('card-data'),
-            center
+            center(p
             (
-                p
-                (
-                    set::className('card-digit'),
-                    $resultData[0]->value
-                ),
-                p
-                (
-                    set::className('card-title'),
-                    $lang->metric->objectList[$metric->object]
-                ),
-            )
+                set::className('card-digit'),
+                $resultData[0]->value
+            ), p
+            (
+                set::className('card-title'),
+                $lang->metric->objectList[$metric->object]
+            ))
 
         );
 

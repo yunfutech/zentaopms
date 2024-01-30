@@ -6,12 +6,18 @@ require_once dirname(__DIR__) . DS . 'modaldialog' . DS . 'v1.php';
 
 class modal extends modalDialog
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'id?:string="$GID"',
         'modalProps?:array'
     );
 
-    protected static array $defaultProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defaultProps = array(
         'modalProps' => array()
     );
 

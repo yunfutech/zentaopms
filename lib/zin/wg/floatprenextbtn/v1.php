@@ -4,21 +4,33 @@ namespace zin;
 
 class floatPreNextBtn extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'preLink?:string',
         'nextLink?:string'
     );
 
-    public static function getPageCSS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageCSS()
     {
         return file_get_contents(__DIR__ . DS . 'css' . DS . 'v1.css');
     }
 
-    public static function getPageJS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageJS()
     {
         return file_get_contents(__DIR__ . DS . 'js' . DS . 'v1.js');
     }
-    protected function build(): wg|array
+    /**
+     * @return \zin\wg|mixed[]
+     */
+    protected function build()
     {
         global $app;
         $preLink  = $this->prop('preLink');

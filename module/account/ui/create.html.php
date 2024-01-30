@@ -12,67 +12,25 @@ declare(strict_types=1);
 
 namespace zin;
 
-formPanel
+formPanel(set::id('accountCreateForm'), set::title($lang->account->create), formRow
 (
-    set::id('accountCreateForm'),
-    set::title($lang->account->create),
-    formRow
-    (
-        formGroup
-        (
-            set::name('name'),
-            set::label($lang->account->name),
-        )
-    ),
-    formRow
-    (
-        formGroup
-        (
-            set::width('1/2'),
-            set::label($lang->account->provider),
-            set::control('picker'),
-            set::name('provider'),
-            set::items($lang->serverroom->providerList),
-        )
-    ),
-    formRow
-    (
-        formGroup
-        (
-            set::name('adminURI'),
-            set::label($lang->account->adminURI),
-        )
-    ),
-    formRow
-    (
-        formGroup
-        (
-            set::name('account'),
-            set::label($lang->account->account),
-        )
-    ),
-    formRow
-    (
-        formGroup
-        (
-            set::name('password'),
-            set::label($lang->account->password),
-        )
-    ),
-    formRow
-    (
-        formGroup
-        (
-            set::name('email'),
-            set::label($lang->account->email),
-        )
-    ),
-    formRow
-    (
-        formGroup
-        (
-            set::name('mobile'),
-            set::label($lang->account->mobile),
-        )
-    ),
-);
+    formGroup(set::name('name'), set::label($lang->account->name))
+), formRow
+(
+    formGroup(set::width('1/2'), set::label($lang->account->provider), set::control('picker'), set::name('provider'), set::items($lang->serverroom->providerList))
+), formRow
+(
+    formGroup(set::name('adminURI'), set::label($lang->account->adminURI))
+), formRow
+(
+    formGroup(set::name('account'), set::label($lang->account->account))
+), formRow
+(
+    formGroup(set::name('password'), set::label($lang->account->password))
+), formRow
+(
+    formGroup(set::name('email'), set::label($lang->account->email))
+), formRow
+(
+    formGroup(set::name('mobile'), set::label($lang->account->mobile))
+));

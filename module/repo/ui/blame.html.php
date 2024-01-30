@@ -15,12 +15,7 @@ dropmenu(set::module('repo'), set::tab('repo'), set::objectID($repo->id));
 /* Prepare breadcrumb navigation data. */
 $base64BranchID    = helper::safe64Encode(base64_encode($branchID));
 $breadcrumbItems   = array();
-$breadcrumbItems[] = h::a
-(
-    set::href($this->repo->createLink('browse', "repoID=$repoID&branchID=$base64BranchID&objectID=$objectID")),
-    set('data-app', $app->tab),
-    $repo->name,
-);
+$breadcrumbItems[] = h::a(set::href($this->repo->createLink('browse', "repoID=$repoID&branchID=$base64BranchID&objectID=$objectID")), set('data-app', $app->tab), $repo->name);
 $breadcrumbItems[] = h::span('/', setStyle('margin', '0 5px'));
 
 $paths    = explode('/', $entry);
@@ -29,21 +24,12 @@ $postPath = '';
 foreach($paths as $pathName)
 {
     $postPath .= $pathName . '/';
-    $breadcrumbItems[] = h::a
-    (
-        set::href($this->repo->createLink('browse', "repoID=$repoID&branchID=$base64BranchID&objectID=$objectID&path=" . $this->repo->encodePath($postPath))),
-        set('data-app', $app->tab),
-        trim($pathName, '/'),
-    );
+    $breadcrumbItems[] = h::a(set::href($this->repo->createLink('browse', "repoID=$repoID&branchID=$base64BranchID&objectID=$objectID&path=" . $this->repo->encodePath($postPath))), set('data-app', $app->tab), trim($pathName, '/'));
     $breadcrumbItems[] = h::span('/', setStyle('margin', '0 5px'));
 }
 if($fileName) $breadcrumbItems[] = h::span($fileName);
 
-$breadcrumbItems[] = h::span
-(
-    setClass('ml-2 label secondary'),
-    html($revisionName),
-);
+$breadcrumbItems[] = h::span(setClass('ml-2 label secondary'), html($revisionName));
 
 foreach($blames as $key => $blame)
 {
@@ -83,30 +69,8 @@ $defaultEncode = $lang->repo->encodingList[$encoding];
     ...$breadcrumbItems
 );
 
-panel
-(
-    set::title($fileName),
-    to::headingActions(
-        btnGroup
-        (
-            btn($defaultEncode),
-            dropdown
-            (
-                btn(setClass('btn dropdown-toggle'),
-                setStyle(array('padding' => '6px', 'border-radius' => '0 2px 2px 0'))),
-                set::items($encodes),
-                set::arrow(true),
-                set::flip(true),
-                set::placement('bottom-end'),
-            ),
-        ),
-    ),
-    dtable
-    (
-        set::cols($config->repo->blameDtable->fieldList),
-        set::data($blames),
-    ),
-);
+panel(set::title($fileName), to::headingActions(btnGroup(btn($defaultEncode), dropdown(btn(setClass('btn dropdown-toggle'),
+setStyle(array('padding' => '6px', 'border-radius' => '0 2px 2px 0'))), set::items($encodes), set::arrow(true), set::flip(true), set::placement('bottom-end')))), dtable(set::cols($config->repo->blameDtable->fieldList), set::data($blames)));
 
 render();
 

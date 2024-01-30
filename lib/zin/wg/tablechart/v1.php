@@ -4,7 +4,10 @@ namespace zin;
 
 class tableChart extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'type:string',
         'title:string',
         'tableHeaders?:array',
@@ -68,35 +71,30 @@ class tableChart extends wg
         return div
         (
             set::className('flex border py-2'),
-            cell
+            cell(setClass('border-r chart flex-auto'), div(set::className('center text-base font-bold py-2'), $title), echarts
             (
-                setClass('border-r chart flex-auto'),
-                div(set::className('center text-base font-bold py-2'), $title),
-                echarts
+                set::color($colorList),
+                $type != 'pie' ? set::xAxis
                 (
-                    set::color($colorList),
-                    $type != 'pie' ? set::xAxis
+                    array
+                    (
+                        'type' => 'category',
+                        'data' => array_column($chartOption, 'name')
+                    )
+                ) : null,
+                $type != 'pie' ? set::yAxis(array('type' => 'value')) : null,
+                set::series
+                (
+                    array
                     (
                         array
                         (
-                            'type' => 'category',
-                            'data' => array_column($chartOption, 'name')
-                        )
-                    ) : null,
-                    $type != 'pie' ? set::yAxis(array('type' => 'value')) : null,
-                    set::series
-                    (
-                        array
-                        (
-                            array
-                            (
-                                'data' => $type == 'pie' ? $chartOption : array_column($chartOption, 'value'),
-                                'type' => $type
-                            )
+                            'data' => $type == 'pie' ? $chartOption : array_column($chartOption, 'value'),
+                            'type' => $type
                         )
                     )
-                )->size('100%', $chartHeight),
-            ),
+                )
+            )->size('100%', $chartHeight)),
             cell
             (
                 set::width($tableWdith),

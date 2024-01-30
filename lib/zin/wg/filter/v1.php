@@ -13,7 +13,10 @@ namespace zin;
 
 class filter extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'class?: string',                   // 样式。
         'title?: string',                   // 控件标题。
         'type?: string',                    // 控件类型。
@@ -39,7 +42,10 @@ class filter extends wg
         );
     }
 
-    protected function buildDatePicker(): datePicker|array
+    /**
+     * @return \zin\datePicker|mixed[]
+     */
+    protected function buildDatePicker()
     {
         list($name, $value) = $this->prop(array('name', 'value'));
 
@@ -51,7 +57,10 @@ class filter extends wg
         );
     }
 
-    protected function buildDatetimePicker(): datetimePicker|array
+    /**
+     * @return \zin\datetimePicker|mixed[]
+     */
+    protected function buildDatetimePicker()
     {
         list($name, $value) = $this->prop(array('name', 'value'));
 
@@ -74,7 +83,10 @@ class filter extends wg
         );
     }
 
-    protected function buildControl(string $type): wg|array
+    /**
+     * @return \zin\wg|mixed[]
+     */
+    protected function buildControl(string $type)
     {
         if($type == 'select')   return $this->buildPicker();
         if($type == 'date')     return $this->buildDatePicker();
@@ -82,7 +94,10 @@ class filter extends wg
         return $this->buildInput();
     }
 
-    protected function build(): wg|array
+    /**
+     * @return \zin\wg|mixed[]
+     */
+    protected function build()
     {
         $type  = $this->prop('type');
         $class = $this->prop('class', 'w-1/4');

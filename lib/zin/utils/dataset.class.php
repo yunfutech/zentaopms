@@ -23,7 +23,7 @@ class dataset
      * @var    array
      * @access protected
      */
-    protected array $data = array();
+    protected $data = array();
 
     /**
      * Create an instance, the initialed data can be passed
@@ -55,13 +55,16 @@ class dataset
      * @param mixed          $value       - Property value
      * @return dataset
      */
-    protected function setVal(string $prop, mixed $value): dataset
+    protected function setVal(string $prop, $value): dataset
     {
         $this->data[$prop] = $value;
         return $this;
     }
 
-    protected function getVal(string $prop): mixed
+    /**
+     * @return mixed
+     */
+    protected function getVal(string $prop)
     {
         return isset($this->data[$prop]) ? $this->data[$prop] : null;
     }
@@ -109,7 +112,7 @@ class dataset
      * @param mixed          $value       - Property value
      * @return dataset
      */
-    public function set(array|string $prop, mixed $value = null): dataset
+    public function set($prop, $value = null): dataset
     {
         if(is_array($prop))
         {

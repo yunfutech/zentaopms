@@ -4,7 +4,10 @@ namespace zin;
 
 class row extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'justify?: string',
         'align?: string'
     );

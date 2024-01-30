@@ -25,11 +25,7 @@ jsVar('appTab', $app->tab);
 
 /* Prepare breadcrumb navigation data. */
 $breadcrumbItems   = array();
-$breadcrumbItems[] = h::a
-(
-    set::href($this->repo->createLink('log', "repoID=$repoID&objectID=$objectID")),
-    $repo->name,
-);
+$breadcrumbItems[] = h::a(set::href($this->repo->createLink('log', "repoID=$repoID&objectID=$objectID")), $repo->name);
 $breadcrumbItems[] = h::span('/', setStyle('margin', '0 5px'));
 
 $paths    = explode('/', $entry);
@@ -38,11 +34,7 @@ $postPath = '';
 foreach($paths as $pathName)
 {
     $postPath .= $pathName . '/';
-    $breadcrumbItems[] = h::a
-    (
-        set::href($this->repo->createLink('log', "repoID=$repoID&objectID=$objectID&entry=" . $this->repo->encodePath($postPath))),
-        trim($pathName, '/'),
-    );
+    $breadcrumbItems[] = h::a(set::href($this->repo->createLink('log', "repoID=$repoID&objectID=$objectID&entry=" . $this->repo->encodePath($postPath))), trim($pathName, '/'));
     $breadcrumbItems[] = h::span('/', setStyle('margin', '0 5px'));
 }
 if($fileName) $breadcrumbItems[] = h::span($fileName);
@@ -73,17 +65,6 @@ $footToolbar['items'][] = array('text' => $lang->repo->diff, 'className' => "btn
     ...$breadcrumbItems
 );
 
-dtable
-(
-    set::id('repo-logs-table'),
-    set::cols($config->repo->logDtable->fieldList),
-    set::data($logs),
-    set::onCheckChange(jsRaw('window.checkedChange')),
-    set::canRowCheckable(jsRaw('function(rowID){return canRowCheckable(rowID);}')),
-    set::footToolbar($footToolbar),
-    set::footer(array('toolbar', 'flex', 'pager')),
-    set::footPager(usePager('pager', 'noTotalCount')),
-    set::showToolbarOnChecked(false),
-);
+dtable(set::id('repo-logs-table'), set::cols($config->repo->logDtable->fieldList), set::data($logs), set::onCheckChange(jsRaw('window.checkedChange')), set::canRowCheckable(jsRaw('function(rowID){return canRowCheckable(rowID);}')), set::footToolbar($footToolbar), set::footer(array('toolbar', 'flex', 'pager')), set::footPager(usePager('pager', 'noTotalCount')), set::showToolbarOnChecked(false));
 
 render();

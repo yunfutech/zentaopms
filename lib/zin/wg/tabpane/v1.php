@@ -4,14 +4,20 @@ namespace zin;
 
 class tabPane extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'key: string',
         'title?: string',
         'active?: bool=false',
         'param?: string'
     );
 
-    protected static array $defineBlocks = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineBlocks = array(
         'prefix'  => array(),
         'suffix'  => array(),
         'divider' => false

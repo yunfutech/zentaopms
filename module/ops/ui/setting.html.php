@@ -33,20 +33,8 @@ foreach($lang->$module->$fieldList as $key => $value)
 {
     $formRows[] = formRow
     (
-        formGroup
-        (
-            set::width('150px'),
-            set::label($key === '' ? 'NULL' : $key),
-            set::name('keys[]'),
-            set::control('hidden'),
-            set::value($key),
-        ),
-        input
-        (
-            set::name('systems[]'),
-            set::type('hidden'),
-            set::value(0),
-        ),
+        formGroup(set::width('150px'), set::label($key === '' ? 'NULL' : $key), set::name('keys[]'), set::control('hidden'), set::value($key)),
+        input(set::name('systems[]'), set::type('hidden'), set::value(0)),
         formGroup
         (
             setClass('ml-3'),
@@ -55,55 +43,20 @@ foreach($lang->$module->$fieldList as $key => $value)
             set::value($value),
             set::readonly(empty($key) ? true : false)
         ),
-        div
-        (
-            setClass('ops-actions'),
-            icon('plus', setClass('ml-2')),
-            icon('close', setClass('ml-2')),
-        )
+        div(setClass('ops-actions'), icon('plus', setClass('ml-2')), icon('close', setClass('ml-2')))
     );
 }
 
 $appliedTo = array($this->app->getClientLang() => $lang->custom->currentLang, 'all' => $lang->custom->allLang);
 $formRows[] = formRow
 (
-    formGroup
-    (
-        set::width('1/3'),
-        set::name('lang'),
-        set::control('radioList'),
-        set::value(str_replace('_', '-', $currentLang)),
-        set::inline(true),
-        set::items($appliedTo),
-    )
+    formGroup(set::width('1/3'), set::name('lang'), set::control('radioList'), set::value(str_replace('_', '-', $currentLang)), set::inline(true), set::items($appliedTo))
 );
 
 $hasSideBar = !empty($lang->{$module}->osNameList) && array_key_exists($field, $lang->{$module}->osNameList);
 $actions    = array('submit');
 if(common::hasPriv('custom', 'restore')) $actions[] = array('class' => 'ajax-submit', 'text' => $lang->custom->restore, 'data-confirm' => $lang->custom->confirmRestore, 'url' => $this->createLink('custom', 'restore', "module=$module&field=$fieldList&confirm=yes"));
-formPanel
-(
-    setID('opsForm'),
-    set::size('md'),
-    $hasSideBar ? setClass('ops-ml-0') : null,
-    set::title($lang->$module->common . '  >   ' . $lang->$module->$field),
-    set::actions($actions),
-    formRow
-    (
-        setClass('ops-header'),
-        formGroup
-        (
-            set::width('1/4'),
-            set::label($lang->custom->key),
-        ),
-        formGroup
-        (
-            set::width('1/3'),
-            set::label($lang->custom->value),
-        ),
-    ),
-    $formRows,
-);
+formPanel(setID('opsForm'), set::size('md'), $hasSideBar ? setClass('ops-ml-0') : null, set::title($lang->$module->common . '  >   ' . $lang->$module->$field), set::actions($actions), formRow(setClass('ops-header'), formGroup(set::width('1/4'), set::label($lang->custom->key)), formGroup(set::width('1/3'), set::label($lang->custom->value))), $formRows);
 
 if($hasSideBar)
 {

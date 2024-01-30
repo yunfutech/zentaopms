@@ -7,14 +7,20 @@ require_once dirname(__DIR__) . DS . 'dropmenu' . DS . 'v1.php';
 
 class heading extends wg
 {
-    protected static array $defineProps = array
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array
     (
         'items?: array',            // 标题上显示的按钮。
         'showAppName?: bool=true',  // 是否自动显示当前应用名称。
         'dropmenu?: array'          // 1.5 级导航配置。
     );
 
-    protected static array $defineBlocks = array
+    /**
+     * @var mixed[]
+     */
+    protected static $defineBlocks = array
     (
         'toolbar'  => array('map' => 'toolbar'),
         'dropmenu' => array('map' => 'dropmenu')
@@ -55,7 +61,7 @@ class heading extends wg
      * @access protected
      * @return dropmenu
      */
-    protected function buildDropmenu(): dropmenu|array|null
+    protected function buildDropmenu()
     {
         global $app, $config;
         if($this->hasBlock('dropmenu')) return $this->block('dropmenu');

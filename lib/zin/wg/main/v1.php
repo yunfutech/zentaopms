@@ -29,7 +29,7 @@ class main extends wg
      * @var array
      * @access protected
      */
-    protected static array $defineBlocks = array
+    protected static $defineBlocks = array
     (
         'navbar'  => array('map' => 'mainNavbar'),
         'menu'    => array('map' => 'featureBar,nav,toolbar'),
@@ -42,7 +42,7 @@ class main extends wg
      * @access protected
      * @return wg
      */
-    protected function buildMenu(): wg|null
+    protected function buildMenu()
     {
         $menuBlocks = $this->block('menu');
         if(empty($menuBlocks)) return div();
@@ -121,7 +121,7 @@ class main extends wg
      * @access protected
      * @return array
      */
-    protected function buildMainNavbar(): array|mainNavbar
+    protected function buildMainNavbar()
     {
         $navbar = $this->block('navbar');
         if(!$navbar) return mainNavbar();

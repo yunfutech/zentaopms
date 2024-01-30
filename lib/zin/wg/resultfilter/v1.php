@@ -15,7 +15,10 @@ requireWg('filter');
 
 class resultFilter extends filter
 {
-    protected static array $defaultProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defaultProps = array(
         'menu' => array('checkbox' => true),
         'multiple' => true
     );
@@ -68,7 +71,10 @@ class resultFilter extends filter
         );
     }
 
-    protected function build(): wg|array
+    /**
+     * @return \zin\wg|mixed[]
+     */
+    protected function build()
     {
         $type  = $this->prop('type');
         $class = $this->prop('class');

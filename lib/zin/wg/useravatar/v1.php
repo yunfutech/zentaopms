@@ -6,7 +6,10 @@ require_once dirname(__DIR__) . DS . 'avatar' . DS . 'v1.php';
 
 class userAvatar extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'className?:string',
         'style?:array',
         'size?:int=32',

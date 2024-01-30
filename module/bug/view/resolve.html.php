@@ -51,8 +51,8 @@ js::set('released', $lang->build->released);
             </div>
           </td>
           <td>
-            <div id='resolvedBuildBox'><?php echo html::select('resolvedBuild', $builds, 'trunk', "class='form-control chosen'");?></div>
-            <div id='newBuildBox' class='hidden'><?php echo html::input('buildName', '', "class='form-control' placeholder='{$lang->bug->placeholder->newBuildName}'");?></div>
+            <div id='resolvedBuildBox'><?php echo html::select('resolvedBuild', $builds, '', "class='form-control picker-select'");?></div>
+            <div id='newBuildBox' class='hidden required'><?php echo html::input('buildName', '', "class='form-control' placeholder='{$lang->bug->placeholder->newBuildName}'");?></div>
           </td>
           <td>
             <?php if(common::hasPriv('build', 'create')):?>

@@ -77,7 +77,7 @@ else
 {
     function str_contains($haystack, $needle)
     {
-        return \str_contains($haystack, $needle);
+        return strpos($haystack, $needle) !== false;
     }
 }
 
@@ -99,7 +99,7 @@ else
 {
     function str_starts_with($haystack, $needle)
     {
-        return \str_starts_with($haystack, $needle);
+        return strncmp($haystack, $needle, strlen($needle)) === 0;
     }
 }
 
@@ -125,7 +125,7 @@ else
 {
     function str_ends_with($haystack, $needle)
     {
-        return \str_ends_with($haystack, $needle);
+        return substr_compare($haystack, $needle, -strlen($needle)) === 0;
     }
 }
 
@@ -149,7 +149,23 @@ else
 {
     function array_is_list(array $array)
     {
-        return \array_is_list($array);
+        $arrayIsList = function (array $array) : bool {
+            if (function_exists('array_is_list')) {
+                return array_is_list($array);
+            }
+            if ($array === []) {
+                return true;
+            }
+            $current_key = 0;
+            foreach ($array as $key => $noop) {
+                if ($key !== $current_key) {
+                    return false;
+                }
+                ++$current_key;
+            }
+            return true;
+        };
+        return $arrayIsList($array);
     }
 }
 

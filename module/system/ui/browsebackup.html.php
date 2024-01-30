@@ -12,32 +12,7 @@ namespace zin;
 
 $backups = initTableData($backups, $config->system->dtable->backup->fieldList, $this->system);
 
-panel
-(
-    set::size('lg'),
-    set::title($lang->backup->history),
-    to::headingActions
-    (
-        a
-        (
-            setClass('btn primary'),
-            icon('copy'),
-            set::href($this->createLink('system', 'backupPlatform')),
-            set::target('hiddenwin'),
-            $lang->backup->backup,
-            set('data-toggle', 'modal'),
-        ),
-    ),
-    div
-    (
-        setStyle('width', '66.6%'),
-        dtable
-        (
-            set::cols($config->system->dtable->backup->fieldList),
-            set::data($backups),
-        ),
-    ),
-);
+panel(set::size('lg'), set::title($lang->backup->history), to::headingActions(a(setClass('btn primary'), icon('copy'), set::href($this->createLink('system', 'backupPlatform')), set::target('hiddenwin'), $lang->backup->backup, set('data-toggle', 'modal'))), div(setStyle('width', '66.6%'), dtable(set::cols($config->system->dtable->backup->fieldList), set::data($backups))));
 
 render();
 

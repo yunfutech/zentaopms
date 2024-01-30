@@ -74,6 +74,9 @@ $lang->pivot->project     = $lang->projectCommon;
 $lang->pivot->PO          = 'PO';
 $lang->pivot->showPivot   = '查看透视表';
 $lang->pivot->showOrigin  = '查看原始数据';
+$lang->povit->dept        = '部门';
+$lang->povit->PP          = '项目负责人';
+$lang->povit->project     = '项目';
 
 $lang->pivot->showOriginItem = '展示原始条目';
 $lang->pivot->recTotalTip    = '共 <strong> %s </strong> 项';
@@ -116,16 +119,18 @@ $lang->pivot->dept             = '部门';
 $lang->pivot->deviationChart   = "{$lang->execution->common}偏差曲线";
 
 $lang->pivotList = new stdclass();
-$lang->pivotList->product = new stdclass();
-$lang->pivotList->project = new stdclass();
-$lang->pivotList->test    = new stdclass();
-$lang->pivotList->staff   = new stdclass();
+$lang->pivotList->product     = new stdclass();
+$lang->pivotList->project     = new stdclass();
+$lang->pivotList->test        = new stdclass();
+$lang->pivotList->staff       = new stdclass();
+$lang->pivotList->taskboard   = new stdclass();
 
-$lang->pivotList->product->lists[10] = $lang->productCommon . '汇总表|pivot|productsummary';
-$lang->pivotList->project->lists[10] = "{$lang->execution->common}偏差报表|pivot|projectdeviation";
-$lang->pivotList->test->lists[10]    = 'Bug创建表|pivot|bugcreate';
-$lang->pivotList->test->lists[13]    = '未解决Bug指派表|pivot|bugassign';
-$lang->pivotList->staff->lists[10]   = '员工负载表|pivot|workload';
+$lang->pivotList->product->lists[10]     = $lang->productCommon . '汇总表|pivot|productsummary';
+$lang->pivotList->project->lists[10]     = "{$lang->execution->common}偏差报表|pivot|projectdeviation";
+$lang->pivotList->test->lists[10]        = 'Bug创建表|pivot|bugcreate';
+$lang->pivotList->test->lists[13]        = '未解决Bug指派表|pivot|bugassign';
+$lang->pivotList->staff->lists[10]       = '员工负载表|pivot|workload';
+$lang->pivotList->staff->taskboard[10]   = '任务看板|pivot|taskboard';
 
 $lang->pivot->id            = '编号';
 $lang->pivot->execution     = $lang->execution->common;

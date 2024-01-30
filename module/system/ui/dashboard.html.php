@@ -32,43 +32,34 @@ div
         div
         (
             setClass('basis-2/5 border h-40 rounded-md row'),
-            div
+            div(setClass('basis-1/2 justify-center pl-6 pt-10 pb-10'), div
             (
-                setClass('basis-1/2 justify-center pl-6 pt-10 pb-10'),
+                setClass('flex row basis-2/3 justify-evenly h-full ml-5'),
+                icon(zget($this->lang->CNE->statusIcons, $status), set::size(30), setClass('app-status-circle status-' . $status)),
                 div
                 (
-                    setClass('flex row basis-2/3 justify-evenly h-full ml-5'),
-                    icon(zget($this->lang->CNE->statusIcons, $status), set::size(30), setClass('app-status-circle status-' . $status)),
-                    div
-                    (
-                        setClass('p-2 ml-8 pr-6 flex col justify-between normal'),
-                        setStyle('white-space', 'nowrap'),
-                        div(setClass('text-xl font-semibold'), zget($lang->CNE->statusList, $status)),
-                        $lang->system->cneStatus
-                    ),
-                    div(),
-                    div(setClass('p-4 border-r'))
+                    setClass('p-2 ml-8 pr-6 flex col justify-between normal'),
+                    setStyle('white-space', 'nowrap'),
+                    div(setClass('text-xl font-semibold'), zget($lang->CNE->statusList, $status)),
+                    $lang->system->cneStatus
                 ),
-            ),
+                div(),
+                div(setClass('p-4 border-r'))
+            )),
             div
             (
                 setClass('basis-1/2 justify-center p-6 pt-10 pb-10'),
-                div
+                div(setClass('flex row basis-2/3 justify-evenly text-center h-full'), div
                 (
-                    setClass('flex row basis-2/3 justify-evenly text-center h-full'),
-                    div
-                    (
-                        setClass('flex col justify-between'),
-                        div(setClass('text-4xl font-semibold text-primary'), $cneMetrics->node_count),
-                        $lang->system->nodeQuantity
-                    ),
-                    div
-                    (
-                        setClass('flex col justify-between'),
-                        div(setClass('text-4xl font-semibold text-primary'), $this->instance->totalServices()),
-                        $lang->system->serviceQuantity
-                    ),
-                )
+                    setClass('flex col justify-between'),
+                    div(setClass('text-4xl font-semibold text-primary'), $cneMetrics->node_count),
+                    $lang->system->nodeQuantity
+                ), div
+                (
+                    setClass('flex col justify-between'),
+                    div(setClass('text-4xl font-semibold text-primary'), $this->instance->totalServices()),
+                    $lang->system->serviceQuantity
+                ))
             )
         ),
         div
@@ -124,15 +115,4 @@ div
 
 /* 运行中服务 */
 $instances = initTableData($instances, $config->system->dtable->instanceList->fieldList, $this->system);
-div
-(
-    setClass('bg-white p-5 mt-5'),
-    div(setClass('text-xl font-semibold mb-5'), $lang->instance->runningService),
-    dtable
-    (
-        set::cols($config->system->dtable->instanceList->fieldList),
-        set::data($instances),
-        set::onRenderCell(jsRaw('window.renderInstanceList')),
-        set::footPager(usePager()),
-    ),
-);
+div(setClass('bg-white p-5 mt-5'), div(setClass('text-xl font-semibold mb-5'), $lang->instance->runningService), dtable(set::cols($config->system->dtable->instanceList->fieldList), set::data($instances), set::onRenderCell(jsRaw('window.renderInstanceList')), set::footPager(usePager())));

@@ -6,7 +6,10 @@ require_once dirname(__DIR__) . DS . 'nav' . DS . 'v1.php';
 
 class navbar extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'items?: array'
     );
 
@@ -284,14 +287,15 @@ class navbar extends wg
             new nav
             (
                 on::click(<<<'FUNC'
-                    const $target = $(e.target);
-                    if(!$target.closest('.nav-divider').length && $target.closest('.nav-item').length)
-                    {
-                        const $navbar = $target.closest('#navbar');
-                        $navbar.find('.active').removeClass('active');
-                        $target.closest('.nav-item').find('a').addClass('active');
-                    }
-                FUNC),
+    const $target = $(e.target);
+    if(!$target.closest('.nav-divider').length && $target.closest('.nav-item').length)
+    {
+        const $navbar = $target.closest('#navbar');
+        $navbar.find('.active').removeClass('active');
+        $target.closest('.nav-item').find('a').addClass('active');
+    }
+FUNC
+),
                 set::items($this->getItems()),
                 $this->children()
             )

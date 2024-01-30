@@ -56,31 +56,17 @@ foreach($MRList as $MR)
 
 $MRs = initTableData($MRList, $config->mr->dtable->fieldList, $this->mr);
 
-featureBar
-(
-    set::current($mode != 'status' ? $mode : $param),
-    set::linkParams("repoID={$repoID}&mode=status&param={key}"),
-);
+featureBar(set::current($mode != 'status' ? $mode : $param), set::linkParams("repoID={$repoID}&mode=status&param={key}"));
 
-toolBar
+toolBar(hasPriv('mr', 'create') ? item(set(array
 (
-    hasPriv('mr', 'create') ? item(set(array
-    (
-        'text'  => $lang->mr->create,
-        'icon'  => 'plus',
-        'class' => 'btn primary',
-        'url'   => createLink('mr', 'create', $app->tab == 'devops' ? "repoID={$repoID}" : ''),
-    ))) : null,
-);
+    'text'  => $lang->mr->create,
+    'icon'  => 'plus',
+    'class' => 'btn primary',
+    'url'   => createLink('mr', 'create', $app->tab == 'devops' ? "repoID={$repoID}" : ''),
+))) : null);
 
-dtable
-(
-    set::userMap($users),
-    set::cols($config->mr->dtable->fieldList),
-    set::data($MRs),
-    set::sortLink(jsRaw('createSortLink')),
-    set::footPager(usePager()),
-);
+dtable(set::userMap($users), set::cols($config->mr->dtable->fieldList), set::data($MRs), set::sortLink(jsRaw('createSortLink')), set::footPager(usePager()));
 
 render();
 

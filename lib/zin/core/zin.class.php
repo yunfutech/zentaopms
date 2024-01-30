@@ -16,22 +16,44 @@ require_once dirname(__DIR__) . DS . 'utils' . DS . 'deep.func.php';
 
 class zin
 {
-    public static array $globalRenderList = array();
+    /**
+     * @var mixed[]
+     */
+    public static $globalRenderList = array();
 
-    public static bool $enabledGlobalRender = true;
+    /**
+     * @var bool
+     */
+    public static $enabledGlobalRender = true;
 
-    public static array $data = array();
+    /**
+     * @var mixed[]
+     */
+    public static $data = array();
 
-    public static bool $rendered = false;
+    /**
+     * @var bool
+     */
+    public static $rendered = false;
 
-    public static bool $rawContentCalled = false;
+    /**
+     * @var bool
+     */
+    public static $rawContentCalled = false;
 
-    public static function getData(string $namePath, mixed $defaultValue = null): mixed
+    /**
+     * @param mixed $defaultValue
+     * @return mixed
+     */
+    public static function getData(string $namePath, $defaultValue = null)
     {
         return \zin\utils\deepGet(static::$data, $namePath, $defaultValue);
     }
 
-    public static function setData(string $namePath, mixed $value)
+    /**
+     * @param mixed $value
+     */
+    public static function setData(string $namePath, $value)
     {
         \zin\utils\deepSet(static::$data, $namePath, $value);
     }

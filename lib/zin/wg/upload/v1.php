@@ -4,7 +4,10 @@ namespace zin;
 
 class upload extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'name: string="files[]"',          // 字段名
         'icon?: string',                   // 文件图标
         'showIcon?: bool=true',            // 是否展示文件图标

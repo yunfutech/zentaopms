@@ -11,28 +11,17 @@ declare(strict_types=1);
 namespace zin;
 global $lang;
 
-detailHeader
-(
-    isAjaxRequest('modal') ? to::prefix() : '',
-    to::title(
-        entityLabel(
-            set(array('entityID' => $gitea->id, 'level' => 1, 'text' => $gitea->name))
-        )
-    ),
-);
+detailHeader(isAjaxRequest('modal') ? to::prefix() : '', to::title(
+    entityLabel(
+        set(array('entityID' => $gitea->id, 'level' => 1, 'text' => $gitea->name))
+    )
+));
 
-detailBody
+detailBody(sectionList(section
 (
-    sectionList
-    (
-        section
-        (
-            set::title($lang->gitea->url),
-            set::content("<a href='{$gitea->url}' target='_blank'>{$gitea->url}</a>"),
-            set::useHtml(true)
-        ),
-    ),
-    history(),
-);
+    set::title($lang->gitea->url),
+    set::content("<a href='{$gitea->url}' target='_blank'>{$gitea->url}</a>"),
+    set::useHtml(true)
+)), history());
 
 render();

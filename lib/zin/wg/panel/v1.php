@@ -4,7 +4,10 @@ namespace zin;
 
 class panel extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'class?: string="rounded ring-0 bg-canvas"', // 类名。
         'size?: "sm"|"lg"',         // 额外尺寸。
         'title?: string',           // 标题。
@@ -21,7 +24,10 @@ class panel extends wg
         'footerProps?: array'       // 底部属性。
     );
 
-    protected static array $defineBlocks = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineBlocks = array(
         'heading'        => array(),
         'headingActions' => array('map' => 'toolbar'),
         'titleSuffix'    => array(),

@@ -25,7 +25,7 @@ class select extends wg
      * @var    array
      * @access protected
      */
-    protected static array $defineProps = array
+    protected static $defineProps = array
     (
         'name: string',
         'id?: string',
@@ -62,7 +62,7 @@ class select extends wg
      * @access public
      * @return wg
      */
-    public function onBuildItem(wg|array $item): wg
+    public function onBuildItem($item): wg
     {
         if($item instanceof item) $item = $item->props->toJSON();
 

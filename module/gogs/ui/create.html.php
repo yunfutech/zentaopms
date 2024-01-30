@@ -12,35 +12,13 @@ declare(strict_types=1);
 
 namespace zin;
 
-formPanel
+formPanel(set::id('gogsCreateForm'), set::title($lang->gogs->lblCreate), formRow
 (
-    set::id('gogsCreateForm'),
-    set::title($lang->gogs->lblCreate),
-    formRow
-    (
-        formGroup
-        (
-            set::name('name'),
-            set::label($lang->gogs->name),
-            set::value($gogs->name),
-        )
-    ),
-    formRow
-    (
-        formGroup
-        (
-            set::name('url'),
-            set::label($lang->gogs->url),
-            set::value($gogs->url),
-        )
-    ),
-    formRow
-    (
-        formGroup
-        (
-            set::name('token'),
-            set::label($lang->gogs->token),
-            set::value($gogs->token),
-        )
-    ),
-);
+    formGroup(set::name('name'), set::label($lang->gogs->name), set::value($gogs->name))
+), formRow
+(
+    formGroup(set::name('url'), set::label($lang->gogs->url), set::value($gogs->url))
+), formRow
+(
+    formGroup(set::name('token'), set::label($lang->gogs->token), set::value($gogs->token))
+));

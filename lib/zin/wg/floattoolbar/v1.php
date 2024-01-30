@@ -4,27 +4,37 @@ namespace zin;
 
 class floatToolbar extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'prefix?:array',
         'main?:array',
         'suffix?:array',
         'object?:object'
     );
 
-    protected static array $defineBlocks = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineBlocks = array(
         'prefix' => array(),
         'main'   => array(),
         'suffix' => array()
     );
 
-    private function buildDivider(wg|array|null $wg1, wg|array|null $wg2): wg|null
+    /**
+     * @param \zin\wg|mixed[]|null $wg1
+     * @param \zin\wg|mixed[]|null $wg2
+     */
+    private function buildDivider($wg1, $wg2): ?\zin\wg
     {
         if(empty($wg1) || empty($wg2)) return null;
 
         return div(setClass('divider w-px self-center h-6 mx-2'));
     }
 
-    private function buildBtns(array|null $items): array|null
+    private function buildBtns(?array $items): ?array
     {
         if(empty($items)) return null;
 
@@ -50,7 +60,11 @@ class floatToolbar extends wg
         return zget($this->object, $matches[1]);
     }
 
-    private function mergeBtns(array|null $btns, array|wg|null $block): array|wg|null
+    /**
+     * @param mixed[]|\zin\wg|null $block
+     * @return mixed[]|\zin\wg|null
+     */
+    private function mergeBtns(?array $btns, $block)
     {
         if(empty($btns) && empty($block)) return null;
         if(empty($block)) return $btns;

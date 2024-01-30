@@ -20,21 +20,24 @@ require_once __DIR__ . DS . 'selector.func.php';
  */
 class hook
 {
-    /** The global root widget. */
-    public static wg $globalRoot;
+    /** The global root widget.
+     * @var \zin\wg */
+    public static $globalRoot;
 
-    /** The root widget. */
-    public wg $root;
+    /** The root widget.
+     * @var \zin\wg */
+    public $root;
 
-    /** The selectors object. */
-    public object|null $selectors;
+    /** The selectors object.
+     * @var object|null */
+    public $selectors;
 
     /**
      * The items list.
      *
      * @var wg[]
      */
-    public array $items;
+    public $items;
 
     /**
      * Construct the select object.
@@ -43,7 +46,7 @@ class hook
      * @param  wg|null             $root
      * @access public
      */
-    public function __construct(array|string|wg $selector = '', wg|null $root = null)
+    public function __construct($selector = '', ?\zin\wg $root = null)
     {
         $this->root      = empty($root) ? static::$globalRoot : $root;
         $this->selectors = null;
@@ -71,7 +74,7 @@ class hook
      * @access public
      * @return wg|null
      */
-    public function get(int $index = 0): wg | null
+    public function get(int $index = 0): ?\zin\wg
     {
         return isset($this->items[$index]) ? $this->items[$index] : null;
     }
@@ -147,7 +150,7 @@ class hook
      * @access public
      * @return bool
      */
-    public function is(string|array|object $selectors): bool
+    public function is($selectors): bool
     {
         $selectors = parseWgSelectors($selectors);
         foreach($this->items as $item)
@@ -210,7 +213,7 @@ class hook
      * @param  string|null  $value
      * @access public
      */
-    public function setStyle(array|string $name, ?string $value = null): hook
+    public function setStyle($name, ?string $value = null): hook
     {
         return $this->append(setStyle($name, $value));
     }
@@ -221,8 +224,9 @@ class hook
      * @param  string|array|props|null $name
      * @param  mixed                   $value
      * @access public
+     * @param \zin\props|mixed[]|string $prop
      */
-    public function setProp(props|array|string $prop, mixed $value = null): hook
+    public function setProp($prop, $value = null): hook
     {
         foreach($this->items as $item) $item->setProp($prop, $value);
         return $this;

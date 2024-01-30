@@ -6,7 +6,10 @@ require_once dirname(__DIR__) . DS . 'formgroup' . DS . 'v1.php';
 
 class formRow extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'width?: string',
         'items?: array',
         'hidden?: boolean'

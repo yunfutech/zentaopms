@@ -12,37 +12,13 @@ declare(strict_types=1);
 
 namespace zin;
 
-formPanel
+formPanel(set::id('giteaCreateForm'), set::title($lang->gitea->edit), set::submitBtnText($lang->save), set::actions(array('submit', array('text' => $lang->cancel, 'data-type' => 'submit', 'data-dismiss' => 'modal'))), formRow
 (
-    set::id('giteaCreateForm'),
-    set::title($lang->gitea->edit),
-    set::submitBtnText($lang->save),
-    set::actions(array('submit', array('text' => $lang->cancel, 'data-type' => 'submit', 'data-dismiss' => 'modal'))),
-    formRow
-    (
-        formGroup
-        (
-            set::name('name'),
-            set::label($lang->gitea->name),
-            set::value($gitea->name),
-        )
-    ),
-    formRow
-    (
-        formGroup
-        (
-            set::name('url'),
-            set::label($lang->gitea->url),
-            set::value($gitea->url),
-        )
-    ),
-    formRow
-    (
-        formGroup
-        (
-            set::name('token'),
-            set::label($lang->gitea->token),
-            set::value($gitea->token),
-        )
-    ),
-);
+    formGroup(set::name('name'), set::label($lang->gitea->name), set::value($gitea->name))
+), formRow
+(
+    formGroup(set::name('url'), set::label($lang->gitea->url), set::value($gitea->url))
+), formRow
+(
+    formGroup(set::name('token'), set::label($lang->gitea->token), set::value($gitea->token))
+));

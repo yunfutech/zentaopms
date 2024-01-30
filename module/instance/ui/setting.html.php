@@ -12,34 +12,10 @@ declare(strict_types=1);
 
 namespace zin;
 
-formPanel
+formPanel(set::id('instanceSettingForm'), set::title($lang->instance->setting), set::submitBtnText($lang->save), set::actions(array('submit')), formRow
 (
-    set::id('instanceSettingForm'),
-    set::title($lang->instance->setting),
-    set::submitBtnText($lang->save),
-    set::actions(array('submit')),
-    formRow
-    (
-        formGroup
-        (
-            set::name('name'),
-            set::width('500px'),
-            set::required(true),
-            set::label($lang->instance->name),
-            set::value($instance->name),
-        )
-    ),
-    formRow
-    (
-        formGroup
-        (
-            set::name('memory_kb'),
-            set::width('250px'),
-            set::control('picker'),
-            set::required(true),
-            set::label($lang->instance->adjustMem),
-            set::value(intval($currentResource->max->memory / 1024)),
-            set::items($this->instance->filterMemOptions($currentResource)),
-        )
-    ),
-);
+    formGroup(set::name('name'), set::width('500px'), set::required(true), set::label($lang->instance->name), set::value($instance->name))
+), formRow
+(
+    formGroup(set::name('memory_kb'), set::width('250px'), set::control('picker'), set::required(true), set::label($lang->instance->adjustMem), set::value(intval($currentResource->max->memory / 1024)), set::items($this->instance->filterMemOptions($currentResource)))
+));

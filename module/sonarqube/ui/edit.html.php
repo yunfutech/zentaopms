@@ -12,48 +12,28 @@ declare(strict_types=1);
 
 namespace zin;
 
-formPanel
+formPanel(set::id('sonarqubeCreateForm'), set::title($lang->sonarqube->editServer), set::submitBtnText($lang->save), set::actions(array('submit', array('text' => $lang->cancel, 'data-type' => 'submit', 'data-dismiss' => 'modal'))), formRow
 (
-    set::id('sonarqubeCreateForm'),
-    set::title($lang->sonarqube->editServer),
-    set::submitBtnText($lang->save),
-    set::actions(array('submit', array('text' => $lang->cancel, 'data-type' => 'submit', 'data-dismiss' => 'modal'))),
-    formRow
+    formGroup(set::name('name'), set::label($lang->sonarqube->name), set::value($sonarqube->name))
+), formRow
+(
+    formGroup
     (
-        formGroup
-        (
-            set::name('name'),
-            set::label($lang->sonarqube->name),
-            set::value($sonarqube->name),
-        )
-    ),
-    formRow
+        set::name('url'),
+        set::label($lang->sonarqube->url),
+        set::value($sonarqube->url),
+        set::placeholder($lang->sonarqube->placeholder->url)
+    )
+), formRow
+(
+    formGroup
     (
-        formGroup
-        (
-            set::name('url'),
-            set::label($lang->sonarqube->url),
-            set::value($sonarqube->url),
-            set::placeholder($lang->sonarqube->placeholder->url)
-        )
-    ),
-    formRow
-    (
-        formGroup
-        (
-            set::name('account'),
-            set::label($lang->sonarqube->account),
-            set::value($sonarqube->account),
-            set::placeholder($lang->sonarqube->placeholder->account)
-        )
-    ),
-    formRow
-    (
-        formGroup
-        (
-            set::name('password'),
-            set::label($lang->sonarqube->password),
-            set::value($sonarqube->password),
-        )
-    ),
-);
+        set::name('account'),
+        set::label($lang->sonarqube->account),
+        set::value($sonarqube->account),
+        set::placeholder($lang->sonarqube->placeholder->account)
+    )
+), formRow
+(
+    formGroup(set::name('password'), set::label($lang->sonarqube->password), set::value($sonarqube->password))
+));

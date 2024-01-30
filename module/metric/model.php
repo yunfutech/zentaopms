@@ -416,7 +416,7 @@ class metricModel extends model
      * @access public
      * @return object|false
      */
-    public function getByCode(string $code, string|array $fieldList = '*')
+    public function getByCode(string $code, $fieldList = '*')
     {
         if(is_array($fieldList)) $fieldList = implode(',', $fieldList);
         return $this->dao->select($fieldList)->from(TABLE_METRIC)->where('code')->eq($code)->fetch();
@@ -431,7 +431,7 @@ class metricModel extends model
      * @access public
      * @return object|false
      */
-    public function getByID(int $metricID, string|array $fieldList = '*')
+    public function getByID(int $metricID, $fieldList = '*')
     {
         if(is_array($fieldList)) $fieldList = implode(',', $fieldList);
         $metric = $this->dao->select($fieldList)->from(TABLE_METRIC)->where('id')->eq($metricID)->fetch();
@@ -607,7 +607,7 @@ class metricModel extends model
 
         include_once $this->getBaseCalcPath();
         include_once $calcPath;
-        $calculator = new $metric->code;
+        $calculator = new $metric->code();
 
         $statement = $this->getDataStatement($calculator);
         $rows = $statement->fetchAll();
@@ -824,7 +824,7 @@ class metricModel extends model
             $className = $calc->code;
 
             require_once $file;
-            $metricInstance = new $className;
+            $metricInstance = new $className();
             $metricInstance->id = $id;
 
             $calcInstances[$className] = $metricInstance;
@@ -1481,7 +1481,7 @@ class metricModel extends model
      * @access public
      * @return string|false
      */
-    public function getMetricRecordType(array|bool $tableData): string|false
+    public function getMetricRecordType($tableData)
     {
         if(!$tableData) return false;
         $fields = array_column($tableData, 'name');
@@ -1546,7 +1546,7 @@ class metricModel extends model
      * @access public
      * @return array|false
      */
-    public function getEchartsOptions(array $header, array $data, string $chartType = 'line'): array|false
+    public function getEchartsOptions(array $header, array $data, string $chartType = 'line')
     {
         if(!$header || !$data) return false;
         $type = in_array($chartType, array('barX', 'barY')) ? 'bar' : $chartType;
@@ -1837,7 +1837,7 @@ class metricModel extends model
      * @access public
      * @return object|string|false
      */
-    public function processRecordQuery(array $query, string $key, string $type = 'common'): object|array|string|false
+    public function processRecordQuery(array $query, string $key, string $type = 'common')
     {
         if($key == 'dateLabel')
         {
@@ -2033,7 +2033,7 @@ class metricModel extends model
      * @access public
      * @return array|false
      */
-    public function getDateLabels(string $dateType): array|false
+    public function getDateLabels(string $dateType)
     {
         if($dateType == 'nodate') return array();
         $objectKey = "{$dateType}Labels";

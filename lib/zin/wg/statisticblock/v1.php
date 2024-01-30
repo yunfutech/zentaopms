@@ -26,7 +26,7 @@ class statisticBlock extends blockPanel
      * @var    array
      * @access protected
      */
-    protected static array $defineProps = array
+    protected static $defineProps = array
     (
         'items: array',   // 列表项目，格式为：{id: string, text: string, url: string, activeUrl: string}[]
         'active?: string' // 当前激活的项目 ID。
@@ -38,7 +38,7 @@ class statisticBlock extends blockPanel
      * @return string|false
      * @access protected
      */
-    public static function getPageCSS(): string|false
+    public static function getPageCSS()
     {
         return file_get_contents(__DIR__ . DS . 'css' . DS . 'v1.css');
     }
@@ -52,7 +52,7 @@ class statisticBlock extends blockPanel
      * @param bool   $longBlock
      * @return wg|null
      */
-    protected function buildNav($id, $items, $active, $longBlock): wg|null
+    protected function buildNav($id, $items, $active, $longBlock): ?\zin\wg
     {
         if(empty($items)) return null;
 
@@ -124,7 +124,7 @@ class statisticBlock extends blockPanel
      * @param bool   $longBlock
      * @return wg|null
      */
-    protected function buildPanes($id, $items, $active, $longBlock): wg|null
+    protected function buildPanes($id, $items, $active, $longBlock): ?\zin\wg
     {
         if(empty($items))
         {

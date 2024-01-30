@@ -4,7 +4,10 @@ namespace zin;
 
 class productMenu extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'title?:string',
         'items?:array',
         'activeKey?:string',
@@ -12,7 +15,10 @@ class productMenu extends wg
         'leading?:bool=true'
     );
 
-    public static function getPageCSS(): string|false
+    /**
+     * @return string|false
+     */
+    public static function getPageCSS()
     {
         return file_get_contents(__DIR__ . DS . 'css' . DS . 'v1.css');
     }

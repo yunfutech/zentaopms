@@ -48,19 +48,8 @@ foreach($bugs as $bug)
 }
 $bugs = initTableData($bugs, $config->repo->reviewDtable->fieldList);
 
-\zin\featureBar
-(
-    set::linkParams("repoID={$repoID}&browseType={key}&objectID={$objectID}"),
-);
+\zin\featureBar(set::linkParams("repoID={$repoID}&browseType={key}&objectID={$objectID}"));
 
-dtable
-(
-    set::userMap($users),
-    set::cols($config->repo->reviewDtable->fieldList),
-    set::data($bugs),
-    set::sortLink(jsRaw('createSortLink')),
-    set::onRenderCell(jsRaw('window.renderRepobugList')),
-    set::footPager(usePager()),
-);
+dtable(set::userMap($users), set::cols($config->repo->reviewDtable->fieldList), set::data($bugs), set::sortLink(jsRaw('createSortLink')), set::onRenderCell(jsRaw('window.renderRepobugList')), set::footPager(usePager()));
 
 render();

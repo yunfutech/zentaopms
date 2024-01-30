@@ -17,7 +17,10 @@ namespace zin;
  */
 class formBase extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'id?: string="$GID"',                  // ID，如果不指定则自动生成（使用 zin 部件 GID）。
         'method?: "get"|"post"="post"',        // 表单提交方式。
         'url?: string',                        // 表单提交地址。
@@ -31,7 +34,10 @@ class formBase extends wg
         'ajax?:array'                          // Ajax 表单选项
     );
 
-    protected static array $defineBlocks = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineBlocks = array(
         'actions'        => array('toolbar')
     );
 
@@ -43,7 +49,7 @@ class formBase extends wg
         $this->setDefaultProps(array('actions' => $actions));
     }
 
-    protected function buildActions(): wg|null
+    protected function buildActions(): ?\zin\wg
     {
         if($this->hasBlock('actions')) return $this->block('actions');
 
@@ -71,7 +77,10 @@ class formBase extends wg
         );
     }
 
-    protected function buildContent(): array|wg
+    /**
+     * @return mixed[]|\zin\wg
+     */
+    protected function buildContent()
     {
         return $this->children();
     }

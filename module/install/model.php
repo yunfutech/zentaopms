@@ -645,22 +645,22 @@ class installModel extends model
         if(empty($timezone))    $timezone    = $this->config->timezone;
         if(empty($defaultLang)) $defaultLang = $this->config->default->lang;
         $configContent = <<<EOT
-        <?php
-        \$config->installed       = true;
-        \$config->debug           = false;
-        \$config->requestType     = 'PATH_INFO';
-        \$config->timezone        = '$timezone';
-        \$config->db->driver      = '{$this->config->db->driver}';
-        \$config->db->host        = '$dbHost';
-        \$config->db->port        = '$dbPort';
-        \$config->db->name        = '$dbName';
-        \$config->db->user        = '$dbUser';
-        \$config->db->encoding    = '{$this->config->db->encoding}';
-        \$config->db->password    = '$dbPassword';
-        \$config->db->prefix      = '{$this->config->db->prefix}';
-        \$config->webRoot         = getWebRoot();
-        \$config->default->lang   = '$defaultLang';
-        EOT;
+<?php
+\$config->installed       = true;
+\$config->debug           = false;
+\$config->requestType     = 'PATH_INFO';
+\$config->timezone        = '{$timezone}';
+\$config->db->driver      = '{$this->config->db->driver}';
+\$config->db->host        = '{$dbHost}';
+\$config->db->port        = '{$dbPort}';
+\$config->db->name        = '{$dbName}';
+\$config->db->user        = '{$dbUser}';
+\$config->db->encoding    = '{$this->config->db->encoding}';
+\$config->db->password    = '{$dbPassword}';
+\$config->db->prefix      = '{$this->config->db->prefix}';
+\$config->webRoot         = getWebRoot();
+\$config->default->lang   = '{$defaultLang}';
+EOT;
 
         if($customSession) $configContent .= "\n\$config->customSession = true;";
 

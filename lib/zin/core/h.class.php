@@ -18,7 +18,10 @@ require_once __DIR__ . DS . 'wg.func.php';
 
 class h extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'tagName: string',
         'selfClose?: bool'
     );
@@ -281,7 +284,10 @@ class h extends wg
         return $jsCode;
     }
 
-    public static function createJsScopeCode(string|array $codes): string
+    /**
+     * @param string|mixed[] $codes
+     */
+    public static function createJsScopeCode($codes): string
     {
         if(is_array($codes)) $codes = implode("\n", $codes);
         return ";(function(){\n$codes\n}());";

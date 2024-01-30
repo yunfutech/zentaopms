@@ -164,7 +164,6 @@ class bugModel extends model
         $actions   = array();
         $data      = fixer::input('post')->get();
 
-
         $result = $this->loadModel('common')->removeDuplicate('bug', $data, "product={$productID}");
         $data   = $result['data'];
 
@@ -178,9 +177,6 @@ class bugModel extends model
         $execution = 0;
         $type      = '';
         $pri       = 0;
-        $os        = '';
-        $browser   = '';
-        $assignedTo = '';
         foreach($data->title as $i => $title)
         {
             if(empty($title) and $this->common->checkValidRow('bug', $data, $i))
@@ -197,25 +193,20 @@ class bugModel extends model
             if($data->executions[$i] != 'ditto') $execution = (int)$data->executions[$i];
             if($data->types[$i]      != 'ditto') $type      = $data->types[$i];
             if($data->pris[$i]       != 'ditto') $pri       = $data->pris[$i];
-            if($data->oses[$i]       != 'ditto') $os        = $data->oses[$i];
-            if($data->browsers[$i]   != 'ditto') $browser   = $data->browsers[$i];
-            if($data->assignedTos[$i]!= 'ditto') $assignedTo= $data->assignedTos[$i];
 
             $data->modules[$i]    = (int)$module;
             $data->projects[$i]   = (int)$project;
             $data->executions[$i] = (int)$execution;
             $data->types[$i]      = $type;
             $data->pris[$i]       = $pri;
-            $data->oses[$i]       = $os;
-            $data->browsers[$i]   = $browser;
-            $data->assignedTos[$i]= $assignedTo;
+            $data->oses[$i]       = implode(',', $oses);
+            $data->browsers[$i]   = implode(',', $browsers);
         }
 
         /* Get bug data. */
         if(isset($data->uploadImage)) $this->loadModel('file');
         $extendFields = $this->getFlowExtendFields();
         $bugs = array();
-
         foreach($data->title as $i => $title)
         {
             $title = trim($title);
@@ -226,7 +217,6 @@ class bugModel extends model
             $bug->openedDate  = $now;
             $bug->product     = (int)$productID;
             $bug->branch      = isset($data->branches) ? (int)$data->branches[$i] : 0;
-            $bug->project     = (int)$data->projects[$i];
             $bug->module      = (int)$data->modules[$i];
             $bug->project     = (int)$data->projects[$i];
             $bug->execution   = (int)$data->executions[$i];
@@ -241,7 +231,6 @@ class bugModel extends model
             $bug->os          = $data->oses[$i];
             $bug->browser     = $data->browsers[$i];
             $bug->keywords    = $data->keywords[$i];
-            $bug->assignedTo    = $data->assignedTos[$i];
 
             if(isset($data->lanes[$i])) $bug->laneID = $data->lanes[$i];
 

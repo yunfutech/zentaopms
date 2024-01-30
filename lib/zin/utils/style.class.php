@@ -86,7 +86,7 @@ class style extends dataset
      * @param string|null  $value - Property value
      * @return style|array|string
      */
-    public function cssVar(array|string $name = '', ?string $value = null): style|array|string
+    public function cssVar($name = '', ?string $value = null)
     {
         /* Support for setting multiple variables by an array */
         if(is_array($name))
@@ -101,7 +101,7 @@ class style extends dataset
             $vars = array();
             foreach ($this->data as $prop => $value)
             {
-                if(!str_starts_with($name, '--')) continue;
+                if(strncmp($name, '--', strlen('--')) !== 0) continue;
                 $vars[substr($prop, 2)] = $value;
             }
             return $vars;

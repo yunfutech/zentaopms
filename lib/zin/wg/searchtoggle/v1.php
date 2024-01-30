@@ -4,7 +4,10 @@ namespace zin;
 
 class searchToggle extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'target?: string',
         'open?: bool',
         'module?: string',

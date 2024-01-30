@@ -4,7 +4,10 @@ namespace zin;
 
 class mainMenu extends wg
 {
-    protected static array $defineProps = array(
+    /**
+     * @var mixed[]
+     */
+    protected static $defineProps = array(
         'statuses?:array',
         'btnGroup?:array',
         'others?:array'

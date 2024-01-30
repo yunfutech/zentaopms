@@ -18,16 +18,12 @@ if(!empty($screenshots) && count($screenshots)%3) $screenshots = array_merge($sc
 $screenshotsWg = array();
 foreach($screenshots as $screenshot)
 {
-    $screenshotsWg[] = div
+    $screenshotsWg[] = div(setClass('flex-1 img-thumbnail'), $screenshot ? img
     (
-        setClass('flex-1 img-thumbnail'),
-        $screenshot ? img
-        (
-            set::src($screenshot),
-            setClass('state'),
-            on::click('window.open("' . $screenshot . '")')
-        ) : null,
-    );
+        set::src($screenshot),
+        setClass('state'),
+        on::click('window.open("' . $screenshot . '")')
+    ) : null);
 }
 
 $dynamicArticlesWd = array();
@@ -58,25 +54,8 @@ detailHeader(
         div
         (
             setID('store-detail-action'),
-            dropdown
-            (
-                set::staticMenu(true),
-                btn
-                (
-                    setClass('ghost text-black mr-2'),
-                    set::icon('info-sign'),
-                    $lang->store->support,
-                ),
-                set::items($dropMenus),
-            ),
-            backBtn
-            (
-                $lang->store->install,
-                setClass('primary btn install-btn w-20'),
-                set::type('primary'),
-                set::url($this->createLink('space', 'createApplication', "id={$cloudApp->id}")),
-                setData('toggle', 'modal'),
-            )
+            dropdown(set::staticMenu(true), btn(setClass('ghost text-black mr-2'), set::icon('info-sign'), $lang->store->support), set::items($dropMenus)),
+            backBtn($lang->store->install, setClass('primary btn install-btn w-20'), set::type('primary'), set::url($this->createLink('space', 'createApplication', "id={$cloudApp->id}")), setData('toggle', 'modal'))
         )
     )
 );
@@ -84,15 +63,12 @@ detailBody
 (
     sectionList
     (
-        section
+        section(div
         (
-            div
-            (
-                setClass('flex'),
-                img(set::src($cloudApp->logo), setStyle(array('width' => '50px', 'height' => '50px'))),
-                div(setClass('app-name-container'),div($cloudApp->alias, setClass('app-name')))
-            ),
-        ),
+            setClass('flex'),
+            img(set::src($cloudApp->logo), setStyle(array('width' => '50px', 'height' => '50px'))),
+            div(setClass('app-name-container'),div($cloudApp->alias, setClass('app-name')))
+        )),
         section
         (
             set::title($lang->store->appBasicInfo),
@@ -102,20 +78,8 @@ detailBody
             (
                 setStyle('min-width', '600px'),
                 setClass('table w-auto max-w-full bordered mt-4'),
-                h::tr
-                (
-                    h::th($lang->store->appVersion),
-                    h::th($lang->store->appType),
-                    h::th($lang->store->author),
-                    h::th($lang->store->releaseDate),
-                ),
-                h::tr
-                (
-                    h::td($cloudApp->app_version),
-                    h::td(trim(implode('/', helper::arrayColumn($cloudApp->categories, 'alias')), '/')),
-                    h::td($cloudApp->author),
-                    h::td((new \DateTime($cloudApp->publish_time))->format('Y-m-d')),
-                )
+                h::tr(h::th($lang->store->appVersion), h::th($lang->store->appType), h::th($lang->store->author), h::th($lang->store->releaseDate)),
+                h::tr(h::td($cloudApp->app_version), h::td(trim(implode('/', helper::arrayColumn($cloudApp->categories, 'alias')), '/')), h::td($cloudApp->author), h::td((new \DateTime($cloudApp->publish_time))->format('Y-m-d')))
             )
         ),
         section
@@ -132,17 +96,7 @@ detailBody
         (
             set::title($lang->store->appDynamic),
             set::content(empty($dynamicArticles) ? $lang->store->noDynamicArticle : ''),
-            empty($dynamicArticles) ? '' : div
-            (
-                setClass('border pb-5 pt-5'),
-                h::table
-                (
-                    setID('dynamicTable'),
-                    setClass('table borderless table-hover mb-3'),
-                    ...$dynamicArticlesWd,
-                ),
-                pager(set::props(array('id' => 'dynamicPager'))),
-            )
+            empty($dynamicArticles) ? '' : div(setClass('border pb-5 pt-5'), h::table(setID('dynamicTable'), setClass('table borderless table-hover mb-3'), ...$dynamicArticlesWd), pager(set::props(array('id' => 'dynamicPager'))))
         )
     )
 );

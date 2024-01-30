@@ -84,7 +84,7 @@ class metricTao extends metricModel
      * @access protected
      * @return object|false
      */
-    protected function fetchMetricByCode(string $code): object|false
+    protected function fetchMetricByCode(string $code)
     {
         return $this->dao->select('*')->from(TABLE_METRIC)
             ->where('deleted')->eq('0')
@@ -225,7 +225,7 @@ class metricTao extends metricModel
      * @access protected
      * @return array
      */
-    protected function fetchMetricRecords(string $code, array $fieldList, array $query = array(), object|null $pager = null): array
+    protected function fetchMetricRecords(string $code, array $fieldList, array $query = array(), ?object $pager = null): array
     {
         $metricScope = $this->fetchMetricByID($code, 'scope');
         $objectList  = $this->getObjectsWithPager($code, $metricScope, $pager);
@@ -256,7 +256,9 @@ class metricTao extends metricModel
         $scopeValue = $scope;
 
         $fieldList = array_merge($fieldList, array('id', 'value', 'date'));
-        $wrapFields = array_map(fn($value) => "`$value`", $fieldList);
+        $wrapFields = array_map(function ($value) {
+            return "`$value`";
+        }, $fieldList);
         $dataFieldStr = implode(',', $wrapFields);
 
         $stmt = $this->dao->select($dataFieldStr)
@@ -288,7 +290,7 @@ class metricTao extends metricModel
      * @access protected
      * @return array|false
      */
-    protected function getRecordFields(string $code): array|false
+    protected function getRecordFields(string $code)
     {
         $record = $this->dao->select('*')
             ->from(TABLE_METRICLIB)

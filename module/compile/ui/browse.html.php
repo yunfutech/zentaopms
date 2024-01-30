@@ -19,11 +19,7 @@ if($repoID)
 }
 
 /* zin: Define the set::module('compile') feature bar on main menu. */
-featureBar
-(
-    set::current('compile'),
-    set::link($this->createLink('{key}', 'browse', "repoID=$repoID")),
-);
+featureBar(set::current('compile'), set::link($this->createLink('{key}', 'browse', "repoID=$repoID")));
 
 /* zin: Define the toolbar on main menu. */
 toolbar();
@@ -35,13 +31,6 @@ $tableData = initTableData($buildList, $config->compile->dtable->fieldList, $thi
 
 foreach($tableData as $row) if(!$row->testtask) unset($row->actions[1]);
 
-dtable
-(
-    set::cols($config->compile->dtable->fieldList),
-    set::data($tableData),
-    set::sortLink(jsRaw('createSortLink')),
-    set::onRenderCell(jsRaw('window.renderCell')),
-    set::footPager(usePager()),
-);
+dtable(set::cols($config->compile->dtable->fieldList), set::data($tableData), set::sortLink(jsRaw('createSortLink')), set::onRenderCell(jsRaw('window.renderCell')), set::footPager(usePager()));
 
 render();

@@ -34,10 +34,7 @@ $config->host->dtable->fieldList['admin']['map']      = $accounts;
 $config->host->dtable->fieldList['serverRoom']['map'] = $rooms;
 $tableData = initTableData($hostList, $config->host->dtable->fieldList, $this->host);
 
-toolbar
-(
-    $canCreate ? item(set($createItem)) : null,
-);
+toolbar($canCreate ? item(set($createItem)) : null);
 
 /* zin: Define the sidebar in main content. */
 sidebar
@@ -53,14 +50,6 @@ sidebar
     )))
 );
 
-dtable
-(
-    set::userMap($accounts),
-    set::cols(array_values($config->host->dtable->fieldList)),
-    set::data($tableData),
-    set::sortLink(jsRaw('createSortLink')),
-    set::onRenderCell(jsRaw('window.renderCell')),
-    set::footPager(usePager()),
-);
+dtable(set::userMap($accounts), set::cols(array_values($config->host->dtable->fieldList)), set::data($tableData), set::sortLink(jsRaw('createSortLink')), set::onRenderCell(jsRaw('window.renderCell')), set::footPager(usePager()));
 
 render();

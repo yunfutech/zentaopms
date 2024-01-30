@@ -199,18 +199,18 @@ $lang->block->default['product']['4']['params']['count']   = 15;
 $lang->block->default['product']['4']['params']['orderBy'] = 'id_desc';
 $lang->block->default['product']['4']['params']['type']    = 'assignedTo';
 
-$lang->block->default['execution']['1']['title'] = '迭代统计';
+$lang->block->default['execution']['1']['title'] = '执行统计';
 $lang->block->default['execution']['1']['block'] = 'statistic';
 $lang->block->default['execution']['1']['grid']  = 8;
 
 $lang->block->default['execution']['1']['params']['type']  = 'all';
 $lang->block->default['execution']['1']['params']['count'] = '20';
 
-$lang->block->default['execution']['2']['title'] = '迭代总览';
+$lang->block->default['execution']['2']['title'] = '执行总览';
 $lang->block->default['execution']['2']['block'] = 'overview';
 $lang->block->default['execution']['2']['grid']  = 4;
 
-$lang->block->default['execution']['3']['title'] = '未关闭的迭代';
+$lang->block->default['execution']['3']['title'] = '未关闭的执行';
 $lang->block->default['execution']['3']['block'] = 'list';
 $lang->block->default['execution']['3']['grid']  = 8;
 
@@ -608,10 +608,10 @@ $lang->block->zentaoapp->sinceTotalInvestment = '从使用至今，总投入';
 $lang->block->zentaoapp->myStory              = '我的需求';
 $lang->block->zentaoapp->allStorySum          = '需求总数';
 $lang->block->zentaoapp->storyCompleteRate    = '需求完成率';
-$lang->block->zentaoapp->latestExecution      = '近期迭代';
-$lang->block->zentaoapp->involvedExecution    = '我参与的迭代';
-$lang->block->zentaoapp->mangedProduct        = '负责产品';
-$lang->block->zentaoapp->involvedProject      = '参与项目';
+$lang->block->zentaoapp->latestExecution      = '近期执行';
+$lang->block->zentaoapp->involvedExecution    = '我参与的执行';
+$lang->block->zentaoapp->mangedProduct        = "负责{$lang->productCommon}";
+$lang->block->zentaoapp->involvedProject      = "参与{$lang->projectCommon}";
 $lang->block->zentaoapp->customIndexCard      = '定制首页卡片';
 $lang->block->zentaoapp->createStory          = '提需求';
 $lang->block->zentaoapp->createEffort         = '记日志';
