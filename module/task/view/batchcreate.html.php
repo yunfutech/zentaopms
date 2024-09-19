@@ -106,12 +106,22 @@ $colspan = count($visibleFields) + 3;
           if($i == 1)
           {
               $currentStory = $storyID;
-              $type         = '';
-              $member       = '';
+              if ($currentUser->dept == 9) {
+                  $type = "discuss";
+              } else {
+                  $type = "devel";
+              }
+              $member = $currentUser->account;
+              $estimate = $config->task->defaultEstimate;
+              $estStarted = $today;
+              $deadline = $today;
           }
           else
           {
               $currentStory = $type = $member = $moduleID = 'ditto';
+              $estimate = '';
+              $estStarted = '';
+              $deadline = '';
           }
           ?>
           <?php $pri = $parent ? $parentPri : 3;?>
@@ -151,11 +161,11 @@ $colspan = count($visibleFields) + 3;
             <?php endif;?>
             <td><?php echo html::select("type[$i]", $lang->task->typeList, $type, 'class=form-control');?></td>
             <td class="<?php echo zget($visibleFields, 'assignedTo', 'hidden')?> assignedToBox" style='overflow:visible'><?php echo html::select("assignedTo[$i]", $members, $member, "class='form-control chosen'");?></td>
-            <td class="<?php echo zget($visibleFields, 'estimate', 'hidden')?> estimateBox"><?php echo html::input("estimate[$i]", '', "class='form-control text-center'");?></td>
+            <td class="<?php echo zget($visibleFields, 'estimate', 'hidden')?> estimateBox"><?php echo html::input("estimate[$i]", $estimate, "class='form-control text-center'");?></td>
             <td class="<?php echo zget($visibleFields, 'estStarted', 'hidden')?> estStartedBox">
               <div class='input-group'>
                 <?php
-                echo html::input("estStarted[$i]", '', "class='form-control text-center form-date' onkeyup='toggleCheck(this)'");
+                echo html::input("estStarted[$i]", $estStarted, "class='form-control text-center form-date' onkeyup='toggleCheck(this)'");
                 if($i != 1) echo "<span class='input-group-addon estStartedBox'><input type='checkbox' name='estStartedDitto[$i]' id='estStartedDitto$i' " . ($i > 1 ? "checked" : '') . " /> {$lang->task->ditto}</span>";
                 ?>
               </div>
@@ -163,7 +173,7 @@ $colspan = count($visibleFields) + 3;
             <td class="<?php echo zget($visibleFields, 'deadline', 'hidden')?> deadlineBox">
               <div class='input-group'>
                 <?php
-                echo html::input("deadline[$i]", '', "class='form-control text-center form-date' onkeyup='toggleCheck(this)'");
+                echo html::input("deadline[$i]", $deadline, "class='form-control text-center form-date' onkeyup='toggleCheck(this)'");
                 if($i != 1) echo "<span class='input-group-addon deadlineBox'><input type='checkbox' name='deadlineDitto[$i]' id='deadlineDitto$i' " . ($i > 1 ? "checked" : '') . " /> {$lang->task->ditto}</span>";
                 ?>
               </div>

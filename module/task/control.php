@@ -504,6 +504,8 @@ class task extends control
         if($taskID) $this->view->parentTitle = $this->dao->select('name')->from(TABLE_TASK)->where('id')->eq($taskID)->fetch('name');
         if($taskID) $this->view->parentPri   = $this->dao->select('pri')->from(TABLE_TASK)->where('id')->eq($taskID)->fetch('pri');
 
+        $this->view->today        = helper::today();
+        $this->view->currentUser  = $this->app->user;
         $this->view->title        = $title;
         $this->view->position     = $position;
         $this->view->execution    = $execution;
@@ -1333,6 +1335,7 @@ class task extends control
         {
             $this->loadModel('action');
             $changes = $this->task->finish($taskID, $extra);
+
             if(dao::isError())
             {
                 if($this->viewType == 'json' or (defined('RUN_MODE') && RUN_MODE == 'api')) return $this->send(array('result' => 'fail', 'message' => dao::getError()));
@@ -1400,6 +1403,7 @@ class task extends control
             {
                 return print(js::locate($this->createLink('task', 'view', "taskID=$taskID"), 'parent'));
             }
+
         }
 
         $task         = $this->view->task;
@@ -1415,6 +1419,7 @@ class task extends control
         }
 
         $this->view->title      = $this->view->execution->name . $this->lang->colon .$this->lang->task->finish;
+        $this->view->currentConsumed = $task->left;
         $this->view->position[] = $this->lang->task->finish;
         $this->view->members    = $members;
         $this->view->users      = $this->loadModel('user')->getPairs('noletter');

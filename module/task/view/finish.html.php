@@ -54,7 +54,7 @@
         <tr>
           <th><?php echo $lang->task->currentConsumed;?></th>
           <td>
-            <div class='input-group'><?php echo html::input('currentConsumed', 0, "class='form-control'");?> <span class='input-group-addon'><?php echo $lang->task->hour;?></span></div>
+            <div class='input-group'><?php echo html::input('currentConsumed', $currentConsumed, "class='form-control'");?> <span class='input-group-addon'><?php echo $lang->task->hour;?></span></div>
           </td>
           <td>
             <div class='table-row'>
@@ -95,7 +95,7 @@
             $readonly    = 'readonly';
             if(helper::isZeroDate($realStarted))
             {
-                $realStarted = '';
+                $realStarted = date('Y-m-d 09:00:00');
                 $readonly    = '';
             }
             ?>

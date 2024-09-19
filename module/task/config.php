@@ -291,3 +291,5 @@ $config->task->datatable->fieldList['actions']['type']     = 'html';
 $config->task->datatable->fieldList['actions']['fixed']    = 'right';
 $config->task->datatable->fieldList['actions']['width']    = '180';
 $config->task->datatable->fieldList['actions']['required'] = 'yes';
+
+$config->task->defaultEstimate = '1';
