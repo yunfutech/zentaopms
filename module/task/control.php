@@ -1418,7 +1418,7 @@ class task extends control
             if($currentTeam) $task->myConsumed = $currentTeam->consumed;
         }
 
-        $task->consumed = $task->left + $task->consumed;
+        // $task->consumed = $task->left + $task->consumed;
         $this->view->title      = $this->view->execution->name . $this->lang->colon .$this->lang->task->finish;
         $this->view->currentConsumed = $task->left;
         $this->view->position[] = $this->lang->task->finish;
