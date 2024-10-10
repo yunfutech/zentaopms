@@ -400,3 +400,5 @@ $lang->datepicker->dpText->TEXT_WEEK_MONDAY = '本周一';
 $lang->datepicker->dpText->TEXT_WEEK_SUNDAY = '本周日';
 $lang->datepicker->dpText->TEXT_MONTH_BEGIN = '本月初';
 $lang->datepicker->dpText->TEXT_MONTH_END   = '本月末';
+
+$lang->task->dailyTask = '生成日会任务';
