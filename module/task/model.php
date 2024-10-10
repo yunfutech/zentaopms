@@ -4771,4 +4771,21 @@ class taskModel extends model
             ->andWhere('AID')->eq($taskID)
             ->fetchPairs();
     }
+
+    /**
+     * 生成任务
+     */
+    public function generateTask($task)
+    {
+        $this->dao->insert(TABLE_TASK)->data($task)
+        ->autoCheck()
+        ->batchCheck($this->config->task->create->requiredFields, 'notempty')
+        ->checkIF($task->estimate != '', 'estimate', 'float')
+        ->checkIF(!helper::isZeroDate($task->deadline), 'deadline', 'ge', $task->estStarted)
+        ->checkFlow()
+        ->exec();
+        if(dao::isError()) {
+            echo dao::getError();
+        }
+    }
 }

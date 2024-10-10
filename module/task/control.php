@@ -2471,4 +2471,75 @@ class task extends control
         $this->view->users   = $this->loadModel('user')->getPairs();
         $this->display('', 'editTeam');
     }
+
+    /**
+     * 生成日会任务
+     */
+    public function dailyTask($days = '')
+    {
+        $users   = $this->loadModel('user')->getList();
+        $days = $this->formatDays($days);
+        $now = helper::now();
+        foreach ($users as $user) {
+            $deptArr = $this->config->task->dailyTask->deptArr;
+            if (in_array($user->dept, $deptArr)) {
+                $estimate = $deptArr[$user->dept]->estimate;
+                $left = $deptArr[$user->dept]->left;
+            } else {
+                $estimate = $this->config->task->dailyTask->estimate;
+                $left = $this->config->task->dailyTask->left;
+            }
+            foreach ($days as $day) {
+                $task = [
+                    'project' => $this->config->task->dailyTask->project,
+                    'execution' => $this->config->task->dailyTask->execution,
+                    'type' => $this->config->task->dailyTask->type,
+                    'estimate' => $estimate,
+                    'consumed' => $this->config->task->dailyTask->consumed,
+                    'left' => $left,
+                    'deadline' => $day,
+                    'openedBy' => $user->account,
+                    'assignedTo' => $user->account,
+                    'openedDate' => $now,
+                    'assignedDate' => $now
+                ];
+                $task['name'] = '早会验收会';
+                $this->task->generateTask($task);
+            }
+        }
+    }
+
+    /**
+     * 处理日期
+     * 如果有输入日期，则返回输入日期
+     * 如果没有输入日期，则返回下周一到下周五的日期
+     */
+    private function formatDays($inputDays)
+    {
+        if (empty($inputDays)) {
+            $days = $this->getNextWeekDays();
+        } else {
+            $post_days = explode(',', $inputDays);
+            $days = [];
+            foreach ($post_days as $day) {
+                array_push($days, date('Y-m-d', strtotime($day)));
+            }
+        }
+        return $days;
+    }
+
+    /**
+     * 获取下周一到下周五的日期
+     */
+    private function getNextWeekDays()
+    {
+        $days = [];
+        $week = date('w');
+        $week = $week == 0 ? 7 : $week;
+        $nextMonday = date('Y-m-d', strtotime('+' . (8 - $week) . ' days'));
+        for ($i = 0; $i < 5; $i++) {
+            array_push($days, date('Y-m-d', strtotime('+' . $i . ' days', strtotime($nextMonday))));
+        }
+        return $days;
+    }
 }

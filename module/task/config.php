@@ -293,3 +293,39 @@ $config->task->datatable->fieldList['actions']['width']    = '180';
 $config->task->datatable->fieldList['actions']['required'] = 'yes';
 
 $config->task->defaultEstimate = '1';
+
+// 日会配置
+$config->task->dailyTask = new stdClass();
+$config->task->dailyTask->project = 706;    # 项目管理
+$config->task->dailyTask->execution = 1011; # 项目管理2024
+$config->task->dailyTask->type = 'discuss';
+$config->task->dailyTask->estimate = 0.3;
+$config->task->dailyTask->left = 0.3;
+$config->task->dailyTask->consumed = 0;
+$config->task->dailyTask->deptArr = [
+    // 管理层
+    9 => [
+        'estimate': 1,
+        'left': 1,
+    ],
+    // 项目部
+    1 => [
+        'estimate': 0.5,
+        'left': 0.5,
+    ],
+];
+// 开发环境
+// $config->task->dailyTask->project = 9;
+// $config->task->dailyTask->execution = 10;
+// $config->task->dailyTask->deptArr = [
+//     // 经理
+//     1 => [
+//         'estimate' => 1,
+//         'left' => 1,
+//     ],
+//     // 开发
+//     2 => [
+//         'estimate' => 0.5,
+//         'left' => 0.5,
+//     ],
+// ];
