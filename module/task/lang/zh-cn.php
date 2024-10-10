@@ -395,3 +395,5 @@ $lang->taskestimate->consumed = '工时';
 
 $lang->task->overEsStartDate = '已超出%s计划开始时间，请先修改%s计划开始时间';
 $lang->task->overEsEndDate   = '已超出%s计划结束时间，请先修改%s计划结束时间';
+
+$lang->task->dailyTask = '生成日会任务';
