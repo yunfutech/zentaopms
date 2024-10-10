@@ -361,7 +361,7 @@ class pivot extends control
             $projects = [0 => '全部'] + $this->loadModel('project')->getAll();
         } else {
             $projects = [0 => '全部'] + $this->loadModel('project')->getProjectsFilterPP(
-                $mode = '', $director = '', $type = 'project', $pp = $pp);
+                $mode = 'noclosed', $director = '', $type = 'project', $pp = $pp);
         }
 
         // if ($director == '' && $product == 0) {

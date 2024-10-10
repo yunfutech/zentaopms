@@ -2507,6 +2507,7 @@ class task extends control
                 $this->task->generateTask($task);
             }
         }
+        echo '生成成功';
     }
 
     /**

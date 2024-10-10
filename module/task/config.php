@@ -305,13 +305,13 @@ $config->task->dailyTask->consumed = 0;
 $config->task->dailyTask->deptArr = [
     // 管理层
     9 => [
-        'estimate': 1,
-        'left': 1,
+        'estimate' => 1,
+        'left' => 1,
     ],
     // 项目部
     1 => [
-        'estimate': 0.5,
-        'left': 0.5,
+        'estimate' => 0.5,
+        'left' => 0.5,
     ],
 ];
 // 开发环境
