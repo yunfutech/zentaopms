@@ -358,7 +358,7 @@ class pivot extends control
         # TODO: 项目负责人
         $pps = ['' => '全部'] + $this->loadModel('project')->getPPs();
         if ($pp == '') {
-            $projects = [0 => '全部'] + $this->loadModel('project')->getAll();
+            $projects = [0 => '全部'] + $this->loadModel('project')->getAll($mode='noclosed');
         } else {
             $projects = [0 => '全部'] + $this->loadModel('project')->getProjectsFilterPP(
                 $mode = 'noclosed', $director = '', $type = 'project', $pp = $pp);
