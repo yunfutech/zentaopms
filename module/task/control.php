@@ -2486,7 +2486,7 @@ class task extends control
                 continue;
             }
             $deptArr = $this->config->task->dailyTask->deptArr;
-            if (in_array($user->dept, $deptArr)) {
+            if (in_array($user->dept, array_keys($deptArr)))) {
                 $estimate = $deptArr[$user->dept]->estimate;
                 $left = $deptArr[$user->dept]->left;
             } else {
