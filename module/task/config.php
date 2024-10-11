@@ -296,6 +296,7 @@ $config->task->defaultEstimate = '1';
 
 // 日会配置
 $config->task->dailyTask = new stdClass();
+$config->task->dailyTask->excludeUsers = ['jiaxianfu']; # 无需生成日会的员工
 $config->task->dailyTask->project = 706;    # 项目管理
 $config->task->dailyTask->execution = 1011; # 项目管理2024
 $config->task->dailyTask->type = 'discuss';
@@ -315,6 +316,7 @@ $config->task->dailyTask->deptArr = [
     ],
 ];
 // 开发环境
+// $config->task->dailyTask->excludeUsers = ['testManager']; # 无需生成日会的员工
 // $config->task->dailyTask->project = 9;
 // $config->task->dailyTask->execution = 10;
 // $config->task->dailyTask->deptArr = [

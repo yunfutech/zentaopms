@@ -2482,6 +2482,9 @@ class task extends control
         $days = $this->formatDays($days);
         $now = helper::now();
         foreach ($users as $user) {
+            if (in_array($user->account, $this->config->task->dailyTask->excludeUsers)) {
+                continue;
+            }
             $deptArr = $this->config->task->dailyTask->deptArr;
             if (in_array($user->dept, $deptArr)) {
                 $estimate = $deptArr[$user->dept]->estimate;
