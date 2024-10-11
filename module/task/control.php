@@ -1423,6 +1423,7 @@ class task extends control
         $this->view->currentConsumed = $task->left;
         $this->view->position[] = $this->lang->task->finish;
         $this->view->members    = $members;
+        $this->view->estStarted = $task->estStarted;
         $this->view->users      = $this->loadModel('user')->getPairs('noletter');
 
         $this->display();
@@ -2500,6 +2501,7 @@ class task extends control
                     'deadline' => $day,
                     'openedBy' => $user->account,
                     'assignedTo' => $user->account,
+                    'estStarted' => $day,
                     'openedDate' => $now,
                     'assignedDate' => $now
                 ];

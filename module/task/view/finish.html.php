@@ -95,8 +95,12 @@
             $readonly    = 'readonly';
             if(helper::isZeroDate($realStarted))
             {
-                $realStarted = date('Y-m-d 09:00:00');
-                $readonly    = '';
+              if ($task->estStarted == '') {
+                $realStarted = date('Y-m-d') . ' 09:00:00';
+              } else {
+                $realStarted = substr($task->estStarted, 0, 10) . ' 09:00:00';
+              }
+              $readonly    = '';
             }
             ?>
             <?php echo html::input('realStarted', $realStarted, "class='form-control" . ($readonly ? '' : ' form-datetime') . "' $readonly");?>
