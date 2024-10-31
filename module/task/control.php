@@ -2549,4 +2549,23 @@ class task extends control
         }
         return $days;
     }
+
+    /**
+     * 关闭已完成任务
+     */
+    public function closeDoneTasks()
+    {
+        $user    = $this->loadModel('user')->getById($this->app->user->id, 'id');
+        $doneTasks = $this->task->getUserTaskPairs($user->account, 'done');
+        $this->loadModel('action');
+        foreach ($doneTasks as $taskID => $name) {
+            $changes = $this->task->close($taskID);
+            if($changes)
+            {
+                $actionID = $this->action->create('task', $taskID, 'Closed', '');
+                $this->action->logHistory($actionID, $changes);
+            }
+        }
+        return print(js::reload('parent'));
+    }
 }

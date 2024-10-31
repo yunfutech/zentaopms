@@ -203,3 +203,5 @@ $lang->my->featureBar['contribute']['audit']['createdbyme']  = '由我发起';
 
 $lang->my->featureBar['contribute']['doc']['openedbyme'] = '由我创建';
 $lang->my->featureBar['contribute']['doc']['editedbyme'] = '由我编辑';
+
+$lang->my->closeDoneTasks = '关闭已完成的任务';

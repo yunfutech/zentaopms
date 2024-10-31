@@ -26,7 +26,13 @@
     ?>
   </div>
   <a class="btn btn-link querybox-toggle" id='bysearchTab'><i class="icon icon-search muted"></i> <?php echo $lang->my->byQuery;?></a>
-</div>
+  <div class="btn-toolbar pull-right">
+    <?php
+      $actionLink = $this->createLink('task', 'closeDoneTasks');
+      echo html::commonButton($lang->my->closeDoneTasks, "onclick=\"setFormAction('$actionLink', 'hiddenwin')\"", "btn btn-primary");
+    ?>
+  </div>
+  </div>
 <div id="mainContent">
   <?php $dataModule = $app->rawMethod == 'work' ? 'workTask' : 'contributeTask';?>
   <div class="cell<?php if($type == 'bySearch') echo ' show';?>" id="queryBox" data-module=<?php echo $dataModule;?>></div>
