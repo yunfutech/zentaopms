@@ -913,6 +913,7 @@ $lang->resource->task->editEstimate       = 'editEstimate';
 $lang->resource->task->deleteEstimate     = 'deleteEstimate';
 $lang->resource->task->report             = 'reportChart';
 $lang->resource->task->dailyTask          = 'dailyTask';
+$lang->resource->task->closeDoneTasks     = 'closeDoneTasks';
 
 $lang->task->methodOrder[5]   = 'create';
 $lang->task->methodOrder[10]  = 'batchCreate';
@@ -938,6 +939,7 @@ $lang->task->methodOrder[105] = 'deleteEstimate';
 $lang->task->methodOrder[110] = 'report';
 $lang->task->methodOrder[115] = 'batchChangeModule';
 $lang->task->methodOrder[120] = 'dailyTask';
+$lang->task->methodOrder[125] = 'closeDoneTasks';
 
 /* Build. */
 $lang->resource->build = new stdclass();
