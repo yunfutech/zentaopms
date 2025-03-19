@@ -63,15 +63,17 @@ class task extends control
         $task = new stdClass();
         $task->module     = $moduleID;
         $task->mode       = '';
-        $task->assignedTo = '';
+        $task->assignedTo = $this->app->user->account;
         $task->name       = '';
         $task->story      = $storyID;
-        $task->type       = '';
+        $type = $this->app->user->dept == 9 ? 'discuss' : 'devel';
+        $task->type       = $type;
         $task->pri        = '3';
-        $task->estimate   = '';
+        $task->estimate   = $this->config->task->defaultEstimate;
         $task->desc       = '';
-        $task->estStarted = '';
-        $task->deadline   = '';
+        $today = helper::today();
+        $task->estStarted = $today;
+        $task->deadline   = $today;
         $task->mailto     = '';
         $task->color      = '';
         if($taskID > 0)

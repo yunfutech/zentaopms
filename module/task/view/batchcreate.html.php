@@ -106,11 +106,7 @@ $colspan = count($visibleFields) + 3;
           if($i == 1)
           {
               $currentStory = $storyID;
-              if ($currentUser->dept == 9) {
-                  $type = "discuss";
-              } else {
-                  $type = "devel";
-              }
+              $type = $currentUser->dept == 9 ? 'discuss' : 'devel';
               $member = $currentUser->account;
               $estimate = $config->task->defaultEstimate;
               $estStarted = $today;
